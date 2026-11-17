@@ -1169,10 +1169,10 @@ func (this *Deepcoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, entry a
 	var volume *float64 = this.SafeNumber(data, "V")
 	if side != nil && *side == "0" {
 		// bid
-		bids.(ccxt.IOrderBookSide).Store(price, volume)
+		bids.Store(price, volume)
 	} else if side != nil && *side == "1" {
 		// ask
-		asks.(ccxt.IOrderBookSide).Store(price, volume)
+		asks.Store(price, volume)
 	}
 }
 

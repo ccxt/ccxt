@@ -1404,13 +1404,13 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) map[stri
 		// https://github.com/ccxt/ccxt/issues/9227
 		var duration int64 = this.ParseTimeframe(timeframe)
 		request["start"] = since
-		var sinceLimit int64 = func() int64 {
-			if limit == nil {
-				return 1440
-			}
-			return min(*limit, 1440)
-		}()
-		request["end"] = this.Sum(since, ((sinceLimit * duration) * 1000))
+		var sinceLimit int64
+		if limit == nil {
+			sinceLimit = 1440
+		} else {
+			sinceLimit = min(*limit, 1440)
+		}
+		request["end"] = this.Sum(since, (sinceLimit*duration)*1000)
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1440) // default 1440, max 1440

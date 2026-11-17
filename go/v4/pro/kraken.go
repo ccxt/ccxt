@@ -1341,7 +1341,7 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	markets := r.Value
-	var marketsByWsName any = this.SafeDict(this.Options, "marketsByWsName")
+	var marketsByWsName map[string]any = this.SafeDictMap(this.Options, "marketsByWsName")
 	if (marketsByWsName == nil) || (reload == true) {
 		marketsByWsName = map[string]any{}
 		var symbols []string = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
@@ -1351,7 +1351,9 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 				var market map[string]any = this.Market(symbol)
 				var info map[string]any = ccxt.SafeMapTyped(market, "info")
 				var wsName *string = this.SafeString(info, "wsname")
-				ccxt.AddElementToObject(marketsByWsName, wsName, market)
+				if marketsByWsName != nil && wsName != nil {
+					marketsByWsName[*wsName] = market
+				}
 			}
 		}
 		this.Options["marketsByWsName"] = marketsByWsName

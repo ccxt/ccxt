@@ -4995,12 +4995,12 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		}
 		return 1000
 	}()
-	var limitValue any = func() any {
-		if limit == nil {
-			return maxLimit
-		}
-		return mathMin(limit, maxLimit)
-	}()
+	var limitValue int64
+	if limit == nil {
+		limitValue = int64(maxLimit)
+	} else {
+		limitValue = min(*limit, int64(maxLimit))
+	}
 	var untilMs *int64 = this.SafeInteger(paramsRequest, "until")
 	var until any = nil
 	if untilMs != nil {
@@ -5011,8 +5011,8 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		var duration int64 = this.ParseTimeframe(timeframe)
 		var fromTimestamp int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = fromTimestamp
-		var distance any = Multiply((Subtract(limitValue, 1)), duration)
-		var toTimestamp any = this.Sum(fromTimestamp, distance)
+		var distance int64 = (limitValue - 1) * duration
+		var toTimestamp int64 = this.Sum(fromTimestamp, distance).(int64)
 		var currentTimestamp int64 = this.Seconds()
 		var to any = mathMin(toTimestamp, currentTimestamp)
 		if until != nil {
@@ -5024,7 +5024,7 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if until != nil {
 			AddElementToObject(request, "to", until)
 		}
-		AddElementToObject(request, "limit", limitValue)
+		request["limit"] = limitValue
 	}
 	var response any = []any{}
 	if *this.SafeBool(market, "contract", false) {

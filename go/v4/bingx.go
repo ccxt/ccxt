@@ -1788,12 +1788,12 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		"symbol": market["id"],
 	}
 	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var requestLimit any = func() any {
-		if limit == nil {
-			return 500
-		}
-		return mathMin(limit, maxLimit)
-	}()
+	var requestLimit int64
+	if limit == nil {
+		requestLimit = 500
+	} else {
+		requestLimit = min(*limit, int64(maxLimit))
+	}
 	if since != nil {
 		request["startTime"] = mathMax(*since-1, 0)
 	}
@@ -1812,12 +1812,12 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		if since != nil {
 			// the exchange aligns the window to endTime, so keep it within limit candles of since
 			var duration int64 = this.ParseTimeframe(timeframe) * 1000
-			endTime = mathMin(until, this.Sum(since, Multiply(duration, requestLimit)))
+			endTime = mathMin(until, this.Sum(since, duration*requestLimit))
 		}
 		request["endTime"] = endTime
 	} else if (*this.SafeBool(market, "inverse", false)) && (since != nil) {
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		request["endTime"] = this.Sum(since, Multiply(duration, requestLimit))
+		request["endTime"] = this.Sum(since, duration*requestLimit)
 	}
 	var response map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {

@@ -2640,9 +2640,9 @@ func (this *Kucoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any
 		}
 		var value []any = []any{price, quantity}
 		if typeVar == "bids" {
-			storedBids.(ccxt.IOrderBookSide).StoreArray(value)
+			storedBids.StoreArray(value)
 		} else {
-			storedAsks.(ccxt.IOrderBookSide).StoreArray(value)
+			storedAsks.StoreArray(value)
 		}
 	} else if !ccxt.IsEqual(changes, nil) {
 		var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})

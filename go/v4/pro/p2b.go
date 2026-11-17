@@ -621,7 +621,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 			var price *float64 = this.SafeNumber(bid, 0)
 			var amount *float64 = this.SafeNumber(bid, 1)
 			var bookSide ccxt.IOrderBookSide = orderbook.GetBids()
-			bookSide.(ccxt.IOrderBookSide).Store(price, amount)
+			bookSide.Store(price, amount)
 		}
 	}
 	if asks != nil {
@@ -630,7 +630,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 			var price *float64 = this.SafeNumber(ask, 0)
 			var amount *float64 = this.SafeNumber(ask, 1)
 			var bookside ccxt.IOrderBookSide = orderbook.GetAsks()
-			bookside.(ccxt.IOrderBookSide).Store(price, amount)
+			bookside.Store(price, amount)
 		}
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)

@@ -2106,13 +2106,9 @@ func (this *Revolutx) HandleErrors(code int64, reason string, url string, method
 			return nil
 		}
 		var feedback string = this.Id + " " + body
-		var errorMessage any = nil
+		var errorMessage *string = nil
 		if IsObject(response) {
-			if derefPtr := this.SafeString2(response, "message", "error"); derefPtr != nil {
-				errorMessage = *derefPtr
-			} else {
-				errorMessage = nil
-			}
+			errorMessage = this.SafeString2(response, "message", "error")
 		}
 		if errorMessage != nil {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)

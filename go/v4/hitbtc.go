@@ -1077,12 +1077,13 @@ func (this *Hitbtc) ParseCurrency(currency any) map[string]any {
 		var rawNetwork any = rawNetworks[j]
 		var networkId *string = this.SafeString2(rawNetwork, "protocol", "network")
 		var rawNetworkCode *string = this.NetworkIdToCode(networkId, code)
-		var networkCodeUpper any = func() any {
-			if rawNetworkCode != nil {
-				return strings.ToUpper(*rawNetworkCode)
-			}
-			return nil
-		}()
+		var networkCodeUpper *string
+		if rawNetworkCode != nil {
+			networkCodeUpperValue := strings.ToUpper(*rawNetworkCode)
+			networkCodeUpper = &networkCodeUpperValue
+		} else {
+			networkCodeUpper = nil
+		}
 		var networkCode *string = nil
 		if networkCodeUpper != nil {
 			networkCode = this.SafeString(this.NetworkAliases, networkCodeUpper, networkCodeUpper)
@@ -1162,12 +1163,12 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"currency": currency["id"],
 	}
 	var networkInput *string = this.SafeStringUpper(params, "network")
-	var network *string = func() *string {
-		if networkInput != nil {
-			return this.SafeString(this.NetworkAliases, networkInput, networkInput)
-		}
-		return nil
-	}()
+	var network *string
+	if networkInput != nil {
+		network = this.SafeString(this.NetworkAliases, networkInput, networkInput)
+	} else {
+		network = nil
+	}
 	if (network != nil) && (code == "USDT") {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
@@ -1231,12 +1232,12 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		"currency": currency["id"],
 	}
 	var networkInput *string = this.SafeStringUpper(params, "network")
-	var network *string = func() *string {
-		if networkInput != nil {
-			return this.SafeString(this.NetworkAliases, networkInput, networkInput)
-		}
-		return nil
-	}()
+	var network *string
+	if networkInput != nil {
+		network = this.SafeString(this.NetworkAliases, networkInput, networkInput)
+	} else {
+		network = nil
+	}
 	if (network != nil) && (code == "USDT") {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
@@ -3828,12 +3829,12 @@ func (this *Hitbtc) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var networkInput *string = this.SafeStringUpper(paramsWithdrawTag, "network")
-	var network *string = func() *string {
-		if networkInput != nil {
-			return this.SafeString(this.NetworkAliases, networkInput, networkInput)
-		}
-		return nil
-	}()
+	var network *string
+	if networkInput != nil {
+		network = this.SafeString(this.NetworkAliases, networkInput, networkInput)
+	} else {
+		network = nil
+	}
 	if (network != nil) && (code == "USDT") {
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
@@ -5103,12 +5104,13 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
 		var rawNetworkCode *string = this.NetworkIdToCode(networkId, code)
-		var networkCodeUpper any = func() any {
-			if rawNetworkCode != nil {
-				return strings.ToUpper(*rawNetworkCode)
-			}
-			return nil
-		}()
+		var networkCodeUpper *string
+		if rawNetworkCode != nil {
+			networkCodeUpperValue := strings.ToUpper(*rawNetworkCode)
+			networkCodeUpper = &networkCodeUpperValue
+		} else {
+			networkCodeUpper = nil
+		}
 		var networkCode *string = nil
 		if networkCodeUpper != nil {
 			networkCode = this.SafeString(this.NetworkAliases, networkCodeUpper, networkCodeUpper)

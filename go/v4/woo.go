@@ -3712,12 +3712,12 @@ func (this *Woo) GetDedicatedNetworkId(currency any, params any) []any {
 	var networks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyCode *string = this.SafeString(currency, "code", "")
 	var networkCode *string = this.NetworkIdToCode(networkCodeRaw, currencyCode)
-	var networkEntry any = func() any {
-		if networkCode == nil {
-			return nil
-		}
-		return this.SafeDict(networks, networkCode)
-	}()
+	var networkEntry map[string]any
+	if networkCode == nil {
+		networkEntry = nil
+	} else {
+		networkEntry = this.SafeDictMap(networks, networkCode)
+	}
 	if networkEntry == nil {
 		var supportedNetworks []string = nil
 		if networks != nil {

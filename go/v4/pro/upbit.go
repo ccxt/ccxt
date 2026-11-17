@@ -874,12 +874,12 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 		}
 		return this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
 	}()
-	var order any = func() any {
-		if orderId == nil {
-			return nil
-		}
-		return this.SafeDict(orders, orderId)
-	}()
+	var order map[string]any
+	if orderId == nil {
+		order = nil
+	} else {
+		order = this.SafeDictMap(orders, orderId)
+	}
 	if order != nil {
 		// paid_fee is cumulative, so the cached fee is only a fallback
 		var parsedFee map[string]any = ccxt.SafeMapTyped(parsed, "fee")

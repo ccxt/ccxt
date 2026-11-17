@@ -1128,7 +1128,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 		var symbol *string = this.SafeSymbol(marketId)
 		var orderId *string = this.SafeString(order, "order_id")
 		var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
-		var previousOrder any = this.SafeDict(previousOrders, orderId)
+		var previousOrder map[string]any = this.SafeDictMap(previousOrders, orderId)
 		var reason *string = this.SafeString(message, "reason")
 		if (previousOrder == nil) || (reason != nil && *reason == "edited_by_user") {
 			var parsed map[string]any = this.ParseWsOrder(order)
@@ -1137,8 +1137,10 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash+":"+*symbol)
 		} else {
 			var trade map[string]any = this.ParseWsTrade(order)
-			if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
-				ccxt.AddElementToObject(previousOrder, "trades", []any{})
+			if ccxt.IsEqual(previousOrder["trades"], nil) {
+				if previousOrder != nil {
+					previousOrder["trades"] = []any{}
+				}
 			}
 			retRes80116 := ccxt.GetValue(previousOrder, "trades")
 			ccxt.AppendToArray(&retRes80116, trade)
@@ -1163,12 +1165,14 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			var prevAmountString *string = this.SafeString(previousOrder, "amount")
 			var remaining *string = ccxt.Precise.StringSub(prevAmountString, totalFilled)
 			ccxt.AddElementToObject(previousOrder, "remaining", remaining)
-			if ccxt.IsEqual(ccxt.GetValue(previousOrder, "fee"), nil) {
-				ccxt.AddElementToObject(previousOrder, "fee", map[string]any{
-					"rate":     nil,
-					"cost":     "0",
-					"currency": this.NumberToString(this.SafeString(trade["fee"], "currency")),
-				})
+			if ccxt.IsEqual(previousOrder["fee"], nil) {
+				if previousOrder != nil {
+					previousOrder["fee"] = map[string]any{
+						"rate":     nil,
+						"cost":     "0",
+						"currency": this.NumberToString(this.SafeString(trade["fee"], "currency")),
+					}
+				}
 			}
 			var previousFee map[string]any = this.SafeDictMap(previousOrder, "fee", map[string]any{})
 			if (!ccxt.IsEqual(previousFee["cost"], nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
@@ -1662,10 +1666,10 @@ func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if side != nil && *side == "sell" {
 		var asks ccxt.IOrderBookSide = orderbook.GetAsks()
-		asks.(ccxt.IOrderBookSide).Store(price, qty)
+		asks.Store(price, qty)
 	} else {
 		var bids ccxt.IOrderBookSide = orderbook.GetBids()
-		bids.(ccxt.IOrderBookSide).Store(price, qty)
+		bids.Store(price, qty)
 	}
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))

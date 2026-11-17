@@ -571,10 +571,10 @@ func (this *Onetrading) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta
 	var typeVar *string = this.SafeString(delta, 0)
 	if typeVar != nil && *typeVar == "BUY" {
 		var bids ccxt.IOrderBookSide = orderbook.GetBids()
-		bids.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+		bids.StoreArray(bidAsk)
 	} else if typeVar != nil && *typeVar == "SELL" {
 		var asks ccxt.IOrderBookSide = orderbook.GetAsks()
-		asks.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+		asks.StoreArray(bidAsk)
 	} else {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook () received unknown change type " + this.Json(delta)))
 	}

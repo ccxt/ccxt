@@ -432,7 +432,7 @@ func (this *Myriad) fetchRawMarketsListBody(ch chan ccxt.AsyncResult[[]map[strin
 	// track the running count with an explicit counter (avoids inline array .length / .slice,
 	// which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
 	var collected int = 0
-	var page any = 1
+	var page int = 1
 	for true {
 
 		r := <-this.MyriadPublicGetMarkets(this.Extend(map[string]any{
@@ -462,7 +462,7 @@ func (this *Myriad) fetchRawMarketsListBody(ch chan ccxt.AsyncResult[[]map[strin
 				collected = len(allRawMarkets)
 			}
 		}
-		page = this.Sum(page, 1)
+		page = page + 1
 		if (limit != nil && int64(rawMarketsLength) < *limit) || (maxMarkets == nil || int64(collected) >= *maxMarkets) {
 			break
 		}
@@ -733,7 +733,7 @@ func (this *Myriad) fetchRawQuestionsListBody(ch chan ccxt.AsyncResult[[]map[str
 	var allRawQuestions []any = []any{}
 	var seen map[string]any = map[string]any{}
 	var collected int = 0
-	var page any = 1
+	var page int = 1
 	for true {
 		var request map[string]any = map[string]any{
 			"limit": limit,
@@ -775,7 +775,7 @@ func (this *Myriad) fetchRawQuestionsListBody(ch chan ccxt.AsyncResult[[]map[str
 				collected = len(allRawQuestions)
 			}
 		}
-		page = this.Sum(page, 1)
+		page = page + 1
 		if (limit != nil && int64(rawQuestionsLength) < *limit) || (maxQuestions == nil || int64(collected) >= *maxQuestions) {
 			break
 		}
@@ -3032,7 +3032,7 @@ func (this *Myriad) ParseMarketToEvent(raw any, market any) map[string]any {
  * @param {string} [eventSlug] the slug of the parent event
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
+func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]any {
 	eventSlug := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = eventSlug
 	var networkId *string = this.SafeString(raw, "networkId")

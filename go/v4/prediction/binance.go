@@ -276,7 +276,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
 		pageLimit = this.ParseToInt(pageLimitOption)
 	}
 	var collected []any = []any{}
-	var offset any = 0
+	var offset int = 0
 	for true {
 		var collectedLength int = len(collected)
 		var remaining int64 = maxTopicsResolved - int64(collectedLength)
@@ -340,7 +340,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
 		if (!(hasMore != nil && *hasMore)) || (int64(pageTopicsLength) < reqLimit) {
 			break
 		}
-		offset = this.Sum(offset, pageTopicsLength)
+		offset = offset + pageTopicsLength
 	}
 
 	ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(collected)}
@@ -801,7 +801,7 @@ func (this *Binance) ParseEvent(rawTopic any) map[string]any {
  * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
  * @returns {object} a market structure
  */
-func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
+func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) map[string]any {
 	//
 	//     {
 	//         "marketId": 5567895,

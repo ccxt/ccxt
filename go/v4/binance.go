@@ -17373,14 +17373,14 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 			query = this.UrlencodeWithArrayRepeat(extendedParams)
 		} else if (path == "batchOrders") || (strings.Index(path, "sub-account") >= 0) || (path == "capital/withdraw/apply") || (strings.Index(path, "staking") >= 0) || (strings.Index(path, "simple-earn") >= 0) {
 			if (method == "DELETE") && (path == "batchOrders") {
-				var orderidlist any = this.SafeList(extendedParams, "orderidlist", []any{})
+				var orderidlist []any = SafeListTyped(extendedParams, "orderidlist")
 				var origclientorderidlist []any = SafeList2Typed(extendedParams, "origclientorderidlist", "origClientOrderIdList")
 				extendedParams = this.OmitDict(extendedParams, []any{"orderidlist", "origclientorderidlist", "origClientOrderIdList"})
 				if func() bool { _, ok := extendedParams["symbol"]; return ok }() {
 					AddElementToObject(extendedParams, "symbol", this.EncodeURIComponent(this.SafeString(extendedParams, "symbol", "")))
 				}
 				query = this.Rawencode(extendedParams)
-				var orderidlistLength int = GetArrayLength(orderidlist)
+				var orderidlistLength int = len(orderidlist)
 				var origclientorderidlistLength int = len(origclientorderidlist)
 				if orderidlistLength > 0 {
 					query = query + "&" + "orderidlist=%5B" + Join(orderidlist, "%2C") + "%5D"

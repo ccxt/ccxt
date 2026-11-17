@@ -4781,14 +4781,10 @@ func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	if address != nil {
 		address = SafeStringPtr(strings.Replace(*address, "bitcoincash:", "", 1))
 	}
-	var code any = nil
+	var code *string = nil
 	if currency != nil {
-		if derefPtr := this.SafeCurrencyCode(currency["id"]); derefPtr != nil {
-			code = *derefPtr
-		} else {
-			code = nil
-		}
-		if code != "NIM" {
+		code = this.SafeCurrencyCode(currency["id"])
+		if code == nil || *code != "NIM" {
 			// contains spaces
 			this.CheckAddress(address)
 		}

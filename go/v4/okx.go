@@ -2851,7 +2851,7 @@ func (this *Okx) ParseMarket(market any) map[string]any {
 		baseSymbol = *id + ""
 	}
 	var symbol any = baseSymbol
-	var expiry any = nil
+	var expiry *int64 = nil
 	var strikePrice *string = nil
 	var optionType *string = nil
 	if contract {
@@ -2861,20 +2861,12 @@ func (this *Okx) ParseMarket(market any) map[string]any {
 		}
 		symbol = settledSymbol
 		if future {
-			if derefPtr := this.SafeInteger(market, "expTime"); derefPtr != nil {
-				expiry = *derefPtr
-			} else {
-				expiry = nil
-			}
+			expiry = this.SafeInteger(market, "expTime")
 			if expiry != nil {
 				symbol = settledSymbol + "-" + this.Yymmdd(expiry)
 			}
 		} else if option {
-			if derefPtr := this.SafeInteger(market, "expTime"); derefPtr != nil {
-				expiry = *derefPtr
-			} else {
-				expiry = nil
-			}
+			expiry = this.SafeInteger(market, "expTime")
 			strikePrice = this.SafeString(market, "stk")
 			optionType = this.SafeString(market, "optType")
 			if expiry != nil {

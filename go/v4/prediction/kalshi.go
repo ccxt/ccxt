@@ -555,14 +555,14 @@ func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOut
 		}
 		if !ccxt.IsEqual(response, nil) {
 			var rawMarket any = this.SafeDict(response, "market", response)
-			var parsed any = this.ParseMarket(rawMarket)
+			var parsed map[string]any = this.ParseMarket(rawMarket)
 			if this.Markets == nil {
 				this.Markets = map[string]any{}
 			}
-			if ccxt.IsEqual(parsed, nil) {
+			if parsed == nil {
 				panic(ccxt.ExchangeError(this.Id + " fetchOutcome() could not resolve parsed"))
 			}
-			this.AddMarketsEntry(ccxt.GetValue(parsed, "market"), parsed)
+			this.AddMarketsEntry(parsed["market"], parsed)
 			// index only the market just fetched, not a full O(markets x outcomes) rebuild of the
 			// whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
 			this.IndexMarketOutcomes(parsed)
@@ -705,11 +705,11 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 		var response map[string]any = r.Value
 		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
 		for i := 0; i < len(rawMarkets); i++ {
-			var parsed any = this.ParseMarket(rawMarkets[i])
-			if ccxt.IsEqual(parsed, nil) {
+			var parsed map[string]any = this.ParseMarket(rawMarkets[i])
+			if parsed == nil {
 				panic(ccxt.ExchangeError(this.Id + " fetchOutcomes() could not resolve parsed"))
 			}
-			this.AddMarketsEntry(ccxt.GetValue(parsed, "market"), parsed)
+			this.AddMarketsEntry(parsed["market"], parsed)
 			this.IndexMarketOutcomes(parsed)
 		}
 	}
@@ -3628,9 +3628,10 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 	if marketsCount > 0 {
 		active = anyActive
 	}
-	var resolved any = ccxt.DerefScalar(this.SafeBool(rawEvent, "resolved"))
+	var resolved *bool = this.SafeBool(rawEvent, "resolved")
 	if (resolved == nil) && (marketsCount > 0) {
-		resolved = allResolved
+		resolvedValue := allResolved
+		resolved = &resolvedValue
 	}
 	var end *int64 = this.Parse8601(this.SafeString(rawEvent, "end_date_iso"))
 	if end == nil {

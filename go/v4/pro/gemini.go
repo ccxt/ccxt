@@ -561,10 +561,10 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 		var size *float64 = this.SafeNumber(delta, 2)
 		if this.SafeString(delta, 0) != nil && *this.SafeString(delta, 0) == "buy" {
 			var bids ccxt.IOrderBookSide = orderbook.GetBids()
-			bids.(ccxt.IOrderBookSide).Store(price, size)
+			bids.Store(price, size)
 		} else {
 			var asks ccxt.IOrderBookSide = orderbook.GetAsks()
-			asks.(ccxt.IOrderBookSide).Store(price, size)
+			asks.Store(price, size)
 		}
 	}
 	orderbook.SetSymbol(symbol)
@@ -805,9 +805,9 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 		var size *float64 = this.SafeNumber(entry, "remaining")
 		var rawSide *string = this.SafeString(entry, "side")
 		if rawSide != nil && *rawSide == "bid" {
-			bids.(ccxt.IOrderBookSide).Store(price, size)
+			bids.Store(price, size)
 		} else {
-			asks.(ccxt.IOrderBookSide).Store(price, size)
+			asks.Store(price, size)
 		}
 	}
 	orderbook.SetSymbol(symbol)

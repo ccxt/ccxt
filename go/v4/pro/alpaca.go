@@ -974,8 +974,8 @@ func (this *Alpaca) HandleAuthenticate(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var status *string = this.SafeString(data, "status")
 	if (T != nil && *T == "success") || (status != nil && *status == "authorized") {
-		var promise any = client.(ccxt.ClientInterface).FutureGet("authenticated")
-		promise.(*ccxt.Future).Resolve(ccxt.ToGetsLimit(message))
+		var promise *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		promise.Resolve(ccxt.ToGetsLimit(message))
 		return
 	}
 	panic(ccxt.AuthenticationError(this.Id + " failed to authenticate."))

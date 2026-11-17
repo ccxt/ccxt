@@ -707,8 +707,11 @@ func (this *Bithumb) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta an
 		side = "bids"
 	}
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "price", "quantity")
-	var orderbookSide any = ccxt.GetValue(orderbook, side)
-	orderbookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+	var orderbookSide ccxt.IOrderBookSide = orderbook.GetAsks()
+	if side == "bids" {
+		orderbookSide = orderbook.GetBids()
+	}
+	orderbookSide.StoreArray(bidAsk)
 }
 
 /**

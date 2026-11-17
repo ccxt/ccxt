@@ -369,7 +369,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 			}
 		}
 	} else {
-		var page any = 1
+		var page int = 1
 		var pageSize *int64 = this.SafeInteger(this.Options, "marketsPageSize", 25)
 		var request map[string]any = map[string]any{
 			"page":  page,
@@ -413,7 +413,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 		var allRawLength int = len(allRaw)
 		if (pageSize == nil || int64(lastPageLength) >= *pageSize) && (maxMarkets != nil && int64(allRawLength) < *maxMarkets) {
 			for true {
-				page = this.Sum(page, 1)
+				page = page + 1
 				request["page"] = page
 
 				r3 := <-this.LimitlessPublicGetMarketsActive(this.Extend(request, rest))
@@ -3873,11 +3873,11 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		if (groupId != nil) && (groupId == nil || *groupId != "") {
 			eventKey = this.ShortenSlug(groupId)
 		}
-		var m any = this.ParseMarket(raw)
-		if ccxt.IsEqual(m, nil) {
+		var m map[string]any = this.ParseMarket(raw)
+		if m == nil {
 			panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing m"))
 		}
-		this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
+		this.AddMarketsEntry(m["market"], m)
 		if (eventKey != nil) && (!ccxt.IsEqual(eventKey, "")) {
 			if !(ccxt.InOp(eventGroups, eventKey)) {
 				ccxt.AddElementToObject(eventGroups, eventKey, map[string]any{
@@ -3953,7 +3953,7 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan ccxt.AsyncResult[[]map[
 	var pageSize *int64 = this.SafeInteger(this.Options, "marketsPageSize", 25)
 	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags"})
 	var allRaw []any = []any{}
-	var page any = 1
+	var page int = 1
 	for true {
 		var request map[string]any = map[string]any{
 			"page":  page,
@@ -3987,7 +3987,7 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan ccxt.AsyncResult[[]map[
 				allRaw = append(allRaw, data[i])
 			}
 		}
-		page = this.Sum(page, 1)
+		page = page + 1
 		var collectedTotal int = len(allRaw)
 		if (pageSize != nil && int64(dataLength) < *pageSize) || (maxMarkets == nil || int64(collectedTotal) >= *maxMarkets) {
 			break

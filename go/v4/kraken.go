@@ -3968,13 +3968,11 @@ func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) Trans
 		status = SafeStringPtr("pending")
 	}
 	var typeVar *string = this.SafeString(transaction, "type") // injected from the outside
-	var feeCost any
-	if derefPtr := this.SafeNumber(transaction, "fee"); derefPtr != nil {
-		feeCost = *derefPtr
-	}
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	if feeCost == nil {
 		if typeVar != nil && *typeVar == "deposit" {
-			feeCost = 0
+			feeCostValue := float64(0)
+			feeCost = &feeCostValue
 		}
 	}
 	return TransactionFromMap(map[string]any{

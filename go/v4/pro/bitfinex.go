@@ -1050,10 +1050,13 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				} else {
 					side = "bids"
 				}
-				var bookside any = ccxt.GetValue(orderbook, side)
+				var bookside ccxt.IOrderBookSide = orderbook.GetAsks()
+				if side == "bids" {
+					bookside = orderbook.GetBids()
+				}
 				var idString *string = this.SafeString(rawDelta, 0)
 				var price *float64 = this.SafeFloat(rawDelta, 1)
-				bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, idString})
+				bookside.StoreArray([]any{price, size, idString})
 			}
 		} else {
 			var deltas []any = ccxt.SafeListTyped(message, 1)
@@ -1077,8 +1080,11 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				} else {
 					side = "bids"
 				}
-				var bookside any = ccxt.GetValue(orderbook, side)
-				bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, counter})
+				var bookside ccxt.IOrderBookSide = orderbook.GetAsks()
+				if side == "bids" {
+					bookside = orderbook.GetBids()
+				}
+				bookside.StoreArray([]any{price, size, counter})
 			}
 		}
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
@@ -1102,7 +1108,10 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 			} else {
 				side = "bids"
 			}
-			var bookside any = ccxt.GetValue(orderbookItem, side)
+			var bookside ccxt.IOrderBookSide = orderbookItem.GetAsks()
+			if side == "bids" {
+				bookside = orderbookItem.GetBids()
+			}
 			// price = 0 means that you have to remove the order from your book
 			var amount any = func() any {
 				if ccxt.Precise.StringGt(price, "0") {
@@ -1111,7 +1120,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				return "0"
 			}()
 			var idString *string = this.SafeString(deltas, 0)
-			bookside.(ccxt.IOrderBookSide).StoreArray([]any{this.ParseNumber(price), this.ParseNumber(amount), idString})
+			bookside.StoreArray([]any{this.ParseNumber(price), this.ParseNumber(amount), idString})
 		} else {
 			var amount *string = this.SafeString(deltas, 2)
 			var counter *string = this.SafeString(deltas, 1)
@@ -1128,8 +1137,11 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 			} else {
 				side = "bids"
 			}
-			var bookside any = ccxt.GetValue(orderbookItem, side)
-			bookside.(ccxt.IOrderBookSide).StoreArray([]any{this.ParseNumber(price), this.ParseNumber(size), this.ParseNumber(counter)})
+			var bookside ccxt.IOrderBookSide = orderbookItem.GetAsks()
+			if side == "bids" {
+				bookside = orderbookItem.GetBids()
+			}
+			bookside.StoreArray([]any{this.ParseNumber(price), this.ParseNumber(size), this.ParseNumber(counter)})
 		}
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}

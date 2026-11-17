@@ -337,7 +337,7 @@ func (this *Opinion) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOu
  * @param {string} [eventSlug] the slug of the parent event
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
+func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) map[string]any {
 	// {
 	//     "chainId": "56",
 	//     "conditionId": "469db44df1309dac7cf9fcaa142562f3c89719d47277e095d021c1561166539a",
@@ -1950,8 +1950,8 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	var response map[string]any = r.Value
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var data map[string]any = this.SafeDictMap(result, "data", map[string]any{})
-	var market any = this.ParseOpinionMarket(data)
-	if ccxt.IsEqual(market, nil) {
+	var market map[string]any = this.ParseOpinionMarket(data)
+	if market == nil {
 		panic(ccxt.ExchangeError(this.Id + " loadTradeMarket() could not parse market " + idStr))
 	}
 	if this.Markets == nil {

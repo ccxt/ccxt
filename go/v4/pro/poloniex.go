@@ -1535,7 +1535,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				orders.Append(parsed)
 			} else {
 				var previousOrders map[string]any = ccxt.SafeMapTyped(orders.(*ccxt.ArrayCache).Hashmap, symbol)
-				var previousOrder any = this.SafeDict2(previousOrders, orderId, clientOrderId)
+				var previousOrder map[string]any = this.SafeDict2Map(previousOrders, orderId, clientOrderId)
 				var trade map[string]any = this.ParseWsTrade(order)
 				this.HandleMyTrades(client, trade)
 				if previousOrder == nil {
@@ -1545,8 +1545,10 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 					marketIds = append(marketIds, marketId)
 					continue
 				}
-				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
-					ccxt.AddElementToObject(previousOrder, "trades", []any{})
+				if ccxt.IsEqual(previousOrder["trades"], nil) {
+					if previousOrder != nil {
+						previousOrder["trades"] = []any{}
+					}
 				}
 				retRes104720 := ccxt.GetValue(previousOrder, "trades")
 				ccxt.AppendToArray(&retRes104720, trade)
@@ -1566,25 +1568,27 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 					ccxt.AddElementToObject(previousOrder, "average", this.ParseNumber(ccxt.Precise.StringDiv(totalCost, totalAmount)))
 				}
 				ccxt.AddElementToObject(previousOrder, "cost", this.ParseNumber(totalCost))
-				if !ccxt.IsEqual(ccxt.GetValue(previousOrder, "filled"), nil) {
+				if !ccxt.IsEqual(previousOrder["filled"], nil) {
 					var tradeAmount *string = this.NumberToString(trade["amount"])
 					var previousOrderFilled *string = this.NumberToString(ccxt.GetValue(previousOrder, "filled"))
 					previousOrderFilled = ccxt.Precise.StringAdd(previousOrderFilled, tradeAmount)
 					ccxt.AddElementToObject(previousOrder, "filled", previousOrderFilled)
-					if !ccxt.IsEqual(ccxt.GetValue(previousOrder, "amount"), nil) {
+					if !ccxt.IsEqual(previousOrder["amount"], nil) {
 						var previousOrderAmount *string = this.NumberToString(ccxt.GetValue(previousOrder, "amount"))
 						ccxt.AddElementToObject(previousOrder, "remaining", this.ParseNumber(ccxt.Precise.StringSub(previousOrderAmount, previousOrderFilled)))
 					}
 				}
-				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "fee"), nil) {
-					ccxt.AddElementToObject(previousOrder, "fee", map[string]any{
-						"rate":     nil,
-						"cost":     0,
-						"currency": this.SafeString(trade["fee"], "currency"),
-					})
+				if ccxt.IsEqual(previousOrder["fee"], nil) {
+					if previousOrder != nil {
+						previousOrder["fee"] = map[string]any{
+							"rate":     nil,
+							"cost":     0,
+							"currency": this.SafeString(trade["fee"], "currency"),
+						}
+					}
 				}
-				if (!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
-					var stringOrderCost *string = this.NumberToString(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"))
+				if (!ccxt.IsEqual(ccxt.GetValue(previousOrder["fee"], "cost"), nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
+					var stringOrderCost *string = this.NumberToString(ccxt.GetValue(previousOrder["fee"], "cost"))
 					var stringTradeCost *string = this.NumberToString(this.SafeNumber(trade["fee"], "cost"))
 					ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
 				}
@@ -1825,7 +1829,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 					var price *float64 = this.SafeNumber(bid, 0)
 					var amount *float64 = this.SafeNumber(bid, 1)
 					var bidsSide ccxt.IOrderBookSide = orderbook.GetBids()
-					bidsSide.(ccxt.IOrderBookSide).Store(price, amount)
+					bidsSide.Store(price, amount)
 				}
 			}
 			if asks != nil {
@@ -1834,7 +1838,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 					var price *float64 = this.SafeNumber(ask, 0)
 					var amount *float64 = this.SafeNumber(ask, 1)
 					var asksSide ccxt.IOrderBookSide = orderbook.GetAsks()
-					asksSide.(ccxt.IOrderBookSide).Store(price, amount)
+					asksSide.Store(price, amount)
 				}
 			}
 			ccxt.AddElementToObject(orderbook, "symbol", symbol)

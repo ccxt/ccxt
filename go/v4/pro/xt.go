@@ -256,13 +256,13 @@ func (this *Xt) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 		var bid []any = ccxt.SafeListTyped(obBids, i)
 		var price *float64 = this.SafeNumber(bid, 0)
 		var quantity *float64 = this.SafeNumber(bid, 1)
-		bids.(ccxt.IOrderBookSide).Store(price, quantity)
+		bids.Store(price, quantity)
 	}
 	for i := 0; i < len(obAsks); i++ {
 		var ask []any = ccxt.SafeListTyped(obAsks, i)
 		var price *float64 = this.SafeNumber(ask, 0)
 		var quantity *float64 = this.SafeNumber(ask, 1)
-		asks.(ccxt.IOrderBookSide).Store(price, quantity)
+		asks.Store(price, quantity)
 	}
 }
 
@@ -1826,7 +1826,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 				var ask []any = ccxt.SafeListTyped(obAsks, i)
 				var price *float64 = this.SafeNumber(ask, 0)
 				var quantity *float64 = this.SafeNumber(ask, 1)
-				asks.(ccxt.IOrderBookSide).Store(price, quantity)
+				asks.Store(price, quantity)
 			}
 		}
 		if obBids != nil {
@@ -1835,7 +1835,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 				var bid []any = ccxt.SafeListTyped(obBids, i)
 				var price *float64 = this.SafeNumber(bid, 0)
 				var quantity *float64 = this.SafeNumber(bid, 1)
-				bids.(ccxt.IOrderBookSide).Store(price, quantity)
+				bids.Store(price, quantity)
 			}
 		}
 		var timestamp *int64 = this.SafeInteger(data, "t")

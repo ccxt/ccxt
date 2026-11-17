@@ -1287,12 +1287,12 @@ func (this *Modetrade) HandleOrder(client any, message any, topic any) {
 		}
 		var cachedOrders ccxt.WsArrayCache = this.Orders
 		var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
-		var order any = func() any {
-			if orderId == nil {
-				return nil
-			}
-			return this.SafeDict(orders, orderId)
-		}()
+		var order map[string]any
+		if orderId == nil {
+			order = nil
+		} else {
+			order = this.SafeDictMap(orders, orderId)
+		}
 		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
 			if fee != nil {

@@ -2970,8 +2970,8 @@ func (this *Htx) HandleAuthenticate(client any, message map[string]any) {
 	//        "data": { "user-id": "35930539" }
 	//    }
 	//
-	var promise any = client.(ccxt.ClientInterface).FutureGet("auth")
-	promise.(*ccxt.Future).Resolve(ccxt.ToGetsLimit(message))
+	var promise *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["auth"]
+	promise.Resolve(ccxt.ToGetsLimit(message))
 }
 func (this *Htx) HandleErrorMessage(client any, message map[string]any) any {
 	//

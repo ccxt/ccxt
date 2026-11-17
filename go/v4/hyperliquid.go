@@ -6986,13 +6986,9 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 	//
 	var status string = *this.SafeString(response, "status", "")
 	var error *string = this.SafeString(response, "error")
-	var message any = nil
+	var message *string = nil
 	if status == "err" {
-		if derefPtr := this.SafeString(response, "response"); derefPtr != nil {
-			message = *derefPtr
-		} else {
-			message = nil
-		}
+		message = this.SafeString(response, "response")
 	} else if status == "unknownOid" {
 		panic(OrderNotFound(this.Id + " " + body))
 	} else if error != nil {
@@ -7002,12 +6998,8 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 		var data map[string]any = SafeMapTyped(responsePayload, "data")
 		var statuses []any = SafeListTyped(data, "statuses")
 		for i := 0; i < len(statuses); i++ {
-			if derefPtr := this.SafeString(statuses[i], "error"); derefPtr != nil {
-				message = *derefPtr
-			} else {
-				message = nil
-			}
-			if !IsEqual(message, nil) {
+			message = this.SafeString(statuses[i], "error")
+			if message != nil {
 				break
 			}
 		}
@@ -7020,7 +7012,7 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 		}
 	}
 	var feedback string = this.Id + " " + body
-	var nonEmptyMessage bool = ((!IsEqual(message, nil)) && (!IsEqual(message, "")))
+	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != ""))
 	if nonEmptyMessage {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

@@ -649,7 +649,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var aggregated []any = []any{}
-	var offset any = 0
+	var offset int = 0
 	var pageLimit int = 100
 	var paging bool = true
 	for paging {
@@ -691,7 +691,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			paging = false
 		} else {
 			// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-			offset = this.Sum(offset, pageLimit)
+			offset = offset + pageLimit
 		}
 	}
 	var result []any = []any{}

@@ -664,14 +664,10 @@ func (this *Onetrading) ParseMarket(market any) map[string]any {
 	var isPerp bool = (typeVar != nil && *typeVar == "PERP")
 	var isFuture bool = (typeVar != nil && *typeVar == "DATED_FUTURE") || (typeVar != nil && *typeVar == "EQUITY_FUTURE")
 	var isContract bool = isPerp || isFuture
-	var expiry any = nil
+	var expiry *int64 = nil
 	var expiryDate *string = this.SafeString(market, "contract_expiry_date")
 	if expiryDate != nil {
-		if derefPtr := this.Parse8601(*expiryDate + "T00:00:00Z"); derefPtr != nil {
-			expiry = *derefPtr
-		} else {
-			expiry = nil
-		}
+		expiry = this.Parse8601(*expiryDate + "T00:00:00Z")
 	}
 	var symbol string = *base + "/" + *quote
 	if isContract {

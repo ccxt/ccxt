@@ -5696,9 +5696,10 @@ func (this *Phemex) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
 		ch <- AsyncResult[map[string]any]{Value: r1.Value}
 		return nil
 	}
-	var leverage any = DerefScalar(this.SafeInteger(params, "leverage"))
+	var leverage *int64 = this.SafeInteger(params, "leverage")
 	if marginModeValue == "cross" {
-		leverage = 0
+		leverageValue := int64(0)
+		leverage = &leverageValue
 	}
 	if leverage == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter"))

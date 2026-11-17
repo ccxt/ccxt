@@ -430,16 +430,16 @@ func (this *Luno) HandleBookDelta(orderbook ccxt.OrderBookInterface, message any
 		var bidAskArray any = this.CustomParseBidAsk(createUpdate, "price", "volume", "order_id")
 		var typeVar *string = this.SafeString(createUpdate, "type")
 		if typeVar != nil && *typeVar == "ASK" {
-			asksOrderSide.(ccxt.IOrderBookSide).StoreArray(bidAskArray)
+			asksOrderSide.StoreArray(bidAskArray)
 		} else if typeVar != nil && *typeVar == "BID" {
-			bidsOrderSide.(ccxt.IOrderBookSide).StoreArray(bidAskArray)
+			bidsOrderSide.StoreArray(bidAskArray)
 		}
 	}
 	var deleteUpdate map[string]any = ccxt.SafeMapTyped(message, "delete_update")
 	if deleteUpdate != nil {
 		var orderId *string = this.SafeString(deleteUpdate, "order_id")
-		asksOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
-		bidsOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
+		asksOrderSide.StoreArray([]any{0, 0, orderId})
+		bidsOrderSide.StoreArray([]any{0, 0, orderId})
 	}
 }
 

@@ -439,8 +439,8 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		}
 	} else {
 		var request map[string]any = map[string]any{}
-		var tags any = this.SafeList(paramsValue, "tags", []any{})
-		if ccxt.GetArrayLength(tags) > 0 {
+		var tags []any = ccxt.SafeListTyped(paramsValue, "tags")
+		if len(tags) > 0 {
 			request["tagIds"] = ccxt.Join(tags, ",")
 		}
 		postOmitKeys = append(postOmitKeys, "limit")
@@ -1168,7 +1168,7 @@ func (this *Predictfun) TitleForMarketSymbol(topicSlug *string, title *string, o
  * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
  * @returns {object} a market structure
  */
-func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
+func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) map[string]any {
 	//
 	//     {
 	//         "boostEndsAt": "2026-08-27T14:15:00.000Z",

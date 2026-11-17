@@ -964,13 +964,13 @@ func (this *Dydx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	} else if since != nil {
 		// the indexer returns the newest candles in the range, so the range ends where the limit does
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		var count int64 = func() int64 {
-			if limit != nil {
-				return min(*limit, 1000)
-			}
-			return 1000
-		}()
-		request["toISO"] = this.Iso8601(this.Sum(since, (duration * count)))
+		var count int64
+		if limit != nil {
+			count = min(*limit, 1000)
+		} else {
+			count = 1000
+		}
+		request["toISO"] = this.Iso8601(this.Sum(since, duration*count))
 	}
 
 	r1 := <-this.IndexerGetCandlesPerpetualMarketsMarket(this.Extend(request, paramsOmitted))
@@ -1811,7 +1811,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 		conditionalOrderTriggerSubticks = Precise.StringMul(conditionalOrderTriggerSubticks, priceScale)
 	}
 	var latestBlockHeight *int64 = this.SafeInteger(paramsSubAccountId, "latestBlockHeight")
-	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsSubAccountId, "goodTillBlock"))
+	var goodTillBlock *int64 = this.SafeInteger(paramsSubAccountId, "goodTillBlock")
 	var goodTillBlockTime any = nil
 	var goodTillBlockTimeInSeconds int = 2592000
 	// default is 30 days
@@ -1822,12 +1822,13 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	}
 	paramsGoodTillBlockTimeInSeconds := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]
 	if IsEqual(orderFlag, 0) {
-		if IsEqual(goodTillBlock, nil) {
+		if goodTillBlock == nil {
 			// short term order
 			if latestBlockHeight == nil {
 				panic(ExchangeError(this.Id + " method() missing latestBlockHeight"))
 			}
-			goodTillBlock = *latestBlockHeight + 20
+			goodTillBlockValue := *latestBlockHeight + 20
+			goodTillBlock = &goodTillBlockValue
 		}
 	} else {
 		if goodTillBlockTimeInSecondsOption == nil {
