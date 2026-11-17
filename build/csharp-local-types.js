@@ -15014,9 +15014,23 @@ const CORE_LIST_ARGS_ARRAY_LENGTH = {
     'unsubscribeChannels': 2,
     'handleBookSideDeltas': 1,
 };
+// List parameters whose only callers pass a declared list: filterBySymbol/filterByKey (kraken and
+// pro/hyperliquid lists), luno's book sides (IAsks/IBids are IList<object>), the paradex/blofin/nado
+// ws channel and hash lists. Mixed dict-or-list parameters (parseTickers, parseOrders ...) stay out.
+const CORE_LIST_ARGS_SINGLE_CALLER = {
+    'filterBySymbol': 0,
+    'filterByKey': 0,
+    'reduceOrderVolume': 0,
+    'unsubscribedChannels': 1,
+    'unsubscribeChannelsFrom': 2,
+    'subscribeMarketsSummary': 1,
+    'unsubscribeMultipleWrapper': 2,
+};
 Object.assign (CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_ARRAY_LENGTH);
-for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LENGTH_READS)) {
-    CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
+for (const table of [ CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_SINGLE_CALLER ]) {
+    for (const [ name, position ] of Object.entries (table)) {
+        CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
+    }
 }
 
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
