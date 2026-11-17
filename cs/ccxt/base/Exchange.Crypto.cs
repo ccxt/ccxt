@@ -158,7 +158,7 @@ public partial class BaseExchange
     {
         var options = (options2 != null) ? options2 as Dictionary<string, object> : new Dictionary<string, object>();
         var algorithm = hash.DynamicInvoke() as string;
-        var alg = (isRsa ? "RS" : "HS") + algorithm.Substring(3).ToUpper();
+        var alg = (isRsa ? "RS" : "HS") + algorithm.Substring(3).ToUpperInvariant();
         if (options.ContainsKey("alg"))
         {
             alg = options["alg"] as string;

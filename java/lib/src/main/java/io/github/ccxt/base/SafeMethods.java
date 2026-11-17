@@ -3,6 +3,7 @@ package io.github.ccxt.base;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -384,37 +385,37 @@ public final class SafeMethods {
     public static String safeStringUpper(Object obj, Object key, Object... defaultValues) {
         String result = safeString(obj, key);
         if (result == null) return optString(defaultValues);
-        return result.toUpperCase();
+        return result.toUpperCase(Locale.ROOT);
     }
 
     public static String safeStringUpper2(Object obj, Object key1, Object key2, Object... defaultValues) {
         String result = safeString2(obj, key1, key2);
         if (result == null) return optString(defaultValues);
-        return result.toUpperCase();
+        return result.toUpperCase(Locale.ROOT);
     }
 
     public static String safeStringUpperN(Object obj, Object keys, Object... defaultValues) {
         String result = safeStringN(obj, keys);
         if (result == null) return optString(defaultValues);
-        return result.toUpperCase();
+        return result.toUpperCase(Locale.ROOT);
     }
 
     public static String safeStringLower(Object obj, Object key, Object... defaultValues) {
         String result = safeString(obj, key);
         if (result == null) return optString(defaultValues);
-        return result.toLowerCase();
+        return result.toLowerCase(Locale.ROOT);
     }
 
     public static String safeStringLower2(Object obj, Object key1, Object key2, Object... defaultValues) {
         String result = safeString2(obj, key1, key2);
         if (result == null) return optString(defaultValues);
-        return result.toLowerCase();
+        return result.toLowerCase(Locale.ROOT);
     }
 
     public static String safeStringLowerN(Object obj, Object keys, Object... defaultValues) {
         String result = safeStringN(obj, keys);
         if (result == null) return optString(defaultValues);
-        return result.toLowerCase();
+        return result.toLowerCase(Locale.ROOT);
     }
 
     // ----------------------------
