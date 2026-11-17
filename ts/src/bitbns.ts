@@ -322,7 +322,7 @@ export default class bitbns extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         if ((baseId === undefined) || (base === undefined) || (quote === undefined)) {
-            return undefined;
+            return {} as Market;
         }
         const marketPrecision = this.safeDict (market, 'precision', {});
         const marketLimits = this.safeDict (market, 'limits', {});
