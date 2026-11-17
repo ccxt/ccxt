@@ -9532,6 +9532,32 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('90c2 read of a local list-literal map with write-back -> List with a native element write',
             'safeValue (o, k) { return o; }\n f (n: number, p: number) { const cs = {}; const k = n.toString (); if (!(k in cs)) { cs[k] = [ p, p ]; } else { const c = cs[k]; c[1] = p; cs[k] = c; } return this.safeValue (cs, k); }',
             'c[Convert.ToInt32(1)] = p;', 'object c = ');
+        // conditional initialisers handed to typed consumers: a typed-dict string arm into a string slot; a string-tested arm
+        check ('c ? dict[code] : undefined handed to a string parameter -> string? with no call-site cast',
+            'filterByCurrencySinceLimit (a, code: Str = undefined, s = undefined, l = undefined) { return a; }\n f (rows, m) { const c = { \'code\': \'BTC\' }; const code = (m !== undefined) ? c[\'code\'] : undefined; return this.filterByCurrencySinceLimit (rows, code, 1, 2); }',
+            'string? code = ((string)(', 'object code = ((');
+        check ('c ? dict[code] : undefined never handed to a string parameter keeps object',
+            'f (rows, m) { const c = { \'code\': \'BTC\' }; const code = (m !== undefined) ? c[\'code\'] : undefined; return { \'code\': code }; }',
+            'object code = ');
+        check ('p.endsWith (x) ? p.slice (..) : p read by a string method -> string?',
+            'f (p) { const u = p.endsWith (\'utc\') ? p.slice (0, -3) : p; return u.toLowerCase (); }',
+            'string? u = ((string)(', 'object u = ');
+        check ('p.endsWith (x) ? p.slice (..) : p never read by a string method keeps object',
+            'f (p) { const u = p.endsWith (\'utc\') ? p.slice (0, -3) : p; return { \'u\': u }; }',
+            'object u = ');
+        check ('c ? lit : <unwritten Str param> compared to literals -> string? with native ==',
+            'f (type: Str, postOnly) { let t: Str = postOnly ? \'post_only\' : type; if (postOnly) { t = \'ioc\'; } if (t === \'limit\' || t === \'ioc\') { return 1; } return 0; }',
+            'string? t = ((string)(', 'object t = ');
+        // (venue sources only, the in-memory snippet tier keeps object: the positive case is proven on the farm)
+        check ('dict[lit] read as a string receiver outside a venue source keeps object',
+            'f (d: Dict, k): string { const u = d[\'stock\']; if (k) { return u.replace (\'/ws\', \'/stream\'); } return u; }',
+            'object u = ');
+        check ('dict[lit] read also stored in a map keeps object',
+            'f (d: Dict, k) { const u = d[\'stock\']; const r = u.replace (\'/ws\', \'/stream\'); return { \'u\': u, \'r\': r }; }',
+            'object u = ');
+        check ('c ? lit : <written Str param> keeps object',
+            'f (type: Str, postOnly) { type = \'x\'; let t: Str = postOnly ? \'post_only\' : type; if (t === \'limit\') { return 1; } return 0; }',
+            'object t = ');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {
