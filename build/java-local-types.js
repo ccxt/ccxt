@@ -185,6 +185,8 @@ import path from 'node:path';
 import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { ts, urlsDescribeStringProducer, isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
+import { typedReturnTable, qualifyJavaType } from './javaTypedCore.js';
+import { shortenJavaReferences } from './javaUtilImports.js';
 
 // ===== safeString rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
 //
@@ -1536,11 +1538,8 @@ function baseMethodReturnsString (printer, node, name) {
 // `await this.<endpoint>(...)` prints `(this.<endpoint>(...)).join()`. The generated
 // implicit-api wrappers declare one `public CompletableFuture<T> <name> (Object... optionalArgs)`
 // per endpoint, so `.join()` has the static type T exactly and the declaration needs no
-// cast. T is read from the ON-DISK Java file the compiler reads — a local declared T can
-// never disagree with its callee. Only concrete T is accepted (Map / List / String);
-// `CompletableFuture<Object>` endpoints stay Object. The on-disk file spells the java.util
-// names short (build/javaUtilImports.ts); the pipeline works in the qualified spelling.
-const JAVA_API_METHOD = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+) \(Object\.\.\. optionalArgs\)/;
+// cast. T is the endpoint's ts/src/abstract return, the source the wrapper is printed from.
+// Only concrete T is accepted (Map / List / String); union endpoints stay Object.
 const JAVA_API_SHORT_NAMES = /\b(?<!\.)(Map|List)</g;
 const JAVA_UNIFIED_TYPES_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'types');
 let javaUnifiedTypeNames;
@@ -1557,35 +1556,30 @@ function qualifyApiReturnType (t) {
     return t.replace (JAVA_API_SHORT_NAMES, 'java.util.$1<')
         .replace (/(?<![\w.])([A-Z][A-Za-z0-9_]*)\b/g, (m, name) => (javaUnifiedTypeNames.has (name) ? 'io.github.ccxt.types.' + name : m));
 }
-const JAVA_API_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'api');
 const awaitedApiTables = new Map ();
 
-// a prediction venue extends api/prediction/<X>Api.java, whose id may collide with a REST venue
+// a prediction venue extends api/prediction/<X>Api.java, whose id may collide with a REST venue.
+// generateImplicitAPI.ts prints each wrapper from the endpoint of ts/src/abstract/<id>.ts with the
+// same name, and its Dict / List / string return as Map / List / String (a union stays Object)
+const JAVA_API_TS_ENDPOINT = /^    (?:override )?(\w+) \(params = \{\}\): Promise<(.+?)> \{\s*$/;
+const JAVA_API_TS_TYPES = { 'Dict': 'java.util.Map<String, Object>', 'List': 'java.util.List<Object>', 'string': 'String' };
 function awaitedApiReturnTypes (exchange, predictionSource = false) {
     const cacheKey = (predictionSource ? 'prediction|' : '') + exchange;
     if (awaitedApiTables.has (cacheKey)) {
         return awaitedApiTables.get (cacheKey);
     }
     let table;
-    const capital = exchange.charAt (0).toUpperCase () + exchange.slice (1);
-    const candidates = predictionSource
-        ? [ path.join (JAVA_API_FOLDER, 'prediction', capital + 'Api.java') ]
-        : [ path.join (JAVA_API_FOLDER, capital + 'Api.java') ];
-    for (const file of candidates) {
-        let content;
-        try {
-            content = fs.readFileSync (file, 'utf8');
-        } catch (e) {
-            continue; // not a generated venue — never fatal
-        }
+    const file = path.join (JAVA_CORE_TS_ROOT, 'abstract', ...(predictionSource ? [ 'prediction' ] : []), exchange + '.ts');
+    const content = fs.existsSync (file) ? readTsIndexSource (file) : undefined;
+    if (content !== undefined) {
         table = new Map ();
         for (const line of content.split ('\n')) {
-            const match = JAVA_API_METHOD.exec (line);
-            if (match && match[1] !== 'Object') {
-                table.set (match[2], qualifyApiReturnType (match[1]));
+            const match = JAVA_API_TS_ENDPOINT.exec (line);
+            const type = match === null ? undefined : JAVA_API_TS_TYPES[match[2].trim ()];
+            if (type !== undefined) {
+                table.set (match[1], qualifyApiReturnType (type));
             }
         }
-        break;
     }
     awaitedApiTables.set (cacheKey, table);
     return table;
@@ -1618,14 +1612,27 @@ function awaitedThisCallType (node) {
     return table?.get (methodName);
 }
 
-// ===== awaited cores: `(this.<m>(...)).join()` carries the exact T the generated file declares =====
-// The compiler resolves the call against the on-disk class chain, so one reachable
-// `CompletableFuture<T>` spelling is the proof; `Object` T and primitive spellings are declined.
-const JAVA_CORE_DIRS = { rest: 'exchanges', pro: 'exchanges/pro', prediction: 'exchanges/prediction' };
-const JAVA_CORE_TIER_FILES = { rest: [ 'Exchange.java' ], pro: [ 'Exchange.java' ], prediction: [ 'PredictionExchange.java' ] };
+// ===== awaited / sync cores: the Java return type of `this.<m>(...)` over the generated class chain =====
+// The compiler resolves the call through the venue's own class, the REST parent of a pro venue,
+// the tier base and BaseExchange. Each generated declaration is printed from one ts/src method,
+// so its return type comes from that method through this run's printer, never from java/ on disk.
 const JAVA_CORE_METHOD = /^\s*(?:public|protected)\s+(?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+)\s*\(/;
 const JAVA_CORE_TYPE_OK = /^(?:java\.util\.)?(?:List|Map)<[A-Za-z0-9_$<>,. ]+>$|^(?:io\.github\.ccxt\.types\.)?[A-Z][A-Za-z0-9_]*$|^String$|^Long$|^Double$|^Boolean$|^Void$/;
-const javaCoreTables = new Map ();
+const JAVA_CORE_ANY_METHOD = /^\s*(?:public|protected)\s+(?:static\s+final\s+|static\s+|final\s+|abstract\s+|synchronized\s+)*([\w.$]+(?:<[^()]*>)?)\s+(\w+)\s*\(/;
+const JAVA_CORE_SYNC_DECLINED = new Set ([ 'omit', 'omitN', 'omitZero', 'clone', 'deepExtend2', 'sort' ]);
+const JAVA_CORE_FUTURE = /^(?:java\.util\.concurrent\.)?CompletableFuture</;
+const JAVA_CORE_TS_ROOT = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src');
+const JAVA_CORE_LIB_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
+const JAVA_CORE_BASE_TS = /(^|[\\/])ts[\\/]src[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/;
+const JAVA_CORE_PREDICTION_BASE_TS = /(^|[\\/])ts[\\/]src[\\/]base[\\/]PredictionExchange\.ts$/;
+const JAVA_CORE_DELIMITER = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT';
+// BaseExchange methods kept hand-written above the delimiter of BaseExchange.java (typed Pair returns)
+export const JAVA_HAND_WRITTEN_PAIR_METHODS = [
+    'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
+    'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption',
+];
+const javaCoreHandHeads = new Map ();
+const javaCoreProgramState = new WeakMap ();
 
 function javaCoreTierOf (node) {
     const fileName = node.getSourceFile?.()?.fileName ?? '';
@@ -1635,55 +1642,316 @@ function javaCoreTierOf (node) {
     return /[\\/]pro[\\/]/.test (fileName) ? 'pro' : 'rest';
 }
 
-// the on-disk generated files the compiler resolves a core call through, most derived first
-function javaCoreFileCandidates (node) {
-    const tier = javaCoreTierOf (node);
-    const id = sourceExchangeId (node);
-    const capital = id.charAt (0).toUpperCase () + id.slice (1);
-    const root = path.join (JAVA_API_FOLDER, '..');
-    const files = [ path.join (root, JAVA_CORE_DIRS[tier], capital + '.java') ];
-    if (tier === 'pro') {
-        // `class Binance extends io.github.ccxt.exchanges.Binance`
-        files.push (path.join (root, JAVA_CORE_DIRS.rest, capital + '.java'));
-    }
-    for (const base of JAVA_CORE_TIER_FILES[tier]) {
-        files.push (path.join (root, base));
-    }
-    files.push (path.join (root, 'BaseExchange.java'));
-    return files;
-}
-
-// method name -> Set of the T spellings every reachable `CompletableFuture<T>` declares
-function javaCoreReturnTypes (node) {
-    const key = javaCoreTierOf (node) + '|' + sourceExchangeId (node);
-    if (javaCoreTables.has (key)) {
-        return javaCoreTables.get (key);
+// name -> Set of return spellings of the hand-written part (above the delimiter) of a base file
+function javaCoreHandHead (file) {
+    if (javaCoreHandHeads.has (file)) {
+        return javaCoreHandHeads.get (file);
     }
     const table = new Map ();
-    for (const file of javaCoreFileCandidates (node)) {
-        let content;
-        try {
-            content = fs.readFileSync (file, 'utf8');
-        } catch (e) {
-            continue; // venue file not generated yet — never fatal
-        }
-        for (const line of content.split ('\n')) {
-            const match = JAVA_CORE_METHOD.exec (line);
-            if (match === null) {
-                continue;
-            }
-            const types = table.get (match[2]) ?? new Set ();
-            types.add (qualifyApiReturnType (match[1]));
-            table.set (match[2], types);
+    let text = '';
+    try {
+        text = fs.readFileSync (path.join (JAVA_CORE_LIB_DIR, file), 'utf8').split (JAVA_CORE_DELIMITER)[0];
+    } catch (e) {
+        text = '';
+    }
+    for (const line of text.split ('\n')) {
+        const match = JAVA_CORE_ANY_METHOD.exec (line);
+        if (match !== null) {
+            table.set (match[2], [ ...(table.get (match[2]) ?? []), match[1] ]);
         }
     }
-    javaCoreTables.set (key, table);
+    javaCoreHandHeads.set (file, table);
     return table;
 }
 
+function javaCoreProgram (printer) {
+    let program;
+    try {
+        program = printer.getProgram ();
+    } catch (e) {
+        return undefined;
+    }
+    if (program === undefined) {
+        return undefined;
+    }
+    let state = javaCoreProgramState.get (program);
+    if (state === undefined) {
+        const files = new Map ();
+        for (const name of program.getSourceFileNames ()) {
+            files.set (path.resolve (name), name);
+        }
+        state = { program, files, classes: new Map (), segments: new Map (), names: new Map () };
+        javaCoreProgramState.set (program, state);
+    }
+    return state;
+}
+
+function javaCoreSourceFile (state, file) {
+    const name = state.files.get (path.resolve (file));
+    return name === undefined ? undefined : state.program.getSourceFile (name);
+}
+
+function javaCoreFindFile (state, own, re) {
+    if (own !== undefined && re.test (own.fileName)) {
+        return own;
+    }
+    for (const [ , name ] of state.files) {
+        if (re.test (name)) {
+            return state.program.getSourceFile (name);
+        }
+    }
+    return undefined;
+}
+
+// method declarations with a body of the named classes of a file (every class when names is undefined)
+function javaCoreClassMethods (file, names) {
+    const out = [];
+    for (const statement of file?.statements ?? []) {
+        if (ts.isClassDeclaration (statement) && (names === undefined || names.includes (statement.name?.text))) {
+            for (const member of statement.members) {
+                if (ts.isMethodDeclaration (member) && member.body !== undefined && member.name !== undefined && ts.isIdentifier (member.name)) {
+                    out.push (member);
+                }
+            }
+        }
+    }
+    return out;
+}
+
+// the method names a ts/src/prediction tier implements (getPredictionImplementedNames in javaTranspiler.ts)
+let javaCorePredictionNames;
+function javaCorePredictionImplemented () {
+    if (javaCorePredictionNames !== undefined) {
+        return javaCorePredictionNames;
+    }
+    javaCorePredictionNames = new Set ();
+    const files = [ path.join (JAVA_CORE_TS_ROOT, 'base', 'PredictionExchange.ts') ];
+    const dir = path.join (JAVA_CORE_TS_ROOT, 'prediction');
+    for (const f of (fs.existsSync (dir) ? fs.readdirSync (dir) : []).filter ((f) => f.endsWith ('.ts'))) {
+        files.push (path.join (dir, f));
+    }
+    for (const file of files) {
+        for (const line of (readTsIndexSource (file) ?? '').split ('\n')) {
+            const m = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/.exec (line);
+            if (m !== null) {
+                javaCorePredictionNames.add (m[1]);
+            }
+        }
+    }
+    return javaCorePredictionNames;
+}
+
+// one generated Java file of the chain: its ts/src declarations, the tier table its build pass retypes
+// cores with, and the hand-written head; undefined decls = the ts/src file is outside this program
+function javaCoreSegment (state, own, kind, id) {
+    const key = kind + '|' + id;
+    if (state.segments.has (key)) {
+        return state.segments.get (key);
+    }
+    let segment;
+    if (kind === 'rest' || kind === 'pro' || kind === 'prediction') {
+        const file = path.join (JAVA_CORE_TS_ROOT, kind === 'rest' ? '' : kind, id + '.ts');
+        if (fs.existsSync (file)) {
+            const sf = javaCoreSourceFile (state, file);
+            let decls = sf === undefined ? undefined : javaCoreClassMethods (sf);
+            let missing;
+            if (sf === undefined) {
+                const text = readTsIndexSource (file);
+                missing = new Set (javaCoreClassMethods (text === undefined ? undefined : ts.createSourceFile (file, text, ts.ScriptTarget.Latest, true)).map ((m) => m.name.text));
+            }
+            const tier = kind === 'rest' ? 'rest' : (kind === 'pro' ? 'ws' : 'prediction');
+            segment = { decls, missing, table: () => javaCoreVenueTable (tier), voidToObject: kind !== 'rest', head: undefined };
+        }
+    } else if (kind === 'base' || kind === 'exchange') {
+        const sf = javaCoreFindFile (state, own, JAVA_CORE_BASE_TS);
+        const delimiter = sf === undefined ? -1 : sf.text.indexOf (JAVA_CORE_DELIMITER);
+        const decls = sf === undefined ? undefined : (kind === 'base'
+            ? javaCoreClassMethods (sf, [ 'BaseExchange' ]).filter ((m) => delimiter >= 0 && m.pos > delimiter && !JAVA_HAND_WRITTEN_PAIR_METHODS.includes (m.name.text))
+            : javaCoreClassMethods (sf, [ 'Exchange' ]).filter ((m) => m.name.text !== 'loadOrderBook'));
+        segment = { decls, missing: decls === undefined ? 'all' : undefined, table: () => javaCoreTierTable ('rest'), voidToObject: false, head: kind === 'base' ? 'BaseExchange.java' : 'Exchange.java' };
+    } else {
+        const sf = javaCoreFindFile (state, own, JAVA_CORE_PREDICTION_BASE_TS);
+        const base = javaCoreFindFile (state, own, JAVA_CORE_BASE_TS);
+        let decls;
+        if (sf !== undefined && base !== undefined) {
+            decls = javaCoreClassMethods (sf, [ 'PredictionExchange' ]);
+            const ownNames = new Set (decls.map ((m) => m.name.text));
+            const implemented = javaCorePredictionImplemented ();
+            decls = decls.concat (javaCoreClassMethods (base, [ 'Exchange' ]).filter ((m) => m.name.text !== 'loadOrderBook' && !ownNames.has (m.name.text) && implemented.has (m.name.text)));
+        }
+        segment = { decls, missing: decls === undefined ? 'all' : undefined, table: () => javaCoreTierTable ('prediction'), voidToObject: false, head: 'PredictionExchange.java' };
+    }
+    state.segments.set (key, segment);
+    return segment;
+}
+
+const javaCoreTierTables = new Map ();
+function javaCoreTierTable (tier) {
+    if (!javaCoreTierTables.has (tier)) {
+        javaCoreTierTables.set (tier, typedReturnTable (tier));
+    }
+    return javaCoreTierTables.get (tier);
+}
+
+// javaTranspiler.ts withVenueAsyncReturns: venue-local async cores join the unified table
+function javaCoreVenueTable (tier) {
+    const key = 'venue|' + tier;
+    if (!javaCoreTierTables.has (key)) {
+        const merged = new Map (typedReturnTable (tier));
+        for (const [ name, javaReturnType ] of javaVenueAsyncReturnTable ()) {
+            if (!merged.has (name)) {
+                merged.set (name, { name, javaReturnType, isArray: false });
+            }
+        }
+        javaCoreTierTables.set (key, merged);
+    }
+    return javaCoreTierTables.get (key);
+}
+
+// the return type printMethodDefinition prints for a declaration (undefined: the printer refused)
+function javaCorePrintedReturn (printer, declaration) {
+    let type;
+    const outerUsed = printer.javaReturnTypeUsedDeclaredLocals;
+    printer.javaReturnTypeUsedDeclaredLocals = false;
+    try {
+        type = printer.printFunctionType (declaration);
+        if (type === 'java.util.concurrent.CompletableFuture') {
+            type = 'java.util.concurrent.CompletableFuture<Object>';
+        }
+        if (type === printer.DEFAULT_RETURN_TYPE) {
+            type = printer.javaNativeReturnType (declaration) ?? type;
+        }
+        // a refusal that read locals published while printing is not cached by the printer: unknown
+        if (printer.javaReturnTypeUsedDeclaredLocals && type === printer.DEFAULT_RETURN_TYPE) {
+            type = undefined;
+        }
+    } catch (e) {
+        type = undefined;
+    } finally {
+        printer.javaReturnTypeUsedDeclaredLocals = outerUsed;
+    }
+    return typeof type === 'string' ? type : undefined;
+}
+
+// the spelling the generated file carries after the build passes that retype a signature
+function javaCoreFinalSpelling (printed, name, declaration, segment) {
+    let type = printed;
+    if (type === 'Object' && name === 'describe' && declaration.parameters.length === 0) {
+        type = 'java.util.Map<String, Object>';
+    }
+    if (segment.voidToObject) {
+        type = type.replace (/CompletableFuture<Void>/g, 'CompletableFuture<Object>');
+    }
+    if (/^(?:java\.util\.concurrent\.)?CompletableFuture<Object>$/.test (type)) {
+        const m = segment.table ().get (name);
+        if (m !== undefined) {
+            type = `java.util.concurrent.CompletableFuture<${qualifyJavaType (m.javaReturnType)}>`;
+        }
+    }
+    return shortenJavaReferences (type).source;
+}
+
+// every return spelling a generated declaration of `name` in this segment carries, override bridges included
+function javaCoreSegmentSpellings (printer, segment, name) {
+    const out = [];
+    for (const declaration of (segment.decls ?? []).filter ((m) => m.name.text === name)) {
+        const own = javaCorePrintedReturn (printer, declaration);
+        if (own === undefined) {
+            return undefined;
+        }
+        out.push (javaCoreFinalSpelling (own, name, declaration, segment));
+        let ownKey;
+        let ancestor;
+        try {
+            ownKey = printer.javaCoreParameterTypes (declaration).map ((t) => printer.javaErasure (t)).join (',');
+            ancestor = printer.getMethodOverride (declaration);
+        } catch (e) {
+            return undefined;
+        }
+        const seen = new Set ();
+        while (ancestor !== undefined) {
+            try {
+                if (printer.hasDefaultedTail (ancestor)) {
+                    const key = printer.javaCoreParameterTypes (ancestor).map ((t) => printer.javaErasure (t)).join (',');
+                    if (key !== ownKey && !seen.has (key)) {
+                        seen.add (key);
+                        const bridge = javaCorePrintedReturn (printer, ancestor);
+                        if (bridge === undefined) {
+                            return undefined;
+                        }
+                        out.push (javaCoreFinalSpelling (bridge, name, ancestor, segment));
+                    }
+                }
+                ancestor = printer.getMethodOverride (ancestor);
+            } catch (e) {
+                return undefined;
+            }
+        }
+    }
+    return out;
+}
+
+// every return spelling of `name` over the chain of the call's file, or undefined when one is unknown
+function javaCoreChainSpellings (printer, node, name) {
+    const state = javaCoreProgram (printer);
+    if (state === undefined) {
+        return undefined;
+    }
+    const tier = javaCoreTierOf (node);
+    const id = sourceExchangeId (node);
+    const key = tier + '|' + id + '|' + name;
+    if (state.names.has (key)) {
+        return state.names.get (key);
+    }
+    const own = node.getSourceFile?.();
+    const kinds = [ [ tier, id ] ];
+    if (tier === 'pro') {
+        kinds.push ([ 'rest', id ]);
+    }
+    kinds.push (tier === 'prediction' ? [ 'predictionBase', '' ] : [ 'exchange', '' ], [ 'base', '' ]);
+    let spellings = [];
+    for (const [ kind, segmentId ] of kinds) {
+        const segment = javaCoreSegment (state, own, kind, segmentId);
+        if (segment === undefined) {
+            continue;
+        }
+        if (segment.missing === 'all' || segment.missing?.has (name)) {
+            spellings = undefined;
+            break;
+        }
+        const own2 = javaCoreSegmentSpellings (printer, segment, name);
+        if (own2 === undefined) {
+            spellings = undefined;
+            break;
+        }
+        spellings.push (...own2, ...(segment.head === undefined ? [] : (javaCoreHandHead (segment.head).get (name) ?? [])));
+    }
+    // an answer read while a return type is still being proven may be that proof's provisional one
+    if (!(printer.javaReturnTypeInProgress?.size > 0) && !(printer.javaVenueCalleeInProgress?.size > 0)) {
+        state.names.set (key, spellings);
+    }
+    return spellings;
+}
+
+// method name -> Set of the T spellings every reachable `CompletableFuture<T>` declares
+function javaCoreReturnTypes (printer, node, name) {
+    const spellings = javaCoreChainSpellings (printer, node, name);
+    if (spellings === undefined) {
+        return undefined;
+    }
+    const types = new Set ();
+    for (const spelling of spellings) {
+        const match = JAVA_CORE_METHOD.exec ('public ' + spelling + ' ' + name + '(');
+        if (match !== null) {
+            types.add (qualifyApiReturnType (match[1]));
+        }
+    }
+    return types.size === 0 ? undefined : types;
+}
+
 // the Java type of `await this.<core>(...)` / `await super.<core>(...)`, or undefined when
-// no reachable on-disk declaration proves a single accepted T
-function awaitedCoreCallType (node) {
+// the chain does not prove a single accepted T
+function awaitedCoreCallType (printer, node) {
     if (node?.kind !== ts.SyntaxKind.AwaitExpression) {
         return undefined;
     }
@@ -1695,12 +1963,11 @@ function awaitedCoreCallType (node) {
     if (methodName === undefined) {
         return undefined;
     }
-    // ral-84j7: typed cores javaTypedCore.ts BASE_ASYNC_HELPERS retypes in the same pass (the
-    // on-disk chain still says Object during a full regen, so read the entry, not the file)
+    // ral-84j7: typed cores javaTypedCore.ts BASE_ASYNC_HELPERS retypes in the same pass
     if (Object.hasOwn (J84J7_TYPED_CORES, methodName)) {
         return J84J7_TYPED_CORES[methodName];
     }
-    const types = javaCoreReturnTypes (node)?.get (methodName);
+    const types = javaCoreReturnTypes (printer, node, methodName);
     if (types === undefined || types.size !== 1) {
         return undefined;
     }
@@ -1709,43 +1976,22 @@ function awaitedCoreCallType (node) {
 }
 
 // ===== sync whole-call initialisers: `Object x = this.<m>(...)` =====
-// Same on-disk read, and the value is never a future: a name with any reachable
-// `CompletableFuture` declaration belongs to the awaited family; the module's own traps stay refused.
-const JAVA_CORE_ANY_METHOD = /^\s*(?:public|protected)\s+(?:static\s+final\s+|static\s+|final\s+|abstract\s+|synchronized\s+)*([\w.$]+(?:<[^()]*>)?)\s+(\w+)\s*\(/;
-const JAVA_CORE_SYNC_DECLINED = new Set ([ 'omit', 'omitN', 'omitZero', 'clone', 'deepExtend2', 'sort' ]);
-const javaCoreDeclTables = new Map ();
-
+// Same chain, and the value is never a future: a name with any reachable `CompletableFuture`
+// declaration belongs to the awaited family; the module's own traps stay refused.
 // method name -> { types: Set of every declared return spelling, future: bool }
-function javaCoreDeclarationTable (node) {
-    const key = javaCoreTierOf (node) + '|' + sourceExchangeId (node);
-    if (javaCoreDeclTables.has (key)) {
-        return javaCoreDeclTables.get (key);
+function javaCoreDeclarationEntry (printer, node, name) {
+    const spellings = javaCoreChainSpellings (printer, node, name);
+    if (spellings === undefined || spellings.length === 0) {
+        return undefined;
     }
-    const table = new Map ();
-    for (const file of javaCoreFileCandidates (node)) {
-        let content;
-        try {
-            content = fs.readFileSync (file, 'utf8');
-        } catch (e) {
-            continue;
-        }
-        for (const line of content.split ('\n')) {
-            // a typed core and its untyped front print the same return token, so the Set
-            // stays one-valued for a split method
-            const match = JAVA_CORE_ANY_METHOD.exec (line);
-            if (match === null) {
-                continue;
-            }
-            const entry = table.get (match[2]) ?? { types: new Set (), future: false };
-            entry.types.add (qualifyApiReturnType (match[1].replace (/\s+/g, '')));
-            if (/^(?:java\.util\.concurrent\.)?CompletableFuture</.test (match[1])) {
-                entry.future = true;
-            }
-            table.set (match[2], entry);
+    const entry = { types: new Set (), future: false };
+    for (const spelling of spellings) {
+        entry.types.add (qualifyApiReturnType (spelling.replace (/\s+/g, '')));
+        if (JAVA_CORE_FUTURE.test (spelling)) {
+            entry.future = true;
         }
     }
-    javaCoreDeclTables.set (key, table);
-    return table;
+    return entry;
 }
 
 function syncCoreCallType (printer, node) {
@@ -1769,7 +2015,7 @@ function syncCoreCallType (printer, node) {
     if (emitted !== undefined) {
         return emitted;
     }
-    const entry = javaCoreDeclarationTable (node)?.get (methodName);
+    const entry = javaCoreDeclarationEntry (printer, node, methodName);
     if (entry === undefined || entry.future || entry.types.size !== 1) {
         return undefined;
     }
@@ -1795,7 +2041,7 @@ function bareBaseFunctionCallType (printer, node) {
         || JAVA_CORE_SYNC_DECLINED.has (name)) {
         return undefined;
     }
-    const entry = javaCoreDeclarationTable (node)?.get (name);
+    const entry = javaCoreDeclarationEntry (printer, node, name);
     if (entry === undefined || entry.future || entry.types.size !== 1) {
         return undefined;
     }
@@ -3020,7 +3266,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     // awaited generated api calls: `(this.<endpoint>(...)).join()` has the T of the
     // endpoint's on-disk `CompletableFuture<T>` — cast-free
     if (initializer.kind === ts.SyntaxKind.AwaitExpression) {
-        const awaited = awaitedThisCallType (initializer) ?? awaitedCoreCallType (initializer) ?? awaitedVenueCallType (printer, initializer);
+        const awaited = awaitedThisCallType (initializer) ?? awaitedCoreCallType (printer, initializer) ?? awaitedVenueCallType (printer, initializer);
         if (awaited !== undefined) {
             // the api stubs are reached through `this.` only; a generated core can be called
             // through `super.` too — both print `(<receiver>.<m>(...)).join()`
@@ -3230,7 +3476,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 && isProvablyStringExpression (printer, node.left, selfName, undefined);
         case ts.SyntaxKind.AwaitExpression:
             // `x = await this.<endpoint>(...)` — same T as the declaration's callee
-            return (awaitedThisCallType (node) ?? awaitedCoreCallType (node) ?? awaitedVenueCallType (printer, node)) === javaType;
+            return (awaitedThisCallType (node) ?? awaitedCoreCallType (printer, node) ?? awaitedVenueCallType (printer, node)) === javaType;
         case ts.SyntaxKind.ElementAccessExpression:
             // `x = this.trades[key]` / `this.orderbooks[key]` — a ws map read
             return isWsType (javaType) && wsMapReadType (node) === javaType;
@@ -11328,7 +11574,7 @@ function accumulatorWriteInfo (printer, node) {
         return undefined;
     }
     if (value.kind === ts.SyntaxKind.AwaitExpression) {
-        const t = awaitedThisCallType (value) ?? awaitedCoreCallType (value) ?? awaitedVenueCallType (printer, value);
+        const t = awaitedThisCallType (value) ?? awaitedCoreCallType (printer, value) ?? awaitedVenueCallType (printer, value);
         return t === undefined ? undefined : { type: t, cast: '' };
     }
     const literal = collectionLiteralInfo (value);
@@ -12903,7 +13149,7 @@ function nullSeedWriteType (printer, value, depth = 0) {
     }
     if (value.kind === ts.SyntaxKind.AwaitExpression) {
         // `(this.m (..)).join()` of a core declared CompletableFuture<String/Long/..>: that box, no cast
-        const t = awaitedCoreCallType (value) ?? awaitedThisCallType (value);
+        const t = awaitedCoreCallType (printer, value) ?? awaitedThisCallType (value);
         return NULL_SEED_SCALARS.has (t) ? t : undefined;
     }
     if (ts.isPropertyAccessExpression (value) && value.expression.kind === ts.SyntaxKind.ThisKeyword) {
