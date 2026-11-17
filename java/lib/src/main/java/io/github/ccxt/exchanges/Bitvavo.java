@@ -549,7 +549,7 @@ public class Bitvavo extends BitvavoApi
             //     { "time": 1590379519148 }
             //
             return this.safeInteger(response, "time");
-        });
+        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
@@ -596,7 +596,7 @@ public class Bitvavo extends BitvavoApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> defaultFees = (Map<String, Object>) this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
         Map<String, Object> feesByCategory = (Map<String, Object>) this.safeDict(this.fees, "byCategory", new HashMap<String, Object>() {{}});
-        for (var i = 0; i < ((List<?>)markets).size(); i++)
+        for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, i, (Object) null);
             String id = this.safeString(market, "market");
@@ -767,7 +767,7 @@ public class Bitvavo extends BitvavoApi
         String precision = this.safeString(rawCurrency, "decimals", "8");
         Double minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount", (Object) null);
         // btw, absolutely all of them have 1 network atm
-        for (var j = 0; j < networksArray.size(); j++)
+        for (var j = 0; j < ((List<?>)networksArray).size(); j++)
         {
             Object networkId = (networksArray == null || j < 0 || j >= networksArray.size() ? null : networksArray.get(j));
             String networkCode = this.networkIdToCode(java.util.Objects.toString(networkId, null), code);
@@ -1981,7 +1981,7 @@ public class Bitvavo extends BitvavoApi
             throw new ArgumentsRequired((this.id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         request.put("market", market.get("id"));
-        return request;
+        return (Map<String, Object>) (request);
     }
 
     /**
@@ -3215,10 +3215,10 @@ public class Bitvavo extends BitvavoApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noMarket")) && !((switch ((Object)(parameters)) { case List<?> j39v3 -> j39v3.contains("market"); case Map<?, ?> j39v2 -> j39v2.containsKey("market"); case null, default -> false; })))
+        if ((config.containsKey("noMarket")) && !((switch ((Object)(parameters)) { case List<?> j39v6 -> j39v6.contains("market"); case Map<?, ?> j39v5 -> j39v5.containsKey("market"); case null, default -> false; })))
         {
             return config.get("noMarket");
         }
-        return this.safeInteger(config, "cost", 1);
+        return this.safeValue(config, "cost", 1);
     }
 }
