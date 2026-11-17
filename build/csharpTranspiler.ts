@@ -331,6 +331,8 @@ const CSHARP_INOP_DICT_FIELDS: { [name: string]: string } = {
     'timeframes': 'Dictionary<string, object>', 'has': 'Dictionary<string, object>',
     'options': 'ConcurrentDictionary<string, object>', 'clients': 'ConcurrentDictionary<string, WebSocketClient>',
     'markets': 'IDictionary<string, object>', 'currencies_by_id': 'IDictionary<string, object>',
+    'outcomes': 'IDictionary<string, object>', 'outcomes_by_id': 'IDictionary<string, object>',
+    'events': 'IDictionary<string, object>', 'events_by_slug': 'IDictionary<string, object>',
 }
 const CSHARP_WS_CLIENT_MAP_RE = /^([A-Za-z_]\w*)\.(subscriptions|futures)$/
 const CSHARP_WS_CLIENT_MAPS: { [name: string]: string } = { 'subscriptions': 'IDictionary<string, object>', 'futures': 'IDictionary<string, Future>' }
@@ -522,6 +524,12 @@ const CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES = [ 'Int64?', 'long?', 'int?' ];
 const CSHARP_OPERATOR_NULLABLE_NUMERIC_TYPES = [ 'Int64?', 'long?', 'int?', 'double?' ];
 const CSHARP_OPERATOR_TOKENS = { isGreaterThan: '>', isGreaterThanOrEqual: '>=', isLessThan: '<', isLessThanOrEqual: '<=' };
 
+// hand-written base members an operator rule may read by name: `Int64? precisionMode`
+// (Exchange.Options.cs) and the `public static int` counting-mode constants (Exchange.Number.cs)
+const CSHARP_OPERATOR_FIELD_TYPES: { [name: string]: string } = {
+    'this.precisionMode': 'Int64?', 'DECIMAL_PLACES': 'int', 'SIGNIFICANT_DIGITS': 'int', 'TICK_SIZE': 'int',
+};
+
 // the kind of one printed operand: a string / numeric literal, null, or a name the emitted
 // text declares (its declared type); undefined for every other expression
 function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType) {
@@ -545,6 +553,10 @@ function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType
     if (clientUrl !== null) {
         const owner = takeType (clientUrl[1]);
         return ((owner !== undefined) && (owner.type === 'WebSocketClient')) ? { kind: 'name', type: 'string' } : undefined;
+    }
+    const field = CSHARP_OPERATOR_FIELD_TYPES[maskedArg];
+    if (field !== undefined) {
+        return { kind: 'name', type: field };
     }
     if (!/^[A-Za-z_]\w*$/.test (maskedArg) || (maskedArg === 'null')) {
         return undefined;
@@ -5990,10 +6002,10 @@ class NewTranspiler {
             const fields = [
                 '    public PredictionExchange(object args = null) : base(args) {}',
                 '',
-                '    public object outcomes { get; set; } = null;',
-                '    public object outcomes_by_id { get; set; } = null;',
-                '    public object events { get; set; } = null;',
-                '    public object events_by_slug { get; set; } = null;',
+                '    public IDictionary<string, object> outcomes { get; set; } = null;',
+                '    public IDictionary<string, object> outcomes_by_id { get; set; } = null;',
+                '    public IDictionary<string, object> events { get; set; } = null;',
+                '    public IDictionary<string, object> events_by_slug { get; set; } = null;',
                 '    public bool reloadingEvents { get; set; } = false;',
                 '    public Task<object> eventsLoading { get; set; } = null;',
                 '',

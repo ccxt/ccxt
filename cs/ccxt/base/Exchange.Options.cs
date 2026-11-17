@@ -58,7 +58,7 @@ public partial class BaseExchange
 
     public object limits { get; set; } = new dict();
 
-    public object precisionMode { get; set; } = DECIMAL_PLACES;
+    public Int64? precisionMode { get; set; } = DECIMAL_PLACES;
 
     public IDictionary<string, object> currencies_by_id { get; set; } = null;
 
