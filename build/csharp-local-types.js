@@ -2669,6 +2669,513 @@ function wsCacheAnnotatedWatchType (declaration) {
     return CSHARP_WS_WATCH_CACHE_ANNOTATIONS.includes (annotated) ? ('ccxt.pro.' + annotated) : undefined;
 }
 
+// `const trades = await this.watchPrivate (...)` read through `trades.getLimit`: every settle in the
+// class's files (base unsubscribe / book snapshot included) whose hash prefix can meet a watched
+// prefix must store one ArrayCache-family box; an unproven settle or hash keeps `object`.
+const WS_RESOLVE_CACHE_FIELDS = [ 'orders', 'myTrades', 'positions', 'liquidations', 'myLiquidations' ];
+const WS_RESOLVE_WATCH_CORES = [ 'watch', 'watchMultiple' ];
+
+// leading-literal prefixes of a hash expression: [{ lit, exact }]; `''` non-exact matches anything
+function wsHashPrefixes (node, scope, params, depth) {
+    const any = [ { 'lit': '', 'exact': false } ];
+    if (node === undefined || depth > 6) {
+        return any;
+    }
+    switch (node.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        return [ { 'lit': node.text, 'exact': true } ];
+    case ts.SyntaxKind.TemplateExpression:
+        return [ { 'lit': node.head?.text ?? '', 'exact': false } ];
+    case ts.SyntaxKind.ParenthesizedExpression:
+    case ts.SyntaxKind.AsExpression:
+        return wsHashPrefixes (node.expression, scope, params, depth + 1);
+    case ts.SyntaxKind.BinaryExpression: {
+        if (node.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+            return any;
+        }
+        const out = [];
+        for (const left of wsHashPrefixes (node.left, scope, params, depth + 1)) {
+            if (!left.exact) {
+                out.push (left);
+                continue;
+            }
+            for (const right of wsHashPrefixes (node.right, scope, params, depth + 1)) {
+                out.push ({ 'lit': left.lit + right.lit, 'exact': right.exact });
+            }
+        }
+        return out;
+    }
+    case ts.SyntaxKind.CallExpression: {
+        const key = wsSubscriptionKeyRead (node, scope);
+        if (key === undefined) {
+            return any;
+        }
+        const out = wsSubscriptionKeyPrefixes (node.getSourceFile (), key, depth);
+        if (out === undefined) {
+            return any;
+        }
+        const fallback = node.arguments[2];
+        return (fallback === undefined) ? out : out.concat (wsHashPrefixes (fallback, scope, params, depth + 1));
+    }
+    case ts.SyntaxKind.ElementAccessExpression: {
+        // `hashes[i]` of `const hashes = this.findMessageHashes (client, 'lit')`: a hash holding 'lit'
+        const list = (node.expression?.kind === ts.SyntaxKind.Identifier) ? wsIdentifierWrites (node.expression, scope) : undefined;
+        const call = (list?.length === 1) ? list[0] : undefined;
+        if (call?.kind === ts.SyntaxKind.CallExpression && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && call.expression.name?.text === 'findMessageHashes' && call.arguments?.[1]?.kind === ts.SyntaxKind.StringLiteral) {
+            return [ { 'lit': call.arguments[1].text, 'exact': false, 'contains': true } ];
+        }
+        return any;
+    }
+    case ts.SyntaxKind.Identifier: {
+        const writes = wsIdentifierWrites (node, scope);
+        if (writes === undefined) {
+            const index = scope?.parameters?.findIndex ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === node.text);
+            if (params !== undefined && index !== undefined && index >= 0 && params[index] !== undefined) {
+                return params[index] ();
+            }
+            return any;
+        }
+        const out = writes.flatMap ((w) => wsHashPrefixes (w, scope, params, depth + 1));
+        return writes.appended ? out.map ((h) => ({ ...h, 'exact': false })) : out;
+    }
+    }
+    return any;
+}
+
+// every value a function-local binding holds (initialiser + plain writes), or undefined for a
+// parameter / unbound name / destructured or compound write
+function wsIdentifierWrites (identifier, scope) {
+    if (scope === undefined) {
+        return undefined;
+    }
+    const values = [];
+    let declared = 0;
+    let bad = false;
+    let appended = false;
+    const visit = (n) => {
+        if (n !== scope && isFunctionScope (n)) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Parameter && bindingNamesOf (n.name).includes (identifier.text)) {
+            bad = true;
+        }
+        if (n.kind === ts.SyntaxKind.VariableDeclaration && bindingNamesOf (n.name).includes (identifier.text)) {
+            declared++;
+            if (n.name.kind !== ts.SyntaxKind.Identifier) {
+                bad = true;
+            } else if (n.initializer !== undefined) {
+                values.push (n.initializer);
+            }
+        }
+        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
+                && n.left?.kind === ts.SyntaxKind.Identifier && n.left.text === identifier.text) {
+            if (n.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken) {
+                appended = true; // `x += y` keeps x's own leading literal
+            } else if (n.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+                bad = true;
+            } else {
+                values.push (n.right);
+            }
+        }
+        n?.forEachChild (visit);
+    };
+    scope?.forEachChild (visit);
+    if (bad || declared !== 1 || values.length === 0) {
+        return undefined;
+    }
+    values.appended = appended;
+    return values;
+}
+
+// prefixes of a hash LIST: array literal elements, or a local list's literal / pushed elements
+function wsHashListPrefixes (node, scope, params, depth) {
+    const any = [ { 'lit': '', 'exact': false } ];
+    if (node === undefined || depth > 6) {
+        return any;
+    }
+    if (node.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+        return node.elements.flatMap ((e) => wsHashPrefixes (e, scope, params, depth + 1));
+    }
+    if (node.kind !== ts.SyntaxKind.Identifier) {
+        return any;
+    }
+    const writes = wsIdentifierWrites (node, scope);
+    if (writes === undefined) {
+        const index = scope?.parameters?.findIndex ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === node.text);
+        if (params !== undefined && index !== undefined && index >= 0 && params[index] !== undefined) {
+            return params[index] (true);
+        }
+        return any;
+    }
+    const out = [];
+    for (const w of writes) {
+        if (w.kind !== ts.SyntaxKind.ArrayLiteralExpression) {
+            return any;
+        }
+        out.push (...w.elements.flatMap ((e) => wsHashPrefixes (e, scope, params, depth + 1)));
+    }
+    let escapes = false;
+    const visit = (n) => {
+        if (n !== scope && isFunctionScope (n)) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.CallExpression && n.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && n.expression.expression?.kind === ts.SyntaxKind.Identifier && n.expression.expression.text === node.text) {
+            if (n.expression.name?.text === 'push' && n.arguments.length === 1) {
+                out.push (...wsHashPrefixes (n.arguments[0], scope, params, depth + 1));
+            } else {
+                escapes = true;
+            }
+        }
+        if (n.kind === ts.SyntaxKind.ElementAccessExpression && n.expression?.kind === ts.SyntaxKind.Identifier && n.expression.text === node.text
+                && n.parent?.kind === ts.SyntaxKind.BinaryExpression && n.parent.left === n) {
+            escapes = true;
+        }
+        n?.forEachChild (visit);
+    };
+    scope?.forEachChild (visit);
+    return escapes ? any : out;
+}
+
+// a `contains` hash meets a watched prefix holding its literal, or one whose literal is
+// a prefix of it (unified symbols carry no hash family tag)
+// `this.safeString (subscription, 'k')` on the handler's `subscription` parameter: the key's value
+// is what the file's own subscription literals store under 'k'
+function wsSubscriptionKeyRead (call, scope) {
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'safeString' || call.arguments.length < 2 || call.arguments[1].kind !== ts.SyntaxKind.StringLiteral) {
+        return undefined;
+    }
+    const receiver = call.arguments[0];
+    const isParam = receiver?.kind === ts.SyntaxKind.Identifier && receiver.text === 'subscription'
+        && (scope?.parameters ?? []).some ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === 'subscription');
+    return isParam ? call.arguments[1].text : undefined;
+}
+
+function wsSubscriptionKeyPrefixes (source, key, depth) {
+    const out = [];
+    let ok = true;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.PropertyAssignment && (n.name?.kind === ts.SyntaxKind.StringLiteral || n.name?.kind === ts.SyntaxKind.Identifier) && n.name.text === key) {
+            out.push (...wsHashPrefixes (n.initializer, enclosingFunction (n), undefined, depth + 1));
+        } else if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken?.kind === ts.SyntaxKind.EqualsToken
+                && n.left?.kind === ts.SyntaxKind.ElementAccessExpression && n.left.argumentExpression?.kind === ts.SyntaxKind.StringLiteral
+                && n.left.argumentExpression.text === key) {
+            out.push (...wsHashPrefixes (n.right, enclosingFunction (n), undefined, depth + 1));
+        } else if (n.kind === ts.SyntaxKind.ShorthandPropertyAssignment && n.name?.text === key) {
+            ok = false;
+        }
+        n?.forEachChild (visit);
+    };
+    source?.forEachChild (visit);
+    return (ok && out.length > 0) ? out : undefined;
+}
+
+function wsPrefixesMeet (a, b) {
+    if (a.contains || b.contains) {
+        const [ c, o ] = a.contains ? [ a, b ] : [ b, a ];
+        return o.contains || o.lit.includes (c.lit) || c.lit.startsWith (o.lit) || (!o.exact && o.lit === '');
+    }
+    if (a.exact && b.exact) {
+        return a.lit === b.lit;
+    }
+    if (a.exact) {
+        return a.lit.startsWith (b.lit);
+    }
+    if (b.exact) {
+        return b.lit.startsWith (a.lit);
+    }
+    return a.lit.startsWith (b.lit) || b.lit.startsWith (a.lit);
+}
+
+// the hash prefixes a `this.<wrapper> (...)` call watches, or undefined when the wrapper's value
+// is anything but its own awaited watch / watchMultiple (or undefined)
+function wsWrapperWatchedPrefixes (call, callerScope, callerParams, depth) {
+    if (depth > 3 || call?.kind !== ts.SyntaxKind.CallExpression || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const name = call.expression.name?.text;
+    const args = call.arguments ?? [];
+    if (WS_RESOLVE_WATCH_CORES.includes (name)) {
+        return (name === 'watch') ? wsHashPrefixes (args[1], callerScope, callerParams, 0) : wsHashListPrefixes (args[1], callerScope, callerParams, 0);
+    }
+    const methods = sourceFileMethods (call.getSourceFile (), name).filter ((m) => m.body !== undefined);
+    if (methods.length !== 1) {
+        return undefined;
+    }
+    const method = methods[0];
+    const params = (method.parameters ?? []).map ((p, i) => (asList) => {
+        if (p.dotDotDotToken !== undefined) {
+            return [ { 'lit': '', 'exact': false } ];
+        }
+        const arg = (i < args.length) ? args[i] : p.initializer;
+        return asList ? wsHashListPrefixes (arg, callerScope, callerParams, 0) : wsHashPrefixes (arg, callerScope, callerParams, 0);
+    });
+    const watched = [];
+    let ok = true;
+    let returns = 0;
+    const valueOf = (expr) => {
+        let e = expr;
+        while (e?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            e = e.expression;
+        }
+        if (e === undefined || (e.kind === ts.SyntaxKind.Identifier && e.text === 'undefined')) {
+            return true;
+        }
+        if (e.kind === ts.SyntaxKind.Identifier) {
+            const writes = wsIdentifierWrites (e, method);
+            return writes !== undefined && writes.length === 1 && valueOf (writes[0]);
+        }
+        if (e.kind !== ts.SyntaxKind.AwaitExpression) {
+            return false;
+        }
+        const inner = wsWrapperWatchedPrefixes (e.expression, method, params, depth + 1);
+        if (inner === undefined) {
+            return false;
+        }
+        watched.push (...inner);
+        return true;
+    };
+    const visit = (n) => {
+        if (!ok || (n !== method && isFunctionScope (n))) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.ReturnStatement) {
+            returns++;
+            ok = valueOf (n.expression);
+            return;
+        }
+        n?.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    return (ok && returns > 0 && watched.length > 0) ? watched : undefined;
+}
+
+// the ws cache class a settled value holds, or undefined when unproven
+function wsResolvedCacheBox (csharp, value, depth) {
+    let v = value;
+    while (v?.kind === ts.SyntaxKind.ParenthesizedExpression || v?.kind === ts.SyntaxKind.AsExpression) {
+        v = v.expression;
+    }
+    if (v === undefined || depth > 3) {
+        return undefined;
+    }
+    if (v.kind === ts.SyntaxKind.PropertyAccessExpression && v.expression?.kind === ts.SyntaxKind.ThisKeyword
+            && WS_RESOLVE_CACHE_FIELDS.includes (v.name?.text)) {
+        return 'ArrayCache'; // declared ccxt.pro.ArrayCache in Exchange.Options.cs
+    }
+    const ctor = arrayCacheConstructorName (v);
+    if (ctor !== undefined) {
+        return ctor;
+    }
+    // `this.safeValue (this.trades, k)` reads the same element as `this.trades[k]` (null default)
+    if (v.kind === ts.SyntaxKind.CallExpression && v.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && v.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && v.expression.name?.text === 'safeValue'
+            && v.arguments?.length === 2 && v.arguments[0]?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && v.arguments[0].expression?.kind === ts.SyntaxKind.ThisKeyword
+            && CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES[v.arguments[0].name?.text] !== undefined && wsCacheElementSourceOk (v)) {
+        return bareCsharpType (CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES[v.arguments[0].name.text]);
+    }
+    const element = wsCacheElementReadType (v) ?? wsOhlcvsBucketReadType (v);
+    if (element !== undefined) {
+        return bareCsharpType (element);
+    }
+    if (v.kind === ts.SyntaxKind.Identifier) {
+        const scope = enclosingFunction (v);
+        const writes = wsIdentifierWrites (v, scope);
+        if (writes !== undefined) {
+            const boxes = new Set ();
+            for (const w of writes) {
+                const box = wsResolvedCacheBox (csharp, w, depth + 1);
+                if (box === undefined) {
+                    return undefined;
+                }
+                boxes.add (box);
+            }
+            return wsJoinCacheBoxes (boxes);
+        }
+    }
+    return undefined;
+}
+
+function wsJoinCacheBoxes (boxes) {
+    const names = [ ...boxes ];
+    if (names.length === 0) {
+        return undefined;
+    }
+    if (names.length === 1 && ARRAY_CACHE_ALL_CTORS.includes (names[0])) {
+        return names[0];
+    }
+    return names.every ((n) => ARRAY_CACHE_ARRAY_FAMILY_CTORS.includes (n)) ? 'ArrayCache' : undefined;
+}
+
+// every settle of a source file: { hashes: prefixes, value } (value undefined = unproven)
+function wsFileSettles (csharp, source) {
+    const settles = [];
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.CallExpression && n.expression?.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            const callee = n.expression;
+            const method = callee.name?.text;
+            const scope = enclosingFunction (n);
+            const args = n.arguments ?? [];
+            if (method === 'resolve' && callee.expression?.kind === ts.SyntaxKind.Identifier && callee.expression.text === 'client') {
+                settles.push ({ 'hashes': wsHashPrefixes (args[1], scope, undefined, 0), 'value': args[0] });
+            } else if (method === 'resolve') {
+                settles.push ({ 'hashes': wsFutureHashPrefixes (callee.expression, scope), 'value': args[0] });
+            } else if (callee.expression?.kind === ts.SyntaxKind.ThisKeyword && method === 'cleanUnsubscription') {
+                settles.push ({ 'hashes': wsHashPrefixes (args[2], scope, undefined, 0), 'value': undefined });
+            } else if (callee.expression?.kind === ts.SyntaxKind.ThisKeyword && (method === 'spawn' || method === 'delay')) {
+                const target = args[method === 'spawn' ? 0 : 1];
+                const first = method === 'spawn' ? 1 : 2;
+                if (target?.kind === ts.SyntaxKind.PropertyAccessExpression && target.name?.text === 'loadOrderBook') {
+                    settles.push ({ 'hashes': wsHashPrefixes (args[first + 1], scope, undefined, 0), 'value': undefined });
+                }
+            } else if (callee.expression?.kind === ts.SyntaxKind.ThisKeyword && method === 'loadOrderBook') {
+                settles.push ({ 'hashes': wsHashPrefixes (args[1], scope, undefined, 0), 'value': undefined });
+            }
+        }
+        n?.forEachChild (visit);
+    };
+    source?.forEachChild (visit);
+    return settles;
+}
+
+// `const f = client.futures[H]` / `this.safeValue (client.futures, H)` / `client.future (H)` -> H's prefixes
+function wsFutureHashPrefixes (receiver, scope) {
+    const any = [ { 'lit': '', 'exact': false } ];
+    let r = receiver;
+    if (r?.kind === ts.SyntaxKind.Identifier) {
+        const writes = wsIdentifierWrites (r, scope);
+        if (writes === undefined || writes.length !== 1) {
+            return any;
+        }
+        r = writes[0];
+    }
+    const isFutures = (e) => e?.kind === ts.SyntaxKind.PropertyAccessExpression && e.name?.text === 'futures'
+        && e.expression?.kind === ts.SyntaxKind.Identifier && e.expression.text === 'client';
+    if (r?.kind === ts.SyntaxKind.ElementAccessExpression && isFutures (r.expression)) {
+        return wsHashPrefixes (r.argumentExpression, scope, undefined, 0);
+    }
+    if (r?.kind === ts.SyntaxKind.CallExpression && r.expression?.kind === ts.SyntaxKind.PropertyAccessExpression) {
+        const name = r.expression.name?.text;
+        if ((name === 'safeValue' || name === 'safeDict') && isFutures (r.arguments?.[0])) {
+            return wsHashPrefixes (r.arguments[1], scope, undefined, 0);
+        }
+        if ((name === 'future' || name === 'reusableFuture') && r.expression.expression?.kind === ts.SyntaxKind.Identifier && r.expression.expression.text === 'client') {
+            return wsHashPrefixes (r.arguments?.[0], scope, undefined, 0);
+        }
+    }
+    return any;
+}
+
+// the source files whose handlers run for an instance of the file's class: itself and every
+// ts/src file whose class extends it (transitively)
+function wsHandlerFiles (source) {
+    const corpus = csharpCorpus ();
+    const own = path.relative (process.cwd (), source.fileName);
+    const files = [ own ];
+    // subclasses (transitively): their handlers run for the same instance
+    for (let i = 0; i < files.length && files.length < 64; i++) {
+        for (const [ rel, parents ] of corpus.parents) {
+            if (parents.has (files[i]) && !files.includes (rel)) {
+                files.push (rel);
+            }
+        }
+    }
+    // ancestors outside ts/src/base (the base settles are modelled at their call sites)
+    for (let current = own, depth = 0; depth < 8; depth++) {
+        const parents = [ ...(corpus.parents.get (current) ?? []) ].filter ((p) => p !== current);
+        if (parents.length !== 1 || parents[0].replace (/\\/g, '/').startsWith ('ts/src/base/')) {
+            break;
+        }
+        current = parents[0];
+        if (!files.includes (current)) {
+            files.push (current);
+        }
+    }
+    return files;
+}
+
+const wsResolveProofCache = new Map ();
+
+// `<name>.getLimit (...)` somewhere in the function
+function wsLocalCallsGetLimit (scope, name) {
+    let found = false;
+    const visit = (n) => {
+        if (found || (n !== scope && isFunctionScope (n))) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.CallExpression && n.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && n.expression.name?.text === 'getLimit' && n.expression.expression?.kind === ts.SyntaxKind.Identifier
+                && n.expression.expression.text === name) {
+            found = true;
+            return;
+        }
+        n?.forEachChild (visit);
+    };
+    scope?.forEachChild (visit);
+    return found;
+}
+
+function wsResolvedCacheWatchType (csharp, declaration) {
+    const name = wsWatchAwaitMethodName (declaration);
+    if (name === undefined || declaration.type !== undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const source = declaration.getSourceFile?.();
+    const fileName = (source?.fileName ?? '').replace (/\\/g, '/');
+    if (!fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/')) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (!wsLocalCallsGetLimit (scope, declaration.name.text)) {
+        return undefined; // only the cache method makes the declared class a native use
+    }
+    const watched = wsWrapperWatchedPrefixes (declaration.initializer.expression, scope, undefined, 0);
+    if (watched === undefined) {
+        return undefined;
+    }
+    const boxes = new Set ();
+    let meets = 0;
+    const settlesOf = (rel) => {
+        if (!wsResolveProofCache.has (rel)) {
+            const full = path.join (process.cwd (), rel);
+            const file = (path.resolve (full) === path.resolve (source.fileName)) ? source : tupleDictSourceFile (full);
+            wsResolveProofCache.set (rel, (file === undefined) ? undefined : wsFileSettles (csharp, file));
+        }
+        return wsResolveProofCache.get (rel);
+    };
+    for (const rel of wsHandlerFiles (source)) {
+        const settles = settlesOf (rel);
+        if (settles === undefined) {
+            return undefined;
+        }
+        for (const settle of settles) {
+            if (!settle.hashes.some ((h) => watched.some ((w) => wsPrefixesMeet (h, w)))) {
+                continue;
+            }
+            meets++;
+            const box = (settle.value === undefined) ? undefined : wsResolvedCacheBox (csharp, settle.value, 0);
+            if (box === undefined) {
+                return undefined;
+            }
+            boxes.add (box);
+        }
+    }
+    if (meets === 0) {
+        return undefined;
+    }
+    const joined = wsJoinCacheBoxes (boxes);
+    return (joined === undefined) ? undefined : ('ccxt.pro.' + joined);
+}
+
 // the printed initializer still IS the awaited call the type was proven from: an
 // implicit-`this` call prints `await this.<name>(`, a table call prints `await <name>(`.
 // Anything else (a typed core's `ccxt.BaseExchange.FromX(...)` funnel) is a different
@@ -11991,7 +12498,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         const wsCacheFieldElement = (elementType === undefined) ? wsCacheFieldElementBoxType (declaration.initializer) : undefined;
         // the ws order book subscriber core (`const orderbook = await this.watch (...)` +
         // `return orderbook.limit ()`): the resolve proof is wsOrderBookWatchType above
-        const wsOrderBookType = wsOrderBookWatchType (declaration) ?? wsCacheAnnotatedWatchType (declaration);
+        const wsOrderBookType = wsOrderBookWatchType (declaration) ?? wsCacheAnnotatedWatchType (declaration) ?? wsResolvedCacheWatchType (csharp, declaration);
         if (wsOrderBookType !== undefined) {
             csharpType = wsOrderBookType;
             cast = wsOrderBookType;
