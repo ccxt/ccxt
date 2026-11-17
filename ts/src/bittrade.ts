@@ -565,82 +565,81 @@ export default class bittrade extends Exchange {
         if (numMarkets < 1) {
             throw new NetworkError (this.id + ' fetchMarkets() returned empty response: ' + this.json (markets));
         }
-        const result: List = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const baseId = this.safeString (market, 'base-currency');
-            const quoteId = this.safeString (market, 'quote-currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            const state = this.safeString (market, 'state');
-            const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
-            const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
-            const margin = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
-            const fee = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
-            if (baseId === undefined) {
-                throw new ExchangeError (this.id + ' fetchMarkets() missing baseId');
-            }
-            if (quoteId === undefined) {
-                throw new ExchangeError (this.id + ' fetchMarkets() missing quoteId');
-            }
-            result.push ({
-                'id': baseId + quoteId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': margin,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (state === 'online'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': fee,
-                'maker': fee,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision'))),
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision'))),
-                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.parseNumber (leverageRatio),
-                        'superMax': this.parseNumber (superLeverageRatio),
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'min-order-amt'),
-                        'max': this.safeNumber (market, 'max-order-amt'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'min-order-value'),
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
+        return this.parseMarkets (markets);
+    }
+
+    override parseMarket (market: Dict): Market {
+        const baseId = this.safeString (market, 'base-currency');
+        const quoteId = this.safeString (market, 'quote-currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return {} as Market;
         }
-        return result;
+        const state = this.safeString (market, 'state');
+        const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
+        const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
+        const margin = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
+        const fee = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
+        if (baseId === undefined) {
+            throw new ExchangeError (this.id + ' fetchMarkets() missing baseId');
+        }
+        if (quoteId === undefined) {
+            throw new ExchangeError (this.id + ' fetchMarkets() missing quoteId');
+        }
+        return {
+            'id': baseId + quoteId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': margin,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (state === 'online'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': fee,
+            'maker': fee,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision'))),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision'))),
+                'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.parseNumber ('1'),
+                    'max': this.parseNumber (leverageRatio),
+                    'superMax': this.parseNumber (superLeverageRatio),
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'min-order-amt'),
+                    'max': this.safeNumber (market, 'max-order-amt'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min-order-value'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        } as Market;
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
