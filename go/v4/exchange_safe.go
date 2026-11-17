@@ -1138,3 +1138,17 @@ func (this *BaseExchange) SafeListSlice(dictionaryOrList any, key any, defaultVa
 func (this *BaseExchange) SafeListNSlice(dictionaryOrList any, keys any) []any {
 	return listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys))
 }
+
+// SafeListMapsTyped is SafeListTyped read as map rows: nil when the member is absent or not a
+// list, else one entry per element, the element's map or a nil map for any other element.
+func (this *BaseExchange) SafeListMapsTyped(m any, key any) []map[string]any {
+	list := SafeListTyped(m, key)
+	if list == nil {
+		return nil
+	}
+	rows := make([]map[string]any, len(list))
+	for i, element := range list {
+		rows[i], _ = derefScalar(element).(map[string]any)
+	}
+	return rows
+}
