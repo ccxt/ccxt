@@ -15026,12 +15026,11 @@ const CORE_LIST_ARGS_SINGLE_CALLER = {
     'subscribeMarketsSummary': 1,
     'unsubscribeMultipleWrapper': 2,
 };
-Object.assign (CORE_LIST_ARGS_ARRAY_LENGTH, CORE_LIST_ARGS_SINGLE_CALLER);
-// okx/blofin parseIds: a split string list or the caller's list (or null) on every path
-CSHARP_COLLECTION_RETURN_METHODS['parseIds'] = 'IList<object>';
 Object.assign (CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_ARRAY_LENGTH);
-for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LENGTH_READS)) {
-    CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
+for (const table of [ CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_SINGLE_CALLER ]) {
+    for (const [ name, position ] of Object.entries (table)) {
+        CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
+    }
 }
 
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
