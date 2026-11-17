@@ -11447,12 +11447,26 @@ function selfTernaryWriteType (csharp, context, declaration, value) {
     if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
         return undefined;
     }
-    const selfTrue = isSelfRead (csharp, node.whenTrue, declaration);
-    const selfFalse = isSelfRead (csharp, node.whenFalse, declaration);
+    const selfTrue = (isSelfRead (csharp, node.whenTrue, declaration) || constSelfCopyRead (csharp, node.whenTrue, declaration));
+    const selfFalse = (isSelfRead (csharp, node.whenFalse, declaration) || constSelfCopyRead (csharp, node.whenFalse, declaration));
     if (selfTrue === selfFalse) {
         return undefined; // both arms read this local, or neither does
     }
     return conditionalArmType (csharp, selfTrue ? node.whenFalse : node.whenTrue, context);
+}
+
+// `const c = x; x = (c === undefined) ? D : c`: a const copy initialised from a plain read of x holds a value
+// x held, so as a ternary arm it stands for x itself (the self arm of selfTernaryWriteType)
+function constSelfCopyRead (csharp, operand, declaration) {
+    if (operand?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const copy = resolveReference (csharp, operand);
+    if (copy?.kind !== ts.SyntaxKind.VariableDeclaration || copy === declaration || copy.name?.kind !== ts.SyntaxKind.Identifier
+            || !(copy.parent?.kind === ts.SyntaxKind.VariableDeclarationList && (copy.parent.flags & ts.NodeFlags.Const))) {
+        return false;
+    }
+    return isSelfRead (csharp, stripParens (copy.initializer), declaration);
 }
 
 // `c ? parseInt (v) : null` / `null : parseInt (v)`: the arms' own C# types are `object` (the
