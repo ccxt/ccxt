@@ -300,126 +300,130 @@ export default class bitflyer extends Exchange {
         //
         let markets = this.arrayConcat (this.toArray (jp_markets), this.toArray (us_markets));
         markets = this.arrayConcat (markets, this.toArray (eu_markets));
-        const result: List = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'product_code');
-            const currencies = (id as string).split ('_');
-            const marketType = this.safeString (market, 'market_type');
-            const swap = (marketType === 'FX');
-            const future = (marketType === 'Futures');
-            const spot = !swap && !future;
-            let type = 'spot';
-            let settle: Str = undefined;
-            let baseId: Str = undefined;
-            let quoteId: Str = undefined;
-            let expiry: Int = undefined;
-            if (spot) {
-                baseId = this.safeString (currencies, 0);
-                quoteId = this.safeString (currencies, 1);
-            } else if (swap) {
-                type = 'swap';
-                baseId = this.safeString (currencies, 1);
-                quoteId = this.safeString (currencies, 2);
-            } else if (future) {
-                const alias = this.safeString (market, 'alias');
-                if (alias === undefined) {
-                    // no alias:
-                    // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
-                    // TODO this will break if there are products with 4 chars
-                    baseId = (id as string).slice (0, 3);
-                    quoteId = (id as string).slice (3, 6);
-                    // last 9 chars are expiry date
-                    const expiryDate = (id as string).slice (-9);
-                    expiry = this.parseExpiryDate (expiryDate);
-                } else {
-                    const splitAlias = alias.split ('_');
-                    const currencyIds = this.safeString (splitAlias, 0);
-                    baseId = (currencyIds as string).slice (0, -3);
-                    quoteId = (currencyIds as string).slice (-3);
-                    const splitId = (id as string).split (currencyIds as string);
-                    const expiryDate = this.safeString (splitId, 1);
-                    if (expiryDate === undefined) {
-                        continue;
-                    }
-                    expiry = this.parseExpiryDate (expiryDate);
+        return this.parseMarkets (markets);
+    }
+
+    override parseMarket (market: Dict): Market {
+        //
+        //     { "product_code": "BTC_JPY", "market_type": "Spot" }
+        //     { "product_code": "FX_BTC_JPY", "market_type": "FX" }
+        //     { "product_code": "BTCJPY11FEB2022", "alias": "BTCJPY_MAT1WK", "market_type": "Futures" }
+        //
+        const id = this.safeString (market, 'product_code');
+        const currencies = (id as string).split ('_');
+        const marketType = this.safeString (market, 'market_type');
+        const swap = (marketType === 'FX');
+        const future = (marketType === 'Futures');
+        const spot = !swap && !future;
+        let type = 'spot';
+        let settle: Str = undefined;
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        let expiry: Int = undefined;
+        if (spot) {
+            baseId = this.safeString (currencies, 0);
+            quoteId = this.safeString (currencies, 1);
+        } else if (swap) {
+            type = 'swap';
+            baseId = this.safeString (currencies, 1);
+            quoteId = this.safeString (currencies, 2);
+        } else if (future) {
+            const alias = this.safeString (market, 'alias');
+            if (alias === undefined) {
+                // no alias:
+                // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
+                // TODO this will break if there are products with 4 chars
+                baseId = (id as string).slice (0, 3);
+                quoteId = (id as string).slice (3, 6);
+                // last 9 chars are expiry date
+                const expiryDate = (id as string).slice (-9);
+                expiry = this.parseExpiryDate (expiryDate);
+            } else {
+                const splitAlias = alias.split ('_');
+                const currencyIds = this.safeString (splitAlias, 0);
+                baseId = (currencyIds as string).slice (0, -3);
+                quoteId = (currencyIds as string).slice (-3);
+                const splitId = (id as string).split (currencyIds as string);
+                const expiryDate = this.safeString (splitId, 1);
+                if (expiryDate === undefined) {
+                    return undefined;
                 }
-                if (expiry === undefined) {
-                    continue;
-                }
-                type = 'future';
+                expiry = this.parseExpiryDate (expiryDate);
             }
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
+            if (expiry === undefined) {
+                return undefined;
             }
-            let symbol = base + '/' + quote;
-            let taker = this.safeNumber (this.fees['trading'], 'taker');
-            let maker = this.safeNumber (this.fees['trading'], 'maker');
-            const contract = swap || future;
-            if (contract) {
-                maker = 0.0;
-                taker = 0.0;
-                settle = 'JPY';
-                symbol = symbol + ':' + settle;
-                if (future) {
-                    symbol = symbol + '-' + this.yymmdd (expiry);
-                }
-            }
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': type,
-                'spot': spot,
-                'margin': false,
-                'swap': swap,
-                'future': future,
-                'option': false,
-                'active': true,
-                'contract': contract,
-                'linear': spot ? undefined : true,
-                'inverse': spot ? undefined : false,
-                'taker': taker,
-                'maker': maker,
-                'contractSize': undefined,
-                'expiry': expiry,
-                'expiryDatetime': this.iso8601 (expiry),
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': undefined,
-                    'price': undefined,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
+            type = 'future';
         }
-        return result;
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        let symbol = base + '/' + quote;
+        let taker = this.safeNumber (this.fees['trading'], 'taker');
+        let maker = this.safeNumber (this.fees['trading'], 'maker');
+        const contract = swap || future;
+        if (contract) {
+            maker = 0.0;
+            taker = 0.0;
+            settle = 'JPY';
+            symbol = symbol + ':' + settle;
+            if (future) {
+                symbol = symbol + '-' + this.yymmdd (expiry);
+            }
+        }
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': type,
+            'spot': spot,
+            'margin': false,
+            'swap': swap,
+            'future': future,
+            'option': false,
+            'active': true,
+            'contract': contract,
+            'linear': spot ? undefined : true,
+            'inverse': spot ? undefined : false,
+            'taker': taker,
+            'maker': maker,
+            'contractSize': undefined,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        } as Market;
     }
 
     parseBalanceList (response: Dict[]): Balances {
