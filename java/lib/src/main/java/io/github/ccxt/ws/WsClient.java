@@ -69,7 +69,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
  */
 public class WsClient {
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final ObjectMapper JSON_MAPPER = JsonHelper.mapper();
 
     // Shared event loop group across all WsClient instances (one per JVM)
     private static final EventLoopGroup SHARED_EVENT_LOOP = new NioEventLoopGroup(

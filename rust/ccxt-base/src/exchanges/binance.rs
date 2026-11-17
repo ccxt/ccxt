@@ -1182,6 +1182,11 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Float(0.40002));
     m
 }));
+        m.insert("sub-account/subAccountApi".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
+    m
+}));
         m.insert("sub-account/subAccountApi/ipRestriction".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(20.001));
@@ -2092,6 +2097,16 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Float(0.1));
     m
 }));
+        m.insert("sub-account/subAccountApi".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
+    m
+}));
+        m.insert("sub-account/subAccountApiPermission".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
+    m
+}));
         m.insert("sub-account/margin/transfer".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(4.0002));
@@ -2710,6 +2725,11 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Float(0.1));
     m
 }));
+        m.insert("sub-account/subAccountApi".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
+    m
+}));
         m.insert("sub-account/subAccountApi/ipRestriction/ipList".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(20.001));
@@ -2785,6 +2805,11 @@ impl BinanceCore {
         m.insert("eth-staking/eth/stake".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(15));
+    m
+}));
+        m.insert("sub-account/subAccountApi".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
     m
 }));
         m.insert("sub-account/subAccountApi/ipRestriction".to_string(), Value::Map({
@@ -15340,7 +15365,7 @@ impl BinanceCore {
         let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Int(1000)]).await;
         }
         let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("defaultType".into()), &[Value::Str("swap".into())]);
         let mut type_var: Value = self.safe_string_k(paramsPaginate.clone(), "type", &[defaultType]);

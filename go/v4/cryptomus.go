@@ -79,7 +79,7 @@ func (this *Cryptomus) Describe() map[string]any {
 			"fetchConvertTradeHistory":               false,
 			"fetchCrossBorrowRate":                   false,
 			"fetchCrossBorrowRates":                  false,
-			"fetchCurrencies":                        true,
+			"fetchCurrencies":                        false,
 			"fetchDepositAddress":                    false,
 			"fetchDeposits":                          false,
 			"fetchDepositsWithdrawals":               false,
@@ -120,7 +120,7 @@ func (this *Cryptomus) Describe() map[string]any {
 			"fetchOption":                            false,
 			"fetchOptionChain":                       false,
 			"fetchOrder":                             true,
-			"fetchOrderBook":                         true,
+			"fetchOrderBook":                         false,
 			"fetchOrders":                            false,
 			"fetchOrderTrades":                       false,
 			"fetchPosition":                          false,
@@ -133,10 +133,10 @@ func (this *Cryptomus) Describe() map[string]any {
 			"fetchPremiumIndexOHLCV":                 false,
 			"fetchSettlementHistory":                 false,
 			"fetchStatus":                            false,
-			"fetchTicker":                            false,
-			"fetchTickers":                           true,
+			"fetchTicker":                            true,
+			"fetchTickers":                           false,
 			"fetchTime":                              false,
-			"fetchTrades":                            true,
+			"fetchTrades":                            false,
 			"fetchTradingFee":                        false,
 			"fetchTradingFees":                       true,
 			"fetchTransactions":                      false,
@@ -173,9 +173,6 @@ func (this *Cryptomus) Describe() map[string]any {
 					"v2/user-api/exchange/markets": map[string]any{
 						"cost": 1,
 					},
-					"v2/user-api/exchange/market/price": map[string]any{
-						"cost": 1,
-					},
 					"v2/user-api/exchange/markets/price": map[string]any{
 						"cost": 1,
 					},
@@ -183,9 +180,6 @@ func (this *Cryptomus) Describe() map[string]any {
 						"cost": 1,
 					},
 					"v1/exchange/market/order-book/{currencyPair}": map[string]any{
-						"cost": 1,
-					},
-					"v1/exchange/market/tickers": map[string]any{
 						"cost": 1,
 					},
 					"v1/exchange/market/trades/{currencyPair}": map[string]any{
@@ -330,7 +324,9 @@ func (this *Cryptomus) Describe() map[string]any {
 				"Insufficient funds.":    InsufficientFunds,
 				"Minimum amount 15 USDT": InvalidOrder,
 			},
-			"broad": map[string]any{},
+			"broad": map[string]any{
+				"Market ": BadSymbol,
+			},
 		},
 		"precisionMode": TICK_SIZE,
 		"requiredCredentials": map[string]any{
@@ -345,7 +341,7 @@ func (this *Cryptomus) Describe() map[string]any {
  * @method
  * @name cryptomus#fetchMarkets
  * @description retrieves data on all markets for the exchange
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
+ * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -580,24 +576,22 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) map[string]any {
 
 /**
  * @method
- * @name cryptomus#fetchTickers
- * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
- * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @name cryptomus#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://doc.cryptomus.com/methods/exchange/get-current-market-price
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Cryptomus) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
-	ch := make(chan AsyncResult[map[string]Ticker], 1)
-	go this.fetchTickersBody(ch, optionalArgs...)
+func (this *Cryptomus) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
+func (this *Cryptomus) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
-	_ = symbols
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -606,44 +600,35 @@ func (this *Cryptomus) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 			panic(r.Err)
 		}
 	}
-	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var market map[string]any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": market["id"],
+	}
 
-	r1 := <-this.PublicGetV1ExchangeMarketTickers(params)
+	r1 := <-this.PublicGetV2UserApiExchangeMarketsPrice(this.Extend(request, params))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
+
 	//
 	//     {
-	//         "data": [
-	//         {
-	//             "currency_pair": "MATIC_USDT",
-	//             "last_price": "0.342",
-	//             "base_volume": "1676.84092771",
-	//             "quote_volume": "573.48033609043"
-	//         },
-	//         ...
+	//         "price": "78450.4"
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
-
-	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	//     {
-	//         "currency_pair": "XMR_USDT",
-	//         "last_price": "158.04829772",
-	//         "base_volume": "0.35185785",
-	//         "quote_volume": "55.523761128544"
+	//         "price": "78450.4"
 	//     }
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketId *string = this.SafeString(ticker, "currency_pair")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var last *string = this.SafeString(ticker, "last_price")
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
+	var last *string = this.SafeString(ticker, "price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     nil,
@@ -662,8 +647,8 @@ func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"change":        nil,
 		"percentage":    nil,
 		"average":       nil,
-		"baseVolume":    this.SafeString(ticker, "base_volume"),
-		"quoteVolume":   this.SafeString(ticker, "quote_volume"),
+		"baseVolume":    nil,
+		"quoteVolume":   nil,
 		"info":          ticker,
 	}, marketResolved)
 }
@@ -1576,6 +1561,7 @@ func (this *Cryptomus) HandleErrors(code int64, reason string, url string, metho
 	if codeError != nil {
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
 	} else if message != nil {
 		//
@@ -1607,7 +1593,7 @@ func (this *Cryptomus) Init(userConfig map[string]any) {
  * @method
  * @name cryptomus#fetchMarkets
  * @description retrieves data on all markets for the exchange
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
+ * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1639,25 +1625,25 @@ func (this *Cryptomus) FetchCurrencies(params ...any) (Currencies, error) {
 
 /**
  * @method
- * @name cryptomus#fetchTickers
- * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
- * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @name cryptomus#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://doc.cryptomus.com/methods/exchange/get-current-market-price
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Cryptomus) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
+func (this *Cryptomus) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
-	opts := FetchTickersOptionsStruct{}
+	opts := FetchTickerOptionsStruct{}
 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	r := <-this.FetchTickerAsync(symbol, opts.Params)
 	if r.Err != nil {
-		return Tickers{}, r.Err
+		return Ticker{}, r.Err
 	}
-	var res Tickers = Tickers{Tickers: r.Value}
+	var res Ticker = r.Value
 	return res, nil
 }
 

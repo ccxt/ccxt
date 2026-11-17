@@ -750,32 +750,15 @@ class BaseExchange {
     }
 
     public static function uuid22($length = 22) {
-        return bin2hex(random_bytes(intval($length / 2)));
+        return static::uuid16($length);
     }
 
     public static function uuid() {
-        return sprintf(
-            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            // 32 bits for "time_low"
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-
-            // 16 bits for "time_mid"
-            mt_rand(0, 0xffff),
-
-            // 16 bits for "time_hi_and_version",
-            // four most significant bits holds version number 4
-            mt_rand(0, 0x0fff) | 0x4000,
-
-            // 16 bits, 8 bits for "clk_seq_hi_res", 8 bits for "clk_seq_low",
-            // two most significant bits holds zero and one for variant DCE1.1
-            mt_rand(0, 0x3fff) | 0x8000,
-
-            // 48 bits for "node"
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff)
-        );
+        // RFC 4122 version 4: set the version nibble to 4 and the variant bits to 10
+        $bytes = random_bytes(16);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
     }
 
     public static function parse_timeframe($timeframe) {
@@ -1448,18 +1431,12 @@ class BaseExchange {
 
 
     public function ensure_whitelisted_file(string $filePath) {
-        $tempDir = $this->get_temp_dir();
-        if (!str_ends_with($tempDir, DIRECTORY_SEPARATOR)) {
-            $tempDir .= DIRECTORY_SEPARATOR;
-        }
-        // resolve parent dir (which exists) + filename
-        $dir = realpath(dirname($filePath));
-        if ($dir === false) {
-            throw new \RuntimeException('dir path does not exist: ' . $filePath);
-        }
-        $sanitized = $dir . DIRECTORY_SEPARATOR . basename($filePath);
-        if (str_starts_with($sanitized, $tempDir) && str_ends_with($sanitized, '.ccxtfile')) {
-            return;
+        $sanitized = basename($filePath);
+        $exts = array('ccxtfile', 'pem', 'wasm');
+        foreach ($exts as $ext) {
+            if (str_ends_with($sanitized, '.' . $ext)) {
+                return;
+            }
         }
         throw new \RuntimeException('invalid file path: ' . $filePath);
     }

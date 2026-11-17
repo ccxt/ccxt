@@ -372,6 +372,9 @@ class bithumb(Exchange, ImplicitAPI):
                 '30m': 30,
                 '1h': 60,
                 '4h': 240,
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months',
             },
             'options': {
                 'generation': 2,  # either API generation 1 or 2
@@ -1252,6 +1255,8 @@ class bithumb(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
+        :param int [params.until]: generation 2 only, timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: generation 2 only, default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -1262,21 +1267,42 @@ class bithumb(Exchange, ImplicitAPI):
         response = None
         data = []
         if generation == 2:
+            paginate, paramsPaginate = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+            if paginate:
+                return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
+            until = self.safe_integer(paramsGeneration, 'until')
+            requestParams = self.omit(paramsGeneration, ['until', 'paginate'])
             request['market'] = self.get_gen2_market_id(market)
+            # the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            count = 200
             if limit is not None:
-                request['count'] = limit
+                count = min(limit, 200)
+            if (limit is not None) or (since is not None) or (until is not None):
+                request['count'] = count
+            # the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            # and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            to = None
+            if until is not None:
+                to = self.sum(until, 1000)  # `to` is exclusive with second precision, keep the candle that opens at `until`
+            if since is not None:
+                duration = self.parse_timeframe(timeframe) * 1000
+                sinceEnd = self.sum(since, duration * count)
+                if (to is None) or (sinceEnd < to):
+                    to = sinceEnd
+            if to is not None:
+                request['to'] = self.ymdhms(self.sum(to, 32400000), ' ')
             if timeframe == '1d':
-                response = await self.publicGetV1CandlesDays(self.extend(request, paramsGeneration))
+                response = await self.publicGetV1CandlesDays(self.extend(request, requestParams))
             elif timeframe == '1w':
-                response = await self.publicGetV1CandlesWeeks(self.extend(request, paramsGeneration))
+                response = await self.publicGetV1CandlesWeeks(self.extend(request, requestParams))
             elif timeframe == '1M':
-                response = await self.publicGetV1CandlesMonths(self.extend(request, paramsGeneration))
+                response = await self.publicGetV1CandlesMonths(self.extend(request, requestParams))
             else:
                 timeframeInteger = self.safe_integer(self.timeframes, timeframe)
                 if timeframeInteger is None:
                     raise BadRequest(self.id + ' fetchOHLCV() unsupported timeframe ' + timeframe)
                 request['unit'] = timeframeInteger
-                response = await self.publicGetV1CandlesMinutesUnit(self.extend(request, paramsGeneration))
+                response = await self.publicGetV1CandlesMinutesUnit(self.extend(request, requestParams))
             #
             #     [
             #         {

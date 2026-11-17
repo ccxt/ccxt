@@ -1034,6 +1034,7 @@ public partial class bingx : Exchange
                     { "100490", typeof(BadSymbol) },
                     { "101481", typeof(DuplicateOrderId) },
                     { "109201", typeof(DuplicateOrderId) },
+                    { "104414", typeof(BadRequest) },
                     { "109400", typeof(BadRequest) },
                     { "109418", typeof(BadSymbol) },
                     { "109421", typeof(OrderNotFound) },
@@ -5604,6 +5605,23 @@ public partial class bingx : Exchange
         {
             bool? isTwapOrder = this.safeBool(paramsStandard, "twap", false);
             Dictionary<string, object> paramsOmitted = this.omit(paramsStandard, "twap");
+            if (isTwapOrder != true)
+            {
+                if ((limit != null))
+                {
+                    request["limit"] = Math.Min(limit.Value, 1000);
+                }
+                if ((since != null))
+                {
+                    request["startTime"] = since;
+                }
+                Int64? until = this.safeInteger(paramsOmitted, "until");
+                if (!(until == null))
+                {
+                    request["endTime"] = until;
+                    paramsOmitted = this.omit(paramsOmitted, "until");
+                }
+            }
             if ((isTwapOrder == true))
             {
                 request["pageIndex"] = 1;
@@ -7301,7 +7319,7 @@ public partial class bingx : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "makerCommissionRate") },
             { "taker", this.safeNumber(fee, "takerCommissionRate") },
-            { "percentage", false },
+            { "percentage", true },
             { "tierBased", false },
         };
     }

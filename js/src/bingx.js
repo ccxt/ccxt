@@ -642,6 +642,7 @@ export default class bingx extends Exchange {
                     '100490': BadSymbol, // spot trading pair is offline
                     '101481': DuplicateOrderId,
                     '109201': DuplicateOrderId,
+                    '104414': BadRequest, // {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400': BadRequest, // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418': BadSymbol, // trading pair is offline and cannot be ordered through the api
                     '109421': OrderNotFound,
@@ -5324,7 +5325,20 @@ export default class bingx extends Exchange {
         }
         else {
             const isTwapOrder = this.safeBool(paramsStandard, 'twap', false);
-            const paramsOmitted = this.omit(paramsStandard, 'twap');
+            let paramsOmitted = this.omit(paramsStandard, 'twap');
+            if (!isTwapOrder) {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min(limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                const until = this.safeInteger(paramsOmitted, 'until');
+                if (until !== undefined) {
+                    request['endTime'] = until;
+                    paramsOmitted = this.omit(paramsOmitted, 'until');
+                }
+            }
             if (isTwapOrder) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = (limit === undefined) ? 100 : limit;
@@ -7224,7 +7238,7 @@ export default class bingx extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommissionRate'),
             'taker': this.safeNumber(fee, 'takerCommissionRate'),
-            'percentage': false,
+            'percentage': true,
             'tierBased': false,
         };
     }

@@ -234,35 +234,43 @@ class bitvavo(Exchange, ImplicitAPI):
                 },
             },
             'fees': {
+                # https://bitvavo.com/en/fees
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
                     'taker': self.parse_number('0.0025'),
-                    'maker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.0015'),
                     'tiers': {
                         'taker': [
                             [self.parse_number('0'), self.parse_number('0.0025')],
                             [self.parse_number('100000'), self.parse_number('0.0020')],
-                            [self.parse_number('250000'), self.parse_number('0.0016')],
-                            [self.parse_number('500000'), self.parse_number('0.0012')],
-                            [self.parse_number('1000000'), self.parse_number('0.0010')],
-                            [self.parse_number('2500000'), self.parse_number('0.0008')],
-                            [self.parse_number('5000000'), self.parse_number('0.0006')],
-                            [self.parse_number('10000000'), self.parse_number('0.0005')],
+                            [self.parse_number('250000'), self.parse_number('0.0018')],
+                            [self.parse_number('500000'), self.parse_number('0.0016')],
+                            [self.parse_number('1000000'), self.parse_number('0.0014')],
+                            [self.parse_number('2500000'), self.parse_number('0.0012')],
+                            [self.parse_number('5000000'), self.parse_number('0.0010')],
+                            [self.parse_number('10000000'), self.parse_number('0.0008')],
                             [self.parse_number('25000000'), self.parse_number('0.0004')],
+                            [self.parse_number('100000000'), self.parse_number('0.0002')],
                         ],
                         'maker': [
                             [self.parse_number('0'), self.parse_number('0.0015')],
                             [self.parse_number('100000'), self.parse_number('0.0010')],
-                            [self.parse_number('250000'), self.parse_number('0.0008')],
-                            [self.parse_number('500000'), self.parse_number('0.0006')],
+                            [self.parse_number('250000'), self.parse_number('0.0009')],
+                            [self.parse_number('500000'), self.parse_number('0.0008')],
                             [self.parse_number('1000000'), self.parse_number('0.0005')],
-                            [self.parse_number('2500000'), self.parse_number('0.0004')],
-                            [self.parse_number('5000000'), self.parse_number('0.0004')],
-                            [self.parse_number('10000000'), self.parse_number('0.0003')],
-                            [self.parse_number('25000000'), self.parse_number('0.0003')],
+                            [self.parse_number('2500000'), self.parse_number('0.0003')],
+                            [self.parse_number('5000000'), self.parse_number('0.0001')],
+                            [self.parse_number('10000000'), self.parse_number('0')],
+                            [self.parse_number('25000000'), self.parse_number('0')],
+                            [self.parse_number('100000000'), self.parse_number('0')],
                         ],
                     },
+                },
+                'byCategory': {
+                    'B': {'maker': self.parse_number('0.0005'), 'taker': self.parse_number('0.0005')},
+                    'C': {'maker': self.parse_number('0.001'), 'taker': self.parse_number('0.001')},
+                    'D': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.0001')},
                 },
             },
             'requiredCredentials': {
@@ -484,6 +492,8 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def parse_markets(self, markets: object):
         result = []
+        defaultFees = self.safe_dict(self.fees, 'trading', {})
+        feesByCategory = self.safe_dict(self.fees, 'byCategory', {})
         for i in range(0, len(markets)):
             market = self.safe_dict(markets, i)
             id = self.safe_string(market, 'market')
@@ -494,6 +504,8 @@ class bitvavo(Exchange, ImplicitAPI):
             if (base is None) or (quote is None):
                 continue
             status = self.safe_string(market, 'status')
+            feeCategory = self.safe_string(market, 'feeCategory')
+            fees = self.safe_dict(feesByCategory, feeCategory, defaultFees)
             result.append(self.safe_market_structure({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -518,8 +530,8 @@ class bitvavo(Exchange, ImplicitAPI):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'taker': self.safe_number(self.fees['trading'], 'taker'),
-                'maker': self.safe_number(self.fees['trading'], 'maker'),
+                'taker': self.safe_number(fees, 'taker'),
+                'maker': self.safe_number(fees, 'maker'),
                 'precision': {
                     'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityDecimals'))),
                     'price': self.safe_number(market, 'tickSize'),

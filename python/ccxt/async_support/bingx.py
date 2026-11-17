@@ -655,6 +655,7 @@ class bingx(Exchange, ImplicitAPI):
                     '100490': BadSymbol,  # spot trading pair is offline
                     '101481': DuplicateOrderId,
                     '109201': DuplicateOrderId,
+                    '104414': BadRequest,  # {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400': BadRequest,  # {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418': BadSymbol,  # trading pair is offline and cannot be ordered through the api
                     '109421': OrderNotFound,
@@ -5015,6 +5016,15 @@ class bingx(Exchange, ImplicitAPI):
         else:
             isTwapOrder = self.safe_bool(paramsStandard, 'twap', False)
             paramsOmitted = self.omit(paramsStandard, 'twap')
+            if not isTwapOrder:
+                if limit is not None:
+                    request['limit'] = min(limit, 1000)
+                if since is not None:
+                    request['startTime'] = since
+                until = self.safe_integer(paramsOmitted, 'until')
+                if until is not None:
+                    request['endTime'] = until
+                    paramsOmitted = self.omit(paramsOmitted, 'until')
             if isTwapOrder:
                 request['pageIndex'] = 1
                 request['pageSize'] = 100 if (limit is None) else limit
@@ -6794,7 +6804,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerCommissionRate'),
             'taker': self.safe_number(fee, 'takerCommissionRate'),
-            'percentage': False,
+            'percentage': True,
             'tierBased': False,
         }
 

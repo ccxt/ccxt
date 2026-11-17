@@ -375,6 +375,7 @@ class binance extends Exchange {
                         'sub-account/universalTransfer' => array( 'cost' => 0.1 ),
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList' => array( 'cost' => 1 ),
                         'sub-account/transaction-statistics' => array( 'cost' => 0.40002 ), // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset' => array( 'cost' => 0.1 ),
                         'managed-subaccount/accountSnapshot' => array( 'cost' => 240 ),
@@ -578,6 +579,8 @@ class binance extends Exchange {
                         'margin/max-leverage' => array( 'cost' => 300 ), // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn' => array( 'cost' => 0.1 ),
                         'sub-account/virtualSubAccount' => array( 'cost' => 0.1 ),
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ),
+                        'sub-account/subAccountApiPermission' => array( 'cost' => 20.001 ),
                         'sub-account/margin/transfer' => array( 'cost' => 4.0002 ), // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable' => array( 'cost' => 0.1 ),
                         'sub-account/futures/enable' => array( 'cost' => 0.1 ),
@@ -718,6 +721,7 @@ class binance extends Exchange {
                         'broker/subAccountApi/ipRestriction/ipList' => array( 'cost' => 1 ),
                         'algo/spot/order' => array( 'cost' => 0.1 ),
                         'algo/futures/order' => array( 'cost' => 0.1 ),
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction/ipList' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     ),
                 ),
@@ -737,6 +741,7 @@ class binance extends Exchange {
                     ),
                     'post' => array(
                         'eth-staking/eth/stake' => array( 'cost' => 15 ), // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'loan/flexible/borrow' => array( 'cost' => 40.002 ), // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/flexible/repay' => array( 'cost' => 40.002 ), // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
@@ -11163,7 +11168,7 @@ class binance extends Exchange {
         $request = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 1000);
         }
         $defaultType = $this->safe_string_2($this->options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         $type = $this->safe_string($paramsPaginate, 'type', $defaultType);

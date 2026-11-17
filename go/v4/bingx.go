@@ -1043,6 +1043,7 @@ func (this *Bingx) Describe() map[string]any {
 				"100490":               BadSymbol,
 				"101481":               DuplicateOrderId,
 				"109201":               DuplicateOrderId,
+				"104414":               BadRequest,
 				"109400":               BadRequest,
 				"109418":               BadSymbol,
 				"109421":               OrderNotFound,
@@ -1776,11 +1777,11 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes124019 []any = r1.Value
-		if retRes124019 == nil {
+		var retRes124119 []any = r1.Value
+		if retRes124119 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes124019)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes124119)}
 		}
 		return nil
 	}
@@ -2648,11 +2649,11 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes190419 []any = r1.Value
-		if retRes190419 == nil {
+		var retRes190519 []any = r1.Value
+		if retRes190519 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes190419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes190519)}
 		}
 		return nil
 	}
@@ -2768,11 +2769,11 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes198119 []any = r1.Value
-		if retRes198119 == nil {
+		var retRes198219 []any = r1.Value
+		if retRes198219 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes198119)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes198219)}
 		}
 		return nil
 	}
@@ -6347,7 +6348,20 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 		response = r2.Value
 	} else {
 		var isTwapOrder *bool = this.SafeBool(paramsStandard, "twap", false)
-		var paramsOmitted map[string]any = this.OmitDict(paramsStandard, "twap")
+		var paramsOmitted any = this.Omit(paramsStandard, "twap")
+		if !(isTwapOrder != nil && *isTwapOrder) {
+			if limit != nil {
+				request["limit"] = mathMin(limit, 1000)
+			}
+			if since != nil {
+				request["startTime"] = since
+			}
+			var until *int64 = this.SafeInteger(paramsOmitted, "until")
+			if until != nil {
+				request["endTime"] = until
+				paramsOmitted = this.Omit(paramsOmitted, "until")
+			}
+		}
 		if isTwapOrder != nil && *isTwapOrder {
 			request["pageIndex"] = 1
 			request["pageSize"] = func() any {
@@ -6363,7 +6377,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 				return since
 			}()
 			var until *int64 = this.SafeInteger(paramsOmitted, "until", this.Milliseconds())
-			var paramsUntil map[string]any = this.OmitDict(paramsOmitted, "until")
+			var paramsUntil any = this.Omit(paramsOmitted, "until")
 			request["endTime"] = until
 
 			r3 := <-this.SwapV1PrivateGetTwapHistoryOrders(this.Extend(request, paramsUntil))
@@ -6550,11 +6564,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes553019 []any = r1.Value
-		if retRes553019 == nil {
+		var retRes554419 []any = r1.Value
+		if retRes554419 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553019)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes554419)}
 		}
 		return nil
 	}
@@ -8515,7 +8529,7 @@ func (this *Bingx) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInter
 		"symbol":     symbol,
 		"maker":      this.SafeNumber(fee, "makerCommissionRate"),
 		"taker":      this.SafeNumber(fee, "takerCommissionRate"),
-		"percentage": false,
+		"percentage": true,
 		"tierBased":  false,
 	})
 }

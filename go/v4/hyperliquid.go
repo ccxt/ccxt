@@ -6024,7 +6024,7 @@ func (this *Hyperliquid) withdrawBody(ch chan AsyncResult[Transaction], code str
 			"type":         "vaultTransfer",
 			"vaultAddress": Add("0x", vaultAddress),
 			"isDeposit":    false,
-			"usd":          amount,
+			"usd":          this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000")),
 		}
 		sig = this.SignL1Action(action, nonce)
 	} else {

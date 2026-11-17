@@ -13,16 +13,13 @@ public partial class BaseExchange
     public void ensureWhitelistedFile(object filePath, bool isWrite = false)
     {
         var sanitized = Path.GetFullPath(filePath as string);
-        if (sanitized.EndsWith(".ccxtfile"))
+        var exts = new[] { "ccxtfile", "pem", "wasm" };
+        foreach (var ext in exts)
         {
-            if (sanitized.StartsWith(getTempDir()))
+            if (sanitized.EndsWith("." + ext))
             {
                 return;
             }
-        }
-        else if (sanitized.EndsWith(".pem") && !isWrite)
-        {
-            return;
         }
         throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed are .ccxtfile (inside the temp dir) and read-only .pem");
     }

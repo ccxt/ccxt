@@ -802,6 +802,13 @@ public partial class binance : Exchange
         return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountTransactionStatistics",parameters);
     }
 
+    /// <summary>Calls the sapiGetSubAccountSubAccountApi endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountSubAccountApi (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountSubAccountApi",parameters);
+    }
+
     /// <summary>Calls the sapiGetSubAccountSubAccountApiIpRestriction endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> sapiGetSubAccountSubAccountApiIpRestriction (object parameters = null)
@@ -2069,6 +2076,20 @@ public partial class binance : Exchange
         return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountVirtualSubAccount",parameters);
     }
 
+    /// <summary>Calls the sapiPostSubAccountSubAccountApi endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountSubAccountApi (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountSubAccountApi",parameters);
+    }
+
+    /// <summary>Calls the sapiPostSubAccountSubAccountApiPermission endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountSubAccountApiPermission (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountSubAccountApiPermission",parameters);
+    }
+
     /// <summary>Calls the sapiPostSubAccountMarginTransfer endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> sapiPostSubAccountMarginTransfer (object parameters = null)
@@ -2923,6 +2944,13 @@ public partial class binance : Exchange
         return await this.callAsync<Dictionary<string, object>> ("sapiDeleteAlgoFuturesOrder",parameters);
     }
 
+    /// <summary>Calls the sapiDeleteSubAccountSubAccountApi endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteSubAccountSubAccountApi (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteSubAccountSubAccountApi",parameters);
+    }
+
     /// <summary>Calls the sapiDeleteSubAccountSubAccountApiIpRestrictionIpList endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (object parameters = null)
@@ -3012,6 +3040,13 @@ public partial class binance : Exchange
     public async Task<Dictionary<string, object>> sapiV2PostEthStakingEthStake (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("sapiV2PostEthStakingEthStake",parameters);
+    }
+
+    /// <summary>Calls the sapiV2PostSubAccountSubAccountApi endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2PostSubAccountSubAccountApi (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2PostSubAccountSubAccountApi",parameters);
     }
 
     /// <summary>Calls the sapiV2PostSubAccountSubAccountApiIpRestriction endpoint.</summary>

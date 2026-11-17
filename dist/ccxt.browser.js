@@ -10390,6 +10390,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -11658,6 +11665,20 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -12512,6 +12533,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -12601,6 +12629,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -16452,6 +16487,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -17720,6 +17762,20 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -18574,6 +18630,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -18663,6 +18726,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -22514,6 +22584,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -23999,6 +24076,20 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -24930,6 +25021,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -25054,6 +25152,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -28947,6 +29052,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -30215,6 +30327,20 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -31069,6 +31195,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -31158,6 +31291,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -101957,7 +102097,14 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'gateway',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2,
+            'byType': {
+                'status': 1,
+                'contracts': 1,
+                'order': 1,
+                'subaccount_orders': 2,
+                'subaccount_info': 2
+            }
         });
     }
     gatewayPublicGetEdgeQuery(params = {}) {
@@ -101973,7 +102120,14 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'gateway',
             'public'
         ], 'POST', params, {
-            'cost': 1
+            'cost': 2,
+            'byType': {
+                'status': 1,
+                'contracts': 1,
+                'order': 1,
+                'subaccount_orders': 2,
+                'subaccount_info': 2
+            }
         });
     }
     gatewayPublicPostEdgeQuery(params = {}) {
@@ -102005,7 +102159,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'gatewayV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2
         });
     }
     gatewayV2PublicGetOrderbook(params = {}) {
@@ -102020,7 +102174,28 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
         return this.request('', [
             'archive'
         ], 'POST', params, {
-            'cost': 1
+            'cost': 2,
+            'byQuery': {
+                'candlesticks': [
+                    2,
+                    100
+                ],
+                'events': [
+                    2,
+                    10
+                ],
+                'matches': [
+                    2,
+                    10
+                ],
+                'orders': [
+                    2,
+                    20
+                ],
+                'interest_and_funding': [
+                    5
+                ]
+            }
         });
     }
     archiveV2PublicGetTickers(params = {}) {
@@ -102028,7 +102203,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'archiveV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2
         });
     }
     archiveV2PublicGetContracts(params = {}) {
@@ -102036,7 +102211,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'archiveV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2
         });
     }
     archiveV2PublicGetTrades(params = {}) {
@@ -102044,7 +102219,11 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'archiveV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 4,
+            'byRows': [
+                2,
+                50
+            ]
         });
     }
     archiveV2PublicGetSymbols(params = {}) {
@@ -102052,7 +102231,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'archiveV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2
         });
     }
     triggerPrivatePostExecute(params = {}) {
@@ -118523,6 +118702,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -119791,6 +119977,20 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -120645,6 +120845,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -120734,6 +120941,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -124585,6 +124799,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -126070,6 +126291,20 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -127001,6 +127236,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -127125,6 +127367,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -131018,6 +131267,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -132286,6 +132542,20 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -133140,6 +133410,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -133229,6 +133506,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -192782,7 +193066,7 @@ function stringify(object, opts = {}) {
     }), encode = _scure_base__rspack_import_0/* .utf8.decode */.As.decode // lol
 , decode = _scure_base__rspack_import_0/* .utf8.encode */.As.encode, urlencodeBase64 = (payload)=>{
     const payload64 = typeof payload === 'string' ? stringToBase64(payload) : binaryToBase64(payload);
-    return payload64.replace(/[=]+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+    return base64ToBase64Url(payload64);
 }, numberToLE = (n, padding)=>(0,_noble_curves_utils_js__rspack_import_1/* .numberToBytesLE */.z)(BigInt(n), padding), numberToBE = (n, padding)=>(0,_noble_curves_utils_js__rspack_import_1/* .numberToBytesBE */.lq)(BigInt(n), padding);
 function packb(req) {
     return (0,_msgpack_js__rspack_import_2/* .serialize */.l)(req);
@@ -193630,7 +193914,12 @@ if (_platform_js__rspack_import_0/* .isNode */.Ll) {
         throw new Error('path module is not available');
     }
     const sanitizedFilePath = pathSyncModule.resolve(filePath);
-    if (sanitizedFilePath.startsWith(filePath) && sanitizedFilePath.endsWith('.ccxtfile') || sanitizedFilePath.endsWith('.wasm')) {
+    const exts = [
+        'ccxtfile',
+        'pem',
+        'wasm'
+    ];
+    if (exts.some((ext)=>sanitizedFilePath.endsWith('.' + ext))) {
         return;
     }
     throw new Error('invalid file path: ' + filePath);
@@ -194573,7 +194862,7 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
 function toHex(str) {
     var result = '';
     for(var i = 0; i < str.length; i++){
-        result += str.charCodeAt(i).toString(16);
+        result += str.charCodeAt(i).toString(16).padStart(2, '0');
     }
     return result;
 }
@@ -195257,7 +195546,7 @@ function totp(secret) {
     const dec2hex = (s)=>(s < 15.5 ? '0' : '') + Math.round(s).toString(16);
     const hex2dec = (s)=>parseInt(s, 16);
     const leftpad = (s, p)=>(p + s).slice(-p.length); // both s and p are short strings
-    secret = secret.replace(' ', ''); // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
+    secret = secret.replace(/ /g, ''); // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
     const epoch = Math.round(new Date().getTime() / 1000.0);
     const time = leftpad(dec2hex(Math.floor(epoch / 30)), '0000000000000000');
     const hmacRes = (0,_crypto_js__rspack_import_0/* .hmac */.w8)(_scure_base__rspack_import_1/* .hex.decode */.uh.decode(time), _scure_base__rspack_import_1/* .base32.decode */.RG.decode(secret), _noble_hashes_legacy_js__rspack_import_2/* .sha1 */.e8, 'hex');
@@ -200326,6 +200615,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                         'sub-account/transaction-statistics': {
                             'cost': 0.40002
                         },
+                        'sub-account/subAccountApi': {
+                            'cost': 20.001
+                        },
                         'sub-account/subAccountApi/ipRestriction': {
                             'cost': 20.001
                         },
@@ -200892,6 +201184,12 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                         'sub-account/virtualSubAccount': {
                             'cost': 0.1
                         },
+                        'sub-account/subAccountApi': {
+                            'cost': 20.001
+                        },
+                        'sub-account/subAccountApiPermission': {
+                            'cost': 20.001
+                        },
                         'sub-account/margin/transfer': {
                             'cost': 4.0002
                         },
@@ -201276,6 +201574,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                         'algo/futures/order': {
                             'cost': 0.1
                         },
+                        'sub-account/subAccountApi': {
+                            'cost': 20.001
+                        },
                         'sub-account/subAccountApi/ipRestriction/ipList': {
                             'cost': 20.001
                         }
@@ -201320,6 +201621,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                     'post': {
                         'eth-staking/eth/stake': {
                             'cost': 15
+                        },
+                        'sub-account/subAccountApi': {
+                            'cost': 20.001
                         },
                         'sub-account/subAccountApi/ipRestriction': {
                             'cost': 20.001
@@ -213011,7 +213315,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         const defaultType = this.safeString2(this.options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         const type = this.safeString(paramsPaginate, 'type', defaultType);
@@ -219410,6 +219714,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     '100490': _base_errors_js__rspack_import_2.BadSymbol,
                     '101481': _base_errors_js__rspack_import_2.DuplicateOrderId,
                     '109201': _base_errors_js__rspack_import_2.DuplicateOrderId,
+                    '104414': _base_errors_js__rspack_import_2.BadRequest,
                     '109400': _base_errors_js__rspack_import_2.BadRequest,
                     '109418': _base_errors_js__rspack_import_2.BadSymbol,
                     '109421': _base_errors_js__rspack_import_2.OrderNotFound,
@@ -224082,7 +224387,20 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         //
         } else {
             const isTwapOrder = this.safeBool(paramsStandard, 'twap', false);
-            const paramsOmitted = this.omit(paramsStandard, 'twap');
+            let paramsOmitted = this.omit(paramsStandard, 'twap');
+            if (!isTwapOrder) {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min(limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                const until = this.safeInteger(paramsOmitted, 'until');
+                if (until !== undefined) {
+                    request['endTime'] = until;
+                    paramsOmitted = this.omit(paramsOmitted, 'until');
+                }
+            }
             if (isTwapOrder) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = limit === undefined ? 100 : limit;
@@ -225980,7 +226298,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommissionRate'),
             'taker': this.safeNumber(fee, 'takerCommissionRate'),
-            'percentage': false,
+            'percentage': true,
             'tierBased': false
         };
     }
@@ -230788,103 +231106,9 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
                 'trading': {
                     'feeSide': 'get',
                     'percentage': true,
-                    'tierBased': true,
-                    'maker': this.parseNumber('0.001'),
-                    'taker': this.parseNumber('0.002'),
-                    'tiers': {
-                        'taker': [
-                            [
-                                this.parseNumber('0'),
-                                this.parseNumber('0.002')
-                            ],
-                            [
-                                this.parseNumber('500000'),
-                                this.parseNumber('0.002')
-                            ],
-                            [
-                                this.parseNumber('1000000'),
-                                this.parseNumber('0.002')
-                            ],
-                            [
-                                this.parseNumber('2500000'),
-                                this.parseNumber('0.002')
-                            ],
-                            [
-                                this.parseNumber('5000000'),
-                                this.parseNumber('0.002')
-                            ],
-                            [
-                                this.parseNumber('7500000'),
-                                this.parseNumber('0.002')
-                            ],
-                            [
-                                this.parseNumber('10000000'),
-                                this.parseNumber('0.0018')
-                            ],
-                            [
-                                this.parseNumber('15000000'),
-                                this.parseNumber('0.0016')
-                            ],
-                            [
-                                this.parseNumber('20000000'),
-                                this.parseNumber('0.0014')
-                            ],
-                            [
-                                this.parseNumber('25000000'),
-                                this.parseNumber('0.0012')
-                            ],
-                            [
-                                this.parseNumber('30000000'),
-                                this.parseNumber('0.001')
-                            ]
-                        ],
-                        'maker': [
-                            [
-                                this.parseNumber('0'),
-                                this.parseNumber('0.001')
-                            ],
-                            [
-                                this.parseNumber('500000'),
-                                this.parseNumber('0.0008')
-                            ],
-                            [
-                                this.parseNumber('1000000'),
-                                this.parseNumber('0.0006')
-                            ],
-                            [
-                                this.parseNumber('2500000'),
-                                this.parseNumber('0.0004')
-                            ],
-                            [
-                                this.parseNumber('5000000'),
-                                this.parseNumber('0.0002')
-                            ],
-                            [
-                                this.parseNumber('7500000'),
-                                this.parseNumber('0')
-                            ],
-                            [
-                                this.parseNumber('10000000'),
-                                this.parseNumber('0')
-                            ],
-                            [
-                                this.parseNumber('15000000'),
-                                this.parseNumber('0')
-                            ],
-                            [
-                                this.parseNumber('20000000'),
-                                this.parseNumber('0')
-                            ],
-                            [
-                                this.parseNumber('25000000'),
-                                this.parseNumber('0')
-                            ],
-                            [
-                                this.parseNumber('30000000'),
-                                this.parseNumber('0')
-                            ]
-                        ]
-                    }
+                    'tierBased': false,
+                    'maker': this.parseNumber('0'),
+                    'taker': this.parseNumber('0')
                 },
                 'funding': {
                     'withdraw': {}
@@ -231245,6 +231469,8 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
                 'contract': !spot,
                 'linear': swap ? true : undefined,
                 'inverse': swap ? false : undefined,
+                'maker': this.safeNumber(this.fees['trading'], 'maker'),
+                'taker': this.safeNumber(this.fees['trading'], 'taker'),
                 'contractSize': swap ? this.parseNumber('1') : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -250536,7 +250762,10 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
                 '15m': 15,
                 '30m': 30,
                 '1h': 60,
-                '4h': 240
+                '4h': 240,
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months'
             },
             'options': {
                 'generation': 2,
@@ -251467,6 +251696,8 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */ async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -251478,23 +251709,53 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         let response = undefined;
         let data = [];
         if (generation === 2) {
+            const [paginate, paramsPaginate] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+            if (paginate) {
+                return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
+            }
+            const until = this.safeInteger(paramsGeneration, 'until');
+            const requestParams = this.omit(paramsGeneration, [
+                'until',
+                'paginate'
+            ]);
             request['market'] = this.getGen2MarketId(market);
+            // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            let count = 200;
             if (limit !== undefined) {
-                request['count'] = limit;
+                count = Math.min(limit, 200);
+            }
+            if (limit !== undefined || since !== undefined || until !== undefined) {
+                request['count'] = count;
+            }
+            // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            let to = undefined;
+            if (until !== undefined) {
+                to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
+            }
+            if (since !== undefined) {
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                const sinceEnd = this.sum(since, duration * count);
+                if (to === undefined || sinceEnd < to) {
+                    to = sinceEnd;
+                }
+            }
+            if (to !== undefined) {
+                request['to'] = this.ymdhms(this.sum(to, 32400000), ' ');
             }
             if (timeframe === '1d') {
-                response = await this.publicGetV1CandlesDays(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesDays(this.extend(request, requestParams));
             } else if (timeframe === '1w') {
-                response = await this.publicGetV1CandlesWeeks(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesWeeks(this.extend(request, requestParams));
             } else if (timeframe === '1M') {
-                response = await this.publicGetV1CandlesMonths(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMonths(this.extend(request, requestParams));
             } else {
                 const timeframeInteger = this.safeInteger(this.timeframes, timeframe);
                 if (timeframeInteger === undefined) {
                     throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe);
                 }
                 request['unit'] = timeframeInteger;
-                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, requestParams));
             }
             //
             //     [
@@ -269978,11 +270239,12 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                 }
             },
             'fees': {
+                // https://bitvavo.com/en/fees
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
                     'taker': this.parseNumber('0.0025'),
-                    'maker': this.parseNumber('0.002'),
+                    'maker': this.parseNumber('0.0015'),
                     'tiers': {
                         'taker': [
                             [
@@ -269995,31 +270257,35 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                             ],
                             [
                                 this.parseNumber('250000'),
-                                this.parseNumber('0.0016')
+                                this.parseNumber('0.0018')
                             ],
                             [
                                 this.parseNumber('500000'),
-                                this.parseNumber('0.0012')
+                                this.parseNumber('0.0016')
                             ],
                             [
                                 this.parseNumber('1000000'),
-                                this.parseNumber('0.0010')
+                                this.parseNumber('0.0014')
                             ],
                             [
                                 this.parseNumber('2500000'),
-                                this.parseNumber('0.0008')
+                                this.parseNumber('0.0012')
                             ],
                             [
                                 this.parseNumber('5000000'),
-                                this.parseNumber('0.0006')
+                                this.parseNumber('0.0010')
                             ],
                             [
                                 this.parseNumber('10000000'),
-                                this.parseNumber('0.0005')
+                                this.parseNumber('0.0008')
                             ],
                             [
                                 this.parseNumber('25000000'),
                                 this.parseNumber('0.0004')
+                            ],
+                            [
+                                this.parseNumber('100000000'),
+                                this.parseNumber('0.0002')
                             ]
                         ],
                         'maker': [
@@ -270033,11 +270299,11 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                             ],
                             [
                                 this.parseNumber('250000'),
-                                this.parseNumber('0.0008')
+                                this.parseNumber('0.0009')
                             ],
                             [
                                 this.parseNumber('500000'),
-                                this.parseNumber('0.0006')
+                                this.parseNumber('0.0008')
                             ],
                             [
                                 this.parseNumber('1000000'),
@@ -270045,21 +270311,39 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                             ],
                             [
                                 this.parseNumber('2500000'),
-                                this.parseNumber('0.0004')
+                                this.parseNumber('0.0003')
                             ],
                             [
                                 this.parseNumber('5000000'),
-                                this.parseNumber('0.0004')
+                                this.parseNumber('0.0001')
                             ],
                             [
                                 this.parseNumber('10000000'),
-                                this.parseNumber('0.0003')
+                                this.parseNumber('0')
                             ],
                             [
                                 this.parseNumber('25000000'),
-                                this.parseNumber('0.0003')
+                                this.parseNumber('0')
+                            ],
+                            [
+                                this.parseNumber('100000000'),
+                                this.parseNumber('0')
                             ]
                         ]
+                    }
+                },
+                'byCategory': {
+                    'B': {
+                        'maker': this.parseNumber('0.0005'),
+                        'taker': this.parseNumber('0.0005')
+                    },
+                    'C': {
+                        'maker': this.parseNumber('0.001'),
+                        'taker': this.parseNumber('0.001')
+                    },
+                    'D': {
+                        'maker': this.parseNumber('0'),
+                        'taker': this.parseNumber('0.0001')
                     }
                 }
             },
@@ -270282,6 +270566,8 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
     }
     parseMarkets(markets) {
         const result = [];
+        const defaultFees = this.safeDict(this.fees, 'trading', {});
+        const feesByCategory = this.safeDict(this.fees, 'byCategory', {});
         for(let i = 0; i < markets.length; i++){
             const market = this.safeDict(markets, i);
             const id = this.safeString(market, 'market');
@@ -270293,6 +270579,8 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                 continue;
             }
             const status = this.safeString(market, 'status');
+            const feeCategory = this.safeString(market, 'feeCategory');
+            const fees = this.safeDict(feesByCategory, feeCategory, defaultFees);
             result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -270317,8 +270605,8 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': this.safeNumber(this.fees['trading'], 'taker'),
-                'maker': this.safeNumber(this.fees['trading'], 'maker'),
+                'taker': this.safeNumber(fees, 'taker'),
+                'maker': this.safeNumber(fees, 'maker'),
                 'precision': {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityDecimals'))),
                     'price': this.safeNumber(market, 'tickSize'),
@@ -303301,8 +303589,8 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
                         'type': 'spot',
                         'spot': true,
                         'margin': false,
-                        'swap': true,
-                        'future': true,
+                        'swap': false,
+                        'future': false,
                         'option': false,
                         'active': undefined,
                         'contract': false,
@@ -303442,8 +303730,6 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         const fees = this.safeDict(promises, 1, {});
         const expiringFutures = this.safeDict(contractPromises, 0, {});
         const perpetualFutures = this.safeDict(contractPromises, 1, {});
-        const expiringFees = this.safeDict(contractPromises, 0, {});
-        const perpetualFees = this.safeDict(contractPromises, 1, {});
         //
         //     {
         //         "total_volume": 0,
@@ -303464,8 +303750,6 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         //     }
         //
         const feeTier = this.safeDict(fees, 'fee_tier', {});
-        const expiringFeeTier = this.safeDict(expiringFees, 'fee_tier', {}); // fee tier null?
-        const perpetualFeeTier = this.safeDict(perpetualFees, 'fee_tier', {}); // fee tier null?
         const data = this.safeList(spot, 'products', []);
         const result = [];
         for(let i = 0; i < data.length; i++){
@@ -303476,14 +303760,14 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         }
         const futureData = this.safeList(expiringFutures, 'products', []);
         for(let i = 0; i < futureData.length; i++){
-            const futureMarket = this.parseContractMarket(futureData[i], expiringFeeTier);
+            const futureMarket = this.parseContractMarket(futureData[i]);
             if (futureMarket !== undefined) {
                 result.push(futureMarket);
             }
         }
         const perpetualData = this.safeList(perpetualFutures, 'products', []);
         for(let i = 0; i < perpetualData.length; i++){
-            const perpetualMarket = this.parseContractMarket(perpetualData[i], perpetualFeeTier);
+            const perpetualMarket = this.parseContractMarket(perpetualData[i]);
             if (perpetualMarket !== undefined) {
                 result.push(perpetualMarket);
             }
@@ -303605,7 +303889,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             'info': market
         });
     }
-    parseContractMarket(market, feeTier) {
+    parseContractMarket(market, feeTier = undefined) {
         // expiring
         //
         //        {
@@ -303758,8 +304042,9 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         }
         const takerFeeRate = this.safeNumber(feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber(feeTier, 'maker_fee_rate');
-        const taker = takerFeeRate !== undefined && takerFeeRate !== null && takerFeeRate !== 0 ? takerFeeRate : this.parseNumber('0.06');
-        const maker = makerFeeRate !== undefined && makerFeeRate !== null && makerFeeRate !== 0 ? makerFeeRate : this.parseNumber('0.04');
+        // CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
+        const taker = takerFeeRate !== undefined && takerFeeRate !== null && takerFeeRate !== 0 ? takerFeeRate : this.parseNumber('0.0002');
+        const maker = makerFeeRate !== undefined && makerFeeRate !== null && makerFeeRate !== 0 ? makerFeeRate : this.parseNumber('0.0002');
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -351247,8 +351532,11 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
                 }
             },
             'fees': {
-                'taker': this.parseNumber('0.002'),
-                'maker': this.parseNumber('0.002')
+                'taker': this.parseNumber('0.00025'),
+                'maker': this.parseNumber('0'),
+                'rwa': {
+                    'taker': this.parseNumber('0.0001')
+                }
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -351361,6 +351649,7 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
      * @name extended#fetchMarkets
      * @description retrieves data on all markets for extended
      * @see https://api.docs.extended.exchange/#get-markets
+     * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */ async fetchMarkets(params = {}) {
@@ -351535,6 +351824,8 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         const minAmount = this.safeNumber(tradingConfig, 'minOrderSize');
         const maxCost = this.safeNumber(tradingConfig, 'maxLimitOrderValue');
         const created = this.safeInteger(market, 'createdAt');
+        const category = this.safeStringLower(market, 'category');
+        const takerFees = category === 'rwa' ? this.safeDict(this.fees, 'rwa', {}) : this.fees;
         let settleId = undefined;
         let settle = undefined;
         let symbol = base + '/' + quote;
@@ -351576,7 +351867,7 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
             'contract': !isSpot,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.safeNumber(this.fees, 'taker'),
+            'taker': this.safeNumber(takerFees, 'taker'),
             'maker': this.safeNumber(this.fees, 'maker'),
             'contractSize': contractSize,
             'expiry': undefined,
@@ -361417,7 +361708,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         const market = this.market(symbol);
         if (!this.safeBool(market, 'swap', false)) {
@@ -401975,7 +402266,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                 'type': 'vaultTransfer',
                 'vaultAddress': '0x' + vaultAddress,
                 'isDeposit': false,
-                'usd': amount
+                // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd': this.parseToInt(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(this.numberToString(amount), '1000000'))
             };
             sig = this.signL1Action(action, nonce);
         } else {
@@ -427852,6 +428144,16 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         }
         const last = this.safeString(ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero(ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
+        // during venue incidents a deleted level leaks a signed aggregate into the
+        // best sizes - the quoted prices stay usable, so only negatives are dropped
+        let bidVolume = this.safeString(ticker, 'bestBidQuantity');
+        if (bidVolume !== undefined && _base_Precise_js__rspack_import_3/* ["default"].stringLt */.A.stringLt(bidVolume, '0')) {
+            bidVolume = undefined;
+        }
+        let askVolume = this.safeString(ticker, 'bestAskQuantity');
+        if (askVolume !== undefined && _base_Precise_js__rspack_import_3/* ["default"].stringLt */.A.stringLt(askVolume, '0')) {
+            askVolume = undefined;
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -427859,9 +428161,9 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
             'low': undefined,
             'high': undefined,
             'bid': this.safeString(ticker, 'bestBid'),
-            'bidVolume': this.safeString(ticker, 'bestBidQuantity'),
+            'bidVolume': bidVolume,
             'ask': this.safeString(ticker, 'bestAsk'),
-            'askVolume': this.safeString(ticker, 'bestAskQuantity'),
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -451252,7 +451554,14 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                                 'cost': 2
                             },
                             'query': {
-                                'cost': 1
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2
+                                }
                             },
                             'edge/query': {
                                 'cost': 1
@@ -451260,7 +451569,14 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                         },
                         'post': {
                             'query': {
-                                'cost': 1
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2
+                                }
                             },
                             'edge/query': {
                                 'cost': 1
@@ -451282,7 +451598,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                                 'cost': 2
                             },
                             'pairs': {
-                                'cost': 1
+                                'cost': 2
                             },
                             'orderbook': {
                                 'cost': 1
@@ -451293,7 +451609,29 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                 'archive': {
                     'post': {
                         '': {
-                            'cost': 1
+                            'cost': 2,
+                            // [ base weight, rows per extra weight unit ]
+                            'byQuery': {
+                                'candlesticks': [
+                                    2,
+                                    100
+                                ],
+                                'events': [
+                                    2,
+                                    10
+                                ],
+                                'matches': [
+                                    2,
+                                    10
+                                ],
+                                'orders': [
+                                    2,
+                                    20
+                                ],
+                                'interest_and_funding': [
+                                    5
+                                ]
+                            }
                         }
                     }
                 },
@@ -451301,16 +451639,20 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                     'public': {
                         'get': {
                             'tickers': {
-                                'cost': 1
+                                'cost': 2
                             },
                             'contracts': {
-                                'cost': 1
+                                'cost': 2
                             },
                             'trades': {
-                                'cost': 1
+                                'cost': 4,
+                                'byRows': [
+                                    2,
+                                    50
+                                ]
                             },
                             'symbols': {
-                                'cost': 1
+                                'cost': 2
                             }
                         }
                     }
@@ -454428,6 +454770,48 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
             return marketId.slice(0, -5);
         }
         return marketId;
+    }
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        if ('byType' in config && 'type' in params) {
+            const queryType = params['type'];
+            const byType = config['byType'];
+            if (queryType in byType) {
+                return byType[queryType];
+            }
+        }
+        const byQuery = this.safeDict(config, 'byQuery');
+        if (byQuery !== undefined) {
+            const queryNames = Object.keys(byQuery);
+            for(let i = 0; i < queryNames.length; i++){
+                const queryName = queryNames[i];
+                if (queryName in params) {
+                    const weights = this.safeList(byQuery, queryName, []);
+                    const baseWeight = this.safeInteger(weights, 0, 2);
+                    const rowsPerWeight = this.safeInteger(weights, 1);
+                    if (rowsPerWeight === undefined) {
+                        return baseWeight;
+                    }
+                    const query = this.safeDict(params, queryName, {});
+                    let rows = this.safeInteger(query, 'limit', 100); // the archive default page
+                    const nestedLimit = this.safeDict(query, 'limit'); // the events query sends { 'raw': 100 }
+                    if (nestedLimit !== undefined) {
+                        rows = this.safeInteger(nestedLimit, 'raw', 100);
+                    }
+                    return this.sum(baseWeight, this.parseToInt(rows / rowsPerWeight));
+                }
+            }
+        }
+        const byRows = this.safeList(config, 'byRows');
+        if (byRows !== undefined) {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            const rowsBaseWeight = this.safeInteger(byRows, 0, 2);
+            const rowsDivisor = this.safeInteger(byRows, 1, 50);
+            const rowCount = this.safeInteger(params, 'limit', 100); // the v2 default page
+            return this.sum(rowsBaseWeight, this.parseToInt(rowCount / rowsDivisor));
+        }
+        return this.safeValue(config, 'cost', 1);
     }
     sign(path, api = [], method = 'GET', params = {}) {
         let requestBody = undefined;
@@ -461131,14 +461515,15 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
-        }
         const priceType = this.safeString(paramsPaginate, 'price');
         const isMarkOrIndex = this.inArray(priceType, [
             'mark',
             'index'
         ]);
+        if (paginate) {
+            const maxEntriesPerRequest = isMarkOrIndex ? 100 : 200;
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxEntriesPerRequest);
+        }
         const paramsPrice = this.omit(paramsPaginate, 'price');
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
@@ -461178,7 +461563,10 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         const until = this.safeInteger(paramsPrice, 'until');
         if (until !== undefined) {
-            request['after'] = until;
+            const afterSince = this.safeInteger(request, 'after');
+            if (afterSince === undefined || until < afterSince) {
+                request['after'] = until;
+            }
         }
         const paramsUntil = until !== undefined ? this.omit(paramsPrice, 'until') : paramsPrice;
         defaultType = this.safeString(options, 'type', defaultType); // Candles or HistoryCandles
@@ -461234,6 +461622,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */ async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -461245,7 +461634,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 400);
         }
         const market = this.market(symbol);
         const request = {
@@ -461257,7 +461646,12 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetPublicFundingRateHistory(this.extend(request, paramsPaginate));
+        const until = this.safeInteger(paramsPaginate, 'until');
+        if (until !== undefined) {
+            request['after'] = until;
+        }
+        const paramsUntil = until !== undefined ? this.omit(paramsPaginate, 'until') : paramsPaginate;
+        const response = await this.publicGetPublicFundingRateHistory(this.extend(request, paramsUntil));
         //
         //     {
         //         "code":"0",
@@ -489629,7 +490023,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */ async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -489639,16 +490033,15 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'symbol': market['id']
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (this.safeBool(market, 'contract', false)) {
-                request['limit'] = this.findNearestCeiling([
-                    5,
-                    10,
-                    20,
-                    100,
-                    150
-                ], limit);
-            }
+            // both hosts accept only these depths, anything else is rejected with 24104
+            request['limit'] = this.findNearestCeiling([
+                5,
+                10,
+                20,
+                50,
+                100,
+                150
+            ], limit);
         }
         if (this.safeBool(market, 'contract', false)) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
@@ -629629,6 +630022,10 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
             } else {
                 request['to'] = this.sum(since, duration * limit * 1000);
             }
+        } else if (since !== undefined && limit !== undefined) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            request['endTime'] = Math.min(this.sum(since, duration * limit) - 1, this.milliseconds());
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -657190,10 +657587,20 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = this.safeSymbol(marketId, marketResolved, undefined, marketType);
         const timestamp = this.safeInteger2(order, 'time', 'createdTime');
-        const quantity = this.safeNumber(order, 'origQty');
-        const amount = marketType === 'spot' ? quantity : _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(this.numberToString(quantity), this.numberToString(marketResolved['contractSize']));
-        const filledQuantity = this.safeNumber(order, 'executedQty');
-        const filled = marketType === 'spot' ? filledQuantity : _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(this.numberToString(filledQuantity), this.numberToString(marketResolved['contractSize']));
+        const contractSize = this.safeString(marketResolved, 'contractSize');
+        const quantity = this.safeString(order, 'origQty');
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        const filledQuantity = this.safeString2(order, 'tradeBase', 'executedQty');
+        const amount = marketType === 'spot' ? quantity : _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(quantity, contractSize);
+        const filled = marketType === 'spot' ? filledQuantity : _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(filledQuantity, contractSize);
+        // leavingQty follows executedQty and is quote-denominated on the same
+        // spot market buy shape, so it is only read when the order carries a
+        // base-denominated origQty - otherwise safeOrder derives it from filled
+        let remaining = undefined;
+        if (quantity !== undefined) {
+            remaining = this.safeString(order, 'leavingQty');
+        }
         const lastUpdatedTimestamp = this.safeInteger(order, 'updatedTime');
         let timeInForce = this.safeString(order, 'timeInForce');
         let postOnly = undefined;
@@ -657235,7 +657642,11 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             'lastTradeTimestamp': lastUpdatedTimestamp,
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
-            'type': this.safeStringLower2(order, 'type', 'orderType'),
+            'type': this.parseOrderType(this.safeStringLowerN(order, [
+                'type',
+                'orderType',
+                'entrustType'
+            ])),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -657245,8 +657656,8 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             'takeProfitPrice': this.safeNumber(order, 'triggerProfitPrice'),
             'amount': amount,
             'filled': filled,
-            'remaining': this.safeNumber(order, 'leavingQty'),
-            'cost': undefined,
+            'remaining': remaining,
+            'cost': this.safeString(order, 'tradeQuote'),
             'average': this.safeNumber(order, 'avgPrice'),
             'status': this.parseOrderStatus(this.safeString(order, 'state')),
             'fee': {
@@ -657255,6 +657666,16 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             },
             'trades': undefined
         }, marketResolved);
+    }
+    parseOrderType(type) {
+        const types = {
+            'stop': 'limit',
+            'stop_market': 'market',
+            'take_profit': 'limit',
+            'take_profit_market': 'market',
+            'trailing_stop_market': 'market'
+        };
+        return this.safeString(types, type, type);
     }
     parseOrderStatus(status) {
         const statuses = {
