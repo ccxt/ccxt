@@ -774,7 +774,13 @@ public class Lighter extends LighterApi
         request.put("deadline", deadline);
         request.put("api_key_index", this.parseToInt(apiKeyIndex));
         request.put("account_index", this.parseToInt(accountIndex));
-        String token = this.lighterCreateAuthToken(this.safeValue(cachedAuth, "signer"), request);
+        Object signer = this.safeValue(cachedAuth, "signer");
+        if (java.util.Objects.equals(signer, null))
+        {
+            this.checkRequiredCredentials(true);
+            throw new AuthenticationError((this.id + " could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")) ;
+        }
+        String token = this.lighterCreateAuthToken(signer, request);
         this.setAuthEntry((String) (accountIndex), (String) (apiKeyIndex), new HashMap<String, Object>() {{
             put( "deadline", deadline );
             put( "token", token );

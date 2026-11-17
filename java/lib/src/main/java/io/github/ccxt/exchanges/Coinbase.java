@@ -1628,10 +1628,23 @@ public class Coinbase extends CoinbaseApi
         String datetime = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("created_at", "trade_time", "time")));
         String side = this.safeStringLower2(trade, "resource", "side");
         String takerOrMaker = this.safeStringLower(trade, "liquidity_indicator");
+        String orderId = this.safeString(trade, "order_id");
+        String entryId = this.safeString(trade, "entry_id");
+        if ((java.util.Objects.equals(orderId, null)) && (java.util.Objects.equals(entryId, null)) && (java.util.Objects.equals(this.safeString(trade, "resource"), null)))
+        {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if (java.util.Objects.equals(side, "buy"))
+            {
+                side = "sell";
+            } else if (java.util.Objects.equals(side, "sell"))
+            {
+                side = "buy";
+            }
+        }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", trade);
         mapLiteral4.put("id", this.safeString2(trade, "id", "trade_id"));
-        mapLiteral4.put("order", this.safeString(trade, "order_id"));
+        mapLiteral4.put("order", orderId);
         mapLiteral4.put("timestamp", this.parse8601(datetime));
         mapLiteral4.put("datetime", datetime);
         mapLiteral4.put("symbol", symbol);
@@ -1729,8 +1742,8 @@ public class Coinbase extends CoinbaseApi
                             j39v1.put("type", "spot");
                             j39v1.put("spot", true);
                             j39v1.put("margin", false);
-                            j39v1.put("swap", true);
-                            j39v1.put("future", true);
+                            j39v1.put("swap", false);
+                            j39v1.put("future", false);
                             j39v1.put("option", false);
                             j39v1.put("active", null);
                             j39v1.put("contract", false);
@@ -1884,8 +1897,6 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(promises, 1, new HashMap<String, Object>() {{}});
             Map<String, Object> expiringFutures = (Map<String, Object>) this.safeDict(contractPromises, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> perpetualFutures = (Map<String, Object>) this.safeDict(contractPromises, 1, new HashMap<String, Object>() {{}});
-            Map<String, Object> expiringFees = (Map<String, Object>) this.safeDict(contractPromises, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> perpetualFees = (Map<String, Object>) this.safeDict(contractPromises, 1, new HashMap<String, Object>() {{}});
             //
             //     {
             //         "total_volume": 0,
@@ -1906,8 +1917,6 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             Map<String, Object> feeTier = (Map<String, Object>) this.safeDict(fees, "fee_tier", new HashMap<String, Object>() {{}});
-            Map<String, Object> expiringFeeTier = (Map<String, Object>) this.safeDict(expiringFees, "fee_tier", new HashMap<String, Object>() {{}}); // fee tier null?
-            Map<String, Object> perpetualFeeTier = (Map<String, Object>) this.safeDict(perpetualFees, "fee_tier", new HashMap<String, Object>() {{}}); // fee tier null?
             List<Object> data = (List<Object>) this.safeList(spot, "products", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1921,7 +1930,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> futureData = (List<Object>) this.safeList(expiringFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)futureData).size(); i++)
             {
-                Object futureMarket = this.parseContractMarket((Map<String, Object>) ((futureData == null || i < 0 || i >= futureData.size() ? null : futureData.get(i))), expiringFeeTier);
+                Object futureMarket = this.parseContractMarket((Map<String, Object>) ((futureData == null || i < 0 || i >= futureData.size() ? null : futureData.get(i))), (Object) null);
                 if (!java.util.Objects.equals(futureMarket, null))
                 {
                     ((List<Object>)result).add(futureMarket);
@@ -1930,7 +1939,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> perpetualData = (List<Object>) this.safeList(perpetualFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)perpetualData).size(); i++)
             {
-                Object perpetualMarket = this.parseContractMarket((Map<String, Object>) ((perpetualData == null || i < 0 || i >= perpetualData.size() ? null : perpetualData.get(i))), perpetualFeeTier);
+                Object perpetualMarket = this.parseContractMarket((Map<String, Object>) ((perpetualData == null || i < 0 || i >= perpetualData.size() ? null : perpetualData.get(i))), (Object) null);
                 if (!java.util.Objects.equals(perpetualMarket, null))
                 {
                     ((List<Object>)result).add(perpetualMarket);
@@ -2062,7 +2071,7 @@ public class Coinbase extends CoinbaseApi
         return this.safeMarketStructure(mapLiteral6);
     }
 
-    public Object parseContractMarket(Map<String, Object> market, Map<String, Object> feeTier)
+    public Object parseContractMarket(Map<String, Object> market, Object feeTier)
     {
         // expiring
         //
@@ -2219,8 +2228,9 @@ public class Coinbase extends CoinbaseApi
         }
         Double takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate", (Object) null);
         Double makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate", (Object) null);
-        Double taker = (((!java.util.Objects.equals(takerFeeRate, null) && !java.util.Objects.equals(takerFeeRate, null) && (takerFeeRate == null || takerFeeRate != 0)))) ? takerFeeRate : this.parseNumber("0.06");
-        Double maker = (((!java.util.Objects.equals(makerFeeRate, null) && !java.util.Objects.equals(makerFeeRate, null) && (makerFeeRate == null || makerFeeRate != 0)))) ? makerFeeRate : this.parseNumber("0.04");
+        // CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
+        Double taker = (((!java.util.Objects.equals(takerFeeRate, null) && !java.util.Objects.equals(takerFeeRate, null) && (takerFeeRate == null || takerFeeRate != 0)))) ? takerFeeRate : this.parseNumber("0.0002");
+        Double maker = (((!java.util.Objects.equals(makerFeeRate, null) && !java.util.Objects.equals(makerFeeRate, null) && (makerFeeRate == null || makerFeeRate != 0)))) ? makerFeeRate : this.parseNumber("0.0002");
         HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
         mapLiteral7.put("id", id);
         mapLiteral7.put("symbol", symbol);

@@ -683,7 +683,16 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Integer positionsLength = ((List<?>)positions).size();
         for (var i = 0; (positionsLength != null && i < positionsLength); i++)
         {
-            ((io.github.ccxt.ws.ArrayCache) this.positions).append((positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i)));
+            Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
+            if (java.util.Objects.equals(((Map<String, Object>)position).get("side"), null))
+            {
+                // flat (direction: zero) position, the cache is keyed by side so reset both sides
+                Helpers.addElementToObject(position, "side", "long");
+                Object shortPosition = this.clone(position);
+                Helpers.addElementToObject(shortPosition, "side", "short");
+                ((io.github.ccxt.ws.ArrayCache) this.positions).append(shortPosition);
+            }
+            ((io.github.ccxt.ws.ArrayCache) this.positions).append(position);
         }
         client.resolve(this.positions, channel);
     }

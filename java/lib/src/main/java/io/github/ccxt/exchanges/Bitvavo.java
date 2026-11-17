@@ -339,10 +339,24 @@ public class Bitvavo extends BitvavoApi
                     put( "tierBased", true );
                     put( "percentage", true );
                     put( "taker", Bitvavo.this.parseNumber("0.0025") );
-                    put( "maker", Bitvavo.this.parseNumber("0.002") );
+                    put( "maker", Bitvavo.this.parseNumber("0.0015") );
                     put( "tiers", new HashMap<String, Object>() {{
-                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("0"), Bitvavo.this.parseNumber("0.0025"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("100000"), Bitvavo.this.parseNumber("0.0020"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("250000"), Bitvavo.this.parseNumber("0.0016"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("500000"), Bitvavo.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("1000000"), Bitvavo.this.parseNumber("0.0010"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("2500000"), Bitvavo.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("5000000"), Bitvavo.this.parseNumber("0.0006"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("10000000"), Bitvavo.this.parseNumber("0.0005"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("25000000"), Bitvavo.this.parseNumber("0.0004"))))) );
-                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("0"), Bitvavo.this.parseNumber("0.0015"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("100000"), Bitvavo.this.parseNumber("0.0010"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("250000"), Bitvavo.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("500000"), Bitvavo.this.parseNumber("0.0006"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("1000000"), Bitvavo.this.parseNumber("0.0005"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("2500000"), Bitvavo.this.parseNumber("0.0004"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("5000000"), Bitvavo.this.parseNumber("0.0004"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("10000000"), Bitvavo.this.parseNumber("0.0003"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("25000000"), Bitvavo.this.parseNumber("0.0003"))))) );
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("0"), Bitvavo.this.parseNumber("0.0025"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("100000"), Bitvavo.this.parseNumber("0.0020"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("250000"), Bitvavo.this.parseNumber("0.0018"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("500000"), Bitvavo.this.parseNumber("0.0016"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("1000000"), Bitvavo.this.parseNumber("0.0014"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("2500000"), Bitvavo.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("5000000"), Bitvavo.this.parseNumber("0.0010"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("10000000"), Bitvavo.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("25000000"), Bitvavo.this.parseNumber("0.0004"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("100000000"), Bitvavo.this.parseNumber("0.0002"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("0"), Bitvavo.this.parseNumber("0.0015"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("100000"), Bitvavo.this.parseNumber("0.0010"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("250000"), Bitvavo.this.parseNumber("0.0009"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("500000"), Bitvavo.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("1000000"), Bitvavo.this.parseNumber("0.0005"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("2500000"), Bitvavo.this.parseNumber("0.0003"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("5000000"), Bitvavo.this.parseNumber("0.0001"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("10000000"), Bitvavo.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("25000000"), Bitvavo.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitvavo.this.parseNumber("100000000"), Bitvavo.this.parseNumber("0"))))) );
+                    }} );
+                }} );
+                put( "byCategory", new HashMap<String, Object>() {{
+                    put( "B", new HashMap<String, Object>() {{
+                        put( "maker", Bitvavo.this.parseNumber("0.0005") );
+                        put( "taker", Bitvavo.this.parseNumber("0.0005") );
+                    }} );
+                    put( "C", new HashMap<String, Object>() {{
+                        put( "maker", Bitvavo.this.parseNumber("0.001") );
+                        put( "taker", Bitvavo.this.parseNumber("0.001") );
+                    }} );
+                    put( "D", new HashMap<String, Object>() {{
+                        put( "maker", Bitvavo.this.parseNumber("0") );
+                        put( "taker", Bitvavo.this.parseNumber("0.0001") );
                     }} );
                 }} );
             }} );
@@ -580,6 +594,8 @@ public class Bitvavo extends BitvavoApi
     public Object parseMarkets(Object markets)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
+        Map<String, Object> defaultFees = (Map<String, Object>) this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
+        Map<String, Object> feesByCategory = (Map<String, Object>) this.safeDict(this.fees, "byCategory", new HashMap<String, Object>() {{}});
         for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, i, (Object) null);
@@ -593,6 +609,8 @@ public class Bitvavo extends BitvavoApi
                 continue;
             }
             String status = this.safeString(market, "status");
+            String feeCategory = this.safeString(market, "feeCategory");
+            Map<String, Object> fees = (Map<String, Object>) this.safeDict(feesByCategory, feeCategory, defaultFees);
             ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                 j39v1.put("id", id);
                 j39v1.put("symbol", ((base + "/") + quote));
@@ -617,8 +635,8 @@ public class Bitvavo extends BitvavoApi
                 j39v1.put("expiryDatetime", null);
                 j39v1.put("strike", null);
                 j39v1.put("optionType", null);
-                j39v1.put("taker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null));
-                j39v1.put("maker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null));
+                j39v1.put("taker", this.safeNumber(fees, "taker", (Object) null));
+                j39v1.put("maker", this.safeNumber(fees, "maker", (Object) null));
                 j39v1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Bitvavo.this.parseNumber(Bitvavo.this.parsePrecision(Bitvavo.this.safeString(market, "quantityDecimals"))) );
                     put( "price", Bitvavo.this.safeNumber(market, "tickSize", (Object) null) );
