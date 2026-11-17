@@ -254,7 +254,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         rawMarkets = []
         collectCap = self.safe_integer({'limit': userLimit}, 'limit')
         paginationKey = None
-        page = self.parse_to_int(0)
+        page = 0
         while(True):
             request = {'pageSize': pageSize}
             if paginationKey is not None:
@@ -266,7 +266,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             for i in range(0, pageMarketsLength):
                 rawMarkets.append(pageMarkets[i])
             paginationKey = self.safe_string(result, 'nextKey')
-            page = self.parse_to_int(page + 1)
+            page = page + 1
             collectedLength = self.parse_to_int(len(rawMarkets))
             if (pageMarketsLength < pageSize) or (page >= maxPages) or (paginationKey is None) or ((collectCap is not None) and (collectedLength >= collectCap)):
                 break
@@ -686,7 +686,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         digits = '0123456789abcdef'
         lowerHex = hex.lower()
         hexLength = len(lowerHex)
-        result = self.parse_to_int(0)
+        result = 0
         for i in range(0, hexLength):
             ch = lowerHex[i]
             digitValue = self.parse_to_int(digits.find(ch))

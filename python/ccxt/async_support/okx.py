@@ -7857,7 +7857,7 @@ class okx(Exchange, ImplicitAPI):
         :returns dict[]: the request and the remaining params
         """
         maxLimit = 100
-        effectiveLimit = self.parse_to_int(100)
+        effectiveLimit = 100
         if (limit is not None) and (100 > limit):
             effectiveLimit = self.parse_to_int(limit)
         if limit is not None:

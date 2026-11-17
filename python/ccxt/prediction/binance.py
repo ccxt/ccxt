@@ -209,7 +209,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if maxTopics is not None:
             maxTopicsResolved = self.parse_to_int(maxTopics)
         pageLimitOption = self.safe_integer(self.options, 'marketsPageLimit', 100)
-        pageLimit = self.parse_to_int(100)
+        pageLimit = 100
         if pageLimitOption < 100:
             pageLimit = self.parse_to_int(pageLimitOption)
         collected = []
@@ -417,12 +417,12 @@ class binance(PredictionExchange, ImplicitAPI):
         seen = {}
         collected = []
         queriesLength = len(queries)
-        limitValue = self.parse_to_int(20)
+        limitValue = 20
         if limit is not None:
             limitValue = self.parse_to_int(limit)
         limitResolved = limitValue
         if limitValue > 50:
-            limitResolved = self.parse_to_int(50)
+            limitResolved = 50
         for qi in range(0, queriesLength):
             request = {
                 'query': queries[qi],

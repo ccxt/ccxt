@@ -648,12 +648,12 @@ class gate(ccxt.async_support.gate):
         storedOrderBook = self.safe_value(self.orderbooks, symbol, self.order_book({}))
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
-            cacheLength = self.parse_to_int(0)
+            cacheLength = 0
             if storedOrderBook is not None:
                 storedCacheLength = len(storedOrderBook.cache)
                 cacheLength = self.parse_to_int(storedCacheLength)
             snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 10))
-            waitAmount = self.parse_to_int(0)
+            waitAmount = 0
             if isSpot:
                 waitAmount = snapshotDelay
             if cacheLength == waitAmount:

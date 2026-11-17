@@ -769,9 +769,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             # Get the part after the decimal separator
             decimalPart = self.safe_string(priceSplitted, 1, '')
             # Count the number of leading zeros in the decimal part
-            leadingZeros = self.parse_to_int(0)
+            leadingZeros = 0
             while((leadingZeros <= len(decimalPart)) and (decimalPart[leadingZeros] == '0')):
-                leadingZeros = self.parse_to_int(leadingZeros + 1)
+                leadingZeros = leadingZeros + 1
             # Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits
             # Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step

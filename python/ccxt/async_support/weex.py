@@ -1597,7 +1597,7 @@ class weex(Exchange, ImplicitAPI):
                 historyLimit = self.parse_to_int(maxHistoricalLimit)
                 if limit is not None and limit is not None and limit != 0:
                     historyLimit = self.parse_to_int(min(limit, maxHistoricalLimit))
-                timeDelta = self.parse_to_int(historyLimit * duration)
+                timeDelta = historyLimit * duration
                 if (since is None) and (until is None):
                     endTime = now
                     startTime = now - timeDelta

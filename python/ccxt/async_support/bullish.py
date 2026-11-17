@@ -1303,7 +1303,7 @@ class bullish(Exchange, ImplicitAPI):
         maxRetries, paramsMaxRetries = self.handle_option_integer_and_params(params, method, 'maxRetries', 3)
         if (method != 'fetchOHLCV') and (method != 'fetchFundingRateHistory') and (method != 'fetchTrades'):
             raise NotSupported(self.id + ' safeDeterministicCall() does not support the ' + method + ' method')
-        errors = self.parse_to_int(0)
+        errors = 0
         paramsOmitted = self.omit(paramsMaxRetries, 'until')
         # the exchange returns the most recent data, so we do not need to pass until into paginated calls
         # the correct util value will be calculated inside of the method
@@ -1318,7 +1318,7 @@ class bullish(Exchange, ImplicitAPI):
             except Exception as e:
                 if isinstance(e, RateLimitExceeded):
                     raise e  # if we are rate limited, we should not retry and fail fast
-                errors = self.parse_to_int(errors + 1)
+                errors = errors + 1
                 if errors > maxRetries:
                     raise e
         return []

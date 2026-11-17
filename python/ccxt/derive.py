@@ -1550,9 +1550,9 @@ class derive(Exchange, ImplicitAPI):
         if limit is not None:
             limitResolved = self.parse_to_int(limit)
         if limitResolved > 5000:
-            limitResolved = self.parse_to_int(5000)
+            limitResolved = 5000
         span = self.parse_to_int(limitResolved * duration)
-        windowStart = self.parse_to_int(untilSeconds - span)
+        windowStart = untilSeconds - span
         start = windowStart
         end = untilSeconds
         if since is not None:

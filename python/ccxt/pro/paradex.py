@@ -1998,7 +1998,7 @@ class paradex(ccxt.async_support.paradex):
                 return None
             entryLength = self.parse_to_int(self.sbe_read_uint(frameHex, position, 2))
             numInGroup = self.parse_to_int(self.sbe_read_uint(frameHex, position + 2, 2))
-            position = self.parse_to_int(position + 4)
+            position = position + 4
             if (entryLength < 16) or (self.parse_to_int(self.sum(position, numInGroup * entryLength)) > frameEnd):
                 return None
             for j in range(0, numInGroup):
