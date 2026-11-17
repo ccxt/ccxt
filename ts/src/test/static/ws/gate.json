@@ -6561,6 +6561,217 @@
                     "id"
                 ]
             }
+        ],
+        "watchMyLiquidationsForSymbols": [
+            {
+                "description": "linear swap liquidation for one symbol",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://fx-ws.gateio.ws/v4/ws/usdt",
+                "messages": [
+                    {
+                        "time": 1792233590,
+                        "time_ms": 1792233590112,
+                        "id": 1,
+                        "conn_id": "7131b1698f971b30",
+                        "trace_id": "10272d21f20811233bcce89196cbfcf2",
+                        "channel": "futures.liquidates",
+                        "event": "subscribe",
+                        "payload": [
+                            "uid",
+                            "BTC_USDT"
+                        ],
+                        "result": {
+                            "status": "success"
+                        }
+                    },
+                    {
+                        "time": 1792233599,
+                        "time_ms": 1792233599880,
+                        "channel": "futures.liquidates",
+                        "event": "update",
+                        "result": [
+                            {
+                                "entry_price": 64250.1,
+                                "fill_price": 63100.5,
+                                "left": 0,
+                                "leverage": 0,
+                                "liq_price": 63150.2,
+                                "margin": 0,
+                                "mark_price": 63120.4,
+                                "order_id": 4093362000,
+                                "order_price": 63100.5,
+                                "size": -124,
+                                "time": 1792233599,
+                                "time_ms": 1792233599876,
+                                "contract": "BTC_USDT",
+                                "user": "uid"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "time": 1792233590,
+                        "channel": "futures.liquidates",
+                        "event": "subscribe",
+                        "auth": {
+                            "method": "api_key",
+                            "KEY": "key",
+                            "SIGN": ""
+                        },
+                        "payload": [
+                            "uid",
+                            "BTC_USDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "entry_price": 64250.1,
+                                "fill_price": 63100.5,
+                                "left": 0,
+                                "leverage": 0,
+                                "liq_price": 63150.2,
+                                "margin": 0,
+                                "mark_price": 63120.4,
+                                "order_id": 4093362000,
+                                "order_price": 63100.5,
+                                "size": -124,
+                                "time": 1792233599,
+                                "time_ms": 1792233599876,
+                                "contract": "BTC_USDT",
+                                "user": "uid"
+                            },
+                            "symbol": "BTC/USDT:USDT",
+                            "contracts": 124,
+                            "contractSize": 0.0001,
+                            "price": 63100.5,
+                            "baseValue": 0.0124,
+                            "quoteValue": 782.4462,
+                            "timestamp": 1792233599876,
+                            "datetime": "2026-10-17T10:39:59.876Z"
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "time",
+                    "id",
+                    "SIGN"
+                ]
+            },
+            {
+                "description": "linear swap liquidations for all symbols",
+                "input": [
+                    [],
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "url": "wss://fx-ws.gateio.ws/v4/ws/usdt",
+                "messages": [
+                    {
+                        "time": 1792233590,
+                        "time_ms": 1792233590112,
+                        "id": 1,
+                        "conn_id": "7131b1698f971b30",
+                        "trace_id": "10272d21f20811233bcce89196cbfcf2",
+                        "channel": "futures.liquidates",
+                        "event": "subscribe",
+                        "payload": [
+                            "uid",
+                            "!all"
+                        ],
+                        "result": {
+                            "status": "success"
+                        }
+                    },
+                    {
+                        "time": 1792233599,
+                        "time_ms": 1792233599880,
+                        "channel": "futures.liquidates",
+                        "event": "update",
+                        "result": [
+                            {
+                                "entry_price": 64250.1,
+                                "fill_price": 63100.5,
+                                "left": 0,
+                                "leverage": 0,
+                                "liq_price": 63150.2,
+                                "margin": 0,
+                                "mark_price": 63120.4,
+                                "order_id": 4093362000,
+                                "order_price": 63100.5,
+                                "size": -124,
+                                "time": 1792233599,
+                                "time_ms": 1792233599876,
+                                "contract": "BTC_USDT",
+                                "user": "uid"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "time": 1792233590,
+                        "channel": "futures.liquidates",
+                        "event": "subscribe",
+                        "auth": {
+                            "method": "api_key",
+                            "KEY": "key",
+                            "SIGN": ""
+                        },
+                        "payload": [
+                            "uid",
+                            "!all"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "entry_price": 64250.1,
+                                "fill_price": 63100.5,
+                                "left": 0,
+                                "leverage": 0,
+                                "liq_price": 63150.2,
+                                "margin": 0,
+                                "mark_price": 63120.4,
+                                "order_id": 4093362000,
+                                "order_price": 63100.5,
+                                "size": -124,
+                                "time": 1792233599,
+                                "time_ms": 1792233599876,
+                                "contract": "BTC_USDT",
+                                "user": "uid"
+                            },
+                            "symbol": "BTC/USDT:USDT",
+                            "contracts": 124,
+                            "contractSize": 0.0001,
+                            "price": 63100.5,
+                            "baseValue": 0.0124,
+                            "quoteValue": 782.4462,
+                            "timestamp": 1792233599876,
+                            "datetime": "2026-10-17T10:39:59.876Z"
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "time",
+                    "id",
+                    "SIGN"
+                ]
+            }
         ]
     }
 }
