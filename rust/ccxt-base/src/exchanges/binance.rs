@@ -1182,6 +1182,11 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Float(0.40002));
     m
 }));
+        m.insert("sub-account/subAccountApi".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
+    m
+}));
         m.insert("sub-account/subAccountApi/ipRestriction".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(20.001));
@@ -2092,6 +2097,16 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Float(0.1));
     m
 }));
+        m.insert("sub-account/subAccountApi".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
+    m
+}));
+        m.insert("sub-account/subAccountApiPermission".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
+    m
+}));
         m.insert("sub-account/margin/transfer".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(4.0002));
@@ -2710,6 +2725,11 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Float(0.1));
     m
 }));
+        m.insert("sub-account/subAccountApi".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
+    m
+}));
         m.insert("sub-account/subAccountApi/ipRestriction/ipList".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(20.001));
@@ -2785,6 +2805,11 @@ impl BinanceCore {
         m.insert("eth-staking/eth/stake".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(15));
+    m
+}));
+        m.insert("sub-account/subAccountApi".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(20.001));
     m
 }));
         m.insert("sub-account/subAccountApi/ipRestriction".to_string(), Value::Map({
