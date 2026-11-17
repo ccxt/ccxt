@@ -5423,13 +5423,12 @@ class NewTranspiler {
             // `future.(Resolve|Reject)` on a boxed future: the printer prints the assertion (84g3)
             [/\(<\-future\)/g, '<-future.(<-chan any)'],
             [/<-spawaned/g, '<-spawaned.(<-chan any)'],
-            [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
+            // `promise.Resolve(m)` (assertion + ToGetsLimit) is printed by the printer (90g3 R2)
             // GetsLimit
             [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook
-            [/([a-zA-Z0-9]+).StoreArray/g, '$1.(IOrderBookSide).StoreArray'],
-            [/(bookside|asks|bids|Side).Store/g, '$1.(IOrderBookSide).Store'],
+            // `X.Store` / `X.StoreArray` side assertions are printed by the printer (90g3 R1)
             [/this.ParseWsBidAsk\(this\.Orderbooks\[(\*?symbol)\]/g, 'this.ParseWsBidAsk(UnWrapType(this.Orderbooks[$1])'],
             // Clients
             // AsClient instead of a hard .(*Client) assertion: the transport hands
