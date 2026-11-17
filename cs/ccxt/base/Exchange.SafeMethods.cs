@@ -139,37 +139,37 @@ public partial class BaseExchange
     public string? safeStringUpper(object obj, object key, object defaultValue = null)
     {
         var result = safeString(obj, key);
-        return result == null ? defaultValue as string : result.ToUpper();
+        return result == null ? defaultValue as string : result.ToUpperInvariant();
     }
 
     public string? safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, key1, key2);
-        return result == null ? defaultValue as string : result.ToUpper();
+        return result == null ? defaultValue as string : result.ToUpperInvariant();
     }
 
     public string? safeStringUpperN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = safeStringN(obj, keys);
-        return result == null ? defaultValue as string : result.ToUpper();
+        return result == null ? defaultValue as string : result.ToUpperInvariant();
     }
 
     public string? safeStringLower(object obj, object key, object defaultValue = null)
     {
         var result = safeString(obj, key);
-        return result == null ? defaultValue as string : result.ToLower();
+        return result == null ? defaultValue as string : result.ToLowerInvariant();
     }
 
     public string? safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, key1, key2);
-        return result == null ? defaultValue as string : result.ToLower();
+        return result == null ? defaultValue as string : result.ToLowerInvariant();
     }
 
     public string? safeStringLowerN(object obj, List<object> keys, string defaultValue = null)
     {
         var result = safeStringN(obj, keys);
-        return result == null ? defaultValue : result.ToLower();
+        return result == null ? defaultValue : result.ToLowerInvariant();
     }
 
     public Int64? safeIntegerProduct(object obj, object key, object multiplier = null, object defaultValue = null)
