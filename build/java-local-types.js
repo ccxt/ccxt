@@ -370,7 +370,7 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'parsePredictionPositions', 'parsePredictionTrades',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
-const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>' };
+const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>', 'sendEvmTransaction': 'String' }; // ral-90j5 R1: + sendEvmTransaction
 // ral-84j7 R3: prediction order structures. safePredictionOrder returns its fresh
 // Map<String, Object> `result` on its one path; every parsePredictionOrder declaration
 // (base throws, 9 prediction venues) returns `this.safePredictionOrder (..)`. Joined into

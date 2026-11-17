@@ -116,6 +116,9 @@ const WITNESS_FAILED_FUTURE = new Set([ 'fetchDepositAddressesByNetwork' ]);
 // loadOutcome (): Promise<PredictionOutcomeMarket> sends the outcome dict on every path
 const PREDICTION_BASE_ASYNC_HELPERS: MethodInfo[] = [
     { name: 'loadOutcome', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
+    // ral-90j5: sendEvmTransaction (): Promise<string>, one declaration (no venue override); its one
+    // return is the eth_sendRawTransaction tx-hash string
+    { name: 'sendEvmTransaction', javaReturnType: 'String', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
 ];
 
 const JAVA_BUILTINS = new Set([ 'List', 'Map', 'String', 'Object', 'Long', 'Double', 'Boolean' ]);
