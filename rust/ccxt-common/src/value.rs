@@ -117,7 +117,7 @@ impl Value {
         };
         {
             if let Some(id) = cache_id_of(self) {
-                with_cache_cell(id, |state| cache_remove_symbol(state, &symbol));
+                with_cache_cell(id, move |state| cache_remove_symbol(state, &symbol));
             } else if let Value::Dict(state) = self {
                 cache_remove_symbol(Arc::make_mut(state), &symbol);
             }
