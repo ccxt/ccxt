@@ -306,9 +306,6 @@ class Client(object):
             ensure_future(self.close(1006), loop=self.asyncio_loop)
 
     def on_close(self, code):
-        if getattr(self, '_on_close_called', False):
-            return
-        self._on_close_called = True
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
         if not self.error:

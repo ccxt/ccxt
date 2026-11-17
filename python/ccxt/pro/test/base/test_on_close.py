@@ -5,6 +5,7 @@ import sys
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.append(root)
 
+from aiohttp import ClientSession, web
 import ccxt.pro as ccxtpro
 from ccxt.async_support.base.ws.client import Client
 
@@ -22,21 +23,40 @@ def noop(*args):
     return None
 
 
-async def test_client_on_close_idempotency():
+async def test_server_close_frame_runs_on_close_once():
     closed_codes = []
 
     def spy_close(client, code):
         closed_codes.append(code)
 
-    client = Client('ws://example.invalid', noop, noop, spy_close, noop, {})
+    async def handler(request):
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
+        await ws.close(code=1001)
+        return ws
 
-    # First on_close call with CLOSE frame code (e.g. 1001)
-    client.on_close(1001)
-    assert closed_codes == [1001], f"expected [1001], got {closed_codes}"
-
-    # Second on_close call (e.g. from receive_loop 1006) should be a no-op
-    client.on_close(1006)
-    assert closed_codes == [1001], f"Client.on_close must be idempotent, got {closed_codes}"
+    app = web.Application()
+    app.router.add_get('/', handler)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '127.0.0.1', 0)
+    await site.start()
+    url = 'ws://127.0.0.1:' + str(runner.addresses[0][1])
+    session = ClientSession()
+    client = Client(url, noop, noop, spy_close, noop, {'asyncio_loop': asyncio.get_running_loop(), 'keepAlive': 0})
+    try:
+        await client.connect(session)
+        for _ in range(100):
+            if closed_codes:
+                break
+            await asyncio.sleep(0.05)
+        # give a rescheduled receive_loop the chance to report the close again
+        await asyncio.sleep(0.2)
+    finally:
+        await client.close()
+        await session.close()
+        await runner.cleanup()
+    assert closed_codes == [1001], f"a server CLOSE frame must run on_close once, got {closed_codes}"
 
 
 async def test_exchange_on_close_preserves_replacement_client():
@@ -61,7 +81,7 @@ async def test_exchange_on_close_preserves_replacement_client():
 
 
 async def test_ws_on_close():
-    await test_client_on_close_idempotency()
+    await test_server_close_frame_runs_on_close_once()
     await test_exchange_on_close_preserves_replacement_client()
 
 
