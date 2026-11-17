@@ -1982,7 +1982,7 @@ export class BaseExchange {
             // connection closed due to an error, do nothing
         } else {
             // server disconnected a working connection
-            if (this.clients[client.url] !== undefined) {
+            if (this.clients[client.url] === client) {
                 delete this.clients[client.url];
             }
         }

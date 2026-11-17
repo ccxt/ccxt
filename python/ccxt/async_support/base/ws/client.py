@@ -215,8 +215,10 @@ class Client(object):
                     return
                 exception = resolved.exception()
                 if exception is None:
-                    self.handle_message(resolved.result())
-                    self.asyncio_loop.call_soon(self.receive_loop)
+                    message = resolved.result()
+                    self.handle_message(message)
+                    if message.type != WSMsgType.CLOSE:
+                        self.asyncio_loop.call_soon(self.receive_loop)
                 else:
                     error = NetworkError(str(exception))
                     if self.verbose:
