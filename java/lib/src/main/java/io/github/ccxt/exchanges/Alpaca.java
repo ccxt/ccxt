@@ -2699,9 +2699,9 @@ public class Alpaca extends AlpacaApi
             headersValue.put("APCA-API-KEY-ID", this.apiKey);
             headersValue.put("APCA-API-SECRET-KEY", this.secret);
         }
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
         String bodyJson = null;
-        if (((Map<String, Object>)query).size() > 0)
+        if (query.size() > 0)
         {
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
             {

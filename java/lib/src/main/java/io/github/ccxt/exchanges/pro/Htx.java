@@ -1858,7 +1858,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 messageHash = ("::" + String.join(",", (List<String>)symbols));
             }
             String type = null;
-            Object subType = null;
+            String subType = null;
             Map<String, Object> paramsSubType = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(market, null))
             {
@@ -1876,7 +1876,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String marketType = marketTypeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
                 type = (((java.util.Objects.equals(marketType, "spot")))) ? "future" : marketType;
-                Pair<String, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "watchPositions", "subType", java.util.Objects.toString(subType, null));
+                Pair<String, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "watchPositions", "subType", subType);
                 subType = subTypeparamsSubTypeVariable.first();
                 paramsSubType = subTypeparamsSubTypeVariable.second();
             }
@@ -1913,7 +1913,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> subscriptionParams = new HashMap<String, Object>();
             subscriptionParams.put("isV5", isV5Linear);
             subscriptionParams.put("margin", marginMode);
-            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, messageHash, type, (String) (subType), paramsRequest, subscriptionParams)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2545,9 +2545,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < messageHashes.size(); i++)
         {
-            Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-            this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), false);
+            String unsubHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
+            this.cleanUnsubscription(client, subHash, unsubHash, false);
         }
         this.cleanCache(subscription);
     }

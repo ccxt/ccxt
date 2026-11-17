@@ -1770,7 +1770,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Object parsed = null;
+            Map<String, Object> parsed = null;
             if (Boolean.TRUE.equals(spot) && !Boolean.TRUE.equals(executionFast))
             {
                 parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
@@ -1788,7 +1788,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 }
                 parsed = this.parseTrade(rawTrade, (Map<String, Object>) null);
             }
-            String symbol = (String) ((Map<String, Object>)parsed).get("symbol");
+            String symbol = (String) parsed.get("symbol");
             if (java.util.Objects.equals(symbol, null))
             {
                 continue;
@@ -3329,10 +3329,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < messageHashes.size(); j++)
                 {
-                    Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+                    String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                     String subHash = this.safeString(subMessageHashes, j);
                     Boolean usePrefix = (java.util.Objects.equals(subHash, "orders")) || (java.util.Objects.equals(subHash, "myTrades")) || (java.util.Objects.equals(subHash, "positions"));
-                    this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), usePrefix);
+                    this.cleanUnsubscription(client, (String) (subHash), unsubHash, usePrefix);
                 }
                 this.cleanCache(subscription);
             }

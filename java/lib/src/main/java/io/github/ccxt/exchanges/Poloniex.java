@@ -2525,7 +2525,7 @@ public class Poloniex extends PoloniexApi
             Boolean isContract = false;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String symbol = this.safeString(rawOrder, "symbol", "");
                 Map<String, Object> marketInner = this.market(symbol);
                 String marketInnerType = this.safeString(marketInner, "type");
@@ -2538,8 +2538,8 @@ public class Poloniex extends PoloniexApi
                 {
                     throw new BadRequest((this.id + " createOrders() requires all orders to be of the same market type, either spot or swap")) ;
                 }
-                Object type = ((Map<String, Object>)rawOrder).get("type");
-                Object side = ((Map<String, Object>)rawOrder).get("side");
+                Object type = rawOrder.get("type");
+                Object side = rawOrder.get("side");
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});

@@ -172,8 +172,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object symbolsValue = symbols;
             for (var i = 0; i < ((List<?>)symbolsValue).size(); i++)
             {
-                Object symbol = (symbolsValue == null || i < 0 || i >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(i));
-                ((List<Object>)marketIds).add(this.marketId((String) (symbol)));
+                String symbol = (String) (symbolsValue == null || i < 0 || i >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(i));
+                ((List<Object>)marketIds).add(this.marketId(symbol));
             }
             Integer length = ((List<?>)symbolsValue).size();
             if (java.util.Objects.equals(length, 1))
@@ -738,8 +738,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 for (var i = 0; (length != null && i < length); i++)
                 {
                     // need reverse to correct chronology
-                    Object item = (trades == null || ((int) ((((long) length) - 1L) - ((long) i))) < 0 || ((int) ((((long) length) - 1L) - ((long) i))) >= trades.size() ? null : trades.get(((int) ((((long) length) - 1L) - ((long) i)))));
-                    Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (item), (Map<String, Object>) null);
+                    Map<String, Object> item = (Map<String, Object>) ((trades == null || ((int) ((((long) length) - 1L) - ((long) i))) < 0 || ((int) ((((long) length) - 1L) - ((long) i))) >= trades.size() ? null : trades.get(((int) ((((long) length) - 1L) - ((long) i))))));
+                    Map<String, Object> trade = this.parseWsTrade(item, (Map<String, Object>) null);
                     tradesArray.append(trade);
                 }
             } else

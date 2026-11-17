@@ -1243,8 +1243,8 @@ public class Coincheck extends CoincheckApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
-        Boolean hasQuery = ((Map<String, Object>)query).size() > 0;
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
+        Boolean hasQuery = query.size() > 0;
         if (java.util.Objects.equals(apiName, "public"))
         {
             if (Boolean.TRUE.equals(hasQuery))

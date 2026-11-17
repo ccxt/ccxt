@@ -1551,9 +1551,9 @@ public class Bitbns extends BitbnsApi
         }
         String baseUrl = (String) this.implodeHostname(baseApiUrl);
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
         String nonce = this.numberToString(this.nonce());
-        Integer queryLength = ((Map<String, Object>)query).size();
+        Integer queryLength = query.size();
         String postBody = "{}";
         if ((queryLength != null && queryLength > 0))
         {

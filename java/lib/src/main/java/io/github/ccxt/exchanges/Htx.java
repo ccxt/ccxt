@@ -4850,12 +4850,12 @@ public class Htx extends HtxApi
                         Map<String, Object> subResult = new HashMap<String, Object>() {{}};
                         for (var j = 0; j < balances.size(); j++)
                         {
-                            Object balance = (balances == null || j < 0 || j >= balances.size() ? null : balances.get(j));
+                            Map<String, Object> balance = (Map<String, Object>) (balances == null || j < 0 || j >= balances.size() ? null : balances.get(j));
                             String currencyId = this.safeString(balance, "currency");
                             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                             if (!java.util.Objects.equals(code, null))
                             {
-                                subResult.put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, subResult));
+                                subResult.put(code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
                         List<String> subCodes = new ArrayList<String>(subResult.keySet());
@@ -4871,12 +4871,12 @@ public class Htx extends HtxApi
                     List<Object> balances = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                     for (var i = 0; i < balances.size(); i++)
                     {
-                        Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+                        Map<String, Object> balance = (Map<String, Object>) (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                         String currencyId = this.safeString(balance, "currency");
                         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                         if (!java.util.Objects.equals(code, null))
                         {
-                            result.put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, result));
+                            result.put(code, this.parseMarginBalanceHelper(balance, code, result));
                         }
                     }
                     result = this.safeBalance(result);
@@ -8943,7 +8943,7 @@ public class Htx extends HtxApi
                 List<Object> result = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < result.size(); i++)
                 {
-                    Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
+                    Map<String, Object> entry = (Map<String, Object>) (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                     Helpers.addElementToObject(entry, "current_page", cursor);
                     String marketId = this.safeString(entry, "contract_code");
                     String symbolInner = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);

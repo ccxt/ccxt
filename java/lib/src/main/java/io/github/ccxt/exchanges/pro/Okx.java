@@ -1360,9 +1360,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                Object sym = (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
+                String sym = (String) (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
                 Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
-                String marketId = this.marketId((String) (sym));
+                String marketId = this.marketId(sym);
                 String interval = this.safeString(this.timeframes, tf, tf);
                 String channel = ("candle" + interval);
                 Map<String, Object> topic = new HashMap<String, Object>() {{
@@ -1420,9 +1420,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                Object sym = (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
+                String sym = (String) (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
                 Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
-                String marketId = this.marketId((String) (sym));
+                String marketId = this.marketId(sym);
                 String interval = this.safeString(this.timeframes, tf, tf);
                 String channel = ("candle" + interval);
                 Map<String, Object> topic = new HashMap<String, Object>() {{
@@ -1911,8 +1911,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 io.github.ccxt.ws.WsOrderBook updatedBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
                 for (var i = 0; i < data.size(); i++)
                 {
-                    Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                    this.handleOrderBookMessage(client, (Map<String, Object>) (update), (io.github.ccxt.ws.WsOrderBook) (updatedBook), messageHash, market);
+                    Map<String, Object> update = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                    this.handleOrderBookMessage(client, update, (io.github.ccxt.ws.WsOrderBook) (updatedBook), messageHash, market);
                     if (!(client.subscriptions.containsKey(messageHash)))
                     {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
@@ -2727,13 +2727,13 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrderWs", "op", "batch-orders");
             String op = opparamsOpVariable.first();
             Map<String, Object> paramsOp = opparamsOpVariable.second();
-            Object args = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
+            Map<String, Object> args = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
             Map<String, Object> market = this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (!java.util.Objects.equals(instIdCode, null))
             {
-                ((Map<String,Object>)args).remove("instId");
-                ((Map<String, Object>)args).put("instIdCode", instIdCode);
+                args.remove("instId");
+                args.put("instIdCode", instIdCode);
             }
             String ordType = this.safeString(args, "ordType");
             if ((java.util.Objects.equals(ordType, "trigger")) || (java.util.Objects.equals(ordType, "conditional")) || (java.util.Objects.equals(type, "oco")) || (java.util.Objects.equals(type, "move_order_stop")) || (java.util.Objects.equals(type, "iceberg")) || (java.util.Objects.equals(type, "twap")))
@@ -2819,13 +2819,13 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrderWs", "op", "amend-order");
             String op = opparamsOpVariable.first();
             Map<String, Object> paramsOp = opparamsOpVariable.second();
-            Object args = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
+            Map<String, Object> args = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
             Map<String, Object> market = this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (!java.util.Objects.equals(instIdCode, null))
             {
-                ((Map<String,Object>)args).remove("instId");
-                ((Map<String, Object>)args).put("instIdCode", instIdCode);
+                args.remove("instId");
+                args.put("instIdCode", instIdCode);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", messageHash );

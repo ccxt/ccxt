@@ -2395,8 +2395,8 @@ public class Bybit extends BybitApi
         Integer dataLength = data.size();
         if ((!java.util.Objects.equals(paginationCursor, null)) && ((dataLength != null && dataLength > 0)))
         {
-            Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-            ((Map<String, Object>)first).put("nextPageCursor", paginationCursor);
+            Map<String, Object> first = (Map<String, Object>) (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
+            first.put("nextPageCursor", paginationCursor);
             data.set(0, first);
         }
         return data;
@@ -3854,18 +3854,18 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object tickerList = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickerList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(category, "spot"))
             {
                 // bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
                 // resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
                 List<Object> spotTickers = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)tickerList).size(); i++)
+                for (var i = 0; i < tickerList.size(); i++)
                 {
-                    Map<String, Object> tickerMarket = this.safeMarket(this.safeString((tickerList == null || i < 0 || i >= ((List<?>)tickerList).size() ? null : ((List<?>)tickerList).get(i)), "symbol"), (Map<String, Object>) null, (String) null, "spot");
+                    Map<String, Object> tickerMarket = this.safeMarket(this.safeString((tickerList == null || i < 0 || i >= tickerList.size() ? null : tickerList.get(i)), "symbol"), (Map<String, Object>) null, (String) null, "spot");
                     if (!Boolean.TRUE.equals(this.safeBool(tickerMarket, "contract", false)))
                     {
-                        ((List<Object>)spotTickers).add((tickerList == null || i < 0 || i >= ((List<?>)tickerList).size() ? null : ((List<?>)tickerList).get(i)));
+                        ((List<Object>)spotTickers).add((tickerList == null || i < 0 || i >= tickerList.size() ? null : tickerList.get(i)));
                     }
                 }
                 tickerList = spotTickers;
@@ -5972,8 +5972,8 @@ public class Bybit extends BybitApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
-                ((Map<String,Object>)orderRequest).remove("category");
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
+                orderRequest.remove("category");
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             List<String> symbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
@@ -6221,8 +6221,8 @@ public class Bybit extends BybitApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
-                ((Map<String,Object>)orderRequest).remove("category");
+                Map<String, Object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
+                orderRequest.remove("category");
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             List<String> symbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);

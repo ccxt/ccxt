@@ -1777,10 +1777,10 @@ public class Indodax extends IndodaxApi
         Boolean isPublic = (java.util.Objects.equals(apiName, "public"));
         if (Boolean.TRUE.equals(isPublic))
         {
-            Object query = this.omit(parameters, this.extractParams(path));
+            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
             String requestPath = ("/" + this.implodeParams(path, parameters));
             url = (apiUrl + requestPath);
-            if (((Map<String, Object>)query).size() > 0)
+            if (query.size() > 0)
             {
                 url = (((apiUrl + requestPath) + "?") + this.urlencodeWithArrayRepeat(query));
             }

@@ -5169,12 +5169,12 @@ public class Bingx extends BingxApi
             {
                 idsToParse = clientOrderIds;
             }
-            Object parsedIds = new ArrayList<Object>(Arrays.asList());
+            List<String> parsedIds = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)idsToParse).size(); i++)
             {
                 String id = this.safeString(idsToParse, i, "");
                 String stringId = String.valueOf(id);
-                ((List<Object>)parsedIds).add(stringId);
+                parsedIds.add(stringId);
             }
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))

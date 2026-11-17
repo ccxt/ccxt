@@ -1475,8 +1475,8 @@ public class Binance extends BinanceApi
             {
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
-                    Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Map<String, Object>) null);
+                    String requested = (String) (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome(requested, (Map<String, Object>) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
@@ -1602,7 +1602,7 @@ public class Binance extends BinanceApi
      * @param {object} [outcomeObj] the ourtome the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> outcomeObj)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> outcomeObj)
     {
         Object outcomeObjResolved = outcomeObj;
         if (java.util.Objects.equals(outcomeObjResolved, null))

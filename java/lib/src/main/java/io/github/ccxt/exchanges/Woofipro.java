@@ -2793,13 +2793,13 @@ public class Woofipro extends WoofiproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
+            List<String> clientOrderIds = (List<String>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
-                request.put("client_order_ids", String.join(",", (List<String>)clientOrderIds));
+                request.put("client_order_ids", String.join(",", clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, paramsOmitted))).join();
             } else
             {

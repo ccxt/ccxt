@@ -63,7 +63,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     public Long requestId()
     {
-        Long reqid = (Long) this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
+        Long reqid = (this.safeInteger(this.options, "correlationId", 0) + 1L);
         this.options.put("correlationId", reqid);
         return reqid;
     }

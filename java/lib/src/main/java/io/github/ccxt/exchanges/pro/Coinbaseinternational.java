@@ -129,7 +129,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     public Long requestId()
     {
-        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Long requestId = (this.safeInteger(this.options, "requestId", 0) + 1L);
         this.options.put("requestId", requestId);
         return requestId;
     }
@@ -754,8 +754,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             for (var i = 0; (tickerSymbolsLength != null && i < tickerSymbolsLength); i++)
             {
                 String symbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
-                Object ticker = (tickers == null || symbol == null ? null : tickers.get(symbol));
-                result.put(symbol, this.parseFundingRate(((Map<String, Object>)ticker).get("info"), this.market(symbol)));
+                Map<String, Object> ticker = (Map<String, Object>) ((tickers == null || symbol == null ? null : tickers.get(symbol)));
+                result.put(symbol, this.parseFundingRate(ticker.get("info"), this.market(symbol)));
             }
             return result;
         }).thenApply(FundingRates::new);

@@ -3428,7 +3428,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("end_timestamp", (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds());
                 if (this.isNativeDeribitCredentials())
                 {
-                    ((Map<String,Object>)request).remove("include_old");
+                    request.remove("include_old");
                 }
                 response = (this.privateGetGetUserTradesByInstrumentAndTime(this.extend(request, paramsOmitted))).join();
             } else

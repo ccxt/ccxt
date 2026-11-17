@@ -3656,14 +3656,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object currentPosition = this.getCurrentPosition((String) (symbol));
         String messageHash = ("position:" + symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object newPosition = this.parsePosition(data, (Map<String, Object>) null);
-        List<String> keys = new ArrayList<String>(((Map<String, Object>)newPosition).keySet());
+        Map<String, Object> newPosition = (Map<String, Object>) this.parsePosition(data, (Map<String, Object>) null);
+        List<String> keys = new ArrayList<String>(newPosition.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (java.util.Objects.equals(Helpers.GetValue(newPosition, key), null))
+            if (java.util.Objects.equals((newPosition == null || key == null ? null : newPosition.get(key)), null))
             {
-                ((Map<String,Object>)newPosition).remove(key);
+                newPosition.remove(key);
             }
         }
         Map<String, Object> position = this.extend(currentPosition, newPosition);

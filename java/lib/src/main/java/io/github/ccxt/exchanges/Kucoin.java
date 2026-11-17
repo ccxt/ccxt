@@ -9869,12 +9869,12 @@ public class Kucoin extends KucoinApi
                 List<Object> accounts = (List<Object>) this.safeList(data, "accounts", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < accounts.size(); i++)
                 {
-                    Object balance = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
+                    Map<String, Object> balance = (Map<String, Object>) (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
                     String currencyId = this.safeString(balance, "currency");
                     String codeInner = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (!java.util.Objects.equals(codeInner, null))
                     {
-                        result.put(codeInner, this.parseBalanceHelper((Map<String, Object>) (balance)));
+                        result.put(codeInner, this.parseBalanceHelper(balance));
                     }
                 }
             } else

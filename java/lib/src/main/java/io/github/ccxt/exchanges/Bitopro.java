@@ -1095,7 +1095,7 @@ public class Bitopro extends BitoproApi
             if (Helpers.isEqual((candle == null || 0 >= ((List<?>)candle).size() ? null : ((List<?>)candle).get(0)), timestamp))
             {
                 ((List<Object>)result).add(candle);
-                i = (Long) this.sum(i, 1);
+                i = (i + 1L);
             } else
             {
                 // set open, high, low to close
@@ -2189,10 +2189,10 @@ public class Bitopro extends BitoproApi
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ("/" + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
         // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
         // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
-        Integer queryLength = ((Map<String, Object>)query).size();
+        Integer queryLength = query.size();
         Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
         Boolean isSignedBody = (java.util.Objects.equals(apiName, "private")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")));
         String signedBody = this.json(parameters);

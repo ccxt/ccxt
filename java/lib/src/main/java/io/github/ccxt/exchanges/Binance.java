@@ -16287,7 +16287,7 @@ public class Binance extends BinanceApi
             {
                 if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) && (java.util.Objects.equals(path, "batchOrders")))
                 {
-                    Object orderidlist = this.safeList(extendedParams, "orderidlist", new ArrayList<Object>(Arrays.asList()));
+                    List<String> orderidlist = (List<String>) this.safeList(extendedParams, "orderidlist", new ArrayList<Object>(Arrays.asList()));
                     List<Object> origclientorderidlist = (List<Object>) this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new ArrayList<Object>(Arrays.asList()));
                     extendedParams = this.omit(extendedParams, new ArrayList<Object>(Arrays.asList("orderidlist", "origclientorderidlist", "origClientOrderIdList")));
                     if (extendedParams.containsKey("symbol"))
@@ -16295,11 +16295,11 @@ public class Binance extends BinanceApi
                         extendedParams.put("symbol", this.encodeURIComponent(this.safeString(extendedParams, "symbol", "")));
                     }
                     query = this.rawencode(extendedParams);
-                    Integer orderidlistLength = ((List<?>)orderidlist).size();
+                    Integer orderidlistLength = orderidlist.size();
                     Integer origclientorderidlistLength = origclientorderidlist.size();
                     if ((orderidlistLength != null && orderidlistLength > 0))
                     {
-                        query = ((((query + "&") + "orderidlist=%5B") + String.join("%2C", (List<String>)orderidlist)) + "%5D");
+                        query = ((((query + "&") + "orderidlist=%5B") + String.join("%2C", orderidlist)) + "%5D");
                     }
                     if ((origclientorderidlistLength != null && origclientorderidlistLength > 0))
                     {

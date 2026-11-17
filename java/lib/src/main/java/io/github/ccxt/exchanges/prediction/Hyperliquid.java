@@ -806,8 +806,8 @@ public class Hyperliquid extends HyperliquidApi
                 (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
-                    Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Map<String, Object>) null);
+                    String requested = (String) (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome(requested, (Map<String, Object>) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
@@ -1174,8 +1174,8 @@ public class Hyperliquid extends HyperliquidApi
                 (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
-                    Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
-                    Map<String, Object> requestedOutcomeObj = this.safeOutcome((String) (requested), (Map<String, Object>) null);
+                    String requested = (String) (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
+                    Map<String, Object> requestedOutcomeObj = this.safeOutcome(requested, (Map<String, Object>) null);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     requestedOutcomeSymbols.put(requestedOutcome, true);
                 }
@@ -1252,7 +1252,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position

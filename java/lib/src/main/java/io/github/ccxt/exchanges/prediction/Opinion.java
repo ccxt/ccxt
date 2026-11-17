@@ -1830,7 +1830,7 @@ public class Opinion extends OpinionApi
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String tokenId = this.safeString(position, "tokenId");
         Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), market);

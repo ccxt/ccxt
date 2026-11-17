@@ -2960,9 +2960,9 @@ public class Pacifica extends PacificaApi
         {
             if ((!java.util.Objects.equals(paginationCursor, null)) && ((dataLength != null && dataLength > 0)))
             {
-                Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-                ((Map<String, Object>)first).put("next_cursor", paginationCursor);
-                ((Map<String, Object>)first).put("has_more", hasMore);
+                Map<String, Object> first = (Map<String, Object>) (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
+                first.put("next_cursor", paginationCursor);
+                first.put("has_more", hasMore);
                 data.set(0, first);
             }
         }

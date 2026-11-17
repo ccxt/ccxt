@@ -406,7 +406,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "common", "") + "/quote/ws/v1");
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options.get("ws"), "timeframes", new HashMap<String, Object>() {{}});
-            Object marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             String selectedTimeframe = null;
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
@@ -423,7 +423,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 {
                     selectedTimeframe = rawTimeframe;
                 }
-                ((List<Object>)marketIds).add(marketId);
+                marketIds.add(marketId);
                 messageHashes.add(((("ohlcv::" + symbolStr) + "::") + unfiedTimeframe));
             }
             Map<String, Object> request = new HashMap<String, Object>();

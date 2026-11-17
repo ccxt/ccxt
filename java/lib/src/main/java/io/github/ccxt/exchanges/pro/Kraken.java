@@ -1765,11 +1765,11 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 if (java.util.Objects.equals(((Number) length).longValue(), limit) && (java.util.Objects.equals(previousOrder, null)))
                 {
                     Object first = (stored == null || 0 >= ((List<?>)stored).size() ? null : ((List<?>)stored).get(0));
-                    Object symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new HashMap<String, Object>() {{}});
+                    Map<String, Object> symbolsByOrderId = (Map<String, Object>) this.safeDict(this.options, "symbolsByOrderId", new HashMap<String, Object>() {{}});
                     String firstId = this.safeString(first, "id");
-                    if ((!java.util.Objects.equals(firstId, null)) && (((Map<?, ?>)symbolsByOrderId).containsKey(firstId)))
+                    if ((!java.util.Objects.equals(firstId, null)) && (symbolsByOrderId.containsKey(firstId)))
                     {
-                        ((Map<String,Object>)symbolsByOrderId).remove((String)firstId);
+                        symbolsByOrderId.remove((String)firstId);
                     }
                 }
                 stored.append(newOrder);

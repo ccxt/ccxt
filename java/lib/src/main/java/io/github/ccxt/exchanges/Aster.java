@@ -5251,7 +5251,7 @@ public class Aster extends AsterApi
     put( "type", "uint256" );
 }})) );
                 }};
-                ((Map<String,Object>)finalParams).remove("signer"); // signer is not needed for approveBuilder endpoint
+                finalParams.remove("signer"); // signer is not needed for approveBuilder endpoint
                 paramString = this.encodeValuesWithJson(finalParams);
                 paramsToEncode = this.capitalizeKeys(finalParams);
             } else

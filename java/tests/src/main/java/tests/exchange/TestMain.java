@@ -564,8 +564,8 @@ public class TestMain extends BaseTest
         Object url = "";
         if (Helpers.getArrayLength(fetchCache) > 0)
         {
-            Object lastEntry = Helpers.GetValue(fetchCache, Helpers.subtract(Helpers.getArrayLength(fetchCache), 1));
-            Object lastRequest = ((Map<String, Object>)lastEntry).get("request");
+            Map<String, Object> lastEntry = (Map<String, Object>) (Helpers.GetValue(fetchCache, Helpers.subtract(Helpers.getArrayLength(fetchCache), 1)));
+            Object lastRequest = lastEntry.get("request");
             if (!java.util.Objects.equals(lastRequest, null))
             {
                 url = exchange.safeString(lastRequest, "url", "");

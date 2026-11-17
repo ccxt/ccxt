@@ -951,9 +951,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; (newLiquidationsLength != null && i < newLiquidationsLength); i++)
         {
-            Object liquidation = (newLiquidations == null || i < 0 || i >= newLiquidations.size() ? null : newLiquidations.get(i));
+            Map<String, Object> liquidation = (Map<String, Object>) (newLiquidations == null || i < 0 || i >= newLiquidations.size() ? null : newLiquidations.get(i));
             cache.append(liquidation);
-            symbols.put((String)((String)((Map<String, Object>)liquidation).get("symbol")), true);
+            symbols.put((String)((String)liquidation.get("symbol")), true);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
         for (var i = 0; i < keys.size(); i++)
@@ -2409,7 +2409,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
 
     public Long requestId()
     {
-        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Long requestId = (this.safeInteger(this.options, "requestId", 0) + 1L);
         this.options.put("requestId", requestId);
         return requestId;
     }

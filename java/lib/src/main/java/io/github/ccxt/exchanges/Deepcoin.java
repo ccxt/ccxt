@@ -783,10 +783,10 @@ public class Deepcoin extends DeepcoinApi
             yield j39v3; } })));
     }
 
-    public Object setMarkets(Object markets, Object currencies)
+    public Map<String, Object> setMarkets(Object markets, Object currencies)
     {
-        Object result = super.setMarkets(markets, currencies);
-        List<String> symbols = new ArrayList<String>(((Map<String, Object>)result).keySet());
+        Map<String, Object> result = super.setMarkets(markets, currencies);
+        List<String> symbols = new ArrayList<String>(result.keySet());
         for (var i = 0; i < symbols.size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
@@ -1476,8 +1476,8 @@ public class Deepcoin extends DeepcoinApi
             {
                 throw new NotSupported((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
             }
-            Object code = (codes == null || 0 >= ((List<?>)codes).size() ? null : ((List<?>)codes).get(0));
-            Map<String, Object> currency = this.currency((String) (code));
+            String code = (String) (codes == null || 0 >= ((List<?>)codes).size() ? null : ((List<?>)codes).get(0));
+            Map<String, Object> currency = this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_id", currency.get("id") );
                 put( "lang", "en" );

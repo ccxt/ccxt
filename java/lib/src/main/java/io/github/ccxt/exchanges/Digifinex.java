@@ -2069,8 +2069,8 @@ public class Digifinex extends DigifinexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object marginResult = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
-            String marginMode = (String) ((List<Object>)marginResult).get(0);
+            Pair<String, Map<String, Object>> marginResult = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
+            boolean marginMode = (marginResult.first()) != null;
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
@@ -2078,7 +2078,7 @@ public class Digifinex extends DigifinexApi
                 response = (this.privateSwapPostTradeOrderPlace(request)).join();
             } else
             {
-                if (!java.util.Objects.equals(marginMode, null))
+                if (marginMode)
                 {
                     response = (this.privateSpotPostMarginOrderNew(request)).join();
                 } else
@@ -2157,8 +2157,8 @@ public class Digifinex extends DigifinexApi
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
-                String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
+                Pair<String, Map<String, Object>> marginResult = this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
+                String currentMarginMode = marginResult.first();
                 if (!java.util.Objects.equals(currentMarginMode, null))
                 {
                     if (java.util.Objects.equals(marginMode, null))
@@ -2518,12 +2518,12 @@ public class Digifinex extends DigifinexApi
 
     public List<Object> parseCancelOrders(Map<String, Object> response, Map<String, Object> symbolsById)
     {
-        Object success = (List<String>)(this.safeList(response, "success", new ArrayList<Object>(Arrays.asList())));
-        Object error = (List<String>)(this.safeList(response, "error", new ArrayList<Object>(Arrays.asList())));
+        List<String> success = (List<String>)(this.safeList(response, "success", new ArrayList<Object>(Arrays.asList())));
+        List<String> error = (List<String>)(this.safeList(response, "error", new ArrayList<Object>(Arrays.asList())));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)success).size(); i++)
+        for (var i = 0; i < success.size(); i++)
         {
-            Object order = (success == null || i < 0 || i >= ((List<?>)success).size() ? null : ((List<?>)success).get(i));
+            String order = (success == null || i < 0 || i >= success.size() ? null : success.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
@@ -2531,9 +2531,9 @@ public class Digifinex extends DigifinexApi
                 put( "status", "canceled" );
             }}, (Map<String, Object>) null));
         }
-        for (var i = 0; i < ((List<?>)error).size(); i++)
+        for (var i = 0; i < error.size(); i++)
         {
-            Object order = (error == null || i < 0 || i >= ((List<?>)error).size() ? null : ((List<?>)error).get(i));
+            String order = (error == null || i < 0 || i >= error.size() ? null : error.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );

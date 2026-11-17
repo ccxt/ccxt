@@ -1537,9 +1537,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < parsedOrders.size(); i++)
         {
-            Object parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
+            Map<String, Object> parsed = (Map<String, Object>) (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
             stored.append(parsed);
-            Object symbol = ((Map<String, Object>)parsed).get("symbol");
+            Object symbol = parsed.get("symbol");
             Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(type, null))
             {

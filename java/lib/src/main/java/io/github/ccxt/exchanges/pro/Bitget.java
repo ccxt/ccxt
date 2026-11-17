@@ -1506,8 +1506,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         for (var i = 0; (length != null && i < length); i++)
         {
             Long index = ((((long) length) - ((long) i)) - 1L);
-            Object rawTrade = (data == null || index == null || index.intValue() < 0 || index.intValue() >= data.size() ? null : data.get(index.intValue()));
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
+            Map<String, Object> rawTrade = (Map<String, Object>) ((data == null || index == null || index.intValue() < 0 || index.intValue() >= data.size() ? null : data.get(index.intValue())));
+            Map<String, Object> parsed = this.parseWsTrade(rawTrade, market);
             stored.append(parsed);
         }
         String messageHash = ("trade:" + symbol);

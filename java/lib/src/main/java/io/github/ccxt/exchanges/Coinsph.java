@@ -1104,12 +1104,12 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                List<Object> ids = new ArrayList<Object>(Arrays.asList());
+                List<String> ids = new ArrayList<String>(Arrays.asList());
                 for (var i = 0; i < symbols.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
                     String id = (String) market.get("id");
-                    ((List<Object>)ids).add(id);
+                    ids.add(id);
                 }
                 request.put("symbols", ids);
             }

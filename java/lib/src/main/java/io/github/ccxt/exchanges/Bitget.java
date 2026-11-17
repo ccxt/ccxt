@@ -6676,7 +6676,7 @@ public class Bitget extends BitgetApi
                 Map<String, Object> utaResult = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < rows.size(); i++)
                 {
-                    Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                    Map<String, Object> entry = (Map<String, Object>) (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                     String entryMarketId = this.safeString(entry, "symbol");
                     if ((java.util.Objects.equals(entryMarketId, null)) || (java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(entryMarketId)))
                     {
@@ -6688,7 +6688,7 @@ public class Bitget extends BitgetApi
                     {
                         continue;
                     }
-                    utaResult.put(entrySymbol, this.parseTradingFee((Map<String, Object>) (entry), entryMarket));
+                    utaResult.put(entrySymbol, this.parseTradingFee(entry, entryMarket));
                 }
                 return utaResult;
             }
@@ -6790,11 +6790,11 @@ public class Bitget extends BitgetApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < data.size(); i++)
             {
-                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Map<String, Object> entry = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, marketType);
                 Map<String, Object> market = this.market(symbol);
-                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (entry), market);
+                Map<String, Object> fee = this.parseTradingFee(entry, market);
                 result.put(symbol, fee);
             }
             return result;
@@ -8329,7 +8329,7 @@ public class Bitget extends BitgetApi
                     request.put("executePrice", this.priceToPrecision(symbol, price));
                     if (request.containsKey("price"))
                     {
-                        ((Map<String,Object>)request).remove("price");
+                        request.remove("price");
                     }
                 }
                 if (java.util.Objects.equals(hedged, true))

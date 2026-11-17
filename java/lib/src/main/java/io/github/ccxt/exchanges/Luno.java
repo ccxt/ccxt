@@ -1993,9 +1993,9 @@ public class Luno extends LunoApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
         Map<String, Object> requestHeaders = null;
-        if (((Map<String, Object>)query).size() > 0)
+        if (query.size() > 0)
         {
             url = (url + ("?" + this.urlencode(query)));
         }

@@ -1050,8 +1050,8 @@ public class Gemini extends GeminiApi
                     Map<String,Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                     for (var i = 0; i < marketIds.size(); i++)
                     {
-                        Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                        List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase(), (Object) null);
+                        String marketId = (String) (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                        List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, marketId.toUpperCase(), (Object) null);
                         if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                         {
                             MarketInterface parsed = this.parseMarket(pairInfo);

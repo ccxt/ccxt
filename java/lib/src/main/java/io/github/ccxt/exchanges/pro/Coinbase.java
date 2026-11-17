@@ -203,7 +203,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> productIds = new ArrayList<Object>(Arrays.asList());
+            List<String> productIds = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -211,7 +211,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
                 String marketId = (String) market.get("id");
-                ((List<Object>)productIds).add(marketId);
+                productIds.add(marketId);
                 messageHashes.add(((name + "::") + symbol));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
@@ -254,7 +254,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> productIds = new ArrayList<Object>(Arrays.asList());
+            List<String> productIds = new ArrayList<String>(Arrays.asList());
             List<String> watchMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> unWatchMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
@@ -263,7 +263,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
                 String marketId = (String) market.get("id");
-                ((List<Object>)productIds).add(marketId);
+                productIds.add(marketId);
                 watchMessageHashes.add(((name + "::") + symbol));
                 unWatchMessageHashes.add(((("unsubscribe:" + name) + "::") + symbol));
             }
@@ -1275,9 +1275,9 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<Object> subMessageHashes = (List<Object>) this.safeList(unSubObject, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < messageHashes.size(); i++)
             {
-                Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-                Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-                this.cleanUnsubscription(client, (String) (subHash), (String) (messageHash), false);
+                String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+                String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
+                this.cleanUnsubscription(client, subHash, messageHash, false);
             }
             this.cleanCache(unSubObject);
         }

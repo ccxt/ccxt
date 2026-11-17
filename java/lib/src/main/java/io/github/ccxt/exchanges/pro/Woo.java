@@ -1723,8 +1723,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             String marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Object rawPosition = (rawPositions == null || marketId == null ? null : rawPositions.get(marketId));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), market);
+            Map<String, Object> rawPosition = (Map<String, Object>) ((rawPositions == null || marketId == null ? null : rawPositions.get(marketId)));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
             String marketSymbol = this.safeString(market, "symbol", "");
@@ -1934,9 +1934,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         List<Object> unsubMessageHashes = (List<Object>) this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < subMessageHashes.size(); i++)
         {
-            Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
-            Object unsubHash = (unsubMessageHashes == null || i < 0 || i >= unsubMessageHashes.size() ? null : unsubMessageHashes.get(i));
-            this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), false);
+            String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
+            String unsubHash = (String) (unsubMessageHashes == null || i < 0 || i >= unsubMessageHashes.size() ? null : unsubMessageHashes.get(i));
+            this.cleanUnsubscription(client, subHash, unsubHash, false);
         }
         this.cleanCache(subscription);
     }

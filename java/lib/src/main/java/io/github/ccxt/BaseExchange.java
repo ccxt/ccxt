@@ -6545,7 +6545,7 @@ public Map<String, Object> describe()
         return new MarketInterface(this.extend(cleanStructure));
     }
 
-    public Object setMarkets(Object markets, Object currencies)
+    public Map<String, Object> setMarkets(Object markets, Object currencies)
     {
         List<Object> values = new ArrayList<Object>(Arrays.asList());
         // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
@@ -6730,8 +6730,8 @@ public Map<String, Object> describe()
 
     public Balances safeBalance(Object balance)
     {
-        Object balances = this.omit(balance, new ArrayList<Object>(Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
-        List<String> codes = new ArrayList<String>(((Map<String, Object>)balances).keySet());
+        Map<String, Object> balances = (Map<String, Object>) this.omit(balance, new ArrayList<Object>(Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
+        List<String> codes = new ArrayList<String>(balances.keySet());
         Map<String, Object> freeBalance = new HashMap<String, Object>() {{}};
         Map<String, Object> usedBalance = new HashMap<String, Object>() {{}};
         Map<String, Object> totalBalance = new HashMap<String, Object>() {{}};
@@ -6739,10 +6739,10 @@ public Map<String, Object> describe()
         for (var i = 0; i < codes.size(); i++)
         {
             String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            String total = this.safeString(Helpers.GetValue(balances, code), "total");
-            String free = this.safeString(Helpers.GetValue(balances, code), "free");
-            String used = this.safeString(Helpers.GetValue(balances, code), "used");
-            String debt = this.safeString(Helpers.GetValue(balances, code), "debt");
+            String total = this.safeString((balances == null || code == null ? null : balances.get(code)), "total");
+            String free = this.safeString((balances == null || code == null ? null : balances.get(code)), "free");
+            String used = this.safeString((balances == null || code == null ? null : balances.get(code)), "used");
+            String debt = this.safeString((balances == null || code == null ? null : balances.get(code)), "debt");
             if ((java.util.Objects.equals(total, null)) && (!java.util.Objects.equals(free, null)) && (!java.util.Objects.equals(used, null)))
             {
                 total = Precise.stringAdd(free, used);
@@ -6768,7 +6768,7 @@ public Map<String, Object> describe()
                 debtBalance.put(code, this.parseNumber(debt));
                 entry.put("debt", (debtBalance == null || code == null ? null : debtBalance.get(code)));
             }
-            Helpers.addElementToObject(balance, code, this.extend(Helpers.GetValue(balances, code), entry));
+            Helpers.addElementToObject(balance, code, this.extend((balances == null || code == null ? null : balances.get(code)), entry));
         }
         ((Map<String, Object>)balance).put("free", freeBalance);
         ((Map<String, Object>)balance).put("used", usedBalance);
@@ -8837,7 +8837,7 @@ public Map<String, Object> describe()
         return this.parseTradesHelper(false, trades, market, since, limit, parameters);
     }
 
-    public Object parseWsTrades(Object trades, Map<String, Object> market, Long since, Long limit, Map<String, Object> parameters)
+    public List<Object> parseWsTrades(Object trades, Map<String, Object> market, Long since, Long limit, Map<String, Object> parameters)
     {
         return this.parseTradesHelper(true, trades, market, since, limit, parameters);
     }

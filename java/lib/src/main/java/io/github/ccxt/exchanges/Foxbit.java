@@ -1216,7 +1216,7 @@ public class Foxbit extends FoxbitApi
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = this.market(symbol);
                 String type = this.safeStringUpper(order, "type", "");
-                Object orderParams = this.safeDict(order, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(order, "params", new HashMap<String, Object>() {{}});
                 if (!java.util.Objects.equals(type, "LIMIT") && !java.util.Objects.equals(type, "MARKET") && !java.util.Objects.equals(type, "STOP_MARKET") && !java.util.Objects.equals(type, "STOP_LIMIT") && !java.util.Objects.equals(type, "INSTANT"))
                 {
                     throw new InvalidOrder((("Invalid order type: " + type) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
@@ -1244,17 +1244,17 @@ public class Foxbit extends FoxbitApi
                     {
                         request.put("time_in_force", timeInForce);
                     }
-                    ((Map<String,Object>)orderParams).remove("timeInForce");
+                    orderParams.remove("timeInForce");
                 }
                 if (Boolean.TRUE.equals(postOnly))
                 {
                     request.put("post_only", true);
-                    ((Map<String,Object>)orderParams).remove("postOnly");
+                    orderParams.remove("postOnly");
                 }
                 if (!java.util.Objects.equals(triggerPrice, null))
                 {
                     request.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
-                    ((Map<String,Object>)orderParams).remove("triggerPrice");
+                    orderParams.remove("triggerPrice");
                 }
                 if (java.util.Objects.equals(type, "INSTANT"))
                 {

@@ -124,7 +124,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     public Long requestId()
     {
-        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Long requestId = (this.safeInteger(this.options, "requestId", 0) + 1L);
         this.options.put("requestId", requestId);
         return requestId;
     }
@@ -2547,8 +2547,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Long first = this.parseToInt(offset);
         Long size = this.parseToInt(length);
         Long start = (first * 2L);
-        Long end = (Long) this.sum(start, (size * 2L));
-        return this.binaryToString(this.base16ToBinary(Helpers.slice(frameHex, start, end)));
+        Long end = (start + (size * 2L));
+        return this.binaryToString(this.base16ToBinary((frameHex == null ? null : frameHex.substring((int) Math.min(Math.min(Math.max(start < 0 ? frameHex.length() + start : start, 0), frameHex.length()), Math.min(end < 0 ? frameHex.length() + end : end, frameHex.length())), (int) Math.min(end < 0 ? frameHex.length() + end : end, frameHex.length())))));
     }
 
     public String sbeReadAddress(String frameHex, Object offset)

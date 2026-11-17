@@ -5914,8 +5914,8 @@ public class Gate extends GateApi
             }
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
             List<Object> ordersRequests = this.createOrdersRequest(orders, parameters);
-            Object firstOrder = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
-            Map<String, Object> market = this.market(((Map<String, Object>)firstOrder).get("symbol"));
+            Map<String, Object> firstOrder = (Map<String, Object>) (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
+            Map<String, Object> market = this.market(firstOrder.get("symbol"));
             List<Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {

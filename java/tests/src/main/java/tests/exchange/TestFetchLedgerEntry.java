@@ -26,8 +26,8 @@ public class TestFetchLedgerEntry extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         if ((length != null && length > 0))
         {
-            Object firstItem = (items == null || 0 >= ((List<?>)items).size() ? null : ((List<?>)items).get(0));
-            Object id = ((Map<String, Object>)firstItem).get("id");
+            Map<String, Object> firstItem = (Map<String, Object>) (items == null || 0 >= ((List<?>)items).size() ? null : ((List<?>)items).get(0));
+            Object id = firstItem.get("id");
             if (!java.util.Objects.equals(id, null))
             {
                 Object item = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedgerEntry", new Object[]{id, (String) null, new HashMap<String, Object>() {{}}})).join();

@@ -904,10 +904,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 stored = new ArrayCache(((Number)tradesLimit).intValue());
                 this.trades.put(symbol, stored);
             }
-            Object trades = this.parseWsTrades((data == null || marketId == null ? null : data.get(marketId)), market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            for (var j = 0; j < ((List<?>)trades).size(); j++)
+            List<Object> trades = this.parseWsTrades((data == null || marketId == null ? null : data.get(marketId)), market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            for (var j = 0; j < trades.size(); j++)
             {
-                stored.append((trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j)));
+                stored.append((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)));
             }
             String messageHash = ("trades::" + symbol);
             client.resolve(stored, messageHash);
@@ -915,7 +915,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return message;
     }
 
-    public Object parseWsTrades(Object trades, Map<String, Object> market, Long since, Long limit, Map<String, Object> parameters)
+    public List<Object> parseWsTrades(Object trades, Map<String, Object> market, Long since, Long limit, Map<String, Object> parameters)
     {
         List<Object> tradesArray = this.toArray(trades);
         List<Object> result = new ArrayList<Object>(Arrays.asList());

@@ -167,7 +167,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             String explicitSource = this.safeString(query, "source");
             String channel = this.safeString(query, "channel");
             List<String> normalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            List<Object> symbolsResolved = new ArrayList<Object>(Arrays.asList());
+            List<String> symbolsResolved = new ArrayList<String>(Arrays.asList());
             List<String> topics = new ArrayList<String>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
@@ -269,7 +269,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                         topics.add(topic);
                     }
                 }
-                ((List<Object>)symbolsResolved).add(symbol);
+                symbolsResolved.add(symbol);
             }
             Integer symbolsResolvedLength = symbolsResolved.size();
             if (java.util.Objects.equals(symbolsResolvedLength, 0))

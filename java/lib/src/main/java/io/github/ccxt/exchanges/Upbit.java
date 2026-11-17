@@ -1039,7 +1039,7 @@ public class Upbit extends UpbitApi
             if (java.util.Objects.equals(symbolsNormalized, null))
             {
                 // ticker/all returns every market of the requested quote currencies with a single request
-                List<Object> quoteIds = new ArrayList<Object>(Arrays.asList());
+                List<String> quoteIds = new ArrayList<String>(Arrays.asList());
                 List<String> marketSymbols = this.symbols;
                 for (var i = 0; i < marketSymbols.size(); i++)
                 {
@@ -1047,7 +1047,7 @@ public class Upbit extends UpbitApi
                     String quoteId = (String) market.get("quoteId");
                     if (!this.inArray(quoteId, quoteIds))
                     {
-                        ((List<Object>)quoteIds).add(quoteId);
+                        quoteIds.add(quoteId);
                     }
                 }
                 Object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
@@ -2910,8 +2910,8 @@ public class Upbit extends UpbitApi
             put( "hostname", Upbit.this.hostname );
         }});
         url = (url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
-        Object query = this.omit(parameters, this.extractParams(path));
-        Integer numQueryKeys = ((Map<String, Object>)query).size();
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
+        Integer numQueryKeys = query.size();
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
             if ((numQueryKeys != null && numQueryKeys > 0))

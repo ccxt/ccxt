@@ -2539,11 +2539,11 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             request = this.omit(request, new ArrayList<Object>(Arrays.asList("instruction", "client_id", "flags", "recv_window")));
-            ((Map<String, Object>)request).put("order_id", id);
-            ((Map<String, Object>)request).put("id", id);
-            request = (this.signOrderRequest((Map<String, Object>) (request), true)).join();
+            request.put("order_id", id);
+            request.put("id", id);
+            request = (this.signOrderRequest(request, true)).join();
             Map<String, Object> response = (this.privatePutOrdersOrderId(request)).join();
             //
             //     {
@@ -2997,8 +2997,8 @@ public class Paradex extends ParadexApi
             Integer ordersLength = orders.size();
             if ((!java.util.Objects.equals(paginationCursor, null)) && ((ordersLength != null && ordersLength > 0)))
             {
-                Object first = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
-                ((Map<String, Object>)first).put("next", paginationCursor);
+                Map<String, Object> first = (Map<String, Object>) (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
+                first.put("next", paginationCursor);
                 Helpers.addElementToObject(orders, 0, first);
             }
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});

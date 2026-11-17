@@ -751,8 +751,8 @@ public class Myriad extends MyriadApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < data.size(); i++)
             {
-                Object position = this.parsePredictionPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
-                if ((java.util.Objects.equals(outcomes, null)) || this.inArray(((Map<String, Object>)position).get("outcome"), outcomes))
+                Map<String, Object> position = this.parsePredictionPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null);
+                if ((java.util.Objects.equals(outcomes, null)) || this.inArray(position.get("outcome"), outcomes))
                 {
                     ((List<Object>)result).add(position);
                 }
@@ -771,7 +771,7 @@ public class Myriad extends MyriadApi
      * @param {object} [market] not used by myriad
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String marketSlug = this.safeString(position, "marketSlug", "");
         String outcomeTitle = this.safeString(position, "outcomeTitle", "");
@@ -1002,8 +1002,8 @@ public class Myriad extends MyriadApi
             // approve(spender, maxUint256)
             String maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
             String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + maxUint);
-            Object approveHash = (this.sendEvmTransaction((String) (rpcUrl), this.parseToInt(networkId), (String) (owner), (String) (token), "0x0", approveData, "0x186a0")).join();
-            (this.waitForTransactionReceipt((String) (rpcUrl), (String) (approveHash), 60000)).join();
+            String approveHash = (this.sendEvmTransaction((String) (rpcUrl), this.parseToInt(networkId), (String) (owner), (String) (token), "0x0", approveData, "0x186a0")).join();
+            (this.waitForTransactionReceipt((String) (rpcUrl), approveHash, 60000)).join();
             return null;
         });
 
@@ -2035,8 +2035,8 @@ public class Myriad extends MyriadApi
             String networkId = this.safeString(this.options, "defaultNetworkId", "56");
             for (var i = 0; (idsLength != null && i < idsLength); i++)
             {
-                Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
-                Map<String, Object> fetched = this.getOrderResponseFromParams((String) (id), paramsForLookup);
+                String id = (String) (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
+                Map<String, Object> fetched = this.getOrderResponseFromParams(id, paramsForLookup);
                 if (java.util.Objects.equals(fetched, null))
                 {
                     fetched = (this.myriadPublicGetOrdersHash(new HashMap<String, Object>() {{
@@ -3391,8 +3391,8 @@ public class Myriad extends MyriadApi
                     ((List<Object>)marketKeys).add(key);
                 }
                 // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-                Object grouped = (outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key));
-                ((List<Object>)grouped).add(outcomeObj);
+                List<Object> grouped = (List<Object>) ((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
+                grouped.add(outcomeObj);
                 outcomesByMarket.put(key, grouped);
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
@@ -3412,10 +3412,10 @@ public class Myriad extends MyriadApi
             {
                 Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
                 Object response = (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i));
-                Object grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
-                for (var j = 0; j < ((List<?>)grouped).size(); j++)
+                List<Object> grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
+                for (var j = 0; j < grouped.size(); j++)
                 {
-                    Object outcomeObj = (grouped == null || j < 0 || j >= ((List<?>)grouped).size() ? null : ((List<?>)grouped).get(j));
+                    Object outcomeObj = (grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j));
                     Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v11 -> (Map<String, Object>) hx4J40v11; case Object hx4J40v11 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v11.getClass().getName()); })));
                     String symbolKey = this.safeString(ticker, "outcome");
                     if (!java.util.Objects.equals(symbolKey, null))
@@ -3632,8 +3632,8 @@ public class Myriad extends MyriadApi
             Integer rawQuestionsLength = rawQuestions.size();
             for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
             {
-                Object rawQuestion = (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
-                Object ev = this.parseEvent((Map<String, Object>) (rawQuestion));
+                Map<String, Object> rawQuestion = (Map<String, Object>) (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
+                Object ev = this.parseEvent(rawQuestion);
                 List<Object> evMarkets = (List<Object>) this.safeList(ev, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer evMarketsLength = evMarkets.size();
                 List<Object> filteredMarkets = new ArrayList<Object>(Arrays.asList());
@@ -4582,7 +4582,7 @@ public class Myriad extends MyriadApi
         mapLiteral20.put("notional", null);
         mapLiteral20.put("collateral", null);
         mapLiteral20.put("unrealizedPnl", null);
-        Object parsed = this.safePredictionPosition(mapLiteral20);
+        Map<String, Object> parsed = this.safePredictionPosition(mapLiteral20);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.positions;
         stored.append(parsed);
         client.resolve(stored, "positions");

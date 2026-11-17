@@ -6209,9 +6209,9 @@ public class Coinbase extends CoinbaseApi
             pathPart = "api/v3";
         }
         String fullPath = ((("/" + pathPart) + "/") + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
         String savedPath = fullPath;
-        Integer queryLength = ((Map<String, Object>)query).size();
+        Integer queryLength = query.size();
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if ((queryLength != null && queryLength > 0))

@@ -1756,7 +1756,7 @@ public class Limitless extends LimitlessApi
             List<Object> sorted = this.sortBy(pseudoTrades, "timestamp");
             Long ms = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1d"))) * 1000L);
             Map<String, Object> candles = new HashMap<String, Object>() {{}};
-            List<Object> bucketOrder = new ArrayList<Object>(Arrays.asList());
+            List<String> bucketOrder = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < sorted.size(); i++)
             {
                 Map<String, Object> point = (Map<String, Object>) this.safeDict(sorted, i, (Object) null);
@@ -1776,7 +1776,7 @@ public class Limitless extends LimitlessApi
                 if (!(candles.containsKey(key)))
                 {
                     candles.put(key, new ArrayList<Object>(Arrays.asList(bucket, pPrice, pPrice, pPrice, pPrice, 0)));
-                    ((List<Object>)bucketOrder).add(key);
+                    bucketOrder.add(key);
                 } else
                 {
                     Object candle = (candles == null || key == null ? null : candles.get(key));
@@ -2765,8 +2765,8 @@ public class Limitless extends LimitlessApi
             }
             // approve(spender, amount) -> selector 0x095ea7b3
             String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
-            Object txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-            return (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000)).join();
+            String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
+            return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000)).join();
         });
 
     }
@@ -3377,7 +3377,7 @@ public class Limitless extends LimitlessApi
         Map<String, Object> rawMarket = (Map<String, Object>) this.safeDict(entry, "market", (Object) null);
         String slug = this.safeString(rawMarket, "slug");
         Map<String, Object> outcomeObj = this.getOutcomeBySlugAndLabel((String) (slug), (String) (label), (Map<String, Object>) null);
-        Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionPosition(position, outcomeObj);
+        Map<String, Object> parsed = this.parsePredictionPosition(position, outcomeObj);
         parsed.put("contracts", this.parseNumber(this.applyScale((String) (contracts), false)));
         Map<String, Object> latestTrade = (Map<String, Object>) this.safeDict(entry, "latestTrade", (Object) null);
         String key = "latestYesPrice";
@@ -3399,7 +3399,7 @@ public class Limitless extends LimitlessApi
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {

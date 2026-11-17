@@ -736,7 +736,7 @@ public Map<String, Object> describe()
         return ((this.slugToMarketSymbol((String) (eventSlug), (String) (marketSlug)) + ":") + label);
     }
 
-    public Object setMarkets(Object markets, Object currencies)
+    public Map<String, Object> setMarkets(Object markets, Object currencies)
     {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
@@ -750,15 +750,15 @@ public Map<String, Object> describe()
             copy.put("symbol", PredictionExchange.this.safeString2(row, "market", "symbol"));
             ((List<Object>)aliased).add(copy);
         }
-        Object stored = super.setMarkets((Object) (aliased), currencies);
+        Map<String, Object> stored = super.setMarkets((Object) (aliased), currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        List<String> marketKeys = new ArrayList<String>(((Map<String, Object>)stored).keySet());
+        List<String> marketKeys = new ArrayList<String>(stored.keySet());
         for (var i = 0; i < marketKeys.size(); i++)
         {
             String key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
-            ((Map<String, Object>)stored).put(key, this.omit(this.safeDict(stored, key, new HashMap<String, Object>() {{}}), "symbol"));
+            stored.put(key, this.omit(this.safeDict(stored, key, new HashMap<String, Object>() {{}}), "symbol"));
         }
         this.populateOutcomes();
         return stored;
@@ -1827,7 +1827,7 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public Object safePredictionPosition(Map<String, Object> position)
+    public Map<String, Object> safePredictionPosition(Map<String, Object> position)
     {
         // build the prediction position directly (no crypto safePosition, which carries the whole
         // leverage/marginMode/liquidation block the prediction type omits)
@@ -1894,7 +1894,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parsePredictionTrade() is not supported yet")) ;
     }
 
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parsePredictionPosition() is not supported yet")) ;
     }
@@ -1982,7 +1982,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionPosition((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), (Map<String, Object>) null);
+            Map<String, Object> parsed = this.parsePredictionPosition((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), (Map<String, Object>) null);
             Map<String, Object> position = this.extend(parsed, parameters);
             ((List<Object>)results).add(position);
         }
@@ -2168,7 +2168,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> sendEvmTransaction(String rpcUrl, Object chainId, String fromAddress, String to, String value, String data, String gasLimit)
+    public CompletableFuture<String> sendEvmTransaction(String rpcUrl, Object chainId, String fromAddress, String to, String value, String data, String gasLimit)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2187,7 +2187,7 @@ public Map<String, Object> describe()
             }};
             Map<String, Object> signed = (Map<String, Object>) this.signEvmTransaction(tx, this.privateKey);
             return (this.ethRpc((String) (rpcUrl), "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
-        });
+        }).thenApply(res -> (String) res);
 
     }
 

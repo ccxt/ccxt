@@ -428,10 +428,10 @@ public class Predictfun extends PredictfunApi
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
-                Object tags = this.safeList(paramsValue, "tags", new ArrayList<Object>(Arrays.asList()));
-                if (((List<?>)tags).size() > 0)
+                List<String> tags = (List<String>) this.safeList(paramsValue, "tags", new ArrayList<Object>(Arrays.asList()));
+                if (tags.size() > 0)
                 {
-                    request.put("tagIds", String.join(",", (List<String>)tags));
+                    request.put("tagIds", String.join(",", tags));
                 }
                 ((List<Object>)postOmitKeys).add("limit");
                 Object paramsCategories = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("limit", "tags")));
@@ -2461,7 +2461,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [market] not used by predictfun parsePredictionPosition
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         Map<String, Object> rawOutcome = (Map<String, Object>) this.safeDict(position, "outcome", new HashMap<String, Object>() {{}});
         Map<String, Object> rawMarket = (Map<String, Object>) this.safeDict(position, "market", new HashMap<String, Object>() {{}});
@@ -3213,8 +3213,8 @@ public class Predictfun extends PredictfunApi
                     String approvalData = (("0xa22cb465" + this.padHexAddress((String) (operatorAddress))) + approvedHex);
                     // each receipt is awaited before the next transaction goes out, so the nonce the
                     // second one looks up already counts the first
-                    Object approvalHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (ctfToken), "0x0", approvalData, (String) (gasLimit))).join();
-                    Object receipt = (this.waitForTransactionReceipt((String) (rpcUrl), (String) (approvalHash), 60000)).join();
+                    String approvalHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (ctfToken), "0x0", approvalData, (String) (gasLimit))).join();
+                    Object receipt = (this.waitForTransactionReceipt((String) (rpcUrl), approvalHash, 60000)).join();
                     ((List<Object>)receipts).add(receipt);
                 }
                 return receipts;
@@ -3247,8 +3247,8 @@ public class Predictfun extends PredictfunApi
             }
             // approve(spender, amount) -> selector 0x095ea7b3
             String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
-            Object txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-            return (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000)).join();
+            String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
+            return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000)).join();
         });
 
     }

@@ -1865,9 +1865,9 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < messageHashes.size(); j++)
                 {
-                    Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
-                    Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
-                    this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), false);
+                    String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+                    String subHash = (String) (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));
+                    this.cleanUnsubscription(client, subHash, unsubHash, false);
                 }
                 this.cleanCache(subscription);
             }

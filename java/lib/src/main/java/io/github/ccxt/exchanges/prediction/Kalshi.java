@@ -628,19 +628,19 @@ public class Kalshi extends KalshiApi
             Integer outcomeSymbolsLength = ((List<?>)outcomeSymbols).size();
             for (var i = 0; (outcomeSymbolsLength != null && i < outcomeSymbolsLength); i++)
             {
-                Object outcomeSymbol = (outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i));
-                if (((String)outcomeSymbol).indexOf(":") >= 0)
+                String outcomeSymbol = (String) (outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i));
+                if (outcomeSymbol.indexOf(":") >= 0)
                 {
                     continue;
                 }
-                Object baseTicker = outcomeSymbol;
-                if (((String)outcomeSymbol).endsWith("-NO"))
+                String baseTicker = outcomeSymbol;
+                if ((outcomeSymbol.endsWith(((String)"-NO"))))
                 {
                     baseTicker = (outcomeSymbol == null ? null : ((String)outcomeSymbol).substring(0, Math.max(((String)outcomeSymbol).length() - 3, 0)));
                 }
                 if (!(seen.containsKey(baseTicker)))
                 {
-                    seen.put((String)baseTicker, true);
+                    seen.put(baseTicker, true);
                     ((List<Object>)tickers).add(baseTicker);
                 }
             }
@@ -2135,7 +2135,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public Object parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String ticker = this.safeString(position, "ticker");
         Map<String, Object> outcomeObj = this.safeOutcome((String) (ticker), market);
@@ -2772,8 +2772,8 @@ public class Kalshi extends KalshiApi
                 Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
                 for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
-                    Object m = (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
-                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
+                    Map<String, Object> m = (Map<String, Object>) (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
+                    ((Map<Object, Object>) (Map<?, ?>) this.markets).put(m.get("market"), m);
                 }
             }
             this.populateOutcomes();

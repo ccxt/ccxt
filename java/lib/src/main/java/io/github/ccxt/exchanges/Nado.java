@@ -1429,8 +1429,8 @@ public class Nado extends NadoApi
             List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < orders.size(); i++)
             {
-                Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
-                if (this.isArchiveOrderClosed((Map<String, Object>) (order)))
+                Map<String, Object> order = (Map<String, Object>) ((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
+                if (this.isArchiveOrderClosed(order))
                 {
                     ((List<Object>)closedOrders).add(this.extend(new HashMap<String, Object>() {{
                         put( "status", "closed" );

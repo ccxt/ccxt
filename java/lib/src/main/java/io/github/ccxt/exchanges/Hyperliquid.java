@@ -700,7 +700,7 @@ public class Hyperliquid extends HyperliquidApi
                 // python transpiler collapses every for-loop bound to an exclusive
                 // range(), so `<=` silently emits range(1, maxLimit) and loads one dex
                 // too few (build/transpile.ts treats <, <=, > and >= identically)
-                Long maxIteration = (Long) this.sum(maxLimit, 1);
+                Long maxIteration = (maxLimit + 1L);
                 for (var i = 1; (maxIteration != null && i < maxIteration); i++)
                 {
                     if ((fetchDexesLength == null || i >= fetchDexesLength))
@@ -1487,7 +1487,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 Object market = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
                 String symbol = this.safeString(ticker, "symbol");
                 result.put((String)symbol, ticker);
             }
@@ -1512,7 +1512,7 @@ public class Hyperliquid extends HyperliquidApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v5 -> (List<String>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v5.getClass().getName()); })), parameters)).join();
+            FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v4 -> (List<String>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v4.getClass().getName()); })), parameters)).join();
             Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, market.get("symbol"), (Object) null);
             if (java.util.Objects.equals(rate, null))
             {
@@ -2824,15 +2824,15 @@ public class Hyperliquid extends HyperliquidApi
             String side = this.safeStringUpper(rawOrder, "side");
             String amount = this.safeString(rawOrder, "amount");
             String price = this.safeString(rawOrder, "price");
-            Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String slippage = this.safeString(orderParams, "slippage", defaultSlippage);
-            Helpers.addElementToObject(orderParams, "slippage", slippage);
+            orderParams.put("slippage", slippage);
             Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(orderParams, "stopLoss", (Object) null);
             Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(orderParams, "takeProfit", (Object) null);
             Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             orderParams = this.omit(orderParams, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
-            Map<String, Object> mainOrderObj = this.createOrderRequest(symbol, type, side, (String) (amount), price, ((Map<String, Object>) (switch ((Object) (orderParams)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+            Map<String, Object> mainOrderObj = this.createOrderRequest(symbol, type, side, (String) (amount), price, orderParams);
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
             {
                 // grouping opposed orders for sl/tp

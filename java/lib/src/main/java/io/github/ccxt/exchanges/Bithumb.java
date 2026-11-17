@@ -1225,8 +1225,8 @@ public class Bithumb extends BithumbApi
                 //         },
                 //     ]
                 //
-                Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                Integer responsesLength = ((List<?>)responses).size();
+                List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                Integer responsesLength = responses.size();
                 for (var i = 0; (responsesLength != null && i < responsesLength); i++)
                 {
                     Object response = this.safeValue(responses, i);
@@ -3860,8 +3860,8 @@ public class Bithumb extends BithumbApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (this.implodeHostname(apiUrl) + endpoint);
-        Object query = this.omit(parameters, this.extractParams(path));
-        List<String> queryKeys = new ArrayList<String>(((Map<String, Object>)query).keySet());
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
+        List<String> queryKeys = new ArrayList<String>(query.keySet());
         Integer queryKeysLength = queryKeys.size();
         Boolean hasQuery = ((queryKeysLength != null && queryKeysLength > 0));
         if (java.util.Objects.equals(apiName, "public"))
@@ -3895,11 +3895,11 @@ public class Bithumb extends BithumbApi
                     if (Boolean.TRUE.equals(hasQuery))
                     {
                         requestBody = this.json(query);
-                        auth = this.urlencodeWithArrayBrackets((Map<String, Object>) (query));
+                        auth = this.urlencodeWithArrayBrackets(query);
                     }
                 } else if (Boolean.TRUE.equals(hasQuery))
                 {
-                    auth = this.urlencodeWithArrayBrackets((Map<String, Object>) (query));
+                    auth = this.urlencodeWithArrayBrackets(query);
                     url = (((this.implodeHostname(apiUrl) + endpoint) + "?") + auth);
                 }
                 if (Boolean.TRUE.equals(hasQuery))
