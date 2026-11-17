@@ -543,7 +543,7 @@ export default class bithumb extends Exchange {
             quote = this.safeCurrencyCode (quoteId);
         }
         if ((base === undefined) || (quote === undefined)) {
-            return undefined;
+            return {} as Market;
         }
         return {
             'id': marketId,
