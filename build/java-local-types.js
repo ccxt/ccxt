@@ -10768,6 +10768,8 @@ export function installJavaDeclaredLocalTypes (transpiler) {
             return upstreamDeclaredAs (node, printed, type) || javaBindingDeclaredAs (printer, node, printed, type);
         };
     }
+    // ral-87j6: later sections read what an earlier section already declared (see r87j6HeadIsObject)
+    printer._javaObservedDeclaredTypes = declaredTypes;
     printer._javaDeclaredLocalTypesPatched = true;
 }
 
@@ -15001,8 +15003,19 @@ function javaNonNullStringCall (printer, node) {
     } catch (e) {
         return false;
     }
+    // ral-87j6: the call prints `this.<name>(` unless printThisKeyword qualifies the receiver
+    // (`<Class>.this`), which it does only under a PropertyAssignment ancestor: decided from the AST
     return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName)
-        && new RegExp (`^this\\.${name}\\(`).test (printer.printNode (node, 0));
+        && !r87j6UnderPropertyAssignment (node);
+}
+
+function r87j6UnderPropertyAssignment (node) {
+    for (let current = node?.parent; current !== undefined; current = current.parent) {
+        if (ts.isPropertyAssignment (current)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // a read of a `const` local whose initializer is itself a non-null String value: the copy
@@ -21353,12 +21366,65 @@ function r84j1StringElementLocal (printer, declaration) {
     return isSafeToNarrow (printer, declaration, name, 'String', /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info);
 }
 
+
+// ===== ral-87j6. Does a round-84 section still own an `Object` declaration? (AST side) =====
+// The round-84 declaration sections (84j1, 84j2, 84j6, 84j8) used to test the printed head for
+// `Object <name> = ` and rewrite it with a regex. The answer comes from the declaration instead:
+// the printer's own typed-declaration arms (NewExpression `var`, arithmetic / element-write / base
+// field / Object.values / ws client / handler / Long-literal / checked-box), every table an earlier
+// section published (`upto` = table count when the section installed), and the declared type the
+// java-09 observer (installJavaDeclaredLocalTypes, installed before every round-84 section) recorded
+// for an older section that does not publish. The head is then spliced from the indentation, the
+// decided type and the declaration name.
+function r87j6PublishedBefore (printer, declaration, upto) {
+    for (const table of (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).slice (0, upto)) {
+        let type;
+        try {
+            type = table (declaration);
+        } catch (e) {
+            type = undefined;
+        }
+        if (type !== undefined) {
+            return type;
+        }
+    }
+    return undefined;
+}
+
+const R87J6_PRINTER_DECLARATION_ARMS = [ 'javaArithmeticLocalType', 'javaElementWriteMapLocalType', 'javaBaseMapFieldLocalType',
+    'javaObjectValuesLocalType', 'javaWsClientLocalType', 'javaWsClientAliasLocalType', 'javaHandlerDeclarationType' ];
+
+function r87j6HeadIsObject (printer, declaration, upto) {
+    const initializer = declaration.initializer;
+    if (initializer === undefined || initializer.kind === ts.SyntaxKind.NewExpression || ts.isFunctionExpression (initializer)
+        || (initializer.kind === ts.SyntaxKind.AwaitExpression && printer.javaCheckedBoxLocalTypeCached?.(declaration) !== undefined)
+        || printer.javaLongLimitLiteralLocalCached?.(declaration)) {
+        return false;
+    }
+    for (const arm of R87J6_PRINTER_DECLARATION_ARMS) {
+        if (typeof printer[arm] === 'function' && printer[arm] (declaration) !== undefined) {
+            return false;
+        }
+    }
+    if (r87j6PublishedBefore (printer, declaration, upto) !== undefined) {
+        return false;
+    }
+    const seen = printer._javaObservedDeclaredTypes?.get (declaration);
+    return seen === undefined || seen === 'Object';
+}
+
+function r87j6Head (printer, declaration, identation, type) {
+    return `${printer.getIden (identation)}${type} ${printer.printNode (declaration.name, 0)} = `;
+}
+
+
 export function installJavaR84j1StringElementLocals (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j1StringElementPatched) {
         return;
     }
     printer._javaR84j1StringElementPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     const typed = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -21371,7 +21437,7 @@ export function installJavaR84j1StringElementLocals (transpiler) {
         let ok = typed.has (declaration);
         if (!ok) {
             try {
-                ok = r84j1StringElementLocal (printer, declaration);
+                ok = r84j1StringElementLocal (printer, declaration) && r87j6HeadIsObject (printer, declaration, upto);
             } catch (e) {
                 ok = false;
             }
@@ -21389,7 +21455,7 @@ export function installJavaR84j1StringElementLocals (transpiler) {
             typed.delete (declaration);
             return printed;
         }
-        const head = marker.replace (/Object (\S+) = $/, 'String $1 = (String) ');
+        const head = r87j6Head (printer, declaration, identation, 'String') + '(String) ';
         return printed.slice (0, at) + head + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
@@ -21521,6 +21587,7 @@ export function installJavaR84j1BoxElementLocals (transpiler) {
         return;
     }
     printer._javaR84j1BoxElementPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     const typed = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -21532,7 +21599,7 @@ export function installJavaR84j1BoxElementLocals (transpiler) {
         let ok = typed.has (declaration);
         if (!ok) {
             try {
-                ok = r84j1BoxElementLocal (printer, declaration);
+                ok = r84j1BoxElementLocal (printer, declaration) && r87j6HeadIsObject (printer, declaration, upto);
             } catch (e) {
                 ok = false;
             }
@@ -21550,7 +21617,7 @@ export function installJavaR84j1BoxElementLocals (transpiler) {
             typed.delete (declaration);
             return printed;
         }
-        const head = marker.replace (/Object (\S+) = $/, 'java.util.Map<String, Object> $1 = (java.util.Map<String, Object>) ');
+        const head = r87j6Head (printer, declaration, identation, 'java.util.Map<String, Object>') + '(java.util.Map<String, Object>) ';
         return printed.slice (0, at) + head + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
@@ -21694,6 +21761,7 @@ export function installJavaR84j2ContainerLocals (transpiler) {
         return;
     }
     printer._javaR84j2ContainerPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     const typed = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -21709,7 +21777,7 @@ export function installJavaR84j2ContainerLocals (transpiler) {
         }
         let info;
         try {
-            info = r84j2ContainerLocal (printer, declaration);
+            info = r87j6HeadIsObject (printer, declaration, upto) ? r84j2ContainerLocal (printer, declaration) : undefined;
         } catch (e) {
             info = undefined;
         }
@@ -21724,7 +21792,7 @@ export function installJavaR84j2ContainerLocals (transpiler) {
             return printed;
         }
         typed.set (declaration, info.type);
-        return printed.slice (0, at) + marker.replace (/Object (\S+) = $/, `${info.type} $1 = `) + `${info.cast} (${body})${tail}`;
+        return printed.slice (0, at) + r87j6Head (printer, declaration, identation, info.type) + `${info.cast} (${body})${tail}`;
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
     const upstreamPush = printer.printArrayPushCall.bind (printer);
@@ -21865,6 +21933,7 @@ export function installJavaR84j2GuardedListLocals (transpiler) {
         return;
     }
     printer._javaR84j2GuardedListPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     const typed = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -21880,7 +21949,7 @@ export function installJavaR84j2GuardedListLocals (transpiler) {
         }
         let info;
         try {
-            info = r84j2ListLocal (printer, declaration);
+            info = r87j6HeadIsObject (printer, declaration, upto) ? r84j2ListLocal (printer, declaration) : undefined;
         } catch (e) {
             info = undefined;
         }
@@ -21898,7 +21967,7 @@ export function installJavaR84j2GuardedListLocals (transpiler) {
             rest = `${R84J2_LIST_CAST} (${body})${tail}`;
         }
         typed.set (declaration, JAVA_LIST_LOCAL_TYPE);
-        return printed.slice (0, at) + marker.replace (/Object (\S+) = $/, `${JAVA_LIST_LOCAL_TYPE} $1 = `) + rest;
+        return printed.slice (0, at) + r87j6Head (printer, declaration, identation, JAVA_LIST_LOCAL_TYPE) + rest;
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
@@ -21996,6 +22065,7 @@ export function installJavaR84j2MapConditionalLocals (transpiler) {
         return;
     }
     printer._javaR84j2MapCondPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     const typed = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -22011,7 +22081,7 @@ export function installJavaR84j2MapConditionalLocals (transpiler) {
         }
         let info;
         try {
-            info = r84j2MapLocal (printer, declaration);
+            info = r87j6HeadIsObject (printer, declaration, upto) ? r84j2MapLocal (printer, declaration) : undefined;
         } catch (e) {
             info = undefined;
         }
@@ -22029,7 +22099,7 @@ export function installJavaR84j2MapConditionalLocals (transpiler) {
             rest = `${JAVA_MAP_LOCAL_CAST} (${body})${tail}`;
         }
         typed.set (declaration, JAVA_MAP_TYPE);
-        return printed.slice (0, at) + marker.replace (/Object (\S+) = $/, `${JAVA_MAP_TYPE} $1 = `) + rest;
+        return printed.slice (0, at) + r87j6Head (printer, declaration, identation, JAVA_MAP_TYPE) + rest;
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
@@ -22126,6 +22196,7 @@ export function installJ84j6TrueOnlyLocals (transpiler) {
         return;
     }
     printer._j84j6TrueOnlyLocalsPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     const typed = new WeakSet ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -22140,7 +22211,7 @@ export function installJ84j6TrueOnlyLocals (transpiler) {
         }
         let mode;
         try {
-            mode = j84j6TrueOnlyLocal (printer, declaration);
+            mode = r87j6HeadIsObject (printer, declaration, upto) ? j84j6TrueOnlyLocal (printer, declaration) : undefined;
         } catch (e) {
             mode = undefined;
         }
@@ -22152,7 +22223,7 @@ export function installJ84j6TrueOnlyLocals (transpiler) {
         const value = semi === '' ? rest : rest.slice (0, -1);
         typed.add (declaration);
         const test = mode === 'true' ? `Boolean.TRUE.equals(${value})` : `(${value}) != null`;
-        return marker.replace (/Object (\S+) = $/, 'boolean $1 = ') + test + semi;
+        return r87j6Head (printer, declaration, identation, 'boolean') + test + semi;
     };
     const upstreamEquality = printer.printNativeEqualityIfProvable.bind (printer);
     printer.printNativeEqualityIfProvable = function (node, leftText, rightText) {
@@ -22249,6 +22320,7 @@ export function installJ84j6StringListLocals (transpiler) {
         return;
     }
     printer._j84j6StringListLocalsPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     const typed = new WeakSet ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -22263,7 +22335,7 @@ export function installJ84j6StringListLocals (transpiler) {
         }
         let ok = false;
         try {
-            ok = j84j6StringListLocal (printer, declaration);
+            ok = r87j6HeadIsObject (printer, declaration, upto) && j84j6StringListLocal (printer, declaration);
         } catch (e) {
             ok = false;
         }
@@ -22271,7 +22343,7 @@ export function installJ84j6StringListLocals (transpiler) {
             return printed;
         }
         typed.add (declaration);
-        return marker.replace (/Object (\S+) = $/, `${J84J6_STRING_LIST_TYPE} $1 = (${J84J6_STRING_LIST_TYPE}) `) + printed.slice (marker.length);
+        return r87j6Head (printer, declaration, identation, J84J6_STRING_LIST_TYPE) + `(${J84J6_STRING_LIST_TYPE}) ` + printed.slice (marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? J84J6_STRING_LIST_TYPE : undefined));
     const upstreamJoin = printer.printJoinCall.bind (printer);
@@ -22534,6 +22606,7 @@ export function installJavaR84j8Locals (transpiler) {
         return;
     }
     printer._javaR84j8LocalsPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     const typed = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -22566,34 +22639,35 @@ export function installJavaR84j8Locals (transpiler) {
             return printed;
         }
         let ok = false;
+        const objectHead = r87j6HeadIsObject (printer, declaration, upto);
         try {
-            ok = r84j8BalanceMapLocal (printer, declaration);
+            ok = objectHead && r84j8BalanceMapLocal (printer, declaration);
         } catch (e) {
             ok = false;
         }
         if (ok) {
             typed.set (declaration, JAVA_MAP_TYPE);
-            return printed.slice (0, at) + `${iden}${JAVA_MAP_TYPE} ${name} = ` + printed.slice (at + marker.length);
+            return printed.slice (0, at) + r87j6Head (printer, declaration, identation, JAVA_MAP_TYPE) + printed.slice (at + marker.length);
         }
         let split = false;
         try {
-            split = printed.startsWith (STRING_LIST_ARRAY_OPEN, at + marker.length) && r84j8SplitListLocal (printer, declaration);
+            split = objectHead && r84j8SplitListLocal (printer, declaration);
         } catch (e) {
             split = false;
         }
         if (split) {
             typed.set (declaration, JAVA_STRING_LIST_TYPE);
-            return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${name} = ` + stringListRetypeValue (printed.slice (at + marker.length));
+            return printed.slice (0, at) + r87j6Head (printer, declaration, identation, JAVA_STRING_LIST_TYPE) + stringListRetypeValue (printed.slice (at + marker.length));
         }
         let list;
         try {
-            list = r84j8ConstCopyListLocal (printer, declaration);
+            list = objectHead ? r84j8ConstCopyListLocal (printer, declaration) : undefined;
         } catch (e) {
             list = undefined;
         }
         if (list !== undefined) {
             typed.set (declaration, JAVA_LIST_LOCAL_TYPE);
-            return printed.slice (0, at) + `${iden}${JAVA_LIST_LOCAL_TYPE} ${name} = ` + (list.cast ? JAVA_LIST_LOCAL_CAST + ' ' : '')
+            return printed.slice (0, at) + r87j6Head (printer, declaration, identation, JAVA_LIST_LOCAL_TYPE) + (list.cast ? JAVA_LIST_LOCAL_CAST + ' ' : '')
                 + printed.slice (at + marker.length);
         }
         // (b) on the Object path: section 19 left the native copy under an Object head
