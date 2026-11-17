@@ -18,7 +18,7 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites, resetJavaVenueIndexes } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites, resetJavaVenueIndexes, javaVenueTupleCoreProven, javaVenueFileAsyncReturns } from './java-local-types.js';
 import { installJavaFreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
 import { nativeJavaTypedArithmetic } from './java-local-types.js';
@@ -1512,10 +1512,13 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
 }
 
 // venue-local async cores (java-local-types section 12) join the unified table; base names never collide
-function withVenueAsyncReturns (table: Map<string, any>): Map<string, any> {
+function withVenueAsyncReturns (table: Map<string, any>, tsPath?: string): Map<string, any> {
     const merged = new Map(table);
+    for (const [name, info] of (tsPath === undefined ? new Map() : javaVenueFileAsyncReturns(tsPath))) {
+        if (!merged.has(name)) merged.set(name, info);
+    }
     for (const [name, javaReturnType] of javaVenueAsyncReturnTable()) {
-        if (!merged.has(name)) merged.set(name, { name, javaReturnType, isArray: false });
+        if (!merged.has(name)) merged.set(name, { name, javaReturnType, isArray: false, returnsProven: javaVenueTupleCoreProven(name) });
     }
     return merged;
 }
@@ -4982,7 +4985,7 @@ class NewTranspiler {
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
-        javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
+        javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest'), tsPath))
         javaSource = nativeJavaMapLocalsRetype(javaSource)
         javaSource = nativeJavaCoreArgIdentities(javaSource)
         javaSource = nativeJavaNumberParamCompare(javaSource)

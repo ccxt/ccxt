@@ -488,7 +488,9 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
                 && (isAsyncLambdaClose(trimmed) || trimmed.startsWith(`return ${FUTURE}.failedFuture(`)) && trimmed.endsWith(');')) {
                 // every `return` of the supply lambda already has the declared type: `supplyAsync`
                 // infers T from the retyped declaration, so the future is returned as-is (no cast lambda)
-                if (isAsyncLambdaClose(trimmed) && supplyBodyReturnsType(lines, i + 1, j, supplyIndent, m, ctx)) {
+                // or the table entry carries a TS-AST proof of every return (venue tuple cores)
+                const proven = 'returnsProven' in m && m.returnsProven === true;
+                if (isAsyncLambdaClose(trimmed) && (proven || supplyBodyReturnsType(lines, i + 1, j, supplyIndent, m, ctx))) {
                     converted = true;
                     break;
                 }
