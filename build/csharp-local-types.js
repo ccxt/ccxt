@@ -22892,3 +22892,128 @@ function seedReadAsString92c4 (declaration) {
     }
     return found;
 }
+
+// ===== 92c5: typed sources of copies and omit writes (continues 90c5) =====
+// (R1) the omit receiver proof (omitReceiverIsDictionary) only read element-1 bindings once their line was
+// printed, and never a tuple holder's slot. Both have a static IDictionary type from the TS AST: a
+// `const [ x, p ] = this.handle* (...)` binding element1ParamsBinding proves (copiedElement1ReadType), and
+// `h[1]` of a `const h = this.<name> (...)` whose CSHARP_TUPLE_RETURN_ELEMENT1 slot prints `h.Item2`.
+function c92TupleElement1Read (csharp, node) {
+    const read = stripParens (node);
+    if (c5ParameterProofDepth > 0 || read === undefined) {
+        return false;
+    }
+    if (read.kind === ts.SyntaxKind.Identifier) {
+        const reference = resolveReference (csharp, read);
+        return reference?.kind === ts.SyntaxKind.BindingElement && copiedElement1ReadType (csharp, reference) !== undefined;
+    }
+    if (read.kind !== ts.SyntaxKind.ElementAccessExpression || read.argumentExpression?.kind !== ts.SyntaxKind.NumericLiteral
+            || read.argumentExpression.text !== '1' || read.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const holder = resolveReference (csharp, read.expression);
+    if (holder?.kind !== ts.SyntaxKind.VariableDeclaration || holder.name?.kind !== ts.SyntaxKind.Identifier
+            || (holder.parent?.flags & ts.NodeFlags.Const) === 0 || holder.initializer?.kind !== ts.SyntaxKind.CallExpression
+            || holder.initializer.expression?.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = destructuredHandleCallName (holder.initializer);
+    return name !== undefined && tupleElement1 (name) === CSHARP_ELEMENT_1_TYPE;
+}
+const c92UpstreamOmitReceiverIsDictionary = omitReceiverIsDictionary;
+// eslint-disable-next-line no-func-assign
+omitReceiverIsDictionary = function (csharp, receiver) {
+    if (c92UpstreamOmitReceiverIsDictionary (csharp, receiver)) {
+        return true;
+    }
+    const proven = c92TupleElement1Read (csharp, receiver);
+    if (proven) {
+        c92Element1Proofs++;
+    }
+    return proven;
+};
+// a declaration this proof decided (at any depth) stands only with a native use of its own (omit
+// receiver, indexer, `in`): copies only handed to extend / safe* readers keep object, in every context
+let c92Element1Proofs = 0;
+const c92UpstreamLocalDeclarationR1 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const before = c92Element1Proofs;
+    const info = c92UpstreamLocalDeclarationR1 (csharp, declaration, context);
+    if (info === undefined || c92Element1Proofs === before || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return info;
+    }
+    const scope = (context?.scope) ?? enclosingFunction (declaration);
+    return (dictParamsCopyHasNativeUse (csharp, scope, declaration) || c92FeedsNativeCopy (csharp, scope, declaration, new Set ())) ? info : undefined;
+};
+// (R2) the source of a copy: a local read as the initializer (or a conditional arm of it) of a later
+// local that has a native use, directly or through such copies, is what lets that copy be typed
+function c92FeedsNativeCopy (csharp, scope, declaration, seen) {
+    if (scope === undefined || seen.has (declaration) || seen.size > 4) {
+        return false;
+    }
+    seen.add (declaration);
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        let use = n;
+        while (use.parent?.kind === ts.SyntaxKind.ParenthesizedExpression
+                || (use.parent?.kind === ts.SyntaxKind.ConditionalExpression && use.parent.condition !== use)) {
+            use = use.parent;
+        }
+        const copy = use.parent;
+        if (copy?.kind !== ts.SyntaxKind.VariableDeclaration || copy.initializer !== use || copy.name?.kind !== ts.SyntaxKind.Identifier
+                || enclosingFunction (copy) !== scope) {
+            continue;
+        }
+        if (dictParamsCopyHasNativeUse (csharp, scope, copy) || c92FeedsNativeCopy (csharp, scope, copy, seen)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// (R3) a copy cycle `let y = x; ... x = y`: while x is decided, the read of y cannot be typed (y's own
+// initializer reads x, still in flight). y holds either x's value or one of y's own other writes, so the
+// write contributes the single type every other write of y proves; joinTypes then checks it against x.
+function c92CopyCycleWriteType (csharp, declaration, node) {
+    const read = stripParens (node);
+    if (read?.kind !== ts.SyntaxKind.Identifier || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const copy = resolveReference (csharp, read);
+    const init = stripParens (copy?.initializer);
+    if (copy?.kind !== ts.SyntaxKind.VariableDeclaration || copy.name?.kind !== ts.SyntaxKind.Identifier || copy === declaration
+            || init?.kind !== ts.SyntaxKind.Identifier || resolveReference (csharp, init) !== declaration) {
+        return undefined;
+    }
+    const scope = enclosingFunction (copy);
+    if (scope === undefined || scope !== enclosingFunction (declaration)) {
+        return undefined;
+    }
+    const ctx = { scope, stack: new Set ([ declaration, copy ]), depth: 1 };
+    let type;
+    for (const n of (indexScope (csharp, scope).identifiers.get (copy.name.text) ?? [])) {
+        if (n === copy.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, copy, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            const written = (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) ? csharpTypeOfValue (csharp, parent.right, ctx) : undefined;
+            if (written === undefined || (type !== undefined && written !== type)) {
+                return undefined;
+            }
+            type = written;
+        } else if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression || parent?.kind === ts.SyntaxKind.PrefixUnaryExpression
+                || parent?.kind === ts.SyntaxKind.PostfixUnaryExpression) {
+            return undefined;
+        }
+    }
+    return type;
+}
+const c92UpstreamNullInitWriteValueType = nullInitWriteValueType;
+// eslint-disable-next-line no-func-assign
+nullInitWriteValueType = function (csharp, declaration, node) {
+    return c92UpstreamNullInitWriteValueType (csharp, declaration, node) ?? c92CopyCycleWriteType (csharp, declaration, node);
+};
