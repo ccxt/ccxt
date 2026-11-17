@@ -1080,6 +1080,7 @@ public class Bingx extends BingxApi
                     put( "100490", BadSymbol.class );
                     put( "101481", DuplicateOrderId.class );
                     put( "109201", DuplicateOrderId.class );
+                    put( "104414", BadRequest.class );
                     put( "109400", BadRequest.class );
                     put( "109418", BadSymbol.class );
                     put( "109421", OrderNotFound.class );

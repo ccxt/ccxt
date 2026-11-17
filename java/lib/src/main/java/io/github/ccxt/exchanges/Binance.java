@@ -650,6 +650,9 @@ public class Binance extends BinanceApi
                         put( "sub-account/transaction-statistics", new HashMap<String, Object>() {{
                             put( "cost", 0.40002 );
                         }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
                         put( "sub-account/subAccountApi/ipRestriction", new HashMap<String, Object>() {{
                             put( "cost", 20.001 );
                         }} );
@@ -1196,6 +1199,12 @@ public class Binance extends BinanceApi
                         put( "sub-account/virtualSubAccount", new HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
+                        put( "sub-account/subAccountApiPermission", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
                         put( "sub-account/margin/transfer", new HashMap<String, Object>() {{
                             put( "cost", 4.0002 );
                         }} );
@@ -1566,6 +1575,9 @@ public class Binance extends BinanceApi
                         put( "algo/futures/order", new HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
                         put( "sub-account/subAccountApi/ipRestriction/ipList", new HashMap<String, Object>() {{
                             put( "cost", 20.001 );
                         }} );
@@ -1610,6 +1622,9 @@ public class Binance extends BinanceApi
                     put( "post", new HashMap<String, Object>() {{
                         put( "eth-staking/eth/stake", new HashMap<String, Object>() {{
                             put( "cost", 15 );
+                        }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
                         }} );
                         put( "sub-account/subAccountApi/ipRestriction", new HashMap<String, Object>() {{
                             put( "cost", 20.001 );
