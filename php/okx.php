@@ -8321,7 +8321,7 @@ class okx extends Exchange {
          * @return {array[]} the $request and the remaining $params
          */
         $maxLimit = 100;
-        $effectiveLimit = $this->parse_to_int(100);
+        $effectiveLimit = 100;
         if (($limit !== null) && (100 > $limit)) {
             $effectiveLimit = $this->parse_to_int($limit);
         }

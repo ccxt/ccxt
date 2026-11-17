@@ -742,13 +742,13 @@ class gate extends \ccxt\async\gate {
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol, $this->order_book(array()));
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
-            $cacheLength = $this->parse_to_int(0);
+            $cacheLength = 0;
             if ($storedOrderBook !== null) {
                 $storedCacheLength = count($storedOrderBook->cache);
                 $cacheLength = $this->parse_to_int($storedCacheLength);
             }
             $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 10));
-            $waitAmount = $this->parse_to_int(0);
+            $waitAmount = 0;
             if ($isSpot) {
                 $waitAmount = $snapshotDelay;
             }

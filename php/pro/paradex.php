@@ -2367,7 +2367,7 @@ class paradex extends \ccxt\async\paradex {
             }
             $entryLength = $this->parse_to_int($this->sbe_read_uint($frameHex, $position, 2));
             $numInGroup = $this->parse_to_int($this->sbe_read_uint($frameHex, $position + 2, 2));
-            $position = $this->parse_to_int($position + 4);
+            $position = $position + 4;
             if (($entryLength < 16) || ($this->parse_to_int($this->sum($position, $numInGroup * $entryLength)) > $frameEnd)) {
                 return null;
             }

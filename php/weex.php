@@ -1635,7 +1635,7 @@ class weex extends Exchange {
                 if ($limit !== null && $limit !== null && $limit !== 0) {
                     $historyLimit = $this->parse_to_int(min($limit, $maxHistoricalLimit));
                 }
-                $timeDelta = $this->parse_to_int($historyLimit * $duration);
+                $timeDelta = $historyLimit * $duration;
                 if (($since === null) && ($until === null)) {
                     $endTime = $now;
                     $startTime = $now - $timeDelta;

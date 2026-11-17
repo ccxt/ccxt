@@ -1601,10 +1601,10 @@ class derive extends Exchange {
             $limitResolved = $this->parse_to_int($limit);
         }
         if ($limitResolved > 5000) {
-            $limitResolved = $this->parse_to_int(5000);
+            $limitResolved = 5000;
         }
         $span = $this->parse_to_int($limitResolved * $duration);
-        $windowStart = $this->parse_to_int($untilSeconds - $span);
+        $windowStart = $untilSeconds - $span;
         $start = $windowStart;
         $end = $untilSeconds;
         if ($since !== null) {

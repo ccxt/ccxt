@@ -219,7 +219,7 @@ class binance extends Exchange {
             $maxTopicsResolved = $this->parse_to_int($maxTopics);
         }
         $pageLimitOption = $this->safe_integer($this->options, 'marketsPageLimit', 100);
-        $pageLimit = $this->parse_to_int(100);
+        $pageLimit = 100;
         if ($pageLimitOption < 100) {
             $pageLimit = $this->parse_to_int($pageLimitOption);
         }
@@ -470,13 +470,13 @@ class binance extends Exchange {
         $seen = array();
         $collected = array();
         $queriesLength = count($queries);
-        $limitValue = $this->parse_to_int(20);
+        $limitValue = 20;
         if ($limit !== null) {
             $limitValue = $this->parse_to_int($limit);
         }
         $limitResolved = $limitValue;
         if ($limitValue > 50) {
-            $limitResolved = $this->parse_to_int(50);
+            $limitResolved = 50;
         }
         for ($qi = 0; $qi < $queriesLength; $qi++) {
             $request = array(

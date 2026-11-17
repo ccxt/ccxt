@@ -261,7 +261,7 @@ class sxbet extends Exchange {
         $rawMarkets = array();
         $collectCap = $this->safe_integer(array( 'limit' => $userLimit ), 'limit');
         $paginationKey = null;
-        $page = $this->parse_to_int(0);
+        $page = 0;
         while (true) {
             $request = array( 'pageSize' => $pageSize );
             if ($paginationKey !== null) {
@@ -275,7 +275,7 @@ class sxbet extends Exchange {
                 $rawMarkets[] = $pageMarkets[$i];
             }
             $paginationKey = $this->safe_string($result, 'nextKey');
-            $page = $this->parse_to_int($page + 1);
+            $page = $page + 1;
             $collectedLength = $this->parse_to_int(strlen($rawMarkets));
             if (($pageMarketsLength < $pageSize) || ($page >= $maxPages) || ($paginationKey === null) || (($collectCap !== null) && ($collectedLength >= $collectCap))) {
                 break;
@@ -752,7 +752,7 @@ class sxbet extends Exchange {
         $digits = '0123456789abcdef';
         $lowerHex = strtolower($hex);
         $hexLength = count($lowerHex);
-        $result = $this->parse_to_int(0);
+        $result = 0;
         for ($i = 0; $i < $hexLength; $i++) {
             $ch = $lowerHex[$i];
             $digitValue = $this->parse_to_int(mb_strpos($digits, $ch));

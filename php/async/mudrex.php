@@ -1377,8 +1377,8 @@ class mudrex extends Exchange {
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         $pageSize = ($limit === null) ? 0 : $limit * 2;
         $allRows = array();
-        $transactionsCount = $this->parse_to_int(0);
-        $calls = $this->parse_to_int(0);
+        $transactionsCount = 0;
+        $calls = 0;
         $offset = 0;
         $paging = true;
         while ($paging) {
@@ -1396,11 +1396,11 @@ class mudrex extends Exchange {
                 if ($this->safe_string($entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (($market === null) || ($this->safe_string($entry, 'symbol') === $market['id'])) {
-                        $transactionsCount = $this->parse_to_int($transactionsCount + 1);
+                        $transactionsCount = $transactionsCount + 1;
                     }
                 }
             }
-            $calls = $this->parse_to_int($calls + 1);
+            $calls = $calls + 1;
             $paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (($limit !== null) && ($dataLength === $pageSize)) {

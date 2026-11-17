@@ -787,9 +787,9 @@ class hyperliquid extends Exchange {
             // Get the part after the decimal separator
             $decimalPart = $this->safe_string($priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            $leadingZeros = $this->parse_to_int(0);
+            $leadingZeros = 0;
             while (($leadingZeros <= strlen($decimalPart)) && ($decimalPart[$leadingZeros] === '0')) {
-                $leadingZeros = $this->parse_to_int($leadingZeros + 1);
+                $leadingZeros = $leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             $pricePrecision = $leadingZeros . $significantDigits;

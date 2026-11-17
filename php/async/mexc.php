@@ -2649,13 +2649,13 @@ class mexc extends Exchange {
             throw new InvalidOrder($this->id . ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', $type === 2, $params);
-        $orderType = $this->parse_to_int(0); // typed seed, every branch below assigns it
+        $orderType = 0; // typed seed, every branch below assigns it
         if ($postOnly) {
-            $orderType = $this->parse_to_int(2);
+            $orderType = 2;
         } elseif ($type === 'limit') {
-            $orderType = $this->parse_to_int(1);
+            $orderType = 1;
         } elseif ($type === 'market') {
-            $orderType = $this->parse_to_int(6);
+            $orderType = 6;
         } else {
             $orderType = $this->parse_to_int($type);
         }
