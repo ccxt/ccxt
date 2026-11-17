@@ -495,7 +495,8 @@ class BaseExchange(object):
 
     def _ensure_whitelisted_file(self, file_path: str):
         sanitized = os.path.realpath(file_path)
-        if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
+        exts = ['ccxtfile', 'pem', 'wasm']
+        if any(sanitized.endswith('.' + ext) for ext in exts):
             return
         raise ValueError(f'invalid file path: {file_path}')
 
