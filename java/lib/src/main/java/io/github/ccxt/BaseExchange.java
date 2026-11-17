@@ -929,7 +929,7 @@ public class BaseExchange {
 
     public String ensureWhitelistedFile(Object filePath) {
         String resolved = java.nio.file.Paths.get((String) filePath).toAbsolutePath().normalize().toString();
-        String[] exts = { "ccxtfile", "pem" };
+        String[] exts = { "ccxtfile", "pem", "wasm" };
         for (String ext : exts) {
             if (resolved.endsWith("." + ext)) {
                 return resolved;
