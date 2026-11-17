@@ -1687,7 +1687,7 @@ class BaseExchange {
         if (client.error !== undefined) ;
         else {
             // server disconnected a working connection
-            if (this.clients[client.url] !== undefined) {
+            if (this.clients[client.url] === client) {
                 delete this.clients[client.url];
             }
         }

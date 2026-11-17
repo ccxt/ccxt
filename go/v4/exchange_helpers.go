@@ -2569,10 +2569,8 @@ func awaitOutcome(task any) (any, error) {
 		return typedTask.Value, typedTask.Err
 	}
 	if outcome, ok := receiveOutcome(task); ok && outcome != nil {
-		// a typed core (`<-chan AsyncResult[[]MarketInterface]`, `[]Order`, ...) lands in the
-		// untyped Promise.all result list: hand it back TS-shaped ([]any of maps) like the
-		// by-name path does, else SafeList/IsArray/ArrayConcat see an unknown slice kind
-		// and every typed sub-fetch reads as empty
+		// promiseAll results are read by untyped (TS-shaped) code — SafeList, ArrayConcat — which
+		// does not recognise typed struct lists such as []MarketInterface, so box them as []any
 		return DynamicValue(outcome.Untyped()), outcome.Failure()
 	}
 	return nil, nil
