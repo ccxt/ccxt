@@ -6,7 +6,7 @@ import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, List, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Endpoint } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, Market, NullableDict, FeeString, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -415,69 +415,84 @@ export default class coinone extends Exchange {
         //     }
         //
         const tickers = this.safeList (response, 'tickers', []);
-        const result: List = [];
-        for (let i = 0; i < tickers.length; i++) {
-            const entry = this.safeDict (tickers, i);
-            const id = this.safeString (entry, 'id');
-            const baseId = this.safeStringUpper (entry, 'target_currency');
-            const quoteId = this.safeStringUpper (entry, 'quote_currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber ('1e-4'),
-                    'price': this.parseNumber ('1e-4'),
-                    'cost': this.parseNumber ('1e-8'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': entry,
-            });
+        return this.parseMarkets (tickers);
+    }
+
+    override parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "quote_currency": "krw",
+        //         "target_currency": "stg",
+        //         "timestamp": 1701067920001,
+        //         "high": "667.5",
+        //         "low": "667.5",
+        //         "first": "667.5",
+        //         "last": "667.5",
+        //         "quote_volume": "0.0",
+        //         "target_volume": "0.0",
+        //         "best_asks": [ { "price": "777.0", "qty": "73.9098" } ],
+        //         "best_bids": [ { "price": "690.8", "qty": "40.7768" } ],
+        //         "id": "1701067920001001"
+        //     }
+        //
+        const id = this.safeString (market, 'id');
+        const baseId = this.safeStringUpper (market, 'target_currency');
+        const quoteId = this.safeStringUpper (market, 'quote_currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
         }
-        return result;
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber ('1e-4'),
+                'price': this.parseNumber ('1e-4'),
+                'cost': this.parseNumber ('1e-8'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        } as Market;
     }
 
     override parseBalance (response: Dict): Balances {
