@@ -9788,6 +9788,9 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         "    tick (t: Ticker, m: Dict) { const symbol = t['symbol']; m[(symbol as string)] = t; return m; }",
         "    keys (m: any) { const ks = Object.keys (m); const out: Dict = {}; for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k.startsWith ('x')) { delete m[k]; } out[k] = this.currency (k); } return out; }",
         "    box (m: Dict) { const rows: Dict[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < rows.length; i++) { const row = rows[i]; row['seen'] = true; out.push (this.safeString (row, 'id')); const ro = rows[i]; out.push (this.safeString (ro, 'id')); } return out; }",
+        "    mids (m: Dict, s: string, f: boolean) { let ids = undefined; if (f) { ids = Object.keys (m); } else { ids = s.split (','); } const out: Dict = {}; for (let i = 0; i < ids.length; i++) { const id = ids[i]; if (id.startsWith ('x')) { delete m[id]; } out[id] = 1; } return out; }",
+        "    sib (m: any, f: boolean) { const out: Dict = {}; if (f) { const cs = Object.keys (m); for (let i = 0; i < cs.length; i++) { const c = cs[i]; out[c] = 1; } } else { const ds = Object.keys (out); for (let i = 0; i < ds.length; i++) { const c = ds[i]; out[c] = 2; } } return out; }",
+        "    lit (response: Dict) { const out: Dict = {}; const currencyIds = Object.keys (response); for (let i = 0; i < currencyIds.length; i++) { const entry = currencyIds[i]; const splitEntry = entry.split (' '); const head = splitEntry[0]; const code = this.safeCurrencyCode (head); out[code] = 1; } return out; }",
         "    neg (m: Dict, xs: string[]) { const vs: any[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < vs.length; i++) { const a = vs[i]; out.push (a.length); const b = xs[i]; out.push (b.toUpperCase ()); } return out; }",
         '}',
     ].join('\n');
@@ -9798,6 +9801,9 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if (!/\bk\.startsWith\(/.test(out) || /\(\(String\)k\)/.test(out) || /\(String\)k\b/.test(out)) problems.push("84j1: 'k' uses must print with no (String) cast");
         if (!/Map<String, Object> row = \(java\.util\.Map<String, Object>\) \(rows == null/.test(out) || !/\brow\.put\("seen"/.test(out)) problems.push("84j1: 'row' (Dict element with an element write) must print Map<String, Object> and a native put");
         if (!/String symbol = \(String\) [^;]*\.get\("symbol"\)/.test(out) || /\(\(String\)symbol\)/.test(out)) problems.push("84j1: 'symbol' (Str structure field) must print String and its `as string` key no cast");
+        if (!/String id = \(String\) \(ids == null/.test(out) || !/\bid\.startsWith\(/.test(out)) problems.push("84j1 r4: 'id' (element of an undefined-seeded list written only by String-only producers) must print String with native uses");
+        if ((out.match(/String c = (\(String\) )?\((cs|ds) == null/g) || []).length !== 2 || /put\(\(String\)c,/.test(out)) problems.push("87j1 r5: both sibling 'c' bindings (const element reads of String-only lists) must print String with a native put key");
+        if (!/String head = \(String\) (\(splitEntry == null \|\| 0 >= |Helpers\.GetValue\(splitEntry, 0\))/.test(out) || /safeCurrencyCode\(\(String\) \(head\)/.test(out)) problems.push("87j1 r6: 'head' (literal-index read of a split list) must print String with no core-argument cast");
         for (const name of [ 'a', 'b', 'ro' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);
         }

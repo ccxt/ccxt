@@ -21173,6 +21173,28 @@ export function installJavaJ8CopyLocals (transpiler) {
 // method on it, its `delete m[k]` / `m[k] = v` key, its String core arguments and `===` with no cast.
 // Admitted only when isSafeToNarrow accepts every use AND at least one use gains a native form.
 const R84J1_KEY_SET_CALLEES = new Set ([ 'findMessageHashes' ]);
+// (r4) hand-written BaseExchange methods declared `List<String>` (marketIds, marketSymbols): every element
+// is a String or null by the Java declaration itself
+const R84J1_STRING_LIST_CALLEES = new Set ([ 'marketIds', 'marketSymbols' ]);
+
+function r84j1StringOnlyProducer (printer, value) {
+    let init = unwrapParens (value);
+    while (init !== undefined && (ts.isAsExpression (init) || init.kind === ts.SyntaxKind.TypeAssertionExpression)) {
+        init = unwrapParens (init.expression);
+    }
+    if (init === undefined) {
+        return false;
+    }
+    if (ts.isCallExpression (init) && ts.isPropertyAccessExpression (init.expression)) {
+        const callee = init.expression;
+        const method = String (callee.name.text);
+        return (method === 'keys' && ts.isIdentifier (callee.expression) && callee.expression.text === 'Object')
+            || (method === 'split' && init.arguments.length === 1)
+            || (isThisCall (init) && (R84J1_KEY_SET_CALLEES.has (method) || R84J1_STRING_LIST_CALLEES.has (method))
+                && resolvesToBaseOrStrippedAccessor (printer, init, method));
+    }
+    return stringElementsProducer (init);
+}
 
 function r84j1StringOnlyList (printer, receiver, scope) {
     if (!ts.isIdentifier (receiver)) {
@@ -21184,24 +21206,14 @@ function r84j1StringOnlyList (printer, receiver, scope) {
         || !ts.isIdentifier (declaration.name) || enclosingFunction (declaration) !== scope) {
         return false;
     }
-    let init = unwrapParens (declaration.initializer);
-    while (init !== undefined && (ts.isAsExpression (init) || init.kind === ts.SyntaxKind.TypeAssertionExpression)) {
-        init = unwrapParens (init.expression);
-    }
-    let producer = false;
-    if (init !== undefined && ts.isCallExpression (init) && ts.isPropertyAccessExpression (init.expression)) {
-        const callee = init.expression;
-        const method = String (callee.name.text);
-        producer = (method === 'keys' && ts.isIdentifier (callee.expression) && callee.expression.text === 'Object')
-            || (method === 'split' && init.arguments.length === 1)
-            || (isThisCall (init) && R84J1_KEY_SET_CALLEES.has (method) && resolvesToBaseOrStrippedAccessor (printer, init, method));
-    } else if (init !== undefined && stringElementsProducer (init)) {
-        producer = true;
-    }
-    if (!producer) {
+    // a `let xs = undefined` / producer seed is fine when EVERY write is a String-only producer (r4)
+    const seed = unwrapParens (declaration.initializer);
+    const seedIsNull = seed.kind === ts.SyntaxKind.UndefinedKeyword || (ts.isIdentifier (seed) && seed.text === 'undefined');
+    if (!seedIsNull && !r84j1StringOnlyProducer (printer, declaration.initializer)) {
         return false;
     }
-    // the list itself is never written, re-bound, mutated or handed out before the read
+    let writes = seedIsNull ? 0 : 1;
+    // the list is never mutated or deleted from; every re-binding is itself a String-only producer
     for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
         if (n === declaration.name || printer.getChecker ().getSymbolAtLocation (n) !== symbol) {
             continue;
@@ -21209,6 +21221,11 @@ function r84j1StringOnlyList (printer, receiver, scope) {
         const parent = n.parent;
         if (ts.isPropertyAccessExpression (parent) && parent.expression === n && LIST_MUTATING_METHODS.has (String (parent.name.text))) {
             return false;
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && r84j1StringOnlyProducer (printer, parent.right)) {
+            writes++;
+            continue;
         }
         if (ts.isBinaryExpression (parent) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)
             && (parent.left === n || (ts.isElementAccessExpression (parent.left) && parent.left.expression === n))) {
@@ -21218,7 +21235,7 @@ function r84j1StringOnlyList (printer, receiver, scope) {
             return false;
         }
     }
-    return true;
+    return writes > 0;
 }
 
 // `sig['r']` / `sig['s']` where sig is a const local bound to the base crypto `ecdsa (..)` call
@@ -21310,6 +21327,14 @@ function r84j1NativeUse (printer, n) {
     return false;
 }
 
+// (r5, ral-87j1) every binding of the name in the function is a block-scoped `const` declaration with an
+// identifier name: no `let` / `var` re-binding can carry a value across the siblings
+function r87j1SiblingConstBindings (index, name) {
+    const declarations = index.declarations.get (name) ?? [];
+    return declarations.length === (index.bindingCounts.get (name) ?? 0) && declarations.every ((d) => ts.isIdentifier (d.name)
+        && ts.isVariableDeclarationList (d.parent) && (d.parent.flags & ts.NodeFlags.Const) !== 0);
+}
+
 function r84j1StringElementLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement) {
@@ -21334,15 +21359,23 @@ function r84j1StringElementLocal (printer, declaration) {
             return false;
         }
     } else {
-        const counterRead = ts.isIdentifier (read.expression) && typeof printer.javaPrimitiveCounterIndex === 'function'
-            && printer.javaPrimitiveCounterIndex (read.argumentExpression) && r84j1StringOnlyList (printer, read.expression, scope);
+        // (r6, ral-87j1) a non-negative integer literal index prints the same bounds-checked List read
+        const literalIndex = read.argumentExpression !== undefined && ts.isNumericLiteral (read.argumentExpression)
+            && /^[0-9]+$/.test (read.argumentExpression.text);
+        const counterRead = ts.isIdentifier (read.expression)
+            && (literalIndex || (typeof printer.javaPrimitiveCounterIndex === 'function' && printer.javaPrimitiveCounterIndex (read.argumentExpression)))
+            && r84j1StringOnlyList (printer, read.expression, scope);
         if (!counterRead && !r84j1EcdsaSlot (printer, read, scope) && !structureStringFieldRead (printer, read)) {
             return false;
         }
     }
     const name = String (declaration.name.text);
     const index = dataflowIndex (printer, scope);
-    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+    // (r5, ral-87j1) a name bound by several sibling `const` declarations is decided per binding: every
+    // use below is matched to THIS binding by checker symbol, and the printer resolves each use's
+    // declared type through its own declaration; only parameters and destructured names still refuse
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || ((index.bindingCounts.get (name) ?? 0) !== 1 && !r87j1SiblingConstBindings (index, name))) {
         return false;
     }
     const symbol = checker.getSymbolAtLocation (declaration.name);
