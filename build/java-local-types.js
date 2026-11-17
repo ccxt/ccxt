@@ -18059,3 +18059,99 @@ export function installJavaPredictionMapLocals (transpiler) {
         return `${receiver.text}.put(${printed.slice (head.length)}`;
     };
 }
+
+// ===== list parameters of parse* loops: `parseMarkets (markets: any)` -> java.util.List<Object> =====
+// Closed (method, position) table. The base declaration, every override and every caller in ts/src
+// were checked: each argument is a TS array (nullish allowed: the declared-List reads keep the helper's
+// null answer). A call whose argument the checker does not type as an array fails the transpile.
+const JAVA_LIST_PARAM_SLOTS = {
+    'parseMarkets': [ 0 ],
+    'parseOpenInterests': [ 0 ],
+    'parseDepositAddresses': [ 0 ],
+    'reduceFeesByCurrency': [ 0 ],
+    'parseSettlements': [ 0 ],
+    'parseTransactionsByType': [ 1 ],
+    'handleBookDeltas': [ 1 ],
+};
+// dictionary slots: every caller hands a checker-proven string-indexed object
+// (calculateRateLimiterCost params stays boxed: fetch2 forwards implicit-endpoint list bodies)
+const JAVA_MAP_PARAM_SLOTS = {
+    'addKeyInArrayItems': [ 0 ],
+};
+// ws order-book slots: every caller passes a local the printer declares WsOrderBook
+const JAVA_ORDERBOOK_PARAM_SLOTS = {
+    'handleOrderBookMessage': [ 2 ],
+};
+const JAVA_ORDERBOOK_PARAM_SLOT_TYPE = 'io.github.ccxt.ws.WsOrderBook';
+const JAVA_ORDERBOOK_PARAM_SLOT_FILES = /(^|[\\/])ts[\\/]src[\\/]pro[\\/](bittrade|bitvavo)\.ts$/;
+const JAVA_LIST_PARAM_SLOT_TYPE = 'java.util.List<Object>';
+const JAVA_MAP_PARAM_SLOT_TYPE = 'java.util.Map<String, Object>';
+const JAVA_LIST_PARAM_SLOT_FILES = /(^|[\\/])ts[\\/]src[\\/](?:base[\\/](?:Prediction)?Exchange(?:\.nooverloads[^\\/]*)?|(?:pro[\\/]|prediction[\\/])?[a-z0-9_]+)\.ts$/;
+
+function javaListParamSlot (printer, node) {
+    const method = node?.kind === ts.SyntaxKind.Parameter ? node.parent : undefined;
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration || !ts.isIdentifier (method.name ?? {}) || method.body === undefined
+        || node.initializer !== undefined || node.questionToken !== undefined || node.dotDotDotToken !== undefined) {
+        return undefined;
+    }
+    const type = javaParamSlotTypeAt (method.name.text, method.parameters.indexOf (node), node.getSourceFile ().fileName);
+    if (type === undefined || !JAVA_LIST_PARAM_SLOT_FILES.test (node.getSourceFile ().fileName)) {
+        return undefined;
+    }
+    return printer.javaParameterIsWritten (node) || printer.javaParameterIsCompoundAssigned (node) ? undefined : type;
+}
+
+function javaParamSlotTypeAt (name, index, fileName) {
+    if (JAVA_ORDERBOOK_PARAM_SLOTS[name]?.includes (index) && JAVA_ORDERBOOK_PARAM_SLOT_FILES.test (fileName)) {
+        return JAVA_ORDERBOOK_PARAM_SLOT_TYPE;
+    }
+    if (JAVA_LIST_PARAM_SLOTS[name]?.includes (index)) {
+        return JAVA_LIST_PARAM_SLOT_TYPE;
+    }
+    return JAVA_MAP_PARAM_SLOTS[name]?.includes (index) ? JAVA_MAP_PARAM_SLOT_TYPE : undefined;
+}
+
+// the slot type of a `x.m (..)` argument position, if the table names it
+function javaListSlotArgument (arg) {
+    const call = arg?.parent;
+    if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)) {
+        return undefined;
+    }
+    return javaParamSlotTypeAt (call.expression.name.text, call.arguments.indexOf (arg), arg.getSourceFile ().fileName);
+}
+
+export function installJavaListParamSlots (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._javaListParamSlotsPatched) {
+        return;
+    }
+    printer._javaListParamSlotsPatched = true;
+    const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
+    printer.javaNativeParameterTypeOf = function (node) {
+        return javaListParamSlot (printer, node) ?? upstreamType (node);
+    };
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        const slot = javaListSlotArgument (arg);
+        if (slot === JAVA_ORDERBOOK_PARAM_SLOT_TYPE && slot === type) {
+            if (!ts.isIdentifier (arg) || printer.javaDeclaredTypeOf (arg) !== slot) {
+                throw new Error (`java param slot: argument ${arg.getText ()} is not a declared ${slot}`);
+            }
+            return true;
+        }
+        if (slot !== undefined && slot === type) {
+            const checker = printer.getChecker ();
+            const argType = checker.getTypeAtLocation (arg);
+            // a string[] argument may print List<String>, which no List<Object> slot accepts
+            const isList = (t) => (checker.isArrayType (t) || checker.isTupleType (t))
+                && !checker.isTupleType (t) && ((checker.getTypeArguments (t)?.[0]?.flags ?? 0) & ts.TypeFlags.StringLike) === 0;
+            const isMap = (t) => printer.isJavaMapType (t) && checker.getIndexInfosOfType?.(t)?.length !== 0;
+            const ok = slot === JAVA_LIST_PARAM_SLOT_TYPE ? isList (argType) || printer.isJavaNullishUnion (argType, isList)
+                : isMap (argType) || printer.isJavaNullishUnion (argType, isMap);
+            if (!ok) {
+                throw new Error (`java param slot: argument ${arg.getText ()} is not a proven ${slot}`);
+            }
+        }
+        return upstreamTyped (arg, type);
+    };
+}

@@ -35,6 +35,7 @@ import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaPredictionMapLocals } from './java-local-types.js';
+import { installJavaListParamSlots } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -1854,6 +1855,7 @@ class NewTranspiler {
             installJavaParamTypesPreScan,
             installJavaStringReturns,
             installJavaPredictionMapLocals,
+            installJavaListParamSlots,
         ];
         for (const install of installers) {
             install(this.transpiler);
