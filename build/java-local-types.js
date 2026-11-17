@@ -18059,3 +18059,65 @@ export function installJavaPredictionMapLocals (transpiler) {
         return `${receiver.text}.put(${printed.slice (head.length)}`;
     };
 }
+
+// ===== list parameters of parse* loops: `parseMarkets (markets: any)` -> java.util.List<Object> =====
+// Closed (method, position) table. The base declaration, every override and every caller in ts/src
+// were checked: each argument is a TS array (nullish allowed: the declared-List reads keep the helper's
+// null answer). A call whose argument the checker does not type as an array fails the transpile.
+const JAVA_LIST_PARAM_SLOTS = {
+    'parseMarkets': [ 0 ],
+    'parseOpenInterests': [ 0 ],
+    'parseDepositAddresses': [ 0 ],
+    'reduceFeesByCurrency': [ 0 ],
+    'parseSettlements': [ 0 ],
+    'parseTransactionsByType': [ 1 ],
+};
+const JAVA_LIST_PARAM_SLOT_TYPE = 'java.util.List<Object>';
+const JAVA_LIST_PARAM_SLOT_FILES = /(^|[\\/])ts[\\/]src[\\/](?:base[\\/](?:Prediction)?Exchange(?:\.nooverloads[^\\/]*)?|(?:pro[\\/]|prediction[\\/])?[a-z0-9_]+)\.ts$/;
+
+function javaListParamSlot (printer, node) {
+    const method = node?.kind === ts.SyntaxKind.Parameter ? node.parent : undefined;
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration || !ts.isIdentifier (method.name ?? {}) || method.body === undefined
+        || node.initializer !== undefined || node.questionToken !== undefined || node.dotDotDotToken !== undefined) {
+        return undefined;
+    }
+    const positions = JAVA_LIST_PARAM_SLOTS[method.name.text];
+    if (positions === undefined || !positions.includes (method.parameters.indexOf (node))
+        || !JAVA_LIST_PARAM_SLOT_FILES.test (node.getSourceFile ().fileName)) {
+        return undefined;
+    }
+    return printer.javaParameterIsWritten (node) || printer.javaParameterIsCompoundAssigned (node) ? undefined : JAVA_LIST_PARAM_SLOT_TYPE;
+}
+
+function javaListSlotArgument (arg) {
+    const call = arg?.parent;
+    if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)) {
+        return false;
+    }
+    const positions = JAVA_LIST_PARAM_SLOTS[call.expression.name.text];
+    return positions !== undefined && positions.includes (call.arguments.indexOf (arg));
+}
+
+export function installJavaListParamSlots (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._javaListParamSlotsPatched) {
+        return;
+    }
+    printer._javaListParamSlotsPatched = true;
+    const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
+    printer.javaNativeParameterTypeOf = function (node) {
+        return javaListParamSlot (printer, node) ?? upstreamType (node);
+    };
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        if (type === JAVA_LIST_PARAM_SLOT_TYPE && javaListSlotArgument (arg)) {
+            const checker = printer.getChecker ();
+            const argType = checker.getTypeAtLocation (arg);
+            const isList = (t) => checker.isArrayType (t) || checker.isTupleType (t);
+            if (!isList (argType) && !printer.isJavaNullishUnion (argType, isList)) {
+                throw new Error (`java list param: argument ${arg.getText ()} is not a proven array`);
+            }
+        }
+        return upstreamTyped (arg, type);
+    };
+}
