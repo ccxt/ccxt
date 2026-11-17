@@ -5940,8 +5940,8 @@ function javaR87j5CalleeReturnsSelfTest (): string[] {
         if (!/String su = this\.getStockWsUrl\(/.test(out) || !/this\.requestId\(su\)/.test(out)) problems.push("ral-87j5: 'su' (String venue callee result) must be passed to a String parameter with no checkcast");
         if (!/(java\.util\.)?List<Object> oh = this\.buildOHLCVC\(/.test(out)) problems.push("ral-87j5: 'oh' (base buildOHLCVC: OHLCVC[]) must print List<Object>");
         if (!/(java\.util\.)?Map<String, Object> fo = this\.findOutcomeInMarket\(/.test(out) || /\(\(Map<String, Object>\)fo\)/.test(out)) problems.push("ral-87j5: 'fo' (venue findOutcomeInMarket: Dict) must print Map<String, Object> with a native use");
-    } catch (e: any) {
-        problems.push(`ral-87j5 self-test threw: ${e.message}`);
+    } catch (e) {
+        problems.push(`ral-87j5 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
@@ -6008,8 +6008,8 @@ function mapLocalsSelfTest (): string[] {
         if (!/String s = "";/.test(out) || !/\(s\.split\(/.test(out)) problems.push("ral-87j3: 's' (toUpperCase / replaceAll-of-self writes) must print String with a bare split receiver");
         if (!/String h = "";/.test(out)) problems.push("ral-87j3: 'h' (remove0xPrefix write) must print String");
         if (!/Object t = "";/.test(out)) problems.push("ral-87j3: 't' (replaceAll of a nullable Str receiver) must stay Object");
-    } catch (e: any) {
-        problems.push(`ral-87j3 self-test threw: ${e.message}`);
+    } catch (e) {
+        problems.push(`ral-87j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(r87j3, { force: true });
     }
@@ -6035,8 +6035,8 @@ function mapLocalsSelfTest (): string[] {
         if (!/Long e = \(Long\) this\.sum\(a, 2\);/.test(out) || !/e = Long\.valueOf\(n\)/.test(out)) problems.push("ral-87j3 R3: 'e' (sum initializer, length-const write) must print Long");
         if (!/Long d = 0L;/.test(out)) problems.push("ral-87j3 R3: 'd' (native long write) must print Long");
         if (!/Long r = 0L;/.test(out) || !/r = \(r \+ 1L\);/.test(out)) problems.push("ral-87j3 R4: 'r' (self step write) must print Long with a native add");
-    } catch (e: any) {
-        problems.push(`ral-87j3 R2 self-test threw: ${e.message}`);
+    } catch (e) {
+        problems.push(`ral-87j3 R2 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(r87j3b, { force: true });
     }
@@ -6100,8 +6100,8 @@ function mapLocalsSelfTest (): string[] {
         if (!/List<Object> parsed = this\.parsePredictionPositions\(/.test(out) || !/i < parsed\.size\(\)/.test(out)) problems.push("ral-87j7: a parsePredictionPositions result must print List<Object> read by size()");
         if (!/List<Object> rows = \(this\.zzRawRows\(/.test(out) || !/rows\.size\(\)/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Dict[]> core (returns a local) must give a List<Object> local read by size()");
         if (!/List<Object> ids = \(this\.zzRawIds\(/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Str[]> core (returns a local) must give a List<Object> local");
-    } catch (e: any) {
-        problems.push(`ral-87j7 self-test threw: ${e.message}`);
+    } catch (e) {
+        problems.push(`ral-87j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(r87j7, { force: true });
     }
@@ -10169,8 +10169,8 @@ function javaR87j2WsLocalsSelfTest (): string[] {
         if (!/io\.github\.ccxt\.ws\.ArrayCache arr = \(io\.github\.ccxt\.ws\.ArrayCache\) /.test(out) || !/\barr\.append\(trade\)/.test(out)) problems.push("ral-87j2: 'arr' (guarded this.trades read, append use) must print ArrayCache with a native append");
         if (!/\bObject t = /.test(out)) problems.push("ral-87j2: 't' (no store use) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
@@ -10195,8 +10195,8 @@ function javaR87j2LengthListLocalsSelfTest (): string[] {
         if (!/List<Object> rows = \(java\.util\.List<Object>\) /.test(out) || !/< rows\.size\(\)/.test(out)) problems.push("ral-87j2: 'rows' (isArray-guarded, .length use) must print List<Object> with a native size()");
         if (!/\bObject other = /.test(out)) problems.push("ral-87j2: 'other' (only a safe* argument) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
@@ -10224,8 +10224,8 @@ function javaR87j2UrlLocalsSelfTest (): string[] {
         if (!/this\.open\(url\)/.test(out) || /this\.open\(\(String\) ?\(?url\)?\)/.test(out)) problems.push("ral-87j2 R4: 'url' must reach the String parameter as a bare `this.open(url)` (no checkcast)");
         if (!/\bObject other = /.test(out)) problems.push("ral-87j2: 'other' (a non-string urls leaf) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
@@ -10254,8 +10254,8 @@ function javaR87j4SplitSeedSelfTest (): string[] {
         if (!/\bObject k = null/.test(out)) problems.push("r87-j4: 'k' (only an Object-slot use) must stay Object");
         if (!/String orderCost = null/.test(out) || !/getAmount2\(orderCost\)/.test(out)) problems.push("r87-j4 R2: 'orderCost' (copy of a later-declared Precise const, String core argument) must print String");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`r87-j4 self-test threw: ${e.message}`);
+    } catch (e) {
+        problems.push(`r87-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
@@ -10290,8 +10290,8 @@ function javaR87j8LocalsSelfTest (): string[] {
         if (!/public String gen2Id\(/.test(out) || !/List<String> ids = new java\.util\.ArrayList<String>\(java\.util\.Arrays\.asList\(\)\);\s*for[^]*?ids\.add\(this\.gen2Id\(/.test(out)) problems.push("'ids' (pushes of an internal method the printer declares String) must print List<String> with a bare add");
         if (!/\bObject keys = /.test(out)) problems.push("'keys' (push of a local with a same-named sibling binding) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
