@@ -1128,7 +1128,7 @@ public partial class backpack : ccxt.backpack
         client.resolve(cache, "trades");
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {

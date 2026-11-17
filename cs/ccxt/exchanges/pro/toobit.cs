@@ -286,7 +286,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(stored, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         return this.parseTrade(trade, market);
     }

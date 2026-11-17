@@ -3409,7 +3409,7 @@ public partial class htx : Exchange
         throw new ExchangeError (((this.id + " fetchOrderBook() returned unrecognized response: ") + this.json(response))) ;
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // spot fetchTrades (public)
@@ -6375,7 +6375,7 @@ public partial class htx : Exchange
         bool isMarketBuy = (orderType == "market") && ((sideStr is "buy"));
         (bool?, IDictionary<string, object>) requiresPriceAndParams = this.handleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true);
         double? cost = this.safeNumber(requiresPriceAndParams.Item2, "cost");
-        object paramsCost = paramsPostOnly;
+        IDictionary<string, object> paramsCost = paramsPostOnly;
         if (isMarketBuy)
         {
             paramsCost = this.omit(requiresPriceAndParams.Item2, "cost");
@@ -6465,7 +6465,7 @@ public partial class htx : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (type == "post_only"), parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        object orderType = postOnly ? "post_only" : type;
+        string? orderType = ((string)(postOnly ? "post_only" : type));
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("createOrder", market, paramsPostOnly);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
@@ -6633,7 +6633,7 @@ public partial class htx : Exchange
                 request["client_order_id"] = clientOrderId;
                 query = this.omit(query, new List<object>() {"clientOrderId"});
             }
-            if ((orderType is "limit") || (orderType is "ioc") || (orderType is "fok") || (orderType is "post_only"))
+            if (orderType == "limit" || orderType == "ioc" || orderType == "fok" || orderType == "post_only")
             {
                 if ((price != null))
                 {

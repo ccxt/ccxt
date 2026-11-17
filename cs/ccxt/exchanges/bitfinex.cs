@@ -1706,7 +1706,7 @@ public partial class bitfinex : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)

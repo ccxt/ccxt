@@ -1357,7 +1357,7 @@ public partial class extended : Exchange
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades

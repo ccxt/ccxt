@@ -1595,7 +1595,7 @@ public partial class delta : Exchange
         return this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buy", "sell", "price", "size");
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public fetchTrades
@@ -2122,7 +2122,7 @@ public partial class delta : Exchange
         }
         string? marketId = this.safeString(order, "product_id");
         IDictionary<string, object> marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new Dictionary<string, object>() {});
-        object marketValue = this.safeValue(marketsByNumericId, marketId, market);
+        IDictionary<string, object> marketValue = this.safeDict(marketsByNumericId, marketId, market);
         string? symbol = null;
         if ((marketValue == null))
         {

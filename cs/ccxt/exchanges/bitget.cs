@@ -6025,7 +6025,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsResolved));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // spot, swap and future: fetchTrades
@@ -7561,8 +7561,8 @@ public partial class bitget : Exchange
         {
             if ((feeDetail != null))
             {
-                object parsedFeeDetail = parseJson(feeDetail);
-                List<object> feeValues = new List<object>(((IDictionary<string,object>)parsedFeeDetail).Values);
+                Dictionary<string, object> parsedFeeDetail = ((Dictionary<string, object>)parseJson(feeDetail));
+                List<object> feeValues = new List<object>(parsedFeeDetail.Values);
                 object feeObject = null;
                 for (int i = 0; i < feeValues.Count; i++)
                 {

@@ -2497,7 +2497,7 @@ public partial class nado : Exchange
         return new List<object> {this.safeTimestamp(ohlcv, "timestamp"), this.parseX18(this.safeString(ohlcv, "open_x18")), this.parseX18(this.safeString(ohlcv, "high_x18")), this.parseX18(this.safeString(ohlcv, "low_x18")), this.parseX18(this.safeString(ohlcv, "close_x18")), this.parseX18(this.safeString(ohlcv, "volume"))};
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {

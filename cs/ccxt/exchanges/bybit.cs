@@ -4213,7 +4213,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbolValue, since, limitResolved));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public https://bybit-exchange.github.io/docs/v5/market/recent-trade

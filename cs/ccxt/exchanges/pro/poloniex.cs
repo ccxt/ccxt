@@ -940,7 +940,7 @@ public partial class poloniex : ccxt.poloniex
         return message;
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // handleTrade

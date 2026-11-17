@@ -1640,7 +1640,7 @@ public partial class bitstamp : Exchange
         return null;
     }
 
-    public virtual object getMarketFromTrade(object trade)
+    public virtual IDictionary<string, object> getMarketFromTrade(object trade)
     {
         object tradeOmitted = this.omit(trade, new List<object>() {"fee", "price", "datetime", "tid", "type", "order_id", "side"});
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)tradeOmitted).Keys);
@@ -1667,7 +1667,7 @@ public partial class bitstamp : Exchange
         return null;
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)
@@ -1717,7 +1717,7 @@ public partial class bitstamp : Exchange
         string? costString = this.safeString(trade, "cost");
         string? rawMarketId = null;
         // resolved in the key scan below, falling back to the passed market
-        object marketResolved = market;
+        IDictionary<string, object> marketResolved = market;
         if ((market == null))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)trade).Keys);
@@ -3101,7 +3101,7 @@ public partial class bitstamp : Exchange
         if (type == "trade")
         {
             ccxt.Trade parsedTrade = this.parseTrade(item);
-            object market = null;
+            IDictionary<string, object> market = null;
             List<object> keys = new List<object>(((IDictionary<string,object>)item).Keys);
             for (int i = 0; i < keys.Count; i++)
             {

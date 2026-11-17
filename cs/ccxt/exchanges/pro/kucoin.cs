@@ -2831,7 +2831,7 @@ public partial class kucoin : ccxt.kucoin
         client.resolve(cache, ((messageHash + ":") + this.safeString(trade, "symbol", "")));
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // /spotMarket/tradeOrders

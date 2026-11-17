@@ -427,11 +427,11 @@ public partial class deepcoin : ccxt.deepcoin
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = (("trades" + "::") + this.safeString(market, "symbol", ""));
-        object trades = await this.watchPublic(market, messageHash, "2", parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPublic(market, messageHash, "2", parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -503,7 +503,7 @@ public partial class deepcoin : ccxt.deepcoin
         client.resolve(strored, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // watchTrades
@@ -612,11 +612,11 @@ public partial class deepcoin : ccxt.deepcoin
         string? interval = this.safeString(timeframes, timeframeVar, timeframeVar);
         string messageHash = (((("ohlcv" + "::") + symbolValue) + "::") + (timeframeVar));
         string suffix = ("_" + interval);
-        object ohlcv = await this.watchPublic(market, messageHash, "11", parameters, suffix);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watchPublic(market, messageHash, "11", parameters, suffix));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
@@ -978,11 +978,11 @@ public partial class deepcoin : ccxt.deepcoin
             symbolResolved = this.symbol(symbol);
             messageHash = (("myTrades" + "::") + this.safeString(this.market(symbol), "symbol", ""));
         }
-        object trades = await this.watchPrivate(messageHash, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
@@ -1067,11 +1067,11 @@ public partial class deepcoin : ccxt.deepcoin
             symbolResolved = this.symbol(symbol);
             messageHash = (("orders" + "::") + this.safeString(this.market(symbol), "symbol", ""));
         }
-        object orders = await this.watchPrivate(messageHash, parameters);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }

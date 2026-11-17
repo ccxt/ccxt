@@ -716,7 +716,7 @@ public partial class p2b : Exchange
         return this.parseTrades(result, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades

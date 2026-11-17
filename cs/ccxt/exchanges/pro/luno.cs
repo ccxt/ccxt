@@ -125,7 +125,7 @@ public partial class luno : ccxt.luno
         client.resolve(stored, messageHash);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // watchTrades (public)
@@ -144,7 +144,7 @@ public partial class luno : ccxt.luno
             symbol = null;
         } else
         {
-            symbol = ((string)getValue(market, "symbol"));
+            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },

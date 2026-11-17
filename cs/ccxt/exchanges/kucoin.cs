@@ -8280,7 +8280,7 @@ public partial class kucoin : Exchange
         return this.parseTrades(tradesList, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("liquidityRole")))
         {

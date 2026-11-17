@@ -592,7 +592,7 @@ public partial class weex : ccxt.weex
         client.resolve(tradesArray, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -611,7 +611,7 @@ public partial class weex : ccxt.weex
             symbol = null;
         } else
         {
-            symbol = ((string)getValue(market, "symbol"));
+            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         bool? isBuyerMaker = this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         string? side = null;

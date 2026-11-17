@@ -1028,7 +1028,7 @@ public partial class bitso : Exchange
         return new List<object> {this.safeInteger(ohlcv, "bucket_start_time"), this.safeNumber(ohlcv, "first_rate"), this.safeNumber(ohlcv, "max_rate"), this.safeNumber(ohlcv, "min_rate"), this.safeNumber(ohlcv, "last_rate"), this.safeNumber(ohlcv, "volume")};
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)

@@ -583,7 +583,7 @@ public partial class polymarket : PredictionExchange
         IList<object> queries = (IList<object>)(this.parseSearchQueries(parameters));
         Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries"});
         int queriesLength = (queries?.Count ?? 0);
-        object rawEvents = new List<object>() {};
+        List<object> rawEvents = new List<object>() {};
         if (queriesLength > 0)
         {
             rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsBySearch(queries, rest));
@@ -593,9 +593,9 @@ public partial class polymarket : PredictionExchange
         }
         List<object> flatMarkets = new List<object>() {};
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
-        for (int rei = 0; rei < getArrayLength(rawEvents); rei++)
+        for (int rei = 0; rei < (rawEvents?.Count ?? 0); rei++)
         {
-            object rawEvent = getValue(rawEvents, rei);
+            object rawEvent = rawEvents[rei];
             List<object> ccxtMarkets = this.parseEventToMarkets(rawEvent);
             for (int mi = 0; mi < (ccxtMarkets?.Count ?? 0); mi++)
             {
@@ -2594,10 +2594,10 @@ public partial class polymarket : PredictionExchange
                 {
                     feeRate = this.safeInteger(this.options, "feeRate", 0);
                 }
-                object feeHex = this.intToBase16(feeRate);
+                string feeHex = this.intToBase16(feeRate);
                 feeHex = (feeHex as String).PadLeft(Convert.ToInt32(24), Convert.ToChar("0"));
                 string addressHex = (builderHex as String).PadLeft(Convert.ToInt32(40), Convert.ToChar("0"));
-                string? packedHex = (feeHex == null ? null : feeHex + addressHex);
+                string packedHex = (feeHex + addressHex);
                 builderBytes32 = ("0x" + packedHex);
             } else
             {
@@ -3018,7 +3018,7 @@ public partial class polymarket : PredictionExchange
             throw new ExchangeError ((this.id + " fetchEvents() missing queries")) ;
         }
         int queriesLength = (queries?.Count ?? 0);
-        object rawEvents = new List<object>() {};
+        List<object> rawEvents = new List<object>() {};
         if (((requestedEventId != null)) || ((requestedSlug != null)))
         {
             // direct lookup by event id or slug via the events endpoint (returns a list)
@@ -3050,9 +3050,9 @@ public partial class polymarket : PredictionExchange
             this.markets = this.createSafeDictionary();
         }
         List<object> result = new List<object>() {};
-        for (int rei = 0; rei < getArrayLength(rawEvents); rei++)
+        for (int rei = 0; rei < (rawEvents?.Count ?? 0); rei++)
         {
-            object rawEvent = getValue(rawEvents, rei);
+            object rawEvent = rawEvents[rei];
             object eventForParsing = rawEvent;
             List<object> ccxtMarkets = this.parseEventToMarkets(eventForParsing);
             int ccxtMarketsLength = (ccxtMarkets?.Count ?? 0);
@@ -3989,11 +3989,11 @@ public partial class polymarket : PredictionExchange
             string? outcomeName = this.safeString(outcomeObj, "outcome", "");
             messageHash = ("orders::" + outcomeName);
         }
-        object orders = await this.subscribeUserChannel(messageHash, parameters);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.subscribeUserChannel(messageHash, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, outcomeResolved, limitResolved));
+            limitResolved = ((Int64?)orders.getLimit(outcomeResolved, limitResolved));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(this.toArray(orders), outcomeResolved, since, limitResolved, true));
     }
@@ -4022,11 +4022,11 @@ public partial class polymarket : PredictionExchange
             string? outcomeName = this.safeString(outcomeObj, "outcome", "");
             messageHash = ("myTrades::" + outcomeName);
         }
-        object trades = await this.subscribeUserChannel(messageHash, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribeUserChannel(messageHash, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, outcomeResolved, limitResolved));
+            limitResolved = ((Int64?)trades.getLimit(outcomeResolved, limitResolved));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(this.toArray(trades), outcomeResolved, since, limitResolved, true));
     }

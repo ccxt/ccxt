@@ -1429,7 +1429,7 @@ public partial class coinsph : Exchange
         return await this.FetchMyTrades(symbol, since, limit, this.extend(request, parameters));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades

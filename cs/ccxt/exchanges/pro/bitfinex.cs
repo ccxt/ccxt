@@ -522,7 +522,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
     }
 
-    public override ccxt.Trade parseWsTrade(object tradeResult, object market = null)
+    public override ccxt.Trade parseWsTrade(object tradeResult, IDictionary<string, object> market = null)
     {
         //
         //    [

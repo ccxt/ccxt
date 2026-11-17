@@ -153,11 +153,11 @@ public partial class bullish : ccxt.bullish
             { "topic", "anonymousTrades" },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object trades = await this.watchPublic(url, messageHash, request, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPublic(url, messageHash, request, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -439,11 +439,11 @@ public partial class bullish : ccxt.bullish
         {
             request["tradingAccountId"] = tradingAccountId;
         }
-        object orders = await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
@@ -572,11 +572,11 @@ public partial class bullish : ccxt.bullish
         {
             request["tradingAccountId"] = tradingAccountId;
         }
-        object trades = await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }

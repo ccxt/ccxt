@@ -852,7 +852,7 @@ public partial class bit2me : Exchange
         return this.parseTrades(reversed, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)

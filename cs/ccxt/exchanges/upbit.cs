@@ -1033,7 +1033,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToTicker(ticker);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades

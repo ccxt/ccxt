@@ -1101,7 +1101,7 @@ public partial class zebpay : Exchange
         return this.parseTrades(trades);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchMyTrades

@@ -192,7 +192,7 @@ public partial class blofin : ccxt.blofin
         }
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         return this.parseTrade(trade, market);
     }

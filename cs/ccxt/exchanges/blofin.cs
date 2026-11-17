@@ -1078,7 +1078,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetch trades (response similar for REST & WS)

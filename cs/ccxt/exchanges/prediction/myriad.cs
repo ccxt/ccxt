@@ -279,7 +279,7 @@ public partial class myriad : PredictionExchange
         List<object> queries = this.parseSearchQueries(parameters);
         Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries"});
         int queriesLength = (queries?.Count ?? 0);
-        object rawMarkets = new List<object>() {};
+        List<object> rawMarkets = new List<object>() {};
         if (queriesLength > 0)
         {
             rawMarkets = ccxt.BaseExchange.FromDictList(await this.FetchRawMarketsBySearch(queries, rest));
@@ -289,9 +289,9 @@ public partial class myriad : PredictionExchange
         }
         List<object> flatMarkets = new List<object>() {};
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawMarkets); i++)
+        for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
-            object raw = getValue(rawMarkets, i);
+            object raw = rawMarkets[i];
             Dictionary<string, object> m = this.parseMyriadMarket(raw);
             flatMarkets.Add(m);
             Dictionary<string, object> ev = this.parseMarketToEvent(raw, m);
@@ -4354,8 +4354,8 @@ public partial class myriad : PredictionExchange
             { "collateral", null },
             { "unrealizedPnl", null },
         });
-        object stored = this.positions;
-        ccxt.pro.BaseCache.appendTo(stored, parsed);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.positions);
+        stored.append(parsed);
         client.resolve(stored, "positions");
     }
 

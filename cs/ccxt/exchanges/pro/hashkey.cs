@@ -616,7 +616,7 @@ public partial class hashkey : ccxt.hashkey
         client.resolve(tradesArray, symbolSpecificMessageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // watchTrades

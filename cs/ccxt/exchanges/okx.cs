@@ -3457,7 +3457,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public fetchTrades
@@ -4371,7 +4371,7 @@ public partial class okx : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarketOrder, (type == "post_only"), paramsReduceOnly);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        object orderParams = this.omit(paramsPostOnly, new List<object>() {"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice"});
+        IDictionary<string, object> orderParams = this.omit(paramsPostOnly, new List<object>() {"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice"});
         bool ioc = (timeInForce == "IOC") || ((type == "ioc"));
         bool fok = (timeInForce == "FOK") || ((type == "fok"));
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
@@ -9833,20 +9833,20 @@ public partial class okx : Exchange
         {
             // end the window after limit periods, so that the earliest entries from since on come back
             // okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
-            object unitPeriod = ((string)period).EndsWith("utc") ? ((period == null) ? null : ((string)period).Substring(0, Math.Max(((string)period).Length - 3, 0))) : period;
-            string? unit = ((unitPeriod == null) ? null : ((string)unitPeriod).Substring(Math.Max(((string)unitPeriod).Length - 1, 0)));
+            string? unitPeriod = ((string)(((string)period).EndsWith("utc") ? ((period == null) ? null : ((string)period).Substring(0, Math.Max(((string)period).Length - 3, 0))) : period));
+            string? unit = ((unitPeriod == null) ? null : unitPeriod.Substring(Math.Max(unitPeriod.Length - 1, 0)));
             object windowDuration = null;
             if (unit == "M")
             {
                 // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
                 // all entries in it are requested and the caller keeps the earliest limit of them
-                Int64? months = this.parseToInt(((unitPeriod == null) ? null : ((string)unitPeriod).Substring(0, Math.Max(((string)unitPeriod).Length - 1, 0))));
+                Int64? months = this.parseToInt(((unitPeriod == null) ? null : unitPeriod.Substring(0, Math.Max(unitPeriod.Length - 1, 0))));
                 int day = 86400000;
                 windowDuration = mathMin((((effectiveLimit * months) * 31) * day), (((maxLimit * months) * 28) * day));
                 request["limit"] = maxLimit;
             } else
             {
-                windowDuration = ((effectiveLimit * this.parseTimeframe(((string)unitPeriod).ToLower())) * 1000);
+                windowDuration = ((effectiveLimit * this.parseTimeframe(unitPeriod.ToLower())) * 1000);
             }
             object windowEnd = this.sum(since, windowDuration);
             end = ((end == null)) ? windowEnd : mathMin(end, windowEnd);

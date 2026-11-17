@@ -706,7 +706,7 @@ public partial class indodax : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(parsedTickers, "symbol", symbols));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeTimestamp(trade, "date");
         return this.safeTrade(new Dictionary<string, object>() {

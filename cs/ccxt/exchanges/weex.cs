@@ -1965,7 +1965,7 @@ public partial class weex : Exchange
         return this.parseTrades(responseList, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades
@@ -2035,7 +2035,7 @@ public partial class weex : Exchange
             isSpot = tradeMarketType == "spot";
         } else
         {
-            isSpot = ((bool?)getValue(market, "spot"));
+            isSpot = ((bool?)(market != null && market.ContainsKey("spot") ? market["spot"] : null));
         }
         Dictionary<string, object> fee = null;
         string? commission = this.safeString(trade, "commission");

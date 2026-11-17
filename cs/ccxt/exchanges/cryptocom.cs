@@ -2063,7 +2063,7 @@ public partial class cryptocom : Exchange
             request["type"] = uppercaseType;
         }
         bool isMarketBuy = ((side == "buy")) && ((uppercaseType == "MARKET") || (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT"));
-        object paramsMarketBuy = parameters;
+        IDictionary<string, object> paramsMarketBuy = parameters;
         if (isMarketBuy)
         {
             // use createmarketBuy logic here
@@ -2097,7 +2097,7 @@ public partial class cryptocom : Exchange
         {
             request["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        object paramsOmitted = this.omit(paramsMarketBuy, new List<object>() {"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarketBuy, new List<object>() {"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
         return this.extend(request, paramsOmitted);
     }
 
@@ -2835,7 +2835,7 @@ public partial class cryptocom : Exchange
         }, marketResolved);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades

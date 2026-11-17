@@ -1162,7 +1162,7 @@ public partial class woo : Exchange
         return this.parseTrades(rows, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public/market_trades
@@ -5240,10 +5240,10 @@ public partial class woo : Exchange
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         for (int i = 0; i < networkKeys.Count; i++)
         {
-            object network = networkKeys[i];
-            if ((network is "ERC20"))
+            string? network = ((string)networkKeys[i]);
+            if (network == "ERC20")
             {
-                return ((string?)((object)(network)));
+                return network;
             }
         }
         // if it was not returned according to above options, then return the first network of currency

@@ -1595,7 +1595,7 @@ public partial class mudrex : Exchange
         return this.parseTrades(rows, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {

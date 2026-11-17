@@ -940,7 +940,7 @@ public partial class polymarket : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {

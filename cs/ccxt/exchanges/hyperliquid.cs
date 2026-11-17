@@ -1361,7 +1361,7 @@ public partial class hyperliquid : Exchange
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         // at this stage, to get tickers data, we use fetchMarkets endpoints
-        object response = new List<object>() {};
+        List<object> response = new List<object>() {};
         string? type = this.safeString(parameters, "type");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "type");
         (bool?, IDictionary<string, object>) hip3OptionparamsHip3Variable = this.handleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false);
@@ -1396,9 +1396,9 @@ public partial class hyperliquid : Exchange
         }
         // same response as under "fetchMarkets"
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object market = getValue(response, i);
+            object market = response[i];
             IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
             ccxt.Ticker ticker = this.parseTicker(info, market);
             string? symbol = ticker.symbol;
@@ -4136,7 +4136,7 @@ public partial class hyperliquid : Exchange
         return this.parseTrades(myFills, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4879,11 +4879,11 @@ public partial class hyperliquid : Exchange
         bool useSendAsset = (transferMethod == "sendAsset");
         if ((transferMethod == null))
         {
-            object isUnified = null;
+            bool? isUnified = null;
             var isUnifiedqueryVariable = await this.isUnifiedEnabled("transfer", masterAddress, false, query);
-            isUnified = isUnifiedqueryVariable[0];
+            isUnified = (bool?)isUnifiedqueryVariable[0];
             query = isUnifiedqueryVariable[1];
-            useSendAsset = ((isUnified is true));
+            useSendAsset = ((isUnified == true));
         }
         if (useSendAsset)
         {

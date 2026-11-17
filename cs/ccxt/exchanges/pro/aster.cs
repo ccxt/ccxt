@@ -838,7 +838,7 @@ public partial class aster : ccxt.aster
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public watchTrades (spot)

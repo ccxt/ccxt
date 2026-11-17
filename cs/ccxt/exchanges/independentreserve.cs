@@ -940,7 +940,7 @@ public partial class independentreserve : Exchange
         return this.parseTrades(data, market, since, limitResolved);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.parse8601(this.safeString(trade, "TradeTimestampUtc"));
         string? id = this.safeString(trade, "TradeGuid");

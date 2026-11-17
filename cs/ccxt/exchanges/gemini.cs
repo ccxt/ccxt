@@ -1463,7 +1463,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public fetchTrades

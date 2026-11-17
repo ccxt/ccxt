@@ -1251,7 +1251,7 @@ public partial class ndax : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)
@@ -2983,13 +2983,13 @@ public partial class ndax : Exchange
         {
             throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template for ") + ((currency.ContainsKey("code") ? currency["code"] : null)))) ;
         }
-        object withdrawTemplate = JsonHelper.Deserialize(template);
-        ((IDictionary<string,object>)withdrawTemplate)["ExternalAddress"] = address;
+        Dictionary<string, object> withdrawTemplate = ((Dictionary<string, object>)JsonHelper.Deserialize(template));
+        withdrawTemplate["ExternalAddress"] = address;
         if ((tagWithdrawTag != null))
         {
-            if (inOp(withdrawTemplate, "Memo"))
+            if (withdrawTemplate.ContainsKey("Memo"))
             {
-                ((IDictionary<string,object>)withdrawTemplate)["Memo"] = tagWithdrawTag;
+                withdrawTemplate["Memo"] = tagWithdrawTag;
             }
         }
         Dictionary<string, object> withdrawPayload = new Dictionary<string, object>() {

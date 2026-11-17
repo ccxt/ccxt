@@ -323,10 +323,10 @@ public partial class binance : ccxt.binance
     {
         streamType ??= "market";
         IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
-        object baseUrl = (wsUrls != null && wsUrls.ContainsKey("stock") ? wsUrls["stock"] : null);
+        string? baseUrl = ((string)((wsUrls != null && wsUrls.ContainsKey("stock") ? wsUrls["stock"] : null)));
         if ((streamType == "combined"))
         {
-            return ((string?)((object)(((string)baseUrl).Replace("/ws", (string)"/stream"))));
+            return ((string?)((object)(baseUrl.Replace("/ws", (string)"/stream"))));
         }
         return ((string?)((object)(baseUrl)));
     }
@@ -1659,7 +1659,7 @@ public partial class binance : ccxt.binance
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public watchTrades

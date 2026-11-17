@@ -1327,7 +1327,7 @@ public partial class toobit : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades
@@ -3025,8 +3025,8 @@ public partial class toobit : Exchange
             results.Add(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
         }
         List<object> sorted = this.sortBy(results, "timestamp");
-        object currencyCode = ((currency != null)) ? (currency.ContainsKey("code") ? currency["code"] : null) : null;
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,((string)currencyCode), since, limit));
+        string? currencyCode = ((string)(((currency != null)) ? (currency.ContainsKey("code") ? currency["code"] : null) : null));
+        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,currencyCode, since, limit));
     }
 
     public virtual object parseTransactionWithType(object transaction, IDictionary<string, object>? currency = null, string? transactType = null)

@@ -364,7 +364,7 @@ public partial class paymium : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeTimestamp(trade, "created_at_int");
         string? id = this.safeString(trade, "uuid");

@@ -197,7 +197,7 @@ public partial class bit2me : ccxt.bit2me
         client.resolve(tradesArray, ("trades:" + symbol));
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public-trades

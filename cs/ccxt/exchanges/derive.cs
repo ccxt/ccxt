@@ -1860,7 +1860,7 @@ public partial class derive : Exchange
         return this.parseTrades(data, market, since, limitResolved);
     }
 
-    public override List<ccxt.Trade> parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public override List<ccxt.Trade> parseTrades(object trades, IDictionary<string, object> market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
@@ -1978,7 +1978,7 @@ public partial class derive : Exchange
         return new List<object> {this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open_price"), this.safeNumber(ohlcv, "high_price"), this.safeNumber(ohlcv, "low_price"), this.safeNumber(ohlcv, "close_price"), this.safeNumber(ohlcv, "volume_contracts")};
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     [

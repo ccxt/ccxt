@@ -105,13 +105,13 @@ public partial class apex : ccxt.apex
             string messageHash = ("trade:" + symbol);
             messageHashes.Add(messageHash);
         }
-        object trades = await this.watchTopics(url, messageHashes, topics, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchTopics(url, messageHashes, topics, parameters));
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -162,7 +162,7 @@ public partial class apex : ccxt.apex
         client.resolve(stored, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public
@@ -689,11 +689,11 @@ public partial class apex : ccxt.apex
         }
         string? url = this.getWsPrivateUrl();
         await this.authenticate(url);
-        object trades = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {"myTrades"}, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {"myTrades"}, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
@@ -777,11 +777,11 @@ public partial class apex : ccxt.apex
         string? url = this.getWsPrivateUrl();
         await this.authenticate(url);
         List<object> topics = new List<object>() {"orders"};
-        object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }

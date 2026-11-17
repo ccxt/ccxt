@@ -360,13 +360,13 @@ public partial class grvt : ccxt.grvt
             { "stream", "v1.trade" },
             { "selectors", rawHashes },
         };
-        object trades = await this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes));
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -412,7 +412,7 @@ public partial class grvt : ccxt.grvt
         client.resolve(stored, ("trade::" + symbol));
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         // same as REST api
         return this.parseTrade(trade, market);
@@ -773,11 +773,11 @@ public partial class grvt : ccxt.grvt
             { "stream", "v1.fill" },
             { "selectors", rawHashes },
         };
-        object trades = await this.subscribeMultiple(messageHashes, this.extend(request, parameters), messageHashes, false);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribeMultiple(messageHashes, this.extend(request, parameters), messageHashes, false));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -970,11 +970,11 @@ public partial class grvt : ccxt.grvt
             { "stream", "v1.order" },
             { "selectors", rawHashes },
         };
-        object orders = await this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limitResolved, true));
     }

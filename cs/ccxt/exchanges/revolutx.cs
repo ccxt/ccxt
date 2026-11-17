@@ -836,7 +836,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         string? id = this.safeString(trade, "id");
         string? tradeSymbol = this.safeString(trade, "symbol");

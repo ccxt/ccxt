@@ -1429,7 +1429,7 @@ public partial class nado : ccxt.nado
         return this.safeInteger(message, key);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {

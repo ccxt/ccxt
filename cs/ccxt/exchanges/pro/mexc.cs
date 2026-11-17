@@ -1311,7 +1311,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(trades, symbolSpecificMessageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public trade (protobuf)

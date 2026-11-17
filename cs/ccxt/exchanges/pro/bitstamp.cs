@@ -305,7 +305,7 @@ public partial class bitstamp : ccxt.bitstamp
         return await this.unWatchChannel(channel, subHash, "trades", new List<object>() {symbolValue}, parameters);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -487,11 +487,11 @@ public partial class bitstamp : ccxt.bitstamp
             { "type", channel },
             { "params", parameters },
         };
-        object orders = await this.subscribePrivate(subscription, ((channel + "_") + this.safeString(market, "id", "")), parameters);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.subscribePrivate(subscription, ((channel + "_") + this.safeString(market, "id", "")), parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolValue, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
@@ -560,11 +560,11 @@ public partial class bitstamp : ccxt.bitstamp
             { "type", channel },
             { "params", parameters },
         };
-        object trades = await this.subscribePrivate(subscription, messageHash, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribePrivate(subscription, messageHash, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolValue, since, limitResolved, true));
     }

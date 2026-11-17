@@ -1404,7 +1404,7 @@ public partial class coinbase : Exchange
         };
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchMyBuys, fetchMySells
@@ -3516,7 +3516,7 @@ public partial class coinbase : Exchange
                 { "amount", amount },
             }));
         }
-        object paramsMarketBuy = null;
+        Dictionary<string, object> paramsMarketBuy = null;
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         double? takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
@@ -3684,7 +3684,7 @@ public partial class coinbase : Exchange
                 };
             }
         }
-        object paramsBase = ((paramsMarketBuy == null)) ? parameters : paramsMarketBuy;
+        IDictionary<string, object> paramsBase = ((paramsMarketBuy == null)) ? parameters : paramsMarketBuy;
         string? marginMode = this.safeString(paramsBase, "marginMode");
         if ((marginMode != null))
         {
@@ -3696,7 +3696,7 @@ public partial class coinbase : Exchange
                 request["margin_type"] = "CROSS";
             }
         }
-        object paramsOmitted = this.omit(paramsBase, new List<object>() {"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsBase, new List<object>() {"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"});
         bool? preview = this.safeBool2(paramsOmitted, "preview", "test", false);
         Dictionary<string, object> response = null;
         if ((preview == true))

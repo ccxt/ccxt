@@ -768,7 +768,7 @@ public partial class cex : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public fetchTrades

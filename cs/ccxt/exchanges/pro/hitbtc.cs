@@ -856,7 +856,7 @@ public partial class hitbtc : ccxt.hitbtc
         return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbol, since, limit))));
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //    {

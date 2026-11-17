@@ -1115,7 +1115,7 @@ public partial class latoken : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)
@@ -1177,7 +1177,7 @@ public partial class latoken : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? symbol = null;
-        object marketResolved = market;
+        IDictionary<string, object> marketResolved = market;
         if (((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);

@@ -1235,7 +1235,7 @@ public partial class onetrading : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcv, market,timeframeVar, since, limitResolved));
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)

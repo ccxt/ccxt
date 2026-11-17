@@ -2609,7 +2609,7 @@ public partial class kalshi : PredictionExchange
             this.markets = this.createSafeDictionary();
         }
         string? eventId = this.safeString2(paramsOmitted, "eventId", "slug");
-        object rawEvents = new List<object>() {};
+        List<object> rawEvents = new List<object>() {};
         if (queriesLength > 0)
         {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
@@ -2630,11 +2630,11 @@ public partial class kalshi : PredictionExchange
             }
             rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchSeriesEvents(seriesTickers, status,ccxt.BaseExchange.ToInt64ArgRequired(fetchCap), rest));
         }
-        int rawEventsLength = getArrayLength(rawEvents);
+        int rawEventsLength = (rawEvents?.Count ?? 0);
         List<object> result = new List<object>() {};
         for (int di = 0; di < rawEventsLength; di++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawEvents, di));
+            Dictionary<string, object> parsedEvent = this.parseEvent((rawEvents != null && di < rawEvents.Count ? rawEvents[di] : null));
             result.Add(parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
             object parsedMarkets = (parsedEvent != null && parsedEvent.ContainsKey("markets") ? parsedEvent["markets"] : null);

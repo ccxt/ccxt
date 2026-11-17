@@ -543,7 +543,7 @@ public partial class lighter : ccxt.lighter
         return await this.unWatchTickers(symbols, parameters);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {

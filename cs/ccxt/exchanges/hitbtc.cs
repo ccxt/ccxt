@@ -1504,7 +1504,7 @@ public partial class hitbtc : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // createOrder (market)

@@ -2005,7 +2005,7 @@ public partial class mexc : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         string? id = null;
         Int64? timestamp = null;

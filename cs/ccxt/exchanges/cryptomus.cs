@@ -696,7 +696,7 @@ public partial class cryptomus : Exchange
         return this.parseTrades(dataList, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {

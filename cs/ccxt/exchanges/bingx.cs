@@ -1894,7 +1894,7 @@ public partial class bingx : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // spot fetchTrades

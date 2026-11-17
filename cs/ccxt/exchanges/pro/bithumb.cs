@@ -725,7 +725,7 @@ public partial class bithumb : ccxt.bithumb
         }
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // generation 1

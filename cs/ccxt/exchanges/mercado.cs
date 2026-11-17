@@ -520,7 +520,7 @@ public partial class mercado : Exchange
         return this.parseTicker(ticker, market);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);

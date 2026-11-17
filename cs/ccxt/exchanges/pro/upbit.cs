@@ -609,7 +609,7 @@ public partial class upbit : ccxt.upbit
         });
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         // see: parseWsOrder
         string? side = this.safeStringLower(trade, "ask_bid");

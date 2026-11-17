@@ -2216,8 +2216,8 @@ public partial class paradex : ccxt.paradex
         // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
         // ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
-        object frameHex = this.binaryToBase16(message);
-        Int64? frameLength = this.parseToInt(((double)((string)frameHex).Length / 2));
+        string frameHex = this.binaryToBase16(message);
+        Int64? frameLength = this.parseToInt(((double)frameHex.Length / 2));
         if (((frameLength == null || frameLength < 8)))
         {
             return null;

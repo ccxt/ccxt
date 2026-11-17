@@ -1067,7 +1067,7 @@ public partial class apex : Exchange
         return this.parseTrades(trades, market, since, limitResolved);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // [

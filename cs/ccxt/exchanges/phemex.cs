@@ -2040,7 +2040,7 @@ public partial class phemex : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public) spot & contract
@@ -5002,16 +5002,16 @@ public partial class phemex : Exchange
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
-            { "markPrice", this.safeNumber(contract, "markPriceRp", markEp) },
-            { "indexPrice", this.safeNumber(contract, "indexPriceRp", indexEp) },
+            { "markPrice", this.safeNumber(contract, "markPriceRp", this.parseNumber(markEp)) },
+            { "indexPrice", this.safeNumber(contract, "indexPriceRp", this.parseNumber(indexEp)) },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "fundingRate", this.safeNumber(contract, "fundingRateRr", fundingRateEr) },
+            { "fundingRate", this.safeNumber(contract, "fundingRateRr", this.parseNumber(fundingRateEr)) },
             { "fundingTimestamp", null },
             { "fundingDatetime", null },
-            { "nextFundingRate", this.safeNumber(contract, "predFundingRateRr", nextFundingRateEr) },
+            { "nextFundingRate", this.safeNumber(contract, "predFundingRateRr", this.parseNumber(nextFundingRateEr)) },
             { "nextFundingTimestamp", null },
             { "nextFundingDatetime", null },
             { "previousFundingRate", null },
@@ -5675,7 +5675,7 @@ public partial class phemex : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "currency", code },
-            { "amount", amountTransfered },
+            { "amount", this.parseNumber(amountTransfered) },
             { "fromAccount", fromId },
             { "toAccount", toId },
             { "status", this.parseTransferStatus(status) },
@@ -5824,7 +5824,7 @@ public partial class phemex : Exchange
         (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
-        object networkId = null;
+        string? networkId = null;
         if ((networkCode != null))
         {
             networkId = this.networkCodeToId(networkCode, code);
@@ -5834,7 +5834,7 @@ public partial class phemex : Exchange
         {
             if (!(this.inArray(code, stableCoins)))
             {
-                networkId = (currency.ContainsKey("id") ? currency["id"] : null);
+                networkId = ((string)(currency.ContainsKey("id") ? currency["id"] : null));
             } else
             {
                 throw new ArgumentsRequired ((this.id + " withdraw () requires an extra argument params[\"network\"]")) ;
@@ -5844,7 +5844,7 @@ public partial class phemex : Exchange
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", address },
             { "amount", amount },
-            { "chainName", ((string)networkId).ToUpper() },
+            { "chainName", networkId.ToUpper() },
         };
         if ((tagWithdrawTag != null))
         {

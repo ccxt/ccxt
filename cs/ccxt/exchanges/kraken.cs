@@ -1570,7 +1570,7 @@ public partial class kraken : Exchange
         return ccxt.BaseExchange.ToLedgerEntry(entry);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades (public)
@@ -1645,7 +1645,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> fee = null;
         string? symbol = null;
         bool isOrderTrade = (!((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) && (!(trade is string)) && ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("ordertxid")));
-        object marketResolved = market;
+        IDictionary<string, object> marketResolved = market;
         if (isOrderTrade)
         {
             marketResolved = this.resolveMarketByAltnameOrId(this.safeString(trade, "pair"), market);
@@ -2036,21 +2036,21 @@ public partial class kraken : Exchange
         return this.parseOrders(this.safeList(result, "orders"));
     }
 
-    public virtual object findMarketByAltnameOrId(object id)
+    public virtual IDictionary<string, object> findMarketByAltnameOrId(object id)
     {
         IDictionary<string, object> marketsByAltname = this.safeDict(this.options, "marketsByAltname", new Dictionary<string, object>() {});
         if ((marketsByAltname != null && id is string inOpKey0 && marketsByAltname.ContainsKey(inOpKey0)))
         {
-            return (marketsByAltname != null && id != null && marketsByAltname.ContainsKey((string)id) ? marketsByAltname[(string)id] : null);
+            return this.safeDict(marketsByAltname, id);
         } else
         {
             return this.safeMarket(id);
         }
     }
 
-    public virtual object resolveMarketByAltnameOrId(string? marketId, object market = null)
+    public virtual IDictionary<string, object> resolveMarketByAltnameOrId(string? marketId, IDictionary<string, object> market = null)
     {
-        object foundMarket = this.findMarketByAltnameOrId(marketId);
+        IDictionary<string, object> foundMarket = this.findMarketByAltnameOrId(marketId);
         if ((foundMarket != null))
         {
             return foundMarket;
@@ -2063,11 +2063,11 @@ public partial class kraken : Exchange
         return market;
     }
 
-    public virtual object getDelistedMarketById(object id)
+    public virtual IDictionary<string, object> getDelistedMarketById(object id)
     {
         if ((id == null))
         {
-            return id;
+            return null;
         }
         IDictionary<string, object> market = this.safeDict((this.options != null && this.options.ContainsKey("delistedMarketsById") ? this.options["delistedMarketsById"] : null), id);
         if ((market != null))
@@ -2287,7 +2287,7 @@ public partial class kraken : Exchange
         }
         string? rawType = this.safeString(description, "ordertype", descriptionType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, "pair", marketId);
-        object marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
+        IDictionary<string, object> marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         string? symbol = null;
         Int64? timestamp = this.safeTimestamp(orderOmitted, "opentm");
         string? orderAmount = this.safeString(orderOmitted, "vol");

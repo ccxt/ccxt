@@ -1514,7 +1514,7 @@ public partial class digifinex : Exchange
         }, marketResolved);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // spot: fetchTrades
