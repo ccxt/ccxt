@@ -105,7 +105,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         } else
         {
             String schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
-            return (String) (((url + "?sbeSchemaId=1&sbeSchemaVersion=") + schemaVersion));
+            return ((url + "?sbeSchemaId=1&sbeSchemaVersion=") + schemaVersion);
         }
     }
 
@@ -435,8 +435,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 {
                     continue;
                 }
-                Map<String, Object> unsubscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubHash, (Object) null);
-                List<Object> pendingHashes = (List<Object>) this.safeList(unsubscription, "subscribeHashes", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> unsubscription = this.safeDict(client.subscriptions, unsubHash, null);
+                List<Object> pendingHashes = this.safeList(unsubscription, "subscribeHashes", new ArrayList<Object>(Arrays.asList()));
                 Boolean pending = false;
                 for (var j = 0; j < pendingHashes.size(); j++)
                 {
@@ -467,7 +467,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> unsubscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubHash, new HashMap<String, Object>() {{}});
+            Map<String, Object> unsubscription = this.safeDict(client.subscriptions, unsubHash, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.safeString(unsubscription, "id"), requestId))
             {
                 var error = new RequestTimeout((((this.id + " ") + unsubHash) + " was not acknowledged"));
@@ -550,9 +550,9 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
         String requestId = this.safeString(message, "id");
-        Map<String, Object> authSubscription = (Map<String, Object>) this.safeDict(client.subscriptions, "authenticated", (Object) null);
+        Map<String, Object> authSubscription = this.safeDict(client.subscriptions, "authenticated", null);
         String authRequestId = this.safeString(authSubscription, "id");
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
+        Map<String, Object> result = this.safeDict(message, "result", null);
         Boolean isAuth = ((!java.util.Objects.equals(requestId, null)) && (java.util.Objects.equals(requestId, authRequestId))) || (!java.util.Objects.equals(this.safeString(result, "node_id"), null));
         if (Boolean.TRUE.equals(isAuth))
         {
@@ -596,7 +596,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 continue;
             }
-            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubHash, new HashMap<String, Object>() {{}});
+            Map<String, Object> subscription = this.safeDict(client.subscriptions, unsubHash, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.safeString(subscription, "id"), requestId))
             {
                 this.cleanUnsubscribed(client, unsubHash, subscription);
@@ -606,7 +606,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     public void cleanUnsubscribed(Client client, String unsubHash, Map<String, Object> subscription)
     {
-        List<Object> subscribeHashes = (List<Object>) this.safeList(subscription, "subscribeHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subscribeHashes = this.safeList(subscription, "subscribeHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < subscribeHashes.size(); j++)
         {
             Object subscribeHash = ((String)(subscribeHashes == null || j < 0 || j >= subscribeHashes.size() ? null : subscribeHashes.get(j)));
@@ -622,7 +622,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
         }
         Boolean prefix = (Boolean) this.safeBool(subscription, "prefix", false);
-        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < subMessageHashes.size(); j++)
         {
             this.cleanUnsubscription(client, (String) ((subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j))), (String) (unsubHash), prefix);
@@ -709,7 +709,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String url = this.getWsUrl();
             // handleTrade resolves the channel of each market
             List<Object> trades = (List<Object>) (this.subscribeChannels(url, channels, channels, parameters)).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(trades, 0, null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -863,8 +863,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
         String symbol = (String) parsedTrade.get("symbol");
         String messageHash = this.safeString(parameters, "channel");
@@ -881,7 +881,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // one cache per market, kept in the options next to the request id counter: this.liquidations
             // is typed as a single cache in some languages and initialized as a map in others
             Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation(data, (Map<String, Object>) null);
-            Map<String, Object> caches = (Map<String, Object>) this.safeDict(this.options, "liquidationsBySymbol", new HashMap<String, Object>() {{}});
+            Map<String, Object> caches = this.safeDict(this.options, "liquidationsBySymbol", new HashMap<String, Object>() {{}});
             Object liquidations = this.safeValue(caches, symbol);
             if (java.util.Objects.equals(liquidations, null))
             {
@@ -1123,8 +1123,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
@@ -1139,10 +1139,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var k = 0; k < levelKeys.size(); k++)
         {
             Boolean isDelete = (java.util.Objects.equals((levelKeys == null || k < 0 || k >= levelKeys.size() ? null : levelKeys.get(k)), "deletes"));
-            List<Object> levels = (List<Object>) this.safeList(data, (levelKeys == null || k < 0 || k >= levelKeys.size() ? null : levelKeys.get(k)), new ArrayList<Object>(Arrays.asList()));
+            List<Object> levels = this.safeList(data, (levelKeys == null || k < 0 || k >= levelKeys.size() ? null : levelKeys.get(k)), new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < levels.size(); i++)
             {
-                Map<String, Object> level = (Map<String, Object>) this.safeDict(levels, i, (Object) null);
+                Map<String, Object> level = this.safeDict(levels, i, null);
                 String price = this.safeString(level, "price");
                 String size = ((Boolean.TRUE.equals(isDelete))) ? "0" : this.safeString(level, "size");
                 if (java.util.Objects.equals(this.safeString(level, "side"), "BUY"))
@@ -1396,14 +1396,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String scopedHash = (channel + ":scoped");
             String url = this.getWsUrl();
             Client client = this.client(url);
-            Object marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Object symbol = (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i));
-                Object marketId = ((String)((Map<String, Object>)this.market(symbol)).get("id"));
-                ((List<Object>)marketIds).add(marketId);
+                String marketId = ((String)((Map<String, Object>)this.market(symbol)).get("id"));
+                marketIds.add(marketId);
                 subscribeHashes.add(((channel + ".") + marketId));
                 ((List<Object>)subMessageHashes).add(((channel + ".") + symbol));
             }
@@ -1497,17 +1497,17 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // the all-markets one is thousands of frames a second, mostly options, decoded to be dropped
             String scopedHash = (channel + ":scoped");
             List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
-            List<Object> missing = new ArrayList<Object>(Arrays.asList());
+            List<String> missing = new ArrayList<String>(Arrays.asList());
             List<Object> missingHashes = new ArrayList<Object>(Arrays.asList());
             // messageHashes[i] is the hash the summaries of symbols[i] resolve
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object marketId = ((String)((Map<String, Object>)this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))).get("id"));
+                String marketId = ((String)((Map<String, Object>)this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))).get("id"));
                 String subscribeHash = ((channel + ".") + marketId);
                 subscribeHashes.add(subscribeHash);
                 if (!(client.subscriptions.containsKey(subscribeHash)))
                 {
-                    ((List<Object>)missing).add(marketId);
+                    missing.add(marketId);
                     ((List<Object>)missingHashes).add((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)));
                 }
             }
@@ -1702,8 +1702,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> bidAsk = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
         String symbol = (String) bidAsk.get("symbol");
         this.bidsasks.put(symbol, bidAsk);
@@ -1804,8 +1804,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
         String symbol = this.safeString(parsed, "symbol");
         if (java.util.Objects.equals(this.orders, null))
@@ -1895,8 +1895,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> trade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
         String symbol = this.safeString(trade, "symbol");
         if (java.util.Objects.equals(this.myTrades, null))
@@ -1995,8 +1995,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -2087,8 +2087,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while
@@ -2165,8 +2165,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
@@ -2315,8 +2315,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> fundingRate = this.parseFundingRateWs(data, (Map<String, Object>) null);
         String symbol = this.safeString(fundingRate, "symbol");
         this.fundingRates.put(symbol, fundingRate);
@@ -2472,8 +2472,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         String digits = "0123456789abcdef";
-        Object result = 0;
-        Object factor = 1;
+        Long result = 0L;
+        Long factor = 1L;
         Long count = this.parseToInt(length);
         Long start = this.parseToInt(offset);
         Long position = (Long) (start * 2L);
@@ -2484,8 +2484,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Long next = (Long) (position + 2L);
             Integer high = Helpers.getIndexOf(digits, (frameHex == null ? null : frameHex.substring((int) Math.min(Math.min(Math.max(position < 0 ? frameHex.length() + position : position, 0), frameHex.length()), Math.min(middle < 0 ? frameHex.length() + middle : middle, frameHex.length())), (int) Math.min(middle < 0 ? frameHex.length() + middle : middle, frameHex.length()))));
             Integer low = Helpers.getIndexOf(digits, (frameHex == null ? null : frameHex.substring((int) Math.min(Math.min(Math.max(middle < 0 ? frameHex.length() + middle : middle, 0), frameHex.length()), Math.min(next < 0 ? frameHex.length() + next : next, frameHex.length())), (int) Math.min(next < 0 ? frameHex.length() + next : next, frameHex.length()))));
-            result = this.parseToInt(this.sum(result, Helpers.multiply((((long) high) * 16L), factor), Helpers.multiply(low, factor)));
-            factor = this.parseToInt(Helpers.multiply(factor, 256));
+            result = this.parseToInt(this.sum(result, ((((long) high) * 16L) * factor), (((long) low) * factor)));
+            factor = this.parseToInt((factor * 256L));
             position = this.parseToInt(next);
         }
         // an exact integer below 2^32, parseToInt keeps it and types the return as an integer
@@ -2702,7 +2702,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             Long entryLength = this.parseToInt(this.sbeReadUint((String) (frameHex), position, 2));
             Long numInGroup = this.parseToInt(this.sbeReadUint((String) (frameHex), (position + 2L), 2));
-            position = this.parseToInt((position + 4L));
+            position = (Long) (position + 4L);
             if ((((entryLength == null || entryLength < 16))) || (((frameEnd == null || this.parseToInt(this.sum(position, (numInGroup * entryLength))) > frameEnd))))
             {
                 return null;
@@ -3109,7 +3109,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         "usOut": 1718179125962495
         //     }
         //
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", (Object) null);
+        Map<String, Object> error = this.safeDict(message, "error", null);
         if (java.util.Objects.equals(error, null))
         {
             return true;
@@ -3140,13 +3140,13 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 for (var i = 0; i < subscribeHashes.size(); i++)
                 {
                     String subscribeHash = (String) (subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i));
-                    Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, subscribeHash, (Object) null);
+                    Map<String, Object> subscription = this.safeDict(client.subscriptions, subscribeHash, null);
                     if (java.util.Objects.equals(this.safeString(subscription, "id"), requestId))
                     {
                         handled = true;
                         client.subscriptions.remove(subscribeHash);
                         // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
-                        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList(subscribeHash)));
+                        List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList(subscribeHash)));
                         for (var j = 0; j < messageHashes.size(); j++)
                         {
                             client.reject(e, (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j)));
@@ -3217,13 +3217,13 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
+        Map<String, Object> result = this.safeDict(message, "result", null);
         if (!java.util.Objects.equals(result, null))
         {
             this.handleRequestReply(client, message);
             return;
         }
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
+        Map<String, Object> data = this.safeDict(message, "params", null);
         if (!java.util.Objects.equals(data, null))
         {
             String channel = this.safeString(data, "channel");

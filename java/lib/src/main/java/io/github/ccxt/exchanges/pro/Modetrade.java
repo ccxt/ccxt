@@ -95,7 +95,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     public Long requestId(String url)
     {
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
@@ -107,8 +107,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
             String wsUrl = this.safeString(wsUrls, "public");
             if (java.util.Objects.equals(wsUrl, null))
             {
@@ -187,7 +187,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
@@ -292,7 +292,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -360,7 +360,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         String topic = this.safeString(message, "topic");
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
@@ -426,7 +426,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         String topic = this.safeString(message, "topic");
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
@@ -528,7 +528,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -541,14 +541,14 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open", (Object) null), this.safeNumber(data, "high", (Object) null), this.safeNumber(data, "low", (Object) null), this.safeNumber(data, "close", (Object) null), this.safeNumber(data, "volume", (Object) null)));
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        io.github.ccxt.ws.ArrayCache ohlcvCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+        io.github.ccxt.ws.ArrayCache ohlcvCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         ohlcvCache.append(parsed);
         client.resolve(ohlcvCache, topic);
     }
@@ -608,7 +608,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //
         String topic = this.safeString(message, "topic");
         Long timestamp = this.safeInteger(message, "ts");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
@@ -741,8 +741,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
             String wsUrl = this.safeString(wsUrls, "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
@@ -786,8 +786,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
             String wsUrl = this.safeString(wsUrls, "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
@@ -810,8 +810,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
             String wsUrl = this.safeString(wsUrls, "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
@@ -1092,7 +1092,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         if (Boolean.TRUE.equals(dataIsArray))
         {
             // algoexecutionreport
-            List<Object> dataList = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> dataList = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Integer dataListLength = dataList.size();
             for (var i = 0; (dataListLength != null && i < dataListLength); i++)
             {
@@ -1131,8 +1131,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
-            Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId, (Object) null));
+            Map<String, Object> orders = this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId, null));
             if (!java.util.Objects.equals(order, null))
             {
                 Object fee = this.safeValue(order, "fee");
@@ -1140,7 +1140,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 {
                     parsed.put("fee", fee);
                 }
-                List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
+                List<Object> fees = this.safeList(order, "fees", null);
                 if (!java.util.Objects.equals(fees, null))
                 {
                     parsed.put("fees", fees);
@@ -1236,8 +1236,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 messageHashes.add("positions");
             }
-            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
             String wsUrl = this.safeString(wsUrls, "private");
             if (java.util.Objects.equals(wsUrl, null))
             {
@@ -1347,8 +1347,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //        }
         //    }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        List<Object> rawPositions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1357,7 +1357,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawPositions.size(); i++)
         {
-            Map<String, Object> rawPosition = (Map<String, Object>) this.safeDict(rawPositions, i, (Object) null);
+            Map<String, Object> rawPosition = this.safeDict(rawPositions, i, null);
             String marketId = this.safeString(rawPosition, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
@@ -1504,8 +1504,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> balances = this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(balances.keySet());
         Long ts = this.safeInteger(message, "ts");
         this.balance.put("info", data);
@@ -1514,7 +1514,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key, (Object) null);
+            Map<String, Object> value = this.safeDict(balances, key, null);
             String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             String total = this.safeString(value, "holding");

@@ -132,8 +132,8 @@ public Map<String, Object> describe()
         // venue-specific scope params an exchange declares in options['eventScopeParams'],
         // e.g. kalshi's category / series_ticker
         String query = this.safeString(parameters, "query");
-        List<Object> queries = (List<Object>) this.safeList(parameters, "queries", new ArrayList<Object>(Arrays.asList()));
-        List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
+        List<Object> queries = this.safeList(parameters, "queries", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
         String eventId = this.safeString(parameters, "eventId");
         String slug = this.safeString(parameters, "slug");
         Integer queriesLength = queries.size();
@@ -142,7 +142,7 @@ public Map<String, Object> describe()
         {
             return null;
         }
-        List<Object> extraScopeParams = (List<Object>) this.safeList(this.options, "eventScopeParams", new ArrayList<Object>(Arrays.asList()));
+        List<Object> extraScopeParams = this.safeList(this.options, "eventScopeParams", new ArrayList<Object>(Arrays.asList()));
         Integer extraScopeParamsLength = extraScopeParams.size();
         String extraNames = "";
         for (var i = 0; (extraScopeParamsLength != null && i < extraScopeParamsLength); i++)
@@ -172,7 +172,7 @@ public Map<String, Object> describe()
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(result, i, (Object) null);
+                Map<String, Object> eventVar = this.safeDict(result, i, null);
                 Boolean idMatch = (!java.util.Objects.equals(eventId, null)) && (java.util.Objects.equals(this.safeString(eventVar, "id"), eventId));
                 Boolean slugMatch = (!java.util.Objects.equals(slug, null)) && (java.util.Objects.equals(this.safeString(eventVar, "slug"), slug));
                 if (Boolean.TRUE.equals(idMatch) || Boolean.TRUE.equals(slugMatch))
@@ -183,7 +183,7 @@ public Map<String, Object> describe()
             result = filtered;
         }
         result = this.filterEventsByStatus(result, this.safeString(parameters, "status"));
-        result = this.filterEventsByTags(result, this.safeList(parameters, "tags", (Object) null));
+        result = this.filterEventsByTags(result, this.safeList(parameters, "tags", null));
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         Integer queriesLength = 0;
@@ -248,7 +248,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
+            Map<String, Object> eventVar = this.safeDict(events, i, null);
             Boolean isActive = (Boolean) this.safeBool(eventVar, "active", (Object) null);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((java.util.Objects.equals(isActive, null)) || (java.util.Objects.equals(isActive, wantActive)))
@@ -277,7 +277,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
+            Map<String, Object> eventVar = this.safeDict(events, i, null);
             String title = this.safeStringLower(eventVar, "title", "");
             String description = this.safeStringLower(eventVar, "description", "");
             Boolean matched = false;
@@ -368,8 +368,8 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
-            List<Object> eventTags = (List<Object>) this.safeList(eventVar, "tags", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> eventVar = this.safeDict(events, i, null);
+            List<Object> eventTags = this.safeList(eventVar, "tags", new ArrayList<Object>(Arrays.asList()));
             Boolean matched = false;
             for (var ti = 0; ti < eventTags.size(); ti++)
             {
@@ -436,7 +436,7 @@ public Map<String, Object> describe()
         }
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
+            Map<String, Object> eventVar = this.safeDict(events, i, null);
             String id = this.safeString(eventVar, "id");
             String slug = this.safeString(eventVar, "slug");
             String handle = this.safeString(eventVar, "event");
@@ -517,11 +517,11 @@ public Map<String, Object> describe()
         // through fetchEvents; this never fetches
         if ((!java.util.Objects.equals(this.events, null)) && (((Map<?, ?>)this.events).containsKey(eventIdOrSlug)))
         {
-            return this.safeDict(this.events, eventIdOrSlug, (Object) null);
+            return this.safeDict(this.events, eventIdOrSlug, null);
         }
         if ((!java.util.Objects.equals(this.events_by_slug, null)) && (((Map<?, ?>)this.events_by_slug).containsKey(eventIdOrSlug)))
         {
-            return this.safeDict(this.events_by_slug, eventIdOrSlug, (Object) null);
+            return this.safeDict(this.events_by_slug, eventIdOrSlug, null);
         }
         throw new BadSymbol((((this.id + " has no cached event ") + eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
@@ -780,7 +780,7 @@ public Map<String, Object> describe()
         {
             this.outcomes_by_id = new HashMap<String, Object>() {{}};
         }
-        List<Object> outcomesList = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> outcomesList = this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < outcomesList.size(); j++)
         {
             Object oc = (outcomesList == null || j < 0 || j >= outcomesList.size() ? null : outcomesList.get(j));
@@ -797,19 +797,19 @@ public Map<String, Object> describe()
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                Map<String, Object> existing = (Map<String, Object>) this.safeDict(this.outcomes, ocSymbol, (Object) null);
+                Map<String, Object> existing = this.safeDict(this.outcomes, ocSymbol, null);
                 if (!java.util.Objects.equals(existing, null))
                 {
                     String existingId = this.safeString(existing, "outcomeId");
                     if ((!java.util.Objects.equals(existingId, null)) && (!java.util.Objects.equals(ocId, null)) && (!java.util.Objects.equals(existingId, ocId)))
                     {
                         Integer idLen = ocId.length();
-                        Object suffix = ocId;
+                        String suffix = ocId;
                         if ((idLen != null && idLen > 6))
                         {
                             suffix = (ocId == null ? null : ocId.substring((int) Math.min(Math.max(((((long) idLen) - 6L)) < 0 ? ocId.length() + ((((long) idLen) - 6L)) : ((((long) idLen) - 6L)), 0), ocId.length())));
                         }
-                        ocSymbol = ((ocSymbol + "_") + ((String)suffix).toUpperCase());
+                        ocSymbol = ((ocSymbol + "_") + suffix.toUpperCase());
                     }
                 }
                 Helpers.addElementToObject(oc, "outcome", ocSymbol);
@@ -855,7 +855,7 @@ public Map<String, Object> describe()
         {
             this.markets = this.createSafeDictionary();
         }
-        List<Object> markets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> markets = this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
         Integer marketsLength = markets.size();
         for (var i = 0; (marketsLength != null && i < marketsLength); i++)
         {
@@ -1596,7 +1596,7 @@ public Map<String, Object> describe()
         String status = this.safeString(outcomeOrder, "status");
         Long lastTradeTimestamp = this.safeInteger(outcomeOrder, "lastTradeTimestamp");
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
-        List<Object> rawTrades = (List<Object>) this.safeList(outcomeOrder, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = this.safeList(outcomeOrder, "trades", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parsePredictionTrades(rawTrades, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         Integer tradesLength = trades.size();
         List<Object> feeList = new ArrayList<Object>(Arrays.asList());
@@ -1638,7 +1638,7 @@ public Map<String, Object> describe()
                         lastTradeTimestamp = tradeTimestamp;
                     }
                 }
-                Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", (Object) null);
+                Map<String, Object> tradeFee = this.safeDict(trade, "fee", null);
                 if (!java.util.Objects.equals(tradeFee, null))
                 {
                     ((List<Object>)feeList).add(tradeFee);
@@ -1670,12 +1670,12 @@ public Map<String, Object> describe()
                 cost = Precise.stringMul(filled, multiplyPrice);
             }
         }
-        Map<String, Object> fee = (Map<String, Object>) this.safeDict(outcomeOrder, "fee", (Object) null);
+        Map<String, Object> fee = this.safeDict(outcomeOrder, "fee", null);
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
         Integer feeListLength = feeList.size();
         if ((java.util.Objects.equals(fee, null)) && ((feeListLength != null && feeListLength > 0)))
         {
-            fee = (Map<String, Object>) this.safeDict(this.reduceFeesByCurrency(feeList), 0, (Object) null);
+            fee = (Map<String, Object>) this.safeDict(this.reduceFeesByCurrency(feeList), 0, null);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
@@ -1761,7 +1761,7 @@ public Map<String, Object> describe()
         result.put("price", this.parseNumber(price));
         result.put("amount", this.parseNumber(amount));
         result.put("cost", this.parseNumber(cost));
-        result.put("fee", this.safeDict(trade, "fee", (Object) null));
+        result.put("fee", this.safeDict(trade, "fee", null));
         result.put("realizedPnl", this.safeNumber(trade, "realizedPnl", (Object) null));
         result.put("outcome", this.safeString(trade, "outcome"));
         result.put("outcomeId", this.safeString(trade, "outcomeId"));

@@ -758,8 +758,8 @@ public class Paymium extends PaymiumApi
         String currencyId = this.safeString(transfer, "currency");
         String updatedAt = this.safeString(transfer, "updated_at");
         Long timetstamp = this.parseDate(updatedAt);
-        List<Object> accountOperations = (List<Object>) this.safeList(transfer, "account_operations", (Object) null);
-        Map<String, Object> firstOperation = (Map<String, Object>) this.safeDict(accountOperations, 0, new HashMap<String, Object>() {{}});
+        List<Object> accountOperations = this.safeList(transfer, "account_operations", null);
+        Map<String, Object> firstOperation = this.safeDict(accountOperations, 0, new HashMap<String, Object>() {{}});
         String status = this.safeString(transfer, "state");
         return new HashMap<String, Object>() {{
             put( "info", transfer );

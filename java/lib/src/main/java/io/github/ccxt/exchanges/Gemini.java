@@ -726,8 +726,8 @@ public class Gemini extends GeminiApi
             //        ]
             //    }
             //
-            this.options.put("tradingPairs", this.safeList(data, "tradingPairs", (Object) null));
-            List<Object> currenciesArray = (List<Object>) this.safeList(data, "currencies", new ArrayList<Object>(Arrays.asList()));
+            this.options.put("tradingPairs", this.safeList(data, "tradingPairs", null));
+            List<Object> currenciesArray = this.safeList(data, "currencies", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currenciesArray);
         });
 
@@ -971,7 +971,7 @@ public class Gemini extends GeminiApi
             {
                 return new ArrayList<Object>(Arrays.asList());  // sandbox does not have usdt markets
             }
-            List<Object> fetchUsdtMarkets = (List<Object>) this.safeList(this.options, "fetchUsdtMarkets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fetchUsdtMarkets = this.safeList(this.options, "fetchUsdtMarkets", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < fetchUsdtMarkets.size(); i++)
             {
@@ -1006,8 +1006,8 @@ public class Gemini extends GeminiApi
             //     ]
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchMarketsFromAPI", new HashMap<String, Object>() {{}});
-            List<Object> brokenPairs = (List<Object>) this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> options = this.safeDict(this.options, "fetchMarketsFromAPI", new HashMap<String, Object>() {{}});
+            List<Object> brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             List<Object> allMarketIds = new ArrayList<Object>(Arrays.asList());
             if ((marketIdsRaw instanceof List))
@@ -1044,14 +1044,14 @@ public class Gemini extends GeminiApi
             } else
             {
                 // use trading-pairs info, if it was fetched
-                List<Object> tradingPairs = (List<Object>) this.safeList(this.options, "tradingPairs", (Object) null);
+                List<Object> tradingPairs = this.safeList(this.options, "tradingPairs", null);
                 if (!java.util.Objects.equals(tradingPairs, null))
                 {
                     Map<String,Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                     for (var i = 0; i < marketIds.size(); i++)
                     {
                         String marketId = (String) (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                        List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, marketId.toUpperCase(), (Object) null);
+                        List<Object> pairInfo = this.safeList(indexedTradingPairs, marketId.toUpperCase(), null);
                         if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                         {
                             MarketInterface parsed = this.parseMarket(pairInfo);
@@ -1155,7 +1155,7 @@ public class Gemini extends GeminiApi
             String marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Boolean isPerp = (((String)marketIdUpper).indexOf("PERP") >= 0);
             String marketIdWithoutPerp = (marketIdUpper == null ? null : ((String)marketIdUpper).replaceFirst("PERP", ""));
-            Map<String, Object> conflictingMarkets = (Map<String, Object>) this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
+            Map<String, Object> conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
             String lowerCaseId = marketIdWithoutPerp.toLowerCase();
             if (conflictingMarkets.containsKey(lowerCaseId))
             {
@@ -1373,7 +1373,7 @@ public class Gemini extends GeminiApi
                 put( "change", Gemini.this.safeString(tickerB, "change") );
                 put( "percentage", Gemini.this.safeString(tickerB, "percentage") );
                 put( "average", Gemini.this.safeString(tickerB, "average") );
-                put( "info", Gemini.this.safeDict(tickerB, "info", (Object) null) );
+                put( "info", Gemini.this.safeDict(tickerB, "info", null) );
             }});
         });
 
@@ -1447,7 +1447,7 @@ public class Gemini extends GeminiApi
         //         "ask":"9115.87"
         //     }
         //
-        Map<String, Object> volume = (Map<String, Object>) this.safeDict(ticker, "volume", new HashMap<String, Object>() {{}});
+        Map<String, Object> volume = this.safeDict(ticker, "volume", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(volume, "timestamp");
         Object symbol = null;
         String marketId = this.safeStringLower(ticker, "pair");
@@ -1545,7 +1545,7 @@ public class Gemini extends GeminiApi
             //     ]
             //
             Map<String, Object> result = this.parseTickers(response, symbols, new HashMap<String, Object>() {{}});
-            List<Object> brokenPairs = (List<Object>) this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             return this.removeKeysFromDict(result, brokenPairs);
         }).thenApply(Tickers::new);
 
@@ -1674,7 +1674,7 @@ public class Gemini extends GeminiApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1914,7 +1914,7 @@ public class Gemini extends GeminiApi
         String id = this.safeString(order, "order_id");
         String side = this.safeStringLower(order, "side");
         String clientOrderId = this.safeString(order, "client_order_id");
-        List<Object> optionsArray = (List<Object>) this.safeList(order, "options", new ArrayList<Object>(Arrays.asList()));
+        List<Object> optionsArray = this.safeList(order, "options", new ArrayList<Object>(Arrays.asList()));
         String option = this.safeString(optionsArray, 0);
         String timeInForce = "GTC";
         Boolean postOnly = false;
@@ -2499,7 +2499,7 @@ public class Gemini extends GeminiApi
             }
             Map<String, Object> indexedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             String networkCode = (String) ((List<Object>)this.handleNetworkCodeAndParams((Map<String, Object>) (parameters))).get(0);
-            return this.safeDict(indexedByNetwork, networkCode, (Object) null);
+            return this.safeDict(indexedByNetwork, networkCode, null);
         }).thenApply(DepositAddress::new);
 
     }

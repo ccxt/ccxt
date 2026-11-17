@@ -883,8 +883,8 @@ public class Tokocrypto extends TokocryptoApi
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < list.size(); i++)
             {
@@ -902,11 +902,11 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
                 String symbol = ((base + "/") + quote);
-                List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+                List<Object> filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
                 Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
                 Boolean active = (java.util.Objects.equals(status, "1"));
-                List<Object> permissions = (List<Object>) this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
+                List<Object> permissions = this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < permissions.size(); j++)
                 {
                     if (java.util.Objects.equals(this.safeString(permissions, j), "TRD_GRP_003"))
@@ -942,7 +942,7 @@ public class Tokocrypto extends TokocryptoApi
                 limits.put("cost", mapLiteral1);
                 if (filtersByType.containsKey("PRICE_FILTER"))
                 {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+                    Map<String, Object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                     // PRICE_FILTER reports zero values for maxPrice
                     // since they updated filter types in November 2018
                     // https://github.com/ccxt/ccxt/issues/4286
@@ -955,7 +955,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 if (filtersByType.containsKey("LOT_SIZE"))
                 {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+                    Map<String, Object> filter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
                     precision.put("amount", this.safeNumber(filter, "stepSize", (Object) null));
                     limits.put("amount", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
@@ -964,7 +964,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 if (filtersByType.containsKey("MARKET_LOT_SIZE"))
                 {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
+                    Map<String, Object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
                     limits.put("market", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty", (Object) null) );
@@ -1001,7 +1001,7 @@ public class Tokocrypto extends TokocryptoApi
                 entry.put("info", market);
                 if (filtersByType.containsKey("MIN_NOTIONAL"))
                 {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
+                    Map<String, Object> filter = this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
                     costMin = this.safeNumber2(filter, "minNotional", "notional", (Object) null);
                 }
                 ((List<Object>)result).add(entry);
@@ -1294,8 +1294,8 @@ public class Tokocrypto extends TokocryptoApi
                 //        "timestamp": 1787318052414
                 //    }
                 //
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(responseInner, "data", new HashMap<String, Object>() {{}});
-                List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> data = this.safeDict(responseInner, "data", new HashMap<String, Object>() {{}});
+                List<Object> list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(list, market, since, limit, new HashMap<String, Object>() {{}});
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1492,7 +1492,7 @@ public class Tokocrypto extends TokocryptoApi
      */
     public Boolean isNativeMarket(Map<String, Object> market)
     {
-        Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         String symbolType = this.safeString(marketInfo, "type");
         // a market with an unknown symbol type falls back to the binance backed
         // host, the route that answers with data for every symbol type 1 market
@@ -1547,7 +1547,7 @@ public class Tokocrypto extends TokocryptoApi
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
             if ((response instanceof List))
             {
-                Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> firstTicker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 return this.parseTicker(firstTicker, market);
             }
             return this.parseTicker(response, market);
@@ -1720,13 +1720,13 @@ public class Tokocrypto extends TokocryptoApi
                 data = response;
             } else
             {
-                List<Object> dataList = (List<Object>) this.safeList(response, "data", (Object) null);
+                List<Object> dataList = this.safeList(response, "data", null);
                 if (!java.util.Objects.equals(dataList, null))
                 {
                     data = dataList;
                 } else
                 {
-                    Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     data = this.safeList(dataDict, "list", new ArrayList<Object>(Arrays.asList()));
                 }
             }
@@ -1798,11 +1798,11 @@ public class Tokocrypto extends TokocryptoApi
             put( "timestamp", timestamp );
             put( "datetime", Tokocrypto.this.iso8601(timestamp) );
         }};
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        List<Object> balances = (List<Object>) this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        List<Object> balances = this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, i, null);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1960,7 +1960,7 @@ public class Tokocrypto extends TokocryptoApi
         {
             side = "sell";
         }
-        List<Object> fills = (List<Object>) this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> fills = this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String clientOrderId = this.safeString2(order, "clientOrderId", "clientId");
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         // the order type carries the post only flag on its own, 7 on the open/v1
@@ -2118,7 +2118,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", (Object) null);
+                Map<String, Object> broker = this.safeDict(this.options, "broker", null);
                 if (!java.util.Objects.equals(broker, null))
                 {
                     String brokerId = this.safeString(broker, "marketType");
@@ -2151,7 +2151,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+                    Map<String, Object> marketPrecision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
                     Object precision = marketPrecision.get("price");
                     Object quoteAmount = null;
                     Boolean createMarketBuyOrderRequiresPrice = true;
@@ -2290,7 +2290,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1662710994975
             //     }
             //
-            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> rawOrder = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder, market);
         }).thenApply(Order::new);
 
@@ -2345,9 +2345,9 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1662710056523
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(list, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> rawOrder = this.safeDict(list, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -2423,8 +2423,8 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1572860756458
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2524,7 +2524,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1662710683634
             //     }
             //
-            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> rawOrder = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -2598,8 +2598,8 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1573723498893
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2627,7 +2627,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset", currency.get("id") );
             }};
-            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
@@ -2653,7 +2653,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1660685915746
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String address = this.safeString(data, "address");
             String tag = this.safeString(data, "addressTag", "");
             if ((tag.length() == 0))
@@ -2742,8 +2742,8 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1659758865998
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> deposits = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> deposits = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2812,8 +2812,8 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1659759062187
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> withdrawals = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> withdrawals = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2836,7 +2836,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "10", "ok" );
             }} );
         }};
-        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -2938,7 +2938,7 @@ public class Tokocrypto extends TokocryptoApi
         String id = this.safeString(transaction, "id");
         if (java.util.Objects.equals(id, null))
         {
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(transaction, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(transaction, "data", new HashMap<String, Object>() {{}});
             id = this.safeString(data, "withdrawId");
             type = "withdrawal";
         }
@@ -3223,7 +3223,7 @@ public class Tokocrypto extends TokocryptoApi
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
         Map<String, Object> paramsDict = this.extend(new HashMap<String, Object>() {{}}, parameters);
-        List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
+        List<Object> byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
         if ((paramsDict.containsKey("noCoin")) && !(paramsDict.containsKey("coin")))
         {
             return this.safeInteger(config, "noCoin");

@@ -101,7 +101,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     public void handleTicker(Client client, Map<String, Object> message)
     {
-        Map<String, Object> payload = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
+        Map<String, Object> payload = this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         //
         //     {
         //         "OMSId": 1,
@@ -192,7 +192,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     public void handleTrades(Client client, Map<String, Object> message)
     {
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         // initial snapshot
         //
@@ -308,7 +308,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         [
@@ -328,7 +328,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
         for (var i = 0; i < payload.size(); i++)
         {
-            List<Object> ohlcv = (List<Object>) this.safeList(payload, i, (Object) null);
+            List<Object> ohlcv = this.safeList(payload, i, null);
             String marketId = this.safeString(ohlcv, 8);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
@@ -347,7 +347,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 }
                 Long candleTimestamp = this.parseToInt(Helpers.multiply(((((double) timestamp) / ((double) duration))), duration));
                 List<Object> parsed = new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
-                io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+                io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
                 if (java.util.Objects.equals(stored, null))
                 {
                     Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -419,7 +419,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 String messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = this.safeString(market, "symbol", "");
-                io.github.ccxt.ws.ArrayCache symbolOhlcv = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+                io.github.ccxt.ws.ArrayCache symbolOhlcv = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
                 client.resolve(symbolOhlcv, messageHash);
             }
         }
@@ -489,7 +489,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -504,7 +504,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         0,   // 9 Side
         //     ],
         //
-        List<Object> firstBidAsk = (List<Object>) this.safeList(payload, 0, new ArrayList<Object>(Arrays.asList()));
+        List<Object> firstBidAsk = this.safeList(payload, 0, new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(firstBidAsk, 7);
         if (java.util.Objects.equals(marketId, null))
         {
@@ -522,7 +522,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Long nonce = this.safeInteger(firstBidAsk, 0);
         for (var i = 0; i < payload.size(); i++)
         {
-            List<Object> bidask = (List<Object>) this.safeList(payload, i, (Object) null);
+            List<Object> bidask = this.safeList(payload, i, null);
             if (java.util.Objects.equals(timestamp, null))
             {
                 timestamp = this.safeInteger(bidask, 2);
@@ -583,7 +583,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         [
@@ -632,7 +632,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Long id = this.safeInteger(message, "i");
-        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, (Object) null);
+        Map<String, Object> subscription = this.safeDict(subscriptionsById, id, null);
         if (!java.util.Objects.equals(subscription, null))
         {
             Object method = this.safeValue(subscription, "method");

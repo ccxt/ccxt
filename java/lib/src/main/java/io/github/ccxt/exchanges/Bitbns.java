@@ -413,11 +413,11 @@ public class Bitbns extends BitbnsApi
                 {
                     continue;
                 }
-                Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
-                Map<String, Object> marketLimits = (Map<String, Object>) this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
-                Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(marketLimits, "amount", new HashMap<String, Object>() {{}});
-                Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(marketLimits, "price", new HashMap<String, Object>() {{}});
-                Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(marketLimits, "cost", new HashMap<String, Object>() {{}});
+                Map<String, Object> marketPrecision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+                Map<String, Object> marketLimits = this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
+                Map<String, Object> amountLimits = this.safeDict(marketLimits, "amount", new HashMap<String, Object>() {{}});
+                Map<String, Object> priceLimits = this.safeDict(marketLimits, "price", new HashMap<String, Object>() {{}});
+                Map<String, Object> costLimits = this.safeDict(marketLimits, "cost", new HashMap<String, Object>() {{}});
                 Boolean usdt = (java.util.Objects.equals(quoteId, "USDT"));
                 // INR markets don't need a _INR prefix
                 String uppercaseId = baseId;
@@ -654,7 +654,7 @@ public class Bitbns extends BitbnsApi
             put( "timestamp", timestamp );
             put( "datetime", Bitbns.this.iso8601(timestamp) );
         }};
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(data.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
@@ -1000,8 +1000,8 @@ public class Bitbns extends BitbnsApi
             //         "code":200
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
         }).thenApply(Order::new);
 
@@ -1066,7 +1066,7 @@ public class Bitbns extends BitbnsApi
             //         "code":200
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1236,7 +1236,7 @@ public class Bitbns extends BitbnsApi
             //         "code": 200
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1335,7 +1335,7 @@ public class Bitbns extends BitbnsApi
             //         "code":200
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1373,7 +1373,7 @@ public class Bitbns extends BitbnsApi
             //
             //     ...
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1396,7 +1396,7 @@ public class Bitbns extends BitbnsApi
                 put( "6", "ok" );
             }} );
         }};
-        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -1512,7 +1512,7 @@ public class Bitbns extends BitbnsApi
             //         "error":null
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String address = this.safeString(data, "token");
             String tag = this.safeString(data, "tag");
             this.checkAddress(address, (String) null, (String) null);

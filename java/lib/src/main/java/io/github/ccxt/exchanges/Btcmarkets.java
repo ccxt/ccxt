@@ -562,7 +562,7 @@ public class Btcmarkets extends BtcmarketsApi
         {
             type = "withdrawal";
         }
-        Map<String, Object> cryptoPaymentDetail = (Map<String, Object>) this.safeDict(transaction, "paymentDetail", new HashMap<String, Object>() {{}});
+        Map<String, Object> cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new HashMap<String, Object>() {{}});
         String txid = this.safeString(cryptoPaymentDetail, "txId");
         String addressRaw = this.safeString(cryptoPaymentDetail, "address");
         Object address = null;
@@ -758,7 +758,7 @@ public class Btcmarkets extends BtcmarketsApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString(balance, "assetName");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1292,8 +1292,8 @@ public class Btcmarkets extends BtcmarketsApi
             //        ]
             //    }
             //
-            List<Object> cancelOrders = (List<Object>) this.safeList(response, "cancelOrders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> unprocessedRequests = (List<Object>) this.safeList(response, "unprocessedRequests", new ArrayList<Object>(Arrays.asList()));
+            List<Object> cancelOrders = this.safeList(response, "cancelOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> unprocessedRequests = this.safeList(response, "unprocessedRequests", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = (List<Object>) this.arrayConcat(cancelOrders, unprocessedRequests);
             return this.parseOrders(orders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

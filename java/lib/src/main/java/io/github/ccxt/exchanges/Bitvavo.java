@@ -594,11 +594,11 @@ public class Bitvavo extends BitvavoApi
     public Object parseMarkets(Object markets)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Map<String, Object> defaultFees = (Map<String, Object>) this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
-        Map<String, Object> feesByCategory = (Map<String, Object>) this.safeDict(this.fees, "byCategory", new HashMap<String, Object>() {{}});
+        Map<String, Object> defaultFees = this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
+        Map<String, Object> feesByCategory = this.safeDict(this.fees, "byCategory", new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)markets).size(); i++)
         {
-            Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, i, (Object) null);
+            Map<String, Object> market = this.safeDict(markets, i, null);
             String id = this.safeString(market, "market");
             String baseId = this.safeString(market, "base");
             String quoteId = this.safeString(market, "quote");
@@ -759,7 +759,7 @@ public class Bitvavo extends BitvavoApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         boolean isFiat = this.inArray(code, fiatCurrencies);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        List<Object> networksArray = (List<Object>) this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networksArray = this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
         Boolean deposit = java.util.Objects.equals(this.safeString(rawCurrency, "depositStatus"), "OK");
         Boolean withdrawal = java.util.Objects.equals(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
         Boolean active = Boolean.TRUE.equals(deposit) && Boolean.TRUE.equals(withdrawal);
@@ -1163,7 +1163,7 @@ public class Bitvavo extends BitvavoApi
         //         }
         //     }
         //
-        Map<String, Object> feesValue = (Map<String, Object>) this.safeDict(fees, "fees", (Object) null);
+        Map<String, Object> feesValue = this.safeDict(fees, "fees", null);
         Double maker = this.safeNumber(feesValue, "maker", (Object) null);
         Double taker = this.safeNumber(feesValue, "taker", (Object) null);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1378,7 +1378,7 @@ public class Bitvavo extends BitvavoApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString(balance, "symbol");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1457,7 +1457,7 @@ public class Bitvavo extends BitvavoApi
             //         "maxItems": 0
             //     }
             //
-            List<Object> accounts = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> accounts = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(accounts, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
@@ -1606,7 +1606,7 @@ public class Bitvavo extends BitvavoApi
             //         "limit": 25
             //     }
             //
-            List<Object> items = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(items, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -2506,7 +2506,7 @@ public class Bitvavo extends BitvavoApi
                 fee = hx4NewMap1;
             }
         }
-        List<Object> rawTrades = (List<Object>) this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String timeInForce = this.safeString(order, "timeInForce");
         Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
         // https://github.com/ccxt/ccxt/issues/8489
@@ -2676,7 +2676,7 @@ public class Bitvavo extends BitvavoApi
             //         "maxItems": 100
             //     }
             //
-            List<Object> items = (List<Object>) this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
+            List<Object> items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(items, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -3069,7 +3069,7 @@ public class Bitvavo extends BitvavoApi
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
-        List<Object> networks = (List<Object>) this.safeList(fee, "networks", (Object) null);
+        List<Object> networks = this.safeList(fee, "networks", null);
         String networkId = this.safeString(networks, 0); // Bitvavo currently only supports one network per currency
         String currencyCode = this.safeString(currency, "code");
         if (java.util.Objects.equals(networkId, "Mainnet"))

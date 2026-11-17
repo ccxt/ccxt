@@ -540,7 +540,7 @@ public class Luno extends LunoApi
             //         ]
             //     }
             //
-            List<Object> currenciesData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currenciesData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> grouped = this.groupBy(currenciesData, "native_currency");
             List<Object> values = new ArrayList<Object>(grouped.values());
             return this.parseCurrencies(values);
@@ -550,12 +550,12 @@ public class Luno extends LunoApi
 
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
-        String id = this.safeString(this.safeDict(rawCurrency, 0, (Object) null), "native_currency"); // first item is guaranteed
+        String id = this.safeString(this.safeDict(rawCurrency, 0, null), "native_currency"); // first item is guaranteed
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawCurrency).size(); i++)
         {
-            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawCurrency, i, (Object) null);
+            Map<String, Object> networkEntry = this.safeDict(rawCurrency, i, null);
             String networkId = this.safeString(networkEntry, "name");
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -641,7 +641,7 @@ public class Luno extends LunoApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            List<Object> markets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
@@ -756,7 +756,7 @@ public class Luno extends LunoApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.privateGetBalance(parameters)).join();
-            List<Object> wallets = (List<Object>) this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
+            List<Object> wallets = this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < wallets.size(); i++)
             {
@@ -778,7 +778,7 @@ public class Luno extends LunoApi
 
     public Balances parseBalance(Map<String, Object> response)
     {
-        List<Object> wallets = (List<Object>) this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
+        List<Object> wallets = this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
@@ -786,7 +786,7 @@ public class Luno extends LunoApi
         }};
         for (var i = 0; i < wallets.size(); i++)
         {
-            Map<String, Object> wallet = (Map<String, Object>) this.safeDict(wallets, i, (Object) null);
+            Map<String, Object> wallet = this.safeDict(wallets, i, null);
             String currencyId = this.safeString(wallet, "asset");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String reserved = this.safeString(wallet, "reserved");
@@ -1021,7 +1021,7 @@ public class Luno extends LunoApi
                 request.put("pair", market.get("id"));
             }
             Map<String, Object> response = (this.privateGetListorders(this.extend(request, parameters))).join();
-            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
@@ -1149,7 +1149,7 @@ public class Luno extends LunoApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
-            List<Object> rawTickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> tickers = this.indexBy(rawTickers, "pair");
             List<String> ids = new ArrayList<String>(tickers.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1347,7 +1347,7 @@ public class Luno extends LunoApi
             //          ]
             //      }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1404,7 +1404,7 @@ public class Luno extends LunoApi
             //          "pair": "XBTEUR"
             //     }
             //
-            List<Object> ohlcvs = (List<Object>) this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1481,7 +1481,7 @@ public class Luno extends LunoApi
             //          ]
             //      }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1675,7 +1675,7 @@ public class Luno extends LunoApi
                 }
                 currency = this.currency((String) (code));
                 Map<String,Object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
-                Map<String, Object> account = (Map<String, Object>) this.safeDict(accountsByCurrencyCode, code, (Object) null);
+                Map<String, Object> account = this.safeDict(accountsByCurrencyCode, code, null);
                 if (java.util.Objects.equals(account, null))
                 {
                     throw new ExchangeError(((this.id + " fetchLedger() could not find account id for ") + code)) ;
@@ -1705,7 +1705,7 @@ public class Luno extends LunoApi
             request.put("min_row", min_row);
             request.put("max_row", max_row);
             Map<String, Object> response = (this.privateGetAccountsIdTransactions(this.extend(parameters, request))).join();
-            List<Object> entries = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> entries = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(entries, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 

@@ -114,7 +114,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         //        "Event": "Trade"
         //    }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "Pair");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
         String messageHash = ("trades:" + symbol);
@@ -245,9 +245,9 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             return;
         }
         String symbol = ((base + "/") + quote);
-        Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
+        Map<String, Object> orderBook = this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String messageHash = ((("orderbook:" + symbol) + ":") + depth);
-        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Boolean receivedSnapshot = (Boolean) this.safeBool(subscription, "receivedSnapshot", false);
         Long timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -267,8 +267,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
 }}));
         } else
         {
-            List<Object> asks = (List<Object>) this.safeList(orderBook, "Offers", new ArrayList<Object>(Arrays.asList()));
-            List<Object> bids = (List<Object>) this.safeList(orderBook, "Bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = this.safeList(orderBook, "Offers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = this.safeList(orderBook, "Bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             orderbook.put("timestamp", timestamp);

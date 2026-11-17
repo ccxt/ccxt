@@ -129,7 +129,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String symbol = this.safeString(market, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+            Map<String, Object> data = this.safeDict(message, "data", null);
             String timestamp = this.safeString(data, "timestamp");
             Long timestampMs = this.parse8601(timestamp);
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestampMs, "bids", "asks", 0, 1, 2);
@@ -219,11 +219,11 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedTrades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         for (var i = 0; i < parsedTrades.size(); i++)
         {
-            stored.append(this.safeDict(parsedTrades, i, (Object) null));
+            stored.append(this.safeDict(parsedTrades, i, null));
         }
         if (!java.util.Objects.equals(channel, null))
         {
@@ -298,7 +298,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         // }
         //
         String channel = this.safeString(message, "topic");
-        List<Object> rawTrades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         // usually the first message is an empty array
         // when the user does not have any trades yet
         Integer dataLength = rawTrades.size();
@@ -440,8 +440,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //       }
         //
         String channel = this.safeString(message, "topic");
-        Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
-        List<Object> rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> dataDict = this.safeDict(message, "data", null);
+        List<Object> rawOrders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(dataDict, null))
         {
             rawOrders = new ArrayList<Object>(Arrays.asList(dataDict));
@@ -460,7 +460,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < rawOrders.size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order, (Map<String, Object>) null);
             stored.append(parsed);
             String symbol = this.safeString(order, "symbol");
@@ -523,7 +523,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //     }
         //
         String messageHash = this.safeString(message, "topic");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(data.keySet());
         Long timestamp = this.safeTimestamp(message, "time");
         this.balance.put("info", data);

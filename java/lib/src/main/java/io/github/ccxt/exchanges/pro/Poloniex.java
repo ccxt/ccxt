@@ -366,7 +366,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 }
             }
             Object orders = (this.tradeRequest("createOrder", this.extend(request, paramsOmitted))).join();
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> order = this.safeDict(orders, 0, null);
             return order;
         }).thenApply(Order::new);
 
@@ -391,11 +391,11 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
+                List<Object> clientOrderIds = this.safeList(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
                 parameters.put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
             }
             List<Order> orders = (this.cancelOrdersWs(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> order = this.safeDict(orders, 0, null);
             return order;
         }).thenApply(Order::new);
 
@@ -468,7 +468,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
@@ -500,7 +500,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String channel = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (java.util.Objects.equals(channel, null))
             {
@@ -536,7 +536,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String channel = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (java.util.Objects.equals(channel, null))
             {
@@ -663,7 +663,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 }
             }
             List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(trades, 0, null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -743,7 +743,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> watchOrderBookOptions = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", (Object) null);
+            Map<String, Object> watchOrderBookOptions = this.safeDict(this.options, "watchOrderBook", null);
             String name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
             Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "name", name);
             var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
@@ -851,7 +851,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private", "");
             Client client = this.client(url);
             this.setBalanceCache(client, name);
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
+            Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
@@ -869,7 +869,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             return;
         }
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
+        Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
@@ -967,17 +967,17 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        List<Object> dataList = (List<Object>) this.safeList(message, "data", (Object) null);
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(dataList, 0, (Object) null);
+        List<Object> dataList = this.safeList(message, "data", null);
+        Map<String, Object> data = this.safeDict(dataList, 0, null);
         String channel = this.safeString(message, "channel");
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
-        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+        Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(channel, timeframes);
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, market);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((((java.util.Objects.equals(timeframe, null)))) ? null : this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((((java.util.Objects.equals(timeframe, null)))) ? null : this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe));
         if (!java.util.Objects.equals(symbol, null))
         {
             if (java.util.Objects.equals(stored, null))
@@ -1018,10 +1018,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+            Map<String, Object> item = this.safeDict(data, i, null);
             String marketId = this.safeString(item, "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
@@ -1218,7 +1218,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit");
@@ -1228,7 +1228,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         List<String> marketIds = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+            Map<String, Object> order = this.safeDict(data, i, null);
             String marketId = this.safeString(order, "symbol");
             String eventType = this.safeString(order, "eventType");
             if (!java.util.Objects.equals(marketId, null))
@@ -1242,7 +1242,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     orders.append(parsed);
                 } else
                 {
-                    Map<String, Object> previousOrders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
+                    Map<String, Object> previousOrders = this.safeDict(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
                     Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict2(previousOrders, orderId, clientOrderId, (Object) null);
                     Map<String, Object> trade = this.parseWsTrade(order, (Map<String, Object>) null);
                     this.handleMyTrades(client, trade);
@@ -1262,10 +1262,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
                     String totalCost = "0";
                     String totalAmount = "0";
-                    List<Object> previousOrderTrades = (List<Object>) this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> previousOrderTrades = this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
                     for (var j = 0; j < previousOrderTrades.size(); j++)
                     {
-                        Map<String, Object> previousOrderTrade = (Map<String, Object>) this.safeDict(previousOrderTrades, j, new HashMap<String, Object>() {{}});
+                        Map<String, Object> previousOrderTrade = this.safeDict(previousOrderTrades, j, new HashMap<String, Object>() {{}});
                         String cost = this.numberToString(previousOrderTrade.get("cost"));
                         String amount = this.numberToString(previousOrderTrade.get("amount"));
                         totalCost = Precise.stringAdd(totalCost, cost);
@@ -1420,7 +1420,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        ]
         //    }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
@@ -1506,23 +1506,23 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        "action": "update"
         //    }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String type = this.safeString(message, "action");
         Boolean snapshot = java.util.Objects.equals(type, "snapshot");
         Boolean update = java.util.Objects.equals(type, "update");
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+            Map<String, Object> item = this.safeDict(data, i, null);
             String marketId = this.safeString(item, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) market.get("symbol");
             String name = "book_lv2";
             String messageHash = ((name + "::") + symbol);
-            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+            Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit");
             Long timestamp = this.safeInteger(item, "ts");
-            List<Object> asks = (List<Object>) this.safeList(item, "asks", (Object) null);
-            List<Object> bids = (List<Object>) this.safeList(item, "bids", (Object) null);
+            List<Object> asks = this.safeList(item, "asks", null);
+            List<Object> bids = this.safeList(item, "bids", null);
             if (Boolean.TRUE.equals(snapshot) || Boolean.TRUE.equals(update))
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -1547,7 +1547,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 {
                     for (var j = 0; j < bids.size(); j++)
                     {
-                        List<Object> bid = (List<Object>) this.safeList(bids, j, (Object) null);
+                        List<Object> bid = this.safeList(bids, j, null);
                         Double price = this.safeNumber(bid, 0, (Object) null);
                         Double amount = this.safeNumber(bid, 1, (Object) null);
                         io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) ((orderbook == null ? null : orderbook.get("bids")));
@@ -1558,7 +1558,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 {
                     for (var j = 0; j < asks.size(); j++)
                     {
-                        List<Object> ask = (List<Object>) this.safeList(asks, j, (Object) null);
+                        List<Object> ask = this.safeList(asks, j, null);
                         Double price = this.safeNumber(ask, 0, (Object) null);
                         Double amount = this.safeNumber(ask, 1, (Object) null);
                         io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) ((orderbook == null ? null : orderbook.get("asks")));
@@ -1601,20 +1601,20 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         // message keeps a reference to the old object while Client.resolve is
         // a no-op with no waiter, so updates landing in that window would
         // never reach that consumer (same class as kraken issue #26773)
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String messageHash = "balances";
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};
         }
         this.balance.put("info", this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())));
-        Map<String, Object> firstBalance = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> firstBalance = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(firstBalance, "ts");
         this.balance.put("timestamp", timestamp);
         this.balance.put("datetime", this.iso8601(timestamp));
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(data, i, null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> newAccount = this.account();
@@ -1703,7 +1703,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             this.handleOrderRequest(client, message);
         } else if (!java.util.Objects.equals(method, null))
         {
-            List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Integer dataLength = data.size();
             if ((dataLength != null && dataLength > 0))
             {
@@ -1749,8 +1749,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //    }
         //
         String channel = this.safeString(message, "channel", "");
-        List<Object> marketIds = (List<Object>) this.safeList(message, "symbols", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+        List<Object> marketIds = this.safeList(message, "symbols", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(channel, timeframes);
         for (var i = 0; i < marketIds.size(); i++)
         {
@@ -1807,8 +1807,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //
         String id = this.safeString(message, "id");
         String eventVar = this.safeString(message, "event");
-        List<Object> data = (List<Object>) this.safeList(message, "data", (Object) null);
-        Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, (Object) null);
+        List<Object> data = this.safeList(message, "data", null);
+        Map<String, Object> first = this.safeDict(data, 0, null);
         String orderId = this.safeString(first, "orderId");
         if ((java.util.Objects.equals(eventVar, "error")) || (java.util.Objects.equals(orderId, "0")))
         {
@@ -1850,7 +1850,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        Map<String, Object> data = this.safeDict(message, "data", null);
         Boolean success = (Boolean) this.safeBool(data, "success", false);
         String messageHash = "authenticated";
         if (Boolean.TRUE.equals(success))

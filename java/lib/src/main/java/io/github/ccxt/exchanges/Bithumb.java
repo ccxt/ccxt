@@ -694,7 +694,7 @@ public class Bithumb extends BithumbApi
                 }
             } else
             {
-                Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
+                Map<String, Object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
                 List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < quotes.size(); i++)
@@ -706,9 +706,9 @@ public class Bithumb extends BithumbApi
                 for (var i = 0; i < quotes.size(); i++)
                 {
                     String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
-                    Map<String, Object> response = (Map<String, Object>) this.safeDict(results, i, (Object) null);
-                    Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                    Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
+                    Map<String, Object> response = this.safeDict(results, i, null);
+                    Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> extension = this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
                     List<String> currencyIds = new ArrayList<String>(data.keySet());
                     for (var j = 0; j < currencyIds.size(); j++)
                     {
@@ -817,7 +817,7 @@ public class Bithumb extends BithumbApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+        Map<String, Object> balances = this.safeDict(response, "data", null);
         if (!java.util.Objects.equals(balances, null))
         {
             List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
@@ -836,7 +836,7 @@ public class Bithumb extends BithumbApi
         {
             for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+                Map<String, Object> entry = this.safeDict(response, i, null);
                 Map<String, Object> account = this.account();
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -941,14 +941,14 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     ]
                 //
-                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> result = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(result, "timestamp");
-                List<Object> orderBookUnits = (List<Object>) this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+                List<Object> orderBookUnits = this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
                 List<Object> bids = new ArrayList<Object>(Arrays.asList());
                 List<Object> asks = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < orderBookUnits.size(); i++)
                 {
-                    Map<String, Object> entry = (Map<String, Object>) this.safeDict(orderBookUnits, i, (Object) null);
+                    Map<String, Object> entry = this.safeDict(orderBookUnits, i, null);
                     ((List<Object>)bids).add(new HashMap<String, Object>() {{
                         put( "price", Bithumb.this.safeString(entry, "bid_price") );
                         put( "quantity", Bithumb.this.safeString(entry, "bid_size") );
@@ -1235,7 +1235,7 @@ public class Bithumb extends BithumbApi
                         response = this.safeValue(response, "data");
                     }
                     String expectedMarketId = null;
-                    List<Object> requestedMarketIds = (List<Object>) this.safeList(marketIdsChunks, i, new ArrayList<Object>(Arrays.asList()));
+                    List<Object> requestedMarketIds = this.safeList(marketIdsChunks, i, new ArrayList<Object>(Arrays.asList()));
                     String firstMarketId = this.safeString(requestedMarketIds, 0);
                     if ((!java.util.Objects.equals(firstMarketId, null)) && (java.util.Objects.equals(this.safeString(requestedMarketIds, 1), null)))
                     {
@@ -1256,7 +1256,7 @@ public class Bithumb extends BithumbApi
                             for (var j = 0; j < ids.size(); j++)
                             {
                                 Object id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
-                                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, id, (Object) null);
+                                Map<String, Object> ticker = this.safeDict(response, id, null);
                                 if (!java.util.Objects.equals(ticker, null))
                                 {
                                     ticker.put("market", this.safeString(ticker, "market", id));
@@ -1284,8 +1284,8 @@ public class Bithumb extends BithumbApi
                 }
             } else
             {
-                Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                List<Object> quotes = new ArrayList<Object>(quoteCurrencies.keySet());
+                Map<String, Object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
+                List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
                 if (!java.util.Objects.equals(symbols, null))
                 {
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
@@ -1299,7 +1299,7 @@ public class Bithumb extends BithumbApi
                             requiredQuotes.put(quoteId, true);
                         }
                     }
-                    List<Object> requiredQuoteIds = new ArrayList<Object>(requiredQuotes.keySet());
+                    List<String> requiredQuoteIds = new ArrayList<String>(requiredQuotes.keySet());
                     String populatedQuotes = this.safeString(requiredQuoteIds, 0);
                     if (!java.util.Objects.equals(populatedQuotes, null))
                     {
@@ -1315,9 +1315,9 @@ public class Bithumb extends BithumbApi
                 Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 for (var i = 0; i < quotes.size(); i++)
                 {
-                    Object quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
-                    Object response = this.safeDict(responses, i, (Object) null);
-                    Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
+                    Object response = this.safeDict(responses, i, null);
+                    Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Map<String, Object> tickers = this.omit(data, "date");
                     List<String> currencyIds = new ArrayList<String>(tickers.keySet());
@@ -1900,7 +1900,7 @@ public class Bithumb extends BithumbApi
             List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String symbol = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -1919,7 +1919,7 @@ public class Bithumb extends BithumbApi
                 }
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -1943,7 +1943,7 @@ public class Bithumb extends BithumbApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "batch_orders_response", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2297,7 +2297,7 @@ public class Bithumb extends BithumbApi
                     //         ]
                     //     }
                     //
-                    List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
                     data = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
                 } else
                 {
@@ -2378,7 +2378,7 @@ public class Bithumb extends BithumbApi
                 //         }
                 //     }
                 //
-                data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+                data = (Map<String, Object>) this.safeDict(response, "data", null);
             }
             Map<String, Object> orderData = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -2702,7 +2702,7 @@ public class Bithumb extends BithumbApi
                 request.put("payment_currency", market.get("quote"));
                 response = (this.privatePostInfoOrders(this.extend(request, paramsGeneration))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3042,7 +3042,7 @@ public class Bithumb extends BithumbApi
             //         "fail": []
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3288,7 +3288,7 @@ public class Bithumb extends BithumbApi
                 put( "CANCELLED", "canceled" );
             }} );
         }};
-        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, ((String)type), new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = this.safeDict(statusesByType, ((String)type), new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -3951,7 +3951,7 @@ public class Bithumb extends BithumbApi
         //
         //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
         //
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
+        Map<String, Object> error = this.safeDict(response, "error", null);
         if (!java.util.Objects.equals(error, null))
         {
             String errorName = this.safeString(error, "name");

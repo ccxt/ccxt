@@ -138,7 +138,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 messageHashes.add(messageHash);
             }
             List<Object> trades = (List<Object>) (this.watchTopics((String) (url), messageHashes, topics, parameters)).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(trades, 0, null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -172,7 +172,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //         ]
         //     }
         //
-        List<Object> trades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> trades = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String topic = this.safeString(message, "topic");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 2);
@@ -401,7 +401,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //
         String type = this.safeString(message, "type");
         Boolean isSnapshot = (java.util.Objects.equals(type, "snapshot"));
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
@@ -417,8 +417,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             orderbook.reset(snapshot);
         } else
         {
-            List<Object> asks = (List<Object>) this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
-            List<Object> bids = (List<Object>) this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             orderbook.put("timestamp", timestamp);
@@ -544,7 +544,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         // }
         String topic = this.safeString(message, "topic", "");
         String updateType = this.safeString(message, "type", "");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String symbol = null;
         Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
         if ((java.util.Objects.equals(updateType, "snapshot")))
@@ -558,8 +558,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             symbol = this.safeString(market, "symbol");
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
-            Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> rawTicker = this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = (Map<String, Object>) this.parseTicker(merged, (Map<String, Object>) null);
         }
@@ -620,7 +620,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
+                List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
                 String symbolString = this.safeString(data, 0);
                 Map<String, Object> market = this.market(symbolString);
                 String marketId = this.safeString(market, "id2", "");
@@ -668,7 +668,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //         "type": "snapshot"
         //     }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String topic = this.safeString(message, "topic");
         List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         Integer topicLength = topicParts.size();
@@ -684,7 +684,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = this.safeString(market, "symbol", "");
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -886,7 +886,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(lists, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> rawTrade = this.safeDict(lists, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
             String symbol = (String) parsed.get("symbol");
             symbols.put(symbol, true);
@@ -986,10 +986,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < promises.size(); i++)
             {
-                Object positions = (promises == null || i < 0 || i >= promises.size() ? null : promises.get(i));
-                for (var ii = 0; ii < ((List<?>)positions).size(); ii++)
+                List<?> positions = (List<?>) (promises == null || i < 0 || i >= promises.size() ? null : promises.get(i));
+                for (var ii = 0; ii < positions.size(); ii++)
                 {
-                    cache.append((positions == null || ii < 0 || ii >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(ii)));
+                    cache.append((positions == null || ii < 0 || ii >= positions.size() ? null : positions.get(ii)));
                 }
             }
             // don't remove the future from the .futures cache
@@ -1036,7 +1036,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Map<String, Object> rawPosition = (Map<String, Object>) this.safeDict(lists, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> rawPosition = this.safeDict(lists, i, new HashMap<String, Object>() {{}});
             Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, (Map<String, Object>) null);
             String side = this.safeString(position, "side");
             // hacky solution to handle closing positions
@@ -1170,7 +1170,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             if ((!java.util.Objects.equals(success, null)) && (!Boolean.TRUE.equals(success)))
             {
                 String ret_msg = this.safeString(message, "ret_msg", "");
-                Map<String, Object> request = (Map<String, Object>) this.safeDict(message, "request", new HashMap<String, Object>() {{}});
+                Map<String, Object> request = this.safeDict(message, "request", new HashMap<String, Object>() {{}});
                 String op = this.safeString(request, "op");
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
@@ -1376,18 +1376,18 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     public void handleAccount(Client client, Map<String, Object> message)
     {
-        Map<String, Object> contents = (Map<String, Object>) this.safeDict(message, "contents", new HashMap<String, Object>() {{}});
-        List<Object> fills = (List<Object>) this.safeList(contents, "fills", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> contents = this.safeDict(message, "contents", new HashMap<String, Object>() {{}});
+        List<Object> fills = this.safeList(contents, "fills", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(fills, null))
         {
             this.handleMyTrades(client, fills);
         }
-        List<Object> positions = (List<Object>) this.safeList(contents, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positions = this.safeList(contents, "positions", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(positions, null))
         {
             this.handlePositions(client, positions);
         }
-        List<Object> orders = (List<Object>) this.safeList(contents, "orders", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orders = this.safeList(contents, "orders", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(orders, null))
         {
             this.handleOrder(client, orders);

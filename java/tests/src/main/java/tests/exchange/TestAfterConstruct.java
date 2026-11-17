@@ -38,7 +38,7 @@ public class TestAfterConstruct extends BaseTest {
             // safeDict, not exchange.options['networks']: a direct missing-key access throws
             // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
             // hyperliquid prediction market)
-            Object networks = exchange.safeDict(exchange.options, "networks", (Object) null);
+            Object networks = exchange.safeDict(exchange.options, "networks", null);
             if (java.util.Objects.equals(networks, null))
             {
                 return;

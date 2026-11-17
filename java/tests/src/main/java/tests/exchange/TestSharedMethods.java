@@ -520,17 +520,17 @@ public class TestSharedMethods extends BaseTest {
         {
             usedMethod = "fetchOrderBook";
             Object orderbook = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol, (Long) null, new HashMap<String, Object>() {{}}})).join();
-            Object bids = exchange.safeList(orderbook, "bids", (Object) null);
-            Object asks = exchange.safeList(orderbook, "asks", (Object) null);
-            Object bestBidArray = exchange.safeList(bids, 0, (Object) null);
-            Object bestAskArray = exchange.safeList(asks, 0, (Object) null);
+            Object bids = exchange.safeList(orderbook, "bids", null);
+            Object asks = exchange.safeList(orderbook, "asks", null);
+            Object bestBidArray = exchange.safeList(bids, 0, null);
+            Object bestAskArray = exchange.safeList(asks, 0, null);
             bestBid = exchange.safeNumber(bestBidArray, 0, (Object) null);
             bestAsk = exchange.safeNumber(bestAskArray, 0, (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBidsAsks"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchBidsAsks"), false)))
         {
             usedMethod = "fetchBidsAsks";
             Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBidsAsks", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}}})).join();
-            Object ticker = exchange.safeDict(tickers, symbol, (Object) null);
+            Object ticker = exchange.safeDict(tickers, symbol, null);
             bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
             bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         } else if ((!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTicker"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "fetchTicker"), false)))
@@ -543,7 +543,7 @@ public class TestSharedMethods extends BaseTest {
         {
             usedMethod = "fetchTickers";
             Object tickers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}}})).join();
-            Object ticker = exchange.safeDict(tickers, symbol, (Object) null);
+            Object ticker = exchange.safeDict(tickers, symbol, null);
             bestBid = exchange.safeNumber(ticker, "bid", (Object) null);
             bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         }

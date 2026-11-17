@@ -104,7 +104,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public Long requestId(String url)
     {
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
         Map<String, Object> entry = new HashMap<String, Object>() {{}};
@@ -162,7 +162,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subHash)) );
                 put( "unsubMessageHashes", new ArrayList<Object>(Arrays.asList(unsubHash)) );
             }};
-            List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes", (Object) null);
+            List<Object> symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes", null);
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(symbolsAndTimeframes, null)))) ? this.omit(parameters, "symbolsAndTimeframes") : parameters;
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
@@ -284,7 +284,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        Map<String, Object> data = this.safeDict(message, "data", null);
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
@@ -334,7 +334,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
                 Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-                Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, topic, (Object) null);
+                Map<String, Object> subscription = this.safeDict(client.subscriptions, topic, null);
                 Long limit = this.safeInteger(subscription, "limit", defaultLimit);
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
@@ -378,9 +378,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
                 Long limit = this.safeInteger(subscription, "limit", defaultLimit);
-                Object parameters = this.safeDict(subscription, "params", (Object) null);
+                Object parameters = this.safeDict(subscription, "params", null);
                 Object snapshot = (this.fetchRestOrderBookSafe(symbol, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
-                if (java.util.Objects.equals(this.safeDict(this.orderbooks, symbol, (Object) null), null))
+                if (java.util.Objects.equals(this.safeDict(this.orderbooks, symbol, null), null))
                 {
                     // if the orderbook is dropped before the snapshot is received
                     return null;
@@ -425,7 +425,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        Map<String, Object> data = this.safeDict(message, "data", null);
         this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
         this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
         Long timestamp = this.safeInteger(message, "ts");
@@ -565,7 +565,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -671,7 +671,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         String topic = this.safeString(message, "topic");
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
@@ -770,12 +770,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         String topic = this.safeString(message, "topic");
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+            Map<String, Object> ticker = this.safeDict(data, i, null);
             if (java.util.Objects.equals(ticker, null))
             {
                 continue;
@@ -911,7 +911,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        Map<String, Object> data = this.safeDict(message, "data", null);
         String topic = this.safeString(message, "topic");
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -920,7 +920,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String timeframe = this.findTimeframe(interval, (Object) null);
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")));
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1018,7 +1018,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         String topic = this.safeString(message, "topic");
         Long timestamp = this.safeInteger(message, "ts");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        Map<String, Object> data = this.safeDict(message, "data", null);
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
@@ -1499,8 +1499,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
-            Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, orderId, (Object) null);
+            Map<String, Object> orders = this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(orders, orderId, null);
             if (!java.util.Objects.equals(order, null))
             {
                 Object fee = this.safeValue(order, "fee");
@@ -1508,7 +1508,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 {
                     parsed.put("fee", fee);
                 }
-                List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
+                List<Object> fees = this.safeList(order, "fees", null);
                 if (!java.util.Objects.equals(fees, null))
                 {
                     ((Map<String, Object>)parsed).put("fees", fees);
@@ -1710,8 +1710,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //        }
         //    }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> rawPositions = (Map<String, Object>) this.safeDict(data, "positions", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawPositions = this.safeDict(data, "positions", new HashMap<String, Object>() {{}});
         List<String> postitionsIds = new ArrayList<String>(rawPositions.keySet());
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -1793,8 +1793,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         //    }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
-        Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", null);
+        Map<String, Object> balances = this.safeDict(data, "balances", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(balances.keySet());
         Long ts = this.safeInteger(message, "ts");
         this.balance.put("info", data);
@@ -1803,7 +1803,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key, (Object) null);
+            Map<String, Object> value = this.safeDict(balances, key, null);
             String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             String total = this.safeString(value, "holding");
@@ -1864,7 +1864,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, (Map<String, Object>) null);
         String symbol = this.safeString(fundingRate, "symbol");
         if (!java.util.Objects.equals(symbol, null))
@@ -1929,9 +1929,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         String subscribeHash = this.safeString(message, "data", "");
         String unsubscribeHash = ("unsubscribe::" + subscribeHash);
-        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubscribeHash, new HashMap<String, Object>() {{}});
-        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        List<Object> unsubMessageHashes = (List<Object>) this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> subscription = this.safeDict(client.subscriptions, unsubscribeHash, new HashMap<String, Object>() {{}});
+        List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < subMessageHashes.size(); i++)
         {
             String subHash = (String) (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
@@ -2249,7 +2249,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         String id = this.safeString(message, "id");
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
         Object method = this.safeValue(subscription, "method");
         if (!java.util.Objects.equals(method, null))
         {

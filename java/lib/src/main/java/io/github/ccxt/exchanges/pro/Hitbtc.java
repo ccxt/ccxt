@@ -121,7 +121,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", (Object) null);
+            Map<String, Object> wsUrls = this.safeDict(this.urls.get("api"), "ws", null);
             String url = this.safeString(wsUrls, "private");
             String messageHash = "authenticated";
             Client client = this.client(url);
@@ -173,7 +173,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Boolean isBatch = ((String)name).indexOf("batch") >= 0;
             Boolean resolvedPerSymbol = !Boolean.TRUE.equals(isBatch) || (java.util.Objects.equals(messageHashPrefix, "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", (Object) null);
+            Map<String, Object> wsUrls = this.safeDict(this.urls.get("api"), "ws", null);
             String url = this.safeString(wsUrls, "public");
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null) && Boolean.TRUE.equals(resolvedPerSymbol))
@@ -264,7 +264,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate()).join();
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", (Object) null);
+            Map<String, Object> wsUrls = this.safeDict(this.urls.get("api"), "ws", null);
             String url = this.safeString(wsUrls, "private");
             List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_subscribe"))));
             String messageHashBase = this.safeString(splitName, 0, "");
@@ -303,7 +303,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate()).join();
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", (Object) null);
+            Map<String, Object> wsUrls = this.safeDict(this.urls.get("api"), "ws", null);
             String url = this.safeString(wsUrls, "private");
             Long requestId = this.incrementingNonce();
             String messageHash = this.numberToString(requestId);
@@ -339,7 +339,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", (Object) null);
+            Map<String, Object> options = this.safeDict(this.options, "watchOrderBook", null);
             String defaultMethod = this.safeString(options, "method", "orderbook/full");
             String name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
             String depthValue = this.safeString(parameters, "depth", "20"); // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
@@ -424,7 +424,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String messageHash = ("orderbooks::" + symbol);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
-                Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+                Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
                 Long limit = this.safeInteger(subscription, "limit");
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
@@ -437,8 +437,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 orderbook.reset(parsedSnapshot);
             } else
             {
-                List<Object> asks = (List<Object>) this.safeList(item, "a", new ArrayList<Object>(Arrays.asList()));
-                List<Object> bids = (List<Object>) this.safeList(item, "b", new ArrayList<Object>(Arrays.asList()));
+                List<Object> asks = this.safeList(item, "a", new ArrayList<Object>(Arrays.asList()));
+                List<Object> bids = this.safeList(item, "b", new ArrayList<Object>(Arrays.asList()));
                 this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
                 this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             }
@@ -512,7 +512,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> methodNameparamsMethodVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTickers");
             String methodName = (String) ((List<Object>) methodNameparamsMethodVariable).get(0);
             Map<String, Object> paramsMethod = (Map<String, Object>) ((List<Object>) methodNameparamsMethodVariable).get(1); // watchTicker passes its own name, so options.watchTicker still applies to it
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, methodName, (Object) null);
+            Map<String, Object> options = this.safeDict(this.options, methodName, null);
             String defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
             String method = this.safeString2(paramsMethod, "method", "defaultMethod", defaultMethod);
             String speedValue = this.safeString(paramsMethod, "speed", "1s"); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
@@ -599,7 +599,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        }
         //    }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<String> marketIds = new ArrayList<String>(data.keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "tickers";
@@ -695,7 +695,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBidsAsks", (Object) null);
+            Map<String, Object> options = this.safeDict(this.options, "watchBidsAsks", null);
             String defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
             String method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
             String speedValue = this.safeString(parameters, "speed", "100ms"); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
@@ -744,7 +744,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<String> marketIds = new ArrayList<String>(data.keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "bidask";
@@ -1078,7 +1078,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1086,7 +1086,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
             // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
-            List<Object> rawOhlcvs = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawOhlcvs = this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < rawOhlcvs.size(); j++)
             {
                 List<Object> parsed = (List<Object>) this.parseWsOHLCV((rawOhlcvs == null || j < 0 || j >= rawOhlcvs.size() ? null : rawOhlcvs.get(j)), market);
@@ -1649,7 +1649,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         String messageHash = this.safeString(message, "method");
-        List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parameters = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while
@@ -1817,7 +1817,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             if ((result instanceof List))
             {
                 // to do improve this, not very reliable right now
-                Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> first = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
                 Integer arrayLength = ((List<?>)result).size();
                 if ((java.util.Objects.equals(arrayLength, 0)) || (first.containsKey("client_order_id")))
                 {
@@ -1851,8 +1851,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String subscriptionId = this.safeString(subscription, "id");
             if (Boolean.TRUE.equals(isUnSubscription) && (!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))
             {
-                List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-                List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < subMessageHashes.size(); j++)
                 {
                     this.cleanUnsubscription(client, (String) ((subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j))), (String) ((messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j))), false);
@@ -1902,7 +1902,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        id: 1700228604325
         //    }
         //
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", (Object) null);
+        Map<String, Object> error = this.safeDict(message, "error", null);
         if (!java.util.Objects.equals(error, null))
         {
             try

@@ -123,7 +123,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        List<Object> rawTrades = (List<Object>) this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
         Integer length = rawTrades.size();
         if (java.util.Objects.equals(length, 0))
         {
@@ -276,7 +276,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             this.orderbooks.put(symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        List<Object> asks = (List<Object>) this.safeList(message, "asks", (Object) null);
+        List<Object> asks = this.safeList(message, "asks", null);
         if (java.util.Objects.equals(asks, null))
         {
             Boolean inSequence = this.isOrderBookDeltaInSequence(client, message, symbol);
@@ -386,7 +386,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
-        List<Object> tradeUpdates = (List<Object>) this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tradeUpdates = this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < tradeUpdates.size(); i++)
         {
             Object tradeUpdate = (tradeUpdates == null || i < 0 || i >= tradeUpdates.size() ? null : tradeUpdates.get(i));
@@ -404,7 +404,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 }
             }
         }
-        Map<String, Object> createUpdate = (Map<String, Object>) this.safeDict(message, "create_update", (Object) null);
+        Map<String, Object> createUpdate = this.safeDict(message, "create_update", null);
         if (!java.util.Objects.equals(createUpdate, null))
         {
             List<Object> bidAskArray = (List<Object>) this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
@@ -417,7 +417,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 bidsOrderSide.storeArray(bidAskArray);
             }
         }
-        Map<String, Object> deleteUpdate = (Map<String, Object>) this.safeDict(message, "delete_update", (Object) null);
+        Map<String, Object> deleteUpdate = this.safeDict(message, "delete_update", null);
         if (!java.util.Objects.equals(deleteUpdate, null))
         {
             String orderId = this.safeString(deleteUpdate, "order_id");

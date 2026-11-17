@@ -121,7 +121,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         String symbol = this.safeString(this.market(this.safeString(message, 0)), "symbol", "");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, 1, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeTimestamp(data, "last_update_at");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot);
@@ -185,7 +185,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //         ]
         //     ]
         //
-        List<Object> first = (List<Object>) this.safeList(message, 0, new ArrayList<Object>(Arrays.asList()));
+        List<Object> first = this.safeList(message, 0, new ArrayList<Object>(Arrays.asList()));
         String symbol = this.safeString(this.market(this.safeString(first, 2)), "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -242,7 +242,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
 
     public void handleListMessage(Client client, Object message)
     {
-        List<Object> data = (List<Object>) this.safeList(message, 0, (Object) null);
+        List<Object> data = this.safeList(message, 0, null);
         if (!(data instanceof List))
         {
             this.handleOrderBook(client, message);

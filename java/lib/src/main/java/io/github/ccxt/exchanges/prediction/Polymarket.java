@@ -636,7 +636,7 @@ public class Polymarket extends PolymarketApi
                 {
                     ((List<Object>)flatMarkets).add((ccxtMarkets == null || mi < 0 || mi >= ccxtMarkets.size() ? null : ccxtMarkets.get(mi)));
                 }
-                Map<String, Object> parsedEvent = (Map<String, Object>) this.parseEvent(rawEvent);
+                Map<String, Object> parsedEvent = this.parseEvent(rawEvent);
                 String eventSlug = this.safeString(rawEvent, "slug");
                 if ((!java.util.Objects.equals(eventSlug, null)) && (!java.util.Objects.equals(eventSlug, "")))
                 {
@@ -711,9 +711,9 @@ public class Polymarket extends PolymarketApi
                 }};
                 firstRequest = this.extend(this.extend(firstRequest, baseRequest), rest);
                 Map<String, Object> first = (this.gammaPublicGetPublicSearch(firstRequest)).join();
-                List<Object> firstEvents = (List<Object>) this.safeList(first, "events", new ArrayList<Object>(Arrays.asList()));
+                List<Object> firstEvents = this.safeList(first, "events", new ArrayList<Object>(Arrays.asList()));
                 Integer firstEventsLength = firstEvents.size();
-                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(first, "pagination", new HashMap<String, Object>() {{}});
+                Map<String, Object> pagination = this.safeDict(first, "pagination", new HashMap<String, Object>() {{}});
                 Long totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
                 Long totalPages = this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) totalResults) / ((double) pageSize))))));
                 // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
@@ -755,7 +755,7 @@ public class Polymarket extends PolymarketApi
                 }
                 for (var ri = 0; ri < restResponses.size(); ri++)
                 {
-                    List<Object> pageEvents = (List<Object>) this.safeList((restResponses == null || ri < 0 || ri >= restResponses.size() ? null : restResponses.get(ri)), "events", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> pageEvents = this.safeList((restResponses == null || ri < 0 || ri >= restResponses.size() ? null : restResponses.get(ri)), "events", new ArrayList<Object>(Arrays.asList()));
                     for (var ei = 0; ei < pageEvents.size(); ei++)
                     {
                         ((List<Object>)allEvents).add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
@@ -859,7 +859,7 @@ public class Polymarket extends PolymarketApi
             // push requested tags server-side (gamma accepts one tag_slug per request) so a tags-only
             // fetchEvents returns the tagged events rather than filtering the top-volume listing down
             // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
-            List<Object> requestedTags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
+            List<Object> requestedTags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
             Integer requestedTagsLength = requestedTags.size();
             if ((requestedTagsLength != null && requestedTagsLength > 1))
             {
@@ -931,7 +931,7 @@ public class Polymarket extends PolymarketApi
                 List<Object> restPages = (((List<?>)(restPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 for (var ri = 0; ri < restPages.size(); ri++)
                 {
-                    List<Object> page = (List<Object>) this.safeList(restPages, ri, new ArrayList<Object>(Arrays.asList()));
+                    List<Object> page = this.safeList(restPages, ri, new ArrayList<Object>(Arrays.asList()));
                     Integer pageLength = page.size();
                     for (var pi = 0; (pageLength != null && pi < pageLength); pi++)
                     {
@@ -952,7 +952,7 @@ public class Polymarket extends PolymarketApi
     public List<Object> parseEventToMarkets(Map<String, Object> eventVar)
     {
         String eventSlug = this.safeString(eventVar, "slug", this.safeString(eventVar, "id"));
-        List<Object> rawMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawMarkets = this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         //
         // {
@@ -1270,9 +1270,9 @@ public class Polymarket extends PolymarketApi
                         ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)mkt).get("market"), mkt);
                     }
                     this.populateOutcomes();
-                    if (!java.util.Objects.equals(this.safeDict(this.outcomes_by_id, outcomeSymbol, (Object) null), null))
+                    if (!java.util.Objects.equals(this.safeDict(this.outcomes_by_id, outcomeSymbol, null), null))
                     {
-                        return this.safeDict(this.outcomes_by_id, outcomeSymbol, (Object) null);
+                        return this.safeDict(this.outcomes_by_id, outcomeSymbol, null);
                     }
                 }
             }
@@ -1586,8 +1586,8 @@ public class Polymarket extends PolymarketApi
         //         }
         //     }
         //
-        Map<String, Object> midpointData = (Map<String, Object>) this.safeDict(ticker, "midpoint", new HashMap<String, Object>() {{}});
-        Map<String, Object> bookData = (Map<String, Object>) this.safeDict(ticker, "book", new HashMap<String, Object>() {{}});
+        Map<String, Object> midpointData = this.safeDict(ticker, "midpoint", new HashMap<String, Object>() {{}});
+        Map<String, Object> bookData = this.safeDict(ticker, "book", new HashMap<String, Object>() {{}});
         Double mid = this.safeNumber(midpointData, "mid", (Object) null);
         List<Object> bids = (List<Object>)(this.safeList(bookData, "bids", new ArrayList<Object>(Arrays.asList())));
         List<Object> asks = (List<Object>)(this.safeList(bookData, "asks", new ArrayList<Object>(Arrays.asList())));
@@ -1600,7 +1600,7 @@ public class Polymarket extends PolymarketApi
         // on the complementary token it is the OTHER side's price, so only the per-token
         // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
         // never-traded token, which also falls back to the mid
-        Map<String, Object> lastTradeData = (Map<String, Object>) this.safeDict(ticker, "lastTrade", new HashMap<String, Object>() {{}});
+        Map<String, Object> lastTradeData = this.safeDict(ticker, "lastTrade", new HashMap<String, Object>() {{}});
         Double last = this.safeNumber(lastTradeData, "price", (Object) null);
         if ((java.util.Objects.equals(last, null)) || ((last != null && last == 0)))
         {
@@ -1765,7 +1765,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> buckets = new HashMap<String, Object>() {{}};
             for (var i = 0; i < history.size(); i++)
             {
-                Map<String, Object> item = (Map<String, Object>) this.safeDict(history, i, (Object) null);
+                Map<String, Object> item = this.safeDict(history, i, null);
                 Long t = this.safeInteger(item, "t");
                 Double price = this.safeNumber(item, "p", (Object) null);
                 if ((java.util.Objects.equals(t, null)) || (java.util.Objects.equals(price, null)))
@@ -1787,7 +1787,7 @@ public class Polymarket extends PolymarketApi
                     buckets.put(bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, price, price, price, price, vol)));
                 } else
                 {
-                    List<Object> candle = (List<Object>) this.safeList(buckets, bucketKey, new ArrayList<Object>(Arrays.asList()));
+                    List<Object> candle = this.safeList(buckets, bucketKey, new ArrayList<Object>(Arrays.asList()));
                     Helpers.addElementToObject(candle, 2, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply((candle == null || 2 >= ((List<?>)candle).size() ? null : ((List<?>)candle).get(2)), price)); // high
                     Helpers.addElementToObject(candle, 3, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply((candle == null || 3 >= ((List<?>)candle).size() ? null : ((List<?>)candle).get(3)), price)); // low
                     Helpers.addElementToObject(candle, 4, price); // close (last tick wins)
@@ -1900,7 +1900,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
             if (java.util.Objects.equals(conditionId, null))
             {
@@ -1912,7 +1912,7 @@ public class Polymarket extends PolymarketApi
             //
             //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
             //
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parsePredictionOpenInterest(first, outcomeObj);
         }).thenApply(PredictionOpenInterest::new);
 
@@ -1997,7 +1997,7 @@ public class Polymarket extends PolymarketApi
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId", "");
-            Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
             if (java.util.Objects.equals(conditionId, null))
             {
@@ -2085,12 +2085,12 @@ public class Polymarket extends PolymarketApi
             for (var i = 0; i < trades.size(); i++)
             {
                 PredictionTrade trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(trade, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = this.safeDict(trade, "info", new HashMap<String, Object>() {{}});
                 Boolean belongs = (java.util.Objects.equals(this.safeString(trade, "order"), id)) || (java.util.Objects.equals(this.safeString(info, "taker_order_id"), id));
-                List<Object> makerOrders = (List<Object>) this.safeList(info, "maker_orders", new ArrayList<Object>(Arrays.asList()));
+                List<Object> makerOrders = this.safeList(info, "maker_orders", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < makerOrders.size(); j++)
                 {
-                    Map<String, Object> makerOrder = (Map<String, Object>) this.safeDict(makerOrders, j, (Object) null);
+                    Map<String, Object> makerOrder = this.safeDict(makerOrders, j, null);
                     if (java.util.Objects.equals(this.safeString(makerOrder, "order_id"), id))
                     {
                         belongs = true;
@@ -2266,7 +2266,7 @@ public class Polymarket extends PolymarketApi
                 put( "user", Polymarket.this.walletAddress );
             }};
             Map<String, Object> response = (this.dataPublicGetPositions(this.extend(request, parameters))).join();
-            List<Object> positions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
             // then filter by the requested outcomes' token ids ourselves
             if (java.util.Objects.equals(outcomesLength, 0))
@@ -2288,7 +2288,7 @@ public class Polymarket extends PolymarketApi
             for (var i = 0; i < parsed.size(); i++)
             {
                 Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(position, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = this.safeDict(position, "info", new HashMap<String, Object>() {{}});
                 String assetId = this.safeString(info, "asset");
                 if ((!java.util.Objects.equals(assetId, null)) && (wantedIds.containsKey(assetId)))
                 {
@@ -2315,7 +2315,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<Object>(Arrays.asList(outcome)), parameters)).join();
-            return this.safeDict(positions, 0, (Object) null);
+            return this.safeDict(positions, 0, null);
         }).thenApply(PredictionPosition::new);
 
     }
@@ -2549,10 +2549,10 @@ public class Polymarket extends PolymarketApi
             (this.loadApiCredentials()).join();
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> built = this.buildClobOrderBody((String) (outcome), (String) (type), (String) (side), amount, price, parameters);
-            Map<String, Object> response = (this.clobPrivatePostOrder(this.safeDict(built, "body", (Object) null))).join();
+            Map<String, Object> response = (this.clobPrivatePostOrder(this.safeDict(built, "body", null))).join();
             // request echo first so the response's real orderID/status/success win on overlap
-            Map<String, Object> enriched = this.extend(this.safeDict(built, "request", (Object) null), response);
-            Object order = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(built, "outcome", (Object) null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
+            Map<String, Object> enriched = this.extend(this.safeDict(built, "request", null), response);
+            Object order = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(built, "outcome", null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
             Helpers.addElementToObject(order, "info", response); // keep info the raw exchange response, not the request echo
             return order;
         }).thenApply(PredictionOrder::new);
@@ -2579,7 +2579,7 @@ public class Polymarket extends PolymarketApi
             List<String> orderOutcomes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> o = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> o = this.safeDict(orders, i, null);
                 String __oc = this.safeString(o, "outcome");
                 if (!java.util.Objects.equals(__oc, null))
                 {
@@ -2592,8 +2592,8 @@ public class Polymarket extends PolymarketApi
             List<Object> requests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> o = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(o, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> o = this.safeDict(orders, i, null);
+                Map<String, Object> orderParams = this.safeDict(o, "params", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(this.safeString(orderParams, "salt"), null))
                 {
                     // a distinct salt per order so two identical orders don't collide, within a batch or across calls
@@ -2687,7 +2687,7 @@ public class Polymarket extends PolymarketApi
         }
         // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
         // outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
-        Map<String, Object> outcomePrecision = (Map<String, Object>) this.safeDict(outcomeObj, "precision", new HashMap<String, Object>() {{}});
+        Map<String, Object> outcomePrecision = this.safeDict(outcomeObj, "precision", new HashMap<String, Object>() {{}});
         String tickSize = this.safeString(parameters, "tickSize", this.numberToString(this.safeNumber(outcomePrecision, "price", 0.01)));
         Boolean negRisk = (Boolean) this.safeBool(parameters, "negRisk", this.safeBool(outcomeObj, "negRisk", false));
         // maker-only: the CLOB rejects the order if it would immediately take
@@ -2723,7 +2723,7 @@ public class Polymarket extends PolymarketApi
             if (builderHex.length() <= 40)
             {
                 Boolean builderFeeEnabled = (Boolean) this.safeBool(this.options, "builderFee", true);
-                Object feeRate = 0;
+                Long feeRate = 0L;
                 if (Boolean.TRUE.equals(builderFeeEnabled))
                 {
                     feeRate = this.safeInteger(this.options, "feeRate", 0);
@@ -2859,7 +2859,7 @@ public class Polymarket extends PolymarketApi
                 put( "amount", 6 );
             }} );
         }};
-        Map<String, Object> cfg = (Map<String, Object>) this.safeDict(configs, tickSize, this.safeDict(configs, "0.01", (Object) null));
+        Map<String, Object> cfg = (Map<String, Object>) this.safeDict(configs, tickSize, this.safeDict(configs, "0.01", null));
         Long priceDecimals = this.safeInteger(cfg, "price");
         Long sizeDecimals = this.safeInteger(cfg, "size");
         Long amountDecimals = this.safeInteger(cfg, "amount");
@@ -3042,7 +3042,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> response = (this.clobPrivateDeleteOrder(this.extend(request, parameters))).join();
             // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
             // fields, so report the cancellation outcome explicitly rather than parsing an empty order
-            Map<String, Object> notCanceled = (Map<String, Object>) this.safeDict(response, "not_canceled", new HashMap<String, Object>() {{}});
+            Map<String, Object> notCanceled = this.safeDict(response, "not_canceled", new HashMap<String, Object>() {{}});
             String failureReason = this.safeString(notCanceled, id);
             String status = "open";
             if (java.util.Objects.equals(failureReason, null))
@@ -3076,7 +3076,7 @@ public class Polymarket extends PolymarketApi
             (this.loadApiCredentials()).join();
             // the request body is the bare array of order ids (DELETE /orders), so params are not merged
             Map<String, Object> response = (this.clobPrivateDeleteOrders(ids)).join();
-            List<Object> canceled = (List<Object>) this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
+            List<Object> canceled = this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < canceled.size(); i++)
             {
@@ -3121,7 +3121,7 @@ public class Polymarket extends PolymarketApi
                 // cancel every open order via DELETE /cancel-all (no body, no market data needed)
                 response = (this.clobPrivateDeleteCancelAll(parameters)).join();
             }
-            List<Object> canceled = (List<Object>) this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
+            List<Object> canceled = this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < canceled.size(); i++)
             {
@@ -3241,7 +3241,7 @@ public class Polymarket extends PolymarketApi
                     }
                     ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
                 }
-                Map<String, Object> parsedEvent = (Map<String, Object>) this.parseEvent((Map<String, Object>) (eventForParsing));
+                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) (eventForParsing));
                 ((List<Object>)result).add(parsedEvent);
             }
             // populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -3296,14 +3296,14 @@ public class Polymarket extends PolymarketApi
             {
                 eventForParsing = new HashMap<String, Object>() {{}};
             }
-            Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent(eventForParsing);
+            Map<String, Object> eventVar = this.parseEvent(eventForParsing);
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);
 
     }
 
-    public Object parseEvent(Map<String, Object> rawEvent)
+    public Map<String, Object> parseEvent(Map<String, Object> rawEvent)
     {
         // {
         //     "id": "73113",
@@ -3382,7 +3382,7 @@ public class Polymarket extends PolymarketApi
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
         // prefer the human-readable label ("Fed Rates") over the slug — matching is
         // normalized (normalizeTagKey), so the display form is free to be the friendly one
-        List<Object> rawTags = (List<Object>) this.safeList(rawEvent, "tags", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTags = this.safeList(rawEvent, "tags", new ArrayList<Object>(Arrays.asList()));
         Integer rawTagsLength = rawTags.size();
         List<String> parsedTags = new ArrayList<String>(Arrays.asList());
         for (var ti = 0; (rawTagsLength != null && ti < rawTagsLength); ti++)
@@ -3413,7 +3413,7 @@ public class Polymarket extends PolymarketApi
         mapLiteral10.put("resolutionSource", this.safeString2(rawEvent, "resolutionSource", "resolution_source"));
         mapLiteral10.put("resolved", this.safeBool2(rawEvent, "closed", "resolved", (Object) null));
         mapLiteral10.put("info", rawEvent);
-        return this.extend(mapLiteral10);
+        return ((Map<String, Object>) this.extend(mapLiteral10));
     }
 
     /**
@@ -3902,18 +3902,18 @@ public class Polymarket extends PolymarketApi
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcome);
         Long timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
-        List<Object> rawBids = (List<Object>) this.safeList(eventVar, "bids", new ArrayList<Object>(Arrays.asList()));
-        List<Object> rawAsks = (List<Object>) this.safeList(eventVar, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawBids = this.safeList(eventVar, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawAsks = this.safeList(eventVar, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawBids.size(); i++)
         {
-            Map<String, Object> b = (Map<String, Object>) this.safeDict(rawBids, i, (Object) null);
+            Map<String, Object> b = this.safeDict(rawBids, i, null);
             ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(b, "price", (Object) null), this.safeNumber(b, "size", (Object) null))));
         }
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
         for (var j = 0; j < rawAsks.size(); j++)
         {
-            Map<String, Object> a = (Map<String, Object>) this.safeDict(rawAsks, j, (Object) null);
+            Map<String, Object> a = this.safeDict(rawAsks, j, null);
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(a, "price", (Object) null), this.safeNumber(a, "size", (Object) null))));
         }
         Map<String, Object> outcomeObj = this.safeOutcome((String) (outcome), (Map<String, Object>) null);
@@ -3933,11 +3933,11 @@ public class Polymarket extends PolymarketApi
     public void handleOrderBookDelta(Client client, Map<String, Object> eventVar)
     {
         Long timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
-        List<Object> changes = (List<Object>) this.safeList(eventVar, "price_changes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> changes = this.safeList(eventVar, "price_changes", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> updated = new HashMap<String, Object>() {{}};
         for (var i = 0; i < changes.size(); i++)
         {
-            Map<String, Object> change = (Map<String, Object>) this.safeDict(changes, i, (Object) null);
+            Map<String, Object> change = this.safeDict(changes, i, null);
             String tokenId = this.safeString(change, "asset_id");
             String outcome = this.tokenIdToSymbol((String) (tokenId));
             if ((java.util.Objects.equals(outcome, null)) || !(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
@@ -4327,14 +4327,14 @@ public class Polymarket extends PolymarketApi
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);
         // fall back to markets_by_id for the standard market lookup
-        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId, (Object) null);
+        Map<String, Object> outcomeObj = this.safeDict(this.outcomes_by_id, tokenId, null);
         if (!java.util.Objects.equals(outcomeObj, null))
         {
             return this.safeString(outcomeObj, "outcome");
         }
         // safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
         // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
-        Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets_by_id, tokenId, (Object) null);
+        Map<String, Object> market = this.safeDict(this.markets_by_id, tokenId, null);
         return this.safeString2(market, "market", "symbol");
     }
 

@@ -2389,7 +2389,7 @@ public class Bybit extends BybitApi
 
     public List<Object> addPaginationCursorToResult(Map<String, Object> response)
     {
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeListN(result, new ArrayList<Object>(Arrays.asList("list", "rows", "data", "dataList")), new ArrayList<Object>(Arrays.asList()));
         String paginationCursor = this.safeString2(result, "nextPageCursor", "cursor");
         Integer dataLength = data.size();
@@ -2434,8 +2434,8 @@ public class Bybit extends BybitApi
                 }
                 List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)));
                 List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                Map<String, Object> response = (Map<String, Object>) this.safeDict(promises, 0, (Object) null);
-                Map<String, Object> accountInfo = (Map<String, Object>) this.safeDict(promises, 1, (Object) null);
+                Map<String, Object> response = this.safeDict(promises, 0, null);
+                Map<String, Object> accountInfo = this.safeDict(promises, 1, null);
                 //
                 //     {
                 //         "retCode": 0,
@@ -2491,8 +2491,8 @@ public class Bybit extends BybitApi
                 //         }
                 //     }
                 //
-                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-                Map<String, Object> accountResult = (Map<String, Object>) this.safeDict(accountInfo, "result", new HashMap<String, Object>() {{}});
+                Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+                Map<String, Object> accountResult = this.safeDict(accountInfo, "result", new HashMap<String, Object>() {{}});
                 this.options.put("enableUnifiedMargin", java.util.Objects.equals(this.safeInteger(result, "unified"), 1L));
                 this.options.put("enableUnifiedAccount", java.util.Objects.equals(this.safeInteger(result, "uta"), 1L));
                 this.options.put("unifiedMarginStatus", this.safeInteger(accountResult, "unifiedMarginStatus", 6)); // default to uta 2.0 pro if not found
@@ -2725,14 +2725,14 @@ public class Bybit extends BybitApi
             //         "time": 1751858399649
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> list = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> list = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             String status = "ok";
             Long eta = null;
             String url = null;
             for (var i = 0; i < list.size(); i++)
             {
-                Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(list, i, (Object) null);
+                Map<String, Object> eventVar = this.safeDict(list, i, null);
                 String state = this.safeString(eventVar, "state");
                 if (java.util.Objects.equals(state, "ongoing"))
                 {
@@ -2842,8 +2842,8 @@ public class Bybit extends BybitApi
             //         "time": 1672194582264
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(rows);
         });
 
@@ -2854,7 +2854,7 @@ public class Bybit extends BybitApi
         String currencyId = this.safeString(currency, "coin");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String name = this.safeString(currency, "name");
-        List<Object> chains = (List<Object>) this.safeList(currency, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = this.safeList(currency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < chains.size(); j++)
         {
@@ -2934,7 +2934,7 @@ public class Bybit extends BybitApi
             List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
             Object types = null;
             List<String> defaultTypes = new ArrayList<String>(Arrays.asList("spot", "linear", "inverse", "option"));
-            Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", (Object) null);
+            Map<String, Object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets", null);
             if (!java.util.Objects.equals(fetchMarketsOptions, null))
             {
                 types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
@@ -2961,7 +2961,7 @@ public class Bybit extends BybitApi
                     }}));
                 } else if (java.util.Objects.equals(marketType, "option"))
                 {
-                    List<Object> optionsCurrencies = (List<Object>) this.safeList(fetchMarketsOptions, "options", new ArrayList<Object>(Arrays.asList("BTC", "ETH", "SOL")));
+                    List<Object> optionsCurrencies = this.safeList(fetchMarketsOptions, "options", new ArrayList<Object>(Arrays.asList("BTC", "ETH", "SOL")));
                     for (var j = 0; j < optionsCurrencies.size(); j++)
                     {
                         Object currency = (optionsCurrencies == null || j < 0 || j >= optionsCurrencies.size() ? null : optionsCurrencies.get(j));
@@ -3046,8 +3046,8 @@ public class Bybit extends BybitApi
             //         "time": 1672712468011
             //     }
             //
-            Map<String, Object> responseResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> markets = (List<Object>) this.safeList(responseResult, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> responseResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> markets = this.safeList(responseResult, "list", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Double takerFee = this.parseNumber("0.001");
             Double makerFee = this.parseNumber("0.001");
@@ -3066,8 +3066,8 @@ public class Bybit extends BybitApi
                 String symbol = ((base + "/") + quote);
                 String status = this.safeString(market, "status");
                 Boolean active = (java.util.Objects.equals(status, "Trading"));
-                Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(market, "lotSizeFilter", (Object) null);
-                Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(market, "priceFilter", (Object) null);
+                Map<String, Object> lotSizeFilter = this.safeDict(market, "lotSizeFilter", null);
+                Map<String, Object> priceFilter = this.safeDict(market, "priceFilter", null);
                 Double quotePrecision = this.safeNumber(lotSizeFilter, "quotePrecision", (Object) null);
                 String marginTrading = this.safeString(market, "marginTrading", "none");
                 Boolean allowsMargin = !java.util.Objects.equals(marginTrading, "none");
@@ -3150,8 +3150,8 @@ public class Bybit extends BybitApi
                 response = (Map<String, Object>) this.safeDict(promises, 0, new HashMap<String, Object>() {{}});
                 preLaunchMarkets = this.safeDict(promises, 1, new HashMap<String, Object>() {{}});
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> markets = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> markets = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             String paginationCursor = this.safeString(data, "nextPageCursor");
             if (!java.util.Objects.equals(paginationCursor, null))
             {
@@ -3166,8 +3166,8 @@ public class Bybit extends BybitApi
                     {
                         responseInner = (this.publicGetV5MarketInstrumentsInfo(paramsExtended)).join();
                     }
-                    Map<String, Object> dataNew = (Map<String, Object>) this.safeDict(responseInner, "result", new HashMap<String, Object>() {{}});
-                    List<Object> rawMarkets = (List<Object>) this.safeList(dataNew, "list", new ArrayList<Object>(Arrays.asList()));
+                    Map<String, Object> dataNew = this.safeDict(responseInner, "result", new HashMap<String, Object>() {{}});
+                    List<Object> rawMarkets = this.safeList(dataNew, "list", new ArrayList<Object>(Arrays.asList()));
                     Integer rawMarketsLength = rawMarkets.size();
                     if (java.util.Objects.equals(rawMarketsLength, 0))
                     {
@@ -3221,8 +3221,8 @@ public class Bybit extends BybitApi
             //         "time": 1672712495660
             //     }
             //
-            Map<String, Object> preLaunchData = (Map<String, Object>) this.safeDict(preLaunchMarkets, "result", new HashMap<String, Object>() {{}});
-            List<Object> preLaunchMarketsList = (List<Object>) this.safeList(preLaunchData, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> preLaunchData = this.safeDict(preLaunchMarkets, "result", new HashMap<String, Object>() {{}});
+            List<Object> preLaunchMarketsList = this.safeList(preLaunchData, "list", new ArrayList<Object>(Arrays.asList()));
             markets = (List<Object>) this.arrayConcat(markets, preLaunchMarketsList);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             String category = this.safeString(data, "category");
@@ -3264,9 +3264,9 @@ public class Bybit extends BybitApi
                     settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
                 }
                 String symbol = ((base + "/") + quote);
-                Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(market, "lotSizeFilter", new HashMap<String, Object>() {{}});
-                Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(market, "priceFilter", new HashMap<String, Object>() {{}});
-                Map<String, Object> leverage = (Map<String, Object>) this.safeDict(market, "leverageFilter", new HashMap<String, Object>() {{}});
+                Map<String, Object> lotSizeFilter = this.safeDict(market, "lotSizeFilter", new HashMap<String, Object>() {{}});
+                Map<String, Object> priceFilter = this.safeDict(market, "priceFilter", new HashMap<String, Object>() {{}});
+                Map<String, Object> leverage = this.safeDict(market, "leverageFilter", new HashMap<String, Object>() {{}});
                 String status = this.safeString(market, "status");
                 Boolean swap = Boolean.TRUE.equals(linearPerpetual) || Boolean.TRUE.equals(inversePerpetual);
                 Boolean future = Boolean.TRUE.equals(inverseFutures) || Boolean.TRUE.equals(linearFutures);
@@ -3370,8 +3370,8 @@ public class Bybit extends BybitApi
             {
                 response = (this.publicGetV5MarketInstrumentsInfo(this.extend(request, parameters))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> markets = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> markets = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             boolean loadAllOptions = Boolean.TRUE.equals(this.handleOption("fetchMarkets", "loadAllOptions", (Object) null));
             if (loadAllOptions)
             {
@@ -3390,8 +3390,8 @@ public class Bybit extends BybitApi
                         {
                             responseInner = (this.publicGetV5MarketInstrumentsInfo(this.extend(request, parameters))).join();
                         }
-                        Map<String, Object> dataNew = (Map<String, Object>) this.safeDict(responseInner, "result", new HashMap<String, Object>() {{}});
-                        List<Object> rawMarkets = (List<Object>) this.safeList(dataNew, "list", new ArrayList<Object>(Arrays.asList()));
+                        Map<String, Object> dataNew = this.safeDict(responseInner, "result", new HashMap<String, Object>() {{}});
+                        List<Object> rawMarkets = this.safeList(dataNew, "list", new ArrayList<Object>(Arrays.asList()));
                         Integer rawMarketsLength = rawMarkets.size();
                         if (java.util.Objects.equals(rawMarketsLength, 0))
                         {
@@ -3452,8 +3452,8 @@ public class Bybit extends BybitApi
                     continue;
                 }
                 String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-                Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(market, "lotSizeFilter", new HashMap<String, Object>() {{}});
-                Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(market, "priceFilter", new HashMap<String, Object>() {{}});
+                Map<String, Object> lotSizeFilter = this.safeDict(market, "lotSizeFilter", new HashMap<String, Object>() {{}});
+                Map<String, Object> priceFilter = this.safeDict(market, "priceFilter", new HashMap<String, Object>() {{}});
                 String status = this.safeString(market, "status");
                 Long expiry = this.safeInteger(market, "deliveryTime");
                 if (java.util.Objects.equals(id, null))
@@ -3721,9 +3721,9 @@ public class Bybit extends BybitApi
             //         "time": 1672376496682
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> tickers = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> tickers = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> rawTicker = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(rawTicker, market);
         }).thenApply(Ticker::new);
 
@@ -3853,7 +3853,7 @@ public class Bybit extends BybitApi
             //         "time": 1672376496682
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> tickerList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(category, "spot"))
             {
@@ -4052,8 +4052,8 @@ public class Bybit extends BybitApi
             //         "time": 1672025956592
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> ohlcvs = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> ohlcvs = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -4094,7 +4094,7 @@ public class Bybit extends BybitApi
         Long fundingTimestamp = this.safeInteger(tickerOmitted, "nextFundingTime");
         Double markPrice = this.safeNumber(tickerOmitted, "markPrice", (Object) null);
         Double indexPrice = this.safeNumber(tickerOmitted, "indexPrice", (Object) null);
-        Map<String, Object> info = (Map<String, Object>) this.safeDict(this.safeMarket(marketId, market, (String) null, "swap"), "info", (Object) null);
+        Map<String, Object> info = this.safeDict(this.safeMarket(marketId, market, (String) null, "swap"), "info", null);
         Long fundingInterval = this.safeInteger(info, "fundingInterval");
         String intervalString = null;
         if (!java.util.Objects.equals(fundingInterval, null))
@@ -4205,8 +4205,8 @@ public class Bybit extends BybitApi
             //         "time": 1663670053454
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> tickerList = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> tickerList = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "time");
             for (var i = 0; i < tickerList.size(); i++)
             {
@@ -4315,8 +4315,8 @@ public class Bybit extends BybitApi
             //     }
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            List<Object> resultList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", null);
+            List<Object> resultList = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < resultList.size(); i++)
             {
                 Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
@@ -4662,8 +4662,8 @@ public class Bybit extends BybitApi
             //         "time": 1672053054358
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -4745,7 +4745,7 @@ public class Bybit extends BybitApi
             //         "time": 1672765737734
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "ts");
             return this.parseOrderBook(result, symbol, timestamp, "b", "a", 0, 1, 2);
         }).thenApply(OrderBook::new);
@@ -4862,7 +4862,7 @@ public class Bybit extends BybitApi
             put( "timestamp", timestamp );
             put( "datetime", Bybit.this.iso8601(timestamp) );
         }};
-        Map<String, Object> responseResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> responseResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> currencyList = (List<Object>) this.safeListN(responseResult, new ArrayList<Object>(Arrays.asList("loanAccountList", "list", "balance")), (Object) null);
         if (java.util.Objects.equals(currencyList, null))
         {
@@ -4876,15 +4876,15 @@ public class Bybit extends BybitApi
         {
             for (var i = 0; i < currencyList.size(); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(currencyList, i, (Object) null);
+                Map<String, Object> entry = this.safeDict(currencyList, i, null);
                 String accountType = this.safeString(entry, "accountType");
                 if (java.util.Objects.equals(accountType, "UNIFIED") || java.util.Objects.equals(accountType, "CONTRACT") || java.util.Objects.equals(accountType, "SPOT"))
                 {
-                    List<Object> coins = (List<Object>) this.safeList(entry, "coin", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> coins = this.safeList(entry, "coin", new ArrayList<Object>(Arrays.asList()));
                     for (var j = 0; j < coins.size(); j++)
                     {
                         Map<String, Object> account = this.account();
-                        Map<String, Object> coinEntry = (Map<String, Object>) this.safeDict(coins, j, (Object) null);
+                        Map<String, Object> coinEntry = this.safeDict(coins, j, null);
                         String loan = this.safeString(coinEntry, "borrowAmount");
                         String interest = this.safeString(coinEntry, "accruedInterest");
                         if ((!java.util.Objects.equals(loan, null)) && (!java.util.Objects.equals(interest, null)))
@@ -5003,7 +5003,7 @@ public class Bybit extends BybitApi
                     type = "contract";
                 }
             }
-            Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountTypes = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String unifiedType = this.safeStringUpper(accountTypes, type, type);
             Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
@@ -5329,7 +5329,7 @@ public class Bybit extends BybitApi
         String rawStatus = this.safeString(order, "orderStatus");
         String status = this.parseOrderStatus(rawStatus);
         Map<String, Object> fee = null;
-        Map<String, Object> cumFeeDetail = (Map<String, Object>) this.safeDict(order, "cumFeeDetail", new HashMap<String, Object>() {{}});
+        Map<String, Object> cumFeeDetail = this.safeDict(order, "cumFeeDetail", new HashMap<String, Object>() {{}});
         List<String> feeCoins = new ArrayList<String>(cumFeeDetail.keySet());
         String feeCoinId = this.safeString(feeCoins, 0);
         if (!java.util.Objects.equals(feeCoinId, null))
@@ -5565,7 +5565,7 @@ public class Bybit extends BybitApi
             //         "time": 1672211918471
             //     }
             //
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -5964,14 +5964,14 @@ public class Bybit extends BybitApi
             List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 orderSymbols.add(marketId);
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
                 orderRequest.remove("category");
                 ((List<Object>)ordersRequests).add(orderRequest);
@@ -5990,10 +5990,10 @@ public class Bybit extends BybitApi
             request.put("category", category);
             request.put("request", ordersRequests);
             Map<String, Object> response = (this.privatePostV5OrderCreateBatch(this.extend(request, paramsValue))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> retInfo = (Map<String, Object>) this.safeDict(response, "retExtInfo", new HashMap<String, Object>() {{}});
-            List<Object> codes = (List<Object>) this.safeList(retInfo, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> retInfo = this.safeDict(response, "retExtInfo", new HashMap<String, Object>() {{}});
+            List<Object> codes = this.safeList(retInfo, "list", new ArrayList<Object>(Arrays.asList()));
             // extend the error with the unsuccessful orders
             for (var i = 0; i < codes.size(); i++)
             {
@@ -6180,7 +6180,7 @@ public class Bybit extends BybitApi
             //         "time": 1672217093461
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", Bybit.this.safeString(result, "orderId") );
@@ -6212,7 +6212,7 @@ public class Bybit extends BybitApi
             List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String symbol = this.safeString(rawOrder, "symbol");
                 orderSymbols.add(symbol);
                 String id = this.safeString(rawOrder, "id");
@@ -6220,7 +6220,7 @@ public class Bybit extends BybitApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
                 orderRequest.remove("category");
                 ((List<Object>)ordersRequests).add(orderRequest);
@@ -6239,10 +6239,10 @@ public class Bybit extends BybitApi
             request.put("category", category);
             request.put("request", ordersRequests);
             Map<String, Object> response = (this.privatePostV5OrderAmendBatch(this.extend(request, paramsValue))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> retInfo = (Map<String, Object>) this.safeDict(response, "retExtInfo", new HashMap<String, Object>() {{}});
-            List<Object> codes = (List<Object>) this.safeList(retInfo, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> retInfo = this.safeDict(response, "retExtInfo", new HashMap<String, Object>() {{}});
+            List<Object> codes = this.safeList(retInfo, "list", new ArrayList<Object>(Arrays.asList()));
             // extend the error with the unsuccessful orders
             for (var i = 0; i < codes.size(); i++)
             {
@@ -6358,7 +6358,7 @@ public class Bybit extends BybitApi
             //         "time": 1672217377164
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
@@ -6458,8 +6458,8 @@ public class Bybit extends BybitApi
             //         "time": "1709796158501"
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> row = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> row = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(row, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -6542,7 +6542,7 @@ public class Bybit extends BybitApi
             Object query = parameters;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> order = this.safeDict(orders, i, null);
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = this.market(symbol);
                 String currentCategory = null;
@@ -6610,8 +6610,8 @@ public class Bybit extends BybitApi
             //         "time": "1709796158501"
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> row = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> row = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(row, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -6705,8 +6705,8 @@ public class Bybit extends BybitApi
             //         "time": 1676962409398
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(result, "list", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(result, "list", null);
             if (!(orders instanceof List))
             {
                 return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
@@ -6761,7 +6761,7 @@ public class Bybit extends BybitApi
             {
                 throw new InvalidOrder((this.id + " returned more than one order")) ;
             }
-            return this.safeDict(result, 0, (Object) null);
+            return this.safeDict(result, 0, null);
         });
 
     }
@@ -6867,8 +6867,8 @@ public class Bybit extends BybitApi
             //         "time": 1672219526294
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> innerList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> innerList = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
             // see https://github.com/ccxt/ccxt/pull/29602
             Integer innerListLength = innerList.size();
@@ -6881,7 +6881,7 @@ public class Bybit extends BybitApi
                 }
                 throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(innerList, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(innerList, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -7054,7 +7054,7 @@ public class Bybit extends BybitApi
             {
                 throw new InvalidOrder((this.id + " returned more than one order")) ;
             }
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            Map<String, Object> order = this.safeDict(result, 0, null);
             return order;
         });
 
@@ -7101,7 +7101,7 @@ public class Bybit extends BybitApi
             {
                 throw new InvalidOrder((this.id + " returned more than one order")) ;
             }
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            Map<String, Object> order = this.safeDict(result, 0, null);
             return order;
         });
 
@@ -7659,8 +7659,8 @@ public class Bybit extends BybitApi
             //         "time": 1672192792860
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> chains = (List<Object>) this.safeList(result, "chains", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> chains = this.safeList(result, "chains", new ArrayList<Object>(Arrays.asList()));
             String coin = this.safeString(result, "coin");
             Map<String, Object> currencyFromResponse = this.currency(coin);
             Object parsed = this.parseDepositAddresses(chains, new ArrayList<Object>(Arrays.asList(currencyFromResponse.get("code"))), false, new HashMap<String, Object>() {{
@@ -7695,7 +7695,7 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             Map<String, Object> indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
             Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
-            return this.safeDict(indexedAddresses, selectedNetworkCode, (Object) null);
+            return this.safeDict(indexedAddresses, selectedNetworkCode, null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -8355,7 +8355,7 @@ public class Bybit extends BybitApi
             //         "time": "1666892894902"
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransaction(result, currency);
         }).thenApply(Transaction::new);
 
@@ -8433,10 +8433,10 @@ public class Bybit extends BybitApi
             //         "time": 1672280219169
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList2(result, "list", "dataList", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "time");
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> position = (Map<String, Object>) this.parsePosition(first, market);
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
@@ -8575,7 +8575,7 @@ public class Bybit extends BybitApi
                 if (((switch ((Object)(rawPosition)) { case List<?> j39v8 -> j39v8.contains("data"); case Map<?, ?> j39v7 -> j39v7.containsKey("data"); case null, default -> false; })) && ((switch ((Object)(rawPosition)) { case List<?> j39v6 -> j39v6.contains("is_valid"); case Map<?, ?> j39v5 -> j39v5.containsKey("is_valid"); case null, default -> false; })))
                 {
                     // futures only
-                    rawPosition = this.safeDict(rawPosition, "data", (Object) null);
+                    rawPosition = this.safeDict(rawPosition, "data", null);
                 }
                 ((List<Object>)results).add(this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null));
             }
@@ -9175,7 +9175,7 @@ public class Bybit extends BybitApi
                 subType = "linear";
             }
             String category = this.safeString(parameters, "category", subType);
-            Map<String, Object> intervals = (Map<String, Object>) this.safeDict(this.options, "intervals", (Object) null);
+            Map<String, Object> intervals = this.safeDict(this.options, "intervals", null);
             String interval = this.safeString(intervals, java.util.Objects.requireNonNullElse(timeframe, "1h")); // 5min,15min,30min,1h,4h,1d
             if (java.util.Objects.equals(interval, null))
             {
@@ -9234,7 +9234,7 @@ public class Bybit extends BybitApi
             //         "time": 1672053548579
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = this.addPaginationCursorToResult(response);
             String id = this.safeString(result, "symbol");
             Map<String, Object> safeMarketObj = this.safeMarket(id, market, (String) null, "contract");
@@ -9269,7 +9269,7 @@ public class Bybit extends BybitApi
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
             }
             String timeframe = this.safeString(parameters, "interval", "1h");
-            Map<String, Object> intervals = (Map<String, Object>) this.safeDict(this.options, "intervals", (Object) null);
+            Map<String, Object> intervals = this.safeDict(this.options, "intervals", null);
             String interval = this.safeString(intervals, timeframe); // 5min,15min,30min,1h,4h,1d
             if (java.util.Objects.equals(interval, null))
             {
@@ -9309,7 +9309,7 @@ public class Bybit extends BybitApi
             //         "time": 1672053548579
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String id = this.safeString(result, "symbol");
             Map<String, Object> safeMarketObj = this.safeMarket(id, market, (String) null, "contract");
             List<Object> data = this.addPaginationCursorToResult(response);
@@ -9446,11 +9446,11 @@ public class Bybit extends BybitApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "time");
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> vipCoinList = (List<Object>) this.safeList(data, "vipCoinList", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> firstVip = (Map<String, Object>) this.safeDict(vipCoinList, 0, new HashMap<String, Object>() {{}});
-            List<Object> coins = (List<Object>) this.safeList(firstVip, "list", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> coin = (Map<String, Object>) this.safeDict(coins, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> vipCoinList = this.safeList(data, "vipCoinList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> firstVip = this.safeDict(vipCoinList, 0, new HashMap<String, Object>() {{}});
+            List<Object> coins = this.safeList(firstVip, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> coin = this.safeDict(coins, 0, new HashMap<String, Object>() {{}});
             coin.put("timestamp", timestamp);
             return this.parseBorrowRate(coin, currency);
         }).thenApply(CrossBorrowRate::new);
@@ -9544,8 +9544,8 @@ public class Bybit extends BybitApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> rows = (List<Object>) this.safeList(data, "loanAccountList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> rows = this.safeList(data, "loanAccountList", new ArrayList<Object>(Arrays.asList()));
             List<Object> interest = this.parseBorrowInterests(rows, (Map<String, Object>) null);
             return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
@@ -9605,8 +9605,8 @@ public class Bybit extends BybitApi
             //       "time": 1721899048991
             //   }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            List<Object> rows = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", null);
+            List<Object> rows = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseBorrowRateHistory(rows, (String) (code), sinceResolved, limit);
         });
 
@@ -9660,7 +9660,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String transferId = this.safeString(parameters, "transferId", this.uuid());
-            Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountTypes = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
             Map<String, Object> currency = this.currency((String) (code));
@@ -9685,7 +9685,7 @@ public class Bybit extends BybitApi
             // }
             //
             Long timestamp = this.safeInteger(response, "time");
-            Map<String, Object> transfer = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> transfer = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String statusRaw = this.safeString2(response, "retCode", "retMsg");
             String status = this.parseTransferStatus(statusRaw);
             return this.extend(this.parseTransfer(transfer, currency), new HashMap<String, Object>() {{
@@ -9813,7 +9813,7 @@ public class Bybit extends BybitApi
             //         "time": 1763194940073
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(result, currency);
         }).thenApply(MarginLoan::new);
 
@@ -9855,7 +9855,7 @@ public class Bybit extends BybitApi
             //         "time": 1763195201119
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> transaction = this.parseMarginLoan(result, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
@@ -9927,7 +9927,7 @@ public class Bybit extends BybitApi
         Long timestamp = this.safeInteger(transfer, "timestamp");
         String fromAccountId = this.safeString(transfer, "fromAccountType");
         String toAccountId = this.safeString(transfer, "toAccountType");
-        Map<String, Object> accountIds = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountIds = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         String fromAccount = this.safeString(accountIds, fromAccountId, fromAccountId);
         String toAccount = this.safeString(accountIds, toAccountId, toAccountId);
         return new HashMap<String, Object>() {{
@@ -9987,8 +9987,8 @@ public class Bybit extends BybitApi
             //         "time": 1672054488010
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            List<Object> tiers = (List<Object>) this.safeList(result, "list", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
+            List<Object> tiers = this.safeList(result, "list", null);
             return this.parseMarketLeverageTiers(tiers, market);
         });
 
@@ -10094,9 +10094,9 @@ public class Bybit extends BybitApi
             //         "time": 1676360412576
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> fees = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(fees, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> fees = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(fees, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -10145,8 +10145,8 @@ public class Bybit extends BybitApi
             //         "time": 1676360412576
             //     }
             //
-            Map<String, Object> feeRates = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> fees = (List<Object>) this.safeList(feeRates, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> feeRates = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> fees = this.safeList(feeRates, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < fees.size(); i++)
             {
@@ -10184,7 +10184,7 @@ public class Bybit extends BybitApi
         //        ]
         //    }
         //
-        List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         Integer chainsLength = chains.size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
@@ -10202,7 +10202,7 @@ public class Bybit extends BybitApi
         {
             for (var i = 0; (chainsLength != null && i < chainsLength); i++)
             {
-                Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, i, (Object) null);
+                Map<String, Object> chain = this.safeDict(chains, i, null);
                 String networkId = this.safeString(chain, "chain");
                 String currencyCode = this.safeString(currency, "code");
                 String networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -10279,8 +10279,8 @@ public class Bybit extends BybitApi
             //         "time": 1672194582264
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(rows, codes, "coin");
         }).thenApply(DepositWithdrawFees::new);
 
@@ -10348,9 +10348,9 @@ public class Bybit extends BybitApi
             //         "time": 1689043527231
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            List<Object> settlements = (List<Object>) this.parseSettlements(data, market);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         });
@@ -10424,9 +10424,9 @@ public class Bybit extends BybitApi
             //         "time": 1689043527231
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            List<Object> settlements = (List<Object>) this.parseSettlements(data, market);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> settlements = this.parseSettlements(data, market);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         });
@@ -10543,7 +10543,7 @@ public class Bybit extends BybitApi
             //         ]
             //     }
             //
-            List<Object> volatility = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> volatility = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseVolatilityHistory(volatility);
         });
 
@@ -10561,7 +10561,7 @@ public class Bybit extends BybitApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)volatility).size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(volatility, i, (Object) null);
+            Map<String, Object> entry = this.safeDict(volatility, i, null);
             Long timestamp = this.safeInteger(entry, "time");
             ((List<Object>)result).add(new HashMap<String, Object>() {{
                 put( "info", volatility );
@@ -10638,8 +10638,8 @@ public class Bybit extends BybitApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "time");
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> greeks = (Map<String, Object>) this.parseGreeks((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
             return this.extend(greeks, new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
@@ -10724,8 +10724,8 @@ public class Bybit extends BybitApi
             //         "time": 1699584008326
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseAllGreeks(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         });
 
@@ -10968,10 +10968,10 @@ public class Bybit extends BybitApi
             }};
             Map<String, Object> response = (this.publicGetV5MarketRiskLimit(this.extend(request, paramsSubType))).join();
             List<Object> result = this.addPaginationCursorToResult(response);
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(result, 0, null);
             Integer total = result.size();
             Long lastIndex = (((long) total) - 1L);
-            Map<String, Object> last = (Map<String, Object>) this.safeDict(result, lastIndex, new HashMap<String, Object>() {{}});
+            Map<String, Object> last = this.safeDict(result, lastIndex, new HashMap<String, Object>() {{}});
             String cursorValue = this.safeString(first, "nextPageCursor");
             last.put("info", new HashMap<String, Object>() {{
         put( "nextPageCursor", cursorValue );
@@ -11046,11 +11046,11 @@ public class Bybit extends BybitApi
         for (var i = 0; i < keys.size(); i++)
         {
             String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object entry = (grouped == null || marketId == null ? null : grouped.get(marketId));
-            for (var j = 0; j < ((List<?>)entry).size(); j++)
+            List<?> entry = (List<?>) ((grouped == null || marketId == null ? null : grouped.get(marketId)));
+            for (var j = 0; j < entry.size(); j++)
             {
-                Long id = this.safeInteger((entry == null || j < 0 || j >= ((List<?>)entry).size() ? null : ((List<?>)entry).get(j)), "id");
-                Helpers.addElementToObject(Helpers.GetValue(entry, j), "id", id);
+                Long id = this.safeInteger((entry == null || j < 0 || j >= entry.size() ? null : entry.get(j)), "id");
+                Helpers.addElementToObject((entry == null || j < 0 || j >= entry.size() ? null : entry.get(j)), "id", id);
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
             String symbol = (String) market.get("symbol");
@@ -11077,7 +11077,7 @@ public class Bybit extends BybitApi
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
         {
-            Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, (Object) null);
+            Map<String, Object> tier = this.safeDict(info, i, null);
             String marketId = this.safeString(tier, "symbol");
             Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
             Double minNotional = this.parseNumber("0");
@@ -11288,9 +11288,9 @@ public class Bybit extends BybitApi
             //         "time": 1711162003672
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> resultList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> chain = (Map<String, Object>) this.safeDict(resultList, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> resultList = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> chain = this.safeDict(resultList, 0, new HashMap<String, Object>() {{}});
             return this.parseOption(chain, (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
@@ -11360,8 +11360,8 @@ public class Bybit extends BybitApi
             //         "time": 1711162003672
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> resultList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> resultList = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOptionChain(resultList, (String) null, "symbol");
         }).thenApply(OptionChain::new);
 
@@ -11511,8 +11511,8 @@ public class Bybit extends BybitApi
             //        time: '1712717286073'
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            List<Object> rawPositions = (List<Object>) this.safeList(result, "list", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
+            List<Object> rawPositions = this.safeList(result, "list", null);
             List<Object> rawPositionsList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(rawPositions, null))
             {
@@ -11592,8 +11592,8 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> coins = (List<Object>) this.safeList(data, "coins", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> coins = this.safeList(data, "coins", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < coins.size(); i++)
             {
                 Object entry = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
@@ -11700,7 +11700,7 @@ public class Bybit extends BybitApi
             //         "time": 1727257398375
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "fromCoin", fromCode);
             Map<String, Object> fromCurrency = this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
@@ -11747,7 +11747,7 @@ public class Bybit extends BybitApi
             //         "time": 1727257904969
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseConversion(data, (Map<String, Object>) null, (Map<String, Object>) null);
         }).thenApply(Conversion::new);
 
@@ -11815,8 +11815,8 @@ public class Bybit extends BybitApi
             //         "time": 1727258257216
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(data, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(data, "result", new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "fromCoin");
             String toCurrencyId = this.safeString(result, "toCoin");
             Map<String, Object> fromCurrency = null;
@@ -11888,8 +11888,8 @@ public class Bybit extends BybitApi
             //         "time": 1727258761874
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> dataList = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> dataList = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
 
@@ -12013,8 +12013,8 @@ public class Bybit extends BybitApi
             //         "time": 1729147842516
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseLongShortRatioHistory(data, market, (Long) null, (Long) null);
         }).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
 
@@ -12129,8 +12129,8 @@ public class Bybit extends BybitApi
             //         "time": 1767085741416
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> ranks = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> ranks = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseADLRanks(ranks, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
@@ -12228,7 +12228,7 @@ public class Bybit extends BybitApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(result, market);
         }).thenApply(MarginMode::new);
 

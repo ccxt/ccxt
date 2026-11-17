@@ -375,7 +375,7 @@ public class Blockchaincom extends BlockchaincomApi
             for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, marketId, (Object) null);
+                Map<String, Object> market = this.safeDict(markets, marketId, null);
                 String baseId = this.safeString(market, "base_currency");
                 String quoteId = this.safeString(market, "counter_currency");
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
@@ -1436,7 +1436,7 @@ public class Blockchaincom extends BlockchaincomApi
             //         ]
             //     }
             //
-            List<Object> balances = (List<Object>) this.safeList(response, accountName, (Object) null);
+            List<Object> balances = this.safeList(response, accountName, null);
             if (java.util.Objects.equals(balances, null))
             {
                 throw new ExchangeError((((this.id + " fetchBalance() could not find the \"") + accountName) + "\" account")) ;
@@ -1446,7 +1446,7 @@ public class Blockchaincom extends BlockchaincomApi
             }};
             for (var i = 0; i < balances.size(); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+                Map<String, Object> entry = this.safeDict(balances, i, null);
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 Map<String, Object> account = this.account();

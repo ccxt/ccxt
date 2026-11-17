@@ -497,9 +497,9 @@ public class Upbit extends UpbitApi
             //         }
             //     }
             //
-            Map<String, Object> memberInfo = (Map<String, Object>) this.safeDict(response, "member_level", new HashMap<String, Object>() {{}});
-            Map<String, Object> currencyInfo = (Map<String, Object>) this.safeDict(response, "currency", new HashMap<String, Object>() {{}});
-            Map<String, Object> withdrawLimits = (Map<String, Object>) this.safeDict(response, "withdraw_limit", new HashMap<String, Object>() {{}});
+            Map<String, Object> memberInfo = this.safeDict(response, "member_level", new HashMap<String, Object>() {{}});
+            Map<String, Object> currencyInfo = this.safeDict(response, "currency", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawLimits = this.safeDict(response, "withdraw_limit", new HashMap<String, Object>() {{}});
             Boolean canWithdraw = (Boolean) this.safeBool(withdrawLimits, "can_withdraw", (Object) null);
             String walletState = this.safeString(currencyInfo, "wallet_state");
             Boolean walletLocked = (Boolean) this.safeBool(memberInfo, "wallet_locked", (Object) null);
@@ -612,9 +612,9 @@ public class Upbit extends UpbitApi
             //         }
             //     }
             //
-            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(response, "market", (Object) null);
-            Map<String, Object> bid = (Map<String, Object>) this.safeDict(marketInfo, "bid", (Object) null);
-            Map<String, Object> ask = (Map<String, Object>) this.safeDict(marketInfo, "ask", (Object) null);
+            Map<String, Object> marketInfo = this.safeDict(response, "market", null);
+            Map<String, Object> bid = this.safeDict(marketInfo, "bid", null);
+            Map<String, Object> ask = this.safeDict(marketInfo, "ask", null);
             String marketId = this.safeString(marketInfo, "id");
             String baseId = this.safeString(ask, "currency");
             String quoteId = this.safeString(bid, "currency");
@@ -728,8 +728,8 @@ public class Upbit extends UpbitApi
         {
             return null;
         }
-        Map<String, Object> tradingFeesByQuoteCurrency = (Map<String, Object>) this.safeDict(this.options, "tradingFeesByQuoteCurrency", new HashMap<String, Object>() {{}});
-        Map<String, Object> tradingFees = (Map<String, Object>) this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
+        Map<String, Object> tradingFeesByQuoteCurrency = this.safeDict(this.options, "tradingFeesByQuoteCurrency", new HashMap<String, Object>() {{}});
+        Map<String, Object> tradingFees = this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", id);
         mapLiteral4.put("symbol", ((base + "/") + quote));
@@ -792,7 +792,7 @@ public class Upbit extends UpbitApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -913,7 +913,7 @@ public class Upbit extends UpbitApi
             List<Object> orderbooks = this.toArray(response);
             for (var i = 0; i < orderbooks.size(); i++)
             {
-                Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(orderbooks, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> orderbook = this.safeDict(orderbooks, i, new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(orderbook, "market");
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
                 Long timestamp = this.safeInteger(orderbook, "timestamp");
@@ -948,7 +948,7 @@ public class Upbit extends UpbitApi
         return BaseExchange.supplyAsync(() -> {
 
             OrderBooks orderbooks = (this.fetchOrderBooks(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), limit, parameters)).join();
-            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(orderbooks, symbol, (Object) null);
+            Map<String, Object> orderbook = this.safeDict(orderbooks, symbol, null);
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1150,7 +1150,7 @@ public class Upbit extends UpbitApi
         return BaseExchange.supplyAsync(() -> {
 
             Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbol, (Object) null);
+            Map<String, Object> ticker = this.safeDict(tickers, symbol, null);
             return ticker;
         }).thenApply(Ticker::new);
 
@@ -1386,7 +1386,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fetchMarketResponse).size(); i++)
             {
-                Map<String, Object> item = (Map<String, Object>) this.safeDict(fetchMarketResponse, i, (Object) null);
+                Map<String, Object> item = this.safeDict(fetchMarketResponse, i, null);
                 Map<String, Object> element = new HashMap<String, Object>() {{}};
                 element.put("maker", this.safeNumber(item, "maker", (Object) null));
                 element.put("taker", this.safeNumber(item, "taker", (Object) null));
@@ -2324,7 +2324,7 @@ public class Upbit extends UpbitApi
         if ((numTrades != null && numTrades > 0))
         {
             // the timestamp in fetchOrder trades is missing
-            Map<String, Object> lastTrade = (Map<String, Object>) this.safeDict(trades, (((long) numTrades) - 1L), new HashMap<String, Object>() {{}});
+            Map<String, Object> lastTrade = this.safeDict(trades, (((long) numTrades) - 1L), new HashMap<String, Object>() {{}});
             lastTradeTimestamp = this.safeInteger(lastTrade, "timestamp");
             Boolean getFeesFromTrades = false;
             if (java.util.Objects.equals(feeCost, null))
@@ -2335,11 +2335,11 @@ public class Upbit extends UpbitApi
             cost = "0";
             for (var i = 0; (numTrades != null && i < numTrades); i++)
             {
-                Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i, (Object) null);
+                Map<String, Object> trade = this.safeDict(trades, i, null);
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (Boolean.TRUE.equals(getFeesFromTrades))
                 {
-                    Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
+                    Map<String, Object> tradeFee = this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
                     String tradeFeeCost = this.safeString(tradeFee, "cost");
                     if (!java.util.Objects.equals(tradeFeeCost, null))
                     {
@@ -2979,7 +2979,7 @@ public class Upbit extends UpbitApi
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
+        Map<String, Object> error = this.safeDict(response, "error", null);
         if (!java.util.Objects.equals(error, null))
         {
             String message = this.safeString(error, "message");

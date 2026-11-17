@@ -379,7 +379,7 @@ public class Mercado extends MercadoApi
             //     ]
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(this.options, "limits", new HashMap<String, Object>() {{}});
+            Map<String, Object> amountLimits = this.safeDict(this.options, "limits", new HashMap<String, Object>() {{}});
             List<Object> coins = this.toArray(response);
             for (var i = 0; i < coins.size(); i++)
             {
@@ -539,7 +539,7 @@ public class Mercado extends MercadoApi
                 put( "coin", market.get("base") );
             }};
             Map<String, Object> response = (this.publicGetCoinTicker(this.extend(request, parameters))).join();
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "ticker": {
@@ -642,8 +642,8 @@ public class Mercado extends MercadoApi
 
     public Balances parseBalance(Map<String, Object> response)
     {
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-        Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
+        Map<String, Object> balances = this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -654,7 +654,7 @@ public class Mercado extends MercadoApi
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             if (balances.containsKey(currencyId))
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
+                Map<String, Object> balance = this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
                 Map<String, Object> account = this.account();
                 account.put("free", this.safeString(balance, "available"));
                 account.put("total", this.safeString(balance, "total"));
@@ -747,7 +747,7 @@ public class Mercado extends MercadoApi
             // TODO: replace this with a call to parseOrder for unification
             HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
             mapLiteral2.put("info", response);
-            mapLiteral2.put("id", this.safeString(this.safeDict(this.safeDict(response, "response_data", (Object) null), "order", (Object) null), "order_id"));
+            mapLiteral2.put("id", this.safeString(this.safeDict(this.safeDict(response, "response_data", null), "order", null), "order_id"));
             return this.safeOrder(mapLiteral2, market);
         }).thenApply(Order::new);
 
@@ -804,8 +804,8 @@ public class Mercado extends MercadoApi
             //         "server_unix_timestamp": "1536956499"
             //     }
             //
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(responseData, "order", new HashMap<String, Object>() {{}});
+            Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(responseData, "order", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -869,7 +869,7 @@ public class Mercado extends MercadoApi
         String amount = this.safeString(order, "quantity");
         String filled = this.safeString(order, "executed_quantity");
         Long lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
-        List<Object> rawTrades = (List<Object>) this.safeList(order, "operations", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = this.safeList(order, "operations", new ArrayList<Object>(Arrays.asList()));
         String symbol = (String) marketResolved.get("symbol");
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", order);
@@ -924,8 +924,8 @@ public class Mercado extends MercadoApi
                 put( "order_id", Mercado.this.parseToInt(id) );
             }};
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(responseData, "order", (Object) null);
+            Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(responseData, "order", null);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -1009,8 +1009,8 @@ public class Mercado extends MercadoApi
             //         "server_unix_timestamp": "1453912088"
             //     }
             //
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            Map<String, Object> withdrawal = (Map<String, Object>) this.safeDict(responseData, "withdrawal", (Object) null);
+            Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawal = this.safeDict(responseData, "withdrawal", null);
             return this.parseTransaction((Map<String, Object>) (withdrawal), currency);
         }).thenApply(Transaction::new);
 
@@ -1134,8 +1134,8 @@ public class Mercado extends MercadoApi
                 put( "coin_pair", market.get("id") );
             }};
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1170,8 +1170,8 @@ public class Mercado extends MercadoApi
                 put( "status_list", "[2]" );
             }};
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1206,8 +1206,8 @@ public class Mercado extends MercadoApi
                 put( "has_fills", true );
             }};
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            List<Object> ordersRaw = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
+            List<Object> ordersRaw = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = this.parseOrders(ordersRaw, market, since, limit, new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.ordersToTrades(orders);
             return this.filterBySymbolSinceLimit(trades, this.safeString(market, "symbol"), since, limit, false);
@@ -1220,7 +1220,7 @@ public class Mercado extends MercadoApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            List<Object> trades = (List<Object>) this.safeList(this.safeDict(orders, i, (Object) null), "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(this.safeDict(orders, i, null), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var y = 0; y < trades.size(); y++)
             {
                 ((List<Object>)result).add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));

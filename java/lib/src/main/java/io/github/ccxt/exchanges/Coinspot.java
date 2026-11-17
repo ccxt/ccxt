@@ -619,12 +619,12 @@ public class Coinspot extends CoinspotApi
             Integer numRows = rows.size();
             for (var i = 0; (numRows != null && i < numRows); i++)
             {
-                Map<String, Object> currencies = (Map<String, Object>) this.safeDict(rows, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> currencies = this.safeDict(rows, i, new HashMap<String, Object>() {{}});
                 List<String> currencyIdsList = new ArrayList<String>(currencies.keySet());
                 for (var j = 0; j < currencyIdsList.size(); j++)
                 {
                     String currencyId = (currencyIdsList == null || j < 0 || j >= currencyIdsList.size() ? null : currencyIdsList.get(j));
-                    Map<String, Object> balance = (Map<String, Object>) this.safeDict(currencies, currencyId, (Object) null);
+                    Map<String, Object> balance = this.safeDict(currencies, currencyId, null);
                     String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     Map<String, Object> account = this.account();
                     account.put("total", this.safeString(balance, "balance"));
@@ -787,7 +787,7 @@ public class Coinspot extends CoinspotApi
             Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             String id = this.safeString(market, "id", "");
             id = id.toLowerCase();
-            Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
+            Map<String, Object> prices = this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "status":"ok",
@@ -800,7 +800,7 @@ public class Coinspot extends CoinspotApi
             //         }
             //     }
             //
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(prices, id, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(prices, id, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -843,7 +843,7 @@ public class Coinspot extends CoinspotApi
             //    }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
+            Map<String, Object> prices = this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
             List<String> ids = new ArrayList<String>(prices.keySet());
             for (var i = 0; i < ids.size(); i++)
             {
@@ -894,7 +894,7 @@ public class Coinspot extends CoinspotApi
             //         ],
             //     }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -957,12 +957,12 @@ public class Coinspot extends CoinspotApi
             //          },
             //      ]
             // }
-            List<Object> buyTrades = (List<Object>) this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> buyTrades = this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < buyTrades.size(); i++)
             {
                 ((Map<String, Object>)(buyTrades == null || i < 0 || i >= buyTrades.size() ? null : buyTrades.get(i))).put("side", "buy");
             }
-            List<Object> sellTrades = (List<Object>) this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> sellTrades = this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < sellTrades.size(); i++)
             {
                 ((Map<String, Object>)(sellTrades == null || i < 0 || i >= sellTrades.size() ? null : sellTrades.get(i))).put("side", "sell");

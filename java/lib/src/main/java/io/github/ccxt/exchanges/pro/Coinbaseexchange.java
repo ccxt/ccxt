@@ -294,7 +294,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String name = "matches";
             List<Object> trades = (List<Object>) (this.subscribeMultiple(name, symbolsNormalized, name, parameters)).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(trades, 0, null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -368,7 +368,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String messageHash = "myTrades";
             Map<String, Object> authentication = this.authenticate();
             List<Object> trades = (List<Object>) (this.subscribeMultiple(name, symbolsNormalized, messageHash, this.extend(parameters, authentication))).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(trades, 0, null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -404,7 +404,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String messageHash = "orders";
             Map<String, Object> authentication = this.authenticate();
             List<Object> orders = (List<Object>) (this.subscribeMultiple(name, symbolsNormalized, messageHash, this.extend(parameters, authentication))).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(orders, 0, null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -810,8 +810,8 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 return;
             }
             io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
-            Map<String, Object> previousOrders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
-            Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrders, orderId, (Object) null);
+            Map<String, Object> previousOrders = this.safeDict(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> previousOrder = this.safeDict(previousOrders, orderId, null);
             if (java.util.Objects.equals(previousOrder, null))
             {
                 previousOrder = (Map<String, Object>) this.safeDictN(previousOrders, new ArrayList<Object>(Arrays.asList(makerOrderId, takerOrderId)), (Object) null);
@@ -828,14 +828,14 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 {
                     return;
                 }
-                Map<String, Object> previousInfo = (Map<String, Object>) this.safeDict(previousOrder, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> previousInfo = this.safeDict(previousOrder, "info", new HashMap<String, Object>() {{}});
                 Long previousSequence = this.safeInteger(previousInfo, "sequence");
                 if ((java.util.Objects.equals(previousSequence, null)) || ((sequence != null && (previousSequence == null || sequence > previousSequence))))
                 {
                     if (java.util.Objects.equals(type, "match"))
                     {
                         Map<String, Object> trade = this.parseWsTrade(message, (Map<String, Object>) null);
-                        List<Object> previousTrades = (List<Object>) this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> previousTrades = this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
                         ((List<Object>)previousTrades).add(trade);
                         previousOrder.put("trades", previousTrades);
                         Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
@@ -843,7 +843,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         String totalAmount = "0";
                         for (var i = 0; i < previousTrades.size(); i++)
                         {
-                            Map<String, Object> tradeEntry = (Map<String, Object>) this.safeDict(previousTrades, i, (Object) null);
+                            Map<String, Object> tradeEntry = this.safeDict(previousTrades, i, null);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
                             totalAmount = this.safeString(tradeEntry, "amount", "0");
                         }
@@ -861,14 +861,14 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                                 previousOrder.put("remaining", this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled"))));
                             }
                         }
-                        if (java.util.Objects.equals(this.safeDict(previousOrder, "fee", (Object) null), null))
+                        if (java.util.Objects.equals(this.safeDict(previousOrder, "fee", null), null))
                         {
                             previousOrder.put("fee", new HashMap<String, Object>() {{
     put( "cost", 0 );
     put( "currency", Coinbaseexchange.this.safeString(trade.get("fee"), "currency") );
 }});
                         }
-                        Map<String, Object> previousOrderFee = (Map<String, Object>) this.safeDict(previousOrder, "fee", new HashMap<String, Object>() {{}});
+                        Map<String, Object> previousOrderFee = this.safeDict(previousOrder, "fee", new HashMap<String, Object>() {{}});
                         if ((!java.util.Objects.equals(this.safeNumber(previousOrderFee, "cost", (Object) null), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
                         {
                             Helpers.addElementToObject(previousOrder.get("fee"), "cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(trade.get("fee"), "cost"))));
@@ -1099,7 +1099,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         String symbol = (String) market.get("symbol");
         String name = "level2";
         String messageHash = ((name + ":") + this.safeString(market, "id", ""));
-        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(subscription, "limit");
         if (java.util.Objects.equals(type, "snapshot"))
         {
@@ -1115,14 +1115,14 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         {
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             Long timestamp = this.parse8601(this.safeString(message, "time"));
-            List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> changes = this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> sides = new HashMap<String, Object>() {{
                 put( "sell", "asks" );
                 put( "buy", "bids" );
             }};
             for (var i = 0; i < changes.size(); i++)
             {
-                List<Object> change = (List<Object>) this.safeList(changes, i, (Object) null);
+                List<Object> change = this.safeList(changes, i, null);
                 String key = this.safeString(change, 0);
                 String side = this.safeString(sides, key);
                 Double price = this.safeNumber(change, 1, (Object) null);

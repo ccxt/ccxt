@@ -426,12 +426,12 @@ public class Coincheck extends CoincheckApi
             //         ]
             //     }
             //
-            List<Object> exchangeStatuses = (List<Object>) this.safeList(response, "exchange_status", new ArrayList<Object>(Arrays.asList()));
+            List<Object> exchangeStatuses = this.safeList(response, "exchange_status", new ArrayList<Object>(Arrays.asList()));
             String status = "ok";
             Long updated = null;
             for (var i = 0; i < exchangeStatuses.size(); i++)
             {
-                Map<String, Object> exchangeStatus = (Map<String, Object>) this.safeDict(exchangeStatuses, i, (Object) null);
+                Map<String, Object> exchangeStatus = this.safeDict(exchangeStatuses, i, null);
                 String rawStatus = this.safeString(exchangeStatus, "status");
                 if (java.util.Objects.equals(updated, null))
                 {
@@ -505,7 +505,7 @@ public class Coincheck extends CoincheckApi
                 market = this.market(symbol);
             }
             Map<String, Object> response = (this.privateGetExchangeOrdersOpens(parameters)).join();
-            List<Object> rawOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < parsedOrders.size(); i++)
@@ -737,7 +737,7 @@ public class Coincheck extends CoincheckApi
             {
                 takerOrMaker = "maker";
             }
-            Map<String, Object> funds = (Map<String, Object>) this.safeDict(trade, "funds", new HashMap<String, Object>() {{}});
+            Map<String, Object> funds = this.safeDict(trade, "funds", new HashMap<String, Object>() {{}});
             amountString = this.safeString(funds, baseId);
             costString = this.safeString(funds, quoteId);
             fee = new HashMap<String, Object>() {{
@@ -817,7 +817,7 @@ public class Coincheck extends CoincheckApi
             //                  ]
             //      }
             //
-            List<Object> transactions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transactions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(transactions, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -862,7 +862,7 @@ public class Coincheck extends CoincheckApi
             //          "created_at": "2021-12-08T14:10:33.000Z"
             //      }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -905,7 +905,7 @@ public class Coincheck extends CoincheckApi
             //         }
             //     }
             //
-            Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "exchange_fees", new HashMap<String, Object>() {{}});
+            Map<String, Object> fees = this.safeDict(response, "exchange_fees", new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
             if (java.util.Objects.equals(symbols, null))
@@ -916,7 +916,7 @@ public class Coincheck extends CoincheckApi
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, market.get("id"), new HashMap<String, Object>() {{}});
+                Map<String, Object> fee = this.safeDict(fees, market.get("id"), new HashMap<String, Object>() {{}});
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
@@ -1073,7 +1073,7 @@ public class Coincheck extends CoincheckApi
             //     }
             //   ]
             // }
-            List<Object> data = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }});
@@ -1133,7 +1133,7 @@ public class Coincheck extends CoincheckApi
             //     }
             //   ]
             // }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }});

@@ -260,7 +260,7 @@ public class Mudrex extends MudrexApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
         String base = this.safeString(apiUrls, apiName);
         if (java.util.Objects.equals(base, null))
         {
@@ -336,8 +336,8 @@ public class Mudrex extends MudrexApi
         Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (!Boolean.TRUE.equals(success))
         {
-            List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(errors, 0, new HashMap<String, Object>() {{}});
+            List<Object> errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(errors, 0, new HashMap<String, Object>() {{}});
             String text = this.safeString(first, "text", this.json(response));
             String errCode = this.safeString(first, "code");
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), text, ((this.id + " ") + text));
@@ -440,9 +440,9 @@ public class Mudrex extends MudrexApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> assetTicks = (Map<String, Object>) this.safeDict(data, "asset_ticks", new HashMap<String, Object>() {{}});
-            List<Object> ohlcvs = (List<Object>) this.safeList(assetTicks, assetPair.toLowerCase(), new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> assetTicks = this.safeDict(data, "asset_ticks", new HashMap<String, Object>() {{}});
+            List<Object> ohlcvs = this.safeList(assetTicks, assetPair.toLowerCase(), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -496,7 +496,7 @@ public class Mudrex extends MudrexApi
                 put( "is_symbol", 1 );
             }};
             Map<String, Object> response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
@@ -782,7 +782,7 @@ public class Mudrex extends MudrexApi
 
     public Balances parseBalance(Map<String, Object> response)
     {
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String currency = this.safeString(response, "currency", "USDT");
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -828,7 +828,7 @@ public class Mudrex extends MudrexApi
                 put( "is_symbol", 1 );
             }};
             Map<String, Object> response = (this.privateGetFuturesAssetIdLeverage(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
@@ -955,8 +955,8 @@ public class Mudrex extends MudrexApi
             request.put("trigger_type", (((java.util.Objects.equals(type, "market")))) ? "MARKET" : "LIMIT");
             request.put("reduce_only", this.safeBool(parameters, "reduceOnly", false));
             // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
-            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
-            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
+            Map<String, Object> takeProfit = this.safeDict(parameters, "takeProfit", null);
+            Map<String, Object> stopLoss = this.safeDict(parameters, "stopLoss", null);
             if (!java.util.Objects.equals(takeProfit, null))
             {
                 request.put("is_takeprofit", true);
@@ -1394,7 +1394,7 @@ public class Mudrex extends MudrexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data, symbolsNormalized, new HashMap<String, Object>() {{}});
             return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -1629,8 +1629,8 @@ public class Mudrex extends MudrexApi
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
             Object pageSize = (((java.util.Objects.equals(limit, null)))) ? 0 : (limit * 2L);
             List<Object> allRows = new ArrayList<Object>(Arrays.asList());
-            Long transactionsCount = this.parseToInt(0);
-            Long calls = this.parseToInt(0);
+            long transactionsCount = 0;
+            long calls = 0;
             Object offset = 0;
             Boolean paging = true;
             while (paging)
@@ -1642,7 +1642,7 @@ public class Mudrex extends MudrexApi
                     request.put("offset", offset);
                 }
                 Map<String, Object> response = (this.privateGetFuturesFeeHistory(this.extend(request, paramsPaginationCalls))).join();
-                List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 Object dataLength = data.size();
                 for (var i = 0; i < data.size(); i++)
                 {
@@ -1653,16 +1653,16 @@ public class Mudrex extends MudrexApi
                         // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                         if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(this.safeString(entry, "symbol"), market.get("id"))))
                         {
-                            transactionsCount = this.parseToInt((transactionsCount + 1L));
+                            transactionsCount = (transactionsCount + 1L);
                         }
                     }
                 }
-                calls = this.parseToInt((calls + 1L));
+                calls = (calls + 1L);
                 paging = false;
                 // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
                 if ((!java.util.Objects.equals(limit, null)) && ((((Number) dataLength).longValue() == ((Number) pageSize).longValue())))
                 {
-                    if ((((transactionsCount == null || transactionsCount < limit))) && ((maxCalls != null && (calls == null || calls < maxCalls))))
+                    if (((transactionsCount < limit)) && ((maxCalls != null && calls < maxCalls)))
                     {
                         // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                         offset = this.sum(offset, pageSize);

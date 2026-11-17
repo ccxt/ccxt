@@ -823,7 +823,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 messageHashes.add(("trade::" + this.safeString(market, "symbol", "")));
             }
             List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(trades, 0, null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -1405,7 +1405,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }};
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
+                List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
                 String symbolString = this.safeString(data, 0);
                 if (java.util.Objects.equals(symbolString, null))
                 {
@@ -1477,7 +1477,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }};
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                List<Object> data = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
+                List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
                 String symbolString = this.safeString(data, 0);
                 if (java.util.Objects.equals(symbolString, null))
                 {
@@ -1527,7 +1527,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String marketId = this.safeString(message, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = (String) market.get("symbol");
-        Map<String, Object> kline = (Map<String, Object>) this.safeDict(message, "k", (Object) null);
+        Map<String, Object> kline = this.safeDict(message, "k", null);
         String timeframeId = this.safeString(kline, "i");
         String timeframe = this.findTimeframe(timeframeId, (Object) null);
         if (java.util.Objects.equals(timeframe, null))
@@ -1538,7 +1538,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
-        if (java.util.Objects.equals(this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe), null))
+        if (java.util.Objects.equals(this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
@@ -1562,9 +1562,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return BaseExchange.supplyAsync(() -> {
 
             Long time = this.milliseconds();
-            Map<String, Object> lastAuthenticatedTimeOptions = (Map<String, Object>) this.safeDict(this.options, "lastAuthenticatedTime", new HashMap<String, Object>() {{}});
+            Map<String, Object> lastAuthenticatedTimeOptions = this.safeDict(this.options, "lastAuthenticatedTime", new HashMap<String, Object>() {{}});
             Long lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, java.util.Objects.requireNonNullElse(type, "spot"), 0);
-            Map<String, Object> listenKeyRefreshRateOptions = (Map<String, Object>) this.safeDict(this.options, "listenKeyRefreshRate", new HashMap<String, Object>() {{}});
+            Map<String, Object> listenKeyRefreshRateOptions = this.safeDict(this.options, "listenKeyRefreshRate", new HashMap<String, Object>() {{}});
             Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, java.util.Objects.requireNonNullElse(type, "spot"), 3600000); // 1 hour
             if (((listenKeyRefreshRate == null || (time - lastAuthenticatedTime) > listenKeyRefreshRate)))
             {
@@ -1634,7 +1634,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return BaseExchange.supplyAsync(() -> {
 
             String type = this.safeString(parameters, "type", "spot");
-            Map<String, Object> listenKeyOptions = (Map<String, Object>) this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
+            Map<String, Object> listenKeyOptions = this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
             String listenKey = this.safeString(listenKeyOptions, type);
             if (java.util.Objects.equals(listenKey, null))
             {
@@ -1664,7 +1664,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request
-            Map<String, Object> listenKeyRefreshOptions = (Map<String, Object>) this.safeDict(this.options, "listenKeyRefresh", new HashMap<String, Object>() {{}});
+            Map<String, Object> listenKeyRefreshOptions = this.safeDict(this.options, "listenKeyRefresh", new HashMap<String, Object>() {{}});
             Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshOptions, "listenKeyRefreshRate", 3600000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
             return null;
@@ -1674,7 +1674,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     public String getPrivateUrl(Object type)
     {
-        Map<String, Object> listenKeyOptions = (Map<String, Object>) this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
+        Map<String, Object> listenKeyOptions = this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
         String listenKey = this.safeString(listenKeyOptions, java.util.Objects.requireNonNullElse(type, "spot"), "");
         String url = ((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private"), java.util.Objects.requireNonNullElse(type, "spot"), "") + "/") + listenKey);
         return url;
@@ -1710,7 +1710,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             String url = this.getPrivateUrl(typeMarketType);
             Client client = this.client(url);
             this.setBalanceCache(client, (String) (typeMarketType));
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
+            Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
             Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
             Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
@@ -1730,7 +1730,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             return;
         }
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance", (Object) null);
+        Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
@@ -1830,7 +1830,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "info", message);
         Map<String, Object> messageValue = (Map<String, Object>) this.safeDict(message, "a", message);
-        List<Object> B = (List<Object>) this.safeList(messageValue, "B", new ArrayList<Object>(Arrays.asList()));
+        List<Object> B = this.safeList(messageValue, "B", new ArrayList<Object>(Arrays.asList()));
         String wallet = this.safeString(this.options, "wallet", "wb");
         for (var i = 0; i < B.size(); i++)
         {
@@ -1999,8 +1999,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
-        List<Object> rawPositions = (List<Object>) this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+        List<Object> rawPositions = this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawPositions.size(); i++)
         {
@@ -2235,13 +2235,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
                 if (!java.util.Objects.equals(cachedOrders, null))
                 {
-                    Map<String, Object> orders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
-                    Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, orderId, (Object) null);
+                    Map<String, Object> orders = this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new HashMap<String, Object>() {{}});
+                    Map<String, Object> order = this.safeDict(orders, orderId, null);
                     if (!java.util.Objects.equals(order, null))
                     {
                         // accumulate order fees
-                        List<Object> fees = (List<Object>) this.safeList(order, "fees", new ArrayList<Object>(Arrays.asList()));
-                        Map<String, Object> fee = (Map<String, Object>) this.safeDict(order, "fee", (Object) null);
+                        List<Object> fees = this.safeList(order, "fees", new ArrayList<Object>(Arrays.asList()));
+                        Map<String, Object> fee = this.safeDict(order, "fee", null);
                         if (!this.isEmpty(fees))
                         {
                             Boolean insertNewFeeCurrency = true;
@@ -2281,7 +2281,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                             order.put("fee", tradeFee);
                         }
                         // save this trade in the order
-                        List<Object> orderTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> orderTrades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
                         ((List<Object>)orderTrades).add(trade);
                         order.put("trades", orderTrades);
                     }

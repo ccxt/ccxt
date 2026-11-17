@@ -848,7 +848,7 @@ public class TestMain extends BaseTest
             // volumes denominated in different quote currencies are not) and keeps a
             // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
             Object defaultSymbol = (defaultSymbols == null || 0 >= ((List<?>)defaultSymbols).size() ? null : ((List<?>)defaultSymbols).get(0));
-            Object defaultMarket = exchange.safeDict(exchange.markets, defaultSymbol, (Object) null);
+            Object defaultMarket = exchange.safeDict(exchange.markets, defaultSymbol, null);
             if (java.util.Objects.equals(defaultMarket, null))
             {
                 return defaultSymbols;
@@ -889,7 +889,7 @@ public class TestMain extends BaseTest
             for (var i = 0; i < tickerSymbols.size(); i++)
             {
                 Object tickerSymbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
-                Object market = exchange.safeDict(exchange.markets, tickerSymbol, (Object) null);
+                Object market = exchange.safeDict(exchange.markets, tickerSymbol, null);
                 if (!java.util.Objects.equals(market, null))
                 {
                     // exchanges keep returning tickers for delisted markets, and those
@@ -1304,7 +1304,7 @@ public class TestMain extends BaseTest
         Assert(java.util.Objects.equals(exchange.isDictionary(eventVar), true), (Helpers.add(exchange.id, " event should be a dict") + logText));
         Assert(!java.util.Objects.equals(exchange.safeString(eventVar, "id"), null), (Helpers.add(exchange.id, " event missing id") + logText));
         Assert(!java.util.Objects.equals(exchange.safeString(eventVar, "event"), null), (Helpers.add(exchange.id, " event missing the unified event handle") + logText));
-        Object markets = exchange.safeList(eventVar, "markets", (Object) null);
+        Object markets = exchange.safeList(eventVar, "markets", null);
         Assert(!java.util.Objects.equals(markets, null), (Helpers.add(exchange.id, " event missing markets") + logText));
         Integer marketsLength = Helpers.getArrayLength(markets);
         Assert(java.util.Objects.equals(exchange.safeString(eventVar, "symbol"), null), (Helpers.add(exchange.id, " event must not carry the deprecated symbol key") + logText));
@@ -1315,7 +1315,7 @@ public class TestMain extends BaseTest
             Assert(!java.util.Objects.equals(exchange.safeString(market, "market"), null), (Helpers.add(exchange.id, " event market missing the unified market handle") + logText));
             // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
             Assert(java.util.Objects.equals(exchange.safeString(market, "symbol"), null), (Helpers.add(exchange.id, " event market must not carry the deprecated symbol key") + logText));
-            Object outcomes = exchange.safeList(market, "outcomes", (Object) null);
+            Object outcomes = exchange.safeList(market, "outcomes", null);
             Assert(!java.util.Objects.equals(outcomes, null), (Helpers.add(exchange.id, " event market missing outcomes") + logText));
             Integer outcomesLength = Helpers.getArrayLength(outcomes);
             for (var j = 0; (outcomesLength != null && j < outcomesLength); j++)
@@ -2265,7 +2265,7 @@ public class TestMain extends BaseTest
             if ((Helpers.isGreaterThan(entryMargin, 0)) && (Helpers.isGreaterThan(entryPrice, 0)) && (Helpers.isGreaterThan(liquidationPrice, 0)) && (Helpers.isGreaterThan(contracts, 0)) && (Helpers.isGreaterThan(contractSize, 0)) && (Helpers.isGreaterThan(maintenanceMargin, 0)))
             {
                 String symbol = exchange.safeString(entry, "symbol");
-                Object market = (((!java.util.Objects.equals(symbol, null)))) ? exchange.safeDict(exchange.markets, symbol, (Object) null) : null;
+                Object market = (((!java.util.Objects.equals(symbol, null)))) ? exchange.safeDict(exchange.markets, symbol, null) : null;
                 Boolean isInverse = (!java.util.Objects.equals(market, null)) && Helpers.isTrue(exchange.safeBool(market, "inverse", false));
                 Object priceDiff = 0;
                 if (Boolean.TRUE.equals(isInverse))
@@ -2371,7 +2371,7 @@ public class TestMain extends BaseTest
                 // fixture can pin one auth header without freezing the whole header set. this is the
                 // only cross-language Assertion on header *names*, which the php transpiler can
                 // silently corrupt when a header literal contains a local/parameter name of sign ()
-                Object storedHeaders = exchange.safeDict(data, "headers", (Object) null);
+                Object storedHeaders = exchange.safeDict(data, "headers", null);
                 if (!java.util.Objects.equals(storedHeaders, null))
                 {
                     Object sentHeaders = (((!java.util.Objects.equals(exchange.last_request_headers, null)))) ? exchange.last_request_headers : new HashMap<String, Object>() {{}};
@@ -2404,7 +2404,7 @@ public class TestMain extends BaseTest
             // 'httpResponseByUrl' serves a body per url fragment for methods that call several
             // endpoints; the typed ports narrow each body to the shape its api leaf declares,
             // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
-            Object responsesByUrl = exchange.safeDict(data, "httpResponseByUrl", (Object) null);
+            Object responsesByUrl = exchange.safeDict(data, "httpResponseByUrl", null);
             var mockedExchange = exchange;
             if (!java.util.Objects.equals(responsesByUrl, null))
             {
@@ -2559,7 +2559,7 @@ public class TestMain extends BaseTest
     {
         // the ws analog of the static request tests: Assert the frames the
         // watch method sent over the mocked transport (subscribe requests etc)
-        Object expectedSent = exchange.safeList(data, "sentMessages", (Object) null);
+        Object expectedSent = exchange.safeList(data, "sentMessages", null);
         if (java.util.Objects.equals(expectedSent, null))
         {
             return;
@@ -2599,7 +2599,7 @@ public class TestMain extends BaseTest
             {
                 Object messages = exchange.safeList(data, "messages", new ArrayList<Object>(Arrays.asList()));
                 Object input = this.sanitizeDataInput(data.get("input"));
-                Object expectedResults = exchange.safeList(data, "parsedResponses", (Object) null);
+                Object expectedResults = exchange.safeList(data, "parsedResponses", null);
                 if (!java.util.Objects.equals(expectedResults, null))
                 {
                     // 'parsedResponses' Asserts one result per successive watch
@@ -2889,11 +2889,11 @@ public class TestMain extends BaseTest
                 // c# to string requirement
                 exchange.walletAddress = String.valueOf(walletAddress);
             }
-            boolean accounts = (exchange.safeList(exchangeData, "accounts", (Object) null)) != null;
+            boolean accounts = (exchange.safeList(exchangeData, "accounts", null)) != null;
             if (accounts && accounts)
             {
                 // the field is a List<object>: assign the call, not the untyped local
-                exchange.accounts = exchange.safeList(exchangeData, "accounts", (Object) null);
+                exchange.accounts = exchange.safeList(exchangeData, "accounts", null);
             }
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             exchange.extendExchangeOptions((Map<String, Object>) (globalOptions));

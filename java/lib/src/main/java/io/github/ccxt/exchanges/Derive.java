@@ -845,8 +845,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> subaccountIds = (List<Object>) this.safeList(result, "subaccount_ids", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> subaccountIds = this.safeList(result, "subaccount_ids", new ArrayList<Object>(Arrays.asList()));
             List<Object> accounts = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < subaccountIds.size(); i++)
             {
@@ -932,7 +932,7 @@ public class Derive extends DeriveApi
             //         ]
             //     }
             //
-            List<Object> currencies = (List<Object>) this.safeList(tokenResponse, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = this.safeList(tokenResponse, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -1119,10 +1119,10 @@ public class Derive extends DeriveApi
                 requestExtension.put("page_size", pageSize);
                 Map<String, Object> requestExtended = this.extend(this.extend(request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
                 Map<String, Object> response = (this.publicPostGetAllInstruments(requestExtended)).join();
-                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-                List<Object> data = (List<Object>) this.safeList(result, "instruments", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+                List<Object> data = this.safeList(result, "instruments", new ArrayList<Object>(Arrays.asList()));
                 allInstruments = (List<Object>) this.arrayConcat(allInstruments, data);
-                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(result, "pagination", new HashMap<String, Object>() {{}});
+                Map<String, Object> pagination = this.safeDict(result, "pagination", new HashMap<String, Object>() {{}});
                 Long totalCount = this.safeInteger(pagination, "count", 0); // not named count: that collides with the php builtin the length mapping expands to
                 Integer collected = allInstruments.size();
                 if ((totalCount == null || (collected != null && collected >= totalCount)))
@@ -1185,7 +1185,7 @@ public class Derive extends DeriveApi
             margin = false;
             option = true;
             marketType = "option";
-            Map<String, Object> optionDetails = (Map<String, Object>) this.safeDict(market, "option_details", (Object) null);
+            Map<String, Object> optionDetails = this.safeDict(market, "option_details", null);
             expiry = this.safeTimestamp(optionDetails, "expiry");
             strike = this.safeNumber(optionDetails, "strike", (Object) null); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = this.safeString(optionDetails, "option_type");
@@ -1308,7 +1308,7 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
@@ -1369,7 +1369,7 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(result, market);
         }).thenApply(OpenInterest::new);
 
@@ -1378,7 +1378,7 @@ public class Derive extends DeriveApi
     public Object parseOpenInterest(Object interest, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(interest, "t");
-        Map<String, Object> stats = (Map<String, Object>) this.safeDict(interest, "stats", new HashMap<String, Object>() {{}});
+        Map<String, Object> stats = this.safeDict(interest, "stats", new HashMap<String, Object>() {{}});
         String amount = this.safeString(stats, "oi");
         String value = null;
         Boolean isOption = (Boolean) this.safeBool(market, "option", false);
@@ -1464,7 +1464,7 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseGreeks(result, market);
         }).thenApply(Greeks::new);
 
@@ -1473,7 +1473,7 @@ public class Derive extends DeriveApi
     public Object parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(greeks, "t");
-        Map<String, Object> pricing = (Map<String, Object>) this.safeDict(greeks, "option_pricing", new HashMap<String, Object>() {{}});
+        Map<String, Object> pricing = this.safeDict(greeks, "option_pricing", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "symbol", Derive.this.safeSymbol(null, market, (String) null, (String) null) );
             put( "timestamp", timestamp );
@@ -1525,7 +1525,7 @@ public class Derive extends DeriveApi
             }};
             Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
             // the response sample is listed in fetchGreeks, both methods read the same endpoint
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOption(result, (Map<String, Object>) null, market);
         }).thenApply(Option::new);
 
@@ -1534,8 +1534,8 @@ public class Derive extends DeriveApi
     public Object parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(chain, "t");
-        Map<String, Object> pricing = (Map<String, Object>) this.safeDict(chain, "option_pricing", new HashMap<String, Object>() {{}});
-        Map<String, Object> stats = (Map<String, Object>) this.safeDict(chain, "stats", new HashMap<String, Object>() {{}});
+        Map<String, Object> pricing = this.safeDict(chain, "option_pricing", new HashMap<String, Object>() {{}});
+        Map<String, Object> stats = this.safeDict(chain, "stats", new HashMap<String, Object>() {{}});
         String change = this.safeString(stats, "p");
         String percentage = null;
         if (!java.util.Objects.equals(change, null))
@@ -1608,9 +1608,9 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> expiries = (List<Object>) this.safeList(result, "expiries", new ArrayList<Object>(Arrays.asList()));
-            List<Object> settlements = (List<Object>) this.parseSettlements(expiries, (Map<String, Object>) null);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> expiries = this.safeList(result, "expiries", new ArrayList<Object>(Arrays.asList()));
+            List<Object> settlements = this.parseSettlements(expiries, (Map<String, Object>) null);
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
         });
@@ -1669,9 +1669,9 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> settlements = (List<Object>) this.safeList(result, "settlements", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsed = (List<Object>) this.parseSettlements(settlements, market);
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> settlements = this.safeList(result, "settlements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> parsed = this.parseSettlements(settlements, market);
             List<Object> sorted = this.sortBy(parsed, "timestamp");
             String symbolResolved = java.util.Objects.toString((((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null, null);
             return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
@@ -1761,7 +1761,7 @@ public class Derive extends DeriveApi
         //     }
         //
         Long timestamp = (Long) this.safeIntegerOmitZero(ticker, "t", (Long) null);
-        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats", (Object) null);
+        Map<String, Object> stats = this.safeDict(ticker, "stats", null);
         String change = this.safeString(stats, "p");
         String percentage = null;
         if (!java.util.Objects.equals(change, null))
@@ -1954,8 +1954,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2038,10 +2038,10 @@ public class Derive extends DeriveApi
             }
             if ((limitResolved != null && limitResolved > 5000))
             {
-                limitResolved = this.parseToInt(5000);
+                limitResolved = 5000L;
             }
             Long span = this.parseToInt((limitResolved * ((long) duration)));
-            Long windowStart = this.parseToInt((untilSeconds - span));
+            Long windowStart = (untilSeconds - span);
             Long start = windowStart;
             Object end = untilSeconds;
             if (!java.util.Objects.equals(since, null))
@@ -2068,7 +2068,7 @@ public class Derive extends DeriveApi
                 request.put("instrument_name", market.get("id"));
                 response = (this.publicPostGetTradingviewChartData(this.extend(request, paramsOmitted))).join();
             }
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(result, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2221,8 +2221,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> data = (List<Object>) this.safeList(result, "funding_rate_history", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(result, "funding_rate_history", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < data.size(); i++)
             {
@@ -2293,7 +2293,7 @@ public class Derive extends DeriveApi
             //         }
             //     ]
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, (Object) null);
+            Map<String, Object> data = this.safeDict(response, 0, null);
             return this.parseFundingRate(data, (Map<String, Object>) null);
         }).thenApply(FundingRate::new);
 
@@ -2452,9 +2452,9 @@ public class Derive extends DeriveApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a max_fee argument in params")) ;
             }
-            Map<String, Object> paramsMaxFee = (Map<String, Object>) this.safeDict(maxFeeOptionAndParams, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> paramsMaxFee = this.safeDict(maxFeeOptionAndParams, 1, new HashMap<String, Object>() {{}});
             String amountString = this.numberToString(amount);
-            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(marketInfo.get("base_asset_address"), this.convertToBigInt(marketInfo.get("base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits((String) (this.amountToPrecision(symbol, amountString)), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("createOrder", paramsMaxFee);
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
@@ -2568,8 +2568,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(result, "raw_data", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
+            Map<String, Object> rawOrder = this.safeDict(result, "raw_data", null);
             if (java.util.Objects.equals(rawOrder, null))
             {
                 rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
@@ -2622,7 +2622,7 @@ public class Derive extends DeriveApi
             String priceString = this.numberToString(price);
             String maxFeeString = this.safeString(paramsDeriveSubaccountId, "max_fee", "0");
             String amountString = this.numberToString(amount);
-            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new ArrayList<Object>(Arrays.asList(marketInfo.get("base_asset_address"), this.convertToBigInt(marketInfo.get("base_asset_sub_id")), this.convertToBigInt(this.parseUnits(priceString, "1000000000000000000")), this.convertToBigInt(this.parseUnits((String) (this.amountToPrecision(symbol, amountString)), "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeString, "1000000000000000000")), subaccountId, orderSideIsBuy))), keccak(), "binary");
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("editOrder", (Map<String, Object>) (paramsDeriveSubaccountId));
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
@@ -2746,8 +2746,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", null);
+            Map<String, Object> rawOrder = this.safeDict(result, "order", new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             return order;
         }).thenApply(Order::new);
@@ -2853,7 +2853,7 @@ public class Derive extends DeriveApi
             //
             Map<String, Object> extendParams = new HashMap<String, Object>();
             extendParams.put("symbol", symbol);
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             if (Boolean.TRUE.equals(isByClientOrder))
             {
                 extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
@@ -3028,18 +3028,18 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+            Map<String, Object> data = this.safeDict(response, "result", null);
             Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
             if (!java.util.Objects.equals(page, null))
             {
-                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(data, "pagination", (Object) null);
+                Map<String, Object> pagination = this.safeDict(data, "pagination", null);
                 Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if ((page != null && (currentPage == null || page > currentPage)))
                 {
                     return new ArrayList<Object>(Arrays.asList());
                 }
             }
-            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3079,7 +3079,7 @@ public class Derive extends DeriveApi
                 put( "subaccount_id", subaccountId );
             }};
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, paramsDeriveSubaccountId))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         }).thenApply(Order::new);
 
@@ -3176,8 +3176,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "result", null);
+            List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3464,8 +3464,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, paramsDeriveSubaccountId);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3586,18 +3586,18 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
             if (!java.util.Objects.equals(page, null))
             {
-                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(result, "pagination", (Object) null);
+                Map<String, Object> pagination = this.safeDict(result, "pagination", null);
                 Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if ((page != null && (currentPage == null || page > currentPage)))
                 {
                     return new ArrayList<Object>(Arrays.asList());
                 }
             }
-            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, paramsDeriveSubaccountId);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3669,8 +3669,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> positions = (List<Object>) this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> positions = this.safeList(result, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -3848,18 +3848,18 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long page = this.safeInteger(paramsDeriveSubaccountId, "page");
             if (!java.util.Objects.equals(page, null))
             {
-                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(result, "pagination", (Object) null);
+                Map<String, Object> pagination = this.safeDict(result, "pagination", null);
                 Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if ((page != null && (currentPage == null || page > currentPage)))
                 {
                     return new ArrayList<Object>(Arrays.asList());
                 }
             }
-            List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
+            List<Object> events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(events, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -3917,7 +3917,7 @@ public class Derive extends DeriveApi
                 Map<String, Object> subaccountParams = this.omit(parameters, "subaccount_id");
                 Map<String, Object> subaccountResponse = (this.privatePostGetSubaccount(this.extend(subaccountRequest, subaccountParams))).join();
                 // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
-                Map<String, Object> subaccountResult = (Map<String, Object>) this.safeDict(subaccountResponse, "result", new HashMap<String, Object>() {{}});
+                Map<String, Object> subaccountResult = this.safeDict(subaccountResponse, "result", new HashMap<String, Object>() {{}});
                 return this.parseBalanceList(new ArrayList<Object>(Arrays.asList(subaccountResult)));
             }
             List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("fetchBalance", (Map<String, Object>) (parameters));
@@ -4175,7 +4175,7 @@ public class Derive extends DeriveApi
             //         ]
             //     }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", (Object) null);
+            List<Object> result = this.safeList(response, "result", null);
             return this.parseBalanceList(result);
         }).thenApply(Balances::new);
 
@@ -4191,14 +4191,14 @@ public class Derive extends DeriveApi
         List<Object> subaccounts = this.toArray(response);
         for (var i = 0; i < subaccounts.size(); i++)
         {
-            Map<String, Object> subaccount = (Map<String, Object>) this.safeDict(subaccounts, i, (Object) null);
+            Map<String, Object> subaccount = this.safeDict(subaccounts, i, null);
             usedUsd = Precise.stringSub(usedUsd, Precise.stringAdd(this.safeString(subaccount, "positions_initial_margin", "0"), this.safeString(subaccount, "open_orders_margin", "0")));
-            List<Object> collaterals = (List<Object>) this.safeList(subaccount, "collaterals", new ArrayList<Object>(Arrays.asList()));
+            List<Object> collaterals = this.safeList(subaccount, "collaterals", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < collaterals.size(); j++)
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(collaterals, j, (Object) null);
+                Map<String, Object> balance = this.safeDict(collaterals, j, null);
                 String code = this.safeCurrencyCode(this.safeString(balance, "currency"), (Map<String, Object>) null);
-                Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code, (Object) null);
+                Map<String, Object> account = this.safeDict(result, code, null);
                 if (java.util.Objects.equals(account, null))
                 {
                     account = this.account();
@@ -4213,7 +4213,7 @@ public class Derive extends DeriveApi
                 }
             }
         }
-        Map<String, Object> usdcAccount = (Map<String, Object>) this.safeDict(result, "USDC", (Object) null);
+        Map<String, Object> usdcAccount = this.safeDict(result, "USDC", null);
         if (!java.util.Objects.equals(usdcAccount, null))
         {
             String totalUsdc = this.safeString(usdcAccount, "total");
@@ -4254,8 +4254,8 @@ public class Derive extends DeriveApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
-            List<Object> spotAssets = (List<Object>) this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> spotAsset = (Map<String, Object>) this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
+            List<Object> spotAssets = this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> spotAsset = this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
             String assetAddress = this.safeString(spotAsset, "address");
             if (java.util.Objects.equals(assetAddress, null))
             {
@@ -4307,9 +4307,9 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> transferEntry = (Map<String, Object>) this.parseTransfer(result, currency);
-            Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+            Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
@@ -4403,8 +4403,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> transfers = (List<Object>) this.safeList(result, "transfers", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> transfers = this.safeList(result, "transfers", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsed = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < transfers.size(); i++)
             {
@@ -4485,8 +4485,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> rows = (List<Object>) this.safeList(result, "interest_rate_history", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> rows = this.safeList(result, "interest_rate_history", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < rows.size(); i++)
             {
@@ -4502,7 +4502,7 @@ public class Derive extends DeriveApi
     public Object parseBorrowRate(Object info, Map<String, Object> currency)
     {
         Long timestamp = this.safeInteger(info, "timestamp");
-        Map<String, Object> borrowApy = (Map<String, Object>) this.safeDict(info, "borrow_apy", new HashMap<String, Object>() {{}});
+        Map<String, Object> borrowApy = this.safeDict(info, "borrow_apy", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "currency", Derive.this.safeCurrencyCode((String) (null), currency) );
             put( "rate", Derive.this.safeNumber(borrowApy, "close", (Object) null) );
@@ -4567,8 +4567,8 @@ public class Derive extends DeriveApi
             //         }
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> events = (List<Object>) this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> events = this.safeList(result, "events", new ArrayList<Object>(Arrays.asList()));
             List<Object> interests = this.parseBorrowInterests(events, (Map<String, Object>) null);
             List<Object> sorted = this.sortBy(interests, "timestamp");
             return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
@@ -4618,14 +4618,14 @@ public class Derive extends DeriveApi
             this.checkAddress(address, (String) null, (String) null);
             Map<String, Object> currency = this.currency((String) (code));
             // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
-            List<Object> spotAssets = (List<Object>) this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> spotAsset = (Map<String, Object>) this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
+            List<Object> spotAssets = this.safeList(currency.get("info"), "spot", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> spotAsset = this.safeDict(spotAssets, 0, new HashMap<String, Object>() {{}});
             String assetAddress = this.safeString(spotAsset, "address");
             if (java.util.Objects.equals(assetAddress, null))
             {
                 throw new BadRequest((((this.id + " withdraw() ") + code) + " has no deposit-enabled spot asset")) ;
             }
-            Map<String, Object> erc20 = (Map<String, Object>) this.safeDict(spotAsset, "erc20", new HashMap<String, Object>() {{}});
+            Map<String, Object> erc20 = this.safeDict(spotAsset, "erc20", new HashMap<String, Object>() {{}});
             Long decimals = this.safeInteger(erc20, "decimals");
             if (java.util.Objects.equals(decimals, null))
             {
@@ -4667,10 +4667,10 @@ public class Derive extends DeriveApi
             }};
             // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
             Map<String, Object> response = (this.privatePostWithdraw(this.extend(request, paramsDeriveWalletAddress))).join();
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(result, currency);
             transaction.put("type", "withdrawal");
-            Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
@@ -4746,8 +4746,8 @@ public class Derive extends DeriveApi
             //     }
             //
             Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> deposits = (List<Object>) this.safeList(result, "deposits", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> deposits = this.safeList(result, "deposits", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit, paramsDeriveSubaccountId);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -4809,8 +4809,8 @@ public class Derive extends DeriveApi
             //     }
             //
             Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> withdrawals = (List<Object>) this.safeList(result, "withdrawals", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            List<Object> withdrawals = this.safeList(result, "withdrawals", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit, paramsDeriveSubaccountId);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -4962,7 +4962,7 @@ public class Derive extends DeriveApi
         {
             return null;  // fallback to default error handler
         }
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
+        Map<String, Object> error = this.safeDict(response, "error", null);
         if (!java.util.Objects.equals(error, null))
         {
             String errorCode = this.safeString(error, "code");

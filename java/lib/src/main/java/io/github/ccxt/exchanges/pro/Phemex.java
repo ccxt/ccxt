@@ -322,15 +322,15 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         List<Object> tickers = new ArrayList<Object>(Arrays.asList());
         if (message.containsKey("market24h"))
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "market24h", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(message, "market24h", new HashMap<String, Object>() {{}});
             ((List<Object>)tickers).add(this.parseSwapTicker(ticker, (Map<String, Object>) null));
         } else if (message.containsKey("spot_market24h"))
         {
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "spot_market24h", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(message, "spot_market24h", new HashMap<String, Object>() {{}});
             ((List<Object>)tickers).add(this.parseTicker(ticker, (Map<String, Object>) null));
         } else if (message.containsKey("data"))
         {
-            List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < data.size(); i++)
             {
                 ((List<Object>)tickers).add(this.parsePerpetualTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null));
@@ -430,10 +430,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         this.balance.put("info", message);
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(message, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(message, i, null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
+            Map<String, Object> currency = this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
             Map<String, Object> account = this.account();
             String used = this.safeString(balance, "totalUsedBalanceRv");
@@ -552,7 +552,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         List<Object> candles = (List<Object>) this.safeList2(message, "kline", "kline_p", new ArrayList<Object>(Arrays.asList()));
-        List<Object> first = (List<Object>) this.safeList(candles, 0, new ArrayList<Object>(Arrays.asList()));
+        List<Object> first = this.safeList(candles, 0, new ArrayList<Object>(Arrays.asList()));
         String interval = this.safeString(first, 1);
         String timeframe = this.findTimeframe(interval, (Object) null);
         if (!java.util.Objects.equals(timeframe, null))
@@ -560,7 +560,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String messageHash = ((("kline:" + timeframe) + ":") + symbol);
             List<Object> ohlcvs = this.parseOHLCVs(candles, market, "1m", (Long) null, (Long) null, false);
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
             if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -951,7 +951,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 String subMessageHash = this.safeString(subscription, "subMessageHash");
                 String messageHash = this.safeString(subscription, "messageHash");
-                Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", (Object) null);
+                Map<String, Object> error = this.safeDict(message, "error", null);
                 if (!java.util.Objects.equals(error, null))
                 {
                     // the stream stays subscribed, so drop only the pending unsubscribe
@@ -1055,8 +1055,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
                 Map<String, Object> changes = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-                List<Object> asks = (List<Object>) this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
-                List<Object> bids = (List<Object>) this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
+                List<Object> asks = this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
+                List<Object> bids = this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
                 this.customHandleDeltas((orderbook == null ? null : orderbook.get("asks")), asks, market);
                 this.customHandleDeltas((orderbook == null ? null : orderbook.get("bids")), bids, market);
                 orderbook.put("nonce", nonce);
@@ -1491,8 +1491,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
         if (((switch ((Object)(message)) { case List<?> j39v9 -> j39v9.contains("closed"); case Map<?, ?> j39v8 -> j39v8.containsKey("closed"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v7 -> j39v7.contains("fills"); case Map<?, ?> j39v6 -> j39v6.containsKey("fills"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v5 -> j39v5.contains("open"); case Map<?, ?> j39v4 -> j39v4.containsKey("open"); case null, default -> false; })))
         {
-            List<Object> closed = (List<Object>) this.safeList(message, "closed", new ArrayList<Object>(Arrays.asList()));
-            List<Object> open = (List<Object>) this.safeList(message, "open", new ArrayList<Object>(Arrays.asList()));
+            List<Object> closed = this.safeList(message, "closed", new ArrayList<Object>(Arrays.asList()));
+            List<Object> open = this.safeList(message, "open", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = (List<Object>) this.arrayConcat(open, closed);
             Integer ordersLength = orders.size();
             if (java.util.Objects.equals(ordersLength, 0))
@@ -1899,7 +1899,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //     }
         // }
         //
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
+        Map<String, Object> result = this.safeDict(message, "result", null);
         String status = this.safeString(result, "status");
         String messageHash = "authenticated";
         if (java.util.Objects.equals(status, "success"))

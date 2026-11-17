@@ -485,8 +485,8 @@ public class Bit2c extends Bit2cApi
             // feed filters these rows out, so a non-positive amount is a dead order
             // their full snapshot failed to purge - it is removed here, which also
             // uncrosses the book. rows are positional price and amount pairs
-            List<Object> rawBids = (List<Object>) this.safeList(orderbook, "bids", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rawAsks = (List<Object>) this.safeList(orderbook, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawBids = this.safeList(orderbook, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawAsks = this.safeList(orderbook, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = new ArrayList<Object>(Arrays.asList());
             List<Object> asks = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < rawBids.size(); i++)
@@ -673,14 +673,14 @@ public class Bit2c extends Bit2cApi
             //         }
             //     }
             //
-            Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
+            Map<String, Object> fees = this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(fees.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < keys.size(); i++)
             {
                 String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, marketId, (Object) null);
+                Map<String, Object> fee = this.safeDict(fees, marketId, null);
                 String makerString = this.safeString(fee, "FeeMaker");
                 String takerString = this.safeString(fee, "FeeTaker");
                 Double maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
@@ -803,9 +803,9 @@ public class Bit2c extends Bit2cApi
                 put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
-            Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, market.get("id"), new HashMap<String, Object>() {{}});
-            List<Object> asks = (List<Object>) this.safeList(orders, "ask", new ArrayList<Object>(Arrays.asList()));
-            List<Object> bids = (List<Object>) this.safeList(orders, "bid", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> orders = this.safeDict(response, market.get("id"), new HashMap<String, Object>() {{}});
+            List<Object> asks = this.safeList(orders, "ask", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = this.safeList(orders, "bid", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

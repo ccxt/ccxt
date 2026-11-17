@@ -874,7 +874,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
         });
 
@@ -1109,10 +1109,10 @@ public class Paradex extends ParadexApi
         //
         String marketId = this.safeString(fee, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Map<String, Object> feeConfig = (Map<String, Object>) this.safeDict(fee, "fee_config", new HashMap<String, Object>() {{}});
-        Map<String, Object> apiFee = (Map<String, Object>) this.safeDict(feeConfig, "api_fee", new HashMap<String, Object>() {{}});
-        Map<String, Object> makerFee = (Map<String, Object>) this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}});
-        Map<String, Object> takerFee = (Map<String, Object>) this.safeDict(apiFee, "taker_fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> feeConfig = this.safeDict(fee, "fee_config", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiFee = this.safeDict(feeConfig, "api_fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> makerFee = this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> takerFee = this.safeDict(apiFee, "taker_fee", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", marketResolved.get("symbol") );
@@ -1169,8 +1169,8 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -1213,7 +1213,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> fees = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fees = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < fees.size(); i++)
             {
@@ -1299,7 +1299,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1364,7 +1364,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
@@ -1414,8 +1414,8 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -1509,7 +1509,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("market", target);
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
@@ -1535,7 +1535,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> market = this.market(symbol);
             FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
-            Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, market.get("symbol"), (Object) null);
+            Map<String, Object> rate = this.safeDict(rates, market.get("symbol"), null);
             if (java.util.Objects.equals(rate, null))
             {
                 throw new BadSymbol(((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
@@ -1723,7 +1723,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < trades.size(); i++)
             {
                 Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
@@ -1851,8 +1851,8 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> interest = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> interest = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
 
@@ -1916,7 +1916,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", (Object) null), null))
+            if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", null), null))
             {
                 Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
                 this.options.put("systemConfig", response);
@@ -1956,7 +1956,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeDict(this.options, "paradexAccount", (Object) null), null))
+            if (java.util.Objects.equals(this.safeDict(this.options, "paradexAccount", null), null))
             {
                 this.checkRequiredCredentials(true);
                 Map<String, Object> systemConfig = (this.getSystemConfig()).join();
@@ -2153,7 +2153,7 @@ public class Paradex extends ParadexApi
             postOnly = (java.util.Objects.equals(timeInForce, "PO"));
         }
         Long lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
-        List<Object> flags = (List<Object>) this.safeList(order, "flags", (Object) null);
+        List<Object> flags = this.safeList(order, "flags", null);
         Boolean reduceOnly = null;
         if (!java.util.Objects.equals(flags, null))
         {
@@ -2606,13 +2606,13 @@ public class Paradex extends ParadexApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
                 Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
                 orderRequest = (this.signOrderRequest(orderRequest, false)).join();
@@ -2644,18 +2644,18 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            List<Object> responseOrders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> responseOrder = (Map<String, Object>) this.safeDict(responseOrders, i, (Object) null);
+                Map<String, Object> responseOrder = this.safeDict(responseOrders, i, null);
                 if (!java.util.Objects.equals(responseOrder, null))
                 {
                     ((List<Object>)result).add(this.parseOrder(responseOrder, (Map<String, Object>) null));
                 } else
                 {
-                    Map<String, Object> error = (Map<String, Object>) this.safeDict(errors, i, (Object) null);
+                    Map<String, Object> error = this.safeDict(errors, i, null);
                     ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                         put( "info", error );
                         put( "status", "rejected" );
@@ -2772,7 +2772,7 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < results.size(); i++)
             {
@@ -2992,7 +2992,7 @@ public class Paradex extends ParadexApi
             //     ]
             //   }
             //
-            List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             String paginationCursor = this.safeString(response, "next");
             Integer ordersLength = orders.size();
             if ((!java.util.Objects.equals(paginationCursor, null)) && ((ordersLength != null && ordersLength > 0)))
@@ -3067,7 +3067,7 @@ public class Paradex extends ParadexApi
             //     ]
             //   }
             //
-            List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3103,7 +3103,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalanceList(data);
         }).thenApply(Balances::new);
 
@@ -3116,7 +3116,7 @@ public class Paradex extends ParadexApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> balance = this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -3201,7 +3201,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < trades.size(); i++)
             {
                 Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
@@ -3232,7 +3232,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = (this.privateGetPositions(parameters)).join();
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
             List<Object> matching = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < data.size(); i++)
@@ -3296,7 +3296,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the endpoint keeps returning a market's position after it is closed, with a size of 0
             List<Object> openPositions = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < data.size(); i++)
@@ -3427,7 +3427,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
@@ -3527,7 +3527,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the cursor pagination reads the next page cursor from the parsed entries
             String next = this.safeString(response, "next");
             for (var i = 0; i < rows.size(); i++)
@@ -3619,7 +3619,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the cursor pagination reads the next page cursor from the parsed entries
             String next = this.safeString(response, "next");
             for (var i = 0; i < rows.size(); i++)
@@ -3709,7 +3709,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the cursor pagination reads the next page cursor from the parsed entries
             String next = this.safeString(response, "next");
             for (var i = 0; i < rows.size(); i++)
@@ -3829,7 +3829,7 @@ public class Paradex extends ParadexApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)transactions).size(); i++)
         {
-            Map<String, Object> info = (Map<String, Object>) this.safeDict((transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)), "info", (Object) null);
+            Map<String, Object> info = this.safeDict((transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)), "info", null);
             if (java.util.Objects.equals(this.safeString(info, "kind"), kind))
             {
                 ((List<Object>)result).add((transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)));
@@ -3885,8 +3885,8 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            List<Object> configs = (List<Object>) this.safeList(response, "configs", (Object) null);
-            return this.parseMarginMode((Map<String, Object>) (this.safeDict(configs, 0, (Object) null)), market);
+            List<Object> configs = this.safeList(response, "configs", null);
+            return this.parseMarginMode((Map<String, Object>) (this.safeDict(configs, 0, null)), market);
         }).thenApply(MarginMode::new);
 
     }
@@ -3985,8 +3985,8 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            List<Object> configs = (List<Object>) this.safeList(response, "configs", (Object) null);
-            return this.parseLeverage((Map<String, Object>) (this.safeDict(configs, 0, (Object) null)), market);
+            List<Object> configs = this.safeList(response, "configs", null);
+            return this.parseLeverage((Map<String, Object>) (this.safeDict(configs, 0, null)), market);
         }).thenApply(Leverage::new);
 
     }
@@ -4107,8 +4107,8 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> greeks = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> greeks = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseGreeks(greeks, market);
         }).thenApply(Greeks::new);
 
@@ -4171,7 +4171,7 @@ public class Paradex extends ParadexApi
             //         ]
             //     }
             //
-            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseAllGreeks(results, symbolsNormalized, new HashMap<String, Object>() {{}});
         });
 
@@ -4213,7 +4213,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "option");
         String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.safeInteger(greeks, "created_at");
-        Map<String, Object> greeksData = (Map<String, Object>) this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
+        Map<String, Object> greeksData = this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -4310,7 +4310,7 @@ public class Paradex extends ParadexApi
             //     ]
             // }
             //
-            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the cursor pagination reads the next page cursor from the parsed entries
             String next = this.safeString(response, "next");
             for (var i = 0; i < results.size(); i++)
@@ -4416,7 +4416,7 @@ public class Paradex extends ParadexApi
             // every row is one observation of a rate quoted for a whole funding period,
             // not a settled payment: paradex recomputes it each second and accrues it
             // into funding_index, so the series cannot be summed
-            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < results.size(); i++)
             {
@@ -4571,7 +4571,7 @@ public class Paradex extends ParadexApi
             //         "orders": [ null ]
             //     }
             //
-            List<Object> batchErrors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            List<Object> batchErrors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < batchErrors.size(); i++)
             {
                 String batchErrorCode = this.safeString((batchErrors == null || i < 0 || i >= batchErrors.size() ? null : batchErrors.get(i)), "error");

@@ -725,7 +725,7 @@ public class Backpack extends BackpackApi
 
             List<Object> selection = this.handleStockParams("fetchCurrencies", (Map<String, Object>) (parameters), (Map<String, Object>) null);
             Boolean stock = (Boolean) this.safeBool(selection, 0, false);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             List<Object> response = (this.publicGetApiV1Assets(query)).join();
             //
             //     [
@@ -770,7 +770,7 @@ public class Backpack extends BackpackApi
         String symbol = this.safeString(rawCurrency, "symbol", "");
         Boolean stock = (symbol.endsWith(((String)".US"))) || (symbol.endsWith(((String)".HK")));
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-        List<Object> networks = (List<Object>) this.safeList(rawCurrency, "tokens", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networks = this.safeList(rawCurrency, "tokens", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < networks.size(); j++)
         {
@@ -858,9 +858,9 @@ public class Backpack extends BackpackApi
             }
             List<Object> selection = this.handleStockParams("fetchMarkets", (Map<String, Object>) (parameters), (Map<String, Object>) null);
             Boolean stock = (Boolean) this.safeBool(selection, 0, false);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             String marketType = this.safeString(query, "marketType");
-            List<Object> requestedTypes = (List<Object>) this.safeList(query, "marketType", new ArrayList<Object>(Arrays.asList("SPOT", "PERP", "RFQ")));
+            List<Object> requestedTypes = this.safeList(query, "marketType", new ArrayList<Object>(Arrays.asList("SPOT", "PERP", "RFQ")));
             if (!java.util.Objects.equals(marketType, null))
             {
                 requestedTypes = new ArrayList<Object>(Arrays.asList(marketType));
@@ -902,14 +902,14 @@ public class Backpack extends BackpackApi
             Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
             for (var i = 0; i < response.size(); i++)
             {
-                Map<String, Object> rawMarket = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> rawMarket = this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 String rawType = this.safeString(rawMarket, "marketType", "");
                 if (!this.inArray(rawType, marketTypes))
                 {
                     continue;
                 }
                 String baseId = this.safeString(rawMarket, "baseSymbol");
-                Map<String, Object> security = (Map<String, Object>) this.safeDict(securityById, baseId, (Object) null);
+                Map<String, Object> security = this.safeDict(securityById, baseId, null);
                 MarketInterface market = this.parseMarket((((java.util.Objects.equals(security, null)))) ? rawMarket : this.extend(rawMarket, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("security", security); yield j39v1; } })));
                 if (!java.util.Objects.equals(market, null))
                 {
@@ -1091,19 +1091,19 @@ public class Backpack extends BackpackApi
             return null;
         }
         String symbol = ((base + "/") + quote);
-        Map<String, Object> filters = (Map<String, Object>) this.safeDict(market, "filters", new HashMap<String, Object>() {{}});
-        Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "price", new HashMap<String, Object>() {{}});
+        Map<String, Object> filters = this.safeDict(market, "filters", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceFilter = this.safeDict(filters, "price", new HashMap<String, Object>() {{}});
         Double maxPrice = this.safeNumber(priceFilter, "maxPrice", (Object) null);
         Double minPrice = this.safeNumber(priceFilter, "minPrice", (Object) null);
         Double pricePrecision = this.safeNumber(priceFilter, "tickSize", (Object) null);
-        Map<String, Object> quantityFilter = (Map<String, Object>) this.safeDict(filters, "quantity", new HashMap<String, Object>() {{}});
+        Map<String, Object> quantityFilter = this.safeDict(filters, "quantity", new HashMap<String, Object>() {{}});
         Double maxQuantity = this.safeNumber(quantityFilter, "maxQuantity", (Object) null);
         Double minQuantity = this.safeNumber(quantityFilter, "minQuantity", (Object) null);
         Double amountPrecision = this.safeNumber(quantityFilter, "stepSize", (Object) null);
         String type = null;
         String rawType = this.safeString(market, "marketType");
         Boolean rfq = java.util.Objects.equals(rawType, "RFQ");
-        Map<String, Object> security = (Map<String, Object>) this.safeDict(market, "security", (Object) null);
+        Map<String, Object> security = this.safeDict(market, "security", null);
         String baseSymbol = this.safeString(market, "baseSymbol", "");
         Boolean stock = (java.util.Objects.equals(this.safeString(market, "rwaMarketType"), "STOCK")) || (!java.util.Objects.equals(security, null)) || (baseSymbol.endsWith(((String)".US"))) || (baseSymbol.endsWith(((String)".HK")));
         String typeOfMarket = this.parseMarketType(rawType);
@@ -1118,7 +1118,7 @@ public class Backpack extends BackpackApi
             if (Boolean.TRUE.equals(rfq))
             {
                 symbol = ((base + ".RFQ/") + quote);
-                List<Object> sessions = (List<Object>) this.safeList(security, "sessions", new ArrayList<Object>(Arrays.asList()));
+                List<Object> sessions = this.safeList(security, "sessions", new ArrayList<Object>(Arrays.asList()));
                 String stepSize = null;
                 String minimum = null;
                 String maximum = null;
@@ -1288,7 +1288,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("fetchStockIndicativeQuote", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(market.get("stock"), true))
             {
                 throw new BadSymbol((this.id + " fetchStockIndicativeQuote() requires a stock market")) ;
@@ -1336,7 +1336,7 @@ public class Backpack extends BackpackApi
             quoteCode = fromCode;
         }
         String symbol = ((stockCode + ".RFQ/") + quoteCode);
-        Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, symbol, (Object) null);
+        Map<String, Object> market = this.safeDict(this.markets, symbol, null);
         if ((java.util.Objects.equals(market, null)) || (!java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) || !Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
         {
             throw new BadSymbol(((this.id + " conversion requires a listed stock RFQ market: ") + symbol)) ;
@@ -1366,11 +1366,11 @@ public class Backpack extends BackpackApi
         Boolean fromIsBase = java.util.Objects.equals(fromCode, this.safeString(market, "base"));
         Double filled = this.safeNumber(order, "filled", (Object) null);
         Double cost = this.safeNumber(order, "cost", (Object) null);
-        Map<String, Object> fee = (Map<String, Object>) this.safeDict(order, "fee", (Object) null);
+        Map<String, Object> fee = this.safeDict(order, "fee", null);
         Long timestamp = this.safeInteger(order, "timestamp");
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
-            h2kMap0.put("info", this.safeDict(order, "info", (Object) null));
+            h2kMap0.put("info", this.safeDict(order, "info", null));
             h2kMap0.put("timestamp", timestamp);
             h2kMap0.put("datetime", this.iso8601(timestamp));
             h2kMap0.put("id", this.safeString(order, "id"));
@@ -1451,7 +1451,7 @@ public class Backpack extends BackpackApi
             if (!Boolean.TRUE.equals(fromIsBase))
             {
                 String quoteQuantity = this.safeString(quote, "quoteQuantity");
-                Map<String, Object> quantityFilter = (Map<String, Object>) this.safeDict(quote, "quantityFilter", new HashMap<String, Object>() {{}});
+                Map<String, Object> quantityFilter = this.safeDict(quote, "quantityFilter", new HashMap<String, Object>() {{}});
                 String stepSize = this.safeString(quantityFilter, "stepSize");
                 if ((!java.util.Objects.equals(quoteQuantity, null)) && (!java.util.Objects.equals(stepSize, null)) && Precise.stringGt(quoteQuantity, this.numberToString(amount)))
                 {
@@ -1522,7 +1522,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.rfqConversionMarket((String) (fromCode), (String) (toCode));
             List<Object> selection = this.handleStockParams("createConvertTrade", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             String quoteId = this.safeString(query, "quoteId");
             if (!java.util.Objects.equals(quoteId, null))
             {
@@ -1587,7 +1587,7 @@ public class Backpack extends BackpackApi
                 String quoteCost = Precise.stringMul(quantity, this.numberToString(price));
                 if (Precise.stringGt(quoteCost, this.numberToString(amount)))
                 {
-                    Map<String, Object> precision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+                    Map<String, Object> precision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
                     String stepSize = this.numberToString(this.safeNumber(precision, "amount", (Object) null));
                     if (!Precise.stringGt(stepSize, "0"))
                     {
@@ -1640,10 +1640,10 @@ public class Backpack extends BackpackApi
     {
         List<Object> selection = this.handleStockParams(methodName, (Map<String, Object>) (parameters), market);
         Boolean stock = (Boolean) this.safeBool(selection, 0, false);
-        Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
         Map<String, Object> request = this.extend(new HashMap<String, Object>() {{}}, query);
         String source = this.safeString(query, "source");
-        Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         Boolean isRfq = (!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(this.safeString(marketInfo, "marketType"), "RFQ"));
         if (java.util.Objects.equals(source, null))
         {
@@ -1711,7 +1711,7 @@ public class Backpack extends BackpackApi
         {
             Object entry = (entries == null || i < 0 || i >= ((List<?>)entries).size() ? null : ((List<?>)entries).get(i));
             String symbol = this.safeString(entry, "symbol");
-            Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, symbol, (Object) null);
+            Map<String, Object> market = this.safeDict(this.markets, symbol, null);
             if (Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
             {
                 ((List<Object>)result).add(entry);
@@ -1752,14 +1752,14 @@ public class Backpack extends BackpackApi
             }
             List<Object> selection = this.handleStockParams("fetchTickers", (Map<String, Object>) (parameters), (Map<String, Object>) null);
             Boolean stockOnly = (Boolean) this.safeBool(selection, 0, false);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             String source = this.safeString(query, "source", "Venue");
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbolsLength = symbols.size();
             }
-            Object symbolsResolved = new ArrayList<Object>(((Map<String, Object>)this.markets).keySet());
+            List<String> symbolsResolved = new ArrayList<String>(((Map<String, Object>)this.markets).keySet());
             if (!java.util.Objects.equals(symbolsLength, 0))
             {
                 symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
@@ -1768,7 +1768,7 @@ public class Backpack extends BackpackApi
             Boolean hasStockSymbol = false;
             if (!java.util.Objects.equals(symbols, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+                for (var i = 0; i < symbolsResolved.size(); i++)
                 {
                     Map<String, Object> market = this.market(this.safeString(symbolsResolved, i));
                     if (java.util.Objects.equals(market.get("stock"), true))
@@ -1806,16 +1806,16 @@ public class Backpack extends BackpackApi
                 externalResponseById = this.indexBy(externalResponse, "symbol");
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+            for (var i = 0; i < symbolsResolved.size(); i++)
             {
-                String marketSymbol = (String) (symbolsResolved == null || i < 0 || i >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(i));
+                String marketSymbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
                 Map<String, Object> market = this.market(marketSymbol);
                 if (Boolean.TRUE.equals(stockOnly) && (!java.util.Objects.equals(market.get("stock"), true)))
                 {
                     continue;
                 }
                 Boolean marketIsRfq = java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ");
-                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, marketSymbol, (Object) null);
+                Map<String, Object> ticker = this.safeDict(tickers, marketSymbol, null);
                 if ((!java.util.Objects.equals(ticker, null)) && ((!java.util.Objects.equals(source, "External")) || (java.util.Objects.equals(market.get("stock"), true))))
                 {
                     result.put(marketSymbol, ticker);
@@ -1824,7 +1824,7 @@ public class Backpack extends BackpackApi
                     String underlyingId = ((this.safeString(market, "baseId", "") + "_") + this.safeString(market, "quoteId", ""));
                     Boolean useExternal = (java.util.Objects.equals(source, "External")) || Boolean.TRUE.equals(needsExternalRfqTickers);
                     Map<String, Object> tickerSource = ((Boolean.TRUE.equals(useExternal))) ? externalResponseById : responseById;
-                    Map<String, Object> underlyingTicker = (Map<String, Object>) this.safeDict(tickerSource, underlyingId, (Object) null);
+                    Map<String, Object> underlyingTicker = this.safeDict(tickerSource, underlyingId, null);
                     if (!java.util.Objects.equals(underlyingTicker, null))
                     {
                         result.put(marketSymbol, this.parseTicker(underlyingTicker, market));
@@ -1949,7 +1949,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("fetchOrderBook", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             String source = this.safeString(query, "source", "Venue");
             if ((!java.util.Objects.equals(source, "Venue")) || (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
             {
@@ -2122,7 +2122,7 @@ public class Backpack extends BackpackApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = (this.publicGetApiV1MarkPrices(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
@@ -2192,7 +2192,7 @@ public class Backpack extends BackpackApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> response = (this.publicGetApiV1OpenInterest(this.extend(request, parameters))).join();
-            Map<String, Object> interest = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> interest = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
 
@@ -2309,7 +2309,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("fetchTrades", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             if ((!java.util.Objects.equals(this.safeString(query, "source", "Venue"), "Venue")) || (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
             {
                 throw new NotSupported((this.id + " fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills")) ;
@@ -2373,8 +2373,8 @@ public class Backpack extends BackpackApi
             }
             List<Object> selection = this.handleStockParams("fetchMyTrades", (Map<String, Object>) (parameters), market);
             Boolean stock = (Boolean) this.safeBool(selection, 0, false);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
-            Boolean rfq = Boolean.TRUE.equals(this.safeBool(query, "rfq", false)) || (java.util.Objects.equals(this.safeString(this.safeDict(market, "info", (Object) null), "marketType"), "RFQ"));
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Boolean rfq = Boolean.TRUE.equals(this.safeBool(query, "rfq", false)) || (java.util.Objects.equals(this.safeString(this.safeDict(market, "info", null), "marketType"), "RFQ"));
             Boolean aggregate = Boolean.TRUE.equals(stock) && (java.util.Objects.equals(market, null)) && !Boolean.TRUE.equals(rfq);
             if (Boolean.TRUE.equals(rfq) && (!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
             {
@@ -2620,11 +2620,11 @@ public class Backpack extends BackpackApi
             }
             List<Object> selection = this.handleStockParams("fetchBalance", (Map<String, Object>) (parameters), (Map<String, Object>) null);
             Boolean stock = (Boolean) this.safeBool(selection, 0, false);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.privateGetApiV1Capital(query)).join();
             if (Boolean.TRUE.equals(stock))
             {
-                Object securities = this.safeList(this.options, "securities", (Object) null);
+                Object securities = this.safeList(this.options, "securities", null);
                 if (java.util.Objects.equals(securities, null))
                 {
                     securities = (this.fetchSecurities(new HashMap<String, Object>() {{}})).join();
@@ -2664,7 +2664,7 @@ public class Backpack extends BackpackApi
         {
             String id = (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i));
             String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, id, (Object) null);
+            Map<String, Object> balance = this.safeDict(response, id, null);
             Map<String, Object> account = this.account();
             String locked = this.safeString(balance, "locked");
             String staked = this.safeString(balance, "staked");
@@ -3063,16 +3063,16 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("createOrder", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             Map<String, Object> orderParams = this.extend(query, new HashMap<String, Object>() {{
                 put( "stock", Backpack.this.safeBool(selection, 0, false) );
             }});
             if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
             {
                 Object rfqResponse = (this.createRfqOrder((String) (symbol), (String) (type), (String) (side), amount, price, orderParams)).join();
-                Map<String, Object> rfqOrder = (Map<String, Object>) this.safeDict(new HashMap<String, Object>() {{
+                Map<String, Object> rfqOrder = this.safeDict(new HashMap<String, Object>() {{
                     put( "order", rfqResponse );
-                }}, "order", (Object) null);
+                }}, "order", null);
                 return rfqOrder;
             }
             Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, orderParams);
@@ -3107,7 +3107,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("createRfqOrder", (Map<String, Object>) (parameters), market);
-            Map<String, Object> paramsResolved = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> paramsResolved = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
             {
                 throw new BadSymbol((this.id + " createRfqOrder() requires an RFQ market")) ;
@@ -3139,7 +3139,7 @@ public class Backpack extends BackpackApi
                 throw new NotSupported((this.id + " createOrder() requires Immediate RFQs to enforce the price bound; AwaitAccept has no engine-enforced limit price")) ;
             }
             String quantity = this.numberToString(amount);
-            Map<String, Object> precision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+            Map<String, Object> precision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(this.safeNumber(precision, "amount", (Object) null), null))
             {
                 String preciseQuantity = this.amountToPrecision(symbol, amount);
@@ -3170,7 +3170,7 @@ public class Backpack extends BackpackApi
                 {
                     limitPrice = indicativePrice;
                 }
-                Map<String, Object> quantityFilter = (Map<String, Object>) this.safeDict(indicative, "quantityFilter", new HashMap<String, Object>() {{}});
+                Map<String, Object> quantityFilter = this.safeDict(indicative, "quantityFilter", new HashMap<String, Object>() {{}});
                 String stepSize = this.safeString(quantityFilter, "stepSize");
                 String minimum = this.safeString(quantityFilter, "minQuantity");
                 String maximum = this.safeString(quantityFilter, "maxQuantity");
@@ -3234,7 +3234,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("acceptRfqQuote", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
             {
                 throw new BadSymbol((this.id + " acceptRfqQuote() requires an RFQ market")) ;
@@ -3265,7 +3265,7 @@ public class Backpack extends BackpackApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> selection = this.handleStockParams("createOrders", (Map<String, Object>) (parameters), (Map<String, Object>) null);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3274,13 +3274,13 @@ public class Backpack extends BackpackApi
             Boolean stock = (Boolean) this.safeBool(selection, 0, false);
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> baseParams = new HashMap<String, Object>() {{}};
                 if (Boolean.TRUE.equals(stock) || !Boolean.TRUE.equals(this.safeBool2(parameters, "stock", "defaultStock", true)))
                 {
@@ -3322,7 +3322,7 @@ public class Backpack extends BackpackApi
         }
         Map<String, Object> market = this.market(symbol);
         List<Object> selection = this.handleStockParams("createOrder", (Map<String, Object>) (parameters), market);
-        Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
         {
             throw new NotSupported((this.id + " createOrders() does not support RFQ batches; use createOrder()")) ;
@@ -3375,7 +3375,7 @@ public class Backpack extends BackpackApi
             ((Map<String, Object>)paramsPostOnly).put("postOnly", true);
         }
         List<Object> bracketKeys = new ArrayList<Object>(Arrays.asList());
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsPostOnly, "takeProfit", (Object) null);
+        Map<String, Object> takeProfit = this.safeDict(paramsPostOnly, "takeProfit", null);
         if (!java.util.Objects.equals(takeProfit, null))
         {
             String takeProfitTriggerPrice = this.safeString(takeProfit, "triggerPrice");
@@ -3390,7 +3390,7 @@ public class Backpack extends BackpackApi
             }
             ((List<Object>)bracketKeys).add("takeProfit");
         }
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsPostOnly, "stopLoss", (Object) null);
+        Map<String, Object> stopLoss = this.safeDict(paramsPostOnly, "stopLoss", null);
         if (!java.util.Objects.equals(stopLoss, null))
         {
             String stopLossTriggerPrice = this.safeString(stopLoss, "triggerPrice");
@@ -3466,8 +3466,8 @@ public class Backpack extends BackpackApi
             }
             List<Object> selection = this.handleStockParams("fetchOpenOrders", (Map<String, Object>) (parameters), market);
             Boolean stock = (Boolean) this.safeBool(selection, 0, false);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
-            Boolean rfq = Boolean.TRUE.equals(this.safeBool(query, "rfq", false)) || (java.util.Objects.equals(this.safeString(this.safeDict(market, "info", (Object) null), "marketType"), "RFQ"));
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Boolean rfq = Boolean.TRUE.equals(this.safeBool(query, "rfq", false)) || (java.util.Objects.equals(this.safeString(this.safeDict(market, "info", null), "marketType"), "RFQ"));
             if (Boolean.TRUE.equals(rfq) && (!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
             {
                 throw new BadSymbol((this.id + " fetchOpenOrders() rfq requires an RFQ market symbol")) ;
@@ -3521,7 +3521,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("fetchOpenOrder", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
             {
                 List<Object> rfqResponse = (this.privateGetApiV1Rfqs(this.extend(query, new HashMap<String, Object>() {{
@@ -3573,7 +3573,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("fetchOrder", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             Boolean rfq = java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -3637,7 +3637,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("cancelOrder", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
             {
                 Long clientOrderId = this.safeInteger(query, "clientOrderId");
@@ -3688,7 +3688,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> market = this.market(symbol);
             List<Object> selection = this.handleStockParams("cancelAllOrders", (Map<String, Object>) (parameters), market);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
             {
                 throw new NotSupported((this.id + " cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()")) ;
@@ -3741,8 +3741,8 @@ public class Backpack extends BackpackApi
             }
             List<Object> selection = this.handleStockParams("fetchOrders", (Map<String, Object>) (parameters), market);
             Boolean stock = (Boolean) this.safeBool(selection, 0, false);
-            Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
-            Boolean rfq = Boolean.TRUE.equals(this.safeBool(query, "rfq", false)) || (java.util.Objects.equals(this.safeString(this.safeDict(market, "info", (Object) null), "marketType"), "RFQ"));
+            Map<String, Object> query = this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
+            Boolean rfq = Boolean.TRUE.equals(this.safeBool(query, "rfq", false)) || (java.util.Objects.equals(this.safeString(this.safeDict(market, "info", null), "marketType"), "RFQ"));
             if (Boolean.TRUE.equals(rfq) && (!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
             {
                 throw new BadSymbol((this.id + " fetchOrders() rfq requires an RFQ market symbol")) ;
@@ -3771,7 +3771,7 @@ public class Backpack extends BackpackApi
 
     public Order parseOrder(Object order, Map<String, Object> market)
     {
-        Map<String, Object> rfq = (Map<String, Object>) this.safeDict(order, "rfq", (Object) null);
+        Map<String, Object> rfq = this.safeDict(order, "rfq", null);
         if (!java.util.Objects.equals(rfq, null))
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(rfq, market);
@@ -4163,8 +4163,8 @@ public class Backpack extends BackpackApi
             this.checkRequiredCredentials(true);
             String ts = this.numberToString(this.nonce());
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
-            Map<String, Object> optionInstructions = (Map<String, Object>) this.safeDict(this.options, "instructions", new HashMap<String, Object>() {{}});
-            Map<String, Object> optionPathInstructions = (Map<String, Object>) this.safeDict(optionInstructions, path, new HashMap<String, Object>() {{}});
+            Map<String, Object> optionInstructions = this.safeDict(this.options, "instructions", new HashMap<String, Object>() {{}});
+            Map<String, Object> optionPathInstructions = this.safeDict(optionInstructions, path, new HashMap<String, Object>() {{}});
             String instruction = this.safeString(optionPathInstructions, java.util.Objects.requireNonNullElse(method, "GET"), "");
             String payload = "";
             if ((java.util.Objects.equals(path, "api/v1/orders")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))
@@ -4226,7 +4226,7 @@ public class Backpack extends BackpackApi
         Integer paramsLength = (switch ((Object)(parameters)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
         for (var i = 0; (paramsLength != null && i < paramsLength); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(parameters, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(parameters, i, new HashMap<String, Object>() {{}});
             Map<String,Object> sortedOrder = this.keysort(order);
             String orderQuery = this.urlencode(sortedOrder);
             payload = (payload + (((("instruction=" + instruction) + "&") + orderQuery) + "&"));

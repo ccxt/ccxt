@@ -120,7 +120,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = ((generation != null && generation == 2));
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("ticker:" + market.get("symbol"));
@@ -184,7 +184,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 symbolsResolved = symbolsNormalized;
             }
             Integer symbolsLengthDefined = symbolsResolved.size();
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
             List<Object> streamMarketIds = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -303,7 +303,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //         "stream_type": "REALTIME"
         //     }
         //
-        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content", (Object) null);
+        Map<String, Object> content = this.safeDict(message, "content", null);
         Boolean isGenerationTwo = (java.util.Objects.equals(content, null));
         Map<String, Object> tickerMessage = null;
         if (Boolean.TRUE.equals(isGenerationTwo))
@@ -462,7 +462,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = ((generation != null && generation == 2));
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
@@ -537,11 +537,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //         "stream_type": "SNAPSHOT"
         //     }
         //
-        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content", (Object) null);
+        Map<String, Object> content = this.safeDict(message, "content", null);
         if (!java.util.Objects.equals(content, null))
         {
-            List<Object> list = (List<Object>) this.safeList(content, "list", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(list, 0, new HashMap<String, Object>() {{}});
+            List<Object> list = this.safeList(content, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(list, 0, new HashMap<String, Object>() {{}});
             String legacyMarketId = this.safeString(first, "symbol");
             if (java.util.Objects.equals(legacyMarketId, null))
             {
@@ -574,14 +574,14 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             return;
         }
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+        Map<String, Object> options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long obLimit = this.safeInteger(options, "limit", 1000);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, obLimit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+        List<Object> units = this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         String gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
         Long timestamp = this.milliseconds();
         if (!java.util.Objects.equals(gen2TimestampStr, null))
@@ -592,7 +592,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         List<Object> asksSnapshot = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < units.size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(units, i, (Object) null);
+            Map<String, Object> entry = this.safeDict(units, i, null);
             Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
             Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
             Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
@@ -663,7 +663,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Long generation = (Long) ((List<Object>) generationparamsGenerationVariable).get(0);
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = ((generation != null && generation == 2));
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
@@ -737,8 +737,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //         "stream_type": "REALTIME"
         //     }
         //
-        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content", (Object) null);
-        List<Object> rawTrades = (List<Object>) this.safeList(content, "list", new ArrayList<Object>(Arrays.asList(message)));
+        Map<String, Object> content = this.safeDict(message, "content", null);
+        List<Object> rawTrades = this.safeList(content, "list", new ArrayList<Object>(Arrays.asList(message)));
         for (var i = 0; i < rawTrades.size(); i++)
         {
             Map<String, Object> rawTrade = (Map<String, Object>) (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
@@ -851,7 +851,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", (Object) null);
+        Map<String, Object> error = this.safeDict(message, "error", null);
         if (!java.util.Objects.equals(error, null))
         {
             String errorName = this.safeString(error, "name", "Error");
@@ -916,7 +916,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 throw new BadRequest((this.id + " watchBalance() is only supported for the generation 2 API")) ;
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = this.safeString(wsUrls, "privateGen2", "");
             String messageHash = "myAsset";
             List<Object> request = (List<Object>) this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
@@ -946,14 +946,14 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String messageHash = "myAsset";
-        List<Object> assets = (List<Object>) this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> assets = this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};
         }
         for (var i = 0; i < assets.size(); i++)
         {
-            Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, i, (Object) null);
+            Map<String, Object> asset = this.safeDict(assets, i, null);
             String currencyId = this.safeString(asset, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -986,8 +986,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public List<Object> buildGen2SubscriptionRequest(String subscriptionType, Map<String, Object> subscription)
     {
-        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-        Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(wsOptions, "gen2Subscriptions", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptions = this.safeDict(wsOptions, "gen2Subscriptions", new HashMap<String, Object>() {{}});
         subscriptions.put(subscriptionType, subscription);
         wsOptions.put("gen2Subscriptions", subscriptions);
         this.options.put("ws", wsOptions);
@@ -1008,7 +1008,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
             String authenticated = this.safeString(wsOptions, "token");
             if (java.util.Objects.equals(authenticated, null))
             {
@@ -1026,7 +1026,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     }});
                 this.options.put("ws", wsOptions);
             }
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = this.safeString(wsUrls, "privateGen2", "");
             Client client = this.client(url);
             return client;
@@ -1063,10 +1063,10 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 throw new BadRequest((this.id + " watchOrders() is only supported for the generation 2 API")) ;
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = this.safeString(wsUrls, "privateGen2", "");
             String messageHash = "myOrder";
-            List<Object> codes = (List<Object>) this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> codes = this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
             HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
             mapLiteral5.put("type", messageHash);
             mapLiteral5.put("codes", codes);

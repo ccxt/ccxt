@@ -689,7 +689,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = this.safeString(market, "symbol", "");
-            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("candles:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object ohlcv = null;
@@ -789,7 +789,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         if (message.containsKey("publicSpotKline"))
         {
             market = this.safeMarket(this.symbol(this.safeString(message, "symbol")), (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "publicSpotKline", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(message, "publicSpotKline", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(data, "interval");
             timeframe = this.findTimeframe(timeframeId, this.options.get("timeframes"));
             parsed = this.parseWsOHLCV(data, market);
@@ -798,7 +798,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> d = (Map<String, Object>) this.safeDict2(message, "d", "data", new HashMap<String, Object>() {{}});
             Map<String, Object> rawOhlcv = (Map<String, Object>) this.safeDict(d, "k", d);
             String timeframeId = this.safeString2(rawOhlcv, "i", "interval");
-            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             timeframe = this.findTimeframe(timeframeId, timeframes);
             String marketId = this.safeString2(message, "s", "symbol");
             market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -807,7 +807,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ((("candles:" + symbol) + ":") + timeframe);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -946,7 +946,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Long nonce = this.safeInteger(orderbook, "nonce");
-        Map<String, Object> firstDelta = (Map<String, Object>) this.safeDict(cache, 0, (Object) null);
+        Map<String, Object> firstDelta = this.safeDict(cache, 0, null);
         Long firstDeltaNonce = this.safeIntegerN(firstDelta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
         if ((java.util.Objects.equals(nonce, null)) || (java.util.Objects.equals(firstDeltaNonce, null)))
         {
@@ -958,7 +958,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         for (var i = 0; i < ((List<?>)cache).size(); i++)
         {
-            Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i, (Object) null);
+            Map<String, Object> delta = this.safeDict(cache, i, null);
             Long deltaNonce = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("r", "version", "fromVersion")));
             if (java.util.Objects.equals(deltaNonce, null))
             {
@@ -1045,7 +1045,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String marketId = this.safeString2(message, "s", "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String messageHash = ("orderbook:" + symbol);
-        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, (Object) null);
+        Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, null);
         Long limit = this.safeInteger(subscription, "limit");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -1119,8 +1119,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             return;
         }
         orderbook.put("nonce", deltaNonce);
-        List<Object> asks = (List<Object>) this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
-        List<Object> bids = (List<Object>) this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
         io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         this.handleBooksideDelta(asksOrderSide, asks);
@@ -1967,7 +1967,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //         "ts": 1771069020506
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, (Map<String, Object>) null);
         String symbol = this.safeString(fundingRate, "symbol");
         if (!java.util.Objects.equals(symbol, null))
@@ -2144,7 +2144,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("unsubscribe:candles:" + this.safeString(market, "symbol", "")) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Object url = null;

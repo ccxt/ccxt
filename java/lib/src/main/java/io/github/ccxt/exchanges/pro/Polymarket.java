@@ -226,7 +226,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a", 0, 1, 2);
         snapshot.put("nonce", this.safeInteger(message, "sq"));
@@ -362,7 +362,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "iid");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
@@ -437,7 +437,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "iid");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
@@ -556,7 +556,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             return;
         }
-        Map<String, Object> first = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> first = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(first, "iid");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
@@ -569,7 +569,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
-            Map<String, Object> row = (Map<String, Object>) this.safeDict(rows, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> row = this.safeDict(rows, i, new HashMap<String, Object>() {{}});
             Map<String, Object> trade = this.parseWsTrade(row, market);
             trades.append(trade);
         }
@@ -638,7 +638,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String symbolResolved = this.safeString(market, "symbol", "");
-            Map<String, Object> wsTimeframes = (Map<String, Object>) this.safeDict(this.options, "wsTimeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsTimeframes = this.safeDict(this.options, "wsTimeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(wsTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (java.util.Objects.equals(interval, null))
             {
@@ -677,7 +677,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String symbolResolved = this.safeString(market, "symbol", "");
-            Map<String, Object> wsTimeframes = (Map<String, Object>) this.safeDict(this.options, "wsTimeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsTimeframes = this.safeDict(this.options, "wsTimeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(wsTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String subMessageHash = ((("candles:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolResolved);
             String messageHash = ("unsubscribe:" + subMessageHash);
@@ -720,7 +720,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             return;
         }
-        List<Object> rows = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rows = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))
         {
@@ -880,7 +880,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
-            Map<String, Object> row = (Map<String, Object>) this.safeDict(rows, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> row = this.safeDict(rows, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(row, (Map<String, Object>) null);
             stored.append(parsed);
             String symbol = this.safeString(parsed, "symbol");
@@ -990,7 +990,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
-            Map<String, Object> row = (Map<String, Object>) this.safeDict(rows, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> row = this.safeDict(rows, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(row, (Map<String, Object>) null);
             stored.append(parsed);
             String symbol = this.safeString(parsed, "symbol");
@@ -1206,18 +1206,18 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(data, "timestamp");
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        List<Object> rows = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rows = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> row = (Map<String, Object>) this.safeDict(rows, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> row = this.safeDict(rows, i, new HashMap<String, Object>() {{}});
             Map<String, Object> extended = this.extend(row, new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }});
@@ -1226,7 +1226,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             cache.append(position);
         }
         client.resolve(newPositions, "positions");
-        Map<String, Object> margin = (Map<String, Object>) this.safeDict(data, "margin", new HashMap<String, Object>() {{}});
+        Map<String, Object> margin = this.safeDict(data, "margin", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
             put( "timestamp", timestamp );
@@ -1263,7 +1263,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             if (!java.util.Objects.equals(id, null))
             {
                 String postKey = ("req:" + id);
-                Map<String, Object> postPending = (Map<String, Object>) this.safeDict(client.subscriptions, postKey, (Object) null);
+                Map<String, Object> postPending = this.safeDict(client.subscriptions, postKey, null);
                 if (!java.util.Objects.equals(postPending, null))
                 {
                     client.subscriptions.remove(postKey);
@@ -1301,19 +1301,19 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             return;
         }
         String key = ("req:" + id);
-        Map<String, Object> pending = (Map<String, Object>) this.safeDict(client.subscriptions, key, (Object) null);
+        Map<String, Object> pending = this.safeDict(client.subscriptions, key, null);
         if (java.util.Objects.equals(pending, null))
         {
             return;
         }
         client.subscriptions.remove(key);
-        List<Object> messageHashes = (List<Object>) this.safeList(pending, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        List<Object> subMessageHashes = (List<Object>) this.safeList(pending, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = this.safeList(pending, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = this.safeList(pending, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         String action = this.safeString(pending, "method");
         String errorMessage = null;
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             String status = this.safeString(entry, "status");
             if (java.util.Objects.equals(status, "err"))
             {

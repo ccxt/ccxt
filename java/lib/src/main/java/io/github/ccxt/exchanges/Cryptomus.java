@@ -388,7 +388,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(result);
         });
 
@@ -424,7 +424,7 @@ public class Cryptomus extends CryptomusApi
         {
             return null;
         }
-        Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "trading", (Object) null);
+        Map<String, Object> fees = this.safeDict(this.fees, "trading", null);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", marketId);
         mapLiteral1.put("symbol", ((base + "/") + quote));
@@ -514,7 +514,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            List<Object> coins = (List<Object>) this.safeList(response, "result", (Object) null);
+            List<Object> coins = this.safeList(response, "result", null);
             Map<String,Object> groupedById = this.groupBy(coins, "currency_code");
             List<Object> groupedArray = new ArrayList<Object>(groupedById.values());
             return this.parseCurrencies(groupedArray);
@@ -530,7 +530,7 @@ public class Cryptomus extends CryptomusApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawCurrency).size(); i++)
         {
-            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawCurrency, i, (Object) null);
+            Map<String, Object> networkEntry = this.safeDict(rawCurrency, i, null);
             // set ID on first loop
             if (java.util.Objects.equals(id, null))
             {
@@ -686,7 +686,7 @@ public class Cryptomus extends CryptomusApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeTimestamp(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
         }).thenApply(OrderBook::new);
@@ -732,7 +732,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
+            List<Object> data = this.safeList(response, "data", null);
             List<Object> dataList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(data, null))
             {
@@ -806,7 +806,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalanceList(result);
         }).thenApply(Balances::new);
 
@@ -826,7 +826,7 @@ public class Cryptomus extends CryptomusApi
         }};
         for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
-            Map<String, Object> balanceEntry = (Map<String, Object>) this.safeDict(balance, i, (Object) null);
+            Map<String, Object> balanceEntry = this.safeDict(balance, i, null);
             String currencyId = this.safeString(balanceEntry, "ticker");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1046,7 +1046,7 @@ public class Cryptomus extends CryptomusApi
             //         ]
             //     }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < result.size(); i++)
             {
@@ -1112,7 +1112,7 @@ public class Cryptomus extends CryptomusApi
             //             ...
             //         ]
             //     }
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1181,14 +1181,14 @@ public class Cryptomus extends CryptomusApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String dateTime = this.safeString(order, "createdAt");
         Long timestamp = this.parse8601(dateTime);
-        Map<String, Object> deal = (Map<String, Object>) this.safeDict(order, "deal", new HashMap<String, Object>() {{}});
+        Map<String, Object> deal = this.safeDict(order, "deal", new HashMap<String, Object>() {{}});
         Double averageFilledPrice = this.safeNumber(deal, "averageFilledPrice", (Object) null);
         String type = this.safeString(order, "type");
         String side = this.safeString(order, "direction");
         Double price = this.safeNumber(order, "price", (Object) null);
-        List<Object> transaction = (List<Object>) this.safeList(deal, "transactions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> transaction = this.safeList(deal, "transactions", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> fee = null;
-        Map<String, Object> firstTx = (Map<String, Object>) this.safeDict(transaction, 0, (Object) null);
+        Map<String, Object> firstTx = this.safeDict(transaction, 0, null);
         String feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (!java.util.Objects.equals(feeCurrency, null))
         {
@@ -1308,13 +1308,13 @@ public class Cryptomus extends CryptomusApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Map<String, Object> currentFeeTier = (Map<String, Object>) this.safeDict(data, "current_tariff_step", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> currentFeeTier = this.safeDict(data, "current_tariff_step", new HashMap<String, Object>() {{}});
             String makerFee = this.safeString(currentFeeTier, "maker_percent");
             String takerFee = this.safeString(currentFeeTier, "taker_percent");
             makerFee = Precise.stringDiv(makerFee, "100");
             takerFee = Precise.stringDiv(takerFee, "100");
-            List<Object> feeTiers = (List<Object>) this.safeList(data, "tariff_steps", new ArrayList<Object>(Arrays.asList()));
+            List<Object> feeTiers = this.safeList(data, "tariff_steps", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> tiers = this.parseFeeTiers(feeTiers, (Map<String, Object>) null);
             List<String> symbols = this.symbols;
@@ -1346,7 +1346,7 @@ public class Cryptomus extends CryptomusApi
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
-            Map<String, Object> tier = (Map<String, Object>) this.safeDict(feeTiers, i, (Object) null);
+            Map<String, Object> tier = this.safeDict(feeTiers, i, null);
             Double turnover = this.safeNumber(tier, "from_turnover", (Object) null);
             String taker = this.safeString(tier, "taker_percent");
             String maker = this.safeString(tier, "maker_percent");

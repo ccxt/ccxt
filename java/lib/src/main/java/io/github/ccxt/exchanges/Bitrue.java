@@ -893,7 +893,7 @@ public class Bitrue extends BitrueApi
             //         ],
             //     }
             //
-            List<Object> coins = (List<Object>) this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
+            List<Object> coins = this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(coins);
         });
 
@@ -904,7 +904,7 @@ public class Bitrue extends BitrueApi
         String id = this.safeString(rawCurrency, "coin");
         String name = this.safeString(rawCurrency, "coinFulName");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
-        List<Object> networkDetails = (List<Object>) this.safeList(rawCurrency, "chainDetail", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networkDetails = this.safeList(rawCurrency, "chainDetail", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < networkDetails.size(); j++)
         {
@@ -971,7 +971,7 @@ public class Bitrue extends BitrueApi
             List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList());
             Object types = null;
             List<String> defaultTypes = new ArrayList<String>(Arrays.asList("spot", "linear", "inverse"));
-            Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", (Object) null);
+            Map<String, Object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets", null);
             if (!java.util.Objects.equals(fetchMarketsOptions, null))
             {
                 types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
@@ -998,9 +998,9 @@ public class Bitrue extends BitrueApi
                 }
             }
             List<Object> promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            List<Object> spotMarkets = (List<Object>) this.safeList(this.safeDict(promises, 0, (Object) null), "symbols", new ArrayList<Object>(Arrays.asList()));
-            List<Object> futureMarkets = (List<Object>) this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
-            List<Object> deliveryMarkets = (List<Object>) this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotMarkets = this.safeList(this.safeDict(promises, 0, null), "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> futureMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> deliveryMarkets = this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = spotMarkets;
             markets = (List<Object>) this.arrayConcat(markets, futureMarkets);
             markets = (List<Object>) this.arrayConcat(markets, deliveryMarkets);
@@ -1124,13 +1124,13 @@ public class Bitrue extends BitrueApi
         {
             symbol = (symbol + (":" + settle));
         }
-        List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
         String status = this.safeString(market, "status");
         // spot markets say TRADING, futures contracts 1 (0 when offline)
         Boolean active = (java.util.Objects.equals(status, "TRADING")) || (java.util.Objects.equals(status, "1"));
-        Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-        Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+        Map<String, Object> amountFilter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
         String defaultPricePrecision = this.safeString(market, "pricePrecision");
         String defaultAmountPrecision = this.safeString(market, "quantityPrecision");
         String pricePrecision = this.safeString(priceFilter, "priceScale", defaultPricePrecision);
@@ -1254,7 +1254,7 @@ public class Bitrue extends BitrueApi
         List<Object> balances = (List<Object>) this.safeList2(response, "balances", "account", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, i, null);
             String currencyId = this.safeString2(balance, "asset", "marginCoin");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1592,12 +1592,12 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Object response = null;
             Object data = new ArrayList<Object>(Arrays.asList());
             if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
-                Map<String, Object> timeframesFuture = (Map<String, Object>) this.safeDict(timeframes, "future", new HashMap<String, Object>() {{}});
+                Map<String, Object> timeframesFuture = this.safeDict(timeframes, "future", new HashMap<String, Object>() {{}});
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "contractName", market.get("id") );
                     put( "interval", Bitrue.this.safeString(timeframesFuture, java.util.Objects.requireNonNullElse(timeframe, "1m"), "1min") );
@@ -1616,7 +1616,7 @@ public class Bitrue extends BitrueApi
                 data = response;
             } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                Map<String, Object> timeframesSpot = (Map<String, Object>) this.safeDict(timeframes, "spot", new HashMap<String, Object>() {{}});
+                Map<String, Object> timeframesSpot = this.safeDict(timeframes, "spot", new HashMap<String, Object>() {{}});
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
                     put( "scale", Bitrue.this.safeString(timeframesSpot, java.util.Objects.requireNonNullElse(timeframe, "1m"), "1m") );
@@ -1880,7 +1880,7 @@ public class Bitrue extends BitrueApi
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < data.size(); i++)
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> ticker = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 // skip entries without a symbol: an undefined market id would become a null
                 // dictionary key here, which crashes fetchTickers in the C# build
                 String marketId = this.safeString(ticker, "symbol");
@@ -2157,7 +2157,7 @@ public class Bitrue extends BitrueApi
         String id = this.safeString(order, "orderId");
         String type = this.safeStringLower(order, "type");
         String side = this.safeStringLower(order, "side");
-        List<Object> fills = (List<Object>) this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> fills = this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.safeString(order, "timeInForce");
         Boolean postOnly = (java.util.Objects.equals(type, "limit_maker")) || (java.util.Objects.equals(timeInForce, "GTX")) || (java.util.Objects.equals(type, "post_only"));
@@ -2337,7 +2337,7 @@ public class Bitrue extends BitrueApi
             {
                 request.put("symbol", market.get("id"));
                 request.put("quantity", this.amountToPrecision(symbol, amount));
-                List<Object> validOrderTypes = (List<Object>) this.safeList(market.get("info"), "orderTypes", new ArrayList<Object>(Arrays.asList()));
+                List<Object> validOrderTypes = this.safeList(market.get("info"), "orderTypes", new ArrayList<Object>(Arrays.asList()));
                 if (!this.inArray(uppercaseType, validOrderTypes))
                 {
                     throw new InvalidOrder(((((this.id + " ") + type) + " is not a valid order type in market ") + symbol)) ;
@@ -2992,7 +2992,7 @@ public class Bitrue extends BitrueApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3059,7 +3059,7 @@ public class Bitrue extends BitrueApi
             //        ]
             //    }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3078,7 +3078,7 @@ public class Bitrue extends BitrueApi
                 put( "6", "canceled" );
             }} );
         }};
-        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -3285,7 +3285,7 @@ public class Bitrue extends BitrueApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction((Map<String, Object>) (data), currency);
         }).thenApply(Transaction::new);
 
@@ -3301,7 +3301,7 @@ public class Bitrue extends BitrueApi
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        List<Object> chainDetails = (List<Object>) this.safeList(fee, "chainDetail", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chainDetails = this.safeList(fee, "chainDetail", new ArrayList<Object>(Arrays.asList()));
         Integer chainDetailLength = chainDetails.size();
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -3319,7 +3319,7 @@ public class Bitrue extends BitrueApi
         {
             for (var i = 0; (chainDetailLength != null && i < chainDetailLength); i++)
             {
-                Map<String, Object> chainDetail = (Map<String, Object>) this.safeDict(chainDetails, i, (Object) null);
+                Map<String, Object> chainDetail = this.safeDict(chainDetails, i, null);
                 String networkId = this.safeString(chainDetail, "chain");
                 String currencyCode = this.safeString(currency, "code");
                 String networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -3368,7 +3368,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
-            List<Object> coins = (List<Object>) this.safeList(response, "coins", (Object) null);
+            List<Object> coins = this.safeList(response, "coins", null);
             return this.parseDepositWithdrawFees(coins, codes, "coin");
         }).thenApply(DepositWithdrawFees::new);
 
@@ -3479,7 +3479,7 @@ public class Bitrue extends BitrueApi
             //         }]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -3508,7 +3508,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountTypes = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>();
@@ -3523,7 +3523,7 @@ public class Bitrue extends BitrueApi
             //         'data': null
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransfer(data, currency);
         }).thenApply(TransferEntry::new);
 
@@ -3845,7 +3845,7 @@ public class Bitrue extends BitrueApi
         } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v2 -> j39v2.contains("limit"); case Map<?, ?> j39v1 -> j39v1.containsKey("limit"); case null, default -> false; })))
         {
             Long limit = this.safeInteger(parameters, "limit");
-            List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
+            List<Object> byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < byLimit.size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));

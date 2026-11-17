@@ -1022,8 +1022,8 @@ public class Hashkey extends HashkeyApi
             //         ]
             //     }
             //
-            List<Object> spotMarkets = (List<Object>) this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
-            List<Object> swapMarkets = (List<Object>) this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotMarkets = this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapMarkets = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
             if (this.isEmpty(markets))
             {
@@ -1224,11 +1224,11 @@ public class Hashkey extends HashkeyApi
                 subType = "linear";
             }
         }
-        List<Object> filtersList = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filtersList = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> filters = this.indexBy(filtersList, "filterType");
-        Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-        Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filters, "LOT_SIZE", new HashMap<String, Object>() {{}});
-        Map<String, Object> costFilter = (Map<String, Object>) this.safeDict(filters, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceFilter = this.safeDict(filters, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+        Map<String, Object> amountFilter = this.safeDict(filters, "LOT_SIZE", new HashMap<String, Object>() {{}});
+        Map<String, Object> costFilter = this.safeDict(filters, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
         String minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
         String contractSizeString = this.safeString(market, "contractMultiplier");
         String amountPrecisionString = this.safeString(amountFilter, "stepSize");
@@ -1241,12 +1241,12 @@ public class Hashkey extends HashkeyApi
             amountPrecisionString = Precise.stringDiv(amountPrecisionString, contractSizeString);
             amountMinLimitString = Precise.stringDiv(amountMinLimitString, contractSizeString);
             amountMaxLimitString = Precise.stringDiv(amountMaxLimitString, contractSizeString);
-            List<Object> riskLimits = (List<Object>) this.safeList(market, "riskLimits", (Object) null);
+            List<Object> riskLimits = this.safeList(market, "riskLimits", null);
             if (!java.util.Objects.equals(riskLimits, null))
             {
-                Map<String, Object> first = (Map<String, Object>) this.safeDict(riskLimits, 0, (Object) null);
+                Map<String, Object> first = this.safeDict(riskLimits, 0, null);
                 Integer arrayLength = riskLimits.size();
-                Map<String, Object> last = (Map<String, Object>) this.safeDict(riskLimits, (((long) arrayLength) - 1L), (Object) null);
+                Map<String, Object> last = this.safeDict(riskLimits, (((long) arrayLength) - 1L), null);
                 Object minInitialMargin = this.safeString(first, "initialMargin");
                 Object maxInitialMargin = this.safeString(last, "initialMargin");
                 if (Precise.stringGt(minInitialMargin, maxInitialMargin))
@@ -1259,14 +1259,14 @@ public class Hashkey extends HashkeyApi
                 maxLeverage = this.parseToInt(Precise.stringDiv("1", minInitialMargin));
             }
         }
-        Map<String, Object> tradingFees = (Map<String, Object>) this.safeDict(this.fees, "trading", (Object) null);
+        Map<String, Object> tradingFees = this.safeDict(this.fees, "trading", null);
         Map<String, Object> fees = null;
         if (Boolean.TRUE.equals(isSpot))
         {
-            fees = (Map<String, Object>) this.safeDict(tradingFees, "spot", (Object) null);
+            fees = (Map<String, Object>) this.safeDict(tradingFees, "spot", null);
         } else
         {
-            fees = (Map<String, Object>) this.safeDict(tradingFees, "swap", (Object) null);
+            fees = (Map<String, Object>) this.safeDict(tradingFees, "swap", null);
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", marketId);
@@ -1339,7 +1339,7 @@ public class Hashkey extends HashkeyApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
-            List<Object> coins = (List<Object>) this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
+            List<Object> coins = this.safeList(response, "coins", new ArrayList<Object>(Arrays.asList()));
             //
             //     {
             //         ...
@@ -1376,7 +1376,7 @@ public class Hashkey extends HashkeyApi
     {
         String currencyId = this.safeString(rawCurrency, "coinId");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-        List<Object> networks = (List<Object>) this.safeList(rawCurrency, "chainTypes", (Object) null);
+        List<Object> networks = this.safeList(rawCurrency, "chainTypes", null);
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < networks.size(); j++)
         {
@@ -1707,7 +1707,7 @@ public class Hashkey extends HashkeyApi
         }
         String feeCost = this.safeString(trade, "commission");
         String feeCurrncyId = this.safeString(trade, "commissionAsset");
-        Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(trade, "fee", (Object) null);
+        Map<String, Object> feeInfo = this.safeDict(trade, "fee", null);
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeInfo, null))
         {
@@ -1872,7 +1872,7 @@ public class Hashkey extends HashkeyApi
             //         }
             //     ]
             //
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -2045,7 +2045,7 @@ public class Hashkey extends HashkeyApi
                 //         }
                 //     ]
                 //
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> balance = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 return this.parseSwapBalance(balance);
             } else if (java.util.Objects.equals(marketTypeOption, "spot"))
             {
@@ -2096,10 +2096,10 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
-        List<Object> balances = (List<Object>) this.safeList(balance, "balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = this.safeList(balance, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> balanceEntry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balanceEntry = this.safeDict(balances, i, null);
             String currencyId = this.safeString(balanceEntry, "asset");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -3227,13 +3227,13 @@ public class Hashkey extends HashkeyApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 String clientOrderId = this.safeString(orderRequest, "clientOrderId");
                 if (java.util.Objects.equals(clientOrderId, null))
@@ -3242,7 +3242,7 @@ public class Hashkey extends HashkeyApi
                 }
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            Map<String, Object> firstOrder = (Map<String, Object>) this.safeDict(ordersRequests, 0, (Object) null);
+            Map<String, Object> firstOrder = this.safeDict(ordersRequests, 0, null);
             String firstSymbol = this.safeString(firstOrder, "symbol");
             Map<String, Object> market = this.market(firstSymbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3260,12 +3260,12 @@ public class Hashkey extends HashkeyApi
                 String marketTypeValue = this.safeString(market, "type", "");
                 throw new NotSupported(((((this.id + " ") + "createOrderRequest() is not supported for ") + marketTypeValue) + " type of markets")) ;
             }
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<Object> responseOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < result.size(); i++)
             {
-                Map<String, Object> responseEntry = (Map<String, Object>) this.safeDict(result, i, new HashMap<String, Object>() {{}});
-                Map<String, Object> responseOrder = (Map<String, Object>) this.safeDict(responseEntry, "order", new HashMap<String, Object>() {{}});
+                Map<String, Object> responseEntry = this.safeDict(result, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> responseOrder = this.safeDict(responseEntry, "order", new HashMap<String, Object>() {{}});
                 ((List<Object>)responseOrders).add(responseOrder);
             }
             return this.parseOrders(responseOrders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -4095,7 +4095,7 @@ public class Hashkey extends HashkeyApi
             //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
             //     ]
             //
-            Map<String, Object> rate = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> rate = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(rate, market);
         }).thenApply(FundingRate::new);
 
@@ -4402,7 +4402,7 @@ public class Hashkey extends HashkeyApi
             //         }
             //     ]
             //
-            Map<String, Object> leverage = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> leverage = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(leverage, market);
         }).thenApply(Leverage::new);
 
@@ -4638,7 +4638,7 @@ public class Hashkey extends HashkeyApi
             }
             Map<String, Object> response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
             // response is the same as in fetchMarkets()
-            List<Object> data = (List<Object>) this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             return this.parseLeverageTiers(data, symbolsNormalized, "symbol");
         }).thenApply(LeverageTiers::new);
@@ -4724,7 +4724,7 @@ public class Hashkey extends HashkeyApi
         //         ]
         //     }
         //
-        List<Object> riskLimits = (List<Object>) this.safeList(info, "riskLimits", new ArrayList<Object>(Arrays.asList()));
+        List<Object> riskLimits = this.safeList(info, "riskLimits", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(info, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
@@ -4771,7 +4771,7 @@ public class Hashkey extends HashkeyApi
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.fetchTradingFees(parameters)).join();
-                Map<String, Object> fee = (Map<String, Object>) this.safeDict(response, symbol, (Object) null);
+                Map<String, Object> fee = this.safeDict(response, symbol, null);
                 return fee;
             } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
@@ -4828,11 +4828,11 @@ public class Hashkey extends HashkeyApi
             //         "updateTimestamp": "1722320137809"
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < data.size(); i++)
             {
-                Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> fee = this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> parsedFee = this.parseTradingFee(fee, (Map<String, Object>) null);
                 result.put((String)((String)parsedFee.get("symbol")), parsedFee);
             }
@@ -4907,7 +4907,7 @@ public class Hashkey extends HashkeyApi
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) && ((java.util.Objects.equals(path, "api/v1/spot/batchOrders")) || (java.util.Objects.equals(path, "api/v1/futures/batchOrders"))))
             {
                 headersSigned.put("Content-Type", "application/json");
-                bodySigned = this.json(this.safeList(parameters, "orders", (Object) null));
+                bodySigned = this.json(this.safeList(parameters, "orders", null));
                 signature = this.hmac(this.encode(((String)this.customUrlencode(additionalParams))), this.encode(this.secret), sha256());
                 HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
                 mapLiteral13.put("signature", signature);
@@ -4974,10 +4974,10 @@ public class Hashkey extends HashkeyApi
         Long responseCodeInteger = this.safeInteger(response, "code"); // some codes in response are returned as '0000' others as 0
         if ((responseCodeInteger != null && responseCodeInteger == 0))
         {
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList())); // for batch methods
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList())); // for batch methods
             for (var i = 0; i < result.size(); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(result, i, (Object) null);
+                Map<String, Object> entry = this.safeDict(result, i, null);
                 Long entryCodeInteger = this.safeInteger(entry, "code");
                 if ((entryCodeInteger == null || entryCodeInteger != 0))
                 {

@@ -133,7 +133,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeStringUpper(data, "target_currency");
         String quoteId = this.safeStringUpper(data, "quote_currency");
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
@@ -153,8 +153,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             orderbook.reset(null);
         }
         orderbook.put("symbol", symbol);
-        List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-        List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
         this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
         orderbook.put("timestamp", timestamp);
@@ -236,7 +236,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, (Map<String, Object>) null);
         String symbol = (String) ticker.get("symbol");
         if (java.util.Objects.equals(symbol, null))
@@ -370,7 +370,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
         String symbol = this.safeString(trade, "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);

@@ -858,7 +858,7 @@ public class Pacifica extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -966,7 +966,7 @@ public class Pacifica extends PacificaApi
         {
             symbol = ((((base + "/") + quote) + ":") + quote);
         }
-        Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = this.safeDict(this.fees, type, new HashMap<String, Object>() {{}});
         Double taker = this.safeNumber(fees, "taker", (Object) null);
         Double maker = this.safeNumber(fees, "maker", (Object) null);
         Double amountPrecision = this.safeNumber(market, "lot_size", (Object) null);
@@ -1086,7 +1086,7 @@ public class Pacifica extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", data );
             }};
@@ -1094,10 +1094,10 @@ public class Pacifica extends PacificaApi
             usdcAccount.put("total", this.safeString(data, "balance"));
             usdcAccount.put("used", this.safeString(data, "total_margin_used"));
             result.put("USDC", usdcAccount);
-            List<Object> spotBalances = (List<Object>) this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotBalances = this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < spotBalances.size(); i++)
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i, (Object) null);
+                Map<String, Object> balance = this.safeDict(spotBalances, i, null);
                 String currencyId = this.safeString(balance, "symbol");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 Map<String, Object> account = this.account();
@@ -1151,7 +1151,7 @@ public class Pacifica extends PacificaApi
                 request.put("account", userAccount);
                 settings = (this.fetchAccountSettings(this.extend(request, paramsOriginAndSingleAddress))).join();
             }
-            Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol, (Object) null);
+            Map<String, Object> setting = this.safeDict(settings, symbol, null);
             if (java.util.Objects.equals(setting, null))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1196,8 +1196,8 @@ public class Pacifica extends PacificaApi
 
     public Map<String, Object> parseLeverageFromMarket(Map<String, Object> market)
     {
-        Map<String, Object> marketLimits = (Map<String, Object>) this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
-        Map<String, Object> leverageLimits = (Map<String, Object>) this.safeDict(marketLimits, "leverage", new HashMap<String, Object>() {{}});
+        Map<String, Object> marketLimits = this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
+        Map<String, Object> leverageLimits = this.safeDict(marketLimits, "leverage", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "info", market );
             put( "symbol", Pacifica.this.safeString(market, "symbol") );
@@ -1321,7 +1321,7 @@ public class Pacifica extends PacificaApi
             //       "updated_at": 1758086074002
             //    },
             // }
-            Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol, (Object) null);
+            Map<String, Object> setting = this.safeDict(settings, symbol, null);
             if (java.util.Objects.equals(setting, null))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1427,8 +1427,8 @@ public class Pacifica extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> levels = (List<Object>) this.safeList(data, "l", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> levels = this.safeList(data, "l", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "bids", Pacifica.this.safeList(levels, 0, new ArrayList<Object>(Arrays.asList())) );
                 put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
@@ -1475,7 +1475,7 @@ public class Pacifica extends PacificaApi
             //     "code": null
             //   }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(result, symbols);
         }).thenApply(FundingRates::new);
 
@@ -1612,7 +1612,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            List<Object> candles = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> candles = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1680,7 +1680,7 @@ public class Pacifica extends PacificaApi
             //   "last_order_id": 1557404170
             // }
             //
-            List<Object> recentTrades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> recentTrades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(recentTrades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1928,7 +1928,7 @@ public class Pacifica extends PacificaApi
             {
                 status = "open";
             }
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "order_id");
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("id", orderId);
@@ -2119,12 +2119,12 @@ public class Pacifica extends PacificaApi
         Long timestamp = this.milliseconds(); // unified sequence
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+            Map<String, Object> order = this.safeDict(orders, i, null);
             String symbol = this.safeString(order, "symbol");
             String side = this.safeString(order, "side");
             String price = this.safeString(order, "price");
             String type = this.safeString(order, "type", "limit");
-            Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(order, "params", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderParams = this.safeDict(order, "params", new HashMap<String, Object>() {{}});
             orderParams.put("timestamp", timestamp);
             String amount = this.safeString(order, "amount");
             Double amountNumber = this.parseNumber(amount);
@@ -2182,8 +2182,8 @@ public class Pacifica extends PacificaApi
             //     "code": null
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < results.size(); i++)
             {
@@ -2258,8 +2258,8 @@ public class Pacifica extends PacificaApi
             //     "code": null
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < results.size(); i++)
             {
@@ -2298,7 +2298,7 @@ public class Pacifica extends PacificaApi
             }};
             ((List<Object>)actions).add(action);
         }
-        List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
+        List<Object> clientOrderIds = this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderIds");
         for (var i = 0; i < clientOrderIds.size(); i++)
         {
@@ -2499,7 +2499,7 @@ public class Pacifica extends PacificaApi
             //     }
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(data, "order_id");
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", orderId );
@@ -2670,7 +2670,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < data.size(); i++)
             {
@@ -2863,7 +2863,7 @@ public class Pacifica extends PacificaApi
             //   "last_order_id": 1557370337
             // }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2952,7 +2952,7 @@ public class Pacifica extends PacificaApi
 
     public List<Object> addPaginationCursorToResult(Map<String, Object> response)
     {
-        List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         String paginationCursor = this.safeString(response, "next_cursor");
         Boolean hasMore = (Boolean) this.safeBool(response, "has_more", false);
         Integer dataLength = data.size();
@@ -3042,7 +3042,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
             List<Object> sorted = this.sortBy(data, "history_id", true);
             Integer lastIdx = sorted.size();
@@ -3311,7 +3311,7 @@ public class Pacifica extends PacificaApi
             //   "code": null,
             //   "last_order_id": 1557431179
             // }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < data.size(); i++)
             {
@@ -3548,7 +3548,7 @@ public class Pacifica extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -3579,7 +3579,7 @@ public class Pacifica extends PacificaApi
                 put( "account", userAddress );
             }};
             Map<String, Object> response = (this.publicGetAccount(this.extend(request, paramsOriginAndSingleAddress))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
             for (var i = 0; i < symbols.size(); i++)
@@ -3645,7 +3645,7 @@ public class Pacifica extends PacificaApi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterests(data, symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
@@ -3671,7 +3671,7 @@ public class Pacifica extends PacificaApi
             }
             String symbolValue = this.symbol(symbol);
             OpenInterests ois = (this.fetchOpenInterests(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            Map<String, Object> oi = (Map<String, Object>) this.safeDict(ois, symbolValue, (Object) null);
+            Map<String, Object> oi = this.safeDict(ois, symbolValue, null);
             if (java.util.Objects.equals(oi, null))
             {
                 throw new BadSymbol(((this.id + " fetchOpenInterest() could not find open interest for ") + symbolValue)) ;
@@ -3880,7 +3880,7 @@ public class Pacifica extends PacificaApi
                 put( "account", userAddress );
             }};
             Map<String, Object> response = (this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = this.parseTransactions(data, this.safeCurrency((String) (code), (Map<String, Object>) null), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             List<Object> deposits = this.filterBy(transactions, "type", "deposit");
             return this.filterBySinceLimit(deposits, since, limit, "timestamp", false);
@@ -3916,7 +3916,7 @@ public class Pacifica extends PacificaApi
                 put( "account", userAddress );
             }};
             Map<String, Object> response = (this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = this.parseTransactions(data, this.safeCurrency((String) (code), (Map<String, Object>) null), (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             List<Object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
             return this.filterBySinceLimit(withdrawals, since, limit, "timestamp", false);
@@ -4111,7 +4111,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "fromAccount", Pacifica.this.safeString(request, "account") );

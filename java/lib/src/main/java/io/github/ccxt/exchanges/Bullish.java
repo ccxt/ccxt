@@ -1051,7 +1051,7 @@ public class Bullish extends BullishApi
                 }
             }
         }
-        Map<String, Object> tradingFees = (Map<String, Object>) this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
+        Map<String, Object> tradingFees = this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
         mapLiteral1.put("symbol", symbol);
@@ -1585,11 +1585,11 @@ public class Bullish extends BullishApi
             {
                 throw new NotSupported((((this.id + " safeDeterministicCall() does not support the ") + method) + " method")) ;
             }
-            Long errors = this.parseToInt(0);
+            long errors = 0;
             Map<String, Object> paramsOmitted = this.omit(paramsMaxRetries, "until");
             // the exchange returns the most recent data, so we do not need to pass until into paginated calls
             // the correct util value will be calculated inside of the method
-            while ((errors == null || (maxRetries != null && errors <= maxRetries)))
+            while (((maxRetries != null && errors <= maxRetries)))
             {
                 try
                 {
@@ -1609,8 +1609,8 @@ public class Bullish extends BullishApi
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
-                    errors = this.parseToInt((errors + 1L));
-                    if ((errors != null && (maxRetries == null || errors > maxRetries)))
+                    errors = (errors + 1L);
+                    if (((maxRetries == null || errors > maxRetries)))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -1920,7 +1920,7 @@ public class Bullish extends BullishApi
             Long sinceResolved = since;
             if ((java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(untilParam, null)))
             {
-                sinceResolved = (Long) (untilParam - timeDelta);
+                sinceResolved = (untilParam - timeDelta);
             }
             if ((!java.util.Objects.equals(since, null)) && (java.util.Objects.equals(untilParam, null)))
             {
@@ -2541,7 +2541,7 @@ public class Bullish extends BullishApi
             //         "totalCount": 1
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -2641,15 +2641,15 @@ public class Bullish extends BullishApi
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAtDateTime"));
         Long updated = this.parse8601(this.safeString(transaction, "updatedAtDateTime"));
         String network = this.safeString(transaction, "network");
-        Map<String, Object> transactionDetails = (Map<String, Object>) this.safeDict(transaction, "transactionDetails", (Object) null);
+        Map<String, Object> transactionDetails = this.safeDict(transaction, "transactionDetails", null);
         String txid = this.safeString(transactionDetails, "blockchainTxId");
         String address = this.safeString(transactionDetails, "address");
         Double amount = this.safeNumber(transaction, "quantity", (Object) null);
         String currencyId = this.safeString(transaction, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transaction, "status");
-        List<Object> sources = (List<Object>) this.safeList(transactionDetails, "sources", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> source = (Map<String, Object>) this.safeDict(sources, 0, new HashMap<String, Object>() {{}});
+        List<Object> sources = this.safeList(transactionDetails, "sources", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> source = this.safeDict(sources, 0, new HashMap<String, Object>() {{}});
         String sourceAddress = this.safeString(source, "address");
         Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "currency", null );
@@ -2721,7 +2721,7 @@ public class Bullish extends BullishApi
                 List<Object> accounts = this.toArray(response);
                 for (var i = 0; i < accounts.size(); i++)
                 {
-                    Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
+                    Map<String, Object> account = this.safeDict(accounts, i, null);
                     String name = this.safeString(account, "tradingAccountName");
                     if (java.util.Objects.equals(name, "Primary Account"))
                     {
@@ -2899,7 +2899,7 @@ public class Bullish extends BullishApi
                     // find the entry that matches the network or return first entry if not found and user did not specify a network
                     for (var i = 0; i < safeResponse.size(); i++)
                     {
-                        Map<String, Object> entry = (Map<String, Object>) this.safeDict(safeResponse, i, new HashMap<String, Object>() {{}});
+                        Map<String, Object> entry = this.safeDict(safeResponse, i, new HashMap<String, Object>() {{}});
                         String networkId = this.safeString(entry, "network");
                         String networkCode = this.networkIdToCode(networkId, code);
                         if (java.util.Objects.equals(network, networkCode))
@@ -3006,7 +3006,7 @@ public class Bullish extends BullishApi
         List<Object> rows = this.toArray(response);
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(rows, i, null);
             String symbol = this.safeString(balance, "assetSymbol");
             String code = this.safeCurrencyCode(symbol, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -3243,7 +3243,7 @@ public class Bullish extends BullishApi
             //         "requestId": "633909659774222336"
             //     }
             //
-            Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+            Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             Map<String, Object> transfer = (Map<String, Object>) this.parseTransfer(response, currency);
             if (Boolean.TRUE.equals(fillResponseFromRequest))
@@ -3348,7 +3348,7 @@ public class Bullish extends BullishApi
             // current endpoint requires both since and until parameters
             if (java.util.Objects.equals(since, null))
             {
-                startTimestamp = (Long) (now - ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
+                startTimestamp = (now - ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
             }
             if (java.util.Objects.equals(until, null))
             {

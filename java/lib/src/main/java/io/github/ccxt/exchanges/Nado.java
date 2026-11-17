@@ -525,7 +525,7 @@ public class Nado extends NadoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = (this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
-            Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict(request, "place_order", new HashMap<String, Object>() {{}});
+            Map<String, Object> placeOrder = this.safeDict(request, "place_order", new HashMap<String, Object>() {{}});
             Boolean isTriggerOrder = (placeOrder.containsKey("trigger"));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isTriggerOrder))
@@ -737,8 +737,8 @@ public class Nado extends NadoApi
             //         "request_type": "execute_cancel_and_place"
             //     }
             //
-            Map<String, Object> cancelAndPlace = (Map<String, Object>) this.safeDict(request, "cancel_and_place", new HashMap<String, Object>() {{}});
-            Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict(cancelAndPlace, "place_order", new HashMap<String, Object>() {{}});
+            Map<String, Object> cancelAndPlace = this.safeDict(request, "cancel_and_place", new HashMap<String, Object>() {{}});
+            Map<String, Object> placeOrder = this.safeDict(cancelAndPlace, "place_order", new HashMap<String, Object>() {{}});
             return this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
             }}, response), market);
@@ -792,7 +792,7 @@ public class Nado extends NadoApi
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
             }
-            Map<String, Object> editOrderOptions = (Map<String, Object>) this.safeDict(this.options, "editOrder", new HashMap<String, Object>() {{}});
+            Map<String, Object> editOrderOptions = this.safeDict(this.options, "editOrder", new HashMap<String, Object>() {{}});
             Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrder", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
@@ -883,7 +883,7 @@ public class Nado extends NadoApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Order> orders = (this.cancelOrders(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
-            Map<String, Object> canceled = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> canceled = this.safeDict(orders, 0, null);
             return canceled;
         }).thenApply(Order::new);
 
@@ -924,8 +924,8 @@ public class Nado extends NadoApi
             {
                 response = (this.gatewayPrivatePostExecute(request)).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> cancelledOrders = (List<Object>) this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> cancelledOrders = this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < cancelledOrders.size(); i++)
             {
@@ -1034,8 +1034,8 @@ public class Nado extends NadoApi
             {
                 response = (this.gatewayPrivatePostExecute(request)).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> cancelledOrders = (List<Object>) this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> cancelledOrders = this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < cancelledOrders.size(); i++)
             {
@@ -1165,7 +1165,7 @@ public class Nado extends NadoApi
             //         "request_type": "query_order"
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1258,8 +1258,8 @@ public class Nado extends NadoApi
             //     "request_type": "query_list_trigger_orders"
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1338,8 +1338,8 @@ public class Nado extends NadoApi
             //         "request_type": "query_subaccount_orders"
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
@@ -1426,7 +1426,7 @@ public class Nado extends NadoApi
             //     }
             //
             List<Object> closedOrders = new ArrayList<Object>(Arrays.asList());
-            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < orders.size(); i++)
             {
                 Map<String, Object> order = (Map<String, Object>) ((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
@@ -1567,15 +1567,15 @@ public class Nado extends NadoApi
             //         ]
             //     }
             //
-            List<Object> matches = (List<Object>) this.safeList(response, "matches", new ArrayList<Object>(Arrays.asList()));
-            List<Object> txs = (List<Object>) this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> matches = this.safeList(response, "matches", new ArrayList<Object>(Arrays.asList()));
+            List<Object> txs = this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> txsBySubmission = this.indexBy(txs, "submission_idx");
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < matches.size(); i++)
             {
                 Object match = (matches == null || i < 0 || i >= matches.size() ? null : matches.get(i));
                 String submissionIdx = this.safeString(match, "submission_idx");
-                Map<String, Object> tx = (Map<String, Object>) this.safeDict(txsBySubmission, submissionIdx, new HashMap<String, Object>() {{}});
+                Map<String, Object> tx = this.safeDict(txsBySubmission, submissionIdx, new HashMap<String, Object>() {{}});
                 ((List<Object>)trades).add(this.extend(tx, match));
             }
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
@@ -1629,7 +1629,7 @@ public class Nado extends NadoApi
             //         "request_type": "query_subaccount_info"
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
@@ -1754,8 +1754,8 @@ public class Nado extends NadoApi
             //         ]
             //     }
             //
-            List<Object> events = (List<Object>) this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
-            List<Object> txs = (List<Object>) this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> events = this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
+            List<Object> txs = this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < events.size(); i++)
             {
@@ -1838,14 +1838,14 @@ public class Nado extends NadoApi
             //         "request_type": "query_subaccount_info"
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> positions = (List<Object>) this.safeList(data, "perp_balances", new ArrayList<Object>(Arrays.asList()));
-            List<Object> products = (List<Object>) this.safeList(data, "perp_products", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> positions = this.safeList(data, "perp_balances", new ArrayList<Object>(Arrays.asList()));
+            List<Object> products = this.safeList(data, "perp_products", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < positions.size(); i++)
             {
                 Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(position, "balance", new HashMap<String, Object>() {{}});
+                Map<String, Object> balance = this.safeDict(position, "balance", new HashMap<String, Object>() {{}});
                 String amount = this.safeString(balance, "amount");
                 if ((java.util.Objects.equals(amount, null)) || Precise.stringEquals(amount, "0"))
                 {
@@ -1959,9 +1959,9 @@ public class Nado extends NadoApi
             Object pairsRequest = this.gatewayV2PublicGetPairs(parameters);
             Object assetsRequest = this.gatewayV2PublicGetAssets(parameters);
             Object responses = (CompletableFuture.allOf(((CompletableFuture<?>) symbolsRequest), ((CompletableFuture<?>) pairsRequest), ((CompletableFuture<?>) assetsRequest)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) symbolsRequest).join(), ((CompletableFuture<?>) pairsRequest).join(), ((CompletableFuture<?>) assetsRequest).join())))).join();
-            List<Object> symbols = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
-            List<Object> pairs = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
-            List<Object> assets = (List<Object>) this.safeList(responses, 2, new ArrayList<Object>(Arrays.asList()));
+            List<Object> symbols = this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> pairs = this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> assets = this.safeList(responses, 2, new ArrayList<Object>(Arrays.asList()));
             // product_id is a JSON number: JS object keys are always strings but a Python
             // dict keeps int keys, so indexBy would never match the safeString lookups below
             Map<String, Object> pairsById = new HashMap<String, Object>() {{}};
@@ -1994,7 +1994,7 @@ public class Nado extends NadoApi
                 {
                     continue;
                 }
-                Map<String, Object> previous = (Map<String, Object>) this.safeDict(assetsByCode, assetCode, (Object) null);
+                Map<String, Object> previous = this.safeDict(assetsByCode, assetCode, null);
                 if (java.util.Objects.equals(previous, null))
                 {
                     assetsByCode.put(assetCode, rawAsset);
@@ -2015,8 +2015,8 @@ public class Nado extends NadoApi
             {
                 Object market = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 String id = this.safeString(market, "product_id");
-                Map<String, Object> pair = (Map<String, Object>) this.safeDict(pairsById, id, new HashMap<String, Object>() {{}});
-                Map<String, Object> asset = (Map<String, Object>) this.safeDict(assetsById, id, new HashMap<String, Object>() {{}});
+                Map<String, Object> pair = this.safeDict(pairsById, id, new HashMap<String, Object>() {{}});
+                Map<String, Object> asset = this.safeDict(assetsById, id, new HashMap<String, Object>() {{}});
                 String rawType = this.safeString(market, "type");
                 String type = rawType;
                 if (java.util.Objects.equals(rawType, "perp"))
@@ -2038,7 +2038,7 @@ public class Nado extends NadoApi
                     continue;
                 }
                 Map<String, Object> baseAsset = (Map<String, Object>) this.safeDict(assetsByCode, base, asset);
-                Map<String, Object> quoteAsset = (Map<String, Object>) this.safeDict(assetsByCode, quote, (Object) null);
+                Map<String, Object> quoteAsset = this.safeDict(assetsByCode, quote, null);
                 String baseId = this.safeString(baseAsset, "product_id", rawBaseId);
                 String quoteId = this.safeString(quoteAsset, "product_id", rawQuoteId);
                 String settleId = ((Boolean.TRUE.equals(contract))) ? quoteId : null;
@@ -2141,7 +2141,7 @@ public class Nado extends NadoApi
                 {
                     continue;
                 }
-                Map<String, Object> previous = (Map<String, Object>) this.safeDict(result, code, (Object) null);
+                Map<String, Object> previous = this.safeDict(result, code, null);
                 Boolean canDeposit = (Boolean) this.safeBool(currency, "can_deposit", false);
                 Boolean canWithdraw = (Boolean) this.safeBool(currency, "can_withdraw", false);
                 if (java.util.Objects.equals(previous, null))
@@ -2217,7 +2217,7 @@ public class Nado extends NadoApi
             Map<String, Object> market = this.market(symbol);
             String symbolValue = this.safeString(market, "symbol", "");
             Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolValue, (Object) null);
+            Map<String, Object> ticker = this.safeDict(tickers, symbolValue, null);
             if (java.util.Objects.equals(ticker, null))
             {
                 throw new BadSymbol(((this.id + " fetchTicker() ticker not found for ") + symbolValue)) ;
@@ -2273,7 +2273,7 @@ public class Nado extends NadoApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, tickerId, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, tickerId, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
@@ -2343,7 +2343,7 @@ public class Nado extends NadoApi
             //         "next_idx": "1314805"
             //     }
             //
-            List<Object> fundingPayments = (List<Object>) this.safeList(response, "funding_payments", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fundingPayments = this.safeList(response, "funding_payments", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < fundingPayments.size(); i++)
             {
@@ -2454,7 +2454,7 @@ public class Nado extends NadoApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, tickerId, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, tickerId, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(data, market);
         }).thenApply(OpenInterest::new);
 
@@ -2658,7 +2658,7 @@ public class Nado extends NadoApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "candlesticks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "candlesticks", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2716,7 +2716,7 @@ public class Nado extends NadoApi
         String marketId = this.safeString(trade, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeTimestamp(trade, "timestamp");
-        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(trade, "order", (Object) null);
+        Map<String, Object> rawOrder = this.safeDict(trade, "order", null);
         Boolean isArchiveMatch = !java.util.Objects.equals(rawOrder, null);
         Map<String, Object> order = (((java.util.Objects.equals(rawOrder, null)))) ? new HashMap<String, Object>() {{}} : rawOrder;
         String amountString = this.safeString(trade, "base_filled");
@@ -3007,10 +3007,10 @@ public class Nado extends NadoApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> balances = (List<Object>) this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> rawBalance = this.safeDict(balances, i, null);
             String currencyId = this.safeString(rawBalance, "product_id");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             if (java.util.Objects.equals(code, "0"))
@@ -3024,7 +3024,7 @@ public class Nado extends NadoApi
                     code = this.safeString(market, "base", code);
                 }
             }
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(rawBalance, "balance", new HashMap<String, Object>() {{}});
+            Map<String, Object> balance = this.safeDict(rawBalance, "balance", new HashMap<String, Object>() {{}});
             String amount = Precise.stringDiv(this.safeString(balance, "amount"), "1000000000000000000");
             Map<String, Object> account = this.account();
             account.put("total", amount);
@@ -3067,12 +3067,12 @@ public class Nado extends NadoApi
         String currencyId = this.safeString(transaction, "product_id");
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeTimestamp(transaction, "timestamp");
-        Map<String, Object> preBalance = (Map<String, Object>) this.safeDict(transaction, "pre_balance", new HashMap<String, Object>() {{}});
-        Map<String, Object> postBalance = (Map<String, Object>) this.safeDict(transaction, "post_balance", new HashMap<String, Object>() {{}});
-        Map<String, Object> preSpot = (Map<String, Object>) this.safeDict(preBalance, "spot", new HashMap<String, Object>() {{}});
-        Map<String, Object> postSpot = (Map<String, Object>) this.safeDict(postBalance, "spot", new HashMap<String, Object>() {{}});
-        Map<String, Object> preSpotBalance = (Map<String, Object>) this.safeDict(preSpot, "balance", new HashMap<String, Object>() {{}});
-        Map<String, Object> postSpotBalance = (Map<String, Object>) this.safeDict(postSpot, "balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> preBalance = this.safeDict(transaction, "pre_balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> postBalance = this.safeDict(transaction, "post_balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> preSpot = this.safeDict(preBalance, "spot", new HashMap<String, Object>() {{}});
+        Map<String, Object> postSpot = this.safeDict(postBalance, "spot", new HashMap<String, Object>() {{}});
+        Map<String, Object> preSpotBalance = this.safeDict(preSpot, "balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> postSpotBalance = this.safeDict(postSpot, "balance", new HashMap<String, Object>() {{}});
         String preAmount = this.safeString(preSpotBalance, "amount", "0");
         String postAmount = this.safeString(postSpotBalance, "amount", "0");
         Double amount = this.parseX18(Precise.stringAbs(Precise.stringSub(postAmount, preAmount)));
@@ -3121,10 +3121,10 @@ public class Nado extends NadoApi
         //
         String marketId = this.safeString(position, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Map<String, Object> balance = (Map<String, Object>) this.safeDict(position, "balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> balance = this.safeDict(position, "balance", new HashMap<String, Object>() {{}});
         String amountString = this.safeString(balance, "amount");
-        Map<String, Object> product = (Map<String, Object>) this.safeDict(position, "product", new HashMap<String, Object>() {{}});
-        Map<String, Object> risk = (Map<String, Object>) this.safeDict(product, "risk", new HashMap<String, Object>() {{}});
+        Map<String, Object> product = this.safeDict(position, "product", new HashMap<String, Object>() {{}});
+        Map<String, Object> risk = this.safeDict(product, "risk", new HashMap<String, Object>() {{}});
         String markPriceX18 = this.safeString2(risk, "price_x18", "oracle_price_x18");
         String vQuoteBalance = this.safeString(balance, "v_quote_balance");
         String side = null;
@@ -3347,10 +3347,10 @@ public class Nado extends NadoApi
         } else
         {
             Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict2(order, "place_order", "order", new HashMap<String, Object>() {{}});
-            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(placeOrder, "order", new HashMap<String, Object>() {{}});
+            Map<String, Object> rawOrder = this.safeDict(placeOrder, "order", new HashMap<String, Object>() {{}});
             String marketId = this.safeString(placeOrder, "product_id");
             marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(order, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(order, "data", new HashMap<String, Object>() {{}});
             id = this.safeString(data, "digest");
             if (java.util.Objects.equals(id, null))
             {
@@ -3364,10 +3364,10 @@ public class Nado extends NadoApi
                 side = ((Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
                 amount = this.parseX18(Precise.stringAbs(amountString));
             }
-            Map<String, Object> triggerStatus = (Map<String, Object>) this.safeDict(order, "status", (Object) null);
+            Map<String, Object> triggerStatus = this.safeDict(order, "status", null);
             if (!java.util.Objects.equals(triggerStatus, null))
             {
-                Map<String, Object> triggered = (Map<String, Object>) this.safeDict(triggerStatus, "triggered", (Object) null);
+                Map<String, Object> triggered = this.safeDict(triggerStatus, "triggered", null);
                 if (!java.util.Objects.equals(triggered, null))
                 {
                     status = "closed";
@@ -3524,7 +3524,7 @@ public class Nado extends NadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> gatewayContracts = (Map<String, Object>) this.safeDict(this.options, "gatewayContracts", (Object) null);
+            Map<String, Object> gatewayContracts = this.safeDict(this.options, "gatewayContracts", null);
             if (java.util.Objects.equals(gatewayContracts, null))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3700,7 +3700,7 @@ public class Nado extends NadoApi
                 return Helpers.GetValue(byType, queryType);
             }
         }
-        Map<String, Object> byQuery = (Map<String, Object>) this.safeDict(config, "byQuery", (Object) null);
+        Map<String, Object> byQuery = this.safeDict(config, "byQuery", null);
         if (!java.util.Objects.equals(byQuery, null))
         {
             List<String> queryNames = new ArrayList<String>(byQuery.keySet());
@@ -3709,16 +3709,16 @@ public class Nado extends NadoApi
                 String queryName = (queryNames == null || i < 0 || i >= queryNames.size() ? null : queryNames.get(i));
                 if ((switch ((Object)(parameters)) { case List<?> j39v4 -> ((Object)(queryName)) != null && j39v4.contains(queryName); case Map<?, ?> j39v3 -> ((Object)(queryName)) instanceof String && j39v3.containsKey(queryName); case null, default -> false; }))
                 {
-                    List<Object> weights = (List<Object>) this.safeList(byQuery, queryName, new ArrayList<Object>(Arrays.asList()));
+                    List<Object> weights = this.safeList(byQuery, queryName, new ArrayList<Object>(Arrays.asList()));
                     Long baseWeight = this.safeInteger(weights, 0, 2);
                     Long rowsPerWeight = this.safeInteger(weights, 1);
                     if (java.util.Objects.equals(rowsPerWeight, null))
                     {
                         return baseWeight;
                     }
-                    Map<String, Object> query = (Map<String, Object>) this.safeDict(parameters, queryName, new HashMap<String, Object>() {{}});
+                    Map<String, Object> query = this.safeDict(parameters, queryName, new HashMap<String, Object>() {{}});
                     Long rows = this.safeInteger(query, "limit", 100); // the archive default page
-                    Map<String, Object> nestedLimit = (Map<String, Object>) this.safeDict(query, "limit", (Object) null); // the events query sends { 'raw': 100 }
+                    Map<String, Object> nestedLimit = this.safeDict(query, "limit", null); // the events query sends { 'raw': 100 }
                     if (!java.util.Objects.equals(nestedLimit, null))
                     {
                         rows = (Long) this.safeInteger(nestedLimit, "raw", 100);
@@ -3727,7 +3727,7 @@ public class Nado extends NadoApi
                 }
             }
         }
-        List<Object> byRows = (List<Object>) this.safeList(config, "byRows", (Object) null);
+        List<Object> byRows = this.safeList(config, "byRows", null);
         if (!java.util.Objects.equals(byRows, null))
         {
             // distinct local names: the C# emitter rejects a name already used in a sibling block

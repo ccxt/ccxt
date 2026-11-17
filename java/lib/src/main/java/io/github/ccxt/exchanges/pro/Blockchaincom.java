@@ -144,10 +144,10 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
         this.balance.put("info", message);
-        List<Object> balances = (List<Object>) this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> entry = this.safeDict(balances, i, null);
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -237,10 +237,10 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             String marketId = this.safeString(message, "symbol");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
             String messageHash = ("ohlcv:" + symbol);
-            Map<String, Object> request = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, (Object) null);
+            Map<String, Object> request = this.safeDict(client.subscriptions, messageHash, null);
             String timeframeId = this.safeString(request, "granularity");
             String timeframe = this.findTimeframe(timeframeId, (Object) null);
-            List<Object> ohlcv = (List<Object>) this.safeList(message, "price", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcv = this.safeList(message, "price", new ArrayList<Object>(Arrays.asList()));
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
@@ -333,7 +333,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             ticker = (Map<String, Object>) this.parseTicker(message, market);
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
-            Map<String, Object> lastTicker = (Map<String, Object>) this.safeDict(this.tickers, symbol, (Object) null);
+            Map<String, Object> lastTicker = this.safeDict(this.tickers, symbol, null);
             ticker = (Map<String, Object>) this.parseWsUpdatedTicker(message, lastTicker, market);
         }
         String messageHash = ("ticker:" + symbol);
@@ -630,7 +630,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             throw new ExchangeError(((this.id + " ") + this.json(message))) ;
         } else if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            List<Object> orders = (List<Object>) this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < orders.size(); i++)
             {
                 Map<String, Object> order = (Map<String, Object>) (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
@@ -829,8 +829,8 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             orderbook.reset(snapshot);
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
-            List<Object> asks = (List<Object>) this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
-            List<Object> bids = (List<Object>) this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             orderbook.put("timestamp", timestamp);

@@ -206,7 +206,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
-        Map<String, Object> delta = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        Map<String, Object> delta = this.safeDict(message, "data", null);
         Long deltaNonce = this.safeInteger(delta, "microtimestamp");
         if (java.util.Objects.equals(deltaNonce, null))
         {
@@ -239,8 +239,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
         orderbook.put("nonce", this.safeInteger(delta, "microtimestamp"));
-        List<Object> bids = (List<Object>) this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
-        List<Object> asks = (List<Object>) this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
         this.handleBidAsks((orderbook == null ? null : orderbook.get("bids")), bids);
         this.handleBidAsks((orderbook == null ? null : orderbook.get("asks")), asks);
     }
@@ -257,7 +257,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     public Object getCacheIndex(Object orderbook, Object deltas)
     {
         // we will consider it a fail
-        Map<String, Object> firstElement = (Map<String, Object>) this.safeDict(deltas, 0, (Object) null);
+        Map<String, Object> firstElement = this.safeDict(deltas, 0, null);
         Long firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
         if (java.util.Objects.equals(firstElementNonce, null))
         {
@@ -270,7 +270,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            Map<String, Object> delta = (Map<String, Object>) this.safeDict(deltas, i, (Object) null);
+            Map<String, Object> delta = this.safeDict(deltas, i, null);
             Long deltaNonce = this.safeInteger(delta, "microtimestamp");
             if (java.util.Objects.equals(deltaNonce, nonce))
             {
@@ -426,7 +426,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("trades:" + symbol);
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        Map<String, Object> data = this.safeDict(message, "data", null);
         Map<String, Object> trade = this.parseWsTrade(data, market);
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
@@ -498,7 +498,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String marketId = this.safeString(parts, 2);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, market);
         this.fundingRates.put(symbol, fundingRate);
         client.resolve(fundingRate, ("fundingRate:" + symbol));
@@ -682,8 +682,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel, (Object) null));
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel, null));
         String symbol = this.safeString(subscription, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -783,8 +783,8 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Map<String, Object> order = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel, (Object) null));
+        Map<String, Object> order = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel, null));
         String symbol = this.safeString(subscription, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -970,14 +970,14 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             return;
         }
         String unsubHash = ("unsubscribe:" + channel);
-        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubHash, (Object) null);
+        Map<String, Object> subscription = this.safeDict(client.subscriptions, unsubHash, null);
         if (java.util.Objects.equals(subscription, null))
         {
             return;
         }
         String subHash = this.safeString(subscription, "subHash");
         String topic = this.safeString(subscription, "topic");
-        List<Object> symbols = (List<Object>) this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList()));
+        List<Object> symbols = this.safeList(subscription, "symbols", new ArrayList<Object>(Arrays.asList()));
         // the base cleanCache only prunes trades/orderbooks per symbol and
         // would wipe the whole orders/myTrades cache - rebuild those without
         // the unsubscribed symbols instead, so the markets that are still
@@ -1117,7 +1117,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         if (java.util.Objects.equals(eventVar, "bts:error"))
         {
             String feedback = ((this.id + " ") + this.json(message));
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             String code = this.safeString(data, "code");
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
         }

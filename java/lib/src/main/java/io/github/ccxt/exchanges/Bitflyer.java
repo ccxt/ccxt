@@ -541,7 +541,7 @@ public class Bitflyer extends BitflyerApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1085,7 +1085,7 @@ public class Bitflyer extends BitflyerApi
             }
             List<Order> orders = (this.fetchOrders(symbol, (Long) null, 100L, new HashMap<String, Object>() {{}})).join();
             Map<String,Object> ordersById = this.indexBy(orders, "id");
-            Map<String, Object> found = (Map<String, Object>) this.safeDict(ordersById, id, (Object) null);
+            Map<String, Object> found = this.safeDict(ordersById, id, null);
             if (!java.util.Objects.equals(found, null))
             {
                 return found;

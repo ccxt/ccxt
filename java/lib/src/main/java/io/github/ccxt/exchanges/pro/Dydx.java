@@ -152,8 +152,8 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String marketId = this.safeString(message, "id");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents", (Object) null);
-        List<Object> rawTrades = (List<Object>) this.safeList(content, "trades", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> content = this.safeDict(message, "contents", null);
+        List<Object> rawTrades = this.safeList(content, "trades", new ArrayList<Object>(Arrays.asList()));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -293,15 +293,15 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String marketId = this.safeString(message, "id");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents", (Object) null);
+        Map<String, Object> content = this.safeDict(message, "contents", null);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
             orderbook = this.orderBook();
         }
         orderbook.put("symbol", symbol);
-        List<Object> asks = (List<Object>) this.safeList(content, "asks", new ArrayList<Object>(Arrays.asList()));
-        List<Object> bids = (List<Object>) this.safeList(content, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(content, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = this.safeList(content, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
         this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
         orderbook.put("nonce", this.safeInteger(message, "message_id"));
@@ -459,8 +459,8 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String marketId = this.safeString(part, 0);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents", (Object) null);
-        List<Object> candles = (List<Object>) this.safeList(content, "candles", (Object) null);
+        Map<String, Object> content = this.safeDict(message, "contents", null);
+        List<Object> candles = this.safeList(content, "candles", null);
         String messageHash = ("ohlcv:" + symbol);
         Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(candles, 0, content);
         List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);

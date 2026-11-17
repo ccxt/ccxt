@@ -469,7 +469,7 @@ public class Myriad extends MyriadApi
             if (((String)id).indexOf(":") < 0)
             {
                 Map<String, Object> rawQuestion = (this.fetchRawQuestionById((String) (id), parameters)).join();
-                Map<String, Object> orderBookEvent = (Map<String, Object>) this.parseEvent(rawQuestion);
+                Map<String, Object> orderBookEvent = this.parseEvent(rawQuestion);
                 this.indexEventOutcomes(orderBookEvent);
                 return orderBookEvent;
             }
@@ -545,12 +545,12 @@ public class Myriad extends MyriadApi
                     put( "limit", 50 );
                 }};
                 Map<String, Object> response = (this.myriadPublicGetQuestions(this.extend(keywordRequest, parameters))).join();
-                List<Object> questions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> questions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 Integer questionsLength = questions.size();
                 String idLower = ((String)id).toLowerCase();
                 for (var i = 0; (questionsLength != null && i < questionsLength); i++)
                 {
-                    Map<String, Object> q = (Map<String, Object>) this.safeDict(questions, i, new HashMap<String, Object>() {{}});
+                    Map<String, Object> q = this.safeDict(questions, i, new HashMap<String, Object>() {{}});
                     String qId = this.safeString(q, "id", "");
                     String qSlug = this.safeString(q, "slug", "");
                     String qTitle = this.safeString(q, "title", "");
@@ -747,7 +747,7 @@ public class Myriad extends MyriadApi
             //         }
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < data.size(); i++)
             {
@@ -825,7 +825,7 @@ public class Myriad extends MyriadApi
 
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(info, "networkId");
             String marketId = this.safeString(info, "marketId");
             Long outcomeId = this.safeInteger(info, "outcomeId");
@@ -907,7 +907,7 @@ public class Myriad extends MyriadApi
             put( "priceBefore", Myriad.this.safeNumber(quote, "price_before", (Object) null) );
             put( "priceAfter", Myriad.this.safeNumber(quote, "price_after", (Object) null) );
             put( "netAmount", Myriad.this.safeNumber(quote, "net_amount", (Object) null) );
-            put( "fees", Myriad.this.safeDict(quote, "fees", (Object) null) );
+            put( "fees", Myriad.this.safeDict(quote, "fees", null) );
             put( "calldata", Myriad.this.safeString(quote, "calldata") );
             put( "info", quote );
         }};
@@ -1031,7 +1031,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String defaultModel = this.safeString(info, "tradingModel", "amm");
             String tradingModel = this.safeStringLower(parameters, "tradingModel", defaultModel);
             Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("tradingModel")));
@@ -1064,7 +1064,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> built = this.buildOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, parameters);
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(built, "order", (Object) null);
+            Map<String, Object> order = this.safeDict(built, "order", null);
             String networkId = this.safeString(built, "networkId");
             String timeInForce = this.safeString(built, "timeInForce");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1146,7 +1146,7 @@ public class Myriad extends MyriadApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a privateKey to sign the order")) ;
         }
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-        Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String networkId = this.safeString(info, "networkId", this.safeString(this.options, "defaultNetworkId", "56"));
         String marketId = this.safeString(info, "marketId");
         Long outcomeId = this.safeInteger(info, "outcomeId", 0);
@@ -1234,13 +1234,13 @@ public class Myriad extends MyriadApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (ordersLength != null && i < ordersLength); i++)
             {
-                Map<String, Object> o = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> o = this.safeDict(orders, i, null);
                 String outcome = this.safeString(o, "outcome");
                 String type = this.safeString(o, "type");
                 String side = this.safeString(o, "side");
                 Double amount = this.safeNumber(o, "amount", (Object) null);
                 Double price = this.safeNumber(o, "price", (Object) null);
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(o, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(o, "params", new HashMap<String, Object>() {{}});
                 Object placed = (this.createOrderbookOrder((String) (outcome), (String) (type), (String) (side), amount, price, this.extend(orderParams, parameters))).join();
                 ((List<Object>)result).add(placed);
             }
@@ -1317,10 +1317,10 @@ public class Myriad extends MyriadApi
             }
             (this.loadOutcome((String) (outcome), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(info, "networkId");
-            Map<String, Object> chains = (Map<String, Object>) this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
-            Map<String, Object> chainConfig = (Map<String, Object>) this.safeDict(chains, networkId, (Object) null);
+            Map<String, Object> chains = this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
+            Map<String, Object> chainConfig = this.safeDict(chains, networkId, null);
             if (java.util.Objects.equals(chainConfig, null))
             {
                 throw new NotSupported(((this.id + " createOrder() has no on-chain config for network ") + networkId)) ;
@@ -1331,7 +1331,7 @@ public class Myriad extends MyriadApi
             String gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
             String sideStr = sideLower;
             Map<String, Object> quoteParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt")));
-            Map<String, Object> quote = (Map<String, Object>) this.safeDict(parameters, "quote", (Object) null);
+            Map<String, Object> quote = this.safeDict(parameters, "quote", null);
             if (java.util.Objects.equals(quote, null))
             {
                 quote = (this.fetchTradeQuote((String) (outcome), sideStr, amount, quoteParams)).join();
@@ -1399,8 +1399,8 @@ public class Myriad extends MyriadApi
      */
     public String signOrderbookTypedData(Map<String, Object> types, Map<String, Object> message, String networkId)
     {
-        Map<String, Object> chains = (Map<String, Object>) this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
-        Map<String, Object> chainConfig = (Map<String, Object>) this.safeDict(chains, networkId, new HashMap<String, Object>() {{}});
+        Map<String, Object> chains = this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
+        Map<String, Object> chainConfig = this.safeDict(chains, networkId, new HashMap<String, Object>() {{}});
         String exchangeAddress = this.safeString(chainConfig, "obExchangeAddress");
         if (java.util.Objects.equals(exchangeAddress, null))
         {
@@ -1532,12 +1532,12 @@ public class Myriad extends MyriadApi
      */
     public Map<String, Object> getOrderResponseFromParams(String id, Map<String, Object> parameters)
     {
-        Map<String, Object> orderResponse = (Map<String, Object>) this.safeDict(parameters, "orderResponse", (Object) null);
+        Map<String, Object> orderResponse = this.safeDict(parameters, "orderResponse", null);
         if (!java.util.Objects.equals(orderResponse, null))
         {
             return orderResponse;
         }
-        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(parameters, "rawOrder", (Object) null);
+        Map<String, Object> rawOrder = this.safeDict(parameters, "rawOrder", null);
         if (!java.util.Objects.equals(rawOrder, null))
         {
             {
@@ -1548,22 +1548,22 @@ public class Myriad extends MyriadApi
                 return h2kMap1;
             }
         }
-        Map<String, Object> orderResponsesById = (Map<String, Object>) this.safeDict(parameters, "orderResponses", (Object) null);
+        Map<String, Object> orderResponsesById = this.safeDict(parameters, "orderResponses", null);
         if (!java.util.Objects.equals(orderResponsesById, null))
         {
-            Map<String, Object> keyedResponse = (Map<String, Object>) this.safeDict(orderResponsesById, id, (Object) null);
+            Map<String, Object> keyedResponse = this.safeDict(orderResponsesById, id, null);
             if (!java.util.Objects.equals(keyedResponse, null))
             {
                 return keyedResponse;
             }
         }
-        List<Object> orderResponses = (List<Object>) this.safeList(parameters, "orderResponses", (Object) null);
+        List<Object> orderResponses = this.safeList(parameters, "orderResponses", null);
         if (!java.util.Objects.equals(orderResponses, null))
         {
             Integer responsesLength = orderResponses.size();
             for (var i = 0; (responsesLength != null && i < responsesLength); i++)
             {
-                Map<String, Object> current = (Map<String, Object>) this.safeDict(orderResponses, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> current = this.safeDict(orderResponses, i, new HashMap<String, Object>() {{}});
                 String currentId = this.safeStringN(current, new ArrayList<Object>(Arrays.asList("orderHash", "hash", "id")));
                 if ((!java.util.Objects.equals(currentId, null)) && (java.util.Objects.equals(currentId, id)))
                 {
@@ -1619,7 +1619,7 @@ public class Myriad extends MyriadApi
 
     public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
-        Map<String, Object> inner = (Map<String, Object>) this.safeDict(order, "order", new HashMap<String, Object>() {{}});
+        Map<String, Object> inner = this.safeDict(order, "order", new HashMap<String, Object>() {{}});
         String orderHash = this.safeString2(order, "orderHash", "hash");
         Long sideInt = this.safeInteger(inner, "side");
         String side = "buy";
@@ -1796,7 +1796,7 @@ public class Myriad extends MyriadApi
             {
                 outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
                 outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 request.put("market_id", this.safeString(info, "marketId"));
                 request.put("network_id", this.safeString(info, "networkId"));
                 rowOutcomeId = this.safeString(info, "outcomeId");
@@ -1842,7 +1842,7 @@ public class Myriad extends MyriadApi
             //         }
             //     }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer rowsLength = rows.size();
             for (var i = 0; (rowsLength != null && i < rowsLength); i++)
@@ -1897,8 +1897,8 @@ public class Myriad extends MyriadApi
                     put( "hash", id );
                 }}, paramsOmitted))).join();
             }
-            Map<String, Object> fetchedInfo = (Map<String, Object>) this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
+            Map<String, Object> fetchedInfo = this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> rawOrder = this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
             List<String> rawOrderKeys = new ArrayList<String>(rawOrder.keySet());
             Integer rawOrderKeysLength = rawOrderKeys.size();
             if (java.util.Objects.equals(rawOrderKeysLength, 0))
@@ -1971,7 +1971,7 @@ public class Myriad extends MyriadApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 marketId = this.safeString(info, "marketId", marketId);
                 networkId = this.safeString(info, "networkId", networkId);
             }
@@ -2043,8 +2043,8 @@ public class Myriad extends MyriadApi
                         put( "hash", id );
                     }})).join();
                 }
-                Map<String, Object> fetchedInfo = (Map<String, Object>) this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
+                Map<String, Object> fetchedInfo = this.safeDict(fetched, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> rawOrder = this.safeDict(fetched, "order", new HashMap<String, Object>() {{}});
                 List<String> rawOrderKeys = new ArrayList<String>(rawOrder.keySet());
                 Integer rawOrderKeysLength = rawOrderKeys.size();
                 if (java.util.Objects.equals(rawOrderKeysLength, 0))
@@ -2187,7 +2187,7 @@ public class Myriad extends MyriadApi
                 outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
                 if (java.util.Objects.equals(requestedTradingModel, null))
                 {
-                    Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                    Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                     requestedTradingModel = this.safeStringLower(info, "tradingModel");
                 }
             }
@@ -2231,7 +2231,7 @@ public class Myriad extends MyriadApi
             //         }
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
             // valid market), so parse every order — each self-resolves its outcome from the network/market/
             // outcome ids — and filter by the requested outcome client-side
@@ -2396,8 +2396,8 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             String networkId = this.safeString2(parameters, "network_id", "network", this.safeString(this.options, "defaultNetworkId", "56"));
-            Map<String, Object> chains = (Map<String, Object>) this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
-            Map<String, Object> chainConfig = (Map<String, Object>) this.safeDict(chains, networkId, new HashMap<String, Object>() {{}});
+            Map<String, Object> chains = this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
+            Map<String, Object> chainConfig = this.safeDict(chains, networkId, new HashMap<String, Object>() {{}});
             String rpcUrl = this.safeString2(parameters, "rpcUrl", "rpc", this.safeString(chainConfig, "rpcUrl"));
             String token = this.safeString2(parameters, "token", "tokenAddress", this.safeString(chainConfig, "collateralToken"));
             if (java.util.Objects.equals(token, null))
@@ -2526,7 +2526,7 @@ public class Myriad extends MyriadApi
             h2kMap2.put("active", (java.util.Objects.equals(state, "open")));
             h2kMap2.put("resolved", (java.util.Objects.equals(state, "resolved")));
             h2kMap2.put("category", null);
-            h2kMap2.put("tags", this.safeList(raw, "topics", (Object) null));
+            h2kMap2.put("tags", this.safeList(raw, "topics", null));
             h2kMap2.put("created", this.parse8601(this.safeString(raw, "publishedAt")));
             h2kMap2.put("createdDatetime", this.safeString(raw, "publishedAt"));
             h2kMap2.put("end", (((!java.util.Objects.equals(endDate, null)))) ? this.parse8601(endDate) : null);
@@ -2552,7 +2552,7 @@ public class Myriad extends MyriadApi
         String networkId = this.safeString(raw, "networkId");
         String marketId = this.safeString(raw, "id");
         String slug = this.safeString(raw, "slug", marketId);
-        List<Object> rawOutcomes = (List<Object>) this.safeList(raw, "outcomes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawOutcomes = this.safeList(raw, "outcomes", new ArrayList<Object>(Arrays.asList()));
         String endDate = this.safeString(raw, "expiresAt");
         String state = this.safeString(raw, "state", "open");
         Boolean active = java.util.Objects.equals(state, "open");
@@ -2568,20 +2568,20 @@ public class Myriad extends MyriadApi
         // eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
         Object marketSymbol = this.slugToMarketSymbol((String) (eventSlug), (String) (slug));
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
-        Map<String, Object> tokenObj = (Map<String, Object>) this.safeDict(raw, "token", new HashMap<String, Object>() {{}});
+        Map<String, Object> tokenObj = this.safeDict(raw, "token", new HashMap<String, Object>() {{}});
         String tokenAddress = this.safeString(tokenObj, "address");
         Long tokenDecimals = this.safeInteger(tokenObj, "decimals", 18);
         String quoteCurrency = this.safeString(tokenObj, "symbol", "USDC");
         // per-side fees: buys are charged the taker fee, sells the maker fee (mirrors fetchTradingFee)
-        Map<String, Object> feesObj = (Map<String, Object>) this.safeDict(raw, "fees", new HashMap<String, Object>() {{}});
-        Map<String, Object> buyFees = (Map<String, Object>) this.safeDict(feesObj, "buy", new HashMap<String, Object>() {{}});
-        Map<String, Object> sellFees = (Map<String, Object>) this.safeDict(feesObj, "sell", new HashMap<String, Object>() {{}});
+        Map<String, Object> feesObj = this.safeDict(raw, "fees", new HashMap<String, Object>() {{}});
+        Map<String, Object> buyFees = this.safeDict(feesObj, "buy", new HashMap<String, Object>() {{}});
+        Map<String, Object> sellFees = this.safeDict(feesObj, "sell", new HashMap<String, Object>() {{}});
         Double takerFee = this.safeNumber(buyFees, "fee", 0.01);
         Double makerFee = this.safeNumber(sellFees, "fee", 0);
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawOutcomes.size(); i++)
         {
-            Map<String, Object> outcome = (Map<String, Object>) this.safeDict(rawOutcomes, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> outcome = this.safeDict(rawOutcomes, i, new HashMap<String, Object>() {{}});
             String outcomeId = this.safeString(outcome, "outcomeId", this.safeString(outcome, "id", String.valueOf(i)));
             String outcomeLabel = this.safeString(outcome, "label", this.safeString(outcome, "title", outcomeId));
             Double price = this.safeNumber(outcome, "price", (Object) null);
@@ -2827,7 +2827,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", Myriad.this.safeString(info, "marketId") );
                 put( "network_id", Myriad.this.safeString(info, "networkId") );
@@ -2841,9 +2841,9 @@ public class Myriad extends MyriadApi
             //         }
             //     }
             //
-            Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "fees", new HashMap<String, Object>() {{}});
-            Map<String, Object> buy = (Map<String, Object>) this.safeDict(fees, "buy", new HashMap<String, Object>() {{}});
-            Map<String, Object> sell = (Map<String, Object>) this.safeDict(fees, "sell", new HashMap<String, Object>() {{}});
+            Map<String, Object> fees = this.safeDict(response, "fees", new HashMap<String, Object>() {{}});
+            Map<String, Object> buy = this.safeDict(fees, "buy", new HashMap<String, Object>() {{}});
+            Map<String, Object> sell = this.safeDict(fees, "sell", new HashMap<String, Object>() {{}});
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "outcome", Myriad.this.safeOutcomeSymbol((String) (null), outcomeObj) );
@@ -2942,7 +2942,7 @@ public class Myriad extends MyriadApi
         //     }
         //
         String outcomeId = (((!java.util.Objects.equals(market, null) && !java.util.Objects.equals(market, null)))) ? this.safeString(market.get("info"), "outcomeId") : null;
-        List<Object> outcomes = (List<Object>) this.safeList(raw, "outcomes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> outcomes = this.safeList(raw, "outcomes", new ArrayList<Object>(Arrays.asList()));
         Double price = null;
         Double change = null;
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE percentage from it
@@ -2950,7 +2950,7 @@ public class Myriad extends MyriadApi
         Object percentage = null;
         for (var i = 0; i < outcomes.size(); i++)
         {
-            Map<String, Object> o = (Map<String, Object>) this.safeDict(outcomes, i, (Object) null);
+            Map<String, Object> o = this.safeDict(outcomes, i, null);
             if (java.util.Objects.equals(this.safeString(o, "outcomeId", this.safeString(o, "id")), outcomeId))
             {
                 Double priceValue = this.safeNumber(o, "price", (Object) null);
@@ -3110,13 +3110,13 @@ public class Myriad extends MyriadApi
             //         "externalSources": []
             //     }
             //
-            List<Object> outcomes = (List<Object>) this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> outcomes = this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
             // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
             Double bid = null;
             Double ask = null;
             for (var i = 0; i < outcomes.size(); i++)
             {
-                Map<String, Object> o = (Map<String, Object>) this.safeDict(outcomes, i, (Object) null);
+                Map<String, Object> o = this.safeDict(outcomes, i, null);
                 if (java.util.Objects.equals(this.safeString(o, "outcomeId", this.safeString(o, "id")), outcomeId))
                 {
                     Double price = this.safeNumber(o, "price", (Object) null);
@@ -3175,7 +3175,7 @@ public class Myriad extends MyriadApi
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawBids.size(); i++)
         {
-            List<Object> row = (List<Object>) this.safeList(rawBids, i, (Object) null);
+            List<Object> row = this.safeList(rawBids, i, null);
             String rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
             String rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(rowPrice), this.parseNumber(rowAmount))));
@@ -3183,7 +3183,7 @@ public class Myriad extends MyriadApi
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawAsks.size(); i++)
         {
-            List<Object> row = (List<Object>) this.safeList(rawAsks, i, (Object) null);
+            List<Object> row = this.safeList(rawAsks, i, null);
             String rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
             String rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(rowPrice), this.parseNumber(rowAmount))));
@@ -3216,7 +3216,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(outcomeInfo, "networkId");
             String marketId = this.safeString(outcomeInfo, "marketId");
             String outcomeId = this.safeString(outcomeInfo, "outcomeId", this.safeString(outcomeInfo, "id"));
@@ -3263,7 +3263,7 @@ public class Myriad extends MyriadApi
             //         }
             //     }
             //
-            List<Object> outcomes = (List<Object>) this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> outcomes = this.safeList(response, "outcomes", new ArrayList<Object>(Arrays.asList()));
             Object selectedOutcome = null;
             for (var i = 0; i < outcomes.size(); i++)
             {
@@ -3282,7 +3282,7 @@ public class Myriad extends MyriadApi
             }
             // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
             Object chart = null;
-            List<Object> chartsList = (List<Object>) this.safeList(selectedOutcome, "price_charts", (Object) null);
+            List<Object> chartsList = this.safeList(selectedOutcome, "price_charts", null);
             if (!java.util.Objects.equals(chartsList, null))
             {
                 for (var i = 0; i < chartsList.size(); i++)
@@ -3296,22 +3296,22 @@ public class Myriad extends MyriadApi
                 }
             } else
             {
-                Map<String, Object> chartsDict = (Map<String, Object>) this.safeDict(selectedOutcome, "price_charts", new HashMap<String, Object>() {{}});
-                chart = this.safeDict(chartsDict, bucketKey, (Object) null);
+                Map<String, Object> chartsDict = this.safeDict(selectedOutcome, "price_charts", new HashMap<String, Object>() {{}});
+                chart = this.safeDict(chartsDict, bucketKey, null);
             }
             Object pointsList = this.safeList(chart, "prices", this.safeList(chart, "data", ((Object)chart)));
-            Object points = (((!java.util.Objects.equals(pointsList, null)))) ? pointsList : new ArrayList<Object>(Arrays.asList());
-            Integer pointsLength = ((List<?>)points).size();
+            List<?> points = (List<?>) ((((!java.util.Objects.equals(pointsList, null)))) ? pointsList : new ArrayList<Object>(Arrays.asList()));
+            Integer pointsLength = points.size();
             if (java.util.Objects.equals(pointsLength, 0))
             {
-                Map<String, Object> priceCharts = (Map<String, Object>) this.safeDict(response, "price_charts", new HashMap<String, Object>() {{}});
-                Map<String, Object> bucket = (Map<String, Object>) this.safeDict(priceCharts, bucketKey, new HashMap<String, Object>() {{}});
+                Map<String, Object> priceCharts = this.safeDict(response, "price_charts", new HashMap<String, Object>() {{}});
+                Map<String, Object> bucket = this.safeDict(priceCharts, bucketKey, new HashMap<String, Object>() {{}});
                 points = (List<Object>)(this.safeList(bucket, outcomeId, this.safeList(bucket, "data", new ArrayList<Object>(Arrays.asList()))));
             }
             List<Object> usablePoints = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)points).size(); i++)
+            for (var i = 0; i < points.size(); i++)
             {
-                Object point = (points == null || i < 0 || i >= ((List<?>)points).size() ? null : ((List<?>)points).get(i));
+                Object point = (points == null || i < 0 || i >= points.size() ? null : points.get(i));
                 Double pointOpen = this.safeNumber(point, "open", (Object) null);
                 Double pointPrice = this.safeNumber(point, "price", this.safeNumber(point, "value", (Object) null));
                 Long pointTs = this.safeInteger(point, "timestamp");
@@ -3381,7 +3381,7 @@ public class Myriad extends MyriadApi
             for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String networkId = this.safeString(info, "networkId", "");
                 String marketId = this.safeString(info, "marketId", "");
                 String key = ((networkId + ":") + marketId);
@@ -3400,8 +3400,8 @@ public class Myriad extends MyriadApi
             {
                 Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
                 Object grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
-                Map<String, Object> firstOutcome = (Map<String, Object>) this.safeDict(grouped, 0, (Object) null);
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(firstOutcome, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> firstOutcome = this.safeDict(grouped, 0, null);
+                Map<String, Object> info = this.safeDict(firstOutcome, "info", new HashMap<String, Object>() {{}});
                 ((List<Object>)promises).add(this.myriadPublicGetMarketsId(this.extend(new HashMap<String, Object>() {{
                     put( "id", Myriad.this.safeString(info, "marketId") );
                     put( "network_id", Myriad.this.safeString(info, "networkId") );
@@ -3446,7 +3446,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(info, "networkId");
             String marketId = this.safeString(info, "marketId");
             String outcomeId = this.safeString(info, "outcomeId");
@@ -3486,7 +3486,7 @@ public class Myriad extends MyriadApi
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < rows.size(); i++)
             {
-                Map<String, Object> row = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
+                Map<String, Object> row = this.safeDict(rows, i, null);
                 String action = this.safeString(row, "action");
                 if ((!java.util.Objects.equals(action, "buy")) && (!java.util.Objects.equals(action, "sell")))
                 {
@@ -3599,7 +3599,7 @@ public class Myriad extends MyriadApi
                 }
             } else
             {
-                List<Object> requestedTags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
+                List<Object> requestedTags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
                 Integer requestedTagsLength = requestedTags.size();
                 if (java.util.Objects.equals(requestedTagsLength, 0))
                 {
@@ -3633,13 +3633,13 @@ public class Myriad extends MyriadApi
             for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
             {
                 Map<String, Object> rawQuestion = (Map<String, Object>) (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
-                Object ev = this.parseEvent(rawQuestion);
-                List<Object> evMarkets = (List<Object>) this.safeList(ev, "markets", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> ev = this.parseEvent(rawQuestion);
+                List<Object> evMarkets = this.safeList(ev, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer evMarketsLength = evMarkets.size();
                 List<Object> filteredMarkets = new ArrayList<Object>(Arrays.asList());
                 for (var j = 0; (evMarketsLength != null && j < evMarketsLength); j++)
                 {
-                    Map<String, Object> m = (Map<String, Object>) this.safeDict(evMarkets, j, new HashMap<String, Object>() {{}});
+                    Map<String, Object> m = this.safeDict(evMarkets, j, new HashMap<String, Object>() {{}});
                     String marketHandle = this.safeString(m, "market");
                     if (!java.util.Objects.equals(marketHandle, null))
                     {
@@ -3658,7 +3658,7 @@ public class Myriad extends MyriadApi
                 {
                     continue;
                 }
-                ((Map<String, Object>)ev).put("markets", filteredMarkets);
+                ev.put("markets", filteredMarkets);
                 ((List<Object>)result).add(ev);
             }
             Integer rawMarketsLength = rawMarkets.size();
@@ -3699,10 +3699,10 @@ public class Myriad extends MyriadApi
      * @param {object} rawEvent the raw myriad question object
      * @returns {object} an event structure
      */
-    public Object parseEvent(Map<String, Object> rawEvent)
+    public Map<String, Object> parseEvent(Map<String, Object> rawEvent)
     {
         String questionSlug = this.safeString(rawEvent, "slug", this.safeString(rawEvent, "id"));
-        List<Object> rawMarkets = (List<Object>) this.safeList(rawEvent, "markets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawMarkets = this.safeList(rawEvent, "markets", new ArrayList<Object>(Arrays.asList()));
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawMarkets.size(); i++)
         {
@@ -3710,7 +3710,7 @@ public class Myriad extends MyriadApi
             ((List<Object>)marketsList).add(this.parseMyriadMarket(rawMarket, questionSlug));
         }
         String endDate = this.safeString(rawEvent, "expiresAt", this.safeString(rawEvent, "endDate"));
-        return this.extend(rawEvent, (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+        return (Map<String, Object>) (this.extend(rawEvent, (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
             j39v4.put("id", this.safeString(rawEvent, "id"));
             j39v4.put("slug", questionSlug);
             j39v4.put("event", (((!java.util.Objects.equals(questionSlug, null) && !java.util.Objects.equals(questionSlug, "")))) ? this.shortenSlug((String) (questionSlug)) : null);
@@ -3724,7 +3724,7 @@ public class Myriad extends MyriadApi
             j39v4.put("active", this.safeBool(rawEvent, "active", (Object) null));
             j39v4.put("resolved", this.safeBool(rawEvent, "resolved", false));
             j39v4.put("category", this.safeString(rawEvent, "category"));
-            j39v4.put("tags", this.safeList(rawEvent, "tags", (Object) null));
+            j39v4.put("tags", this.safeList(rawEvent, "tags", null));
             j39v4.put("created", this.parse8601(this.safeString(rawEvent, "createdAt")));
             j39v4.put("createdDatetime", this.safeString(rawEvent, "createdAt"));
             j39v4.put("end", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
@@ -3732,7 +3732,7 @@ public class Myriad extends MyriadApi
             j39v4.put("lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "updatedAt")));
             j39v4.put("resolutionSource", this.safeString(rawEvent, "resolutionSource"));
             j39v4.put("info", rawEvent);
-            yield j39v4; } }));
+            yield j39v4; } })));
     }
 
     public Long requestId(String url)
@@ -3769,7 +3769,7 @@ public class Myriad extends MyriadApi
             return null;
         }
         String ocId = ((((networkId + ":") + marketId) + "/") + outcomeId);
-        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, ocId, (Object) null);
+        Map<String, Object> outcomeObj = this.safeDict(this.outcomes_by_id, ocId, null);
         return this.safeString(outcomeObj, "outcome");
     }
 
@@ -3870,7 +3870,7 @@ public class Myriad extends MyriadApi
             this.spawn(() -> { try { this.pong(client, msg); } catch(Exception _e) { throw new RuntimeException(_e); } });
             return;
         }
-        Map<String, Object> connectReply = (Map<String, Object>) this.safeDict(msg, "connect", (Object) null);
+        Map<String, Object> connectReply = this.safeDict(msg, "connect", null);
         if (!java.util.Objects.equals(connectReply, null))
         {
             // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
@@ -3878,7 +3878,7 @@ public class Myriad extends MyriadApi
             client.resolve(true, "centrifugoConnected");
             return;
         }
-        Map<String, Object> push = (Map<String, Object>) this.safeDict(msg, "push", (Object) null);
+        Map<String, Object> push = this.safeDict(msg, "push", null);
         if (java.util.Objects.equals(push, null))
         {
             return;
@@ -3888,8 +3888,8 @@ public class Myriad extends MyriadApi
         {
             return;
         }
-        Map<String, Object> pub = (Map<String, Object>) this.safeDict(push, "pub", new HashMap<String, Object>() {{}});
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(pub, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> pub = this.safeDict(push, "pub", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(pub, "data", new HashMap<String, Object>() {{}});
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String channelType = this.safeString(parts, 0);
         if (java.util.Objects.equals(channelType, "orderbook"))
@@ -3926,7 +3926,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(info, "networkId", "");
             String marketId = this.safeString(info, "marketId", "");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -3981,12 +3981,12 @@ public class Myriad extends MyriadApi
         String networkId = this.safeString(data, "networkId");
         String marketId = this.safeString(data, "marketId");
         Long ts = this.safeInteger(data, "ts");
-        List<Object> changes = (List<Object>) this.safeList(data, "changes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> changes = this.safeList(data, "changes", new ArrayList<Object>(Arrays.asList()));
         Integer changesLength = changes.size();
         Map<String, Object> updated = new HashMap<String, Object>() {{}};
         for (var i = 0; (changesLength != null && i < changesLength); i++)
         {
-            Map<String, Object> change = (Map<String, Object>) this.safeDict(changes, i, (Object) null);
+            Map<String, Object> change = this.safeDict(changes, i, null);
             String outcomeId = this.safeString(change, "outcome");
             String sym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), (String) (outcomeId));
             if (java.util.Objects.equals(sym, null))
@@ -4033,7 +4033,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(info, "networkId", "");
             String marketId = this.safeString(info, "marketId", "");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -4067,7 +4067,7 @@ public class Myriad extends MyriadApi
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires a outcome (the trades channel is per-market)")) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(info, "networkId", "");
             String marketId = this.safeString(info, "marketId", "");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -4099,7 +4099,7 @@ public class Myriad extends MyriadApi
         String marketId = this.safeString(data, "marketId");
         Long ts = this.safeInteger(data, "ts");
         String txHash = this.safeString(data, "txHash");
-        Map<String, Object> taker = (Map<String, Object>) this.safeDict(data, "taker", new HashMap<String, Object>() {{}});
+        Map<String, Object> taker = this.safeDict(data, "taker", new HashMap<String, Object>() {{}});
         String outcomeId = this.safeString(taker, "outcome");
         String sym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), (String) (outcomeId));
         if (java.util.Objects.equals(sym, null))
@@ -4110,7 +4110,7 @@ public class Myriad extends MyriadApi
         Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Map<String, Object>) null);
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
-        Map<String, Object> fees = (Map<String, Object>) this.safeDict(taker, "totalFees", new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = this.safeDict(taker, "totalFees", new HashMap<String, Object>() {{}});
         HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
         mapLiteral15.put("id", txHash);
         mapLiteral15.put("info", data);
@@ -4154,7 +4154,7 @@ public class Myriad extends MyriadApi
             {
                 ((List<Object>)myLegs).add(trade);
             }
-            List<Object> makers = (List<Object>) this.safeList(data, "makers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> makers = this.safeList(data, "makers", new ArrayList<Object>(Arrays.asList()));
             Integer makersLength = makers.size();
             for (var i = 0; (makersLength != null && i < makersLength); i++)
             {
@@ -4165,7 +4165,7 @@ public class Myriad extends MyriadApi
                     String makerSym = this.marketOutcomeToSymbol((String) (networkId), (String) (marketId), this.safeString(maker, "outcome"));
                     Map<String, Object> makerMarket = this.safeMarket(makerSym, (Map<String, Object>) null, (String) null, (String) null);
                     Map<String, Object> makerOutcomeObj = this.safeOutcome((String) (makerSym), (Map<String, Object>) null);
-                    Map<String, Object> makerFees = (Map<String, Object>) this.safeDict(maker, "fees", new HashMap<String, Object>() {{}});
+                    Map<String, Object> makerFees = this.safeDict(maker, "fees", new HashMap<String, Object>() {{}});
                     Object makerTrade = this.safePredictionTrade(new HashMap<String, Object>() {{
                         put( "id", txHash );
                         put( "info", maker );
@@ -4223,7 +4223,7 @@ public class Myriad extends MyriadApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(info, "networkId", "");
             String marketId = this.safeString(info, "marketId", "");
             Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
@@ -4262,7 +4262,7 @@ public class Myriad extends MyriadApi
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String networkId = this.safeString(info, "networkId", "");
                 String marketId = this.safeString(info, "marketId", "");
                 String channel = ((("prices:" + networkId) + ":") + marketId);
@@ -4322,9 +4322,9 @@ public class Myriad extends MyriadApi
         String networkId = this.safeString(data, "networkId");
         String marketId = this.safeString(data, "marketId");
         Long ts = this.safeInteger(data, "ts");
-        List<Object> outcomes = (List<Object>) this.safeList(data, "outcomes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> outcomes = this.safeList(data, "outcomes", new ArrayList<Object>(Arrays.asList()));
         Integer outcomesLength = outcomes.size();
-        Map<String, Object> cachedTickers = (Map<String, Object>) this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}});
+        Map<String, Object> cachedTickers = this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}});
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
             Object oc = (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i));
@@ -4391,7 +4391,7 @@ public class Myriad extends MyriadApi
             if (!java.util.Objects.equals(outcomeResolved, null))
             {
                 Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcomeResolved), false)).join();
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 networkId = this.safeString(info, "networkId", networkId);
                 outcomeResolved = this.safeOutcomeSymbol((String) (outcomeResolved), outcomeObj);
             }
@@ -4516,7 +4516,7 @@ public class Myriad extends MyriadApi
             Integer positionsLength = positions.size();
             for (var i = 0; (positionsLength != null && i < positionsLength); i++)
             {
-                Map<String, Object> p = (Map<String, Object>) this.safeDict(positions, i, (Object) null);
+                Map<String, Object> p = this.safeDict(positions, i, null);
                 String id = this.safeString(p, "id");
                 if (!java.util.Objects.equals(id, null))
                 {
@@ -4556,7 +4556,7 @@ public class Myriad extends MyriadApi
         if ((!java.util.Objects.equals(networkId, null)) && (!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(outcomeId, null)))
         {
             posId = ((((networkId + ":") + marketId) + "/") + outcomeId);
-            Map<String, Object> balances = (Map<String, Object>) this.safeDict(this.options, "positionBalances", new HashMap<String, Object>() {{}});
+            Map<String, Object> balances = this.safeDict(this.options, "positionBalances", new HashMap<String, Object>() {{}});
             String prior = this.safeString(balances, posId, "0");
             String updated = Precise.stringAdd(prior, deltaShares);
             if (!java.util.Objects.equals(posId, null))
