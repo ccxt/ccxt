@@ -372,6 +372,7 @@ class BaseExchange {
         'binanceusdm',
         'bingx',
         'bit2c',
+        'bit2me',
         'bitbank',
         'bitbns',
         'bitfinex',

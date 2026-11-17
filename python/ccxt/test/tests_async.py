@@ -2146,11 +2146,35 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb(), self.test_extended(), self.test_bit2me()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
         exit_script(0)
+        return True
+
+    async def test_bit2me(self):
+        exchange = self.init_offline_exchange('bit2me')
+        id = 'CCXT'
+        await exchange.load_markets()
+        assert exchange.options['brokerId'] == id, 'bit2me - brokerId not in options'
+        request = {}
+        try:
+            await exchange.create_order('BTC/USDC', 'limit', 'buy', 0.0001, 36000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['clientOrderId']
+        assert client_order_id.startswith(id + '-'), 'bit2me - clientOrderId: ' + client_order_id + ' does not start with the broker id ' + id
+        try:
+            await exchange.create_order('BTC/USDC', 'limit', 'buy', 0.0001, 36000, {
+                'clientOrderId': 'my-order',
+            })
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        custom_client_order_id = request['clientOrderId']
+        assert custom_client_order_id == 'my-order', 'bit2me - custom clientOrderId: ' + custom_client_order_id + ' should be sent as given, the broker id is only added when none is provided'
+        if not is_sync():
+            await close(exchange)
         return True
 
     async def test_binance(self):
