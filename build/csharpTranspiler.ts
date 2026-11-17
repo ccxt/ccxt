@@ -12916,6 +12916,19 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
     // a map with an element read that is not a local's initializer keeps Dictionary<string, object>
     const escapedMap = typedBucket (' const grouped = byKey[m]; out.push (grouped.length); out.push (byKey[m]);');
     if (escapedMap.includes ('List<object>> byKey')) problems.push (`90c7 list-bucket map value type: other element read retyped the map: ${escapedMap.replace (/\n/g, ' | ').slice (-700)}`);
+    // ral-92c7: a self padStart write keeps the non-null string; a hex string also passed to calls is typed by its .length read
+    const bare = (body: string) => (transpiler as unknown as { transpileCSharp (src: string): { content: string } }).transpileCSharp ('class Test {\n hash (a, b, c) { return a; }\n read (h, o) { return o; }\n' + body + '\n}').content;
+    const padded = bare ('g (fee) { let h = this.intToBase16 (fee); h = h.padStart (24, \'0\'); const p = h + \'00\'; return this.hash (p, 1, 1); }');
+    if (!padded.includes ('string h = ') || !padded.includes ('string p = (h + "00");')) problems.push (`92c7 self padStart write: ${padded.replace (/\n/g, ' | ').slice (-400)}`);
+    const frame = bare ('g (m) { const h = this.binaryToBase16 (m); const n = h.length / 2; return this.read (h, n); }');
+    if (!frame.includes ('string h = ') || !frame.includes ('h?.Length') || frame.includes ('((string)h)')) problems.push (`92c7 string-receiver call argument: ${frame.replace (/\n/g, ' | ').slice (-400)}`);
+    const argOnly = bare ('g (m) { const h = this.binaryToBase16 (m); return this.read (h, 1); }');
+    if (!argOnly.includes ('object h = ')) problems.push (`92c7 string-receiver call argument: argument-only local retyped: ${argOnly.replace (/\n/g, ' | ').slice (-400)}`);
+    // ral-92c7 R4: a JSON.parse result whose first use (the next statement) needs a map is declared Dictionary
+    const parsedMap = bare ('g (t, a) { const w = JSON.parse (t); w[\'x\'] = a; if (\'m\' in w) { w[\'m\'] = a; } return this.hash (w, 1, 1); }');
+    if (!parsedMap.includes ('Dictionary<string, object> w = ((Dictionary<string, object>)') || parsedMap.includes ('((IDictionary<string,object>)w)')) problems.push (`92c7 JSON.parse map local: ${parsedMap.replace (/\n/g, ' | ').slice (-400)}`);
+    const parsedLater = bare ('g (t, a) { const w = JSON.parse (t); const n = this.hash (a, 1, 1); w[\'x\'] = n; return w; }');
+    if (!parsedLater.includes ('object w = ')) problems.push (`92c7 JSON.parse map local: map use not next retyped: ${parsedLater.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
 

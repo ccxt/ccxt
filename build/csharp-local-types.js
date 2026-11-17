@@ -4637,7 +4637,7 @@ function wsCacheFieldReadType (node) {
         return undefined;
     }
     const member = node.name?.text;
-    if (!WS_CACHE_FIELD_READ_TYPES.includes (member) || isPredictionSource (node)) {
+    if (!WS_CACHE_FIELD_READ_TYPES.includes (member) || (isPredictionSource (node) && !predictionCacheFieldRead92c7 (node, member))) {
         return undefined;
     }
     const source = node.getSourceFile?.();
@@ -7941,7 +7941,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                             && nonNullStringDefaultCall (csharp, parent.right, context))
                             // ral-87c4 R3: the uninitialised `let x: string;` whose every write is such a call
                             || definiteStringDefaultWrites87c4 (csharp, scope, declaration, varName, context));
-                        const guardedSelfWrite = guardedSelfConcatWrite (csharp, declaration, parent.right, csharpType, context);
+                        const guardedSelfWrite = guardedSelfConcatWrite (csharp, declaration, parent.right, csharpType, context) || selfPadWrite92c7 (parent.right, varName, csharpType);
                         if (!selfConcat && !selfStringWrite && !nonNullWrite && !nonNullDefaultWrite && !selfOmit && !selfTernary && !guardedSelfWrite && !assignable (csharpType, selfRead)) {
                             return false;
                         }
@@ -11855,7 +11855,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -21916,7 +21916,7 @@ function nonNullStringCallLocal84c7 (csharp, declaration, context) {
         return undefined;
     }
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
-    if (!nonNullStringCall84c7 (csharp, call, ctx) || localIsCallArgument84c7 (csharp, scope, declaration)) {
+    if (!nonNullStringCall84c7 (csharp, call, ctx) || (localIsCallArgument84c7 (csharp, scope, declaration) && !stringReceiverArgumentLocal92c7 (csharp, scope, declaration))) {
         return undefined;
     }
     if (!writesKeepNonNullString84c7 (csharp, scope, declaration, ctx)) {
@@ -23524,3 +23524,107 @@ const c92UpstreamNullInitWriteValueType = nullInitWriteValueType;
 nullInitWriteValueType = function (csharp, declaration, node) {
     return c92UpstreamNullInitWriteValueType (csharp, declaration, node) ?? c92CopyCycleWriteType (csharp, declaration, node);
 };
+
+// ===== ral-92c7: field and helper results whose consumer is already typed =====
+// R1: `const c = this.positions` in a prediction file: the member is the hand-written
+// `public ccxt.pro.ArrayCache positions` (Exchange.Options.cs, hidden by no prediction class), so
+// the same file census as the pro tree proves the box; `c.append (..)` then binds the cache method.
+function predictionCacheFieldRead92c7 (node, member) {
+    return member === 'positions' && node.parent?.kind === ts.SyntaxKind.VariableDeclaration && node.parent.initializer === node;
+}
+
+// R2: `x = x.padStart (n, c)` / `x.padEnd (..)` on a `string` candidate prints
+// `(x as String).PadLeft (..)`, a non-null string (a null receiver throws in both spellings)
+function selfPadWrite92c7 (value, varName, csharpType) {
+    const v = stripParens (value);
+    const callee = v?.kind === ts.SyntaxKind.CallExpression ? v.expression : undefined;
+    return csharpType === 'string' && callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && (callee.name?.text === 'padStart' || callee.name?.text === 'padEnd')
+        && stripParens (callee.expression)?.kind === ts.SyntaxKind.Identifier && stripParens (callee.expression).text === varName;
+}
+
+// R3: a non-null string helper result that is also handed to calls stays typed only outside the
+// call-site parameter proofs (so no signature moves) and only when it is read as `x.length` or a
+// string-method receiver, which then prints natively instead of through `((string)x)`
+function stringReceiverArgumentLocal92c7 (csharp, scope, declaration) {
+    if (c5ParameterProofDepth > 0) {
+        return false;
+    }
+    const name = declaration.name.text;
+    let hit = false;
+    const visit = (node) => {
+        if (hit) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.PropertyAccessExpression && node !== declaration.name) {
+            const receiver = stripParens (node.expression);
+            const member = node.name?.text;
+            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.text === name
+                    && (member === 'length' || (DICT_ROW_STRING_METHODS.has (member) && node.parent?.kind === ts.SyntaxKind.CallExpression && node.parent.expression === node))) {
+                hit = true;
+                return;
+            }
+        }
+        node.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    return hit;
+}
+
+// R4: `const x = JSON.parse (s)` / `this.parseJson (s)` read only as a map. JsonHelper.ToObject builds
+// a Dictionary<string, object> for a JSON object, so the exact cast names that box. The statement
+// right after the declaration is an element write or Object.keys / values of x, so a non-map
+// value throws InvalidCastException there before and at the declaration now, with nothing in between.
+function jsonParseDictLocal92c7 (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined || isPredictionSource (declaration)) {
+        return undefined;
+    }
+    const call = stripParens (declaration.initializer);
+    const callee = call?.expression;
+    const isParse = call?.kind === ts.SyntaxKind.CallExpression && (call.arguments ?? []).length === 1 && callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && ((callee.expression?.kind === ts.SyntaxKind.Identifier && callee.expression.text === 'JSON' && callee.name?.text === 'parse')
+            || (callee.expression?.kind === ts.SyntaxKind.ThisKeyword && callee.name?.text === 'parseJson' && tsSourceMethodDeclarationCount ('parseJson') === 0));
+    const statement = declaration.parent?.parent;
+    const block = statement?.parent;
+    if (!isParse || statement?.kind !== ts.SyntaxKind.VariableStatement || block?.statements === undefined) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    const index = indexScope (csharp, scope);
+    // the map-requiring use: `x[k] = v` or the argument of Object.keys / Object.values
+    const mapUse = (use) => {
+        let node = use;
+        while (node.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            node = node.parent;
+        }
+        const parent = node.parent;
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === node) {
+            const holder = parent.parent;
+            return holder?.kind === ts.SyntaxKind.BinaryExpression && holder.left === parent && holder.operatorToken.kind === ts.SyntaxKind.EqualsToken;
+        }
+        const objectCall = parent?.kind === ts.SyntaxKind.CallExpression && (parent.arguments ?? []).length === 1 && parent.arguments[0] === node
+            && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression.expression?.kind === ts.SyntaxKind.Identifier
+            && parent.expression.expression.text === 'Object' && (parent.expression.name?.text === 'keys' || parent.expression.name?.text === 'values');
+        return objectCall;
+    };
+    const next = block.statements[block.statements.indexOf (statement) + 1];
+    let first;
+    for (const use of index.identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        if (first === undefined || use.getStart () < first.getStart ()) {
+            first = use;
+        }
+    }
+    if (first === undefined || next === undefined || !mapUse (first) || first.getStart () < next.getStart () || first.getEnd () > next.getEnd ()) {
+        return undefined;
+    }
+    const type = 'Dictionary<string, object>';
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, cast: type } : undefined;
+}
