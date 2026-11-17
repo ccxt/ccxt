@@ -1266,12 +1266,17 @@ impl DydxCore {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         if (since != Value::Null) {
-            request.insert("fromIso".into(), self.iso8601(since.clone()));
+            request.insert("fromISO".into(), self.iso8601(since.clone()));
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
         if (until.is_some()) {
-            request.insert("toIso".into(), self.iso8601(Value::from(until)));
+            request.insert("toISO".into(), self.iso8601(Value::from(until)));
+        }  else if (since != Value::Null) {
+            // the indexer returns the newest candles in the range, so the range ends where the limit does
+            let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut count: Value = (if (limit != Value::Null) { crate::runtime::Math::min(&limit, &Value::Int(1000)) } else { Value::Int(1000) });
+            request.insert("toISO".into(), self.iso8601(self.sum(&[since.clone(), (match (&(duration), &(count)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.indexer_get_candles_perpetual_markets_market(&[__ws_arg_2]).await;
@@ -1360,8 +1365,8 @@ impl DydxCore {
         let mut rows: Vec<Value> = self.safe_list_k(response, "historicalFunding", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_657: bool = true;
-            while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (rows.len() as i64) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { i += 1; } __for_first_659 = false; i < (rows.len() as i64) } {
             let mut entry: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(entry.clone(), "effectiveAt", &[]));
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "ticker", &[]);
@@ -1960,8 +1965,8 @@ impl DydxCore {
         let mut c: Value = self.parse_to_int(m);
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_658: bool = true;
-            while { if !__for_first_658 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_658 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
             r = crate::precise::Precise::stringMul(&r, &n);
         }
         }
@@ -3265,8 +3270,8 @@ impl DydxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { i += 1; } __for_first_659 = false; i < (rows.len() as i64) } {
+            let mut __for_first_661: bool = true;
+            while { if !__for_first_661 { i += 1; } __for_first_661 = false; i < (rows.len() as i64) } {
             let mut account: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut accountId: Option<String> = self.safe_string_k_opt(account.clone(), "subaccountNumber", &[]);
             result.push(Value::Map({

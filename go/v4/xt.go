@@ -5280,20 +5280,30 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = this.SafeSymbol(marketId, marketResolved, nil, marketType)
 	var timestamp *int64 = this.SafeInteger2(order, "time", "createdTime")
-	var quantity *float64 = this.SafeNumber(order, "origQty")
-	var amount any = func() any {
+	var contractSize *string = this.SafeString(marketResolved, "contractSize")
+	var quantity *string = this.SafeString(order, "origQty")
+	// on spot market buy orders executedQty is denominated in the quote
+	// currency, so the filled base amount is only correct in tradeBase
+	var filledQuantity *string = this.SafeString2(order, "tradeBase", "executedQty")
+	var amount *string = func() *string {
 		if marketType == "spot" {
 			return quantity
 		}
-		return Precise.StringMul(this.NumberToString(quantity), this.NumberToString(marketResolved["contractSize"]))
+		return Precise.StringMul(quantity, contractSize)
 	}()
-	var filledQuantity *float64 = this.SafeNumber(order, "executedQty")
-	var filled any = func() any {
+	var filled *string = func() *string {
 		if marketType == "spot" {
 			return filledQuantity
 		}
-		return Precise.StringMul(this.NumberToString(filledQuantity), this.NumberToString(marketResolved["contractSize"]))
+		return Precise.StringMul(filledQuantity, contractSize)
 	}()
+	// leavingQty follows executedQty and is quote-denominated on the same
+	// spot market buy shape, so it is only read when the order carries a
+	// base-denominated origQty - otherwise safeOrder derives it from filled
+	var remaining *string = nil
+	if quantity != nil {
+		remaining = this.SafeString(order, "leavingQty")
+	}
 	var lastUpdatedTimestamp *int64 = this.SafeInteger(order, "updatedTime")
 	var timeInForce *string = this.SafeString(order, "timeInForce")
 	var postOnly any = nil
@@ -5328,7 +5338,7 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 		"lastTradeTimestamp":  lastUpdatedTimestamp,
 		"lastUpdateTimestamp": lastUpdatedTimestamp,
 		"symbol":              symbol,
-		"type":                this.SafeStringLower2(order, "type", "orderType"),
+		"type":                this.ParseOrderType(this.SafeStringLowerN(order, []any{"type", "orderType", "entrustType"})),
 		"timeInForce":         timeInForce,
 		"postOnly":            postOnly,
 		"side":                side,
@@ -5338,8 +5348,8 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 		"takeProfitPrice":     this.SafeNumber(order, "triggerProfitPrice"),
 		"amount":              amount,
 		"filled":              filled,
-		"remaining":           this.SafeNumber(order, "leavingQty"),
-		"cost":                nil,
+		"remaining":           remaining,
+		"cost":                this.SafeString(order, "tradeQuote"),
 		"average":             this.SafeNumber(order, "avgPrice"),
 		"status":              this.ParseOrderStatus(this.SafeString(order, "state")),
 		"fee": map[string]any{
@@ -5348,6 +5358,16 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 		},
 		"trades": nil,
 	}, marketResolved)
+}
+func (this *Xt) ParseOrderType(typeVar *string) *string {
+	var types map[string]any = map[string]any{
+		"stop":                 "limit",
+		"stop_market":          "market",
+		"take_profit":          "limit",
+		"take_profit_market":   "market",
+		"trailing_stop_market": "market",
+	}
+	return this.SafeString(types, typeVar, typeVar)
 }
 func (this *Xt) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -6423,11 +6443,11 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHis
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes479319 []any = r1.Value
-		if retRes479319 == nil {
+		var retRes481419 []any = r1.Value
+		if retRes481419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes479319)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes481419)}
 		}
 		return nil
 	}

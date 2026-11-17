@@ -21,6 +21,8 @@ class bitrue extends bitrue$1["default"] {
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -419,6 +421,9 @@ class bitrue extends bitrue$1["default"] {
         client.resolve(orderbook, messageHash);
     }
     findSwapMarketByWsBaseQuote(wsBaseQuote) {
+        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
+        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
+        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
         if (this.markets === undefined) {
             return undefined;
         }
@@ -467,6 +472,43 @@ class bitrue extends bitrue$1["default"] {
         return rawQuantity * contractSize;
     }
     /**
+     * @ignore
+     * @method
+     * @description sends an unsubscribe request and drops the subscription and its cache
+     * @param {string} subHash the messageHash the watch method subscribed with
+     * @param {string} channel the channel the watch method subscribed to
+     * @param {string} cbId the cb_id the watch method subscribed with
+     * @param {object} subscription the cache to clean, see cleanCache
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true
+     */
+    async unSubscribe(subHash, channel, cbId, subscription, params = {}) {
+        const url = this.urls['api']['ws']['futurePublic'];
+        const client = this.client(url);
+        if (subHash in client.subscriptions) {
+            const request = {
+                'event': 'unsub',
+                'params': {
+                    'cb_id': cbId,
+                    'channel': channel,
+                },
+            };
+            try {
+                await client.send(this.deepExtend(request, params));
+            }
+            catch (e) {
+                // the socket is not open (yet), so the queued subscribe has not gone out either -
+                // keep the subscription instead of letting that subscribe stream unwatched
+                throw new errors.NetworkError(this.id + ' could not unsubscribe ' + subHash + ', the websocket connection is not open');
+            }
+        }
+        // bitrue does not acknowledge an unsubscribe, it just stops streaming the channel,
+        // so the subscription is cleaned up as soon as the request is sent
+        this.cleanCache(subscription);
+        this.cleanUnsubscription(client, subHash, 'unsubscribe:' + subHash);
+        return true;
+    }
+    /**
      * @method
      * @name bitrue#watchTrades
      * @description watches public trades for a swap (futures) market
@@ -508,6 +550,34 @@ class bitrue extends bitrue$1["default"] {
         }
         return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
+    /**
+     * @method
+     * @name bitrue#unWatchTrades
+     * @description unWatches public trades for a swap (futures) market
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+     */
+    async unWatchTrades(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        if (market['swap'] !== true) {
+            throw new errors.NotSupported(this.id + ' unWatchTrades is only supported for swap markets');
+        }
+        const baseIdLower = this.safeStringLower(market, 'baseId');
+        const quoteIdLower = this.safeStringLower(market, 'quoteId');
+        const wsId = 'e_' + baseIdLower + quoteIdLower;
+        const channel = 'market_' + wsId + '_trade_ticker';
+        const subscription = {
+            'topic': 'trades',
+            'symbols': [symbolValue],
+        };
+        return await this.unSubscribe('trades:' + symbolValue, channel, wsId, subscription, params);
+    }
     handleTrades(client, message) {
         //
         //     {
@@ -537,6 +607,12 @@ class bitrue extends bitrue$1["default"] {
         if (symbol === undefined) {
             return;
         }
+        const messageHash = 'trades:' + symbol;
+        if (!(messageHash in client.subscriptions)) {
+            // a late push for a channel that was unwatched - bitrue does not acknowledge
+            // an unsubscribe, so frames it sent before processing it can still arrive
+            return;
+        }
         const tick = this.safeDict(message, 'tick', {});
         const data = this.safeList(tick, 'data', []);
         let appended = false;
@@ -552,7 +628,6 @@ class bitrue extends bitrue$1["default"] {
             appended = true;
         }
         if (appended) {
-            const messageHash = 'trades:' + symbol;
             client.resolve(stored, messageHash);
         }
     }
@@ -626,6 +701,40 @@ class bitrue extends bitrue$1["default"] {
         }
         return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
+    /**
+     * @method
+     * @name bitrue#unWatchOHLCV
+     * @description unWatches OHLCV candles for a swap (futures) market
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        if (market['swap'] !== true) {
+            throw new errors.NotSupported(this.id + ' unWatchOHLCV is only supported for swap markets');
+        }
+        const futuresTimeframes = this.safeDict(this.options, 'futuresTimeframes', {});
+        const interval = this.safeString(futuresTimeframes, timeframe);
+        if (interval === undefined) {
+            throw new errors.NotSupported(this.id + ' unWatchOHLCV does not support timeframe ' + timeframe);
+        }
+        const baseIdLower = this.safeStringLower(market, 'baseId');
+        const quoteIdLower = this.safeStringLower(market, 'quoteId');
+        const wsId = 'e_' + baseIdLower + quoteIdLower;
+        const channel = 'market_' + wsId + '_kline_' + interval;
+        const subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [[symbolValue, timeframe]],
+        };
+        return await this.unSubscribe('ohlcv:' + symbolValue + ':' + timeframe, channel, wsId, subscription, params);
+    }
     handleOHLCV(client, message) {
         //
         //     {
@@ -659,6 +768,11 @@ class bitrue extends bitrue$1["default"] {
         if (timeframe === undefined) {
             return;
         }
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        if (!(messageHash in client.subscriptions)) {
+            // a late push for a channel that was unwatched, see handleTrades
+            return;
+        }
         const tick = this.safeDict(message, 'tick');
         if (tick === undefined) {
             return;
@@ -673,7 +787,6 @@ class bitrue extends bitrue$1["default"] {
         }
         const stored = this.ohlcvs[symbol][timeframe];
         stored.append(parsed);
-        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         client.resolve(stored, messageHash);
     }
     parseWsOHLCV(tick, market = undefined) {

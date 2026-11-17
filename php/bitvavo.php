@@ -215,35 +215,43 @@ class bitvavo extends Exchange {
                 ),
             ),
             'fees' => array(
+                // https://bitvavo.com/en/fees
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
                     'taker' => $this->parse_number('0.0025'),
-                    'maker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.0015'),
                     'tiers' => array(
                         'taker' => array(
                             array( $this->parse_number('0'), $this->parse_number('0.0025') ),
                             array( $this->parse_number('100000'), $this->parse_number('0.0020') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.0016') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0012') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0010') ),
-                            array( $this->parse_number('2500000'), $this->parse_number('0.0008') ),
-                            array( $this->parse_number('5000000'), $this->parse_number('0.0006') ),
-                            array( $this->parse_number('10000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0010') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0008') ),
                             array( $this->parse_number('25000000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0.0002') ),
                         ),
                         'maker' => array(
                             array( $this->parse_number('0'), $this->parse_number('0.0015') ),
                             array( $this->parse_number('100000'), $this->parse_number('0.0010') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.0008') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0008') ),
                             array( $this->parse_number('1000000'), $this->parse_number('0.0005') ),
-                            array( $this->parse_number('2500000'), $this->parse_number('0.0004') ),
-                            array( $this->parse_number('5000000'), $this->parse_number('0.0004') ),
-                            array( $this->parse_number('10000000'), $this->parse_number('0.0003') ),
-                            array( $this->parse_number('25000000'), $this->parse_number('0.0003') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0003') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0001') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('25000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('100000000'), $this->parse_number('0') ),
                         ),
                     ),
+                ),
+                'byCategory' => array(
+                    'B' => array( 'maker' => $this->parse_number('0.0005'), 'taker' => $this->parse_number('0.0005') ),
+                    'C' => array( 'maker' => $this->parse_number('0.001'), 'taker' => $this->parse_number('0.001') ),
+                    'D' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.0001') ),
                 ),
             ),
             'requiredCredentials' => array(
@@ -468,6 +476,8 @@ class bitvavo extends Exchange {
 
     public function parse_markets(mixed $markets) {
         $result = array();
+        $defaultFees = $this->safe_dict($this->fees, 'trading', array());
+        $feesByCategory = $this->safe_dict($this->fees, 'byCategory', array());
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->safe_dict($markets, $i);
             $id = $this->safe_string($market, 'market');
@@ -479,6 +489,8 @@ class bitvavo extends Exchange {
                 continue;
             }
             $status = $this->safe_string($market, 'status');
+            $feeCategory = $this->safe_string($market, 'feeCategory');
+            $fees = $this->safe_dict($feesByCategory, $feeCategory, $defaultFees);
             $result[] = $this->safe_market_structure(array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -503,8 +515,8 @@ class bitvavo extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
-                'taker' => $this->safe_number($this->fees['trading'], 'taker'),
-                'maker' => $this->safe_number($this->fees['trading'], 'maker'),
+                'taker' => $this->safe_number($fees, 'taker'),
+                'maker' => $this->safe_number($fees, 'maker'),
                 'precision' => array(
                     'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityDecimals'))),
                     'price' => $this->safe_number($market, 'tickSize'),

@@ -375,6 +375,7 @@ class binance extends Exchange {
                         'sub-account/universalTransfer' => array( 'cost' => 0.1 ),
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList' => array( 'cost' => 1 ),
                         'sub-account/transaction-statistics' => array( 'cost' => 0.40002 ), // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset' => array( 'cost' => 0.1 ),
                         'managed-subaccount/accountSnapshot' => array( 'cost' => 240 ),
@@ -578,6 +579,8 @@ class binance extends Exchange {
                         'margin/max-leverage' => array( 'cost' => 300 ), // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn' => array( 'cost' => 0.1 ),
                         'sub-account/virtualSubAccount' => array( 'cost' => 0.1 ),
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ),
+                        'sub-account/subAccountApiPermission' => array( 'cost' => 20.001 ),
                         'sub-account/margin/transfer' => array( 'cost' => 4.0002 ), // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable' => array( 'cost' => 0.1 ),
                         'sub-account/futures/enable' => array( 'cost' => 0.1 ),
@@ -718,6 +721,7 @@ class binance extends Exchange {
                         'broker/subAccountApi/ipRestriction/ipList' => array( 'cost' => 1 ),
                         'algo/spot/order' => array( 'cost' => 0.1 ),
                         'algo/futures/order' => array( 'cost' => 0.1 ),
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction/ipList' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     ),
                 ),
@@ -737,6 +741,7 @@ class binance extends Exchange {
                     ),
                     'post' => array(
                         'eth-staking/eth/stake' => array( 'cost' => 15 ), // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction' => array( 'cost' => 20.001 ), // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'loan/flexible/borrow' => array( 'cost' => 40.002 ), // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/flexible/repay' => array( 'cost' => 40.002 ), // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
@@ -6802,7 +6807,16 @@ class binance extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $marketResolved['symbol'];
         $filled = $this->safe_string_n($order, array( 'executedQty', 'filledQty', 'actualQty' ), '0'); // actualQty: algo orders
-        $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt' )); // order of the keys matters here
+        $timestamp = $this->safe_integer_2($order, 'time', 'createTime'); // order of the keys matters here
+        if ($timestamp === null) {
+            // spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            $workingTime = $this->safe_integer($order, 'workingTime');
+            if (($workingTime !== null) && ($workingTime > 0)) {
+                $timestamp = $workingTime;
+            } else {
+                $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'updateTime', 'createdAt' ));
+            }
+        }
         $lastTradeTimestamp = null;
         if ((is_array($order) && array_key_exists('transactTime' ?? '', $order)) || (is_array($order) && array_key_exists('updateTime' ?? '', $order)) || (is_array($order) && array_key_exists('updatedAt' ?? '', $order))) {
             $timestampValue = $this->safe_integer_n($order, array( 'updateTime', 'transactTime', 'updatedAt' ));
@@ -11154,7 +11168,7 @@ class binance extends Exchange {
         $request = array();
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate);
+            return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 1000);
         }
         $defaultType = $this->safe_string_2($this->options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         $type = $this->safe_string($paramsPaginate, 'type', $defaultType);
@@ -13465,9 +13479,37 @@ class binance extends Exchange {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
+        // sometimes it throws this error when providing tickers to fetchTickers
+        // <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+        // <HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+        // <TITLE>ERROR: The request could not be satisfied</TITLE>
+        // </HEAD><BODY>
+        // <H1>414 ERROR</H1>
+        // <H2>The request could not be satisfied.</H2>
+        // <HR noshade size="1px">
+        // Bad request.
+        // We can't connect to the server for this app or website at this time. There might be too much traffic or a configuration error. Try again later, or contact the app or website owner.
+        // <BR clear="all">
+        // If you provide content to customers through CloudFront, you can find steps to troubleshoot and help prevent this error by reviewing the CloudFront documentation.
+        // <BR clear="all">
+        // <HR noshade size="1px">
+        // <PRE>
+        // Generated by cloudfront (CloudFront)
+        // Request ID: ATZljS05bVwYoz1qziqrosYudg-svv4jHXZsFZVH6pM-TNgk0xp-GQ==
+        // </PRE>
+        // <ADDRESS>
+        // </ADDRESS>
+        // </BODY></HTML>
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
+        // only for http codes without a typed error in httpExceptions (e.g. 414), so 403/502/503/504 html pages keep their retryable errors from handleHttpStatusCode
+        $httpCodeString = (string) $code;
+        $isMappedHttpCode = (is_array($this->httpExceptions) && array_key_exists($httpCodeString ?? '', $this->httpExceptions));
+        // matching 'DOCTYPE HTML' at index 2 instead of startsWith ('<!DOCTYPE HTML'), because the "!" inside the literal gets transpiled to "not" in python
+        if (!$isMappedHttpCode && ($body !== null) && (mb_strpos($body, 'DOCTYPE HTML') === 2)) {
+            throw new ExchangeError($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
+        }
         if (($code >= 400) && ($body !== null)) {
             if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
                 throw new InvalidOrder($this->id . ' order cost = amount * price is zero or less ' . $body);

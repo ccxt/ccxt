@@ -2522,8 +2522,13 @@ public partial class binance : ccxt.binance
      */
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
+        // a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
+        // option lookup would consume callerMethodName, so it is resolved once for both lookups below
         parameters ??= new Dictionary<string, object>();
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "watchTickers", "stock", false);
+        IList<object> methodNameparamsMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchTickers");
+        string? methodName = (string)methodNameparamsMethodNameVariable[0];
+        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)methodNameparamsMethodNameVariable[1]);
+        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsMethodName, methodName, "stock", false);
         bool? stock = stockparamsStockVariable.Item1;
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
         object symbolsNormalized = symbols;
@@ -2541,7 +2546,7 @@ public partial class binance : ccxt.binance
             }
             return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
         }
-        (string?, object) channelNameparamsNameVariable = this.handleOptionStringAndParams(paramsStock, "watchTickers", "name", "miniTicker");
+        (string?, object) channelNameparamsNameVariable = this.handleOptionStringAndParams(paramsStock, methodName, "name", "miniTicker");
         string? channelName = channelNameparamsNameVariable.Item1;
         IDictionary<string, object> paramsName = ((IDictionary<string, object>)channelNameparamsNameVariable.Item2);
         if ((channelName == "bookTicker"))
@@ -2574,8 +2579,9 @@ public partial class binance : ccxt.binance
      */
     public async override Task<object> unWatchTickers(IList<object> symbols = null, object parameters = null)
     {
+        // same channel lookup as watchTickers, so that the stream that was subscribed is the one that is unsubscribed
         parameters ??= new Dictionary<string, object>();
-        (string?, object) channelNameparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "name", "ticker");
+        (string?, object) channelNameparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "name", "miniTicker");
         string? channelName = channelNameparamsNameVariable.Item1;
         IDictionary<string, object> paramsName = ((IDictionary<string, object>)channelNameparamsNameVariable.Item2);
         if ((channelName == "bookTicker"))
@@ -2659,8 +2665,11 @@ public partial class binance : ccxt.binance
      */
     public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
+        // read the channel under watchTicker's options, the stream watchTicker subscribed
         parameters ??= new Dictionary<string, object>();
-        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
+        return await this.unWatchTickers(new List<object>() {symbol}, this.extend(parameters, new Dictionary<string, object>() {
+            { "callerMethodName", "watchTicker" },
+        }));
     }
 
     /**

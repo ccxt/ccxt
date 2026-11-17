@@ -54,6 +54,8 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			return
 		}
 		this.UpdateProxySettings() // for now this needs to be here
+		// sign() may return a typed nil pointer (*string) as body; unwrap it, otherwise `body != nil` is true and a literal "null" body is sent (rejected with 403 by cloudfront on GET)
+		body = derefScalar(body)
 
 		// Convert url to string
 		urlStr, ok := url.(string)
@@ -96,6 +98,17 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 				panic("headersOptions should be a map[string]any")
 			}
 
+		}
+
+		// sign() may hand the body over as a *string (a typed nil when there is no body):
+		// a nil pointer boxed in an interface is not nil, so it would be marshalled as
+		// the JSON literal null, and a non-nil pointer would be encoded a second time
+		if bodyPtr, ok := body.(*string); ok {
+			if bodyPtr == nil {
+				body = nil
+			} else {
+				body = *bodyPtr
+			}
 		}
 
 		// check content type for multipart/form-data, used in lighter

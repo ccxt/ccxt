@@ -497,6 +497,9 @@ func (this *Bithumb) Describe() map[string]any {
 			"30m": 30,
 			"1h":  60,
 			"4h":  240,
+			"1d":  "days",
+			"1w":  "weeks",
+			"1M":  "months",
 		},
 		"options": map[string]any{
 			"generation": 2,
@@ -1534,6 +1537,8 @@ func (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+ * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Bithumb) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
@@ -1565,31 +1570,71 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var response any = nil
 	var data any = []any{}
 	if generation == 2 {
-		request["market"] = this.GetGen2MarketId(market)
-		if limit != nil {
-			request["count"] = limit
-		}
-		if timeframe == "1d" {
+		var paginateparamsPaginateVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+		paginate := paginateparamsPaginateVariable[0]
+		var paramsPaginate map[string]any = MapTyped(paginateparamsPaginateVariable[1])
+		if EvalTruthy(paginate) {
 
-			r1 := <-this.PublicGetV1CandlesDays(this.Extend(request, paramsGeneration))
+			r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 200)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			response = r1.Raw
-		} else if timeframe == "1w" {
+			var retRes132823 []any = r1.Value
+			if retRes132823 == nil {
+				ch <- AsyncResult[[]OHLCV]{Value: nil}
+			} else {
+				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes132823)}
+			}
+			return nil
+		}
+		var until *int64 = this.SafeInteger(paramsGeneration, "until")
+		var requestParams any = this.Omit(paramsGeneration, []any{"until", "paginate"})
+		request["market"] = this.GetGen2MarketId(market)
+		// the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+		var count any = 200
+		if limit != nil {
+			count = mathMin(limit, 200)
+		}
+		if (limit != nil) || (since != nil) || (until != nil) {
+			request["count"] = count
+		}
+		// the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+		// and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+		var to any = nil
+		if until != nil {
+			to = this.Sum(until, 1000) // `to` is exclusive with second precision, keep the candle that opens at `until`
+		}
+		if since != nil {
+			var duration int64 = this.ParseTimeframe(timeframe) * 1000
+			var sinceEnd any = this.Sum(since, Multiply(duration, count))
+			if (to == nil) || (IsLessThan(sinceEnd, to)) {
+				to = sinceEnd
+			}
+		}
+		if to != nil {
+			request["to"] = this.Ymdhms(this.Sum(to, 32400000), " ")
+		}
+		if timeframe == "1d" {
 
-			r2 := <-this.PublicGetV1CandlesWeeks(this.Extend(request, paramsGeneration))
+			r2 := <-this.PublicGetV1CandlesDays(this.Extend(request, requestParams))
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
 			response = r2.Raw
-		} else if timeframe == "1M" {
+		} else if timeframe == "1w" {
 
-			r3 := <-this.PublicGetV1CandlesMonths(this.Extend(request, paramsGeneration))
+			r3 := <-this.PublicGetV1CandlesWeeks(this.Extend(request, requestParams))
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
 			response = r3.Raw
+		} else if timeframe == "1M" {
+
+			r4 := <-this.PublicGetV1CandlesMonths(this.Extend(request, requestParams))
+			if r4.Err != nil {
+				panic(r4.Err)
+			}
+			response = r4.Raw
 		} else {
 			var timeframeInteger *int64 = this.SafeInteger(this.Timeframes, timeframe)
 			if timeframeInteger == nil {
@@ -1597,11 +1642,11 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			}
 			request["unit"] = timeframeInteger
 
-			r4 := <-this.PublicGetV1CandlesMinutesUnit(this.Extend(request, paramsGeneration))
-			if r4.Err != nil {
-				panic(r4.Err)
+			r5 := <-this.PublicGetV1CandlesMinutesUnit(this.Extend(request, requestParams))
+			if r5.Err != nil {
+				panic(r5.Err)
 			}
-			response = r4.Raw
+			response = r5.Raw
 		}
 		//
 		//     [
@@ -1639,11 +1684,11 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		request["baseId"] = market["baseId"]
 		request["quoteId"] = market["quoteId"]
 
-		r5 := <-this.PublicGetPublicCandlestickBaseIdQuoteIdInterval(this.Extend(request, paramsGeneration))
-		if r5.Err != nil {
-			panic(r5.Err)
+		r6 := <-this.PublicGetPublicCandlestickBaseIdQuoteIdInterval(this.Extend(request, paramsGeneration))
+		if r6.Err != nil {
+			panic(r6.Err)
 		}
-		response = r5.Raw
+		response = r6.Raw
 		//
 		//     {
 		//         "status": "0000",
@@ -4411,6 +4456,8 @@ func (this *Bithumb) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+ * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Bithumb) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {

@@ -83,7 +83,14 @@ public partial class nado : Exchange
                                 { "cost", 2 },
                             } },
                             { "query", new Dictionary<string, object>() {
-                                { "cost", 1 },
+                                { "cost", 2 },
+                                { "byType", new Dictionary<string, object>() {
+                                    { "status", 1 },
+                                    { "contracts", 1 },
+                                    { "order", 1 },
+                                    { "subaccount_orders", 2 },
+                                    { "subaccount_info", 2 },
+                                } },
                             } },
                             { "edge/query", new Dictionary<string, object>() {
                                 { "cost", 1 },
@@ -91,7 +98,14 @@ public partial class nado : Exchange
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "query", new Dictionary<string, object>() {
-                                { "cost", 1 },
+                                { "cost", 2 },
+                                { "byType", new Dictionary<string, object>() {
+                                    { "status", 1 },
+                                    { "contracts", 1 },
+                                    { "order", 1 },
+                                    { "subaccount_orders", 2 },
+                                    { "subaccount_info", 2 },
+                                } },
                             } },
                             { "edge/query", new Dictionary<string, object>() {
                                 { "cost", 1 },
@@ -113,7 +127,7 @@ public partial class nado : Exchange
                                 { "cost", 2 },
                             } },
                             { "pairs", new Dictionary<string, object>() {
-                                { "cost", 1 },
+                                { "cost", 2 },
                             } },
                             { "orderbook", new Dictionary<string, object>() {
                                 { "cost", 1 },
@@ -124,7 +138,14 @@ public partial class nado : Exchange
                 { "archive", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
                         { "", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 2 },
+                            { "byQuery", new Dictionary<string, object>() {
+                                { "candlesticks", new List<object>() {2, 100} },
+                                { "events", new List<object>() {2, 10} },
+                                { "matches", new List<object>() {2, 10} },
+                                { "orders", new List<object>() {2, 20} },
+                                { "interest_and_funding", new List<object>() {5} },
+                            } },
                         } },
                     } },
                 } },
@@ -132,16 +153,17 @@ public partial class nado : Exchange
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "tickers", new Dictionary<string, object>() {
-                                { "cost", 1 },
+                                { "cost", 2 },
                             } },
                             { "contracts", new Dictionary<string, object>() {
-                                { "cost", 1 },
+                                { "cost", 2 },
                             } },
                             { "trades", new Dictionary<string, object>() {
-                                { "cost", 1 },
+                                { "cost", 4 },
+                                { "byRows", new List<object>() {2, 50} },
                             } },
                             { "symbols", new Dictionary<string, object>() {
-                                { "cost", 1 },
+                                { "cost", 2 },
                             } },
                         } },
                     } },
@@ -3473,6 +3495,59 @@ public partial class nado : Exchange
             return ((string?)((object)(((marketId == null) ? null : marketId.Substring(0, Math.Max(marketId.Length - 5, 0))))));
         }
         return ((string?)((object)(marketId)));
+    }
+
+    public override object calculateRateLimiterCost(IList<object> api, object method, object path, object parameters, object config = null)
+    {
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        config ??= new Dictionary<string, object>();
+        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
+        {
+            object queryType = getValue(parameters, "type");
+            object byType = ((IDictionary<string,object>)config)["byType"];
+            if (inOp(byType, queryType))
+            {
+                return getValue(byType, queryType);
+            }
+        }
+        IDictionary<string, object> byQuery = this.safeDict(config, "byQuery");
+        if ((byQuery != null))
+        {
+            List<object> queryNames = new List<object>(byQuery.Keys);
+            for (int i = 0; i < queryNames.Count; i++)
+            {
+                string? queryName = ((string)queryNames[i]);
+                if (inOp(parameters, queryName))
+                {
+                    List<object> weights = this.safeList(byQuery, queryName, new List<object>() {});
+                    Int64? baseWeight = this.safeInteger(weights, 0, 2);
+                    Int64? rowsPerWeight = this.safeInteger(weights, 1);
+                    if ((rowsPerWeight == null))
+                    {
+                        return baseWeight;
+                    }
+                    IDictionary<string, object> query = this.safeDict(parameters, queryName, new Dictionary<string, object>() {});
+                    Int64? rows = this.safeInteger(query, "limit", 100); // the archive default page
+                    IDictionary<string, object> nestedLimit = this.safeDict(query, "limit"); // the events query sends { 'raw': 100 }
+                    if ((nestedLimit != null))
+                    {
+                        rows = this.safeInteger(nestedLimit, "raw", 100);
+                    }
+                    return this.sum(baseWeight, this.parseToInt(((double?)rows / rowsPerWeight)));
+                }
+            }
+        }
+        List<object> byRows = this.safeList(config, "byRows");
+        if ((byRows != null))
+        {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            Int64? rowsBaseWeight = this.safeInteger(byRows, 0, 2);
+            Int64? rowsDivisor = this.safeInteger(byRows, 1, 50);
+            Int64? rowCount = this.safeInteger(parameters, "limit", 100); // the v2 default page
+            return this.sum(rowsBaseWeight, this.parseToInt(((double?)rowCount / rowsDivisor)));
+        }
+        return this.safeValue(config, "cost", 1);
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

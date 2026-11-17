@@ -127,9 +127,9 @@ var exchange = new Binance(config);
 ```java
 import io.github.ccxt.Exchange;
 
-// Returns Exchange type - no typed methods, but works for any exchange
-Exchange exchange = Exchange.dynamicallyCreateInstance("binance", config);
-Object ticker = exchange.fetchTicker("BTC/USDT").join(); // untyped, returns CompletableFuture
+// Returns BaseExchange; cast to Exchange to get the typed unified methods for any venue
+Exchange exchange = (Exchange) Exchange.dynamicallyCreateInstance("binance", config);
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
 ```
 
 ## Common REST Operations
@@ -162,12 +162,12 @@ CompletableFuture<Ticker> future = exchange.fetchTickerAsync("BTC/USDT", null);
 ### Fetching Order Book
 ```java
 // Full orderbook (typed)
-OrderBook orderbook = exchange.fetchOrderBook("BTC/USDT", null, null);
+OrderBook orderbook = exchange.fetchOrderBook("BTC/USDT");
 System.out.println(orderbook.bids.get(0)); // [price, amount]
 System.out.println(orderbook.asks.get(0)); // [price, amount]
 
 // Limited depth
-OrderBook orderbook = exchange.fetchOrderBook("BTC/USDT", 5L, null);
+OrderBook orderbook = exchange.fetchOrderBook("BTC/USDT", 5L);
 ```
 
 ### Fetching Trades
@@ -178,13 +178,13 @@ for (Trade t : trades) {
     System.out.println(t.datetime + " " + t.side + " " + t.price + " x " + t.amount);
 }
 
-// With optional params (pass null to skip)
-List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, null);
+// Optional positional args: pass null to skip one (since), stop before params
+List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L);
 ```
 
 ### Fetching OHLCV (Candlesticks)
 ```java
-List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 10L, null);
+List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 10L); // typed overloads take up to 4 args
 for (OHLCV c : candles) {
     System.out.println(c.timestamp + " O:" + c.open + " H:" + c.high + " L:" + c.low + " C:" + c.close);
 }
@@ -195,25 +195,25 @@ for (OHLCV c : candles) {
 #### Limit Order
 ```java
 // Buy limit order (typed)
-Order order = exchange.createOrder("BTC/USDT", "limit", "buy", 0.01, 50000.0, null);
+Order order = exchange.createOrder("BTC/USDT", "limit", "buy", 0.01, 50000.0);
 System.out.println(order.id);
 
 // Sell limit order
-Order order = exchange.createOrder("BTC/USDT", "limit", "sell", 0.01, 60000.0, null);
+Order order = exchange.createOrder("BTC/USDT", "limit", "sell", 0.01, 60000.0);
 ```
 
 #### Market Order
 ```java
 // Buy market order
-Order order = exchange.createOrder("BTC/USDT", "market", "buy", 0.01, null, null);
+Order order = exchange.createOrder("BTC/USDT", "market", "buy", 0.01);
 
 // Sell market order
-Order order = exchange.createOrder("BTC/USDT", "market", "sell", 0.01, null, null);
+Order order = exchange.createOrder("BTC/USDT", "market", "sell", 0.01);
 ```
 
 ### Fetching Balance
 ```java
-Balances balance = exchange.fetchBalance((Map<String, Object>) null);
+Balances balance = exchange.fetchBalance();
 // Access via the info map
 System.out.println(balance);
 ```
@@ -227,16 +227,16 @@ List<Order> openOrders = exchange.fetchOpenOrders("BTC/USDT");
 List<Order> closedOrders = exchange.fetchClosedOrders("BTC/USDT");
 
 // Single order by ID
-Order order = exchange.fetchOrder("orderId123", "BTC/USDT", null);
+Order order = exchange.fetchOrder("orderId123", "BTC/USDT");
 ```
 
 ### Canceling Orders
 ```java
 // Cancel single order
-Order cancelled = exchange.cancelOrder("orderId123", "BTC/USDT", null);
+Order cancelled = exchange.cancelOrder("orderId123", "BTC/USDT");
 
 // Cancel all orders for a symbol
-List<Order> cancelled = exchange.cancelAllOrders("BTC/USDT", null);
+List<Order> cancelled = exchange.cancelAllOrdersAsync("BTC/USDT", null).join(); // no typed sync overload
 ```
 
 ## Exchange-Specific (Implicit) API
@@ -344,11 +344,38 @@ CompletableFuture.allOf(
 
 Every typed `fetch*` and `watch*` method has a matching `*Async` overload at every supported arity, including zero-arg (where the method allows it). Same return-type symmetry: `Ticker fetchTicker(...)` ↔ `CompletableFuture<Ticker> fetchTickerAsync(...)`; `Tickers watchTickers(...)` ↔ `CompletableFuture<Tickers> watchTickersAsync(...)`.
 
-### 3. Untyped (CompletableFuture\<Object\>)
+### 3. Full-arity calls (CompletableFuture)
 ```java
-Exchange exchange = Exchange.dynamicallyCreateInstance("binance", null);
-Object result = exchange.fetchTicker("BTC/USDT").join();
+// passing params (even null) selects the full-arity overload, which returns a future
+Exchange exchange = (Exchange) Exchange.dynamicallyCreateInstance("binance", null);
+Ticker result = exchange.fetchTicker("BTC/USDT", new HashMap<>()).join();
 ```
+
+## Testnet, Capabilities, Precision and Pagination
+
+```java
+Binance exchange = new Binance();
+exchange.apiKey = "...";
+exchange.secret = "...";
+exchange.setSandboxMode(true);          // right after construction; NotSupported if no testnet
+
+// capability flags and finer-grained features (keys stay camelCase)
+Object supported = exchange.has.get("fetchOHLCV");   // true | false | "emulated"
+Object spotFeatures = exchange.features.get("spot"); // createOrder params, fetch limits, ...
+
+// round to the market's precision before ordering (returns strings)
+exchange.loadMarkets(false);
+String amount = exchange.amountToPrecision("BTC/USDT", 0.0012345);
+String price = exchange.priceToPrecision("BTC/USDT", 64123.456789);
+
+// let CCXT paginate history for you
+Map<String, Object> params = new HashMap<>();
+params.put("paginate", true);
+// with params use the *Async overload and join (the 5-arg fetchOHLCV returns a CompletableFuture)
+List<OHLCV> history = exchange.fetchOHLCVAsync("BTC/USDT", "1d", 1704067200000L, null, params).join();
+```
+
+Conditional orders use unified `params` keys on `createOrder`: `triggerPrice`, `stopLossPrice`, `takeProfitPrice`, `reduceOnly`, `postOnly`, `clientOrderId`. Every `watch*` stream has an `unWatch*` (for example `unWatchTicker(symbol, params)`); `close()` stops them all. Always test orders on a testnet or at the minimum size first.
 
 ## Complete Method Reference
 
@@ -401,7 +428,7 @@ Object result = exchange.fetchTicker("BTC/USDT").join();
 
 ### Deposits & Withdrawals
 - `fetchDepositAddress(code, params)` - Get deposit address
-- `withdraw(code, amount, address, tag, params)` - Withdraw funds
+- `withdraw(code, amount, address, params)` - Withdraw funds (memo/tag and network go in params: `tag`, `network`)
 - `transfer(code, amount, fromAccount, toAccount, params)` - Internal transfer
 - `fetchDeposits(code, since, limit, params)` - Fetch deposit history
 - `fetchWithdrawals(code, since, limit, params)` - Fetch withdrawal history
@@ -424,14 +451,14 @@ All REST methods have WebSocket equivalents with `watch*` prefix:
 
 ### Optional Parameters
 
-Java typed methods use null for optional parameters:
+Typed sync overloads stop **before** `params`; pass `null` to skip an optional positional argument. Any call that passes `params` (even `null`) resolves to the full-arity overload, which returns a `CompletableFuture`. Use the `*Async` form and `.join()`:
 
 ```java
-// Full params
-List<Trade> trades = exchange.fetchTrades("BTC/USDT", sinceTimestamp, 100L, extraParams);
+// With params: *Async + join
+List<Trade> trades = exchange.fetchTradesAsync("BTC/USDT", sinceTimestamp, 100L, extraParams).join();
 
-// Skip optional params with null
-List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 100L, null);
+// Skip an optional positional arg with null, no params
+List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 100L);
 
 // Convenience overload (required params only)
 List<Trade> trades = exchange.fetchTrades("BTC/USDT");
@@ -454,7 +481,7 @@ exchange.secret = System.getenv("BINANCE_SECRET");
 ### Testing Authentication
 ```java
 try {
-    Balances balance = exchange.fetchBalance((Map<String, Object>) null);
+    Balances balance = exchange.fetchBalance();
     System.out.println("Authentication successful!");
 } catch (CompletionException e) {
     if (e.getCause() instanceof AuthenticationError) {
@@ -518,24 +545,21 @@ No `CompletionException` boilerplate, no `.getCause()` unwrap needed.
    catch (BaseError e) { ... }
    ```
 
-2. **Passing `null` to a sync method can be ambiguous** for the 13 zero-required-param methods
-   (`fetchBalance`, `fetchOrders`, `fetchMyTrades`, `fetchOpenOrders`, `fetchClosedOrders`,
-   `fetchCanceledOrders`, `fetchTime`, `fetchStatus`, `fetchTickers`, `fetchPositions`,
-   `fetchAccounts`, `fetchCurrencies`, `fetchMarkets`) plus their `*Ws` siblings. These ship both
-   a typed `fetchX(Map<String, Object> params)` and the base `fetchX(Object...)` varargs, so a
-   bare `null` matches both:
+2. **Passing `params` (or `null` in its place) returns a `CompletableFuture`.** Typed sync
+   overloads stop before `params`, so `fetchBalance()` returns `Balances`, but
+   `fetchBalance(params)` and `fetchBalance((Map<String, Object>) null)` resolve to the full-arity
+   method, which returns `CompletableFuture<Balances>`. The same holds for every method
+   (`createOrder(..., price, params)`, `fetchOHLCV(..., limit, params)`, ...):
    ```java
-   // ❌ "reference to fetchBalance is ambiguous"
-   exchange.fetchBalance(null);
+   // ❌ incompatible types: CompletableFuture<Balances> cannot be converted to Balances
+   Balances b = exchange.fetchBalance((Map<String, Object>) null);
 
-   // ✅ use the typed zero-arg overload (these 13 methods ship one)
-   exchange.fetchBalance();
+   // ✅ typed overload without params
+   Balances b = exchange.fetchBalance();
 
-   // ✅ or cast to disambiguate (always works)
-   exchange.fetchBalance((Map<String, Object>) null);
+   // ✅ with params: the *Async overload, then join
+   Balances b = exchange.fetchBalanceAsync(params).join();
    ```
-   Same applies to `fetchBalanceAsync(null)` etc. For methods outside the list, the typed
-   zero-arg form doesn't exist — pass an explicit argument or use the cast form.
 
 3. **The JVM stays alive after `main()` returns** because of internal HTTP/scheduler threads
    (Netty event loop, virtual-thread executors per WS connection). Call `exchange.close()` to
@@ -548,7 +572,7 @@ Multi-catch and ordering work exactly as JDK conventions expect:
 
 ```java
 try {
-    Order order = exchange.createOrder("BTC/USDT", "limit", "buy", 0.01, 50000.0, null);
+    Order order = exchange.createOrder("BTC/USDT", "limit", "buy", 0.01, 50000.0);
 } catch (InsufficientFunds e) {
     System.out.println("Not enough balance: " + e.getMessage());
 } catch (InvalidOrder e) {                                  // covers OrderNotFound, DuplicateOrderId, etc.
@@ -581,7 +605,7 @@ and pattern-match the underlying ccxt error:
 import io.github.ccxt.Helpers;
 
 exchange.fetchTickerAsync("BTC/USDT")
-    .thenAccept(t -> System.out.println(t.last()))
+    .thenAccept(t -> System.out.println(t.last))
     .exceptionally(throwable -> {
         Throwable cause = Helpers.unwrap(throwable);          // peels CompletionException
         return switch (cause) {                                // pattern-matching switch (Java 21+)
@@ -630,18 +654,19 @@ exchange.socksProxy = "socks://your-proxy-host:port";
 Binance exchange = new Binance();
 Ticker ticker = exchange.fetchTicker("BTC/USDT");  // returns Ticker
 
-// Untyped - generic Exchange reference
-Exchange exchange = Exchange.dynamicallyCreateInstance("binance", null);
-Object result = exchange.fetchTicker("BTC/USDT").join();  // returns Object
+// Dynamic - any venue by id; cast the BaseExchange to Exchange for the typed methods
+Exchange exchange = (Exchange) Exchange.dynamicallyCreateInstance("binance", null);
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
 ```
 
-### Null for Optional Parameters
+### Passing params changes the return type
 ```java
-// Wrong - ambiguous with varargs
-exchange.fetchBalance(null);
+// Wrong - passing params (or null for it) picks the full-arity overload: a CompletableFuture
+Balances balance = exchange.fetchBalance((Map<String, Object>) null); // does not compile
 
-// Correct - cast null to specific type
-exchange.fetchBalance((Map<String, Object>) null);
+// Correct - typed overload without params, or *Async + join when you need params
+Balances balance = exchange.fetchBalance();
+Balances withParams = exchange.fetchBalanceAsync(params).join();
 ```
 
 ### Wrong Symbol Format
@@ -710,7 +735,7 @@ import io.github.ccxt.exchanges.prediction.Polymarket;
 import io.github.ccxt.types.PredictionOrder;
 
 Polymarket exchange = new Polymarket();
-exchange.loadMarkets();
+exchange.loadMarkets(false);
 // discover events -> markets -> outcomes (each outcome has: outcome (handle),
 // outcomeId, market, label); fetchEvents / fetchEvent are available too
 // an outcome handle looks like 'TRUMP_OUT_PRESIDENT_2027:YES'

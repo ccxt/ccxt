@@ -2053,11 +2053,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut type_var: Value = Value::Null;
-        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params, type_var.clone()]).as_array().cloned().unwrap_or_default();
+        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut typeMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var == Value::Null) || (typeMarketType == Value::Null) {
+        if (typeMarketType == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a market type".into()))));
         }
         self.authenticate(&[typeMarketType.clone(), paramsMarketType]).await;
@@ -2476,11 +2475,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
         }
         let mut messageHash: Value = Value::Str("orders".into());
-        let mut type_var: Value = Value::Null;
-        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone(), params, type_var.clone()]).as_array().cloned().unwrap_or_default();
+        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut typeMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var == Value::Null) || (typeMarketType == Value::Null) {
+        if (typeMarketType == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a market type".into()))));
         }
         self.authenticate(&[typeMarketType.clone(), paramsMarketType]).await;
@@ -2531,11 +2529,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
         }
         let mut messageHash: Value = Value::Str("myTrades".into());
-        let mut type_var: Value = Value::Null;
-        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone(), params, type_var.clone()]).as_array().cloned().unwrap_or_default();
+        let typeMarketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut typeMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = typeMarketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (type_var == Value::Null) || (typeMarketType == Value::Null) {
+        if (typeMarketType == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a market type".into()))));
         }
         self.authenticate(&[typeMarketType.clone(), paramsMarketType]).await;

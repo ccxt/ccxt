@@ -446,7 +446,7 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(100));
-        m.insert("daysBack".to_string(), Value::Int(100000));
+        m.insert("daysBack".to_string(), Value::Int(90));
         m.insert("untilDays".to_string(), Value::Int(1));
         m.insert("symbolRequired".to_string(), Value::Bool(true));
     m
@@ -466,8 +466,8 @@ impl P2bCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("limit".to_string(), Value::Int(100));
-        m.insert("daysBack".to_string(), Value::Int(100000));
-        m.insert("daysBackCanceled".to_string(), (match ((Value::Int(1)).as_f64(), (Value::Int(12)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        m.insert("daysBack".to_string(), Value::Int(90));
+        m.insert("daysBackCanceled".to_string(), Value::Null);
         m.insert("untilDays".to_string(), Value::Int(1));
         m.insert("trigger".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -1096,7 +1096,7 @@ impl P2bCore {
             m
         });
         if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_market_kline(&[__ws_arg_3]).await;
@@ -1199,8 +1199,8 @@ impl P2bCore {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1040: bool = true;
-            while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1043: bool = true;
+            while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (keys.len() as i64) } {
             let mut currencyId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict(response.clone(), currencyId.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1687,8 +1687,8 @@ impl P2bCore {
         let mut keys: Vec<Value> = Value::Array(result.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1041: bool = true;
-            while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1044: bool = true;
+            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketOrders: Value = result.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: Value = self.parse_orders(marketOrders, &[market.clone(), sinceResolved.clone(), limit.clone()]);

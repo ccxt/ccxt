@@ -142,6 +142,8 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 **read** — `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
 
+`search_markets` returns full market rows (~450 characters each, max 100 per call) by default. Pass `fields` to get compact rows — `["symbol"]` lists every okx USDT-settled swap (528) in one ~15k-character call instead of six calls and ~240k characters — and the max limit rises with how compact the rows are (up to 1000). `meta` always carries `returned`/`available`/`offset`/`hasMore`, plus `nextOffset` when there is more, `limitClamped` when the requested limit was reduced, and `marketTypes` (the types the exchange actually has) when nothing matched.
+
 **trading** — `create_order`, `edit_order`, `cancel_order`, `cancel_all_orders`, `set_leverage`, `set_margin_mode`, `call_write_method` (allowlisted long tail: margin/position/batch-cancel ops), `execute_route` (executes a `fetch_route` result with ccxt's `OrderRouter` across your accounts — every order still bound by that account's caps, symbol lists and confirmation).
 
 **funds** — `withdraw`, `transfer`, `get_deposit_address`. **implicitWrites** — `call_implicit_write`.

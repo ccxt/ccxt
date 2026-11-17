@@ -1064,7 +1064,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             if (((limit != null && limit == 1)) || ((limit != null && limit == 5)) || ((limit != null && limit == 15)) || ((limit != null && limit == 50)))
             {
                 channel = (channel + String.valueOf(limit));
-                incrementalFeed = false;
+                // books50 sends a snapshot first and incremental updates afterwards
+                incrementalFeed = ((limit != null && limit == 50));
             }
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -1179,7 +1180,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             return;
         }
         Long timestamp = this.safeInteger(rawOrderBook, "ts");
-        Boolean incrementalBook = (java.util.Objects.equals(channel, "books"));
+        Boolean incrementalBook = ((java.util.Objects.equals(channel, "books")) || (java.util.Objects.equals(channel, "books50")));
         if (Boolean.TRUE.equals(incrementalBook))
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);

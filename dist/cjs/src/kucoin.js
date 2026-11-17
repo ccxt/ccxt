@@ -755,6 +755,7 @@ class kucoin extends kucoin$1["default"] {
                     '411100': errors.AccountSuspended,
                     '415000': errors.BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                     '400303': errors.PermissionDenied, // {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
+                    '400304': errors.PermissionDenied, // {"msg":"To enjoy the full range of our products and services, log in to your master account and complete the identity verification process.","code":"400304"}
                     '500000': errors.ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
                     '260220': errors.InvalidAddress, // { "code": "260220", "msg": "deposit.address.not.exists" }
                     '600100': errors.InsufficientFunds, // {"msg":"Funds below the minimum requirement.","code":"600100"}

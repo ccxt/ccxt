@@ -574,7 +574,7 @@ class kalshi extends Exchange {
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         $result = $this->safe_string_lower($raw, 'result');
         $resolved = ($status === 'settled') || (($result !== null) && ($result !== ''));
-        $endDate = $this->safe_string($raw, 'expiration_time');
+        $endDate = $this->safe_string_2($raw, 'latest_expiration_time', 'expiration_time');
         $volume = $this->safe_number_2($raw, 'volume_fp', 'volume');
         $liquidity = $this->safe_number_2($raw, 'liquidity_dollars', 'liquidity');
         $openInt = $this->safe_number_2($raw, 'open_interest_fp', 'open_interest');

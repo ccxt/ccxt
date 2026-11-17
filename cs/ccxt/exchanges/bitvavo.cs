@@ -303,10 +303,24 @@ public partial class bitvavo : Exchange
                     { "tierBased", true },
                     { "percentage", true },
                     { "taker", this.parseNumber("0.0025") },
-                    { "maker", this.parseNumber("0.002") },
+                    { "maker", this.parseNumber("0.0015") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0020")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0004")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0003")}} },
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0020")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0002")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0")}} },
+                    } },
+                } },
+                { "byCategory", new Dictionary<string, object>() {
+                    { "B", new Dictionary<string, object>() {
+                        { "maker", this.parseNumber("0.0005") },
+                        { "taker", this.parseNumber("0.0005") },
+                    } },
+                    { "C", new Dictionary<string, object>() {
+                        { "maker", this.parseNumber("0.001") },
+                        { "taker", this.parseNumber("0.001") },
+                    } },
+                    { "D", new Dictionary<string, object>() {
+                        { "maker", this.parseNumber("0") },
+                        { "taker", this.parseNumber("0.0001") },
                     } },
                 } },
             } },
@@ -536,6 +550,8 @@ public partial class bitvavo : Exchange
     public override IList<object> parseMarkets(object markets)
     {
         List<object> result = new List<object>() {};
+        IDictionary<string, object> defaultFees = this.safeDict(this.fees, "trading", new Dictionary<string, object>() {});
+        IDictionary<string, object> feesByCategory = this.safeDict(this.fees, "byCategory", new Dictionary<string, object>() {});
         for (int i = 0; i < getArrayLength(markets); i++)
         {
             IDictionary<string, object> market = this.safeDict(markets, i);
@@ -549,6 +565,8 @@ public partial class bitvavo : Exchange
                 continue;
             }
             string? status = this.safeString(market, "status");
+            string? feeCategory = this.safeString(market, "feeCategory");
+            IDictionary<string, object> fees = this.safeDict(feesByCategory, feeCategory, defaultFees);
             result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", ((bs + "/") + quote) },
@@ -573,8 +591,8 @@ public partial class bitvavo : Exchange
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
-                { "taker", this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker") },
-                { "maker", this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker") },
+                { "taker", this.safeNumber(fees, "taker") },
+                { "maker", this.safeNumber(fees, "maker") },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityDecimals"))) },
                     { "price", this.safeNumber(market, "tickSize") },

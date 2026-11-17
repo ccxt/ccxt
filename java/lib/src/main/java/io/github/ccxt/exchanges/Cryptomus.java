@@ -12,7 +12,6 @@ import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.Ticker;
-import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
 import io.github.ccxt.types.TradingFees;
 import java.util.ArrayList;
@@ -98,7 +97,7 @@ public class Cryptomus extends CryptomusApi
                 put( "fetchConvertTradeHistory", false );
                 put( "fetchCrossBorrowRate", false );
                 put( "fetchCrossBorrowRates", false );
-                put( "fetchCurrencies", true );
+                put( "fetchCurrencies", false );
                 put( "fetchDepositAddress", false );
                 put( "fetchDeposits", false );
                 put( "fetchDepositsWithdrawals", false );
@@ -139,7 +138,7 @@ public class Cryptomus extends CryptomusApi
                 put( "fetchOption", false );
                 put( "fetchOptionChain", false );
                 put( "fetchOrder", true );
-                put( "fetchOrderBook", true );
+                put( "fetchOrderBook", false );
                 put( "fetchOrders", false );
                 put( "fetchOrderTrades", false );
                 put( "fetchPosition", false );
@@ -152,10 +151,10 @@ public class Cryptomus extends CryptomusApi
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
                 put( "fetchStatus", false );
-                put( "fetchTicker", false );
-                put( "fetchTickers", true );
+                put( "fetchTicker", true );
+                put( "fetchTickers", false );
                 put( "fetchTime", false );
-                put( "fetchTrades", true );
+                put( "fetchTrades", false );
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", true );
                 put( "fetchTransactions", false );
@@ -192,9 +191,6 @@ public class Cryptomus extends CryptomusApi
                         put( "v2/user-api/exchange/markets", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "v2/user-api/exchange/market/price", new HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
                         put( "v2/user-api/exchange/markets/price", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -202,9 +198,6 @@ public class Cryptomus extends CryptomusApi
                             put( "cost", 1 );
                         }} );
                         put( "v1/exchange/market/order-book/{currencyPair}", new HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
-                        put( "v1/exchange/market/tickers", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "v1/exchange/market/trades/{currencyPair}", new HashMap<String, Object>() {{
@@ -349,7 +342,9 @@ public class Cryptomus extends CryptomusApi
                     put( "Insufficient funds.", InsufficientFunds.class );
                     put( "Minimum amount 15 USDT", InvalidOrder.class );
                 }} );
-                put( "broad", new HashMap<String, Object>() {{}} );
+                put( "broad", new HashMap<String, Object>() {{
+                    put( "Market ", BadSymbol.class );
+                }} );
             }} );
             put( "precisionMode", TICK_SIZE );
             put( "requiredCredentials", new HashMap<String, Object>() {{
@@ -364,7 +359,7 @@ public class Cryptomus extends CryptomusApi
      * @method
      * @name cryptomus#fetchMarkets
      * @description retrieves data on all markets for the exchange
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
+     * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -578,14 +573,14 @@ public class Cryptomus extends CryptomusApi
 
     /**
      * @method
-     * @name cryptomus#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @name cryptomus#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.cryptomus.com/methods/exchange/get-current-market-price
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -594,23 +589,18 @@ public class Cryptomus extends CryptomusApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> response = (this.publicGetV1ExchangeMarketTickers(parameters)).join();
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", market.get("id") );
+            }};
+            Map<String, Object> response = (this.publicGetV2UserApiExchangeMarketsPrice(this.extend(request, parameters))).join();
             //
             //     {
-            //         "data": [
-            //         {
-            //             "currency_pair": "MATIC_USDT",
-            //             "last_price": "0.342",
-            //             "base_volume": "1676.84092771",
-            //             "quote_volume": "573.48033609043"
-            //         },
-            //         ...
+            //         "price": "78450.4"
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
-            return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
-        }).thenApply(Tickers::new);
+            return this.parseTicker(response, market);
+        }).thenApply(Ticker::new);
 
     }
 
@@ -618,15 +608,11 @@ public class Cryptomus extends CryptomusApi
     {
         //
         //     {
-        //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829772",
-        //         "base_volume": "0.35185785",
-        //         "quote_volume": "55.523761128544"
+        //         "price": "78450.4"
         //     }
         //
-        String marketId = this.safeString(ticker, "currency_pair");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String last = this.safeString(ticker, "last_price");
+        Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
+        String last = this.safeString(ticker, "price");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
             put( "timestamp", null );
@@ -645,8 +631,8 @@ public class Cryptomus extends CryptomusApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", Cryptomus.this.safeString(ticker, "base_volume") );
-            put( "quoteVolume", Cryptomus.this.safeString(ticker, "quote_volume") );
+            put( "baseVolume", null );
+            put( "quoteVolume", null );
             put( "info", ticker );
         }}, marketResolved);
     }
@@ -1448,6 +1434,7 @@ public class Cryptomus extends CryptomusApi
         {
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         } else if (!java.util.Objects.equals(message, null))
         {

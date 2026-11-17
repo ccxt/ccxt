@@ -650,6 +650,9 @@ public class Binance extends BinanceApi
                         put( "sub-account/transaction-statistics", new HashMap<String, Object>() {{
                             put( "cost", 0.40002 );
                         }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
                         put( "sub-account/subAccountApi/ipRestriction", new HashMap<String, Object>() {{
                             put( "cost", 20.001 );
                         }} );
@@ -1196,6 +1199,12 @@ public class Binance extends BinanceApi
                         put( "sub-account/virtualSubAccount", new HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
+                        put( "sub-account/subAccountApiPermission", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
                         put( "sub-account/margin/transfer", new HashMap<String, Object>() {{
                             put( "cost", 4.0002 );
                         }} );
@@ -1566,6 +1575,9 @@ public class Binance extends BinanceApi
                         put( "algo/futures/order", new HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
                         put( "sub-account/subAccountApi/ipRestriction/ipList", new HashMap<String, Object>() {{
                             put( "cost", 20.001 );
                         }} );
@@ -1610,6 +1622,9 @@ public class Binance extends BinanceApi
                     put( "post", new HashMap<String, Object>() {{
                         put( "eth-staking/eth/stake", new HashMap<String, Object>() {{
                             put( "cost", 15 );
+                        }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
                         }} );
                         put( "sub-account/subAccountApi/ipRestriction", new HashMap<String, Object>() {{
                             put( "cost", 20.001 );
@@ -8787,7 +8802,19 @@ public class Binance extends BinanceApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String symbol = (String) marketResolved.get("symbol");
         String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("executedQty", "filledQty", "actualQty")), "0"); // actualQty: algo orders
-        Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"))); // order of the keys matters here
+        Long timestamp = this.safeInteger2(order, "time", "createTime"); // order of the keys matters here
+        if (java.util.Objects.equals(timestamp, null))
+        {
+            // spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            Long workingTime = this.safeInteger(order, "workingTime");
+            if ((!java.util.Objects.equals(workingTime, null)) && ((workingTime != null && workingTime > 0)))
+            {
+                timestamp = workingTime;
+            } else
+            {
+                timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("transactTime", "updateTime", "createdAt")));
+            }
+        }
         Long lastTradeTimestamp = null;
         if ((((Map<?, ?>)order).containsKey("transactTime")) || (((Map<?, ?>)order).containsKey("updateTime")) || (((Map<?, ?>)order).containsKey("updatedAt")))
         {
@@ -13721,7 +13748,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
             }
             String defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "swap");
             String type = this.safeString(paramsPaginate, "type", defaultType);
@@ -16395,9 +16422,38 @@ public class Binance extends BinanceApi
         {
             throw new DDoSProtection(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
         }
+        // sometimes it throws this error when providing tickers to fetchTickers
+        // <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+        // <HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+        // <TITLE>ERROR: The request could not be satisfied</TITLE>
+        // </HEAD><BODY>
+        // <H1>414 ERROR</H1>
+        // <H2>The request could not be satisfied.</H2>
+        // <HR noshade size="1px">
+        // Bad request.
+        // We can't connect to the server for this app or website at this time. There might be too much traffic or a configuration error. Try again later, or contact the app or website owner.
+        // <BR clear="all">
+        // If you provide content to customers through CloudFront, you can find steps to troubleshoot and help prevent this error by reviewing the CloudFront documentation.
+        // <BR clear="all">
+        // <HR noshade size="1px">
+        // <PRE>
+        // Generated by cloudfront (CloudFront)
+        // Request ID: ATZljS05bVwYoz1qziqrosYudg-svv4jHXZsFZVH6pM-TNgk0xp-GQ==
+        // </PRE>
+        // <ADDRESS>
+        // </ADDRESS>
+        // </BODY></HTML>
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
+        // only for http codes without a typed error in httpExceptions (e.g. 414), so 403/502/503/504 html pages keep their retryable errors from handleHttpStatusCode
+        String httpCodeString = String.valueOf(code);
+        Boolean isMappedHttpCode = (((Map<?, ?>)this.httpExceptions).containsKey(httpCodeString));
+        // matching 'DOCTYPE HTML' at index 2 instead of startsWith ('<!DOCTYPE HTML'), because the "!" inside the literal gets transpiled to "not" in python
+        if (!Boolean.TRUE.equals(isMappedHttpCode) && (!java.util.Objects.equals(body, null)) && ((((String)body).indexOf("DOCTYPE HTML") == 2)))
+        {
+            throw new ExchangeError(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
+        }
         if (((code != null && ((Number) code).doubleValue() >= 400)) && (!java.util.Objects.equals(body, null)))
         {
             if (((String)body).indexOf("Price * QTY is zero or less") >= 0)

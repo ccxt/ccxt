@@ -261,7 +261,7 @@ func (this *P2b) Describe() map[string]any {
 				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
-					"daysBack":       100000,
+					"daysBack":       90,
 					"untilDays":      1,
 					"symbolRequired": true,
 				},
@@ -277,8 +277,8 @@ func (this *P2b) Describe() map[string]any {
 				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            100,
-					"daysBack":         100000,
-					"daysBackCanceled": float64(1) / 12,
+					"daysBack":         90,
+					"daysBackCanceled": nil,
 					"untilDays":        1,
 					"trigger":          false,
 					"trailing":         false,
@@ -920,7 +920,7 @@ func (this *P2b) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		"interval": timeframe,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = mathMin(limit, 500)
 	}
 
 	r1 := <-this.PublicGetMarketKline(this.Extend(request, params))

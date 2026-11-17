@@ -641,6 +641,7 @@ class bingx extends bingx$1["default"] {
                     '100490': errors.BadSymbol, // spot trading pair is offline
                     '101481': errors.DuplicateOrderId,
                     '109201': errors.DuplicateOrderId,
+                    '104414': errors.BadRequest, // {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400': errors.BadRequest, // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418': errors.BadSymbol, // trading pair is offline and cannot be ordered through the api
                     '109421': errors.OrderNotFound,
@@ -1228,7 +1229,9 @@ class bingx extends bingx$1["default"] {
         const maxLimit = (this.safeBool(market, 'inverse', false)) ? 1000 : 1440;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            const paginationLimit = (timeframe === '1m') ? maxLimit : 1000;
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, paginationLimit);
         }
         const request = {
             'symbol': market['id'],
@@ -1244,7 +1247,13 @@ class bingx extends bingx$1["default"] {
         const until = this.safeInteger2(paramsPaginate, 'until', 'endTime');
         const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
         if (until !== undefined) {
-            request['endTime'] = until;
+            let endTime = until;
+            if (since !== undefined) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                endTime = Math.min(until, this.sum(since, duration * requestLimit));
+            }
+            request['endTime'] = endTime;
         }
         else if ((this.safeBool(market, 'inverse', false)) && (since !== undefined)) {
             const duration = this.parseTimeframe(timeframe) * 1000;
@@ -2149,7 +2158,7 @@ class bingx extends bingx$1["default"] {
         };
         let response;
         if (this.safeBool(market, 'spot', false)) {
-            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+            response = await this.spotV2PublicGetQuoteTicker(this.extend(request, params));
         }
         else {
             if (this.safeBool(market, 'inverse', false)) {
@@ -2266,7 +2275,7 @@ class bingx extends bingx$1["default"] {
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchTickers', market, paramsMarketType);
         let response;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr(paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker(paramsSubType);
         }
         else {
             if (subType === 'inverse') {
@@ -5315,7 +5324,20 @@ class bingx extends bingx$1["default"] {
         }
         else {
             const isTwapOrder = this.safeBool(paramsStandard, 'twap', false);
-            const paramsOmitted = this.omit(paramsStandard, 'twap');
+            let paramsOmitted = this.omit(paramsStandard, 'twap');
+            if (!isTwapOrder) {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min(limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                const until = this.safeInteger(paramsOmitted, 'until');
+                if (until !== undefined) {
+                    request['endTime'] = until;
+                    paramsOmitted = this.omit(paramsOmitted, 'until');
+                }
+            }
             if (isTwapOrder) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = (limit === undefined) ? 100 : limit;
@@ -7215,7 +7237,7 @@ class bingx extends bingx$1["default"] {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommissionRate'),
             'taker': this.safeNumber(fee, 'takerCommissionRate'),
-            'percentage': false,
+            'percentage': true,
             'tierBased': false,
         };
     }

@@ -92,7 +92,14 @@ func (this *Nado) Describe() map[string]any {
 							"cost": 2,
 						},
 						"query": map[string]any{
-							"cost": 1,
+							"cost": 2,
+							"byType": map[string]any{
+								"status":            1,
+								"contracts":         1,
+								"order":             1,
+								"subaccount_orders": 2,
+								"subaccount_info":   2,
+							},
 						},
 						"edge/query": map[string]any{
 							"cost": 1,
@@ -100,7 +107,14 @@ func (this *Nado) Describe() map[string]any {
 					},
 					"post": map[string]any{
 						"query": map[string]any{
-							"cost": 1,
+							"cost": 2,
+							"byType": map[string]any{
+								"status":            1,
+								"contracts":         1,
+								"order":             1,
+								"subaccount_orders": 2,
+								"subaccount_info":   2,
+							},
 						},
 						"edge/query": map[string]any{
 							"cost": 1,
@@ -122,7 +136,7 @@ func (this *Nado) Describe() map[string]any {
 							"cost": 2,
 						},
 						"pairs": map[string]any{
-							"cost": 1,
+							"cost": 2,
 						},
 						"orderbook": map[string]any{
 							"cost": 1,
@@ -133,7 +147,14 @@ func (this *Nado) Describe() map[string]any {
 			"archive": map[string]any{
 				"post": map[string]any{
 					"": map[string]any{
-						"cost": 1,
+						"cost": 2,
+						"byQuery": map[string]any{
+							"candlesticks":         []any{2, 100},
+							"events":               []any{2, 10},
+							"matches":              []any{2, 10},
+							"orders":               []any{2, 20},
+							"interest_and_funding": []any{5},
+						},
 					},
 				},
 			},
@@ -141,16 +162,17 @@ func (this *Nado) Describe() map[string]any {
 				"public": map[string]any{
 					"get": map[string]any{
 						"tickers": map[string]any{
-							"cost": 1,
+							"cost": 2,
 						},
 						"contracts": map[string]any{
-							"cost": 1,
+							"cost": 2,
 						},
 						"trades": map[string]any{
-							"cost": 1,
+							"cost":   4,
+							"byRows": []any{2, 50},
 						},
 						"symbols": map[string]any{
-							"cost": 1,
+							"cost": 2,
 						},
 					},
 				},
@@ -1426,11 +1448,11 @@ func (this *Nado) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes113619 []any = OrdersToList(r1.Value)
-		if retRes113619 == nil {
+		var retRes116419 []any = OrdersToList(r1.Value)
+		if retRes116419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes113619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes116419)}
 		}
 		return nil
 	}
@@ -1539,11 +1561,11 @@ func (this *Nado) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes121219 []any = OrdersToList(r1.Value)
-		if retRes121219 == nil {
+		var retRes124019 []any = OrdersToList(r1.Value)
+		if retRes124019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes121219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes124019)}
 		}
 		return nil
 	}
@@ -1635,11 +1657,11 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes127615 []any = OrdersToList(r.Value)
-	if retRes127615 == nil {
+	var retRes130415 []any = OrdersToList(r.Value)
+	if retRes130415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes127615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes130415)}
 	}
 	return nil
 }
@@ -1679,11 +1701,11 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes129615 []any = OrdersToList(r.Value)
-	if retRes129615 == nil {
+	var retRes132415 []any = OrdersToList(r.Value)
+	if retRes132415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes129615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes132415)}
 	}
 	return nil
 }
@@ -1889,11 +1911,11 @@ func (this *Nado) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes144115 []any = TransactionsToList(r.Value)
-	if retRes144115 == nil {
+	var retRes146915 []any = TransactionsToList(r.Value)
+	if retRes146915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes144115)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes146915)}
 	}
 	return nil
 }
@@ -1932,11 +1954,11 @@ func (this *Nado) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes145815 []any = TransactionsToList(r.Value)
-	if retRes145815 == nil {
+	var retRes148615 []any = TransactionsToList(r.Value)
+	if retRes148615 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes145815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes148615)}
 	}
 	return nil
 }
@@ -4129,6 +4151,56 @@ func (this *Nado) RemoveMarketSuffix(marketId *string) any {
 		}()
 	}
 	return marketId
+}
+func (this *Nado) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
+	// the gateway weighs a query by its 'type' param, the archive by the query key of the
+	// body, and every archive weight grows with the number of rows requested
+	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = config
+	if _, ok := config["byType"]; ok && (InOp(params, "type")) {
+		var queryType any = GetValue(params, "type")
+		var byType any = config["byType"]
+		if InOp(byType, queryType) {
+			return GetValue(byType, queryType)
+		}
+	}
+	var byQuery map[string]any = SafeMapTyped(config, "byQuery")
+	if byQuery != nil {
+		var queryNames []string = nil
+		if byQuery != nil {
+			queryNames = make([]string, 0, len(byQuery))
+			for objectKey := range byQuery {
+				queryNames = append(queryNames, objectKey)
+			}
+		}
+		for i := 0; i < len(queryNames); i++ {
+			var queryName string = queryNames[i]
+			if InOp(params, queryName) {
+				var weights []any = SafeListTyped(byQuery, queryName)
+				var baseWeight *int64 = this.SafeInteger(weights, 0, 2)
+				var rowsPerWeight *int64 = this.SafeInteger(weights, 1)
+				if rowsPerWeight == nil {
+					return baseWeight
+				}
+				var query map[string]any = SafeMapTyped(params, queryName)
+				var rows *int64 = this.SafeInteger(query, "limit", 100)       // the archive default page
+				var nestedLimit map[string]any = SafeMapTyped(query, "limit") // the events query sends { 'raw': 100 }
+				if nestedLimit != nil {
+					rows = this.SafeInteger(nestedLimit, "raw", 100)
+				}
+				return this.Sum(baseWeight, this.ParseToInt(Divide(rows, rowsPerWeight)))
+			}
+		}
+	}
+	var byRows []any = SafeListTyped(config, "byRows")
+	if byRows != nil {
+		// distinct local names: the C# emitter rejects a name already used in a sibling block
+		var rowsBaseWeight *int64 = this.SafeInteger(byRows, 0, 2)
+		var rowsDivisor int64 = *this.SafeInteger(byRows, 1, 50)
+		var rowCount *int64 = this.SafeInteger(params, "limit", 100) // the v2 default page
+		return this.Sum(rowsBaseWeight, this.ParseToInt(Divide(rowCount, rowsDivisor)))
+	}
+	return this.SafeValue(config, "cost", 1)
 }
 func (this *Nado) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{})

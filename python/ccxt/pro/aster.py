@@ -1279,9 +1279,8 @@ class aster(ccxt.async_support.aster):
         """
         if self.markets is None:
             await self.load_markets()
-        type = None
-        typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params, type)
-        if (type is None) or (typeMarketType is None):
+        typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
+        if typeMarketType is None:
             raise ArgumentsRequired(self.id + ' watchBalance() requires a market type')
         await self.authenticate(typeMarketType, paramsMarketType)
         url = self.get_private_url(typeMarketType)
@@ -1593,9 +1592,8 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
         messageHash = 'orders'
-        type = None
-        typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params, type)
-        if (type is None) or (typeMarketType is None):
+        typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params)
+        if typeMarketType is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a market type')
         await self.authenticate(typeMarketType, paramsMarketType)
         if market is not None:
@@ -1631,9 +1629,8 @@ class aster(ccxt.async_support.aster):
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
         messageHash = 'myTrades'
-        type = None
-        typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params, type)
-        if (type is None) or (typeMarketType is None):
+        typeMarketType, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
+        if typeMarketType is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a market type')
         await self.authenticate(typeMarketType, paramsMarketType)
         if market is not None:

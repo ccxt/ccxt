@@ -5909,7 +5909,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100L)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 100L, true)).join();
             }
             String customSymbol = null;
             if (Boolean.TRUE.equals(isUsdtSettled))

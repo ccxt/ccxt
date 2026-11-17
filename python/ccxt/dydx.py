@@ -759,11 +759,16 @@ class dydx(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         if since is not None:
-            request['fromIso'] = self.iso8601(since)
+            request['fromISO'] = self.iso8601(since)
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
         if until is not None:
-            request['toIso'] = self.iso8601(until)
+            request['toISO'] = self.iso8601(until)
+        elif since is not None:
+            # the indexer returns the newest candles in the range, so the range ends where the limit does
+            duration = self.parse_timeframe(timeframe) * 1000
+            count = min(limit, 1000) if (limit is not None) else 1000
+            request['toISO'] = self.iso8601(self.sum(since, duration * count))
         response = self.indexerGetCandlesPerpetualMarketsMarket(self.extend(request, paramsOmitted))
         #
         # {

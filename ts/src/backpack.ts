@@ -1633,9 +1633,10 @@ export default class backpack extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const maxLimit = 2000;
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const duration = this.parseTimeframe (timeframe);
+        const duration = this.parseTimeframe (timeframe) * 1000;
         const dataRequest = this.stockDataRequest ('fetchOHLCV', params, market);
         const request: Dict = { 'symbol': this.safeString (dataRequest, 'symbol'), 'interval': interval };
         const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (this.omit (dataRequest, 'symbol'), 'fetchOHLCV', 'until');
@@ -1644,27 +1645,26 @@ export default class backpack extends Exchange {
         }
         const defaultLimit = 100;
         let limitResolved: Int = limit;
-        if ((since === undefined) && (limit === undefined)) {
-            limitResolved = defaultLimit;
+        if (limitResolved !== undefined) {
+            limitResolved = Math.min (limitResolved, maxLimit);
         }
-        const windowLimit = (limit === undefined) ? defaultLimit : limit;
-        let startTime: Int = undefined;
-        if (since === undefined) {
-            let endTime = this.seconds ();
-            if (until !== undefined && until !== 0) {
-                endTime = this.parseToInt (until / 1000);
+        const windowLimit = (limitResolved === undefined) ? defaultLimit : limitResolved;
+        const now = this.milliseconds ();
+        let startTime: Int = since;
+        let untilValue: Int = until;
+        if (startTime === undefined) {
+            if (untilValue === undefined) {
+                untilValue = now;
             }
-            startTime = endTime - (windowLimit * duration);
-        } else {
-            startTime = this.parseToInt (since / 1000); // convert milliseconds to seconds
+            startTime = untilValue - (windowLimit * duration);
         }
-        request['startTime'] = startTime;
-        if (until === undefined) {
-            const currentMs = this.seconds (); // default to current time in seconds
+        request['startTime'] = this.parseToInt (startTime / 1000);
+        // set until value
+        if (untilValue === undefined) {
             const windowEnd = this.sum (startTime, windowLimit * duration);
-            const minTimestamp = Math.min (currentMs, windowEnd);
-            request['endTime'] = this.parseToInt (minTimestamp); // default to current time in seconds if until is not specified
+            untilValue = Math.min (now, windowEnd);
         }
+        request['endTime'] = this.parseToInt (untilValue / 1000);
         const price = this.safeString (paramsUntil, 'price');
         const paramsOmitted: Dict = (price !== undefined) ? this.omit (paramsUntil, 'price') : paramsUntil;
         if (price !== undefined) {

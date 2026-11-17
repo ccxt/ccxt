@@ -244,7 +244,8 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         let mut medianPrice: Value = ccxt::precise::Precise::stringDiv(&ccxt::precise::Precise::stringAdd(&bidString, &askString), &Value::Str("2".into()));
         let mut medianLow: Value = ccxt::precise::Precise::stringMul(&medianPrice, &ccxt::precise::Precise::stringSub(&Value::Str("1".into()), &allowedPercentageVariation));
         let mut medianHigh: Value = ccxt::precise::Precise::stringMul(&medianPrice, &ccxt::precise::Precise::stringAdd(&Value::Str("1".into()), &allowedPercentageVariation));
-        assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&ccxt::precise::Precise::stringGe(&lastString, &medianLow)) && is_true(&ccxt::precise::Precise::stringLe(&lastString, &medianHigh))))));
+        let mut lastPriceIsBetween: Value = Value::Bool(is_true(&ccxt::precise::Precise::stringGe(&lastString, &medianLow)) && is_true(&ccxt::precise::Precise::stringLe(&lastString, &medianHigh)));
+        assert!(ccxt::runtime::is_true(&(lastPriceIsBetween.clone())));
     }
     let mut percentage: Value = exchange.safe_string(entry.clone(), Value::Str("percentage".into()), &[]);
     let mut change: Value = exchange.safe_string(entry.clone(), Value::Str("change".into()), &[]);

@@ -3264,11 +3264,50 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()));
+            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended(), this.testBit2me()));
             (Helpers.promiseAll(promises)).join();
             String successMessage = (("[" + this.lang) + "][TEST_SUCCESS] brokerId tests passed.");
             dump(("[INFO]" + successMessage));
             exitScript(0);
+            return true;
+        });
+
+    }
+
+    public CompletableFuture<Object> testBit2me()
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            BaseExchange exchange = this.initOfflineExchange("bit2me", false);
+            String id = "CCXT";
+            ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{false, new HashMap<String, Object>() {{}}})).join();
+            Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("brokerId"), id), "bit2me - brokerId not in options");
+            Object request = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC", "limit", "buy", 0.0001, 36000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Object clientOrderId = ((Map<String, Object>)request).get("clientOrderId");
+            Assert(((String)clientOrderId).startsWith((id + "-")), ((("bit2me - clientOrderId: " + clientOrderId) + " does not start with the broker id ") + id));
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC", "limit", "buy", 0.0001, 36000, new HashMap<String, Object>() {{
+                    put( "clientOrderId", "my-order" );
+                }}})).join();
+            } catch(Exception e)
+            {
+                request = jsonParse(exchange.last_request_body);
+            }
+            Object customClientOrderId = ((Map<String, Object>)request).get("clientOrderId");
+            Assert(java.util.Objects.equals(customClientOrderId, "my-order"), (("bit2me - custom clientOrderId: " + customClientOrderId) + " should be sent as given, the broker id is only added when none is provided"));
+            if (!Helpers.isTrue(isSync()))
+            {
+                (close(exchange)).join();
+            }
             return true;
         });
 

@@ -642,6 +642,7 @@ export default class bingx extends Exchange {
                     '100490': BadSymbol, // spot trading pair is offline
                     '101481': DuplicateOrderId,
                     '109201': DuplicateOrderId,
+                    '104414': BadRequest, // {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400': BadRequest, // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418': BadSymbol, // trading pair is offline and cannot be ordered through the api
                     '109421': OrderNotFound,
@@ -1236,7 +1237,9 @@ export default class bingx extends Exchange {
         const maxLimit = (this.safeBool (market, 'inverse', false)) ? 1000 : 1440;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            const paginationLimit = (timeframe === '1m') ? maxLimit : 1000;
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, paginationLimit) as OHLCV[];
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -1252,7 +1255,13 @@ export default class bingx extends Exchange {
         const until = this.safeInteger2 (paramsPaginate, 'until', 'endTime');
         const paramsUntil = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
         if (until !== undefined) {
-            request['endTime'] = until;
+            let endTime = until;
+            if (since !== undefined) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                const duration = this.parseTimeframe (timeframe) * 1000;
+                endTime = Math.min (until, this.sum (since, duration * requestLimit));
+            }
+            request['endTime'] = endTime;
         } else if ((this.safeBool (market, 'inverse', false)) && (since !== undefined)) {
             const duration = this.parseTimeframe (timeframe) * 1000;
             request['endTime'] = this.sum (since, duration * requestLimit);
@@ -2167,7 +2176,7 @@ export default class bingx extends Exchange {
         };
         let response: Dict;
         if (this.safeBool (market, 'spot', false)) {
-            response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
+            response = await this.spotV2PublicGetQuoteTicker (this.extend (request, params));
         } else {
             if (this.safeBool (market, 'inverse', false)) {
                 response = await this.cswapV1PublicGetMarketTicker (this.extend (request, params));
@@ -2283,7 +2292,7 @@ export default class bingx extends Exchange {
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
         let response: Dict;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr (paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker (paramsSubType);
         } else {
             if (subType === 'inverse') {
                 response = await this.cswapV1PublicGetMarketTicker (paramsSubType);
@@ -5302,7 +5311,20 @@ export default class bingx extends Exchange {
             //
         } else {
             const isTwapOrder = this.safeBool (paramsStandard, 'twap', false);
-            const paramsOmitted = this.omit (paramsStandard, 'twap');
+            let paramsOmitted = this.omit (paramsStandard, 'twap');
+            if (!isTwapOrder) {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min (limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                const until = this.safeInteger (paramsOmitted, 'until');
+                if (until !== undefined) {
+                    request['endTime'] = until;
+                    paramsOmitted = this.omit (paramsOmitted, 'until');
+                }
+            }
             if (isTwapOrder) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = (limit === undefined) ? 100 : limit;
@@ -7216,7 +7238,7 @@ export default class bingx extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber (fee, 'makerCommissionRate'),
             'taker': this.safeNumber (fee, 'takerCommissionRate'),
-            'percentage': false,
+            'percentage': true,
             'tierBased': false,
         };
     }

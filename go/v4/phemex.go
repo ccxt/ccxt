@@ -6400,7 +6400,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
-		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100)
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 100)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}

@@ -992,6 +992,18 @@ public partial class latoken : Exchange
         }
         string? last = this.safeString(ticker, "lastPrice");
         Int64? timestamp = this.safeIntegerOmitZero(ticker, "updateTimestamp"); // sometimes latoken provided '0' ts from /ticker endpoint
+        // during venue incidents a deleted level leaks a signed aggregate into the
+        // best sizes - the quoted prices stay usable, so only negatives are dropped
+        string? bidVolume = this.safeString(ticker, "bestBidQuantity");
+        if (((bidVolume != null)) && Precise.stringLt(bidVolume, "0"))
+        {
+            bidVolume = null;
+        }
+        string? askVolume = this.safeString(ticker, "bestAskQuantity");
+        if (((askVolume != null)) && Precise.stringLt(askVolume, "0"))
+        {
+            askVolume = null;
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -999,9 +1011,9 @@ public partial class latoken : Exchange
             { "low", null },
             { "high", null },
             { "bid", this.safeString(ticker, "bestBid") },
-            { "bidVolume", this.safeString(ticker, "bestBidQuantity") },
+            { "bidVolume", bidVolume },
             { "ask", this.safeString(ticker, "bestAsk") },
-            { "askVolume", this.safeString(ticker, "bestAskQuantity") },
+            { "askVolume", askVolume },
             { "vwap", null },
             { "open", null },
             { "close", last },

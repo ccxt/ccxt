@@ -793,13 +793,20 @@ public partial class revolutx : Exchange
         {
             request["since"] = since;
         }
+        int defaultLimit = 1000; // default max limit if not specified
+        Int64? limitValue = ((limit != null)) ? limit : defaultLimit;
+        Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         Int64? until = this.safeInteger2(parameters, "until", "until");
         if ((until != null))
         {
             request["until"] = until;
-        } else
+        }
+        if ((since != null) && (until == null))
         {
-            request["until"] = this.milliseconds();
+            request["until"] = this.sum(since, (limitValue * duration));
+        } else if ((since == null) && (until != null))
+        {
+            request["since"] = (until - (limitValue * duration));
         }
         string? region = this.safeString2(parameters, "region", "region", (this.options != null && this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))

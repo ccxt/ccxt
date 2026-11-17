@@ -9667,6 +9667,7 @@ func (this *Htx) ParseIsolatedBorrowRate(info any, optionalArgs ...any) map[stri
  * @param {int} [since] the earliest time in ms to fetch funding rate history for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding rate, linear swaps only
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
@@ -9689,29 +9690,43 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
-	if paginate {
+	if this.Markets == nil {
 
-		r := <-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "current_page", "page_index", 1, 50)
+		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes717519 []any = r.Value
-		if retRes717519 == nil {
+	}
+	var market map[string]any = this.Market(symbol)
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
+	if paginate {
+		if EvalTruthy(market["linear"]) {
+
+			r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 100)
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
+			var retRes718123 []any = r1.Value
+			if retRes718123 == nil {
+				ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
+			} else {
+				ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes718123)}
+			}
+			return nil
+		}
+
+		r2 := <-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "current_page", "page_index", 1, 50)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		var retRes718319 []any = r2.Value
+		if retRes718319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes717519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes718319)}
 		}
 		return nil
 	}
-	if this.Markets == nil {
-
-		r1 := <-this.LoadMarketsAsync()
-		if r1.Err != nil {
-			panic(r1.Err)
-		}
-	}
-	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"contract_code": market["id"],
 	}
@@ -9732,18 +9747,19 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	var response map[string]any = nil
 	if *this.SafeBool(market, "inverse", false) {
 
-		r2 := <-this.ContractPublicGetSwapApiV1SwapHistoricalFundingRate(this.Extend(request, paramsPaginate))
-		if r2.Err != nil {
-			panic(r2.Err)
-		}
-		response = r2.Value
-	} else if *this.SafeBool(market, "linear", false) {
-
-		r3 := <-this.ContractPublicGetV5MarketFundingRateHistory(this.Extend(request, paramsPaginate))
+		r3 := <-this.ContractPublicGetSwapApiV1SwapHistoricalFundingRate(this.Extend(request, paramsPaginate))
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
 		response = r3.Value
+	} else if *this.SafeBool(market, "linear", false) {
+		requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsPaginate)
+
+		r4 := <-this.ContractPublicGetV5MarketFundingRateHistory(this.Extend(requestUntil, paramsUntil))
+		if r4.Err != nil {
+			panic(r4.Err)
+		}
+		response = r4.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() supports inverse and linear swaps only"))
 	}
@@ -11055,11 +11071,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes855819 []any = r1.Value
-		if retRes855819 == nil {
+		var retRes856319 []any = r1.Value
+		if retRes856319 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes855819)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes856319)}
 		}
 		return nil
 	}
@@ -14073,6 +14089,7 @@ func (this *Htx) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, e
  * @param {int} [since] the earliest time in ms to fetch funding rate history for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding rate, linear swaps only
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */

@@ -1048,8 +1048,8 @@ impl BitteamCore {
         let mut typeRaw: Option<String> = self.safe_string_k_opt(currency.clone(), "type", &[]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_440: bool = true;
-            while { if !__for_first_440 { j += 1; } __for_first_440 = false; j < (networkIds.len() as i64) } {
+            let mut __for_first_442: bool = true;
+            while { if !__for_first_442 { j += 1; } __for_first_442 = false; j < (networkIds.len() as i64) } {
             let mut networkId: Value = networkIds.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut networkFee: Value = self.safe_number(feesByNetworkId.clone(), networkId.clone(), &[]);
@@ -1982,8 +1982,8 @@ impl BitteamCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_441: bool = true;
-            while { if !__for_first_441 { i += 1; } __for_first_441 = false; i < (rawTickers.len() as i64) } {
+            let mut __for_first_443: bool = true;
+            while { if !__for_first_443 { i += 1; } __for_first_443 = false; i < (rawTickers.len() as i64) } {
             let mut rawTicker: Value = rawTickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(rawTicker, &[]);
             tickers.push(ticker);
@@ -2766,8 +2766,8 @@ impl BitteamCore {
         let mut rawCurrencyIds: Vec<Value> = Value::Array(balanceByCurrencies.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_442: bool = true;
-            while { if !__for_first_442 { i += 1; } __for_first_442 = false; i < (rawCurrencyIds.len() as i64) } {
+            let mut __for_first_444: bool = true;
+            while { if !__for_first_444 { i += 1; } __for_first_444 = false; i < (rawCurrencyIds.len() as i64) } {
             let mut rawCurrencyId: Value = rawCurrencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyBalance: Value = self.safe_dict(result.clone(), rawCurrencyId.clone(), &[]);
             let mut free: Option<String> = self.safe_string_k_opt(currencyBalance.clone(), "free", &[]);

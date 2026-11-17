@@ -621,7 +621,7 @@ type LiveLookupFn = fn(id: &str, key: &str) -> Option<Value>;
 // Write-once registry: the test harness installs it from `main` before any
 // worker thread runs and nothing replaces it. One-shot cell, so every read is a
 // plain fn-pointer load with no lock and no atomic at the use site.
-static LIVE_LOOKUP: once_cell::sync::OnceCell<LiveLookupFn> = once_cell::sync::OnceCell::new();
+static LIVE_LOOKUP: std::sync::OnceLock<LiveLookupFn> = std::sync::OnceLock::new();
 
 pub fn set_live_lookup(f: LiveLookupFn) {
     let _ = LIVE_LOOKUP.set(f);
@@ -637,7 +637,7 @@ fn live_lookup_get() -> Option<LiveLookupFn> {
 // runs against the real instance the method dispatch will use. Returns the
 // resulting markets. See `Value::set_markets`.
 type LiveSetMarketsFn = fn(id: &str, markets: Value) -> Value;
-static LIVE_SET_MARKETS: once_cell::sync::OnceCell<LiveSetMarketsFn> = once_cell::sync::OnceCell::new();
+static LIVE_SET_MARKETS: std::sync::OnceLock<LiveSetMarketsFn> = std::sync::OnceLock::new();
 
 pub fn set_live_set_markets(f: LiveSetMarketsFn) {
     let _ = LIVE_SET_MARKETS.set(f);
@@ -1163,8 +1163,8 @@ impl Drop for InStoreJob {
     fn drop(&mut self) { IN_STORE_JOB.with(|f| f.set(false)); }
 }
 
-static STORE_TX: once_cell::sync::Lazy<tokio::sync::mpsc::UnboundedSender<StoreJob>> =
-    once_cell::sync::Lazy::new(|| {
+static STORE_TX: std::sync::LazyLock<tokio::sync::mpsc::UnboundedSender<StoreJob>> =
+    std::sync::LazyLock::new(|| {
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<StoreJob>();
         std::thread::Builder::new()
             .name("ccxt-ws-store".to_string())

@@ -3224,7 +3224,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> response = (this.privatePostWalletTransfer(this.extend(request, parameters))).join();
             //
             //     [
-            //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
+            //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
             //     ]
             //
             return this.parseTransfer(response, currency);
@@ -3463,11 +3463,11 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 1000L)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("until", request, (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("till", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(symbol, null))

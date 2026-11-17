@@ -518,6 +518,9 @@ public class Bithumb extends BithumbApi
                 put( "30m", 30 );
                 put( "1h", 60 );
                 put( "4h", 240 );
+                put( "1d", "days" );
+                put( "1w", "weeks" );
+                put( "1M", "months" );
             }} );
             put( "options", new HashMap<String, Object>() {{
                 put( "generation", 2 );
@@ -1483,6 +1486,8 @@ public class Bithumb extends BithumbApi
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -1503,20 +1508,55 @@ public class Bithumb extends BithumbApi
             Object data = new ArrayList<Object>(Arrays.asList());
             if ((generation != null && generation == 2))
             {
+                List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+                var paginate = ((List<Object>) paginateparamsPaginateVariable).get(0);
+                Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
+                if (Helpers.isTrue(paginate))
+                {
+                    return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 200L)).join();
+                }
+                Long until = this.safeInteger(paramsGeneration, "until");
+                Map<String, Object> requestParams = this.omit(paramsGeneration, new ArrayList<Object>(Arrays.asList("until", "paginate")));
                 request.put("market", this.getGen2MarketId(market));
+                // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+                Long count = 200L;
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    request.put("count", limit);
+                    count = Math.min(limit, 200);
+                }
+                if ((!java.util.Objects.equals(limit, null)) || (!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
+                {
+                    request.put("count", count);
+                }
+                // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+                // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+                Object to = null;
+                if (!java.util.Objects.equals(until, null))
+                {
+                    to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
+                }
+                if (!java.util.Objects.equals(since, null))
+                {
+                    Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                    Long sinceEnd = (Long) this.sum(since, (duration * count));
+                    if ((java.util.Objects.equals(to, null)) || ((!(sinceEnd == null && to == null) && sinceEnd == null || (to != null && !(sinceEnd >= ((Number) to).doubleValue())))))
+                    {
+                        to = sinceEnd;
+                    }
+                }
+                if (!java.util.Objects.equals(to, null))
+                {
+                    request.put("to", this.ymdhms(this.sum(to, 32400000), " "));
                 }
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1d"))
                 {
-                    response = (this.publicGetV1CandlesDays(this.extend(request, paramsGeneration))).join();
+                    response = (this.publicGetV1CandlesDays(this.extend(request, requestParams))).join();
                 } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1w"))
                 {
-                    response = (this.publicGetV1CandlesWeeks(this.extend(request, paramsGeneration))).join();
+                    response = (this.publicGetV1CandlesWeeks(this.extend(request, requestParams))).join();
                 } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1M"))
                 {
-                    response = (this.publicGetV1CandlesMonths(this.extend(request, paramsGeneration))).join();
+                    response = (this.publicGetV1CandlesMonths(this.extend(request, requestParams))).join();
                 } else
                 {
                     Long timeframeInteger = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -1525,7 +1565,7 @@ public class Bithumb extends BithumbApi
                         throw new BadRequest(((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
                     }
                     request.put("unit", timeframeInteger);
-                    response = (this.publicGetV1CandlesMinutesUnit(this.extend(request, paramsGeneration))).join();
+                    response = (this.publicGetV1CandlesMinutesUnit(this.extend(request, requestParams))).join();
                 }
                 //
                 //     [

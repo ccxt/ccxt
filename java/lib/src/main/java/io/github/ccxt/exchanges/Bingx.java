@@ -1080,6 +1080,7 @@ public class Bingx extends BingxApi
                     put( "100490", BadSymbol.class );
                     put( "101481", DuplicateOrderId.class );
                     put( "109201", DuplicateOrderId.class );
+                    put( "104414", BadRequest.class );
                     put( "109400", BadRequest.class );
                     put( "109418", BadSymbol.class );
                     put( "109421", OrderNotFound.class );
@@ -1730,19 +1731,21 @@ public class Bingx extends BingxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Long maxLimit = ((Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))) ? 1000L : 1440L;
+            Integer maxLimit = ((Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))) ? 1000 : 1440;
             Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit)).join();
+                // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+                Object paginationLimit = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1m")))) ? maxLimit : 1000;
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, ((Long) (switch ((Object) (paginationLimit)) { case null -> (Long) null; case Long hx4J40v1 -> hx4J40v1; case Number hx4J40v1 -> Long.valueOf(hx4J40v1.longValue()); case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v1.getClass().getName()); })))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
             request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
-            Long requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500L : Math.min(limit, maxLimit);
+            Object requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500 : (limit == null || maxLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxLimit).doubleValue() ? (Object) (limit) : (Object) (maxLimit)));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", Math.max((since - 1L), 0));
@@ -1755,11 +1758,18 @@ public class Bingx extends BingxApi
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("endTime", until);
+                Object endTime = until;
+                if (!java.util.Objects.equals(since, null))
+                {
+                    // the exchange aligns the window to endTime, so keep it within limit candles of since
+                    Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                    endTime = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(until, this.sum(since, Helpers.multiply(duration, requestLimit)));
+                }
+                request.put("endTime", endTime);
             } else if (Boolean.TRUE.equals((this.safeBool(market, "inverse", false))) && (!java.util.Objects.equals(since, null)))
             {
                 Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                request.put("endTime", this.sum(since, (duration * requestLimit)));
+                request.put("endTime", this.sum(since, Helpers.multiply(duration, requestLimit)));
             }
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
@@ -2782,7 +2792,7 @@ public class Bingx extends BingxApi
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                response = (this.spotV1PublicGetTicker24hr(this.extend(request, parameters))).join();
+                response = (this.spotV2PublicGetQuoteTicker(this.extend(request, parameters))).join();
             } else
             {
                 if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
@@ -2930,7 +2940,7 @@ public class Bingx extends BingxApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
-                response = (this.spotV1PublicGetTicker24hr(paramsSubType)).join();
+                response = (this.spotV2PublicGetQuoteTicker(paramsSubType)).join();
             } else
             {
                 if (java.util.Objects.equals(subType, "inverse"))
@@ -5789,6 +5799,23 @@ public class Bingx extends BingxApi
             {
                 Boolean isTwapOrder = (Boolean) this.safeBool(paramsStandard, "twap", false);
                 Map<String, Object> paramsOmitted = this.omit(paramsStandard, "twap");
+                if (!Boolean.TRUE.equals(isTwapOrder))
+                {
+                    if (!java.util.Objects.equals(limit, null))
+                    {
+                        request.put("limit", Math.min(limit, 1000));
+                    }
+                    if (!java.util.Objects.equals(since, null))
+                    {
+                        request.put("startTime", since);
+                    }
+                    Long until = this.safeInteger(paramsOmitted, "until");
+                    if (!java.util.Objects.equals(until, null))
+                    {
+                        request.put("endTime", until);
+                        paramsOmitted = this.omit(paramsOmitted, "until");
+                    }
+                }
                 if (Boolean.TRUE.equals(isTwapOrder))
                 {
                     request.put("pageIndex", 1);
@@ -7601,7 +7628,7 @@ public class Bingx extends BingxApi
             put( "symbol", symbol );
             put( "maker", Bingx.this.safeNumber(fee, "makerCommissionRate", (Object) null) );
             put( "taker", Bingx.this.safeNumber(fee, "takerCommissionRate", (Object) null) );
-            put( "percentage", false );
+            put( "percentage", true );
             put( "tierBased", false );
         }};
     }
