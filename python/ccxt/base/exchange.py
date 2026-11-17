@@ -1464,17 +1464,11 @@ class BaseExchange(object):
 
     @staticmethod
     def binary_concat(*args):
-        result = bytes()
-        for arg in args:
-            result = result + arg
-        return result
+        return b''.join(args)
 
     @staticmethod
     def binary_concat_array(array):
-        result = bytes()
-        for element in array:
-            result = result + element
-        return result
+        return b''.join(array)
 
     @staticmethod
     def urlencode_base64(s):
