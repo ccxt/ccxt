@@ -23833,3 +23833,115 @@ csharpLocalDeclaration = function (csharp, declaration, context) {
     }
     return info;
 };
+
+// ===== copies and omit results, typed by their first use (continues the omit receiver proofs) =====
+// R1: `const x = this.omit (<object receiver>, keys)` whose first use, inside the very next statement,
+// is `Object.keys (x)` / `Object.values (x)` / `x[k] = v`. omit(object, ..) hands back its receiver only
+// for an IList, which that map use already rejects with the same InvalidCastException; every other box
+// is the fresh outDict, so the exact cast names it and the map use then prints on the typed local.
+function omitFirstMapUseLocal93c5 (csharp, declaration, context) {
+    if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !omitLocalAnnotationIsMap93c5 (declaration.type) || tsSourceMethodDeclarationCount ('omit') !== 0) {
+        return undefined;
+    }
+    const call = stripParens (declaration.initializer);
+    if (omitCallReceiver (call) === undefined) {
+        return undefined;
+    }
+    const statement = declaration.parent?.parent;
+    const block = statement?.parent;
+    if (statement?.kind !== ts.SyntaxKind.VariableStatement || block?.statements === undefined) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    const mapUse = (use) => {
+        let node = use;
+        while (node.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            node = node.parent;
+        }
+        const parent = node.parent;
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === node) {
+            const holder = parent.parent;
+            return holder?.kind === ts.SyntaxKind.BinaryExpression && holder.left === parent && holder.operatorToken.kind === ts.SyntaxKind.EqualsToken;
+        }
+        return parent?.kind === ts.SyntaxKind.CallExpression && (parent.arguments ?? []).length === 1 && parent.arguments[0] === node
+            && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression.expression?.kind === ts.SyntaxKind.Identifier
+            && parent.expression.expression.text === 'Object' && (parent.expression.name?.text === 'keys' || parent.expression.name?.text === 'values');
+    };
+    const at = block.statements.indexOf (statement);
+    let next = block.statements[at + 1];
+    let first;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        if (first === undefined || use.getStart () < first.getStart ()) {
+            first = use;
+        }
+    }
+    // R3: the use may sit in a later sibling statement when every statement in between is a plain
+    // variable / expression statement (no throw, return or branch can skip it)
+    for (let k = at + 1; first !== undefined && next !== undefined && first.getStart () > next.getEnd (); k++) {
+        if (next.kind !== ts.SyntaxKind.VariableStatement && next.kind !== ts.SyntaxKind.ExpressionStatement) {
+            return undefined;
+        }
+        next = block.statements[k + 1];
+    }
+    if (first === undefined || next === undefined || !mapUse (first) || first.getStart () < next.getStart () || first.getEnd () > next.getEnd ()
+            || !unconditionalInStatement93c5 (first, next)) {
+        return undefined;
+    }
+    const type = 'Dictionary<string, object>';
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, cast: type } : undefined;
+}
+// R2: no annotation, or the `Dict` alias (a map annotation names the box the omit result already is)
+function omitLocalAnnotationIsMap93c5 (type) {
+    return type === undefined || (type.kind === ts.SyntaxKind.TypeReference && type.typeName?.kind === ts.SyntaxKind.Identifier
+        && type.typeName.text === 'Dict' && (type.typeArguments ?? []).length === 0);
+}
+// the use runs whenever the statement does: a variable / expression statement or an `if` condition,
+// with no conditional arm, short-circuit right side or function boundary on the way up
+function unconditionalInStatement93c5 (use, statement) {
+    const head = (statement.kind === ts.SyntaxKind.IfStatement) ? statement.expression : statement;
+    if (statement.kind !== ts.SyntaxKind.VariableStatement && statement.kind !== ts.SyntaxKind.ExpressionStatement
+            && statement.kind !== ts.SyntaxKind.IfStatement) {
+        return false;
+    }
+    let child = use;
+    for (let node = use.parent; node !== undefined && child !== head; child = node, node = node.parent) {
+        if (node === statement && head !== statement) {
+            return false;
+        }
+        if (node.kind === ts.SyntaxKind.ConditionalExpression && child !== node.condition) {
+            return false;
+        }
+        if (node.kind === ts.SyntaxKind.ArrowFunction || node.kind === ts.SyntaxKind.FunctionExpression) {
+            return false;
+        }
+        if (node.kind === ts.SyntaxKind.BinaryExpression && child !== node.left && [ ts.SyntaxKind.AmpersandAmpersandToken,
+            ts.SyntaxKind.BarBarToken, ts.SyntaxKind.QuestionQuestionToken ].includes (node.operatorToken.kind)) {
+            return false;
+        }
+    }
+    return child === head;
+}
+const c93UpstreamLocalDeclarationR1 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = c93UpstreamLocalDeclarationR1 (csharp, declaration, context);
+    if (info !== undefined || declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer === undefined
+            || classifyInProgress.has (declaration)) {
+        return info;
+    }
+    classifyInProgress.add (declaration);
+    try {
+        return omitFirstMapUseLocal93c5 (csharp, declaration, context);
+    } finally {
+        classifyInProgress.delete (declaration);
+    }
+};
