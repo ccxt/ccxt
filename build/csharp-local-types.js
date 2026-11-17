@@ -12008,7 +12008,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context) ?? outcomesMapLocal93c7 (csharp, declaration, context) ?? currenciesViewLocal93c7 (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -24013,3 +24013,190 @@ csharpLocalDeclaration = function (csharp, declaration, context) {
         classifyInProgress.delete (declaration);
     }
 };
+
+// ===== ral-93c7: results of venue helpers whose only definition builds a dictionary literal =====
+// R1: `const x = this.f (..)` where f is declared once in ts/src, synchronous, and every return
+// is an object literal: the box is a Dictionary<string, object>, so the exact cast names it and
+// `x[k]` prints as a native read. Only taken for a local read as `x[k]`, outside parameter proofs.
+function literalDictHelperLocal93c7 (csharp, declaration, context) {
+    if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined) {
+        return undefined;
+    }
+    const call = stripParens (declaration.initializer);
+    const callee = call?.kind === ts.SyntaxKind.CallExpression ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const name = callee.name?.text;
+    if (typeof name !== 'string' || tsSourceMethodDeclarationCount (name) !== 1) {
+        return undefined;
+    }
+    const definitions = sourceFileMethods (declaration.getSourceFile (), name);
+    if (definitions.length !== 1 || !literalDictDefinition93c7 (definitions[0])) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const local = declaration.name.text;
+    let indexed = false;
+    for (const use of indexScope (csharp, scope).identifiers.get (local) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        if (use.parent?.kind === ts.SyntaxKind.ElementAccessExpression && use.parent.expression === use) {
+            indexed = true;
+        }
+    }
+    if (!indexed) {
+        return undefined;
+    }
+    const type = 'Dictionary<string, object>';
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, local, type, ctx) ? { type, cast: type } : undefined;
+}
+
+function literalDictDefinition93c7 (definition) {
+    if (definition.body === undefined || (definition.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
+        return false;
+    }
+    let returns = 0;
+    let ok = true;
+    const visit = (node) => {
+        if (!ok || node.kind === ts.SyntaxKind.ArrowFunction || node.kind === ts.SyntaxKind.FunctionExpression || node.kind === ts.SyntaxKind.FunctionDeclaration) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            returns++;
+            ok = stripParens (node.expression)?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+            return;
+        }
+        node.forEachChild (visit);
+    };
+    definition.body.forEachChild (visit);
+    return ok && returns > 0;
+}
+
+// R2: `const m = this.outcomes` / `(this.outcomes !== undefined) ? this.outcomes : {}` whose first use,
+// in the next statement, is Object.keys (m). Every write of the member in ts/src is an object
+// literal (C# Dictionary) or undefined, so the exact Dictionary cast never throws and the keys
+// read prints natively instead of through an IDictionary cast at the use.
+let outcomesMemberWrites93c7;
+
+function outcomesMemberIsDictLiteral93c7 (csharp) {
+    if (outcomesMemberWrites93c7 !== undefined) {
+        return outcomesMemberWrites93c7;
+    }
+    const tables = parseReturnTables (csharp);
+    if (tables === undefined) {
+        return false; // no program: keep object (not cached, a later call may have one)
+    }
+    let ok = true;
+    let writes = 0;
+    for (const sourceFile of tables.program.getSourceFileNames ().map ((n) => tables.program.getSourceFile (n))) {
+        const visit = (node) => {
+            if (!ok) {
+                return;
+            }
+            if (node.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken?.kind === ts.SyntaxKind.EqualsToken
+                    && thisMemberAccess (node.left, 'outcomes')) {
+                const rhs = stripParens (node.right);
+                writes++;
+                ok = rhs?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+                return;
+            }
+            node.forEachChild (visit);
+        };
+        sourceFile?.forEachChild (visit);
+    }
+    outcomesMemberWrites93c7 = ok && writes > 0;
+    return outcomesMemberWrites93c7;
+}
+
+function outcomesMapLocal93c7 (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined || !isPredictionSource (declaration)) {
+        return undefined;
+    }
+    const init = stripParens (declaration.initializer);
+    let conditional = false;
+    if (init?.kind === ts.SyntaxKind.ConditionalExpression) {
+        const test = stripParens (init.condition);
+        conditional = test?.kind === ts.SyntaxKind.BinaryExpression && test.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken
+            && thisMemberAccess (stripParens (test.left), 'outcomes') && stripParens (test.right)?.kind === ts.SyntaxKind.Identifier && stripParens (test.right).text === 'undefined'
+            && thisMemberAccess (stripParens (init.whenTrue), 'outcomes')
+            && stripParens (init.whenFalse)?.kind === ts.SyntaxKind.ObjectLiteralExpression && stripParens (init.whenFalse).properties.length === 0;
+        if (!conditional) {
+            return undefined;
+        }
+    } else if (!thisMemberAccess (init, 'outcomes')) {
+        return undefined;
+    }
+    const statement = declaration.parent?.parent;
+    const block = statement?.parent;
+    if (statement?.kind !== ts.SyntaxKind.VariableStatement || block?.statements === undefined) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    const next = block.statements[block.statements.indexOf (statement) + 1];
+    let first;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        if (first === undefined || use.getStart () < first.getStart ()) {
+            first = use;
+        }
+    }
+    const keysCall = first?.parent;
+    const isKeys = keysCall?.kind === ts.SyntaxKind.CallExpression && keysCall.arguments?.length === 1 && keysCall.arguments[0] === first
+        && keysCall.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && keysCall.expression.expression?.kind === ts.SyntaxKind.Identifier
+        && keysCall.expression.expression.text === 'Object' && keysCall.expression.name?.text === 'keys';
+    if (!isKeys || next === undefined || first.getStart () < next.getStart () || first.getEnd () > next.getEnd () || !outcomesMemberIsDictLiteral93c7 (csharp)) {
+        return undefined;
+    }
+    const type = 'Dictionary<string, object>';
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, cast: type, castWhole: conditional ? true : undefined } : undefined;
+}
+
+// R3: `const c = this.currencies`: the member stays `object` in C#, but the hand-written
+// `currenciesDict` view (Exchange.Options.cs) is that same box as an IDictionary (every writer
+// stores a string-keyed dictionary), so the declaration reads the view with no cast and
+// `k in c` / `c[k]` print natively. Only for a local whose every use is such a keyed read.
+function currenciesViewLocal93c7 (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined
+            || !thisMemberAccess (stripParens (declaration.initializer), 'currencies')) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    let uses = 0;
+    let ok = true;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        uses++;
+        const parent = use.parent;
+        const keyed = (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use
+                && !(parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent))
+            || (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.operatorToken.kind === ts.SyntaxKind.InKeyword && parent.right === use);
+        if (!keyed) {
+            ok = false;
+        }
+    }
+    if (!ok || uses === 0) {
+        return undefined;
+    }
+    const type = 'IDictionary<string, object>';
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, nativeValue90c7: 'this.currenciesDict' } : undefined;
+}

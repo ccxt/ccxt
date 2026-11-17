@@ -12947,6 +12947,17 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
     if (!parsedMap.includes ('Dictionary<string, object> w = ((Dictionary<string, object>)') || parsedMap.includes ('((IDictionary<string,object>)w)')) problems.push (`92c7 JSON.parse map local: ${parsedMap.replace (/\n/g, ' | ').slice (-400)}`);
     const parsedLater = bare ('g (t, a) { const w = JSON.parse (t); const n = this.hash (a, 1, 1); w[\'x\'] = n; return w; }');
     if (!parsedLater.includes ('object w = ')) problems.push (`92c7 JSON.parse map local: map use not next retyped: ${parsedLater.replace (/\n/g, ' | ').slice (-400)}`);
+    // ral-93c7: a helper declared once whose every return is an object literal, read as x[k]
+    const req = (use: string) => bare ('unsubscribeRequest (c) { return { \'id\': c, \'method\': \'unsubscribe\' }; }\n g (c) { const u = this.unsubscribeRequest (c); ' + use + ' }');
+    const literalDict = req ('return u[\'id\'];');
+    if (!literalDict.includes ('Dictionary<string, object> u = ((Dictionary<string, object>)') || literalDict.includes ('getValue(u')) problems.push (`93c7 literal dict helper result: ${literalDict.replace (/\n/g, ' | ').slice (-400)}`);
+    const literalPassed = req ('return this.hash (u, 1, 1);');
+    if (!literalPassed.includes ('object u = ')) problems.push (`93c7 literal dict helper result: hand-off only retyped: ${literalPassed.replace (/\n/g, ' | ').slice (-400)}`);
+    // ral-93c7 R3: `const c = this.currencies` read only by key reads the hand-written currenciesDict view
+    const view = bare ('g (code) { const c = this.currencies; if (code in c) { return c[code]; } return undefined; }');
+    if (!view.includes ('IDictionary<string, object> c = this.currenciesDict;')) problems.push (`93c7 currencies view local: ${view.replace (/\n/g, ' | ').slice (-400)}`);
+    const viewPassed = bare ('g (code) { const c = this.currencies; return this.hash (c, code, 1); }');
+    if (!viewPassed.includes ('object c = ')) problems.push (`93c7 currencies view local: hand-off retyped: ${viewPassed.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
 
