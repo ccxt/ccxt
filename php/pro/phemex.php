@@ -64,21 +64,21 @@ class phemex extends \ccxt\async\phemex {
         return (string) $precise;
     }
 
-    public function from_ep(mixed $ep, ?array $market = null): ?string {
+    public function from_ep(?string $ep, ?array $market = null): ?string {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
         return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_ev(mixed $ev, ?array $market = null): ?string {
+    public function from_ev(?string $ev, ?array $market = null): ?string {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
         return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
     }
 
-    public function from_er(mixed $er, ?array $market = null): ?string {
+    public function from_er(?string $er, ?array $market = null): ?string {
         if (($er === null) || ($market === null)) {
             return $er;
         }

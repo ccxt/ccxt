@@ -1963,7 +1963,7 @@ class delta extends Exchange {
         }
         $marketId = $this->safe_string($order, 'product_id');
         $marketsByNumericId = $this->safe_dict($this->options, 'marketsByNumericId', array());
-        $marketValue = $this->safe_value($marketsByNumericId, $marketId, $market);
+        $marketValue = $this->safe_dict($marketsByNumericId, $marketId, $market);
         $symbol = null;
         if ($marketValue === null) {
             $symbol = $marketId;

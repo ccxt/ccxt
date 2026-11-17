@@ -1837,7 +1837,7 @@ class kraken extends Exchange {
     public function find_market_by_altname_or_id(mixed $id): array {
         $marketsByAltname = $this->safe_dict($this->options, 'marketsByAltname', array());
         if (is_array($marketsByAltname) && array_key_exists($id ?? '', $marketsByAltname)) {
-            return $marketsByAltname[$id];
+            return $this->safe_dict($marketsByAltname, $id);
         } else {
             return $this->safe_market($id);
         }
@@ -1857,7 +1857,7 @@ class kraken extends Exchange {
 
     public function get_delisted_market_by_id(?string $id): mixed {
         if ($id === null) {
-            return $id;
+            return null;
         }
         $market = $this->safe_dict($this->options['delistedMarketsById'], $id);
         if ($market !== null) {
