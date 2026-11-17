@@ -10904,7 +10904,6 @@ function goNativeStringAdds (content: string): string {
 // element, or an Add chain that goNativeStringAdds prints natively once X is a string) holds a plain string, as in TS
 // (`let x = ''`): it is `string`, and the Add chains over it print `+`. X must never be nil-compared, asserted or indexed.
 function goStringAnyLocals (content: string): string {
-    if (content.indexOf ('Add(') < 0) { return content; }
     const fileMasked = goTextMaskLiteralsAndComments (content);
     const overridden = new Set<string> ();
     const defRe = /^func \(\w+ \*\w+\) (\w+)\(.*\) (\S+) \{$/gm;

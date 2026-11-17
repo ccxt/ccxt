@@ -1152,3 +1152,11 @@ func (this *BaseExchange) SafeListMapsTyped(m any, key any) []map[string]any {
 	}
 	return rows
 }
+
+// SafeListNSliceDefault is SafeListN with a list default read as a []any: the member list, else the default.
+func (this *BaseExchange) SafeListNSliceDefault(dictionaryOrList any, keys any, defaultValue []any) []any {
+	if value := listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys)); value != nil {
+		return value
+	}
+	return defaultValue
+}
