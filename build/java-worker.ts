@@ -10,6 +10,7 @@ import { installJavaCounterTypes } from './java-local-types.js';
 import { installJavaMapLocalTypes } from './java-local-types.js';
 import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
+import { installJavaTypedBaseFields } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -156,6 +157,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaStringReturns (cachedTranspiler);
         installJavaPredictionMapLocals (cachedTranspiler);
         installJavaListParamSlots (cachedTranspiler);
+        installJavaTypedBaseFields (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

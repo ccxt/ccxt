@@ -18155,3 +18155,92 @@ export function installJavaListParamSlots (transpiler) {
         return upstreamTyped (arg, type);
     };
 }
+
+// ===== 60. typed base fields: proxy callbacks and precisionMode =====
+// BaseExchange.java declares the eight proxy callbacks as the ProxyCallback functional interface
+// (call(url, method, headers, body)) and precisionMode as int. A 4-argument call of a callback
+// field invokes it directly; `x.precisionMode ==/!= <int literal | int const>` compares the int.
+function javaTypedBaseFieldDeclared (printer, nameNode) {
+    try {
+        const symbol = printer.getChecker ().getSymbolAtLocation (nameNode);
+        const decls = (symbol?.declarations ?? []).map ((d) => d.resolve ());
+        return decls.length > 0 && decls.every ((d) => d !== undefined && ts.isPropertyDeclaration (d)
+            && /[\\/]ts[\\/]src[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/.test (d.getSourceFile ().fileName));
+    } catch (e) {
+        return false;
+    }
+}
+
+// an int literal, or a counting-mode constant (BaseExchange.java `public static final int`) the
+// checker types as an integer literal (destructured from base/functions in Exchange.ts)
+function javaTypedBaseFieldIntOperand (printer, node) {
+    if (printer.javaIntegerLiteralKind (node) === 'int') {
+        return true;
+    }
+    if (!ts.isIdentifier (node) || ![ 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS', 'TICK_SIZE' ].includes (node.text)) {
+        return false;
+    }
+    try {
+        const type = printer.getChecker ().getTypeAtLocation (node);
+        return (type.flags & ts.TypeFlags.NumberLiteral) !== 0 && Number.isInteger (type.value);
+    } catch (e) {
+        return false;
+    }
+}
+
+// a test-tier `exchange: any` parameter: the test writer prints every `Object exchange` parameter
+// as `BaseExchange exchange`, so its fields are the BaseExchange.java declarations
+function javaTestExchangeParam (printer, node) {
+    if (!ts.isIdentifier (node) || node.text !== 'exchange') {
+        return false;
+    }
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+        return declaration !== undefined && ts.isParameterDeclaration (declaration) && declaration.dotDotDotToken === undefined
+            && declaration.initializer === undefined
+            && /[\\/]ts[\\/]src[\\/]test[\\/]/.test (declaration.getSourceFile ().fileName)
+            && (printer.getChecker ().getTypeAtLocation (node).flags & ts.TypeFlags.Any) !== 0
+            && !printer.javaLocalIsReassigned (node);
+    } catch (e) {
+        return false;
+    }
+}
+
+export function installJavaTypedBaseFields (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || printer._javaTypedBaseFieldsPatched || typeof printer.printWrappedUnknownThisProperty !== 'function'
+        || typeof printer.printNativeEqualityIfProvable !== 'function') {
+        return;
+    }
+    printer._javaTypedBaseFieldsPatched = true;
+    const callbacks = new Set ([ 'proxyUrlCallback', 'proxy_url_callback', 'httpProxyCallback', 'http_proxy_callback',
+        'httpsProxyCallback', 'https_proxy_callback', 'socksProxyCallback', 'socks_proxy_callback' ]);
+    const upstreamCall = printer.printWrappedUnknownThisProperty.bind (printer);
+    printer.printWrappedUnknownThisProperty = function (node) {
+        const callee = node?.expression;
+        if (callee !== undefined && ts.isPropertyAccessExpression (callee) && callee.expression.kind === ts.SyntaxKind.ThisKeyword
+            && callbacks.has (callee.name.text) && node.arguments?.length === 4
+            && !node.arguments.some ((a) => ts.isSpreadElement (a)) && javaTypedBaseFieldDeclared (printer, callee.name)) {
+            return `this.${callee.name.text}.call(${node.arguments.map ((a) => printer.printNode (a, 0)).join (', ')})`;
+        }
+        return upstreamCall (node);
+    };
+    const upstreamEq = printer.printNativeEqualityIfProvable.bind (printer);
+    printer.printNativeEqualityIfProvable = function (node, leftText, rightText) {
+        const printed = upstreamEq (node, leftText, rightText);
+        if (printed !== undefined) {
+            return printed;
+        }
+        const op = node.operatorToken.kind;
+        const negated = op === ts.SyntaxKind.ExclamationEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken;
+        if (!negated && op !== ts.SyntaxKind.EqualsEqualsToken && op !== ts.SyntaxKind.EqualsEqualsEqualsToken) {
+            return undefined;
+        }
+        const isField = (n, text) => ts.isPropertyAccessExpression (n) && n.name.text === 'precisionMode'
+            && (n.expression.kind === ts.SyntaxKind.ThisKeyword ? text === 'this.precisionMode' && javaTypedBaseFieldDeclared (printer, n.name)
+                : text === 'exchange.precisionMode' && javaTestExchangeParam (printer, n.expression));
+        const ok = (isField (node.left, leftText) && javaTypedBaseFieldIntOperand (printer, node.right))
+            || (isField (node.right, rightText) && javaTypedBaseFieldIntOperand (printer, node.left));
+        return ok ? `(${leftText} ${negated ? '!=' : '=='} ${rightText})` : undefined;
+    };
+}

@@ -203,7 +203,7 @@ public class BaseExchange {
     public Map<String, Object> commonCurrencies = new HashMap<>();
 
     public Object limits = new HashMap<String, Object>();
-    public Object precisionMode = DECIMAL_PLACES;
+    public int precisionMode = DECIMAL_PLACES;
     public volatile Object currencies_by_id = new HashMap<String, Object>();
 
     public Object accounts = new HashMap<String, Object>();
@@ -497,14 +497,20 @@ public class BaseExchange {
     public Object wsProxy = null;
     public Object wssProxy = null;
 
-    public Object httpsProxyCallback = null;
-    public Object https_proxy_callback = null;
-    public Object proxyUrlCallback = null;
-    public Object socksProxyCallback = null;
-    public Object socks_proxy_callback = null;
-    public Object httpProxyCallback = null;
-    public Object http_proxy_callback = null;
-    public Object proxy_url_callback = null;
+    /** A user proxy callback: `(url, method, headers, body) -> proxy` (TS `this.proxyUrlCallback (url, method, headers, body)`). */
+    @FunctionalInterface
+    public interface ProxyCallback {
+        Object call(Object url, Object method, Object headers, Object body);
+    }
+
+    public ProxyCallback httpsProxyCallback = null;
+    public ProxyCallback https_proxy_callback = null;
+    public ProxyCallback proxyUrlCallback = null;
+    public ProxyCallback socksProxyCallback = null;
+    public ProxyCallback socks_proxy_callback = null;
+    public ProxyCallback httpProxyCallback = null;
+    public ProxyCallback http_proxy_callback = null;
+    public ProxyCallback proxy_url_callback = null;
     public Object proxyUrl = null;
     public Object proxy_url = null;
     public Object proxyUrlCallBack = null;
@@ -660,7 +666,7 @@ public class BaseExchange {
 
         var precisionModeTmp = SafeMethods.SafeIntegerTyped(extendedProperties, "precisionMode", this.precisionMode);
         if (precisionModeTmp != 0) {
-            this.precisionMode = precisionModeTmp;
+            this.precisionMode = (int) precisionModeTmp;
         }
 
         var paddingModeOp = SafeMethods.SafeIntegerTyped(extendedProperties, "paddingMode", this.paddingMode);
