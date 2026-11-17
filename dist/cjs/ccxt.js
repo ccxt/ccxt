@@ -22,6 +22,7 @@ var binanceus = require('./src/binanceus.js');
 var binanceusdm = require('./src/binanceusdm.js');
 var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
+var bit2me = require('./src/bit2me.js');
 var bitbank = require('./src/bitbank.js');
 var bitbns = require('./src/bitbns.js');
 var bitfinex = require('./src/bitfinex.js');
@@ -123,6 +124,7 @@ var binancecoinm$1 = require('./src/pro/binancecoinm.js');
 var binanceus$1 = require('./src/pro/binanceus.js');
 var binanceusdm$1 = require('./src/pro/binanceusdm.js');
 var bingx$1 = require('./src/pro/bingx.js');
+var bit2me$1 = require('./src/pro/bit2me.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
@@ -200,7 +202,7 @@ var sxbet = require('./src/prediction/sxbet.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.92';
+const version = '4.5.93';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -214,6 +216,7 @@ const exchanges = {
     'binanceusdm': binanceusdm["default"],
     'bingx': bingx["default"],
     'bit2c': bit2c["default"],
+    'bit2me': bit2me["default"],
     'bitbank': bitbank["default"],
     'bitbns': bitbns["default"],
     'bitfinex': bitfinex["default"],
@@ -317,6 +320,7 @@ const pro = {
     'binanceus': binanceus$1["default"],
     'binanceusdm': binanceusdm$1["default"],
     'bingx': bingx$1["default"],
+    'bit2me': bit2me$1["default"],
     'bitfinex': bitfinex$1["default"],
     'bitget': bitget$1["default"],
     'bithumb': bithumb$1["default"],
@@ -465,6 +469,7 @@ exports.binanceus = binanceus["default"];
 exports.binanceusdm = binanceusdm["default"];
 exports.bingx = bingx["default"];
 exports.bit2c = bit2c["default"];
+exports.bit2me = bit2me["default"];
 exports.bitbank = bitbank["default"];
 exports.bitbns = bitbns["default"];
 exports.bitfinex = bitfinex["default"];

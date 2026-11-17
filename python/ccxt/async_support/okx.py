@@ -2663,10 +2663,11 @@ class okx(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
-        if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
         priceType = self.safe_string(paramsPaginate, 'price')
         isMarkOrIndex = self.in_array(priceType, ['mark', 'index'])
+        if paginate:
+            maxEntriesPerRequest = 100 if (isMarkOrIndex) else 200
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxEntriesPerRequest)
         paramsPrice = self.omit(paramsPaginate, 'price')
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         timezone = self.safe_string(options, 'timezone', 'UTC')
@@ -2701,7 +2702,9 @@ class okx(Exchange, ImplicitAPI):
             request['after'] = self.sum(since, durationInMilliseconds * limitResolved)
         until = self.safe_integer(paramsPrice, 'until')
         if until is not None:
-            request['after'] = until
+            afterSince = self.safe_integer(request, 'after')
+            if (afterSince is None) or (until < afterSince):
+                request['after'] = until
         paramsUntil = self.omit(paramsPrice, 'until') if (until is not None) else paramsPrice
         defaultType = self.safe_string(options, 'type', defaultType)  # Candles or HistoryCandles
         type = self.safe_string(paramsUntil, 'type', defaultType)

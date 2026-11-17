@@ -2827,7 +2827,7 @@ class poloniex extends Exchange {
          * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum $amount of order book entries to return
+         * @param {int} [$limit] the maximum $amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
@@ -2837,10 +2837,8 @@ class poloniex extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if ($this->safe_bool($market, 'contract', false)) {
-                $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 100, 150 ), $limit);
-            }
+            // both hosts accept only these depths, anything else is rejected with 24104
+            $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100, 150 ), $limit);
         }
         if ($this->safe_bool($market, 'contract', false)) {
             $responseRaw = $this->swapPublicGetV3MarketOrderBook($this->extend($request, $params));

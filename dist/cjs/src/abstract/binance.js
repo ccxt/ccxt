@@ -345,6 +345,9 @@ class Exchange extends Exchange$1["default"] {
     sapiGetSubAccountTransactionStatistics(params = {}) {
         return this.request('sub-account/transaction-statistics', ['sapi'], 'GET', params, { 'cost': 0.40002 });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', ['sapi'], 'GET', params, { 'cost': 20.001 });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', ['sapi'], 'GET', params, { 'cost': 20.001 });
     }
@@ -888,6 +891,12 @@ class Exchange extends Exchange$1["default"] {
     sapiPostSubAccountVirtualSubAccount(params = {}) {
         return this.request('sub-account/virtualSubAccount', ['sapi'], 'POST', params, { 'cost': 0.1 });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', ['sapi'], 'POST', params, { 'cost': 20.001 });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', ['sapi'], 'POST', params, { 'cost': 20.001 });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', ['sapi'], 'POST', params, { 'cost': 4.0002 });
     }
@@ -1254,6 +1263,9 @@ class Exchange extends Exchange$1["default"] {
     sapiDeleteAlgoFuturesOrder(params = {}) {
         return this.request('algo/futures/order', ['sapi'], 'DELETE', params, { 'cost': 0.1 });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', ['sapi'], 'DELETE', params, { 'cost': 20.001 });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', ['sapi'], 'DELETE', params, { 'cost': 20.001 });
     }
@@ -1292,6 +1304,9 @@ class Exchange extends Exchange$1["default"] {
     }
     sapiV2PostEthStakingEthStake(params = {}) {
         return this.request('eth-staking/eth/stake', ['sapiV2'], 'POST', params, { 'cost': 15 });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', ['sapiV2'], 'POST', params, { 'cost': 20.001 });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', ['sapiV2'], 'POST', params, { 'cost': 20.001 });

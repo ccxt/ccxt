@@ -31,6 +31,8 @@ pub mod binanceusdm_typed;
 pub mod bingx_typed;
 #[cfg(feature = "bit2c")]
 pub mod bit2c_typed;
+#[cfg(feature = "bit2me")]
+pub mod bit2me_typed;
 #[cfg(feature = "bitbank")]
 pub mod bitbank_typed;
 #[cfg(feature = "bitbns")]

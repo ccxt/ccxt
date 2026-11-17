@@ -2766,13 +2766,27 @@ impl Exchange {
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
         Value::Str(format!("0x{}", crate::exchange::hex_encode(&hash[12..32])).into())
     }
+    /// ensures the file path has a whitelisted extension, so users are safeguarded from arbitrary file access
+    pub fn ensure_whitelisted_file(&self, p: &Value) {
+        let path = match p {
+            Value::Str(s) => s.to_string(),
+            _ => panic!("invalid file path: {}", stringify_param(p)),
+        };
+        let exts = ["ccxtfile", "pem", "wasm"];
+        if exts.iter().any(|ext| path.ends_with(&format!(".{}", ext))) {
+            return;
+        }
+        panic!("invalid file path: {}", path);
+    }
     pub fn exists_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => Value::Bool(std::path::Path::new(path.as_ref()).is_file()),
             _ => Value::Bool(false),
         }
     }
     pub fn read_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => match std::fs::read_to_string(path.as_ref()) {
                 Ok(s) => Value::Str(s.into()),
@@ -2782,6 +2796,7 @@ impl Exchange {
         }
     }
     pub fn write_file(&self, p: Value, content: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         let path = match &p {
             Value::Str(s) => s.to_string(),
             _ => return Value::Bool(false),

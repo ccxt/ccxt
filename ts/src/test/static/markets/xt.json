@@ -1,4 +1,129 @@
 {
+  "SEI/USDT": {
+    "id": "sei_usdt",
+    "lowercaseId": null,
+    "symbol": "SEI/USDT",
+    "base": "SEI",
+    "quote": "USDT",
+    "settle": null,
+    "baseId": "sei",
+    "quoteId": "usdt",
+    "settleId": null,
+    "type": "spot",
+    "spot": true,
+    "margin": null,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "index": false,
+    "active": true,
+    "contract": false,
+    "linear": null,
+    "inverse": null,
+    "subType": null,
+    "taker": 0.002,
+    "maker": 0.002,
+    "contractSize": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "price": 1e-05,
+      "amount": 0.1,
+      "base": null,
+      "quote": null
+    },
+    "limits": {
+      "leverage": {
+        "min": 1,
+        "max": null
+      },
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 5,
+        "max": null
+      }
+    },
+    "marginModes": {
+      "cross": null,
+      "isolated": null
+    },
+    "created": null,
+    "info": {
+      "id": 9284,
+      "symbol": "sei_usdt",
+      "displayName": "SEI/USDT",
+      "type": "normal",
+      "state": "ONLINE",
+      "stateTime": 1692097200000,
+      "tradingEnabled": true,
+      "openapiEnabled": true,
+      "nextStateTime": null,
+      "nextState": null,
+      "depthMergePrecision": 5,
+      "baseCurrency": "sei",
+      "baseCurrencyPrecision": 8,
+      "baseCurrencyId": 2582,
+      "baseCurrencyLogo": "https://a.static-global.com/1/currency/截屏2023-08-15 下午6.13.53.png",
+      "quoteCurrency": "usdt",
+      "quoteCurrencyPrecision": 8,
+      "quoteCurrencyId": 11,
+      "pricePrecision": 5,
+      "quantityPrecision": 1,
+      "orderTypes": [],
+      "timeInForces": [],
+      "displayWeight": 1000,
+      "displayLevel": "FULL",
+      "plates": [
+        283,
+        3
+      ],
+      "businessNameI18n": null,
+      "tags": [],
+      "filters": [
+        {
+          "filter": "PROTECTION_LIMIT",
+          "sellPriceLimitCoefficient": "0.8",
+          "buyMaxDeviation": "0.8",
+          "buyPriceLimitCoefficient": "4",
+          "sellMaxDeviation": "4"
+        },
+        {
+          "filter": "PROTECTION_MARKET",
+          "maxDeviation": "0.02"
+        },
+        {
+          "filter": "PROTECTION_ONLINE",
+          "durationSeconds": "300",
+          "maxPriceMultiple": "5"
+        },
+        {
+          "filter": "QUOTE_QTY",
+          "min": "5"
+        }
+      ],
+      "takerFeeRate": "0.002",
+      "makerFeeRate": "0.002",
+      "chainRelation": [
+        {
+          "chainId": 2254,
+          "contract": ""
+        },
+        {
+          "chainId": 2401,
+          "contract": ""
+        }
+      ]
+    }
+  },
   "BTC/USDT": {
     "id": "btc_usdt",
     "lowercaseId": null,

@@ -1725,8 +1725,8 @@ impl ParadexCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1055: bool = true;
-            while { if !__for_first_1055 { i += 1; } __for_first_1055 = false; i < (fees.len() as i64) } {
+            let mut __for_first_1058: bool = true;
+            while { if !__for_first_1058 { i += 1; } __for_first_1058 = false; i < (fees.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(fee)); }
@@ -2252,8 +2252,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1056: bool = true;
-            while { if !__for_first_1056 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_1059: bool = true;
+            while { if !__for_first_1059 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1059 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -3139,8 +3139,8 @@ impl ParadexCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1057: bool = true;
-            while { if !__for_first_1057 { i += 1; } __for_first_1057 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1060: bool = true;
+            while { if !__for_first_1060 { i += 1; } __for_first_1060 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -3188,8 +3188,8 @@ impl ParadexCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1058: bool = true;
-            while { if !__for_first_1058 { i += 1; } __for_first_1058 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1061: bool = true;
+            while { if !__for_first_1061 { i += 1; } __for_first_1061 = false; i < (orders.len() as i64) } {
             let mut responseOrder: Value = self.safe_dict(responseOrders.clone(), Value::Int(i), &[]);
             if (responseOrder != Value::Null) {
                 result.push(self.parse_order(responseOrder, &[]));
@@ -3319,8 +3319,8 @@ impl ParadexCore {
         let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1059: bool = true;
-            while { if !__for_first_1059 { i += 1; } __for_first_1059 = false; i < (results.len() as i64) } {
+            let mut __for_first_1062: bool = true;
+            while { if !__for_first_1062 { i += 1; } __for_first_1062 = false; i < (results.len() as i64) } {
             let mut result: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(result.clone(), "market", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -3645,8 +3645,8 @@ impl ParadexCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1060: bool = true;
-            while { if !__for_first_1060 { i += 1; } __for_first_1060 = false; i < (response.len() as i64) } {
+            let mut __for_first_1063: bool = true;
+            while { if !__for_first_1063 { i += 1; } __for_first_1063 = false; i < (response.len() as i64) } {
             let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3742,8 +3742,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1061: bool = true;
-            while { if !__for_first_1061 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1061 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_1064: bool = true;
+            while { if !__for_first_1064 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1064 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -3777,8 +3777,8 @@ impl ParadexCore {
         let mut matching: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1062: bool = true;
-            while { if !__for_first_1062 { i += 1; } __for_first_1062 = false; i < (data.len() as i64) } {
+            let mut __for_first_1065: bool = true;
+            while { if !__for_first_1065 { i += 1; } __for_first_1065 = false; i < (data.len() as i64) } {
             if (self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "market", &[]).as_str() == market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str()) {
                 matching.push(data.get(i as usize).cloned().unwrap_or(Value::Null));
             }
@@ -3846,8 +3846,8 @@ impl ParadexCore {
         let mut openPositions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1063: bool = true;
-            while { if !__for_first_1063 { i += 1; } __for_first_1063 = false; i < (data.len() as i64) } {
+            let mut __for_first_1066: bool = true;
+            while { if !__for_first_1066 { i += 1; } __for_first_1066 = false; i < (data.len() as i64) } {
             let mut position: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut status: Option<String> = self.safe_string_k(position.clone(), "status", &[]).as_str().map(str::to_owned);
             let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
@@ -4096,16 +4096,16 @@ impl ParadexCore {
         let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1064: bool = true;
-            while { if !__for_first_1064 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1064 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1067: bool = true;
+            while { if !__for_first_1067 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1067 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut rows, &i), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1065: bool = true;
-            while { if !__for_first_1065 { i += 1; } __for_first_1065 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1068: bool = true;
+            while { if !__for_first_1068 { i += 1; } __for_first_1068 = false; i < (rows.len() as i64) } {
             let mut row: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if allKinds || (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("DEPOSIT")) {
                 deposits.push(row);
@@ -4199,16 +4199,16 @@ impl ParadexCore {
         let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1066: bool = true;
-            while { if !__for_first_1066 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1066 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1069: bool = true;
+            while { if !__for_first_1069 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1069 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut rows, &i), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1067: bool = true;
-            while { if !__for_first_1067 { i += 1; } __for_first_1067 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1070: bool = true;
+            while { if !__for_first_1070 { i += 1; } __for_first_1070 = false; i < (rows.len() as i64) } {
             let mut row: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if allKinds || (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("WITHDRAWAL")) {
                 deposits.push(row);
@@ -4296,8 +4296,8 @@ impl ParadexCore {
         let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1068: bool = true;
-            while { if !__for_first_1068 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1068 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1071: bool = true;
+            while { if !__for_first_1071 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1071 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut rows, &i), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
@@ -4417,8 +4417,8 @@ impl ParadexCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1069: bool = true;
-            while { if !__for_first_1069 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1069 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
+            let mut __for_first_1072: bool = true;
+            while { if !__for_first_1072 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1072 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
             let mut info: Value = self.safe_dict(transactions.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("info".into()), &[]);
             if (self.safe_string_k(info, "kind", &[]).as_str() == kind.as_str()) {
                 result.push(transactions.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
@@ -4942,8 +4942,8 @@ impl ParadexCore {
         let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1070: bool = true;
-            while { if !__for_first_1070 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1070 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
+            let mut __for_first_1073: bool = true;
+            while { if !__for_first_1073 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1073 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut results, &i), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
@@ -5054,8 +5054,8 @@ impl ParadexCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1071: bool = true;
-            while { if !__for_first_1071 { i += 1; } __for_first_1071 = false; i < (results.len() as i64) } {
+            let mut __for_first_1074: bool = true;
+            while { if !__for_first_1074 { i += 1; } __for_first_1074 = false; i < (results.len() as i64) } {
             let mut rate: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(rate.clone(), "created_at", &[]).as_i64();
             let mut datetime: Value = self.iso8601(Value::from(timestamp));
@@ -5211,8 +5211,8 @@ impl ParadexCore {
             let mut batchErrors: Vec<Value> = self.safe_list_k(response, "errors", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1072: bool = true;
-                while { if !__for_first_1072 { i += 1; } __for_first_1072 = false; i < (batchErrors.len() as i64) } {
+                let mut __for_first_1075: bool = true;
+                while { if !__for_first_1075 { i += 1; } __for_first_1075 = false; i < (batchErrors.len() as i64) } {
                 let mut batchErrorCode: Option<String> = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
                 if (batchErrorCode.is_some()) {
                     errorCode = batchErrorCode.map(Value::from).unwrap_or(Value::Null);

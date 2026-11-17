@@ -20,6 +20,7 @@
 	- [binance](exchanges/binance.md)
 	- [bingx](exchanges/bingx.md)
 	- [bit2c](exchanges/bit2c.md)
+	- [bit2me](exchanges/bit2me.md)
 	- [bitbank](exchanges/bitbank.md)
 	- [bitbns](exchanges/bitbns.md)
 	- [bitfinex](exchanges/bitfinex.md)

@@ -435,8 +435,11 @@ public class Extended extends ExtendedApi
                 }} );
             }} );
             put( "fees", new HashMap<String, Object>() {{
-                put( "taker", Extended.this.parseNumber("0.002") );
-                put( "maker", Extended.this.parseNumber("0.002") );
+                put( "taker", Extended.this.parseNumber("0.00025") );
+                put( "maker", Extended.this.parseNumber("0") );
+                put( "rwa", new HashMap<String, Object>() {{
+                    put( "taker", Extended.this.parseNumber("0.0001") );
+                }} );
             }} );
             put( "requiredCredentials", new HashMap<String, Object>() {{
                 put( "apiKey", true );
@@ -563,6 +566,7 @@ public class Extended extends ExtendedApi
      * @name extended#fetchMarkets
      * @description retrieves data on all markets for extended
      * @see https://api.docs.extended.exchange/#get-markets
+     * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -749,6 +753,8 @@ public class Extended extends ExtendedApi
         Double minAmount = this.safeNumber(tradingConfig, "minOrderSize", (Object) null);
         Double maxCost = this.safeNumber(tradingConfig, "maxLimitOrderValue", (Object) null);
         Long created = this.safeInteger(market, "createdAt");
+        String category = this.safeStringLower(market, "category");
+        Object takerFees = (((java.util.Objects.equals(category, "rwa")))) ? this.safeDict(this.fees, "rwa", new HashMap<String, Object>() {{}}) : this.fees;
         String settleId = null;
         String settle = null;
         String symbol = ((base + "/") + quote);
@@ -792,7 +798,7 @@ public class Extended extends ExtendedApi
         mapLiteral1.put("contract", !Boolean.TRUE.equals(isSpot));
         mapLiteral1.put("linear", linear);
         mapLiteral1.put("inverse", inverse);
-        mapLiteral1.put("taker", this.safeNumber(this.fees, "taker", (Object) null));
+        mapLiteral1.put("taker", this.safeNumber(takerFees, "taker", (Object) null));
         mapLiteral1.put("maker", this.safeNumber(this.fees, "maker", (Object) null));
         mapLiteral1.put("contractSize", contractSize);
         mapLiteral1.put("expiry", null);

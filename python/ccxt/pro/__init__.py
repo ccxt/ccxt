@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.92'
+__version__ = '4.5.93'
 
 # ----------------------------------------------------------------------------
 
@@ -67,6 +67,7 @@ from ccxt.pro.binancecoinm import binancecoinm                            # noqa
 from ccxt.pro.binanceus import binanceus                                  # noqa: F401
 from ccxt.pro.binanceusdm import binanceusdm                              # noqa: F401
 from ccxt.pro.bingx import bingx                                          # noqa: F401
+from ccxt.pro.bit2me import bit2me                                        # noqa: F401
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.pro.bitget import bitget                                        # noqa: F401
 from ccxt.pro.bithumb import bithumb                                      # noqa: F401
@@ -144,6 +145,7 @@ exchanges = [
     'binanceus',
     'binanceusdm',
     'bingx',
+    'bit2me',
     'bitfinex',
     'bitget',
     'bithumb',

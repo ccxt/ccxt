@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-pro"
-version = "4.5.92"
+version = "4.5.93"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – pro (WebSocket / watch*) exchanges"
 license = "MIT"
@@ -31,6 +31,7 @@ binancecoinm = ["ccxt-base/binancecoinm", "binance"]
 binanceus = ["ccxt-base/binanceus", "binance"]
 binanceusdm = ["ccxt-base/binanceusdm", "binance"]
 bingx = ["ccxt-base/bingx"]
+bit2me = ["ccxt-base/bit2me"]
 bitfinex = ["ccxt-base/bitfinex"]
 bitget = ["ccxt-base/bitget"]
 bithumb = ["ccxt-base/bithumb"]
@@ -96,7 +97,7 @@ whitebit = ["ccxt-base/whitebit"]
 woo = ["ccxt-base/woo"]
 woofipro = ["ccxt-base/woofipro"]
 xt = ["ccxt-base/xt"]
-all = ["alpaca", "apex", "aster", "backpack", "bequant", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bitfinex", "bitget", "bithumb", "bitopro", "bitrue", "bitstamp", "bittrade", "bitvavo", "blockchaincom", "blofin", "bullish", "bybit", "bybiteu", "bybitid", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinone", "cryptocom", "deepcoin", "deribit", "derive", "dydx", "extended", "gate", "gateeu", "gemini", "grvt", "hashkey", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "lbank", "lighter", "luno", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "phemex", "poloniex", "polymarket", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt"]
+all = ["alpaca", "apex", "aster", "backpack", "bequant", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bit2me", "bitfinex", "bitget", "bithumb", "bitopro", "bitrue", "bitstamp", "bittrade", "bitvavo", "blockchaincom", "blofin", "bullish", "bybit", "bybiteu", "bybitid", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinone", "cryptocom", "deepcoin", "deribit", "derive", "dydx", "extended", "gate", "gateeu", "gemini", "grvt", "hashkey", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "lbank", "lighter", "luno", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "phemex", "poloniex", "polymarket", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt"]
 # END GENERATED FEATURES
 
 [dependencies]
@@ -104,7 +105,7 @@ all = ["alpaca", "apex", "aster", "backpack", "bequant", "binance", "binancecoin
 # REST cores, runtime helpers and hand-written pro infra (cache / order_book /
 # ws_client) that live in `ccxt`. Splitting the WS venues into their own crate
 # keeps each `rustc` invocation well under the CI runner's memory limit.
-ccxt-base = { path = "../ccxt-base", version = "4.5.92", features = ["engine"] }
+ccxt-base = { path = "../ccxt-base", version = "4.5.93", features = ["engine"] }
 
 # The generated WS venues (`src/pro/<id>.rs`, emitted by build/rustTranspiler.ts)
 # and typed wrappers (`src/pro_typed/`, `typed.rs`, emitted by

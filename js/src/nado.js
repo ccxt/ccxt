@@ -92,11 +92,29 @@ export default class nado extends Exchange {
                     'public': {
                         'get': {
                             'symbols': { 'cost': 2 },
-                            'query': { 'cost': 1 },
+                            'query': {
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2,
+                                },
+                            },
                             'edge/query': { 'cost': 1 },
                         },
                         'post': {
-                            'query': { 'cost': 1 },
+                            'query': {
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2,
+                                },
+                            },
                             'edge/query': { 'cost': 1 },
                         },
                     },
@@ -110,23 +128,33 @@ export default class nado extends Exchange {
                     'public': {
                         'get': {
                             'assets': { 'cost': 2 },
-                            'pairs': { 'cost': 1 },
+                            'pairs': { 'cost': 2 },
                             'orderbook': { 'cost': 1 },
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': { 'cost': 1 },
+                        '': {
+                            'cost': 2,
+                            // [ base weight, rows per extra weight unit ]
+                            'byQuery': {
+                                'candlesticks': [2, 100],
+                                'events': [2, 10],
+                                'matches': [2, 10],
+                                'orders': [2, 20],
+                                'interest_and_funding': [5],
+                            },
+                        },
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': { 'cost': 1 },
-                            'contracts': { 'cost': 1 },
-                            'trades': { 'cost': 1 },
-                            'symbols': { 'cost': 1 },
+                            'tickers': { 'cost': 2 },
+                            'contracts': { 'cost': 2 },
+                            'trades': { 'cost': 4, 'byRows': [2, 50] },
+                            'symbols': { 'cost': 2 },
                         },
                     },
                 },
@@ -3164,6 +3192,48 @@ export default class nado extends Exchange {
             return marketId.slice(0, -5);
         }
         return marketId;
+    }
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        if (('byType' in config) && ('type' in params)) {
+            const queryType = params['type'];
+            const byType = config['byType'];
+            if (queryType in byType) {
+                return byType[queryType];
+            }
+        }
+        const byQuery = this.safeDict(config, 'byQuery');
+        if (byQuery !== undefined) {
+            const queryNames = Object.keys(byQuery);
+            for (let i = 0; i < queryNames.length; i++) {
+                const queryName = queryNames[i];
+                if (queryName in params) {
+                    const weights = this.safeList(byQuery, queryName, []);
+                    const baseWeight = this.safeInteger(weights, 0, 2);
+                    const rowsPerWeight = this.safeInteger(weights, 1);
+                    if (rowsPerWeight === undefined) {
+                        return baseWeight;
+                    }
+                    const query = this.safeDict(params, queryName, {});
+                    let rows = this.safeInteger(query, 'limit', 100); // the archive default page
+                    const nestedLimit = this.safeDict(query, 'limit'); // the events query sends { 'raw': 100 }
+                    if (nestedLimit !== undefined) {
+                        rows = this.safeInteger(nestedLimit, 'raw', 100);
+                    }
+                    return this.sum(baseWeight, this.parseToInt(rows / rowsPerWeight));
+                }
+            }
+        }
+        const byRows = this.safeList(config, 'byRows');
+        if (byRows !== undefined) {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            const rowsBaseWeight = this.safeInteger(byRows, 0, 2);
+            const rowsDivisor = this.safeInteger(byRows, 1, 50);
+            const rowCount = this.safeInteger(params, 'limit', 100); // the v2 default page
+            return this.sum(rowsBaseWeight, this.parseToInt(rowCount / rowsDivisor));
+        }
+        return this.safeValue(config, 'cost', 1);
     }
     sign(path, api = [], method = 'GET', params = {}) {
         let requestBody = undefined;

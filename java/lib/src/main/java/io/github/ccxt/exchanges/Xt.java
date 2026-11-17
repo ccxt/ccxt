@@ -4817,10 +4817,21 @@ public class Xt extends XtApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String symbol = this.safeSymbol(marketId, marketResolved, (String) null, marketType);
         Long timestamp = (Long) this.safeInteger2(order, "time", "createdTime");
-        Double quantity = this.safeNumber(order, "origQty", (Object) null);
-        Object amount = (((java.util.Objects.equals(marketType, "spot")))) ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(marketResolved.get("contractSize")));
-        Double filledQuantity = this.safeNumber(order, "executedQty", (Object) null);
-        Object filled = (((java.util.Objects.equals(marketType, "spot")))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(marketResolved.get("contractSize")));
+        String contractSize = this.safeString(marketResolved, "contractSize");
+        String quantity = this.safeString(order, "origQty");
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        String filledQuantity = this.safeString2(order, "tradeBase", "executedQty");
+        String amount = (((java.util.Objects.equals(marketType, "spot")))) ? quantity : Precise.stringMul(quantity, contractSize);
+        String filled = (((java.util.Objects.equals(marketType, "spot")))) ? filledQuantity : Precise.stringMul(filledQuantity, contractSize);
+        // leavingQty follows executedQty and is quote-denominated on the same
+        // spot market buy shape, so it is only read when the order carries a
+        // base-denominated origQty - otherwise safeOrder derives it from filled
+        String remaining = null;
+        if (!java.util.Objects.equals(quantity, null))
+        {
+            remaining = this.safeString(order, "leavingQty");
+        }
         Long lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
         String timeInForce = this.safeString(order, "timeInForce");
         Boolean postOnly = null;
@@ -4861,7 +4872,7 @@ public class Xt extends XtApi
         mapLiteral11.put("lastTradeTimestamp", lastUpdatedTimestamp);
         mapLiteral11.put("lastUpdateTimestamp", lastUpdatedTimestamp);
         mapLiteral11.put("symbol", symbol);
-        mapLiteral11.put("type", this.safeStringLower2(order, "type", "orderType"));
+        mapLiteral11.put("type", this.parseOrderType((String) (this.safeStringLowerN(order, new ArrayList<Object>(Arrays.asList("type", "orderType", "entrustType"))))));
         mapLiteral11.put("timeInForce", timeInForce);
         mapLiteral11.put("postOnly", postOnly);
         mapLiteral11.put("side", side);
@@ -4871,8 +4882,8 @@ public class Xt extends XtApi
         mapLiteral11.put("takeProfitPrice", this.safeNumber(order, "triggerProfitPrice", (Object) null));
         mapLiteral11.put("amount", amount);
         mapLiteral11.put("filled", filled);
-        mapLiteral11.put("remaining", this.safeNumber(order, "leavingQty", (Object) null));
-        mapLiteral11.put("cost", null);
+        mapLiteral11.put("remaining", remaining);
+        mapLiteral11.put("cost", this.safeString(order, "tradeQuote"));
         mapLiteral11.put("average", this.safeNumber(order, "avgPrice", (Object) null));
         mapLiteral11.put("status", this.parseOrderStatus(this.safeString(order, "state")));
         mapLiteral11.put("fee", new HashMap<String, Object>() {{
@@ -4881,6 +4892,18 @@ public class Xt extends XtApi
             }});
         mapLiteral11.put("trades", null);
         return this.safeOrder(mapLiteral11, marketResolved);
+    }
+
+    public String parseOrderType(String type)
+    {
+        Map<String, Object> types = new HashMap<String, Object>() {{
+            put( "stop", "limit" );
+            put( "stop_market", "market" );
+            put( "take_profit", "limit" );
+            put( "take_profit_market", "market" );
+            put( "trailing_stop_market", "market" );
+        }};
+        return this.safeString(types, type, type);
     }
 
     public String parseOrderStatus(String status)

@@ -1266,6 +1266,17 @@ public class BinanceusdmApi extends Binance
     }
 
     /**
+     * Calls the sapiGetSubAccountSubAccountApi endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  sapiGetSubAccountSubAccountApi (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetSubAccountSubAccountApi", optionalArgs);
+    }
+
+    /**
      * Calls the sapiGetSubAccountSubAccountApiIpRestriction endpoint.
      *
      * @param optionalArgs the request parameters
@@ -3257,6 +3268,28 @@ public class BinanceusdmApi extends Binance
     }
 
     /**
+     * Calls the sapiPostSubAccountSubAccountApi endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountSubAccountApi (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiPostSubAccountSubAccountApi", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiPostSubAccountSubAccountApiPermission endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  sapiPostSubAccountSubAccountApiPermission (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiPostSubAccountSubAccountApiPermission", optionalArgs);
+    }
+
+    /**
      * Calls the sapiPostSubAccountMarginTransfer endpoint.
      *
      * @param optionalArgs the request parameters
@@ -4599,6 +4632,17 @@ public class BinanceusdmApi extends Binance
     }
 
     /**
+     * Calls the sapiDeleteSubAccountSubAccountApi endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  sapiDeleteSubAccountSubAccountApi (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiDeleteSubAccountSubAccountApi", optionalArgs);
+    }
+
+    /**
      * Calls the sapiDeleteSubAccountSubAccountApiIpRestrictionIpList endpoint.
      *
      * @param optionalArgs the request parameters
@@ -4739,6 +4783,17 @@ public class BinanceusdmApi extends Binance
     public CompletableFuture<Map<String, Object>>  sapiV2PostEthStakingEthStake (Object... optionalArgs)
     {
         return this.callAsync ("sapiV2PostEthStakingEthStake", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiV2PostSubAccountSubAccountApi endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  sapiV2PostSubAccountSubAccountApi (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiV2PostSubAccountSubAccountApi", optionalArgs);
     }
 
     /**

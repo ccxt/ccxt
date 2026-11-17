@@ -2193,35 +2193,37 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //
         String instrumentName = this.safeString(position, "instrument_name");
         Map<String, Object> marketResolved = this.safeMarket(instrumentName, market, (String) null, (String) null);
-        String side = this.safeString(position, "direction");
-        if (java.util.Objects.equals(side, "buy"))
+        String direction = this.safeString(position, "direction");
+        String side = null;
+        if (java.util.Objects.equals(direction, "buy"))
         {
             side = "long";
-        } else if (java.util.Objects.equals(side, "sell"))
+        } else if (java.util.Objects.equals(direction, "sell"))
         {
             side = "short";
         }
-        String notional = this.safeString(position, "size_currency");
         String initialMargin = this.safeString(position, "initial_margin");
         String maintenanceMargin = this.safeString(position, "maintenance_margin");
-        Double contracts = this.safeNumber(position, "size", (Object) null);
-        if (this.isNativeDeribitCredentials())
+        // size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+        // size_currency is in the base currency, futures only
+        // contractSize is in USD for inverse futures and in the base currency otherwise
+        String size = this.safeString(position, "size");
+        String amount = size; // `contract_size` converts between `amount` and `contracts`
+        String notional = null;
+        if (Boolean.TRUE.equals(this.safeBool(marketResolved, "option", false)))
         {
-            String size = this.safeString(position, "size");
-            if (!Boolean.TRUE.equals(this.safeBool(marketResolved, "option", false)))
-            {
-                notional = size;
-                if (Boolean.TRUE.equals(this.safeBool(marketResolved, "linear", false)))
-                {
-                    size = this.safeString(position, "size_currency");
-                }
-            } else
-            {
-                notional = Precise.stringMul(size, this.safeString(position, "mark_price"));
-            }
-            String contractsString = this.safeString(position, "contracts", Precise.stringDiv(size, this.safeString(marketResolved, "contractSize")));
-            contracts = this.parseNumber(Precise.stringAbs(contractsString));
+            // For options, "size" is the base currency (e.g. BTC) instead of quote currency
+            notional = Precise.stringMul(size, this.safeString(position, "mark_price"));
+        } else if (Boolean.TRUE.equals(this.safeBool(marketResolved, "linear", false)))
+        {
+            amount = this.safeString(position, "size_currency"); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+            notional = size;
+        } else
+        {
+            // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+            notional = this.safeString(position, "size_currency");
         }
+        String contractsString = Precise.stringDiv(amount, this.safeString(marketResolved, "contractSize"));
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", position);
         mapLiteral3.put("id", null);
@@ -2232,7 +2234,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         mapLiteral3.put("collateral", null);
         mapLiteral3.put("unrealizedPnl", this.safeNumber(position, "floating_profit_loss", (Object) null));
         mapLiteral3.put("side", side);
-        mapLiteral3.put("contracts", contracts);
+        mapLiteral3.put("contracts", this.parseNumber(Precise.stringAbs(contractsString)));
         mapLiteral3.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
         mapLiteral3.put("timestamp", null);
         mapLiteral3.put("datetime", null);

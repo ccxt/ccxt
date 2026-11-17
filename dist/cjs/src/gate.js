@@ -3612,7 +3612,7 @@ class gate extends gate$1["default"] {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         const market = this.market(symbol);
         if (!this.safeBool(market, 'swap', false)) {

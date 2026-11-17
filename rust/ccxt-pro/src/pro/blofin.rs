@@ -490,8 +490,8 @@ impl BlofinCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_165: bool = true;
-            while { if !__for_first_165 { i += 1; } __for_first_165 = false; i < (data.len() as i64) } {
+            let mut __for_first_170: bool = true;
+            while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (data.len() as i64) } {
             let mut rawTrade: Value = self.safe_value(data.clone(), Value::Int(i), &[]);
             let mut trade: Value = self.parse_ws_trade(rawTrade, &[]);
             let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".into())]);
@@ -705,8 +705,8 @@ impl BlofinCore {
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_166: bool = true;
-            while { if !__for_first_166 { i += 1; } __for_first_166 = false; i < (data.len() as i64) } {
+            let mut __for_first_171: bool = true;
+            while { if !__for_first_171 { i += 1; } __for_first_171 = false; i < (data.len() as i64) } {
             let mut ticker: Value = self.parse_ws_ticker(self.safe_value(data.clone(), Value::Int(i), &[]), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
@@ -759,8 +759,8 @@ impl BlofinCore {
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_167: bool = true;
-            while { if !__for_first_167 { i += 1; } __for_first_167 = false; i < (symbolsList.len() as i64) } {
+            let mut __for_first_172: bool = true;
+            while { if !__for_first_172 { i += 1; } __for_first_172 = false; i < (symbolsList.len() as i64) } {
             let mut market: Value = self.market(symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
             args.push(Value::Map({
@@ -796,8 +796,8 @@ impl BlofinCore {
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_168: bool = true;
-            while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (data.len() as i64) } {
+            let mut __for_first_173: bool = true;
+            while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (data.len() as i64) } {
             let mut ticker: Value = self.parse_ws_bid_ask(self.safe_value(data.clone(), Value::Int(i), &[]), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into());
@@ -979,8 +979,8 @@ impl BlofinCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_169: bool = true;
-            while { if !__for_first_169 { i += 1; } __for_first_169 = false; i < (data.len() as i64) } {
+            let mut __for_first_174: bool = true;
+            while { if !__for_first_174 { i += 1; } __for_first_174 = false; i < (data.len() as i64) } {
             let mut candle: Value = self.safe_value(data.clone(), Value::Int(i), &[]);
             let mut parsed: Value = self.parse_ohlcv(candle, &[market.clone()]);
             stored.append(parsed);
@@ -1058,8 +1058,8 @@ impl BlofinCore {
         let mut keys: Vec<Value> = object_keys(&parsed).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_170: bool = true;
-            while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (keys.len() as i64) } {
+            let mut __for_first_175: bool = true;
+            while { if !__for_first_175 { i += 1; } __for_first_175 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if self.in_array(key.clone(), reserved.clone()).as_bool() == Some(true) {
                 continue;
@@ -1174,8 +1174,8 @@ impl BlofinCore {
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_171: bool = true;
-            while { if !__for_first_171 { i += 1; } __for_first_171 = false; i < (data.len() as i64) } {
+            let mut __for_first_176: bool = true;
+            while { if !__for_first_176 { i += 1; } __for_first_176 = false; i < (data.len() as i64) } {
             let mut order: Value = self.parse_ws_order(self.safe_value(data.clone(), Value::Int(i), &[]), &[]);
             orders.append(order.clone());
             if (channelName.is_some()) {
@@ -1246,8 +1246,8 @@ impl BlofinCore {
         let mut newPositions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_172: bool = true;
-            while { if !__for_first_172 { i += 1; } __for_first_172 = false; i < (data.len() as i64) } {
+            let mut __for_first_177: bool = true;
+            while { if !__for_first_177 { i += 1; } __for_first_177 = false; i < (data.len() as i64) } {
             let mut position: Value = self.parse_ws_position(self.safe_value(data.clone(), Value::Int(i), &[]), &[]);
             newPositions.push(position.clone());
             cache.append(position.clone());
@@ -1368,8 +1368,8 @@ impl BlofinCore {
         if (symbols != Value::Null) && (((symbols.len() as i64) as f64) > ((0i64) as f64)) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_173: bool = true;
-                while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_178: bool = true;
+                while { if !__for_first_178 { i += 1; } __for_first_178 = false; i < (symbols.len() as i64) } {
                 let mut current: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: Value = Value::Null;
                 let mut channel: Value = channelName.clone();
@@ -1453,8 +1453,8 @@ impl BlofinCore {
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_174: bool = true;
-            while { if !__for_first_174 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_174 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_179: bool = true;
+            while { if !__for_first_179 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_179 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut market: Value = self.market(self.safe_string(symbols.clone(), i.clone(), &[]));
             let mut channel: Value = channelName.clone();
             if isOHLCV {

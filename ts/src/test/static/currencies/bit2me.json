@@ -1,0 +1,432 @@
+{
+    "BTC": {
+        "info": {
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "slug": "bitcoin",
+            "mainwebUri": "bitcoin",
+            "uriScheme": "bitcoin",
+            "hexColor": "#eca24d",
+            "assetType": "currency",
+            "addressRegex": "^([13][a-km-zA-HJ-NP-Z1-9]{25,34})|^(bc1([qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39}|[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{59}))$",
+            "hasImage": true,
+            "hasPaymentRequest": true,
+            "isERC20Token": false,
+            "image": "/crypto-icons/v8/svg/btc-circle-solid-default.svg",
+            "network": "BITCOIN",
+            "enabled": true,
+            "lite": false,
+            "pairsWith": [
+                "EUR"
+            ],
+            "ticker": true,
+            "loanable": true,
+            "actions": [
+                "deposit",
+                "deposit-app",
+                "deposit-web",
+                "earn",
+                "earn-deposit",
+                "earn-withdrawal",
+                "instant",
+                "instant-buy",
+                "instant-sell",
+                "instant-swap",
+                "purchase",
+                "transfer",
+                "withdrawal"
+            ]
+        },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": null,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "BTC": {
+                "info": {
+                    "symbol": "BTC",
+                    "name": "Bitcoin",
+                    "slug": "bitcoin",
+                    "mainwebUri": "bitcoin",
+                    "uriScheme": "bitcoin",
+                    "hexColor": "#eca24d",
+                    "assetType": "currency",
+                    "addressRegex": "^([13][a-km-zA-HJ-NP-Z1-9]{25,34})|^(bc1([qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39}|[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{59}))$",
+                    "hasImage": true,
+                    "hasPaymentRequest": true,
+                    "isERC20Token": false,
+                    "image": "/crypto-icons/v8/svg/btc-circle-solid-default.svg",
+                    "network": "BITCOIN",
+                    "enabled": true,
+                    "lite": false,
+                    "pairsWith": [
+                        "EUR"
+                    ],
+                    "ticker": true,
+                    "loanable": true,
+                    "actions": [
+                        "deposit",
+                        "deposit-app",
+                        "deposit-web",
+                        "earn",
+                        "earn-deposit",
+                        "earn-withdrawal",
+                        "instant",
+                        "instant-buy",
+                        "instant-sell",
+                        "instant-swap",
+                        "purchase",
+                        "transfer",
+                        "withdrawal"
+                    ]
+                },
+                "id": "BITCOIN",
+                "network": "BTC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "EUR": {
+        "info": {
+            "symbol": "EUR",
+            "name": "Euro",
+            "slug": "euro",
+            "mainwebUri": "euro",
+            "uriScheme": "euro",
+            "hexColor": "#074c9e",
+            "assetType": "fiat",
+            "addressRegex": "^([13][a-km-zA-HJ-NP-Z1-9]{25,34})|^(bc1([qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39}|[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{59}))$",
+            "hasImage": true,
+            "hasPaymentRequest": false,
+            "isERC20Token": false,
+            "image": "/crypto-icons/v8/svg/eur-circle-solid-default.svg",
+            "enabled": false,
+            "lite": false,
+            "pairsWith": [],
+            "ticker": false,
+            "loanable": false,
+            "actions": [
+                "deposit",
+                "deposit-app",
+                "deposit-web",
+                "instant",
+                "instant-buy",
+                "instant-sell",
+                "instant-swap",
+                "transfer",
+                "withdrawal"
+            ]
+        },
+        "id": "EUR",
+        "numericId": null,
+        "code": "EUR",
+        "precision": null,
+        "type": "fiat",
+        "name": "Euro",
+        "active": false,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "symbol": "ETH",
+            "name": "Ethereum",
+            "slug": "ethereum",
+            "mainwebUri": "ethereum",
+            "uriScheme": "ethereum",
+            "hexColor": "#6e76b1",
+            "assetType": "platform",
+            "addressRegex": "^(?:0x)?[0-9a-fA-F]{40}$",
+            "hasImage": true,
+            "hasPaymentRequest": false,
+            "isERC20Token": false,
+            "image": "/crypto-icons/v8/svg/eth-circle-solid-default.svg",
+            "network": "ETHEREUM (ERC20)",
+            "enabled": true,
+            "lite": false,
+            "pairsWith": [
+                "EUR"
+            ],
+            "ticker": true,
+            "loanable": true,
+            "actions": [
+                "deposit",
+                "deposit-app",
+                "deposit-web",
+                "earn",
+                "earn-deposit",
+                "earn-withdrawal",
+                "instant",
+                "instant-buy",
+                "instant-sell",
+                "instant-swap",
+                "purchase",
+                "transfer",
+                "withdrawal"
+            ]
+        },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": null,
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "symbol": "ETH",
+                    "name": "Ethereum",
+                    "slug": "ethereum",
+                    "mainwebUri": "ethereum",
+                    "uriScheme": "ethereum",
+                    "hexColor": "#6e76b1",
+                    "assetType": "platform",
+                    "addressRegex": "^(?:0x)?[0-9a-fA-F]{40}$",
+                    "hasImage": true,
+                    "hasPaymentRequest": false,
+                    "isERC20Token": false,
+                    "image": "/crypto-icons/v8/svg/eth-circle-solid-default.svg",
+                    "network": "ETHEREUM (ERC20)",
+                    "enabled": true,
+                    "lite": false,
+                    "pairsWith": [
+                        "EUR"
+                    ],
+                    "ticker": true,
+                    "loanable": true,
+                    "actions": [
+                        "deposit",
+                        "deposit-app",
+                        "deposit-web",
+                        "earn",
+                        "earn-deposit",
+                        "earn-withdrawal",
+                        "instant",
+                        "instant-buy",
+                        "instant-sell",
+                        "instant-swap",
+                        "purchase",
+                        "transfer",
+                        "withdrawal"
+                    ]
+                },
+                "id": "ETHEREUM (ERC20)",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDC": {
+        "info": {
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "slug": "usdc",
+            "mainwebUri": "usdc",
+            "uriScheme": "usdc",
+            "hexColor": "#2775ca",
+            "assetType": "currency",
+            "addressRegex": "^(?:0x)?[0-9a-fA-F]{40}$",
+            "hasImage": true,
+            "hasPaymentRequest": false,
+            "isERC20Token": true,
+            "image": "/crypto-icons/v8/svg/usdc-circle-solid-default.svg",
+            "enabled": true,
+            "lite": false,
+            "network": "ETHEREUM (ERC20)",
+            "ticker": true,
+            "loanable": false,
+            "pairsWith": [
+                "EUR"
+            ],
+            "createdAt": "2024-10-08",
+            "highRisk": false,
+            "stablecoin": true,
+            "consensus": null,
+            "actions": [
+                "deposit",
+                "deposit-app",
+                "deposit-web",
+                "earn",
+                "earn-withdrawal",
+                "instant",
+                "instant-buy",
+                "instant-sell",
+                "instant-swap",
+                "purchase",
+                "transfer",
+                "withdrawal"
+            ]
+        },
+        "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
+        "precision": null,
+        "type": "crypto",
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "symbol": "USDC",
+                    "name": "USD Coin",
+                    "slug": "usdc",
+                    "mainwebUri": "usdc",
+                    "uriScheme": "usdc",
+                    "hexColor": "#2775ca",
+                    "assetType": "currency",
+                    "addressRegex": "^(?:0x)?[0-9a-fA-F]{40}$",
+                    "hasImage": true,
+                    "hasPaymentRequest": false,
+                    "isERC20Token": true,
+                    "image": "/crypto-icons/v8/svg/usdc-circle-solid-default.svg",
+                    "enabled": true,
+                    "lite": false,
+                    "network": "ETHEREUM (ERC20)",
+                    "ticker": true,
+                    "loanable": false,
+                    "pairsWith": [
+                        "EUR"
+                    ],
+                    "createdAt": "2024-10-08",
+                    "highRisk": false,
+                    "stablecoin": true,
+                    "consensus": null,
+                    "actions": [
+                        "deposit",
+                        "deposit-app",
+                        "deposit-web",
+                        "earn",
+                        "earn-withdrawal",
+                        "instant",
+                        "instant-buy",
+                        "instant-sell",
+                        "instant-swap",
+                        "purchase",
+                        "transfer",
+                        "withdrawal"
+                    ]
+                },
+                "id": "ETHEREUM (ERC20)",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}
