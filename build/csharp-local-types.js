@@ -18023,6 +18023,8 @@ export const PARSE_MARKET_IDICT_PARAMS = {
     // the trade / order row chain: every caller passes null, a dictionary row or its own typed `market`
     'parseTrade': 1, 'parseWsTrade': 1, 'safeTrade': 1, 'parseTrades': 1, 'parseWsTrades': 1, 'parseTradesHelper': 2,
     'safeOrder': 1, 'parseOrders': 1, 'parseWsOrder': 1, 'parseWsOrders': 1, 'resolveMarketByAltnameOrId': 1,
+    // ws candle rows: every caller passes nothing, a dictionary row or parseWsOHLCVs' typed `market`
+    'parseWsOHLCV': 1,
 };
 
 // ral-90c1: the same shadowed retype for a `currency: Currency` parameter (row writes are
