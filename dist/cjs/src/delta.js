@@ -1958,7 +1958,7 @@ class delta extends delta$1["default"] {
         }
         const marketId = this.safeString(order, 'product_id');
         const marketsByNumericId = this.safeDict(this.options, 'marketsByNumericId', {});
-        const marketValue = this.safeValue(marketsByNumericId, marketId, market);
+        const marketValue = this.safeDict(marketsByNumericId, marketId, market);
         let symbol = undefined;
         if (marketValue === undefined) {
             symbol = marketId;

@@ -1823,7 +1823,7 @@ class kraken extends kraken$1["default"] {
     findMarketByAltnameOrId(id) {
         const marketsByAltname = this.safeDict(this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
-            return marketsByAltname[id];
+            return this.safeDict(marketsByAltname, id);
         }
         else {
             return this.safeMarket(id);
@@ -1842,7 +1842,7 @@ class kraken extends kraken$1["default"] {
     }
     getDelistedMarketById(id) {
         if (id === undefined) {
-            return id;
+            return undefined;
         }
         let market = this.safeDict(this.options['delistedMarketsById'], id);
         if (market !== undefined) {

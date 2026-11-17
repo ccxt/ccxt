@@ -185549,7 +185549,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
 }
 // this is updated by vss.js when building
-_define_property(BaseExchange, "ccxtVersion", '4.5.92');
+_define_property(BaseExchange, "ccxtVersion", '4.5.93');
 class Exchange extends BaseExchange {
     async closePosition(symbol, side = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() is not supported yet');
@@ -334396,7 +334396,7 @@ class delta extends _abstract_delta_js__rspack_import_0/* ["default"] */.A {
         }
         const marketId = this.safeString(order, 'product_id');
         const marketsByNumericId = this.safeDict(this.options, 'marketsByNumericId', {});
-        const marketValue = this.safeValue(marketsByNumericId, marketId, market);
+        const marketValue = this.safeDict(marketsByNumericId, marketId, market);
         let symbol = undefined;
         if (marketValue === undefined) {
             symbol = marketId;
@@ -410068,7 +410068,7 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
     findMarketByAltnameOrId(id) {
         const marketsByAltname = this.safeDict(this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
-            return marketsByAltname[id];
+            return this.safeDict(marketsByAltname, id);
         } else {
             return this.safeMarket(id);
         }
@@ -410086,7 +410086,7 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
     }
     getDelistedMarketById(id) {
         if (id === undefined) {
-            return id;
+            return undefined;
         }
         let market = this.safeDict(this.options['delistedMarketsById'], id);
         if (market !== undefined) {
@@ -487599,16 +487599,16 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': this.safeNumber(contract, 'markPriceRp', markEp),
-            'indexPrice': this.safeNumber(contract, 'indexPriceRp', indexEp),
+            'markPrice': this.safeNumber(contract, 'markPriceRp', this.parseNumber(markEp)),
+            'indexPrice': this.safeNumber(contract, 'indexPriceRp', this.parseNumber(indexEp)),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fundingRate': this.safeNumber(contract, 'fundingRateRr', fundingRateEr),
+            'fundingRate': this.safeNumber(contract, 'fundingRateRr', this.parseNumber(fundingRateEr)),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': this.safeNumber(contract, 'predFundingRateRr', nextFundingRateEr),
+            'nextFundingRate': this.safeNumber(contract, 'predFundingRateRr', this.parseNumber(nextFundingRateEr)),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
@@ -488189,7 +488189,7 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'currency': code,
-            'amount': amountTransfered,
+            'amount': this.parseNumber(amountTransfered),
             'fromAccount': fromId,
             'toAccount': toId,
             'status': this.parseTransferStatus(status)
@@ -546048,7 +546048,7 @@ class bitrue extends _bitrue_js__rspack_import_0/* ["default"] */.A {
                 throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' findSwapMarketByWsBaseQuote() market ' + symbolId + ' has no baseId or quoteId');
             }
             if (baseId + quoteId === wsBaseQuote) {
-                return candidate;
+                return this.market(symbolId);
             }
         }
         return undefined;

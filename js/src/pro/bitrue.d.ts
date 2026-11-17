@@ -30,7 +30,7 @@ export default class bitrue extends bitrueRest {
     parseWsOrder(order: Dict, market?: Market): Order;
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
-    findSwapMarketByWsBaseQuote(wsBaseQuote: Str): any;
+    findSwapMarketByWsBaseQuote(wsBaseQuote: Str): import("../base/types.js").MarketInterface | undefined;
     parseContractBidsAsks(bidsAsks: any[], symbol: string): List;
     convertFromRawQuantity(symbol: string, rawQuantity: Num): Num;
     /**
