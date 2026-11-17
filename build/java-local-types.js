@@ -7614,6 +7614,11 @@ function patchJavaStringReceiverCall (printer, method, rebuild) {
         const receiver = (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression))
             ? node.expression.expression : undefined;
         const clean = receiver === undefined ? undefined : javaEmittedStringReceiverText (printer, receiver, name);
+        // a printer-native replace (guarded replaceFirst) needs no receiver rebuild
+        const nativeReplace = clean !== undefined && method === 'printReplaceCall' ? upstream.apply (printer, arguments) : undefined;
+        if (typeof nativeReplace === 'string' && !nativeReplace.startsWith ('Helpers.replace(')) {
+            return nativeReplace;
+        }
         if (clean !== undefined) {
             return rebuild (clean, parsedArg, parsedArg2);
         }
@@ -17767,4 +17772,290 @@ function x21BaseOnlyDispatch (call) {
     const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name);
     return declarations !== undefined && declarations.length > 0
         && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
+}
+
+// ===== prediction-venue locals holding a fresh map from a parse/safe producer =====
+// The venue -> abstract/prediction -> PredictionExchange chain is resolved here (the shared index stops
+// at the abstract hop), so `const o = this.parsePredictionOrder (..)` types Map and its writes print put.
+const JAVA_PREDICTION_VENUE_FILE = /[\\/]ts[\\/]src[\\/]prediction[\\/][a-z0-9]+\.ts$/;
+const JAVA_PREDICTION_ABSTRACT_FILE = /[\\/]ts[\\/]src[\\/]abstract[\\/]prediction[\\/][a-z0-9]+\.ts$/;
+
+// the venue's parent is an abstract/prediction file that declares no member `name` and extends PredictionExchange
+function javaPredictionAbstractClean (abstract, name) {
+    if (typeof abstract !== 'string' || !JAVA_PREDICTION_ABSTRACT_FILE.test (abstract) || !fs.existsSync (abstract)) {
+        return false;
+    }
+    const sf = ts.createSourceFile (abstract, fs.readFileSync (abstract, 'utf8'));
+    let clean = true;
+    let classes = 0;
+    const visit = (n) => {
+        if (ts.isClassDeclaration (n)) {
+            classes++;
+        }
+        if (clean && (ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name) && n.name.text === name) {
+            clean = false;
+        }
+        n.forEachChild (visit);
+    };
+    visit (sf);
+    const parent = sf.statements.find ((st) => ts.isImportDeclaration (st) && ts.isStringLiteral (st.moduleSpecifier)
+        && /[\\/]base[\\/]PredictionExchange\.js$/.test (st.moduleSpecifier.text));
+    return clean && classes === 1 && parent !== undefined;
+}
+
+// every declaration a `this.name (..)` call from a prediction venue file can reach, or undefined when the chain is not closed
+function javaPredictionDispatch (file, name) {
+    if (!JAVA_PREDICTION_VENUE_FILE.test (file)) {
+        return javaFreshMapDispatch (file, name);
+    }
+    if (!javaFreshMapMethods ().classes.has (path.resolve (file))) {
+        javaFreshMapMethodIndex = undefined; // the class index predates this file: rebuild it once
+    }
+    const own = javaFreshMapDispatch (file, name);
+    if (own === undefined || own.length > 0) {
+        return own;
+    }
+    if (!javaPredictionAbstractClean (javaFreshMapMethods ().classes.get (path.resolve (file))?.parent, name)) {
+        return undefined;
+    }
+    const base = javaFreshMapDispatch (path.join (JAVA_FRESH_MAP_TS_ROOT, 'base', 'PredictionExchange.ts'), name);
+    return base !== undefined && base.length > 0 && base.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName)) ? base : undefined;
+}
+
+function javaPredictionFreshCall (file, call, visiting) {
+    if (!isThisCall (call) || call.arguments.some ((a) => ts.isSpreadElement (a)) || visiting.size > 6) {
+        return false;
+    }
+    const name = String (call.expression.name.text);
+    const key = `${file}#${name}`;
+    if (visiting.has (key)) {
+        return false;
+    }
+    if (name === 'extend' || name === 'deepExtend') {
+        return javaFreshMapExtendCall (call);
+    }
+    const declarations = javaPredictionDispatch (file, name);
+    if (declarations === undefined || declarations.length === 0
+        || javaFreshMapMethods ().handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text))) {
+        return false;
+    }
+    visiting.add (key);
+    try {
+        return declarations.every ((d) => ts.isMethodDeclaration (d) && d.body !== undefined
+            && !(ts.getModifiers (d) ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)
+            && javaPredictionFreshBody (d, visiting));
+    } finally {
+        visiting.delete (key);
+    }
+}
+
+// every return of the body is an object literal, a fresh producer call, or a const bound to an object literal
+function javaPredictionFreshBody (declaration, visiting) {
+    const file = path.resolve (declaration.getSourceFile ().fileName);
+    let returns = 0;
+    let ok = true;
+    const walk = (node) => {
+        if (!ok || node === undefined || (node !== declaration && ts.isFunctionLike (node))) {
+            return;
+        }
+        if (ts.isReturnStatement (node)) {
+            returns++;
+            ok = javaPredictionFreshValue (file, node.expression, declaration, visiting);
+            return;
+        }
+        node.forEachChild (walk);
+    };
+    walk (declaration.body);
+    return ok && returns > 0;
+}
+
+function javaPredictionFreshValue (file, expression, method, visiting) {
+    const value = javaFreshMapUnwrap (expression);
+    if (value === undefined) {
+        return false;
+    }
+    if (ts.isObjectLiteralExpression (value)) {
+        return true;
+    }
+    if (ts.isCallExpression (value)) {
+        return javaPredictionFreshCall (file, value, visiting);
+    }
+    if (!ts.isIdentifier (value) || method === undefined) {
+        return false;
+    }
+    let found = 0;
+    let literal = false;
+    const walk = (n) => {
+        if (ts.isVariableDeclaration (n) && ts.isIdentifier (n.name) && n.name.text === value.text) {
+            found++;
+            literal = ts.isVariableDeclarationList (n.parent) && (n.parent.flags & ts.NodeFlags.Const) !== 0
+                && n.initializer !== undefined && ts.isObjectLiteralExpression (javaFreshMapUnwrap (n.initializer));
+        } else if (ts.isParameterDeclaration (n) && ts.isIdentifier (n.name) && n.name.text === value.text) {
+            found += 2;
+        }
+        n.forEachChild (walk);
+    };
+    walk (method);
+    return found === 1 && literal;
+}
+
+function javaPredictionMapLocal (printer, declaration) {
+    if (!JAVA_PREDICTION_VENUE_FILE.test (declaration.getSourceFile ().fileName) || !ts.isIdentifier (declaration.name)
+        || declaration.parent?.declarations?.length !== 1 || !ts.isVariableDeclarationList (declaration.parent)
+        || (declaration.parent.flags & ts.NodeFlags.Const) === 0) {
+        return undefined;
+    }
+    const init = javaFreshMapUnwrap (declaration.initializer);
+    // an `as any` argument prints a pattern-switch conversion; the added declaration cast would only lengthen it
+    if (init === undefined || !ts.isCallExpression (init) || isAsyncMethodCall (printer, init)
+        || init.arguments.some ((a) => ts.isAsExpression (a) && a.type.kind === ts.SyntaxKind.AnyKeyword)
+        || !javaPredictionFreshCall (path.resolve (declaration.getSourceFile ().fileName), init, new Set ())) {
+        return undefined;
+    }
+    // only a local some `x[k] = v` writes through gains a native use from the Map type
+    const name = String (declaration.name.text);
+    const uses = identifierIndex (enclosingFunction (declaration)).get (name) ?? [];
+    const written = uses.some ((n) => ts.isElementAccessExpression (n.parent) && n.parent.expression === n
+        && ts.isBinaryExpression (n.parent.parent) && n.parent.parent.left === n.parent
+        && n.parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken);
+    const ok = written && isSafeToNarrow (printer, declaration, name, JAVA_MAP_TYPE, false, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: () => false,
+    });
+    return ok ? { cast: true } : undefined;
+}
+
+// a never-written `x: Dict` parameter of a venue-only method whose every call, all in the declaring file,
+// passes a const bound to an object literal: the parameter is that caller-built HashMap on every path
+const JAVA_FRESH_PARAM_FILE = /[\\/]ts[\\/]src[\\/](?:pro[\\/])?[a-z0-9_]+\.ts$/;
+
+function javaFreshLiteralArgument (checker, arg, call) {
+    const value = javaFreshMapUnwrap (arg);
+    if (value === undefined || !ts.isIdentifier (value)) {
+        return false;
+    }
+    const declaration = checker.getSymbolAtLocation (value)?.valueDeclaration?.resolve ();
+    const init = declaration !== undefined && ts.isVariableDeclaration (declaration) ? javaFreshMapUnwrap (declaration.initializer) : undefined;
+    return init !== undefined && ts.isObjectLiteralExpression (init) && literalObjectLiteralIsPlain (init)
+        && ts.isVariableDeclarationList (declaration.parent) && (declaration.parent.flags & ts.NodeFlags.Const) !== 0
+        && enclosingFunction (declaration) === enclosingFunction (call);
+}
+
+function javaFreshMapParameter (printer, parameter) {
+    const method = parameter?.parent;
+    if (parameter === undefined || !ts.isParameterDeclaration (parameter) || parameter.initializer !== undefined || parameter.questionToken !== undefined
+        || parameter.dotDotDotToken !== undefined || !ts.isIdentifier (parameter.name) || parameter.type?.getText () !== 'Dict'
+        || method === undefined || !ts.isMethodDeclaration (method) || method.body === undefined || !ts.isIdentifier (method.name)
+        || !ts.isClassDeclaration (method.parent)) {
+        return false;
+    }
+    const file = method.getSourceFile ();
+    if (!JAVA_FRESH_PARAM_FILE.test (file.fileName)) {
+        return false;
+    }
+    const cache = printer._javaFreshMapParameters ?? (printer._javaFreshMapParameters = new WeakMap ());
+    if (cache.has (parameter)) {
+        return cache.get (parameter);
+    }
+    cache.set (parameter, false);
+    const name = method.name.text;
+    const index = method.parameters.indexOf (parameter);
+    const { referenced, literals, java } = javaVenueIndexFile (file);
+    // no dynamic reference, no hand-written twin, no ancestor and no descendant override of the method
+    const own = path.resolve (file.fileName);
+    if (!javaFreshMapMethods ().classes.has (own)) {
+        javaFreshMapMethodIndex = undefined;
+    }
+    const dispatch = javaFreshMapDispatch (own, name);
+    let ok = !referenced.has (name) && !literals.has (name)
+        && java !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (java)
+        && printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name)
+        && dispatch !== undefined && dispatch.length === 1 && path.resolve (dispatch[0].getSourceFile ().fileName) === own && dispatch[0].pos === method.pos
+        && !printer.javaParameterIsWritten (parameter);
+    // a class extending this file may call the method too: those calls must be in this file only
+    const callText = new RegExp (`\\.${name}\\s*\\(`);
+    if (ok) {
+        for (const [ other, entry ] of javaFreshMapMethods ().classes) {
+            let current = entry;
+            let descends = false;
+            for (let seen = 0; current?.parent && seen < 12; seen++) {
+                if (current.parent === own) {
+                    descends = true;
+                    break;
+                }
+                current = javaFreshMapMethods ().classes.get (current.parent);
+            }
+            if (descends && callText.test (fs.readFileSync (other, 'utf8'))) {
+                ok = false;
+                break;
+            }
+        }
+    }
+    let calls = 0;
+    const checker = printer.getChecker ();
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && n.expression.name.text === name) {
+            calls++;
+            ok = n.expression.expression.kind === ts.SyntaxKind.ThisKeyword && !n.arguments.some ((a) => ts.isSpreadElement (a))
+                && n.arguments[index] !== undefined && javaFreshLiteralArgument (checker, n.arguments[index], n);
+        }
+        n.forEachChild (visit);
+    };
+    if (ok) {
+        visit (file);
+    }
+    const result = ok && calls > 0;
+    cache.set (parameter, result);
+    return result;
+}
+
+export function installJavaPredictionMapLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printCustomBinaryExpressionIfAny !== 'function' || printer._javaPredictionMapLocalsPatched) {
+        return;
+    }
+    const typed = new WeakSet ();
+    javaInstallObjectLocalType (printer, '_javaPredictionMapLocalsTyped', JAVA_MAP_TYPE, JAVA_MAP_LOCAL_CAST, (p, declaration) => {
+        const info = javaPredictionMapLocal (p, declaration);
+        if (info !== undefined) {
+            typed.add (declaration);
+        }
+        return info;
+    }, () => undefined);
+    printer._javaPredictionMapLocalsPatched = true;
+    // the local holds a plain HashMap/LinkedHashMap, where put is the helper's Map branch for every value
+    const upstream = printer.printCustomBinaryExpressionIfAny.bind (printer);
+    printer.printCustomBinaryExpressionIfAny = function (node, identation) {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isElementAccessExpression (node.left)) {
+            return printed;
+        }
+        const receiver = node.left.expression;
+        const key = javaFreshMapUnwrap (node.left.argumentExpression);
+        if (!ts.isIdentifier (receiver) || key === undefined || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key))) {
+            return printed;
+        }
+        const head = `Helpers.addElementToObject(${receiver.text}, `;
+        const declaration = printer.javaDeclarationOfIdentifier (receiver);
+        if (!printed.startsWith (head) || !printed.endsWith (')') || declaration === undefined
+            || printer.printNode (receiver, 0) !== receiver.text) {
+            return printed;
+        }
+        let proven = typed.has (declaration);
+        if (!proven && ts.isParameterDeclaration (declaration) && printer.javaDeclaredMapReceiver (receiver)) {
+            try {
+                proven = javaFreshMapParameter (printer, declaration);
+            } catch (e) {
+                proven = false;
+            }
+        }
+        if (!proven) {
+            return printed;
+        }
+        return `${receiver.text}.put(${printed.slice (head.length)}`;
+    };
 }

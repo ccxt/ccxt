@@ -5192,7 +5192,7 @@ export default class phemex extends Exchange {
         const stableCoins = this.safeList (this.options, 'stableCoins', []);
         if (networkId === undefined) {
             if (!(this.inArray (code, stableCoins))) {
-                networkId = currency['id'];
+                networkId = this.safeString (currency, 'id', currency['id']);
             } else {
                 throw new ArgumentsRequired (this.id + ' withdraw () requires an extra argument params["network"]');
             }

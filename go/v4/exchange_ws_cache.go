@@ -11,7 +11,7 @@ package ccxt
 // handler the venue does not declare is dropped, as the base stubs would.
 func (this *BaseExchange) wsFrameHandler() func(client any, message any) {
 	text, _ := this.DerivedExchange.(interface {
-		HandleTextMessage(client any, message any)
+		HandleTextMessage(client any, message string)
 	})
 	list, _ := this.DerivedExchange.(interface {
 		HandleListMessage(client any, message any)

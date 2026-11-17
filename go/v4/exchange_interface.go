@@ -34,7 +34,7 @@ type ICancelOrder interface {
 	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IEditOrder interface {
-	EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order]
+	EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IEditOrderWithClientOrderId interface {
 	EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order]
@@ -344,7 +344,7 @@ type ICoreExchange interface {
 	SafeValue2(obj any, key any, key2 any, defaultValue ...any) any
 	GroupBy(trades any, key2 any) map[string]any
 	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) string
-	NetworkCodeToId(networkCode any, optionalArgs ...any) any
+	NetworkCodeToId(networkCode any, optionalArgs ...any) *string
 	NetworkIdToCode(optionalArgs ...any) *string
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any

@@ -3688,6 +3688,39 @@ function goChan3SelfTest (): string[] {
     return problems;
 }
 
+// a `*string` method's return that already is the pointer: nil, or a local the body declares `*string` exactly once
+function goStringPtrReturnIsBare (body: string, expr: string): boolean {
+    if (expr === 'nil') {
+        return true;
+    }
+    const call = /^this\.(?:Safe(?:String(?:Lower|Upper)?(?:2|N)?|CurrencyCode|Symbol)|NumberToString|Iso8601)\(/.exec (expr);
+    if (call !== null) {
+        let depth = 0;
+        let quoted = false;
+        for (let i = call[0].length - 1; i < expr.length; i++) {
+            const c = expr[i];
+            if (quoted) {
+                if (c === '\\') { i++; } else if (c === '"') { quoted = false; }
+            } else if (c === '"') {
+                quoted = true;
+            } else if ((c === '(') || (c === '{') || (c === '[')) {
+                depth++;
+            } else if ((c === ')') || (c === '}') || (c === ']')) {
+                depth--;
+                if (depth === 0) {
+                    return i === expr.length - 1; // the hand-written reader already returns *string
+                }
+            }
+        }
+        return false;
+    }
+    if (!/^[A-Za-z_]\w*$/.test (expr)) {
+        return false;
+    }
+    const decls = body.match (new RegExp ('(?:\\bvar ' + expr + ' [^=\\n]*=|\\b' + expr + '(?:, \\w+)? :=|[(,] *' + expr + ' )', 'g')) ?? [];
+    return (decls.length === 1) && new RegExp ('\\bvar ' + expr + ' \\*string = ').test (body);
+}
+
 // hand-written go/v4/exchange_interface.go is not regenerated: retype its tabled lines, list other hand refs
 function goChan3ApplyHand () {
     const dir = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4');
@@ -6602,6 +6635,8 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createMarketBuyOrderWs': [ 0 ], 'createMarketSellOrderWs': [ 0 ], 'fetchOrderBook': [ 0 ], 'fetchTicker': [ 0 ],
     'fetchOHLCV': [ 0 ], 'watchOrderBook': [ 0 ], 'watchTicker': [ 0 ], 'fetchTradingFee': [ 0 ], 'fetchFundingRate': [ 0 ],
     'checkRequiredArgument': [ 0, 2 ],
+    // required strings; go/v4/exchange_interface.go (IEditOrder) and exchange_ws_cache.go declare them string
+    'editOrder': [ 1, 2, 3 ], 'handleTextMessage': [ 1 ], 'safeDeterministicCall': [ 0 ],
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
 // required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go
@@ -13224,7 +13259,8 @@ ${caseStatements.join('\n')}
             const fnRegex = new RegExp ('func\\s+\\(this \\*' + receiver + '\\)\\s+' + name + '\\([^)]*\\)\\s+any\\s*\\{[\\s\\S]*?\\n\\}', 'g');
             content = content.replace (fnRegex, ((match: string) => {
                 const open = match.indexOf ('{');
-                const scanned = this.wrapGoFunctionLevelReturns (match.substring (open + 1, match.length - 1), (expr: string) => 'SafeStringPtr(' + expr + ')');
+                const body = match.substring (open + 1, match.length - 1);
+                const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => (goStringPtrReturnIsBare (body, expr) ? expr : 'SafeStringPtr(' + expr + ')'));
                 if ((scanned === undefined) || (scanned.total === 0)) {
                     return match;
                 }
@@ -14309,7 +14345,7 @@ const GO_TUPLE_PAIR_PRODUCERS: string[] = [
 // elements every return path stores already derefScalar-invariant (a GetValue/Omit result, a bool
 // literal, a non-nil map), so a bare `x := GetValue(h, k)` reads the same as `x := h[k]`
 const GO_TUPLE_PLAIN_ELEMENTS: { [producer: string]: string[] } = {
-    'HandleOptionAndParams': [ '1' ], 'HandleOptionAndParams2': [ '1' ], 'HandlePostOnly': [ '0', '1' ],
+    'HandleOptionAndParams': [ '0', '1' ], 'HandleOptionAndParams2': [ '0', '1' ], 'HandlePostOnly': [ '0', '1' ],
     'HandleOptionBoolAndParamsNullable': [ '1' ], 'HandleOptionBoolAndParams2Nullable': [ '1' ],
     'HandleOptionIntegerAndParamsNullable': [ '1' ], 'HandleOptionIntegerAndParams2Nullable': [ '1' ],
 };
@@ -15381,6 +15417,20 @@ function goAddStringLocals (fn: string, masked: string, fileMasked: string): Set
     }
     goStringPointerLocals (masked, fileMasked).forEach ((n: string) => { out.add ('*' + n); if (goNonNilStringPtr (fn, n)) { out.add ('!' + n); } });
     goRowStringLocals (fn, masked, fileMasked).forEach ((n: string) => { out.add (n); });
+    goAddIntLocals (masked, fileMasked).forEach ((n: string) => { out.add ('#i:' + n); });
+    return out;
+}
+
+// once-declared `var x int64 = ...` locals and `for i := 0;` counters: BaseExchange.NumberToString of an
+// integer is never nil (FormatInt/Itoa), so `this.NumberToString(x)` derefs as a string Add leaf
+function goAddIntLocals (masked: string, fileMasked: string): Set<string> {
+    const out = new Set<string> ();
+    const cands = new Set<string> ([ ...masked.matchAll (/\bvar (\w+) int64 = /g), ...masked.matchAll (/\bfor (\w+) := 0; /g) ].map ((m) => m[1]));
+    for (const n of cands) {
+        const decls = (masked.match (new RegExp ('\\bvar ' + n + '\\b|\\b' + n + '\\s*(,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(,\\s*\\w+\\s*)*:=|\\bfunc\\s*\\([^)]*\\b' + n + '\\b', 'g')) || []).length;
+        const param = new RegExp ('[(,]\\s*' + n + ' ').test (masked.slice (0, masked.indexOf ('{')));
+        if ((decls === 1) && !param && !new RegExp ('^(var|const|func) ' + n + '\\b', 'm').test (fileMasked)) { out.add (n); }
+    }
     return out;
 }
 
@@ -15416,6 +15466,8 @@ function goAddStringSum (text: string, masked: string, locals: Set<string>, over
         if (native !== null) { out.push (native); continue; }
         if (locals.has ('!' + term.trim ())) { out.push ('*' + term.trim ()); continue; }
         if (goRowStringLeaf (term.trim (), locals)) { out.push (term.trim () + '.(string)'); continue; }
+        const intArg = /^this\.NumberToString\((\w+)\)$/.exec (term.trim ());
+        if ((intArg !== null) && locals.has ('#i:' + intArg[1]) && !overridden.has ('NumberToString') && !overridden.has ('*NumberToString') && !overridden.has ('+NumberToString')) { out.push ('*' + term.trim ()); continue; }
         if (!goAddStringLeaf (term, mterm, locals, overridden)) { return null; }
         out.push (term.trim ());
     }
@@ -18152,6 +18204,9 @@ function goStringAddLeafSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar s *string = this.SafeString(p, "k", "")\n\ts = this.SafeString2(p, "a", "b", "x")\n\treturn Add("a", s)\n').indexOf ('return "a" + *s') >= 0, 'literal-default *string derefs');
     ok (f ('\tvar s *string = this.SafeString(p, "k", "")\n\ts = this.SafeString(p, "a")\n\treturn Add("a", s)\n').indexOf ('Add("a", s)') >= 0, 'nil-able write keeps Add');
     ok (f ('\treturn Add("a", s)\n', 's *string').indexOf ('Add("a", s)') >= 0, '*string param without deref keeps Add');
+    ok (f ('\tvar n int64 = this.ParseToInt(p)\n\treturn Add("a", this.NumberToString(n))\n').indexOf ('return "a" + *this.NumberToString(n)') >= 0, 'NumberToString of an int64 local derefs');
+    ok (f ('\tvar n *int64 = this.SafeInteger(p, "k")\n\treturn Add("a", this.NumberToString(n))\n').indexOf ('Add("a", this.NumberToString(n))') >= 0, 'NumberToString of *int64 keeps Add');
+    ok (f ('\treturn Add("a", this.NumberToString(n))\n', 'n int64').indexOf ('Add("a", this.NumberToString(n))') >= 0, 'NumberToString of a param keeps Add');
     const g = (body: string) => f ('\tvar s *string = this.SafeString(p, "k")\n' + body);
     ok (g ('\tif s != nil {\n\t\treturn Add("a", s)\n\t}\n\treturn nil\n').indexOf ('return "a" + *s') >= 0, 'enclosing != nil guard');
     ok (g ('\tif (s == nil) || (p == nil) {\n\t\treturn nil\n\t}\n\treturn Add("a", s)\n').indexOf ('return "a" + *s') >= 0, 'dominating early exit');
@@ -18819,6 +18874,20 @@ function goArithHelpersWiredCheck (ok: SelfTestOk): void {
 
 // IsEqual -> native ==/!= where the operand box is provably plain (no scalar pointer, no nil *sync.Map): credential
 // fields, `this.Has["k"]`, and single-binding `x := GetValue(..)` locals (GetValue derefs).
+// `x := h[i]` where the only `var h []any = this.M(..)` names a base producer whose slot i is stored
+// derefScalar'd (GO_TUPLE_PLAIN_ELEMENTS), M not redeclared by a venue in this file and h never rewritten
+function goPlainTupleSlotLocal (fn: string, masked: string, fileMasked: string, x: string): boolean {
+    const read = new RegExp ('^\\t+' + x + ' := (\\w+Variable)\\[(\\d+)\\]$', 'm').exec (masked);
+    if (read === null) { return false; }
+    const holder = read[1];
+    const decls = [ ...masked.matchAll (new RegExp ('^\\t+var ' + holder + ' \\[\\]any = this\\.(\\w+)\\(', 'gm')) ];
+    const rebinds = masked.match (new RegExp ('(?<![\\w.])' + holder + '\\s*(?:\\[[^\\]]*\\]\\s*)?(?:=(?!=)|:=)|&' + holder + '\\b', 'g')) || [];
+    if ((decls.length !== 1) || (rebinds.length !== 0) || (decls[0].index > read.index)) { return false; }
+    const method = decls[0][1];
+    const overridden = new RegExp ('(?:^|\\n)func \\(this \\*(?!BaseExchange\\))\\w+\\) ' + method + '\\(').test (fileMasked);
+    return !overridden && (GO_TUPLE_PLAIN_ELEMENTS[method] || []).includes (read[2]);
+}
+
 function goPlainBoxIsEqual (content: string): string {
     if (!/IsEqual\(/.test (content)) { return content; }
     const fileMasked = goTextMaskLiteralsAndComments (content);
@@ -18835,7 +18904,8 @@ function goPlainBoxIsEqual (content: string): string {
             const binds = masked.match (new RegExp (n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + x + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bvar ' + x + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + x + ' |\\brange\\b[^\\n]*\\b' + x + '\\b', 'g')) || [];
             const decl = new RegExp ('^\\t+(?:' + x + ' :=|var ' + x + ' any =) (?:ccxt\\.)?GetValue\\((?!this,)[^\\n]*\\)$', 'm').test (fn)
                 // the pair bind's `x := func() any { if xPtr != nil { return *xPtr }; return nil }()` answers what the GetValue deref did
-                || new RegExp ('^\\t+' + x + ' := func\\(\\) any \\{\\n\\t+if (\\w+Ptr) != nil \\{\\n\\t+return \\*\\1\\n\\t+\\}\\n\\t+return nil\\n\\t+\\}\\(\\)$', 'm').test (fn);
+                || new RegExp ('^\\t+' + x + ' := func\\(\\) any \\{\\n\\t+if (\\w+Ptr) != nil \\{\\n\\t+return \\*\\1\\n\\t+\\}\\n\\t+return nil\\n\\t+\\}\\(\\)$', 'm').test (fn)
+                || goPlainTupleSlotLocal (fn, masked, fileMasked, x);
             const ok = decl && (binds.length === 1) && !new RegExp ('[(,]\\s*' + x + ' ').test (header) && !new RegExp ('&' + x + '\\b|' + n + '\\s*(?:=(?!=)|[-+*/%|&^]=|\\+\\+|--)').test (masked);
             plainLocal.set (x, ok);
             return ok;

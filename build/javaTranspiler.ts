@@ -34,6 +34,7 @@ import { installJavaListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
+import { installJavaPredictionMapLocals } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -1852,6 +1853,7 @@ class NewTranspiler {
             installJavaScalarLocals,
             installJavaParamTypesPreScan,
             installJavaStringReturns,
+            installJavaPredictionMapLocals,
         ];
         for (const install of installers) {
             install(this.transpiler);
@@ -4310,6 +4312,8 @@ function auditSelfTest (): string[] {
     const wired = [
         mapLocalsSelfTest,
         javaFreshObjectMapWritesSelfTest,
+        javaPredictionMapLocalsSelfTest,
+        javaFreshMapParameterSelfTest,
         javaCounterLocalsSelfTest,
         javaMapLocalsSelfTest,
         javaTypedArithmeticSelfTest,
@@ -4368,6 +4372,42 @@ function javaFreshObjectMapWritesSelfTest (): string[] {
         ...[ 'c', 'd' ].map((n): JavaProbeCheck => [ new RegExp(`Helpers\\.addElementToObject\\(${n}, `), true, `'${n}' is unproven and must keep the helper` ]),
         // the Map-locals pass declares 'b' a Map; only the declared-Map non-null put may fire, never the cast put
         [ /\(\(java\.util\.Map<String, Object>\)b\)\.put\(/, false, "'b' is unproven and must not take the cast put" ],
+    ] });
+}
+
+// a prediction-venue const fed by a fresh-map producer up the abstract chain types Map and puts natively
+function javaPredictionMapLocalsSelfTest (): string[] {
+    const M = '(?:java\\.util\\.)?Map<String, Object>';
+    return javaProbeCases({ files: [ [ 'prediction/zzpredmapselftest', [ "import Exchange from '../abstract/prediction/kalshi.js';", 'export default class zzpredmapselftest extends Exchange {',
+        "    fresh (r: any) { const a = this.safePredictionOrder ({ 'id': r }); a['status'] = 'open'; a['x'] = r; return a; }",
+        "    parseOwn (r: any) { return this.safePredictionOrder ({ 'id': r }); }",
+        "    viaVenue (r: any) { const b = this.parseOwn (r); b['status'] = r; return b; }",
+        "    unwritten (r: any) { const c = this.safePredictionOrder ({ 'id': r }); return this.safeString (c, 'id'); }",
+        "    unknown (r: any) { const d = this.parsePredictionOrder (r); d['status'] = r; return d; }",
+        "    keyed (r: any, k: any) { const e = this.safePredictionOrder ({ 'id': r }); e[k] = 1; return e; }",
+        '}' ] ] ], checks: [
+        [ [ new RegExp(`${M} a = \\(${M}\\) this\\.safePredictionOrder\\(`), /\ba\.put\("status", "open"\)/, /\ba\.put\("x", r\)/ ], true, "prediction map locals: 'a' must type Map and put natively" ],
+        [ [ new RegExp(`${M} b = `), /\bb\.put\("status", r\)/ ], true, "prediction map locals: 'b' (venue fresh producer) must put natively" ],
+        [ new RegExp(`${M} c = \\(`), false, "prediction map locals: 'c' has no element write and must not gain a cast" ],
+        [ /Helpers\.addElementToObject\(d, "status", r\)/, true, "prediction map locals: 'd' (base parsePredictionOrder, not a fresh producer) must keep the helper" ],
+        [ /Helpers\.addElementToObject\(e, /, true, "prediction map locals: 'e' (any key) must keep the helper" ],
+    ] });
+}
+
+// a never-written Dict parameter fed only const object literals from its own file puts natively
+function javaFreshMapParameterSelfTest (): string[] {
+    const cls = 'zzfreshparamselftest';
+    return javaProbeCases({ files: [ [ cls, [ "import Exchange from './abstract/binance.js';", "import type { Dict } from './base/types.js';", `export default class ${cls} extends Exchange {`,
+        "    zzBuildA (request: Dict, v: any) { request['k'] = v; return request; }",
+        "    zzCallA (v: any) { const request: Dict = { 'a': 1 }; return this.zzBuildA (request, v); }",
+        "    zzBuildB (request: Dict, v: any) { request['k'] = v; return request; }",
+        "    zzCallB (v: any, params: Dict = {}) { const request: Dict = { 'a': 1 }; this.zzBuildB (request, v); return this.zzBuildB (params, v); }",
+        "    zzBuildC (request: Dict, v: any) { request = this.extend (request, {}); request['k'] = v; return request; }",
+        "    zzCallC (v: any) { const request: Dict = { 'a': 1 }; return this.zzBuildC (request, v); }",
+    '}' ] ] ], checks: [
+        [ /\brequest\.put\("k", v\);\s*return request;\s*}\s*public Object zzCallA/, true, "fresh param: 'zzBuildA' request must put natively" ],
+        [ /zzBuildB[\s\S]*?Helpers\.addElementToObject\(request, "k", v\)/, true, "fresh param: 'zzBuildB' (a params caller) must keep the helper" ],
+        [ /zzBuildC[\s\S]*?Helpers\.addElementToObject\(request, "k", v\)/, true, "fresh param: 'zzBuildC' (written param) must keep the helper" ],
     ] });
 }
 

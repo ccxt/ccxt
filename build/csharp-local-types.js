@@ -2273,6 +2273,30 @@ function typedCoreFunnelType (csharp, declaration) {
     return undefined;
 }
 
+// `x = await this.<core> (...)` whose generated line is `x = ccxt.BaseExchange.From<Family>List(await
+// this.<Core>(`: the funnel's typed overload returns a List<object>, so the write joins as that box.
+// Lists only; any other helper, a missing file or a shape mismatch answers undefined.
+function funnelListWriteType (declaration, right) {
+    const call = (right?.kind === ts.SyntaxKind.AwaitExpression) ? right.expression : undefined;
+    const callee = (call?.kind === ts.SyntaxKind.CallExpression) ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || declaration?.name?.kind !== ts.SyntaxKind.Identifier || !/^\w+$/.test (callee.name?.text ?? '')) {
+        return undefined;
+    }
+    const line = new RegExp ('^[ \\t]*' + declaration.name.text + ' = ccxt\\.BaseExchange\\.(From\\w+List)\\(await this\\.' + callee.name.text + '\\(', 'i');
+    const table = csharpTypedCoreFunnelTypes ();
+    for (const file of csharpFunnelFiles (declaration)) {
+        const content = csharpFunnelFileContent (file);
+        for (const text of (content === undefined) ? [] : content.split ('\n')) {
+            const match = line.exec (text);
+            if (match !== null) {
+                return (table.get (match[1]) === 'List<object>') ? 'List<object>' : undefined;
+            }
+        }
+    }
+    return undefined;
+}
+
 const CSHARP_IDENTITY_FUNNEL_HELPERS = [ 'FromInt64', 'FromStringValue', 'FromDict' ];
 function csharpIdentityCoreBox (content, core, table) {
     const boxes = new Set (CSHARP_IDENTITY_FUNNEL_HELPERS.map ((helper) => table.get (helper)));
@@ -6562,7 +6586,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             if (parent.left === n) {
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
-                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right);
+                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right)
+                        ?? funnelListWriteType (declaration, parent.right);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
@@ -11127,6 +11152,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             written = selfOmitWriteType (csharp, context, declaration, parent.right);
         }
         written ??= interfaceSelfOmitWriteType (csharp, context, declaration, type, sawNull, parent.right);
+        written ??= funnelListWriteType (declaration, parent.right);
         if (written === undefined && safeHelperLocalInitializer (declaration.initializer)) {
             // `let x = this.safeString (…); … x = <expression reading x>`: the read of x inside
             // the write is statically the declaration's own type, so the expression can only be
@@ -14969,6 +14995,26 @@ const CORE_LIST_ARGS_LENGTH_READS = {
     'fetchRawMarketsByTags': 0,
     'fetchSeriesEvents': 0,
 };
+// Same proof for the list parameters behind `getArrayLength (x)` loop bounds: every generated and
+// hand-written caller passes a declared list (or `null`), and no body rebinds or string-keys them.
+const CORE_LIST_ARGS_ARRAY_LENGTH = {
+    'parseMarkets': 0,
+    'parseDepositAddresses': 0,
+    'parseBorrowInterests': 0,
+    'parseBorrowRateHistory': 0,
+    'parseIsolatedBorrowRates': 0,
+    'parseFundingRateHistories': 0,
+    'parseLongShortRatioHistory': 0,
+    'parseOpenInterests': 0,
+    'parseAllGreeks': 0,
+    'filterStockStructures': 0,
+    'subscribeMarketsSummary': 0,
+    'unSubscribePublic': 2,
+    'subscribeChannels': 2,
+    'unsubscribeChannels': 2,
+    'handleBookSideDeltas': 1,
+};
+Object.assign (CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_ARRAY_LENGTH);
 for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LENGTH_READS)) {
     CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
 }
@@ -15535,9 +15581,9 @@ const NATIVE_COMPARISON_SYMBOLS = {
 
 const NATIVE_COMPARISON_INTEGER_KINDS = [ 'int', 'uint', 'Int64' ];
 
-function nativeComparisonOperandIsIdentifier (node, symbol) {
+function nativeComparisonOperandIsIdentifier (node, symbol, guardedSymbols = NATIVE_COMPARISON_GUARDED_SYMBOLS) {
     let current = stripParens (node);
-    const inner = NATIVE_COMPARISON_GUARDED_SYMBOLS.includes (symbol) ? nativeComparisonUnwrap (node) : current;
+    const inner = guardedSymbols.includes (symbol) ? nativeComparisonUnwrap (node) : current;
     return inner?.kind === ts.SyntaxKind.Identifier;
 }
 
@@ -15553,6 +15599,10 @@ function nativeComparisonUnwrap (node) {
 
 // comparisons whose operands may also be proven non-null at the use (a dominating null test)
 const NATIVE_COMPARISON_GUARDED_SYMBOLS = [ '<' ];
+
+// the fallback pass (nativeComparisonExpression's second try, only where the first kept the helper)
+// admits the guard on every ordered operator and nullable operands that are printed only once
+const NATIVE_COMPARISON_FALLBACK_GUARDED_SYMBOLS = [ '<', '>', '<=', '>=' ];
 
 // the non-nullable kind an operand has AT this comparison: an `Int64?` identifier under a
 // dominating null test with no later write, or a guarded subtract printed natively
@@ -15570,8 +15620,9 @@ function nativeComparisonGuardedKind (csharp, comparison, node) {
 
 // the operand kind a comparison may consume, or undefined: integer kinds, Int64?, and doubles
 // only for `>`; a nullable operand must be an identifier (the null test reads it again)
-function nativeComparisonOperand (csharp, node, symbol, comparison) {
-    const guarded = NATIVE_COMPARISON_GUARDED_SYMBOLS.includes (symbol) ? nativeComparisonGuardedKind (csharp, comparison, node) : undefined;
+function nativeComparisonOperand (csharp, node, symbol, comparison, fallback = false) {
+    const guardedSymbols = fallback ? NATIVE_COMPARISON_FALLBACK_GUARDED_SYMBOLS : NATIVE_COMPARISON_GUARDED_SYMBOLS;
+    const guarded = guardedSymbols.includes (symbol) ? nativeComparisonGuardedKind (csharp, comparison, node) : undefined;
     const kind = guarded ?? nativeArithmeticOperandKind (csharp, node);
     const base = nativeArithmeticBaseKind (kind);
     const nullable = nativeArithmeticIsNullableKind (kind);
@@ -15579,10 +15630,12 @@ function nativeComparisonOperand (csharp, node, symbol, comparison) {
         return undefined;
     }
     const numeric = NATIVE_COMPARISON_INTEGER_KINDS.includes (base) || ((base === 'double') && (symbol === '>'));
-    if (!numeric || (nullable && !nativeComparisonOperandIsIdentifier (node, symbol))) {
+    const identifier = nativeComparisonOperandIsIdentifier (node, symbol, guardedSymbols);
+    if (!numeric || (nullable && !fallback && !identifier)) {
         return undefined;
     }
-    return { nullable, text: csharp.printNode (node, 0).trim (), viaParameter: nullable && retypeNullableCompareIsParameter (csharp, node),
+    // fallback: a nullable operand the emitted null test reads again must be an identifier (nativeComparisonRereadsAreIdentifiers)
+    return { nullable, identifier, text: csharp.printNode (node, 0).trim (), viaParameter: nullable && retypeNullableCompareIsParameter (csharp, node),
         admitted: nullable && (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (comparison, nativeComparisonUnwrap (node)) };
 }
 
@@ -15611,14 +15664,36 @@ function retypeNullableCompareTsForm (left, right, core) {
 }
 
 function nativeComparisonExpression (csharp, node) {
+    return nativeComparisonExpressionWith (csharp, node, false);
+}
+
+// a parenthesised guarded subtract already prints its own parentheses
+function nativeComparisonFallbackText (csharp, node) {
+    const inner = stripParens (node);
+    const text = ((inner !== node) && (inner?.kind === ts.SyntaxKind.BinaryExpression) && (nativeGuardedSubtractExpression (csharp, inner) !== undefined)) ? inner : node;
+    return csharp.printNode (text, 0).trim ();
+}
+
+// the ordered-comparison helper call the base printer emits when no native rule above applies
+const NATIVE_COMPARISON_HELPER_CALL = /^\s*!?\(?\s*(isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/;
+
+function nativeComparisonExpressionWith (csharp, node, fallback) {
     const symbol = NATIVE_COMPARISON_SYMBOLS[node.operatorToken?.kind];
     if (symbol === undefined) {
         return undefined;
     }
-    const left = nativeComparisonOperand (csharp, node.left, symbol, node);
-    const right = left && nativeComparisonOperand (csharp, node.right, symbol, node);
-    if (right === undefined || right === null) {
+    const left = nativeComparisonOperand (csharp, node.left, symbol, node, fallback);
+    const right = left && nativeComparisonOperand (csharp, node.right, symbol, node, fallback);
+    if (right === undefined || right === null || !nativeComparisonRereadsAreIdentifiers (symbol, left, right)) {
         return undefined;
+    }
+    if (fallback) {
+        // only the plain operator: no side the helper's null branch would need re-testing
+        const rereads = !nativeComparisonRereadsAreIdentifiers (symbol, { ...left, identifier: false }, { ...right, identifier: false });
+        if (rereads || left.viaParameter || right.viaParameter) {
+            return undefined;
+        }
+        return '(' + nativeComparisonFallbackText (csharp, node.left) + ' ' + symbol + ' ' + nativeComparisonFallbackText (csharp, node.right) + ')';
     }
     const L = left.text;
     const R = right.text;
@@ -15641,6 +15716,17 @@ function nativeComparisonExpression (csharp, node) {
         return right.nullable ? '(' + R + ' == null || ' + core + ')' : '(' + core + ')';
     }
     return left.nullable ? '(' + L + ' == null || ' + core + ')' : '(' + core + ')';
+}
+
+// the sides whose text the emitted form below repeats in a null test: `>` reads a nullable right (and a nullable
+// left when both are), `<` the mirror, `>=` a nullable right, `<=` a nullable left; the TS form any nullable side.
+// Any other nullable side (left of `>`/`>=`, right of `<`/`<=`) is printed once: the lifted operator's false is the helper's
+function nativeComparisonRereadsAreIdentifiers (symbol, left, right) {
+    const both = left.nullable && right.nullable;
+    const ts = left.viaParameter || right.viaParameter;
+    const rereadLeft = left.nullable && (ts || symbol === '<' || symbol === '<=' || (symbol === '>' && both));
+    const rereadRight = right.nullable && (ts || symbol === '>' || symbol === '>=' || (symbol === '<' && both));
+    return (!rereadLeft || left.identifier) && (!rereadRight || right.identifier);
 }
 
 // `a - b` with an Int64? identifier operand: subtract() throws on a null operand, so the
@@ -15781,6 +15867,11 @@ export function installCsharpNativeComparisons (transpiler) {
                 if (native !== undefined) {
                     return native;
                 }
+            }
+            if (isComparison && !printerNative) {
+                const printed = upstream (node, identation);
+                const fallback = (typeof printed === 'string') && NATIVE_COMPARISON_HELPER_CALL.test (printed) ? nativeComparisonExpressionWith (csharp, node, true) : undefined;
+                return fallback ?? printed;
             }
         }
         return upstream (node, identation);
