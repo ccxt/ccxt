@@ -12746,6 +12746,9 @@ function boolOptionElementProof (declaration, idNode, assignment, name) {
 // element 0 of a bool helper: the per-call-site option proof above, or the flat
 // DESTRUCTURED_ELEMENT0_TYPES entry (a helper whose own body boxes a bool? local on every path)
 function destructuredBoolElementProof (csharp, scope, index, declaration, idNode, assignment, name) {
+    if (hyperliquidUnifiedElement0Proof92c4 (declaration, idNode, assignment, name)) {
+        return true;
+    }
     // the bool-coercion family (raw user box, isTrue-rewritten write) proves first; the
     // cast-proven bool helpers fall through to the element-0 tables below
     if (DESTRUCTURED_BOOL_COERCION_HELPERS.includes (name)) {
@@ -13179,6 +13182,7 @@ function nullSeedNativeStringLocal (declaration) {
     const name = declaration.name.text;
     const scope = enclosingFunction (declaration);
     let found = false;
+    let foundByLiteral = false;
     const visit = (n) => {
         if (found) {
             return;
@@ -13190,12 +13194,19 @@ function nullSeedNativeStringLocal (declaration) {
                 found = true;
             } else if (parent?.kind === ts.SyntaxKind.AsExpression && parent.type?.kind === ts.SyntaxKind.StringKeyword) {
                 found = true;
+            } else if (nullSeedLiteralCompareUse92c4 (n)) {
+                foundByLiteral = true;
             }
         }
         n.forEachChild (visit);
     };
     if (scope?.body !== undefined) {
         visit (scope.body);
+    }
+    if (!found && foundByLiteral) {
+        // the literal-compare trigger is new: inside the signature lane's call-site proof it answers
+        // nothing and caches nothing, so no parameter is typed from it
+        return c5ParameterProofDepth === 0;
     }
     nullSeedNativeStringCache.set (declaration, found);
     return found;
@@ -13304,7 +13315,8 @@ function rowReadWriteType (csharp, declaration, node) {
     if (!isNullInitFamilyString (declaration)) {
         return undefined;
     }
-    return (marketRowStringReadType (csharp, node) === 'string') ? 'string' : undefined;
+    return (marketRowStringReadType (csharp, node) === 'string' || currencyRowStringReadType92c4 (csharp, node) === 'string'
+        || wsUrlsElementStringRead92c4 (csharp, declaration, node)) ? 'string' : undefined;
 }
 
 // `typeof x === 'string'` prints `(x is string)`, so a copy inside that branch assigns that very
@@ -13625,7 +13637,8 @@ function rowReadWriteNeedsCast (csharp, node) {
         return false;
     }
     if (node.kind === ts.SyntaxKind.ElementAccessExpression) {
-        return marketRowStringReadType (csharp, node) === 'string';
+        return marketRowStringReadType (csharp, node) === 'string' || currencyRowStringReadType92c4 (csharp, node) === 'string'
+            || wsUrlsElementStringRead92c4 (csharp, declaration, node);
     }
     return narrowedCopyNodeName (node) === node.text;
 }
@@ -22703,3 +22716,179 @@ const c92UpstreamLocalDeclarationC5 = csharpLocalDeclaration;
 csharpLocalDeclaration = function (csharp, declaration, context) {
     return c92UpstreamLocalDeclarationC5 (csharp, declaration, context) ?? c92StringSunkElementReadLocal (csharp, declaration, context);
 };
+
+// `x === '<lit>'` / `x !== '<lit>'` on a Str null seed prints `(x is "lit")` over the object local; declared
+// string? it prints the native `==` / `!=` (same answer on null and on any string). Numeric-looking literals
+// keep the isEqual helper, so they are not a native use.
+function nullSeedLiteralCompareUse92c4 (n) {
+    let current = n;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const parent = current.parent;
+    if (parent?.kind !== ts.SyntaxKind.BinaryExpression) {
+        return false;
+    }
+    const op = parent.operatorToken.kind;
+    if (op !== ts.SyntaxKind.EqualsEqualsEqualsToken && op !== ts.SyntaxKind.ExclamationEqualsEqualsToken) {
+        return false;
+    }
+    const other = stripParens ((parent.left === current) ? parent.right : parent.left);
+    return other?.kind === ts.SyntaxKind.StringLiteral && !/^\s*[-+.0-9]|^\s*(NaN|Infinity)\s*$/.test (other.text);
+}
+
+// `currency['id']` / `currency['code']` where `currency` is a single local bound once to this.currency (..) /
+// this.safeCurrency (..) and never written into: the audited currency-row key table. Every currency-row
+// writer stores a string or undefined at these keys (safeCurrencyStructure's 124 parseCurrency callers
+// pass safeString / safeCurrencyCode / string-literal / Object.keys values; base safeCurrency writes its
+// Str id and the derived code), so the `(string)` cast names the box the `object` local held.
+const CURRENCY_ROW_STRING_KEYS_92C4 = [ 'id', 'code' ];
+
+function currencyRowStringReadType92c4 (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || node.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const key = elementAccessLiteralKey (node.argumentExpression);
+    if (!CURRENCY_ROW_STRING_KEYS_92C4.includes (key)) {
+        return undefined;
+    }
+    const receiver = node.expression;
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    const candidates = (index.declarations.get (receiver.text) ?? [])
+        .filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, receiver) === true);
+    if (candidates.length !== 1) {
+        return undefined;
+    }
+    const declaration = candidates[0];
+    const call = stripParens (declaration.initializer);
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || ![ 'currency', 'safeCurrency' ].includes (callee.name?.text)
+            || declaration.getStart () > node.getStart ()) {
+        return undefined;
+    }
+    for (const n of (index.identifiers.get (receiver.text) ?? [])) {
+        if (n === receiver || n === declaration.name || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            return undefined; // a rebind: the row proof stops
+        }
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === n) {
+            const grand = parent.parent;
+            if (grand?.kind === ts.SyntaxKind.DeleteExpression
+                    || (grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind))) {
+                return undefined; // a write into the row
+            }
+        }
+    }
+    return 'string';
+}
+
+// `[ x, q ] = await this.isUnifiedEnabled (...)` in ts/src/hyperliquid.ts: the venue's single declaration
+// (no override in pro/prediction) returns `[ enableUnifiedMargin, params ]` on its only return path, and
+// that slot-0 local is printed `bool?` (handleOptionBoolAndParams element 0, later `= response == "..."`),
+// so the `(bool?)` element read names its box. Taken only for a seed compared `=== true|false`, the
+// use that prints natively on bool? (`(x is true)` -> `x == true`).
+function hyperliquidUnifiedElement0Proof92c4 (declaration, idNode, assignment, name) {
+    if (name !== 'isUnifiedEnabled' || idNode.parent?.elements?.[0] !== idNode || !isNullInit (declaration)
+            || !/[\\/]ts[\\/]src[\\/]hyperliquid\.ts$/.test (declaration.getSourceFile?.()?.fileName ?? '')) {
+        return false;
+    }
+    const right = assignment?.right;
+    if (right?.kind !== ts.SyntaxKind.AwaitExpression || right.expression?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const target = declaration.name?.text;
+    const scope = enclosingFunction (declaration);
+    let compared = false;
+    const visit = (n) => {
+        if (compared) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken) {
+            const l = stripParens (n.left);
+            const r = stripParens (n.right);
+            const isTarget = (x) => x?.kind === ts.SyntaxKind.Identifier && x.text === target;
+            const isBool = (x) => x?.kind === ts.SyntaxKind.TrueKeyword || x?.kind === ts.SyntaxKind.FalseKeyword;
+            compared = (isTarget (l) && isBool (r)) || (isTarget (r) && isBool (l));
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
+    return compared;
+}
+
+// `url = wsUrls['public']` where `const wsUrls = this.safeDict (this.urls['api'], 'ws', {})`: the element is
+// the describe() literal string at urls.api.ws.<key> (urlsDescribeStringProducer's path proof, extended by
+// the safeDict section key). Taken only for a seed read `url as string`, the use whose cast goes.
+function wsUrlsElementStringRead92c4 (csharp, declaration, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || node.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const key = elementAccessLiteralKey (node.argumentExpression);
+    if (key === undefined || /^[0-9]+$/.test (key) || !seedReadAsString92c4 (declaration)) {
+        return false;
+    }
+    const receiver = node.expression;
+    const scope = enclosingFunction (node);
+    const index = indexScope (csharp, scope);
+    const candidates = (index.declarations.get (receiver.text) ?? []).filter ((c) => useRefersToDeclaration (csharp, scope, c, receiver) === true);
+    if (candidates.length !== 1 || candidates[0].parent?.flags === undefined || !(candidates[0].parent.flags & ts.NodeFlags.Const)) {
+        return false;
+    }
+    const call = stripParens (candidates[0].initializer);
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || callee.name?.text !== 'safeDict' || call.arguments.length < 2) {
+        return false;
+    }
+    const chain = urlsLiteralChain (call.arguments[0]) ?? ((urlsSingleKey92c4 (call.arguments[0]) !== undefined) ? [ urlsSingleKey92c4 (call.arguments[0]) ] : undefined);
+    const section = elementAccessLiteralKey (call.arguments[1]);
+    if (chain === undefined || section === undefined) {
+        return false;
+    }
+    const keys = chain.concat ([ section, key ]);
+    const urls = describeLiteralProperty (ownDescribeLiteral (node.getSourceFile ()), 'urls');
+    if (urls?.kind !== ts.SyntaxKind.ObjectLiteralExpression || describeLiteralPathKind (urls, keys) !== 'string') {
+        return false;
+    }
+    return true;
+}
+
+// `this.urls['api']` -> 'api'
+function urlsSingleKey92c4 (node) {
+    const n = stripParens (node);
+    if (n?.kind !== ts.SyntaxKind.ElementAccessExpression || n.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || n.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword || n.expression.name?.text !== 'urls') {
+        return undefined;
+    }
+    return elementAccessLiteralKey (n.argumentExpression);
+}
+
+function seedReadAsString92c4 (declaration) {
+    const name = declaration?.name?.text;
+    const scope = enclosingFunction (declaration);
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.AsExpression && n.type?.kind === ts.SyntaxKind.StringKeyword
+                && n.expression?.kind === ts.SyntaxKind.Identifier && n.expression.text === name) {
+            found = true;
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
+    return found;
+}

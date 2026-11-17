@@ -8715,7 +8715,7 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...copyLocalSnippetChecks87c5 () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...nullSeedChecks92c4 (), ...copyLocalSnippetChecks87c5 () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12988,5 +12988,31 @@ export function copyLocalSnippetChecks87c5 (): string[] {
     // a copy of an untyped value keeps object
     const kept = print ('f (o, r) { let q = o; q = q + \'?\' + r; return this.hash (q, 1, 1); }');
     if (!kept.includes ('object q = o;')) problems.push (`87c5 string copy: untyped source retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// null-seed consumer checks (part of `csharpTranspiler.ts --self-test`)
+export function nullSeedChecks92c4 (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string } };
+    const pre = 'type Str = string | undefined;\nclass Test {\n signed (a: Str): Str { if (a === undefined) { return undefined; } return \'-\' + a; }\n currency (c) { return {}; }\n';
+    const print = (body: string) => emit.transpileCSharp (pre + body + '\n}').content;
+    // a Str seed compared with a non-numeric string literal prints the native != on string?
+    const lit = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = this.signed (a); } return (x !== \'\') ? 1 : 0; }');
+    if (!lit.includes ('string? x = null;') || !lit.includes ('(x != "")')) problems.push (`literal-compare seed: ${lit.replace (/\n/g, ' | ').slice (-400)}`);
+    // the currency-row id read is a string write: the receiver call prints natively
+    const row = print ('f (code: Str, n: Str) { const currency = this.currency (code); let id: Str = undefined; if (n === undefined) { id = currency[\'id\']; } return id.toUpperCase (); }');
+    if (!row.includes ('string? id = null;') || !row.includes ('id.ToUpper()')) problems.push (`currency-row id write: ${row.replace (/\n/g, ' | ').slice (-400)}`);
+    // slot 0 of hyperliquid isUnifiedEnabled is its bool? local: a seed compared `=== true` prints native ==
+    const hl: string = (transpiler as unknown as { transpileCSharpByPath (file: string): { content: string } }).transpileCSharpByPath ('./ts/src/hyperliquid.ts').content;
+    const t0 = hl.search (/ transfer\(/i);
+    const tb = (t0 < 0) ? '' : hl.slice (t0, hl.indexOf ('\n    }\n', t0));
+    if (!tb.includes ('bool? isUnified = null;') || !tb.includes ('(isUnified == true)')) problems.push ('hyperliquid transfer isUnified not bool? / native ==');
+    // a ws url seed written from `wsUrls['public']` (wsUrls = this.safeDict (this.urls['api'], 'ws', {})) and read `url as string`
+    const wsu = print ('describe () { return { \'urls\': { \'api\': { \'ws\': { \'public\': \'wss://a\', \'private\': \'wss://b\' } } } }; }\n safeDict (o, k, d = undefined) { return d; }\n watch (u: string) { return u; }\n f (o) { const wsUrls = this.safeDict (this.urls[\'api\'], \'ws\', {}); let url: Str = undefined; if (o) { url = wsUrls[\'public\']; } else { url = wsUrls[\'private\']; } return this.watch (url as string); }');
+    if (!wsu.includes ('string? url = null;') || !wsu.includes ('url = ((string)(wsUrls')) problems.push (`ws url element write: ${wsu.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
