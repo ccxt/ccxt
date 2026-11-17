@@ -2355,6 +2355,476 @@
                         }
                     ]
                 ]
+            },
+            {
+                "description": "a refused subscribe rejects the watch, the retry subscribes again",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999
+                },
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "error": {
+                            "code": 42900,
+                            "message": "max subscriptions per connection reached"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 3,
+                        "result": {
+                            "channel": "orders.BTC-USD-PERP"
+                        }
+                    },
+                    {
+                        "binary": "8000140001000200c0d3c7a4ba5d06002a00000000000000030201038049d7fa93070000000000000000008020a107000000000020a10700000000000000000000000080bbafb6a4ba5d0600bbafb6a4ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b58abb6a4ba5d060034b1b6a4ba5d0600010100001c313739313930363036393030303230313730393233333437303030310a6d792d6f726465722d310c4254432d5553442d50455250000000"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "orders.BTC-USD-PERP"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 3,
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "orders.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "rejectsWith": "OperationRejected"
+                    },
+                    [
+                        {
+                            "id": "1791906069000201709233470001",
+                            "clientOrderId": "my-order-1",
+                            "timestamp": 1791906069000,
+                            "datetime": "2026-10-13T15:41:09.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1791906069000,
+                            "status": "open",
+                            "symbol": "BTC/USD:USDC",
+                            "type": "limit",
+                            "timeInForce": "PO",
+                            "postOnly": true,
+                            "reduceOnly": true,
+                            "side": "sell",
+                            "price": 83321.5,
+                            "triggerPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null,
+                            "average": null,
+                            "amount": 0.005,
+                            "filled": 0,
+                            "remaining": 0.005,
+                            "cost": 0,
+                            "trades": [],
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "avg_fill_price": null,
+                                "client_id": "my-order-1",
+                                "created_at": 1791906069000,
+                                "flags": [
+                                    "REDUCE_ONLY"
+                                ],
+                                "id": "1791906069000201709233470001",
+                                "instruction": "POST_ONLY",
+                                "last_updated_at": 1791906069000,
+                                "market": "BTC-USD-PERP",
+                                "price": "83321.5",
+                                "published_at": 1791906069000,
+                                "received_at": 1791906068999,
+                                "remaining_size": "0.005",
+                                "seq_no": "42",
+                                "side": "SELL",
+                                "size": "0.005",
+                                "status": "OPEN",
+                                "stp": "EXPIRE_MAKER",
+                                "timestamp": 1791906070123,
+                                "trigger_price": null,
+                                "type": "LIMIT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "stopPrice": null
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "a refused auth rejects the watch, the retry authenticates again",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999
+                },
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "error": {
+                            "code": 40111,
+                            "message": "invalid bearer token"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 3,
+                        "result": {
+                            "channel": "orders.BTC-USD-PERP"
+                        }
+                    },
+                    {
+                        "binary": "8000140001000200c0d3c7a4ba5d06002a00000000000000030201038049d7fa93070000000000000000008020a107000000000020a10700000000000000000000000080bbafb6a4ba5d0600bbafb6a4ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b58abb6a4ba5d060034b1b6a4ba5d0600010100001c313739313930363036393030303230313730393233333437303030310a6d792d6f726465722d310c4254432d5553442d50455250000000"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 3,
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "orders.BTC-USD-PERP"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "rejectsWith": "AuthenticationError"
+                    },
+                    [
+                        {
+                            "id": "1791906069000201709233470001",
+                            "clientOrderId": "my-order-1",
+                            "timestamp": 1791906069000,
+                            "datetime": "2026-10-13T15:41:09.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1791906069000,
+                            "status": "open",
+                            "symbol": "BTC/USD:USDC",
+                            "type": "limit",
+                            "timeInForce": "PO",
+                            "postOnly": true,
+                            "reduceOnly": true,
+                            "side": "sell",
+                            "price": 83321.5,
+                            "triggerPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null,
+                            "average": null,
+                            "amount": 0.005,
+                            "filled": 0,
+                            "remaining": 0.005,
+                            "cost": 0,
+                            "trades": [],
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "avg_fill_price": null,
+                                "client_id": "my-order-1",
+                                "created_at": 1791906069000,
+                                "flags": [
+                                    "REDUCE_ONLY"
+                                ],
+                                "id": "1791906069000201709233470001",
+                                "instruction": "POST_ONLY",
+                                "last_updated_at": 1791906069000,
+                                "market": "BTC-USD-PERP",
+                                "price": "83321.5",
+                                "published_at": 1791906069000,
+                                "received_at": 1791906068999,
+                                "remaining_size": "0.005",
+                                "seq_no": "42",
+                                "side": "SELL",
+                                "size": "0.005",
+                                "status": "OPEN",
+                                "stp": "EXPIRE_MAKER",
+                                "timestamp": 1791906070123,
+                                "trigger_price": null,
+                                "type": "LIMIT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "stopPrice": null
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "an error answering no request rejects the watch, the next private watch authenticates again",
+                "disabledRS": "the rust ws client rejects every hash it has registered, so the resolved auth future keeps a rejection the next auth reads",
+                "options": {
+                    "authToken": "ooooccxtooootoooootheoooomoonooooo",
+                    "expires": 99999999999
+                },
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": {
+                            "channel": "orders.BTC-USD-PERP"
+                        }
+                    },
+                    {
+                        "binary": "8000140001000200c0d3c7a4ba5d06002a00000000000000030201038049d7fa93070000000000000000008020a107000000000020a10700000000000000000000000080bbafb6a4ba5d0600bbafb6a4ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b58abb6a4ba5d060034b1b6a4ba5d0600010100001c313739313930363036393030303230313730393233333437303030310a6d792d6f726465722d310c4254432d5553442d50455250000000"
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "error": {
+                            "code": -32603,
+                            "message": "internal error"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 4,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "binary": "8000140001000200c0d3c7a4ba5d06002a00000000000000040201038049d7fa93070000000000000000008020a1070000000000400d0300000000008049d7fa93070000bbafb6a4ba5d0600a737d5a4ba5d060004638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b58abb6a4ba5d060034b1b6a4ba5d0600010100001c313739313930363036393030303230313730393233333437303030310a6d792d6f726465722d310c4254432d5553442d504552500d555345525f43414e43454c45440000"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "orders.BTC-USD-PERP"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 4,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "ooooccxtooootoooootheoooomoonooooo"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "1791906069000201709233470001",
+                            "clientOrderId": "my-order-1",
+                            "timestamp": 1791906069000,
+                            "datetime": "2026-10-13T15:41:09.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1791906069000,
+                            "status": "open",
+                            "symbol": "BTC/USD:USDC",
+                            "type": "limit",
+                            "timeInForce": "PO",
+                            "postOnly": true,
+                            "reduceOnly": true,
+                            "side": "sell",
+                            "price": 83321.5,
+                            "triggerPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null,
+                            "average": null,
+                            "amount": 0.005,
+                            "filled": 0,
+                            "remaining": 0.005,
+                            "cost": 0,
+                            "trades": [],
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "avg_fill_price": null,
+                                "client_id": "my-order-1",
+                                "created_at": 1791906069000,
+                                "flags": [
+                                    "REDUCE_ONLY"
+                                ],
+                                "id": "1791906069000201709233470001",
+                                "instruction": "POST_ONLY",
+                                "last_updated_at": 1791906069000,
+                                "market": "BTC-USD-PERP",
+                                "price": "83321.5",
+                                "published_at": 1791906069000,
+                                "received_at": 1791906068999,
+                                "remaining_size": "0.005",
+                                "seq_no": "42",
+                                "side": "SELL",
+                                "size": "0.005",
+                                "status": "OPEN",
+                                "stp": "EXPIRE_MAKER",
+                                "timestamp": 1791906070123,
+                                "trigger_price": null,
+                                "type": "LIMIT"
+                            },
+                            "fees": [
+                                {
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "stopPrice": null
+                        }
+                    ],
+                    {
+                        "rejectsWith": "ExchangeError"
+                    },
+                    [
+                        {
+                            "id": "1791906069000201709233470001",
+                            "clientOrderId": "my-order-1",
+                            "timestamp": 1791906069000,
+                            "datetime": "2026-10-13T15:41:09.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1791906071000,
+                            "status": "canceled",
+                            "symbol": "BTC/USD:USDC",
+                            "type": "limit",
+                            "timeInForce": "PO",
+                            "postOnly": true,
+                            "reduceOnly": true,
+                            "side": "sell",
+                            "price": 83321.5,
+                            "triggerPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null,
+                            "average": 83321.5,
+                            "amount": 0.005,
+                            "filled": 0.003,
+                            "remaining": 0.002,
+                            "cost": 249.9645,
+                            "trades": [],
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "info": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "avg_fill_price": "83321.5",
+                                "client_id": "my-order-1",
+                                "created_at": 1791906069000,
+                                "flags": [
+                                    "REDUCE_ONLY"
+                                ],
+                                "id": "1791906069000201709233470001",
+                                "instruction": "POST_ONLY",
+                                "last_updated_at": 1791906071000,
+                                "market": "BTC-USD-PERP",
+                                "price": "83321.5",
+                                "published_at": 1791906069000,
+                                "received_at": 1791906068999,
+                                "remaining_size": "0.002",
+                                "seq_no": "42",
+                                "side": "SELL",
+                                "size": "0.005",
+                                "status": "CLOSED",
+                                "stp": "EXPIRE_MAKER",
+                                "timestamp": 1791906070123,
+                                "trigger_price": null,
+                                "type": "LIMIT",
+                                "cancel_reason": "USER_CANCELED"
+                            },
+                            "fees": [
+                                {
+                                    "cost": null,
+                                    "currency": null
+                                }
+                            ],
+                            "stopPrice": null
+                        }
+                    ]
+                ]
             }
         ],
         "watchMyTrades": [

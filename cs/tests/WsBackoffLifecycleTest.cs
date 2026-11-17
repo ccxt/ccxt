@@ -61,6 +61,39 @@ public partial class BaseTest
         await testWsConnectLeavesCallerContext();
         testWsBackoffStatePersistsAcrossClose();
         await testWsBackoffConcurrentUpdates();
+        await testWsWatchMultipleOptionalSubscribeHashes();
+    }
+
+    private async Task testWsWatchMultipleOptionalSubscribeHashes()
+    {
+        foreach (var explicitHashes in new[] { false, true })
+        {
+            using var server = new BackoffProbeServer();
+            var exchange = new BaseExchange();
+            var client = exchange.client(server.url);
+            client.keepAlive = null;
+            var hashes = new List<object> { "watch-key" };
+            var watch = explicitHashes
+                ? exchange.watchMultiple(server.url, hashes, "subscribe", new List<object> { "subscription-key" })
+                : exchange.watchMultiple(server.url, hashes, "subscribe");
+            try
+            {
+                // Surface an early bridge failure instead of waiting for a connection that never starts.
+                await await Task.WhenAny(watch, server.Accepted).WaitAsync(TimeSpan.FromSeconds(5));
+                var socket = await server.Accepted.WaitAsync(TimeSpan.FromSeconds(5));
+                var buffer = new byte[64];
+                var received = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5));
+                Assert(System.Text.Encoding.UTF8.GetString(buffer, 0, received.Count) == "subscribe", "watchMultiple must send its subscription");
+                client.resolve("resolved", "watch-key");
+                Assert((string)await watch.WaitAsync(TimeSpan.FromSeconds(5)) == "resolved", "watchMultiple must resolve the requested message hash");
+                Assert(client.subscriptions.Count == (explicitHashes ? 1 : 0), "omitted hashes must not register a subscription key");
+            }
+            finally
+            {
+                await client.Close();
+                client.webSocket.Dispose();
+            }
+        }
     }
 
     private async Task testWsBackoffDelayIsHonored()
