@@ -1432,7 +1432,7 @@ class BaseExchange {
 
     public function ensure_whitelisted_file(string $filePath) {
         $sanitized = basename($filePath);
-        $exts = array('ccxtfile', 'pem');
+        $exts = array('ccxtfile', 'pem', 'wasm');
         foreach ($exts as $ext) {
             if (str_ends_with($sanitized, '.' . $ext)) {
                 return;

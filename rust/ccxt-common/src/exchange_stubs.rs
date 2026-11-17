@@ -2919,16 +2919,13 @@ impl Exchange {
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
         Value::Str(format!("0x{}", crate::exchange::hex_encode(&hash[12..32])).into())
     }
-
-    /// Ensures the file path is permitted, so users would be safeguarded:
-    /// .ccxtfile (cache files) can be read and written, but only inside the temp dir
-    /// .pem (user-supplied keys, e.g. the ibkr oauth keys) can be read from any location, but never written
+    /// ensures the file path has a whitelisted extension, so users are safeguarded from arbitrary file access
     pub fn ensure_whitelisted_file(&self, p: &Value) {
         let path = match p {
             Value::Str(s) => s.to_string(),
             _ => panic!("invalid file path: {}", stringify_param(p)),
         };
-        let exts = ["ccxtfile", "pem"];
+        let exts = ["ccxtfile", "pem", "wasm"];
         if exts.iter().any(|ext| path.ends_with(&format!(".{}", ext))) {
             return;
         }
@@ -2951,7 +2948,6 @@ impl Exchange {
             _ => Value::Null,
         }
     }
-
     pub fn write_file(&self, p: Value, content: Value) -> Value {
         self.ensure_whitelisted_file(&p);
         let path = match &p {
@@ -2973,7 +2969,6 @@ impl Exchange {
     pub fn get_property(&self, obj: Value, key: Value) -> Value {
         crate::get_value(&obj, &Value::Str(stringify_param(&key).into()))
     }
-
     pub fn yymmdd(&self, ts: Value, optional_args: &[Value]) -> Value {
         let infix = match optional_args.get(0) {
             Some(Value::Str(s)) => s.clone(),
