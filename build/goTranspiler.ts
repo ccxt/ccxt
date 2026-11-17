@@ -3688,6 +3688,34 @@ function goChan3SelfTest (): string[] {
     return problems;
 }
 
+// Hand-written Lighter signers (go/v4/exchange_eth.go) return a []any of fixed arity on their only
+// path, so a destructured slot read below that arity is the element itself: `h[i]` for `GetValue(h, i)`.
+const GO_LIGHTER_SIGNER_ARITY: { [name: string]: number } = {
+    'LighterSignCreateGroupedOrders': 2, 'LighterSignCreateOrder': 2, 'LighterSignCancelOrder': 2, 'LighterSignWithdraw': 2,
+    'LighterSignCreateSubAccount': 2, 'LighterSignCancelAllOrders': 2, 'LighterSignModifyOrder': 2, 'LighterSignTransfer': 2,
+    'LighterSignUpdateLeverage': 2, 'LighterSignUpdateMargin': 2, 'LighterSignApproveIntegrator': 3, 'LighterSignChangePubkey': 3,
+    'LighterGenerateApiKey': 2,
+};
+
+function goLighterSignerSlotReads (content: string): string {
+    const lines = content.split ('\n');
+    for (let i = 0; i < lines.length; i++) {
+        const holder = /^\s*(\w+Variable) := this\.(\w+)\(/.exec (lines[i]);
+        const arity = (holder === null) ? undefined : GO_LIGHTER_SIGNER_ARITY[holder[2]];
+        if (arity === undefined) {
+            continue;
+        }
+        for (let j = i + 1; j < lines.length; j++) {
+            const read = new RegExp ('^(\\s*\\w+ :?= )(?:ccxt\\.)?GetValue\\(' + holder[1] + ', (\\d+)\\)$').exec (lines[j]);
+            if ((read === null) || (Number (read[2]) >= arity)) {
+                break;
+            }
+            lines[j] = read[1] + holder[1] + '[' + read[2] + ']';
+        }
+    }
+    return lines.join ('\n');
+}
+
 // a `*string` method's return that already is the pointer: nil, or a local the body declares `*string` exactly once
 function goStringPtrReturnIsBare (body: string, expr: string): boolean {
     if (expr === 'nil') {
@@ -13577,6 +13605,7 @@ ${caseStatements.join('\n')}
 
         content = this.coerceTypedStringAccessorOverrides (content);
         content = this.coerceStringPtrMethods (content, CCXT_GO_STRING_PTR_METHOD_NAMES, false);
+        content = goLighterSignerSlotReads (content);
         content = this.coerceTypedMapAccessorOverrides (content);
         content = coerceGoBoolMethodReturns (content, CCXT_GO_BOOL_METHOD_NAMES);
         // The destructured `[ value, params ]` helpers carry a concrete `[]any` return (see
