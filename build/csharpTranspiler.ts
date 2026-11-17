@@ -12824,20 +12824,20 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
         if (!signed.includes (expected)) problems.push (`87c7 clock-string seed of a guarded concat: ${expected}: ${signed.replace (/\n/g, ' | ').slice (-400)}`);
     }
     // ral-87c7 R2: an Int64 sum bound clamped by an int length and read only by comparisons
-    const chunked = (transpiler as any).transpileCSharp ('class Test {\n sum (a, b) { return a; }\n safeInteger (o, k, d = undefined) { return d; }\n'
+    const chunked = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp ('class Test {\n sum (a, b) { return a; }\n safeInteger (o, k, d = undefined) { return d; }\n'
         + ' f (ids: string[]) { const n = ids.length; const size = this.safeInteger ({}, \'x\', 50); let start = 0; const out = []; while (start < n) { let end = this.sum (start, size); if (end > n) { end = n; } for (let i = start; i < end; i++) { out.push (ids[i]); } start = this.sum (start, size); } return out; }\n}').content as string;
     for (const expected of [ 'Int64 end = this.sum(start, size);', 'if (end > n)' ]) {
         if (!chunked.includes (expected)) problems.push (`87c7 Int64 sum bound: ${expected}: ${chunked.replace (/\n/g, ' | ').slice (-500)}`);
     }
-    const escaped = (transpiler as any).transpileCSharp ('class Test {\n sum (a, b) { return a; }\n safeInteger (o, k, d = undefined) { return d; }\n'
+    const escaped = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp ('class Test {\n sum (a, b) { return a; }\n safeInteger (o, k, d = undefined) { return d; }\n'
         + ' f (ids: string[]) { const n = ids.length; const size = this.safeInteger ({}, \'x\', 50); let start = 0; let end = this.sum (start, size); if (end > n) { end = n; } return [ start, end ]; }\n}').content as string;
     if (!escaped.includes ('object end = this.sum(start, size);')) problems.push (`87c7 Int64 sum bound: escaping read retyped: ${escaped.replace (/\n/g, ' | ').slice (-500)}`);
     // ral-87c7 R3: element read of a local map whose every element write is a list
     const bucketBody = (tail: string) => 'class Test {\n safeList (o, k, d = undefined) { return d; }\n hash (a, b, c) { return a; }\n'
         + ' f (keys: string[], rows: string[]) { const byKey = {}; for (let i = 0; i < keys.length; i++) { const k = keys[i]; if (!(k in byKey)) { byKey[k] = []; } const g = this.safeList (byKey, k, []); g.push (rows[i]); byKey[k] = g; }' + tail + ' }\n}';
-    const bucket = (transpiler as any).transpileCSharp (bucketBody (' const out = []; for (let i = 0; i < keys.length; i++) { const grouped = byKey[keys[i]]; for (let j = 0; j < grouped.length; j++) { out.push (grouped[j]); } } return out;')).content as string;
+    const bucket = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp (bucketBody (' const out = []; for (let i = 0; i < keys.length; i++) { const grouped = byKey[keys[i]]; for (let j = 0; j < grouped.length; j++) { out.push (grouped[j]); } } return out;')).content as string;
     if (!bucket.includes ('List<object> grouped = ((List<object>)(')) problems.push (`87c7 list-bucket map read: ${bucket.replace (/\n/g, ' | ').slice (-500)}`);
-    const leaked = (transpiler as any).transpileCSharp (bucketBody (' byKey[\'x\'] = 1; const grouped = byKey[keys[0]]; return this.hash (grouped.length, 1, 1);')).content as string;
+    const leaked = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp (bucketBody (' byKey[\'x\'] = 1; const grouped = byKey[keys[0]]; return this.hash (grouped.length, 1, 1);')).content as string;
     if (leaked.includes ('List<object> grouped =')) problems.push (`87c7 list-bucket map read: non-list element write retyped: ${leaked.replace (/\n/g, ' | ').slice (-500)}`);
     return problems;
 }
@@ -12872,16 +12872,16 @@ export function nullSeedNativeStringChecks87c4 (): string[] {
 // keeps the printer's null-guarded concatenation, minus the `((object)…)` box
 export function copyLocalSnippetChecks87c5 (): string[] {
     const problems: string[] = [];
-    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
     const transpiler = new Transpiler (config);
     setupCsharpPrinter (transpiler);
     const pre = 'type Str = string | undefined;\nclass Test {\n safeString (o, k, d = undefined): Str { return d; }\n hash (a, b, c) { return a; }\n';
-    const print = (body: string) => (transpiler as any).transpileCSharp (pre + body + '\n}').content as string;
+    const print = (body: string) => (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp (pre + body + '\n}').content as string;
     const out = print ('f (o) { const orderType = this.safeString (o, \'t\'); const q = orderType; const z = q + \'.x\'; const y = q + \'.y\'; return this.hash (z, y, 1); }');
     if (!out.includes ('string? q = orderType;')) problems.push (`87c5 string copy: not typed: ${out.replace (/\n/g, ' | ').slice (-400)}`);
     if (!out.includes ('string? z = ((string)(q == null ? null : q + ".x"));')) problems.push (`87c5 string copy: guarded read not native: ${out.replace (/\n/g, ' | ').slice (-400)}`);
     // R2: a Dictionary omit result later written from an IDictionary reader and through omit itself
-    const widened = (transpiler as any).transpileCSharp ('type Dict = { [key: string]: any };\nclass Test {\n omit (o, k): Dict { return o; }\n safeDict (o, k, d = undefined): Dict { return d; }\n hash (a, b, c) { return a; }\n'
+    const widened = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp ('type Dict = { [key: string]: any };\nclass Test {\n omit (o, k): Dict { return o; }\n safeDict (o, k, d = undefined): Dict { return d; }\n hash (a, b, c) { return a; }\n'
         + ' f (o) { let p = this.omit ({}, \'a\'); if (o) { p = this.safeDict (o, \'b\'); } p = this.omit (p, \'c\'); return this.hash (p, 1, 1); }\n}').content as string;
     if (!widened.includes ('IDictionary<string, object> p = this.omit(')) problems.push (`87c5 R2 dictionary widening: ${widened.replace (/\n/g, ' | ').slice (-400)}`);
     // R3: self-concat writes `x = x + r` keep the guarded form, now without the box
