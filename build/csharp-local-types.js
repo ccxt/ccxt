@@ -23659,3 +23659,89 @@ function jsonParseDictLocal92c7 (csharp, declaration, context) {
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, cast: type } : undefined;
 }
+
+// (D1) `const m = c ? 'lit' : s` where each arm is a string literal or a local the printer declares
+// `string` / `string?`, and every use of m is the left operand of an effect-free `+` chain: the
+// printer already guards those reads (`(m == null ? null : m + r)`), so declared `string?` behind one
+// the reads lose the `((object)` box and print as a typed string (the arms need no cast).
+function c93StringArm (csharp, arm) {
+    const node = stripParens (arm);
+    if (node?.kind === ts.SyntaxKind.StringLiteral) {
+        return 'lit';
+    }
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const type = localIdentifierType (csharp, node);
+    return (type === 'string' || type === 'string?') ? 'local' : undefined;
+}
+function c93GuardedConcatOnlyConditionalLocal (csharp, declaration, context) {
+    if (c5ParameterProofDepth > 0 || declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || declaration.type !== undefined || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const conditional = stripParens (declaration.initializer);
+    if (conditional?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const arms = [ c93StringArm (csharp, conditional.whenTrue), c93StringArm (csharp, conditional.whenFalse) ];
+    if (arms.includes (undefined) || !arms.includes ('local')) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || /(^|[\\/])test[\\/]/.test (declaration.getSourceFile?.()?.fileName ?? '')) {
+        return undefined;
+    }
+    const reads = [];
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
+            return undefined;
+        }
+        const p = n.parent;
+        if (p?.kind !== ts.SyntaxKind.BinaryExpression || p.left !== n || p.operatorToken.kind !== ts.SyntaxKind.PlusToken
+                || !guardedConcatLeftUse (csharp, n, 'string?', undefined)) {
+            return undefined;
+        }
+        reads.push (n);
+    }
+    if (reads.length === 0) {
+        return undefined;
+    }
+    for (const n of reads) {
+        guardedConcatReads.add (n);
+    }
+    // both arms already print as C# strings, so the conditional's own type is string: no cast
+    return { type: 'string?' };
+}
+const c93UpstreamLocalDeclarationD1 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c93UpstreamLocalDeclarationD1 (csharp, declaration, context) ?? c93GuardedConcatOnlyConditionalLocal (csharp, declaration, context);
+};
+// (D1b) the consumer: `const t = m + r ...` over such an m prints the guarded concat, whose static type
+// is already string, so the `((string)` cast another rule names on t's declaration is dropped
+function c93GuardedConcatBaseIsD1 (csharp, declaration) {
+    const init = stripParens (declaration?.initializer);
+    if (init?.kind !== ts.SyntaxKind.BinaryExpression || init.operatorToken.kind !== ts.SyntaxKind.PlusToken || typeof csharp.csharpPlusSpine !== 'function') {
+        return false;
+    }
+    const base = stripParens (csharp.csharpPlusSpine (init)?.base);
+    if (base?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const source = resolveReference (csharp, base);
+    return source?.kind === ts.SyntaxKind.VariableDeclaration && source !== declaration
+        && c93GuardedConcatOnlyConditionalLocal (csharp, source, undefined) !== undefined;
+}
+const c93UpstreamLocalDeclarationD1b = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = c93UpstreamLocalDeclarationD1b (csharp, declaration, context);
+    if (info?.cast === 'string' && info.castWhole !== true && STRING_TYPES.includes (info.type) && c93GuardedConcatBaseIsD1 (csharp, declaration)) {
+        return { ...info, cast: undefined };
+    }
+    return info;
+};
