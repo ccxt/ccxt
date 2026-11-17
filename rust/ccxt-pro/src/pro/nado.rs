@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Nado {
                 "cancel_orders_ws" => crate::types::IntoRaw::into_raw(self.cancel_orders_ws(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order_ws" => crate::types::IntoRaw::into_raw(self.create_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_public_subscription_request" => self.create_public_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+                "create_public_subscription_request" => self.create_public_subscription_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -129,7 +129,7 @@ impl Nado {
             "cancel_order_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_order_ws", args.to_vec()); crate::Value::Null },
             "cancel_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_orders_ws", args.to_vec()); crate::Value::Null },
             "create_order_ws" => { crate::exchange_stubs::enqueue_spawn("create_order_ws", args.to_vec()); crate::Value::Null },
-            "create_public_subscription_request" => self.create_public_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "create_public_subscription_request" => self.create_public_subscription_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "edit_order_ws" => { crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.to_vec()); crate::Value::Null },
             "handle_all_bids_asks" => { self.handle_all_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_authentication" => { self.handle_authentication(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -147,7 +147,7 @@ impl Nado {
             "handle_subscription" => { self.handle_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trade" => { self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_unsubscription" => { self.handle_unsubscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_unsubscription_cache" => { self.handle_unsubscription_cache(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_unsubscription_cache" => { self.handle_unsubscription_cache(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "parse_ws_all_bids_asks" => self.parse_ws_all_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_my_trade" => self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1956,7 +1956,8 @@ impl Nado {
         return self.parent.sign_hash(self.hash(&encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
-    pub fn create_public_subscription_request(&self, mut method: Value, mut streamType: Value, optional_args: &[Value]) -> Value {
+    pub fn create_public_subscription_request(&self, method: &str, mut streamType: Value, optional_args: &[Value]) -> Value {
+        let mut method: Value = method.into();
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut id = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -2003,7 +2004,7 @@ impl Nado {
                 let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut id: i64 = self.request_id();
                 let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null) });
-                let mut request: indexmap::IndexMap<String, Value> = self.create_public_subscription_request(Value::Str("subscribe".into()), streamType.clone(), &[market.clone(), Value::from(id), requestParams]).as_map().cloned().unwrap_or_default();
+                let mut request: indexmap::IndexMap<String, Value> = self.create_public_subscription_request("subscribe", streamType.clone(), &[market.clone(), Value::from(id), requestParams]).as_map().cloned().unwrap_or_default();
                 let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:".into()), json_stringify(&request.get("stream").cloned().unwrap_or(Value::Null)));
                 let streamSubscription: bool = self.safe_value((client).subscriptions.clone(), Value::from(subscribeHash.clone()), &[]) != Value::Null;
                 if (!streamSubscription) {
@@ -2037,7 +2038,7 @@ impl Nado {
 }));
         let mut url: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "subscriptions", &[]);
         let mut id: i64 = self.request_id();
-        let mut request: crate::value::Dict = self.create_public_subscription_request(Value::Str("unsubscribe".into()), streamType, &[market, Value::from(id), params]).into_dict();
+        let mut request: crate::value::Dict = self.create_public_subscription_request("unsubscribe", streamType, &[market, Value::from(id), params]).into_dict();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(id));
@@ -2076,7 +2077,7 @@ impl Nado {
             let mut id: i64 = self.request_id();
             let mut unsubscribeHash: String = format!("{}{}", "unsubscribe:", messageHash);
             let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null) });
-            let mut request: crate::value::Dict = self.create_public_subscription_request(Value::Str("unsubscribe".into()), streamType.clone(), &[markets.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(id), requestParams]).into_dict();
+            let mut request: crate::value::Dict = self.create_public_subscription_request("unsubscribe", streamType.clone(), &[markets.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(id), requestParams]).into_dict();
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(id));
@@ -2728,7 +2729,7 @@ impl Nado {
             __ch.remove_subscription(&(Value::Str(format!("{}{}", "unsubscription:", id).into())));
             if (messageHash.is_some()) {
                 self.clean_unsubscription(client.clone(), Value::from(messageHash.as_deref()), Value::from(unsubscribeHash.as_deref()), &[]);
-                self.handle_unsubscription_cache(messageHash.map(Value::from).unwrap_or(Value::Null));
+                self.handle_unsubscription_cache(messageHash.as_deref().unwrap_or_default());
             }
             client.resolve(Value::Bool(true), unsubscribeHash.as_deref());
             return;
@@ -2747,7 +2748,7 @@ impl Nado {
             let mut messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
             if (messageHash.is_some()) {
                 self.clean_unsubscription(client.clone(), Value::from(messageHash.as_deref()), unsubscribeHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                self.handle_unsubscription_cache(messageHash.map(Value::from).unwrap_or(Value::Null));
+                self.handle_unsubscription_cache(messageHash.as_deref().unwrap_or_default());
             }
             client.resolve(Value::Bool(true), unsubscribeHash.as_deref());
             return;
@@ -2755,14 +2756,15 @@ impl Nado {
         }
 }
 
-    pub fn handle_unsubscription_cache(&mut self, mut messageHash: Value) {
+    pub fn handle_unsubscription_cache(&mut self, messageHash: &str) {
+        let mut messageHash: Value = messageHash.into();
         if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("trade:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-            let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("trade:", "").into())).unwrap_or_else(|| messageHash.clone());
+            let mut symbol: String = messageHash.as_str().unwrap_or_default().to_string().replace("trade:", "");
             if (self.trades.has(&symbol)) {
                 CacheStore::forget(&mut self.trades, &symbol);
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("orderbook:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-            let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("orderbook:", "").into())).unwrap_or_else(|| messageHash.clone());
+            let mut symbol: String = messageHash.as_str().unwrap_or_default().to_string().replace("orderbook:", "");
             if (self.orderbooks.has(&symbol)) {
                 CacheStore::forget(&mut self.orderbooks, &symbol);
             }
@@ -2774,9 +2776,9 @@ impl Nado {
                 CacheShelves::forget2(&mut self.ohlcvs, &symbol, &timeframe);
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("ticker:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-            let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("ticker:", "").into())).unwrap_or_else(|| messageHash.clone());
-            if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+            let mut symbol: String = messageHash.as_str().unwrap_or_default().to_string().replace("ticker:", "");
+            if (matches!(&self.tickers, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+                if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
             }
         }  else if (messageHash.as_str() == Some("ticker")) {
             let mut symbols: Value = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
@@ -2789,9 +2791,9 @@ impl Nado {
             }
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("bidask:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-            let mut symbol: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("bidask:", "").into())).unwrap_or_else(|| messageHash.clone());
-            if (matches!((&self.bidsasks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+            let mut symbol: String = messageHash.as_str().unwrap_or_default().to_string().replace("bidask:", "");
+            if (matches!(&self.bidsasks, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+                if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
             }
         }  else if (messageHash.as_str() == Some("bidask")) {
             let mut symbols: Value = Value::Array(self.bidsasks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());

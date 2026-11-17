@@ -149,16 +149,16 @@ impl crate::exchange::DerivedExchange for Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut tradeValue: Value = self.safe_dict_k(trade.clone(), "trade", &[trade.clone()]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(tradeValue.clone(), "trade_timestamp", &[]).as_i64();
+        let mut tradeValue: Option<crate::value::Dict> = self.safe_dict_k(trade.clone(), "trade", &[trade.clone()]).into_opt_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&tradeValue, "trade_timestamp", &[]).as_i64();
         if (timestamp.is_none()) {
-            timestamp = self.parse8601(self.safe_string_k(tradeValue.clone(), "time", &[]));
+            timestamp = self.parse8601(self.safe_string_k(&tradeValue, "time", &[]));
         }
-        let mut side: Option<String> = self.safe_string_lower2_opt(tradeValue.clone(), Value::Str("side".into()), Value::Str("taker_side".into()), &[]);
-        let mut priceString: Option<String> = self.safe_string_k_opt(tradeValue.clone(), "price", &[]);
-        let mut amountString: Option<String> = self.safe_string_k_opt(tradeValue.clone(), "amount", &[]);
-        let mut costString: Option<String> = self.safe_string_k_opt(tradeValue.clone(), "volume", &[]);
-        let mut marketId: Option<String> = self.safe_string_k_opt(tradeValue.clone(), "instrument_code", &[]);
+        let mut side: Option<String> = self.safe_string_lower2_opt(&tradeValue, Value::Str("side".into()), Value::Str("taker_side".into()), &[]);
+        let mut priceString: Option<String> = self.safe_string_k_opt(&tradeValue, "price", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(&tradeValue, "amount", &[]);
+        let mut costString: Option<String> = self.safe_string_k_opt(&tradeValue, "volume", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&tradeValue, "instrument_code", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut feeCostString: Option<String> = self.safe_string_k_opt(&feeInfo, "fee_amount", &[]);
         let mut takerOrMaker: Option<String> = None;
@@ -178,8 +178,8 @@ impl crate::exchange::DerivedExchange for Onetrading {
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string2(tradeValue.clone(), Value::Str("trade_id".into()), Value::Str("sequence".into()), &[]));
-        m.insert("order".to_string(), self.safe_string_k(tradeValue.clone(), "order_id", &[]));
+        m.insert("id".to_string(), self.safe_string2(&tradeValue, Value::Str("trade_id".into()), Value::Str("sequence".into()), &[]));
+        m.insert("order".to_string(), self.safe_string_k(&tradeValue, "order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -190,7 +190,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
         m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
-        m.insert("info".to_string(), tradeValue);
+        m.insert("info".to_string(), tradeValue.clone().map_or(Value::Null, Value::Dict));
     m
 }), market);
 
@@ -2007,7 +2007,7 @@ impl Onetrading {
             if (uppercaseType == "MARKET") {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() cannot place stop market orders, only stop limit")));
             }
-            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
             request.insert("type".into(), Value::Str("STOP".into()));
         }  else if (uppercaseType == "STOP") {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice param for ").into()), type_var).into()), " orders")));

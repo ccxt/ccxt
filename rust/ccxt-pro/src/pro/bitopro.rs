@@ -80,7 +80,7 @@ impl Bitopro {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
-            "authenticate" => { self.authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "authenticate" => { self.authenticate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -397,13 +397,13 @@ impl Bitopro {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchMyTrades() has no private websocket url")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), "user-trades");
-        self.authenticate(Value::from(url.clone()));
-        let mut trades: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
+        self.authenticate(url.as_str());
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -614,7 +614,8 @@ impl Bitopro {
         }
 }
 
-    pub fn authenticate(&mut self, mut url: Value) {
+    pub fn authenticate(&mut self, url: &str) {
+        let mut url: Value = url.into();
         if (self.clients.clone() != Value::Null) && (matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
@@ -697,7 +698,7 @@ impl Bitopro {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchBalance() has no private websocket url")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), "account-balance");
-        self.authenticate(Value::from(url.clone()));
+        self.authenticate(url.as_str());
         return self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))

@@ -2417,7 +2417,8 @@ impl Bitfinex {
     Value::Null
 }
 
-    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
+    pub fn amount_to_precision(&self, mut symbol: Value, amount: impl Into<crate::Value>) -> Option<String> {
+        let mut amount: Value = amount.into();
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
@@ -2426,7 +2427,8 @@ impl Bitfinex {
         return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
 }
 
-    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Option<String> {
+    pub fn price_to_precision(&self, mut symbol: Value, price: impl Into<crate::Value>) -> Option<String> {
+        let mut price: Value = price.into();
         let mut symbolValue: Option<String> = self.safe_symbol(symbol, None, &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbolValue.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut priceValue: Option<String> = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "price", &[]), &[self.precisionMode.clone()]).as_str().map(str::to_owned);

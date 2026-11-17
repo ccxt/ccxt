@@ -61,7 +61,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
             match method {
                 "authenticate_uta" => self.authenticate_uta().await,
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "get_current_position" => self.get_current_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "get_current_position" => self.get_current_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "get_my_trades_message_hash_suffix" => self.get_my_trades_message_hash_suffix(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "get_orders_message_hash_suffix" => self.get_orders_message_hash_suffix(args.get(0).and_then(crate::Value::as_text).as_deref()),
@@ -89,7 +89,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "subscribe_private_uta" => self.subscribe_private_uta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..]).await,
                 "subscribe_public_multiple_uta" => self.subscribe_public_multiple_uta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "subscribe_public_uta" => self.subscribe_public_uta(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]).await,
-                "un_subscribe" => self.un_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "un_subscribe" => self.un_subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..]).await,
                 "un_subscribe_multiple" => self.un_subscribe_multiple(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "un_watch_funding_rate" => crate::types::IntoRaw::into_raw(self.un_watch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_mark_price" => crate::types::IntoRaw::into_raw(self.un_watch_mark_price(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -131,7 +131,7 @@ impl Kucoin {
         match __n {
             "authenticate_uta" => { crate::exchange_stubs::enqueue_spawn("authenticate_uta", args.to_vec()); crate::Value::Null },
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "get_current_position" => self.get_current_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "get_current_position" => self.get_current_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "get_my_trades_message_hash_suffix" => self.get_my_trades_message_hash_suffix(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "get_orders_message_hash_suffix" => self.get_orders_message_hash_suffix(args.get(0).and_then(crate::Value::as_text).as_deref()),
@@ -179,7 +179,7 @@ impl Kucoin {
             "parse_ws_uta_trade" => self.parse_ws_uta_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => crate::Value::from(self.request_id()),
-            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "set_position_cache" => { self.set_position_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "subscribe" => { crate::exchange_stubs::enqueue_spawn("subscribe", args.to_vec()); crate::Value::Null },
@@ -588,13 +588,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn un_subscribe(&mut self, mut url: Value, mut messageHash: Value, mut topic: Value, mut subscriptionHash: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe(&mut self, url: &str, messageHash: &str, topic: &str, subscriptionHash: &str, optional_args: &[Value]) -> Value {
+        let mut messageHash: Value = messageHash.into();
+        let mut subscriptionHash: Value = subscriptionHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
-        return self.un_subscribe_multiple(url.as_str().unwrap_or_default(), Value::from(vec![messageHash]), topic.as_str().unwrap_or_default(), Value::from(vec![subscriptionHash]), &[params, subscription]).await;
+        return self.un_subscribe_multiple(url, Value::from(vec![messageHash]), topic, Value::from(vec![subscriptionHash]), &[params, subscription]).await;
 
     Value::Null
 }
@@ -775,7 +777,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
             subscription.insert("messageHashes".into(), Value::from(vec![Value::from(messageHash.clone()), Value::from(topic.clone())]));
             subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash.clone()), Value::from(topic.clone())]));
-            return self.un_subscribe(url.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), Value::from(topic), Value::from(subMessageHash), &[Value::Dict(query), Value::Map(subscription)]).await;
+            return self.un_subscribe(url.as_deref().unwrap_or_default(), messageHash.as_str(), topic.as_str(), subMessageHash.as_str(), &[Value::Dict(query), Value::Map(subscription)]).await;
         }
         Value::Null
         }).await?))
@@ -1492,7 +1494,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
             subscription.insert("messageHashes".into(), Value::from(vec![Value::from(messageHash.clone()), Value::from(topic.clone())]));
             subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash), Value::from(topic.clone())]));
-            return self.un_subscribe(url.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), Value::from(topic), Value::from(messageHash), &[Value::Dict(paramsUta), Value::Map(subscription)]).await;
+            return self.un_subscribe(url.as_deref().unwrap_or_default(), messageHash.as_str(), topic.as_str(), messageHash.as_str(), &[Value::Dict(paramsUta), Value::Map(subscription)]).await;
         }
         Value::Null
         }).await?))
@@ -2235,7 +2237,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
+        let mut limit: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("limit".into()), &[]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2258,11 +2260,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut paramsMethod: crate::value::Dict = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut method: Option<String> = methodOption;
         if !method.as_deref().unwrap_or_default().contains("Depth") {
-            if (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(50.0)) {
+            if (limit == Some(5)) || (limit == Some(50)) {
                 if !isFuturesMethod {
                     method = Some("/spotMarket/level2".to_string());
                 }
-                method = Some(format!("{}{}", method.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("Depth".into()), Value::Str(format!("{}", limit).into()))));
+                method = Some(format!("{}{}", method.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("Depth".into()), Value::Str((match limit { Some(__n) => __n.to_string(), None => "null".to_string() }).into()))));
             }
         }
         let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method.as_deref().unwrap_or("null"), ":").into()), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
@@ -3491,7 +3493,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             url = self.negotiate(true, &[Value::Bool(isClassicFuturesMethod)]).await.as_str().map(str::to_owned);
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), Value::from(uniformType.as_deref()));
+        self.set_balance_cache(client.as_value(), uniformType.as_deref().unwrap_or_default());
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
@@ -3529,7 +3531,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value) {
+    pub fn set_balance_cache(&mut self, mut client: Value, type_var: &str) {
+        let mut type_var: Value = type_var.into();
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         if (__ch.has_subscription(&type_var)) && (matches!((&self.balance, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
@@ -3771,7 +3774,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.set_position_cache(client.as_value(), symbol.clone());
         let mut fetchPositionSnapshot: Option<bool> = self.handle_option(Value::Str("watchPosition".into()), Value::Str("fetchPositionSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionSnapshot: Option<bool> = self.handle_option(Value::Str("watchPosition".into()), Value::Str("awaitPositionSnapshot".into()), &[Value::Bool(true)]).as_bool();
-        let mut currentPosition: Value = self.get_current_position(symbol.clone());
+        let mut currentPosition: Value = self.get_current_position(symbol.as_str().unwrap_or_default());
         if (fetchPositionSnapshot == Some(true)) && (awaitPositionSnapshot == Some(true)) && (currentPosition == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", "fetchPositionSnapshot:", symbol).into()))).await;
             return snapshot;
@@ -3858,7 +3861,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn get_current_position(&self, mut symbol: Value) -> Value {
+    pub fn get_current_position(&self, symbol: &str) -> Value {
+        let mut symbol: Value = symbol.into();
         if (self.positions.is_none()) {
             return Value::Null;
         }
@@ -4047,7 +4051,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("".into())]).as_str().map(str::to_owned);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut currentPosition: crate::value::Dict = self.get_current_position(symbol.clone().map(Value::from).unwrap_or(Value::Null)).into_dict();
+        let mut currentPosition: crate::value::Dict = self.get_current_position(symbol.as_deref().unwrap_or_default()).into_dict();
         let mut messageHash: String = format!("{}{}", "position:", symbol.as_deref().unwrap_or("null"));
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut newPosition: Value = self.parse_position(Value::Dict(data), None);
@@ -4105,7 +4109,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut currentPosition: crate::value::Dict = self.get_current_position(symbol.clone().map(Value::from).unwrap_or(Value::Null)).into_dict();
+        let mut currentPosition: crate::value::Dict = self.get_current_position(symbol.as_deref().unwrap_or_default()).into_dict();
         let mut newPosition: Value = self.parse_ws_uta_position(&data, None);
         let mut keys: Vec<Value> = object_keys(&newPosition).as_array().cloned().unwrap_or_default();
         {

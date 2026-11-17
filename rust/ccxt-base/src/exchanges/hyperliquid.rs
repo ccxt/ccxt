@@ -2171,7 +2171,7 @@ impl Hyperliquid {
         let mut price: Value = price.into();
         let mut amountPrecision: Value = amountPrecision.into();
         let mut maxDecimals: Value = maxDecimals.into();
-        let mut pricePrecision: Option<i64> = Some(0);
+        let mut pricePrecision: i64 = 0;
         let mut priceStr: Option<String> = self.number_to_string(price);
         if (priceStr.is_none()) {
             return Value::Int(0);
@@ -2183,21 +2183,21 @@ impl Hyperliquid {
         if crate::precise::Precise::stringEq(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = Some(i64::min(decimalsLeft, 5));
+            pricePrecision = i64::min(decimalsLeft, 5);
         }  else if crate::precise::Precise::stringGt(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringLt(&priceStr, &Value::Str("1".into())).as_bool() == Some(true) {
             // Significant digits, always 5 in this case
             let mut significantDigits: i64 = 5;
             // Get the part after the decimal separator
-            let mut decimalPart: Value = self.safe_string(&priceSplitted, Value::Int(1), &[Value::Str("".into())]);
+            let mut decimalPart: String = self.safe_string(&priceSplitted, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // Count the number of leading zeros in the decimal part
-            let mut leadingZeros: Option<i64> = self.parse_to_int(Value::Int(0));
-            while (matches!(leadingZeros, Some(__p) if (__p as f64) <= ((decimalPart.len() as i64) as f64))) && (get_value(&decimalPart, &Value::from(leadingZeros)).as_str() == Some("0")) {
-                leadingZeros = self.parse_to_int(Value::from((if let Some(__l) = leadingZeros { Some(__l + 1) } else { None })));
+            let mut leadingZeros: i64 = 0;
+            while (leadingZeros <= ((decimalPart.chars().count() as i64))) && ((leadingZeros >= 0 && decimalPart.chars().nth(leadingZeros as usize) == Some('0'))) {
+                leadingZeros = (leadingZeros + 1);
             }
             // Calculate price precision based on leading zeros and significant digits
-            pricePrecision = (if let Some(__l) = leadingZeros { Some(__l + significantDigits) } else { None });
+            pricePrecision = (leadingZeros + significantDigits);
             // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = (if let Some(__m1) = pricePrecision { Some(i64::min(decimalsLeft, __m1)) } else { None });
+            pricePrecision = i64::min(decimalsLeft, pricePrecision);
         }  else {
             // Count the numbers before the decimal separator
             let mut integerPart: String = self.safe_string(&priceSplitted, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2207,7 +2207,7 @@ impl Hyperliquid {
             if ((integerPart.chars().count() as i64)) <= 5 {
                 digitsLeft = (5 - ((integerPart.chars().count() as i64)));
             }
-            pricePrecision = Some(i64::min(decimalsLeft, digitsLeft));
+            pricePrecision = i64::min(decimalsLeft, digitsLeft);
         }
         return Value::from(self.parse_to_int(Value::from(pricePrecision)));
 
@@ -3052,7 +3052,8 @@ impl Hyperliquid {
         }).await?))
     }
 
-    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
+    pub fn amount_to_precision(&self, mut symbol: Value, amount: impl Into<crate::Value>) -> Option<String> {
+        let mut amount: Value = amount.into();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut result: Option<String> = self.decimal_to_precision(amount.clone(), Value::Int(crate::runtime::ROUND), self.safe_number_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
         // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
@@ -3065,7 +3066,8 @@ impl Hyperliquid {
         return result;
 }
 
-    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Option<String> {
+    pub fn price_to_precision(&self, mut symbol: Value, price: impl Into<crate::Value>) -> Option<String> {
+        let mut price: Value = price.into();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut priceStr: Option<String> = self.number_to_string(price.clone());
         let mut priceStrParts: Vec<Value> = Value::Array(if let Some(__s) = priceStr.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
@@ -3125,8 +3127,8 @@ impl Hyperliquid {
     pub fn action_hash(&self, mut action: Value, vaultAddress: Option<&str>, mut nonce: Value, expiresAfter: Option<i64>) -> Value {
         let mut vaultAddress: Value = vaultAddress.into();
         let mut expiresAfter: Value = expiresAfter.into();
-        let mut dataBinary: Value = self.packb(action, &[]);
-        let mut dataHex: String = self.binary_to_base16(dataBinary, &[]);
+        let mut dataBinary: crate::value::Bytes = crate::value::Bytes(self.packb(action, &[]).into_list());
+        let mut dataHex: String = self.binary_to_base16(&dataBinary, &[]);
         let mut data: String = format!("{}{}", Value::Str(format!("{}{}", dataHex, "00000").into()), self.int_to_base16(nonce, &[]));
         if (vaultAddress == Value::Null) {
             data.push_str("00");

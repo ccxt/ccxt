@@ -242,20 +242,20 @@ impl crate::exchange::DerivedExchange for Derive {
         //         "algo_slices_completed": null
         //     }
         //
-        let mut order: Value = self.safe_dict_k(rawOrder.clone(), "data", &[rawOrder.clone()]);
+        let mut order: Option<crate::value::Dict> = self.safe_dict_k(rawOrder.clone(), "data", &[rawOrder.clone()]).into_opt_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(rawOrder.clone(), "creation_timestamp", &[]).as_i64(); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
-        let mut orderId: Option<String> = self.safe_string_k_opt(order.clone(), "order_id", &[]);
-        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "instrument_name", &[]);
+        let mut orderId: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&order, "instrument_name", &[]);
         let mut marketResolved: Option<crate::types::Market> = (if (marketId.is_some()) { Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { market.cloned() });
         let mut symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
-        let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "limit_price", &[]);
-        let mut average: Option<String> = self.safe_string_k_opt(order.clone(), "average_price", &[]);
-        let mut amount: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("amount".into()), Value::Str("desired_amount".into()), &[]); // plain orders carry amount, the raw_data debug shape nests desired_amount
-        let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "filled_amount", &[]);
-        let mut fee: Option<String> = self.safe_string_k_opt(order.clone(), "order_fee", &[]);
-        let mut orderType: Option<String> = self.safe_string_lower_k_opt(order.clone(), "order_type", &[]);
-        let mut isBid: bool = self.safe_bool_k_opt(order.clone(), "is_bid", &[Value::Bool(false)]).unwrap_or(false);
-        let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "direction", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(&order, "limit_price", &[]);
+        let mut average: Option<String> = self.safe_string_k_opt(&order, "average_price", &[]);
+        let mut amount: Option<String> = self.safe_string2_opt(&order, Value::Str("amount".into()), Value::Str("desired_amount".into()), &[]); // plain orders carry amount, the raw_data debug shape nests desired_amount
+        let mut filled: Option<String> = self.safe_string_k_opt(&order, "filled_amount", &[]);
+        let mut fee: Option<String> = self.safe_string_k_opt(&order, "order_fee", &[]);
+        let mut orderType: Option<String> = self.safe_string_lower_k_opt(&order, "order_type", &[]);
+        let mut isBid: bool = self.safe_bool_k_opt(&order, "is_bid", &[Value::Bool(false)]).unwrap_or(false);
+        let mut side: Option<String> = self.safe_string_k_opt(&order, "direction", &[]);
         if (side.is_none()) {
             if isBid {
                 side = Some("buy".to_string());
@@ -263,12 +263,12 @@ impl crate::exchange::DerivedExchange for Derive {
                 side = Some("sell".to_string());
             }
         }
-        let mut triggerType: Option<String> = self.safe_string_k_opt(order.clone(), "trigger_type", &[]);
+        let mut triggerType: Option<String> = self.safe_string_k_opt(&order, "trigger_type", &[]);
         let mut stopLossPrice: Option<String> = None;
         let mut takeProfitPrice: Option<String> = None;
         let mut triggerPrice: Option<String> = None;
         if (triggerType.is_some()) {
-            triggerPrice = self.safe_string_k_opt(order.clone(), "trigger_price", &[]);
+            triggerPrice = self.safe_string_k_opt(&order, "trigger_price", &[]);
             if (triggerType.as_deref() == Some("stoploss")) {
                 stopLossPrice = triggerPrice.clone();
             }  else {
@@ -276,12 +276,12 @@ impl crate::exchange::DerivedExchange for Derive {
             }
         }
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(rawOrder, "last_update_timestamp", &[]).as_i64();
-        let mut status: Option<String> = self.safe_string_k_opt(order.clone(), "order_status", &[]);
-        let mut timeInForce: Option<String> = self.safe_string_k_opt(order.clone(), "time_in_force", &[]);
+        let mut status: Option<String> = self.safe_string_k_opt(&order, "order_status", &[]);
+        let mut timeInForce: Option<String> = self.safe_string_k_opt(&order, "time_in_force", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "label", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "label", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -291,7 +291,7 @@ impl crate::exchange::DerivedExchange for Derive {
         m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_time_in_force(timeInForce.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduce_only", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduce_only", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
@@ -309,7 +309,7 @@ impl crate::exchange::DerivedExchange for Derive {
         m.insert("currency".to_string(), Value::Str("USDC".into()));
     m
 }));
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));
     m
 }), marketResolved.as_ref());
 
@@ -3165,10 +3165,10 @@ impl Derive {
             limitResolved = self.parse_to_int(limit.clone());
         }
         if limitResolved > Some(5000) {
-            limitResolved = self.parse_to_int(Value::Int(5000));
+            limitResolved = Some(5000);
         }
         let mut span: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = limitResolved { Some(__l * duration) } else { None })));
-        let mut windowStart: Option<i64> = self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (untilSeconds, span) { Some(__l - __r) } else { None })));
+        let mut windowStart: Option<i64> = (if let (Some(__l), Some(__r)) = (untilSeconds, span) { Some(__l - __r) } else { None });
         let mut start: Option<i64> = windowStart;
         let mut end: Option<i64> = untilSeconds;
         if (since != Value::Null) {

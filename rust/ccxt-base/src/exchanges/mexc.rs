@@ -4689,7 +4689,7 @@ impl Mexc {
         if (type_var.as_str() == Some("market")) {
             let mut cost: Option<f64> = self.safe_number2(params.clone(), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]).as_f64();
             if (cost.is_some()) {
-                request.insert("quoteOrderQty".into(), Value::from(self.cost_to_precision(Value::from(symbol.clone()), Value::from(cost))));
+                request.insert("quoteOrderQty".into(), Value::from(self.cost_to_precision(Value::from(symbol.clone()), cost)));
             }  else {
                 if (price == Value::Null) {
                     request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from(symbol.clone()), amount.clone())));
@@ -4862,13 +4862,13 @@ impl Mexc {
             Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 2.0) })), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut orderType: Option<i64> = self.parse_to_int(Value::Int(0)); // typed seed, every branch below assigns it
+        let mut orderType: Option<i64> = Some(0); // typed seed, every branch below assigns it
         if postOnly {
-            orderType = self.parse_to_int(Value::Int(2));
+            orderType = Some(2);
         }  else if (type_var.as_str() == Some("limit")) {
-            orderType = self.parse_to_int(Value::Int(1));
+            orderType = Some(1);
         }  else if (type_var.as_str() == Some("market")) {
-            orderType = self.parse_to_int(Value::Int(6));
+            orderType = Some(6);
         }  else {
             orderType = self.parse_to_int(type_var);
         }
@@ -4924,7 +4924,7 @@ impl Mexc {
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsReduceOnly, &["clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) && (triggerPrice != Some(0.0)) {
-            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), Value::from(triggerPrice))));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), triggerPrice)));
             let triggerDirectionparamsTriggerDirectionVariable: Vec<Value> = self.handle_trigger_direction_and_params(&paramsOmitted, &[Value::Str("triggerType".into()), Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut triggerDirection: Option<String> = triggerDirectionparamsTriggerDirectionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsTriggerDirection: crate::value::Dict = triggerDirectionparamsTriggerDirectionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

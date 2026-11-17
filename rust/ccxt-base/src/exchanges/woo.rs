@@ -3630,7 +3630,7 @@ impl Woo {
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
         }
         let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[Value::from(self.number_to_string(price))]);
         let mut trailingAmount: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]);

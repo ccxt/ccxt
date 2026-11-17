@@ -4985,7 +4985,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
         m.insert("limit_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
-        m.insert("stop_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+        m.insert("stop_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
         m.insert("stop_direction".to_string(), stopDirection.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("end_time".to_string(), endTime.clone().map(Value::from).unwrap_or(Value::Null));
     m
@@ -4999,7 +4999,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
         m.insert("limit_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
-        m.insert("stop_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+        m.insert("stop_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
         m.insert("stop_direction".to_string(), stopDirection.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
@@ -5012,12 +5012,12 @@ if _try_result.is_err() {
                     if (stopDirection.is_none()) {
                         stopDirection = (if (side.as_str() == Some("buy")) { Some("STOP_DIRECTION_STOP_UP".to_string()) } else { Some("STOP_DIRECTION_STOP_DOWN".to_string()) });
                     }
-                    tpslPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice));
+                    tpslPrice = self.price_to_precision(symbol.clone(), stopLossPrice);
                 }  else {
                     if (stopDirection.is_none()) {
                         stopDirection = (if (side.as_str() == Some("buy")) { Some("STOP_DIRECTION_STOP_DOWN".to_string()) } else { Some("STOP_DIRECTION_STOP_UP".to_string()) });
                     }
-                    tpslPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
+                    tpslPrice = self.price_to_precision(symbol.clone(), takeProfitPrice);
                 }
                 request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5096,7 +5096,7 @@ if _try_result.is_err() {
                 let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
                 paramsMarketBuy = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
-                    total = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                    total = self.cost_to_precision(symbol.clone(), cost);
                 }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -7388,8 +7388,8 @@ if _try_result.is_err() {
         }
         if useEddsa {
             let mut byteArray: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
-            let mut seed: Value = self.array_slice(Value::from(&byteArray), Value::Int(0), &[Value::Int(32)]);
-            return Value::from(jwt(&request, seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({
+            let mut seed: crate::value::Bytes = crate::value::Bytes(std::sync::Arc::new(byteArray.0.iter().take(32).cloned().collect()));
+            return Value::from(jwt(&request, &seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("kid".to_string(), self.apiKey.clone());
         m.insert("nonce".to_string(), Value::from(nonce.as_str()));

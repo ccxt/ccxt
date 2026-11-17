@@ -1101,13 +1101,13 @@ impl crate::exchange::DerivedExchange for Gate {
         let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "currency", &[]);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut type_var: Option<String> = self.safe_string_k_opt(item.clone(), "type", &[]);
-        let mut rawTimestamp: Value = self.safe_string_k(item.clone(), "time", &[]);
+        let mut rawTimestamp: Option<String> = self.safe_string_k_opt(item.clone(), "time", &[]);
         let mut timestamp: Option<i64> = None;
-        if ((rawTimestamp.len() as i64) as f64) > ((10i64) as f64) {
-            timestamp = (match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }).as_i64();
+        if ((rawTimestamp.as_deref().unwrap_or_default().chars().count() as i64)) > 10 {
+            timestamp = (match rawTimestamp.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null }).as_i64();
         }  else {
-            timestamp = (match (&((match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }).as_i64();
+            timestamp = (match (&((match rawTimestamp.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }).as_i64();
         }
         let mut balanceString: Option<String> = self.safe_string_k_opt(item.clone(), "balance", &[]);
         let mut changeString: Option<String> = self.safe_string_k_opt(item.clone(), "change", &[]);
@@ -2049,7 +2049,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "get_settlement_currencies" => self.get_settlement_currencies(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "is_gate_futures_contract_with_decimal_size" => self.is_gate_futures_contract_with_decimal_size(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
+                "is_gate_futures_contract_with_decimal_size" => crate::Value::from(self.is_gate_futures_contract_with_decimal_size(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref())),
                 "load_unified_status" => self.load_unified_status(&args[..]).await,
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "multi_order_spot_prepare_request" => self.multi_order_spot_prepare_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), &args[1.min(args.len())..]),
@@ -8210,16 +8210,14 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn is_gate_futures_contract_with_decimal_size(&self, market: Option<&crate::types::Market>) -> Value {
+    pub fn is_gate_futures_contract_with_decimal_size(&self, market: Option<&crate::types::Market>) -> bool {
         let mut info: crate::value::Dict = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
         let mut isSwap: bool = self.safe_bool_k_opt(&market, "swap", &[Value::Bool(false)]).unwrap_or(false);
         let mut enableDecimal: bool = self.safe_bool_k_opt(&info, "enable_decimal", &[Value::Bool(false)]).unwrap_or(false);
-        return Value::Bool((isSwap && enableDecimal));
-
-    Value::Null
+        return (isSwap && enableDecimal);
 }
 
     pub fn get_gate_futures_signed_amount(&self, symbol: Option<&str>, side: Option<&str>, mut amount: Value) -> Option<String> {
@@ -8295,20 +8293,20 @@ if _try_result.is_err() {
         }
         let mut contractAmount: Value = Value::Int(0);
         let mut signedAmount: Option<String> = None;
-        let mut useGateFuturesDecimalSize: Value = Value::Bool(false);
+        let mut useGateFuturesDecimalSize: bool = false;
         if (contract == true) {
             let mut isClose: bool = self.safe_bool_k_opt(&query, "close", &[Value::Bool(false)]).unwrap_or(false);
             if !isClose {
                 signedAmount = self.get_gate_futures_signed_amount(symbol.as_str(), side.as_str(), amount.clone());
                 useGateFuturesDecimalSize = self.is_gate_futures_contract_with_decimal_size(Some(&market));
-                if !(useGateFuturesDecimalSize.as_bool() == Some(true)) {
+                if !useGateFuturesDecimalSize {
                     contractAmount = (match signedAmount.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null });
                 }
             }
         }
         let mut amountResolved: Value = (if (contract == true) { contractAmount } else { amount });
         let mut sizeRequest: Value = amountResolved.clone();
-        if useGateFuturesDecimalSize.as_bool() == Some(true) {
+        if useGateFuturesDecimalSize {
             sizeRequest = signedAmount.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -8358,7 +8356,7 @@ if _try_result.is_err() {
                     let mut cost: Option<f64> = self.safe_number_k(&query, "cost", &[]).as_f64();
                     query = self.omit(Value::Dict(query), Value::Str("cost".into()), &[]).into_dict();
                     if (cost.is_some()) {
-                        quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                        quoteAmount = self.cost_to_precision(symbol.clone(), cost);
                     }  else if createMarketBuyOrderRequiresPrice {
                         if (priceResolved == Value::Null) {
                             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
@@ -8413,7 +8411,7 @@ if _try_result.is_err() {
                         m.insert("contract".to_string(), Value::from((market).id.as_deref()));
                     m
                 });
-                if useGateFuturesDecimalSize.as_bool() == Some(true) {
+                if useGateFuturesDecimalSize {
                     initial.insert("amount".into(), signedAmount.map(Value::from).unwrap_or(Value::Null)); // FuturesInitialOrder.amount takes precedence over size
                 }  else {
                     initial.insert("size".into(), amountResolved.clone());
@@ -8445,10 +8443,10 @@ if _try_result.is_err() {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = (if (side.as_str() == Some("buy")) { Some(1) } else { Some(2) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice));
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), stopLossPrice);
                     }  else if isTakeProfitOrder {
                         rule = (if (side.as_str() == Some("buy")) { Some(2) } else { Some(1) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), takeProfitPrice);
                     }
                     let mut priceType: i64 = self.safe_integer_k(&query, "price_type", &[Value::Int(0)]).as_i64().unwrap_or(0);
                     if priceType < 0 || priceType > 2 {
@@ -8498,10 +8496,10 @@ if _try_result.is_err() {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = (if (side.as_str() == Some("buy")) { Some(">=".to_string()) } else { Some("<=".to_string()) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice));
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), stopLossPrice);
                     }  else if isTakeProfitOrder {
                         rule = (if (side.as_str() == Some("buy")) { Some("<=".to_string()) } else { Some(">=".to_string()) });
-                        triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
+                        triggerOrderPrice = self.price_to_precision(symbol.clone(), takeProfitPrice);
                     }
                     let mut triggerRequest: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
@@ -8601,7 +8599,7 @@ if _try_result.is_err() {
                 request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }  else {
                 let mut signedAmount: Option<String> = self.get_gate_futures_signed_amount(symbol.as_str(), side.as_str(), amount);
-                if self.is_gate_futures_contract_with_decimal_size(Some(&market)).as_bool() == Some(true) {
+                if self.is_gate_futures_contract_with_decimal_size(Some(&market)) {
                     request.insert("size".into(), Value::from(signedAmount.as_deref()));
                 }  else {
                     request.insert("size".into(), self.parse_to_numeric(signedAmount.map(Value::from).unwrap_or(Value::Null)));

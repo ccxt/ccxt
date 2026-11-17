@@ -98,7 +98,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "renew_listen_token" => self.renew_listen_token(&args[..]).await,
-                "request_id" => crate::Value::from(self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "resolve_auth_type" => self.resolve_auth_type(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "sign_params" => self.sign_params(&args[..]),
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -219,10 +219,10 @@ impl Binance {
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "renew_listen_token" => { crate::exchange_stubs::enqueue_spawn("renew_listen_token", args.to_vec()); crate::Value::Null },
-            "request_id" => crate::Value::from(self.request_id(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+            "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
             "resolve_auth_type" => self.resolve_auth_type(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
-            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
-            "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
+            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]); crate::Value::Null },
+            "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]); crate::Value::Null },
             "sign_params" => self.sign_params(&args[..]),
             "un_watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("un_watch_bids_asks", args.to_vec()); crate::Value::Null },
             "un_watch_mark_price" => { crate::exchange_stubs::enqueue_spawn("un_watch_mark_price", args.to_vec()); crate::Value::Null },
@@ -527,7 +527,8 @@ impl Binance {
     Value::Null
 }
 
-    pub fn request_id(&self, mut url: Value) -> i64 {
+    pub fn request_id(&self, url: &str) -> i64 {
+        let mut url: Value = url.into();
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "requestId", &[self.create_safe_dictionary(&[])]).into_dict();
         let mut previousValue: i64 = self.safe_integer(&options, url.clone(), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut newValue: i64 = (previousValue + 1);
@@ -695,7 +696,7 @@ impl Binance {
     m
 }));
         let mut url: Value = self.get_stock_ws_url(&[Value::Str("market".into())]);
-        let mut requestId: i64 = self.request_id(url.clone());
+        let mut requestId: i64 = self.request_id(url.as_str().unwrap_or_default());
         let mut query: crate::value::Dict = self.omit(params, &["stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -814,7 +815,7 @@ impl Binance {
         let mut numSubscriptions: i64 = subscriptionHashes.len() as i64;
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(type_var.clone().map(Value::from).unwrap_or(Value::Null), self.get_future_ws_category(Some("forceOrder")).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(type_var.as_deref(),
             Some(streamHash.as_str()), &[Value::from(numSubscriptions)]).map(Value::from).unwrap_or(Value::Null));
-        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(url.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -1286,7 +1287,7 @@ impl Binance {
         }
         let mut messageHashesLength: i64 = messageHashes.len() as i64;
         let mut url: String = format!("{}{}{}", self.get_ws_url(Value::from(type_var.as_str()), self.get_future_ws_category(Some(name.as_str())).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()), self.stream(Some(type_var.as_str()), Some(streamHash.as_str()), &[Value::from(messageHashesLength)]).map(Value::from).unwrap_or(Value::Null));
-        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(url.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -1376,7 +1377,7 @@ impl Binance {
         }
         let mut messageHashesLength: i64 = subMessageHashes.len() as i64;
         let mut url: String = format!("{}{}{}", self.get_ws_url(Value::from(type_var.as_str()), self.get_future_ws_category(Some("depth")).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()), self.stream(Some(type_var.as_str()), Some(streamHash.as_str()), &[Value::from(messageHashesLength)]).map(Value::from).unwrap_or(Value::Null));
-        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(url.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
@@ -1488,7 +1489,7 @@ impl Binance {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrderBookWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -1942,7 +1943,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut query: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("type".into()), &[]).into_dict();
         let mut subParamsLength: i64 = subParams.len() as i64;
         let mut url: String = format!("{}{}{}", self.get_ws_url(Value::from(type_var.as_str()), self.get_future_ws_category(name.as_deref()).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()), self.stream(Some(type_var.as_str()), Some(streamHash.as_str()), &[Value::from(subParamsLength)]).map(Value::from).unwrap_or(Value::Null));
-        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(url.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -2062,7 +2063,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut query: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("type".into()), &[]).into_dict();
         let mut subParamsLength: i64 = subParams.len() as i64;
         let mut url: String = format!("{}{}{}", self.get_ws_url(Value::from(type_var.as_str()), self.get_future_ws_category(name.as_deref()).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()), self.stream(Some(type_var.as_str()), Some(streamHash.as_str()), &[Value::from(subParamsLength)]).map(Value::from).unwrap_or(Value::Null));
-        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(url.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
@@ -2533,7 +2534,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType.as_deref()).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(wsUrlType.as_str(), Some("multipleOHLCV"), &[]).map(Value::from).unwrap_or(Value::Null));
-        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(url.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -2643,7 +2644,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.get_ws_url(wsUrlType.clone(), self.get_future_ws_category(klineType.as_deref()).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.stream(wsUrlType.as_str(), Some("multipleOHLCV"), &[]).map(Value::from).unwrap_or(Value::Null));
-        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(url.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
@@ -2830,7 +2831,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2912,7 +2913,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCVWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -3554,7 +3555,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             streamHash = format!("{}{}", Value::Str(format!("{}{}", channel, "::").into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
         let mut url: String = format!("{}{}{}", self.get_ws_url(rawMarketType.clone().map(Value::from).unwrap_or(Value::Null), self.get_future_ws_category(Some(channel.as_str())).map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()), self.stream(rawMarketType.as_deref(), Some(streamHash.as_str()), &[]).map(Value::from).unwrap_or(Value::Null));
-        let mut requestId: i64 = self.request_id(Value::from(url.clone()));
+        let mut requestId: i64 = self.request_id(url.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), (if isUnsubscribe { Value::Str("UNSUBSCRIBE".into()) } else { Value::Str("SUBSCRIBE".into()) }));
@@ -3996,7 +3997,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
             return Value::Null;
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut requestHash: String = format!("{}", requestId);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4141,7 +4142,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 let mut expirationTime: Option<i64> = self.safe_integer_k(&response, "expirationTime", &[]).as_i64();
                 // Step 2: Subscribe to user data stream via WebSocket API
-                let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
                 let mut requestHash: String = format!("{}", requestId);
                 let mut message: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -4526,7 +4527,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     Value::Null
 }
 
-    pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, optional_args: &[Value]) {
+    pub fn set_balance_cache(&mut self, mut client: Value, type_var: &str, optional_args: &[Value]) {
+        let mut type_var: Value = type_var.into();
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut isPortfolioMargin = get_arg(optional_args, 0, Value::Bool(false));
         if (__ch.has_subscription(&type_var)) && (matches!((&self.balance, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -4620,7 +4622,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchBalanceWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -4813,7 +4815,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchPositionsWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -4961,8 +4963,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             url = self.get_private_ws_url(urlType.as_deref(), self.safe_string_k(&optionsType, "listenKey", &[]));
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[isPortfolioMargin.clone()]);
-        self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, isPortfolioMargin]);
+        self.set_balance_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[isPortfolioMargin.clone()]);
+        self.set_positions_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[Value::Null, isPortfolioMargin]);
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
@@ -5230,7 +5232,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let mut sor: bool = self.safe_bool2_opt(params.clone(), Value::Str("sor".into()), Value::Str("SOR".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("sor".into()), &[Value::Str("SOR".into())]).into_dict();
@@ -5439,7 +5441,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let mut isSwap: bool = (marketType.as_deref() == Some("linear")) || (marketType.as_deref() == Some("inverse"));
         let mut payload: indexmap::IndexMap<String, Value> = ({
@@ -5636,7 +5638,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("cancelOrderWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -5731,7 +5733,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("cancelAllOrdersWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -5810,7 +5812,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrderWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -5899,7 +5901,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrdersWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -6017,7 +6019,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrdersWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -6107,7 +6109,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             }
             let mut stockUrl: Value = self.get_stock_ws_url(&[Value::Str("user".into())]);
             let mut stockStreamName: String = format!("{}{}", stockListenKey.as_deref().unwrap_or("null"), "@orderReport");
-            let mut stockRequestId: i64 = self.request_id(stockUrl.clone());
+            let mut stockRequestId: i64 = self.request_id(stockUrl.as_str().unwrap_or_default());
             let mut stockMessageHash: String = "orders".to_string();
             if (symbol != Value::Null) {
                 stockMessageHash = format!("{}{}", Value::Str("orders:".into()), Value::from(self.symbol(symbol.clone())));
@@ -6192,8 +6194,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             url = self.get_private_ws_url(urlType.as_deref(), self.safe_string_k(&optionsType, "listenKey", &[]));
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[isPortfolioMargin.clone()]);
-        self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, isPortfolioMargin]);
+        self.set_balance_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[isPortfolioMargin.clone()]);
+        self.set_positions_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[Value::Null, isPortfolioMargin]);
         let mut message: Option<String> = None;
         let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::from(message.as_deref()), type_var.as_deref(), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -6895,8 +6897,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         })]).into_dict();
         let mut url: Option<String> = self.get_private_ws_url(urlType.as_deref(), self.safe_string_k(&optionsType, "listenKey", &[]));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
-        self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
+        self.set_balance_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
+        self.set_positions_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
         let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&type_var);
@@ -6913,7 +6915,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }).await?))
     }
 
-    pub fn set_positions_cache(&mut self, mut client: Value, mut type_var: Value, optional_args: &[Value]) {
+    pub fn set_positions_cache(&mut self, mut client: Value, type_var: &str, optional_args: &[Value]) {
+        let mut type_var: Value = type_var.into();
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut isPortfolioMargin = get_arg(optional_args, 1, Value::Bool(false));
@@ -7224,7 +7227,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTradesWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -7314,7 +7317,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let mut messageHash: String = format!("{}", requestId);
         let returnRateLimitsparamsReturnRateLimitsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTradesWs".into()), Value::Str("returnRateLimits".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
@@ -7495,8 +7498,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             url = self.get_private_ws_url(urlType.as_deref(), self.safe_string_k(&optionsType, "listenKey", &[]));
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
-        self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
+        self.set_balance_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
+        self.set_positions_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[Value::Null, isPortfolioMargin.map_or(Value::Null, Value::Bool)]);
         let mut message: Option<String> = None;
         let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::from(message.as_deref()), type_var.as_deref(), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();

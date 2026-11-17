@@ -4080,7 +4080,7 @@ impl Hitbtc {
             }
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), Value::from(self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), Value::from(triggerPrice))));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), triggerPrice)));
             if isLimit {
                 request.insert("type".into(), Value::Str("stopLimit".into()));
             }  else if (type_var.as_str() == Some("market")) {
@@ -5101,7 +5101,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("leverage".to_string(), Value::Str(format!("{}", leverage).into()));
-                m.insert("margin_balance".to_string(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
+                m.insert("margin_balance".to_string(), Value::from(self.amount_to_precision(symbol, amount)));
             m
         });
         let __ws_arg_75 = self.extend(Value::Map(request), &[params]);

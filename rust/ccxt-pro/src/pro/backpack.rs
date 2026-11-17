@@ -64,7 +64,7 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_stock_ticker" => self.handle_stock_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_unsubscriptions" => { self.handle_unsubscriptions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
+                "handle_unsubscriptions" => { self.handle_unsubscriptions(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -492,7 +492,7 @@ impl Backpack {
         });
         let mut message: Value = self.deep_extend(Value::Map(request), &[params]);
         if unwatch {
-            self.handle_unsubscriptions(Value::from(url.clone()), messageHashes.clone(), message.clone()).await;
+            self.handle_unsubscriptions(url.as_str(), messageHashes.clone(), message.clone()).await;
             return Value::Null;
         }
         return self.watch_multiple(url.as_str(), messageHashes.clone(), message, messageHashes.clone(), Value::Null).await;
@@ -525,8 +525,8 @@ impl Backpack {
         let mut recvWindow: String = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("X-Window".into()), &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
         let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instruction=", instruction).into()), "&").into()), "timestamp=").into()), ts.as_deref().unwrap_or("null")).into()), "&window=").into()), recvWindow);
         let mut secretBytes: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
-        let mut seed: Value = self.array_slice(Value::from(&secretBytes), Value::Int(0), &[Value::Int(32)]);
-        let mut signature: String = eddsa(self.encode(Value::from(payload)), seed, Value::Str("ed25519".into()));
+        let mut seed: crate::value::Bytes = crate::value::Bytes(std::sync::Arc::new(secretBytes.0.iter().take(32).cloned().collect()));
+        let mut signature: String = eddsa(self.encode(Value::from(payload)), &seed, Value::Str("ed25519".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
@@ -536,7 +536,7 @@ impl Backpack {
         });
         let mut message: Value = self.deep_extend(Value::Map(request), &[params]);
         if unwatch {
-            self.handle_unsubscriptions(Value::from(url.clone()), messageHashes.clone(), message.clone()).await;
+            self.handle_unsubscriptions(url.as_str(), messageHashes.clone(), message.clone()).await;
             return Value::Null;
         }
         return self.watch_multiple(url.as_str(), messageHashes.clone(), message, messageHashes.clone(), Value::Null).await;
@@ -544,10 +544,10 @@ impl Backpack {
     Value::Null
 }
 
-    pub async fn handle_unsubscriptions(&mut self, mut url: Value, mut messageHashes: Value, message: impl Into<crate::Value>) {
+    pub async fn handle_unsubscriptions(&mut self, url: &str, mut messageHashes: Value, message: impl Into<crate::Value>) {
         let mut message: Value = message.into();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
-        self.watch_multiple(&url, messageHashes.clone(), message, messageHashes.clone(), Value::Null).await;
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url));
+        self.watch_multiple(url, messageHashes.clone(), message, messageHashes.clone(), Value::Null).await;
         {
                         let mut i: i64 = 0;
             let mut __for_first_39: bool = true;

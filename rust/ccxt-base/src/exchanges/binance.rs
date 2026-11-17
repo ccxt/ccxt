@@ -11921,7 +11921,7 @@ impl Binance {
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " editOrder() requires a triggerPrice extra param for a ").into()), type_var).into()), " order")));
             }  else {
-                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(triggerPrice))));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
             }
         }
         request.insert("cancelReplaceMode".into(), Value::Str("STOP_ON_FAILURE".into())); // If the cancel request fails, the new order placement will not be attempted.
@@ -13059,7 +13059,7 @@ impl Binance {
         let mut icebergAmount: Option<f64> = self.safe_number_k(&paramsPapi, "icebergAmount", &[]).as_f64();
         if (icebergAmount.is_some()) {
             if (market).spot {
-                request.insert("icebergQty".into(), Value::from(self.amount_to_precision(symbol, Value::from(icebergAmount))));
+                request.insert("icebergQty".into(), Value::from(self.amount_to_precision(symbol, icebergAmount)));
             }
         }
         let mut requestParams: crate::value::Dict = self.omit(&paramsStp, Value::from(omitKeys), &[]).into_dict();
@@ -17130,17 +17130,17 @@ impl Binance {
         });
         let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
-            let mut symbol: Value = Value::Null;
+            let mut symbol: Option<String> = None;
             if (symbolsNormalized.is_some()) {
                 let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
                 if symbolsLength > 1 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchPositions() symbols argument cannot contain more than 1 symbol")));
                 }
-                symbol = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null);
+                symbol = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).and_then(Value::as_str).map(str::to_owned);
             }  else {
-                symbol = symbolsNormalized.clone().map_or(Value::Null, Value::Arr);
+                symbol = None;
             }
-            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_161 = self.extend(Value::Map(request), &[params]);

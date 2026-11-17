@@ -4989,7 +4989,7 @@ impl Xt {
                 request.insert("callbackVal".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
             }
             if (trailingTriggerPrice.is_some()) {
-                request.insert("activationPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(trailingTriggerPrice))));
+                request.insert("activationPrice".into(), Value::from(self.price_to_precision(symbol.clone(), trailingTriggerPrice)));
             }
             let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsMarginMode, &["trailingPercent", "trailingAmount", "trailingTriggerPrice"], &[]).into_dict();
             if ((market).linear == Some(true)) {
@@ -5003,7 +5003,7 @@ impl Xt {
             request.insert("timeInForce".into(), (if (timeInForce.is_none()) { Value::Str("GTC".into()) } else { timeInForce.clone().map(Value::from).unwrap_or(Value::Null) }));
             request.insert("triggerPriceType".into(), self.safe_string_k(&paramsOmitted4, "triggerPriceType", &[Value::Str("LATEST_PRICE".into())]));
             request.insert("orderSide".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
             let mut entrustType: String = "STOP".to_string();
             if (type_var.as_str() == Some("market")) {
                 entrustType = "STOP_MARKET".to_string();
@@ -5019,9 +5019,9 @@ impl Xt {
             }
         }  else if isStopLoss || isTakeProfit {
             if isStopLoss {
-                request.insert("triggerStopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLoss))));
+                request.insert("triggerStopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), stopLoss)));
             }  else {
-                request.insert("triggerProfitPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfit))));
+                request.insert("triggerProfitPrice".into(), Value::from(self.price_to_precision(symbol, takeProfit)));
             }
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOmitted4, &["stopLoss", "takeProfit"], &[]).into_dict();
             if ((market).linear == Some(true)) {
@@ -8101,9 +8101,9 @@ impl Xt {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             if isStopLoss {
-                request.insert("triggerStopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLoss))));
+                request.insert("triggerStopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), stopLoss)));
             }  else if (takeProfit.is_some()) {
-                request.insert("triggerProfitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfit))));
+                request.insert("triggerProfitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfit)));
             }  else {
                 request.insert("origQty".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }

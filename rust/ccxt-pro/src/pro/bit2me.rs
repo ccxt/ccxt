@@ -471,12 +471,12 @@ impl Bit2me {
             unifiedSymbol = Some((market).symbol.clone());
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), unifiedSymbol.as_deref().unwrap_or("null"));
         }
-        let mut orders: Value = self.subscribe_private("my-orders", messageHash.as_str(), &[params]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private("my-orders", messageHash.as_str(), &[params]).await.into();
         let mut finalLimit: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             finalLimit = Value::from(orders.get_limit(unifiedSymbol.as_deref(), limit.as_i64()));
         }
-        return self.filter_by_symbol_since_limit(orders, unifiedSymbol.as_deref(), since.as_i64(), finalLimit.as_i64(), &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, unifiedSymbol.as_deref(), since.as_i64(), finalLimit.as_i64(), &[Value::Bool(true)]);
 
     Value::Null
 }
@@ -618,12 +618,12 @@ impl Bit2me {
             unifiedSymbol = Some((market).symbol.clone());
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), unifiedSymbol.as_deref().unwrap_or("null"));
         }
-        let mut trades: Value = self.subscribe_private("my-trades", messageHash.as_str(), &[params]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_private("my-trades", messageHash.as_str(), &[params]).await.into();
         let mut finalLimit: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             finalLimit = Value::from(trades.get_limit(unifiedSymbol.as_deref(), limit.as_i64()));
         }
-        return self.filter_by_symbol_since_limit(trades, unifiedSymbol.as_deref(), since.as_i64(), finalLimit.as_i64(), &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&trades, unifiedSymbol.as_deref(), since.as_i64(), finalLimit.as_i64(), &[Value::Bool(true)]);
 
     Value::Null
 }

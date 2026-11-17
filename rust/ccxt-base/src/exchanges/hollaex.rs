@@ -2244,7 +2244,7 @@ impl Hollaex {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop".into(), Value::from(self.price_to_precision(symbol, Value::from(triggerPrice))));
+            request.insert("stop".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
         }
         if postOnly {
             request.insert("meta".into(), Value::Map({

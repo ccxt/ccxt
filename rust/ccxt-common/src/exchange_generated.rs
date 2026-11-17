@@ -7789,7 +7789,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn cost_to_precision(&self, mut symbol: Value, mut cost: Value) -> Option<String> {
+    fn cost_to_precision(&self, mut symbol: Value, cost: impl Into<crate::Value>) -> Option<String> {
+        let mut cost: Value = cost.into();
         if (cost == Value::Null) {
             return None;
         }
@@ -7797,7 +7798,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), self.safe_string2(crate::value::KeyRead::key_read(&&market, "precision"), Value::Str("cost".into()), Value::Str("price".into()), &[]), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
-    fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Option<String> {
+    fn price_to_precision(&self, mut symbol: Value, price: impl Into<crate::Value>) -> Option<String> {
+        let mut price: Value = price.into();
         if (price == Value::Null) {
             return None;
         }
@@ -7813,7 +7815,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return result;
 }
 
-    fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
+    fn amount_to_precision(&self, mut symbol: Value, amount: impl Into<crate::Value>) -> Option<String> {
+        let mut amount: Value = amount.into();
         if (amount == Value::Null) {
             return None;
         }

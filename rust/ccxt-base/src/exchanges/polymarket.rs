@@ -4032,8 +4032,8 @@ impl Polymarket {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut credentials: crate::value::Dict = self.load_proxy_credentials(&[]).await.into_dict();
-        let mut packed: Value = self.packb(signable, &[]);
-        let mut dataHash: Option<String> = self.hash_message(packed);
+        let mut packed: crate::value::Bytes = crate::value::Bytes(self.packb(signable, &[]).into_list());
+        let mut dataHash: Option<String> = self.hash_message(Value::from(&packed));
         let mut ts: i64 = self.milliseconds();
         let mut salt: i64 = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
@@ -4120,7 +4120,8 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Option<String> {
+    pub fn price_to_precision(&self, mut symbol: Value, price: impl Into<crate::Value>) -> Option<String> {
+        let mut price: Value = price.into();
         if (price == Value::Null) {
             return None;
         }
@@ -4141,7 +4142,8 @@ impl Polymarket {
         return result;
 }
 
-    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
+    pub fn amount_to_precision(&self, mut symbol: Value, amount: impl Into<crate::Value>) -> Option<String> {
+        let mut amount: Value = amount.into();
         if (amount == Value::Null) {
             return None;
         }

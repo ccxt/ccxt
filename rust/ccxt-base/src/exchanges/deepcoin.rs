@@ -3864,10 +3864,10 @@ impl Deepcoin {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")));
             }
             if (stopLossPrice.is_some()) {
-                request.insert("slTriggerPx".into(), (if (symbolResolved.as_deref() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), Value::from(stopLossPrice))) } else { Value::from(self.number_to_string(Value::from(stopLossPrice))) }));
+                request.insert("slTriggerPx".into(), (if (symbolResolved.as_deref() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), stopLossPrice)) } else { Value::from(self.number_to_string(Value::from(stopLossPrice))) }));
             }
             if (takeProfitPrice.is_some()) {
-                request.insert("tpTriggerPx".into(), (if (symbolResolved.as_deref() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), Value::from(takeProfitPrice))) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
+                request.insert("tpTriggerPx".into(), (if (symbolResolved.as_deref() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), takeProfitPrice)) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
             }
             let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["stopLossPrice", "takeProfitPrice"], &[]).into_dict();
             let __ws_arg_29 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);

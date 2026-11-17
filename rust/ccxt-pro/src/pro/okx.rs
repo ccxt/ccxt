@@ -70,7 +70,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_order_book" => self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_order_book_message" => self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null),
+                "handle_order_book_message" => self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(4).cloned().unwrap_or_default()).as_ref()),
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -145,7 +145,8 @@ impl Okx {
             "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_order_book_message" => self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(4).cloned().unwrap_or_default()).as_ref()),
+            "handle_order_book_message" => self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(4).cloned().unwrap_or_default()).as_ref()),
             "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_place_orders" => { self.handle_place_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -154,11 +155,11 @@ impl Okx {
             "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_un_subscription_trades" => { self.handle_un_subscription_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_un_subscription_trades" => { self.handle_un_subscription_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "handle_unsubscription" => { self.handle_unsubscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_unsubscription_ohlcv" => { self.handle_unsubscription_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_unsubscription_order_book" => { self.handle_unsubscription_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_unsubscription_ticker" => { self.handle_unsubscription_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_unsubscription_ohlcv" => { self.handle_unsubscription_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
+            "handle_unsubscription_order_book" => { self.handle_unsubscription_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
+            "handle_unsubscription_ticker" => { self.handle_unsubscription_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2174,7 +2175,8 @@ impl Okx {
         }
 }
 
-    pub fn handle_order_book_message(&mut self, mut client: Value, mut message: Value, mut orderbook: Value, mut messageHash: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn handle_order_book_message(&mut self, mut client: Value, mut message: Value, mut orderbook: Value, messageHash: &str, market: Option<&crate::types::Market>) -> Value {
+        let mut messageHash: Value = messageHash.into();
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -2369,7 +2371,7 @@ impl Okx {
                     let mut __for_first_551: bool = true;
                     while { if !__for_first_551 { i += 1; } __for_first_551 = false; i < (data.len() as i64) } {
                     let mut update: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-                    self.handle_order_book_message(client.clone(), Value::Dict(update), Value::from(&updatedBook), messageHash.clone(), Some(&market));
+                    self.handle_order_book_message(client.clone(), Value::Dict(update), Value::from(&updatedBook), messageHash.as_str().unwrap_or_default(), Some(&market));
                     if !(__ch.has_subscription(&messageHash)) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         __ch.add_subscription(&messageHash, Value::Str("resync".into()));
@@ -3820,7 +3822,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_un_subscription_trades(&mut self, mut client: Value, mut symbol: Value, mut channel: Value) {
+    pub fn handle_un_subscription_trades(&mut self, mut client: Value, symbol: &str, channel: &str) {
+        let mut symbol: Value = symbol.into();
+        let mut channel: Value = channel.into();
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), symbol);
         let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
@@ -3829,7 +3833,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_unsubscription_order_book(&mut self, mut client: Value, mut symbol: Value, mut channel: Value) {
+    pub fn handle_unsubscription_order_book(&mut self, mut client: Value, symbol: &str, channel: &str) {
+        let mut symbol: Value = symbol.into();
+        let mut channel: Value = channel.into();
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), symbol);
         let mut messageHash: String = format!("{}{}", "unsubscribe:orderbook:", symbol);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
@@ -3838,9 +3844,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_unsubscription_ohlcv(&mut self, mut client: Value, mut symbol: Value, mut channel: Value) {
-        let mut tf: Value = channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone());
-        let mut timeframe: Option<String> = self.find_timeframe(tf, &[]);
+    pub fn handle_unsubscription_ohlcv(&mut self, mut client: Value, symbol: &str, channel: &str) {
+        let mut symbol: Value = symbol.into();
+        let mut channel: Value = channel.into();
+        let mut tf: String = channel.as_str().unwrap_or_default().to_string().replace("candle", "");
+        let mut timeframe: Option<String> = self.find_timeframe(Value::from(tf), &[]);
         if (timeframe.is_none()) {
             return;
         }
@@ -3855,7 +3863,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_unsubscription_ticker(&mut self, mut client: Value, mut symbol: Value, mut channel: Value) {
+    pub fn handle_unsubscription_ticker(&mut self, mut client: Value, symbol: &str, channel: &str) {
+        let mut symbol: Value = symbol.into();
+        let mut channel: Value = channel.into();
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, "::").into()), symbol);
         let mut messageHash: String = format!("{}{}", "unsubscribe:ticker:", symbol);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
@@ -3888,13 +3898,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return;
         }
         if (channel.as_deref() == Some("trades")) || (channel.as_deref() == Some("trades-all")) {
-            self.handle_un_subscription_trades(client.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), channel.clone().map(Value::from).unwrap_or(Value::Null));
+            self.handle_un_subscription_trades(client.clone(), symbol.as_deref().unwrap_or_default(), channel.as_deref().unwrap_or_default());
         }  else if (channel.as_deref().unwrap_or_default().starts_with("bbo")) || (channel.as_deref().unwrap_or_default().starts_with("book")) {
-            self.handle_unsubscription_order_book(client.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), channel.clone().map(Value::from).unwrap_or(Value::Null));
+            self.handle_unsubscription_order_book(client.clone(), symbol.as_deref().unwrap_or_default(), channel.as_deref().unwrap_or_default());
         }  else if channel.as_deref().unwrap_or_default().contains("tickers") {
-            self.handle_unsubscription_ticker(client.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), channel.clone().map(Value::from).unwrap_or(Value::Null));
+            self.handle_unsubscription_ticker(client.clone(), symbol.as_deref().unwrap_or_default(), channel.as_deref().unwrap_or_default());
         }  else if (channel.as_deref().unwrap_or_default().starts_with("candle")) {
-            self.handle_unsubscription_ohlcv(client, symbol.map(Value::from).unwrap_or(Value::Null), channel.map(Value::from).unwrap_or(Value::Null));
+            self.handle_unsubscription_ohlcv(client, symbol.as_deref().unwrap_or_default(), channel.as_deref().unwrap_or_default());
         }
 }
 }

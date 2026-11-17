@@ -1863,7 +1863,7 @@ impl Upbit {
                 }
             }
             }
-            let mut sortedQuoteIds: Value = self.sort(Value::Arr(quoteIds), &[]); // market iteration order differs per language
+            let mut sortedQuoteIds: crate::value::List = self.sort(Value::Arr(quoteIds), &[]).into_list(); // market iteration order differs per language
             let mut quoteCurrencies: String = "".to_string();
             {
                                 let mut i: i64 = 0;
@@ -1872,7 +1872,7 @@ impl Upbit {
                 if (quoteCurrencies != "") {
                     quoteCurrencies = format!("{}{}", quoteCurrencies, ",");
                 }
-                quoteCurrencies = format!("{}{}", quoteCurrencies, self.safe_string(sortedQuoteIds.clone(), Value::Int(i), &[Value::Str("".into())]));
+                quoteCurrencies = format!("{}{}", quoteCurrencies, self.safe_string(&sortedQuoteIds, Value::Int(i), &[Value::Str("".into())]));
             }
             }
             let mut request: indexmap::IndexMap<String, Value> = ({

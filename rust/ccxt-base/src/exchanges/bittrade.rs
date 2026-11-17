@@ -1762,7 +1762,8 @@ impl Bittrade {
     Value::Null
 }
 
-    pub fn cost_to_precision(&self, mut symbol: Value, mut cost: Value) -> Option<String> {
+    pub fn cost_to_precision(&self, mut symbol: Value, cost: impl Into<crate::Value>) -> Option<String> {
+        let mut cost: Value = cost.into();
         let mut precision: indexmap::IndexMap<String, Value> = self.safe_dict(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("precision".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2846,7 +2847,7 @@ impl Bittrade {
             let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
             paramsOrder = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]).into_dict();
             if (cost.is_some()) {
-                quoteAmount = self.amount_to_precision(symbol.clone(), Value::from(cost));
+                quoteAmount = self.amount_to_precision(symbol.clone(), cost);
             }  else if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));

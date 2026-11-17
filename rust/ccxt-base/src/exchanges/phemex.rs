@@ -4684,7 +4684,7 @@ impl Phemex {
                     }
                 }
                 cost = (if (cost.is_none()) { amount.as_f64() } else { cost });
-                let mut costString: Option<String> = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                let mut costString: Option<String> = self.cost_to_precision(symbol.clone(), cost);
                 request.insert("quoteQtyEv".into(), self.to_ev(costString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }  else {
                 let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount.clone());
@@ -4751,7 +4751,7 @@ impl Phemex {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")));
                     }
                     if isStableSettled {
-                        request.insert("stopLossRp".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice))));
+                        request.insert("stopLossRp".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossTriggerPrice)));
                     }  else {
                         request.insert("stopLossEp".into(), self.to_ep(Value::from(stopLossTriggerPrice), Some(&market)));
                     }
@@ -4770,7 +4770,7 @@ impl Phemex {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")));
                     }
                     if isStableSettled {
-                        request.insert("takeProfitRp".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice))));
+                        request.insert("takeProfitRp".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitTriggerPrice)));
                     }  else {
                         request.insert("takeProfitEp".into(), self.to_ep(Value::from(takeProfitTriggerPrice), Some(&market)));
                     }

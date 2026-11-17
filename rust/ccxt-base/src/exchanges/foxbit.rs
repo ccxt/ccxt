@@ -1971,7 +1971,7 @@ impl Foxbit {
             request.insert("post_only".into(), Value::Bool(true));
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
         }
         if (typeValue == "INSTANT") {
             request.insert("amount".into(), Value::from(self.price_to_precision(symbol.clone(), amount.clone())));
@@ -2060,7 +2060,7 @@ impl Foxbit {
                 std::sync::Arc::make_mut(&mut orderParams).shift_remove("postOnly");
             }
             if (triggerPrice.is_some()) {
-                request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::from(triggerPrice))));
+                request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), triggerPrice)));
                 std::sync::Arc::make_mut(&mut orderParams).shift_remove("triggerPrice");
             }
             if (type_var == "INSTANT") {

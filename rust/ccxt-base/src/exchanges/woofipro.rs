@@ -4104,14 +4104,14 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut parsedOrders: Value = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]);
-        if (parsedOrders == Value::Null) {
+        let mut parsedOrders: Option<crate::value::Dict> = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]).into_opt_dict();
+        if (parsedOrders.is_none()) {
             parsedOrders = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
+    let mut m = indexmap::IndexMap::new();
+    m
+}).into_opt_dict();
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, parsedOrders, market.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &parsedOrders, market.as_ref());
         Value::Null
         }).await?))
     }

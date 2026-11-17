@@ -2593,7 +2593,7 @@ impl Bitvavo {
             std::sync::Arc::make_mut(&mut request).insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         if (amountRemaining.is_some()) {
-            std::sync::Arc::make_mut(&mut request).insert("amountRemaining".into(), Value::from(self.amount_to_precision(symbol.clone(), Value::from(amountRemaining))));
+            std::sync::Arc::make_mut(&mut request).insert("amountRemaining".into(), Value::from(self.amount_to_precision(symbol.clone(), amountRemaining)));
         }
         if (triggerPrice.is_some()) {
             std::sync::Arc::make_mut(&mut request).insert("triggerAmount".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));

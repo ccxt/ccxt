@@ -1518,8 +1518,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 response = None.clone();
             }
             if (response.is_some()) {
-                let mut rawMarket: Value = self.safe_dict_k(&response, "market", &[response.clone().map_or(Value::Null, Value::Dict)]);
-                let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, rawMarket);
+                let mut rawMarket: Option<crate::value::Dict> = self.safe_dict_k(&response, "market", &[response.clone().map_or(Value::Null, Value::Dict)]).into_opt_dict();
+                let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, &rawMarket);
                 if (self.markets.clone() == Value::Null) {
                     { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
                 }

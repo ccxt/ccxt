@@ -1383,7 +1383,7 @@ if _try_result.is_err() {
         //
         let mut marketId: Option<String> = (match __pro_message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut orderBook: Value = self.safe_dict_k(message.clone(), "depth", &[message.clone()]);
+        let mut orderBook: Option<crate::value::Dict> = self.safe_dict_k(message.clone(), "depth", &[message.clone()]).into_opt_dict();
         let mut datetime: Option<String> = (match __pro_message.get("TS") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
         // let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -1394,7 +1394,7 @@ if _try_result.is_err() {
 })]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut snapshot: crate::value::Dict = self.parse_order_book(orderBook, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&orderBook, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());

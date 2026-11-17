@@ -4017,8 +4017,8 @@ impl Modetrade {
         //     }
         // }
         //
-        let mut orders: Value = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, orders, market.as_ref());
+        let mut orders: Option<crate::value::Dict> = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]).into_opt_dict();
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &orders, market.as_ref());
         Value::Null
         }).await?))
     }

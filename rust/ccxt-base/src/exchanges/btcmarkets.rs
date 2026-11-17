@@ -1633,7 +1633,7 @@ impl Btcmarkets {
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter for a ").into()), type_var).into()), "order")));
             }  else {
-                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(triggerPrice))));
+                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
             }
         }
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);

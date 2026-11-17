@@ -2058,10 +2058,10 @@ impl Tokocrypto {
         //         },
         //         "timestamp":1692262634599
         //     }
-        let mut data: Value = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]);
+        let mut data: Option<crate::value::Dict> = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]).into_opt_dict();
         let mut timestamp: Option<i64> = self.safe_integer2(&response, Value::Str("T".into()), Value::Str("timestamp".into()), &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(data.clone(), symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
-        orderbook.insert("nonce".into(), self.safe_integer_k(data, "lastUpdateId", &[]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(&data, symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
+        orderbook.insert("nonce".into(), self.safe_integer_k(&data, "lastUpdateId", &[]));
         return Value::Map(orderbook);
         Value::Null
         }).await?))

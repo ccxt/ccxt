@@ -681,7 +681,7 @@ impl Sxbet {
     m
 }), Value::Str("limit".into()), &[]).as_i64();
         let mut paginationKey: Option<String> = None;
-        let mut page: Option<i64> = self.parse_to_int(Value::Int(0));
+        let mut page: i64 = 0;
         loop {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -707,9 +707,9 @@ impl Sxbet {
             }
             }
             paginationKey = self.safe_string_k_opt(&result, "nextKey", &[]);
-            page = self.parse_to_int(Value::from((if let Some(__l) = page { Some(__l + 1) } else { None })));
+            page = (page + 1);
             let mut collectedLength: Option<i64> = self.parse_to_int(Value::Int(rawMarkets.len() as i64));
-            if (pageMarketsLength < pageSize) || (page >= Some(maxPages)) || (paginationKey.is_none()) || ((collectCap.is_some()) && ((collectedLength.is_some() && collectCap.is_some() && collectedLength >= collectCap))) {
+            if (pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey.is_none()) || ((collectCap.is_some()) && ((collectedLength.is_some() && collectCap.is_some() && collectedLength >= collectCap))) {
                 break;
             }
         }
@@ -1343,7 +1343,7 @@ impl Sxbet {
         let mut digits: String = "0123456789abcdef".to_string();
         let mut lowerHex: Value = (if let Some(__s) = hex.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut hexLength: i64 = lowerHex.len() as i64;
-        let mut result: Option<i64> = self.parse_to_int(Value::Int(0));
+        let mut result: Option<i64> = Some(0);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1505: bool = true;

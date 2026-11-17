@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..]).await,
-                "build_gen2_subscription_request" => self.build_gen2_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "build_gen2_subscription_request" => self.build_gen2_subscription_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -88,7 +88,7 @@ impl Bithumb {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "build_gen2_subscription_request" => self.build_gen2_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "build_gen2_subscription_request" => self.build_gen2_subscription_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -1103,7 +1103,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]).into_dict();
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "myAsset".to_string();
-        let mut request: crate::value::List = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({
+        let mut request: crate::value::List = self.build_gen2_subscription_request(messageHash.clone().as_str(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::from(messageHash.clone()));
             m
@@ -1175,7 +1175,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {object} subscription the subscription entry for that type
  * @returns {object[]} the SUBSCRIBE frame to send
  */
-    pub fn build_gen2_subscription_request(&mut self, mut subscriptionType: Value, mut subscription: Value) -> Value {
+    pub fn build_gen2_subscription_request(&mut self, subscriptionType: &str, mut subscription: Value) -> Value {
+        let mut subscriptionType: Value = subscriptionType.into();
         let mut wsOptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1296,7 +1297,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "myOrder".to_string();
         let mut codes: crate::value::List = self.safe_list_k(params, "codes", &[Value::from(vec![])]).into_list();
-        let mut request: crate::value::List = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({
+        let mut request: crate::value::List = self.build_gen2_subscription_request(messageHash.clone().as_str(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::from(messageHash.clone()));
                 m.insert("codes".to_string(), Value::Arr(codes));
@@ -1308,12 +1309,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), Value::from((market).symbol.as_str()));
         }
-        let mut orders: Value = self.watch(url.as_str(), &messageHash[..], Value::Arr(request), &messageHash[..], Value::Null).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], Value::Arr(request), &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -110,7 +110,7 @@ impl Coinbase {
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "subscribe" => { crate::exchange_stubs::enqueue_spawn("subscribe", args.to_vec()); crate::Value::Null },
             "subscribe_multiple" => { crate::exchange_stubs::enqueue_spawn("subscribe_multiple", args.to_vec()); crate::Value::Null },
-            "try_resolve_usdc" => { self.try_resolve_usdc(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "try_resolve_usdc" => { self.try_resolve_usdc(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "un_subscribe" => { crate::exchange_stubs::enqueue_spawn("un_subscribe", args.to_vec()); crate::Value::Null },
             "un_subscribe_multiple" => { crate::exchange_stubs::enqueue_spawn("un_subscribe_multiple", args.to_vec()); crate::Value::Null },
             "un_watch_order_book" => { crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.to_vec()); crate::Value::Null },
@@ -730,7 +730,7 @@ impl Coinbase {
                 if (channel.is_some()) {
                     let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), "::").into()), symbol);
                     client.resolve(Value::from(&result), messageHash.as_str());
-                    self.try_resolve_usdc(client.clone(), Value::from(messageHash), &result);
+                    self.try_resolve_usdc(client.clone(), messageHash.as_str(), &result);
                 }
             }
             }
@@ -883,7 +883,7 @@ impl Coinbase {
                 stored.append(Value::Arr(parsed));
                 let mut messageHash: String = format!("{}{}", "candles::", symbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&stored), messageHash.as_str());
-                self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::from(&stored));
+                self.try_resolve_usdc(client.clone(), messageHash.as_str(), Value::from(&stored));
             }
             }
         }
@@ -1254,7 +1254,7 @@ impl Coinbase {
         }
         }
         client.resolve(Value::from(&tradesArray), messageHash.as_str());
-        self.try_resolve_usdc(client, Value::from(messageHash), Value::from(&tradesArray));
+        self.try_resolve_usdc(client, messageHash.as_str(), Value::from(&tradesArray));
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
@@ -1332,7 +1332,7 @@ impl Coinbase {
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
             let mut messageHash: String = format!("{}{}", "user::", symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.orders), messageHash.as_str());
-            self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::from(&self.orders));
+            self.try_resolve_usdc(client.clone(), messageHash.as_str(), Value::from(&self.orders));
         }
         }
         client.resolve(Value::from(&self.orders), "user");
@@ -1490,12 +1490,13 @@ impl Coinbase {
             orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
             orderbook.set_book_meta("symbol", Value::from(symbol));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
-            self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::from(&orderbook));
+            self.try_resolve_usdc(client.clone(), messageHash.as_str(), Value::from(&orderbook));
         }
         }
 }
 
-    pub fn try_resolve_usdc(&self, mut client: Value, mut messageHash: Value, result: impl Into<crate::Value>) {
+    pub fn try_resolve_usdc(&self, mut client: Value, messageHash: &str, result: impl Into<crate::Value>) {
+        let mut messageHash: Value = messageHash.into();
         let mut result: Value = result.into();
         if (messageHash.as_str().unwrap_or("").ends_with("/USD")) || (messageHash.as_str().unwrap_or("").ends_with("-USD")) {
             client.resolve(result, &(Value::Str(format!("{}{}", messageHash, "C").into()))); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too

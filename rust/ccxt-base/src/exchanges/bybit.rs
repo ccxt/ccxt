@@ -10886,29 +10886,29 @@ impl Bybit {
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchPositions".into()), &[symbols.clone(), Value::Null, Value::Null, Value::from(&paramsPaginate), Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(200)]).await;
         }
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut symbolsNormalized: Value = Value::Null;
         if (symbols != Value::Null) && (matches!(&symbols, Value::Arr(_))) {
             let mut symbolsLength: i64 = symbols.len() as i64;
             if symbolsLength > 1 {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchPositions() does not accept an array with more than one symbol")));
             }  else if (symbolsLength == 1) {
-                symbol = symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                symbol = symbols.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
             }
             symbolsNormalized = self.market_symbols(&[symbols.clone()]);
         }  else if (symbols != Value::Null) {
-            symbol = symbols;
-            symbolsNormalized = Value::from(vec![Value::from(self.symbol(symbol.clone()))]);
+            symbol = None;
+            symbolsNormalized = Value::from(vec![Value::from(self.symbol(symbol.clone().map(Value::from).unwrap_or(Value::Null)))]);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Option<crate::types::Market> = None;
-        if (symbol != Value::Null) {
-            let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if (symbol.is_some()) {
+            let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             market = Some(crate::types::Market::clone(&symbolMarket));
-            symbol = Value::from((symbolMarket).symbol.clone());
+            symbol = Some((symbolMarket).symbol.clone());
             request.insert("symbol".into(), Value::from((symbolMarket).id.as_deref()));
         }
         let type_varparamsValueVariable: Vec<Value> = self.get_bybit_type("fetchPositions", market.as_ref(), &[Value::Dict(paramsPaginate)]).as_array().cloned().unwrap_or_default();
@@ -10917,14 +10917,14 @@ impl Bybit {
         if (type_var.as_deref() == Some("linear")) || (type_var.as_deref() == Some("inverse")) {
             let mut baseCoin: Option<String> = self.safe_string_k_opt(&paramsValue, "baseCoin", &[]);
             if (type_var.as_deref() == Some("linear")) {
-                if (symbol == Value::Null) && (baseCoin.is_none()) {
+                if (symbol.is_none()) && (baseCoin.is_none()) {
                     let mut defaultSettle: String = self.safe_string_k(self.options.clone(), "defaultSettle", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string();
                     let mut settleCoin: Option<String> = self.safe_string_k_opt(&paramsValue, "settleCoin", &[Value::from(defaultSettle)]);
                     request.insert("settleCoin".into(), settleCoin.map(Value::from).unwrap_or(Value::Null));
                 }
             }  else {
                 // inverse
-                if (symbol == Value::Null) && (baseCoin.is_none()) {
+                if (symbol.is_none()) && (baseCoin.is_none()) {
                     request.insert("category".into(), Value::Str("inverse".into()));
                 }
             }

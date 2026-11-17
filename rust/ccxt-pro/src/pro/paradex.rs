@@ -68,16 +68,16 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_trade" => self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate_ws" => self.parse_funding_rate_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_sbe_account" => self.parse_sbe_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sbe_bbo" => self.parse_sbe_bbo(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sbe_fill" => self.parse_sbe_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sbe_funding_data" => self.parse_sbe_funding_data(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sbe_market_summary" => self.parse_sbe_market_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_account" => self.parse_sbe_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_bbo" => self.parse_sbe_bbo(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_fill" => self.parse_sbe_fill(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_funding_data" => self.parse_sbe_funding_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_market_summary" => self.parse_sbe_market_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_message" => self.parse_sbe_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sbe_order" => self.parse_sbe_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sbe_order_book" => self.parse_sbe_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sbe_position" => self.parse_sbe_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sbe_trade" => self.parse_sbe_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_order" => self.parse_sbe_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_order_book" => self.parse_sbe_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_position" => self.parse_sbe_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_trade" => self.parse_sbe_trade(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -86,13 +86,13 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "sbe_read_flags" => self.sbe_read_flags(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "sbe_read_int64" => crate::Value::from(self.sbe_read_int64(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "sbe_read_timestamp" => self.sbe_read_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "sbe_read_uint" => self.sbe_read_uint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+                "sbe_read_uint" => self.sbe_read_uint(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "sbe_read_var_strings" => self.sbe_read_var_strings(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
                 "send_request" => self.send_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref()).await,
                 "send_unsubscribe" => self.send_unsubscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "subscribe_channels" => self.subscribe_channels(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "subscribe_markets_summary" => self.subscribe_markets_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "subscribe_request" => self.subscribe_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "subscribe_request" => self.subscribe_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_funding_rate" => crate::types::IntoRaw::into_raw(self.un_watch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -107,7 +107,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                     args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await,
                 "unsubscribe_channels_from" => self.unsubscribe_channels_from(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null),
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..]).await,
-                "unsubscribe_request" => self.unsubscribe_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "unsubscribe_request" => self.unsubscribe_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "unsubscribed_channels" => self.unsubscribed_channels(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "wait_for_pending_unsubscribe" => self.wait_for_pending_unsubscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -140,7 +140,7 @@ impl Paradex {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "clean_unsubscribed" => { self.clean_unsubscribed(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "clean_unsubscribed" => { self.clean_unsubscribed(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "expire_pending_unsubscribe" => { crate::exchange_stubs::enqueue_spawn("expire_pending_unsubscribe", args.to_vec()); crate::Value::Null },
             "get_ws_url" => self.get_ws_url(),
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -159,18 +159,18 @@ impl Paradex {
             "handle_stream_message" => { self.handle_stream_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_trade" => self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_unsubscribe_reply" => { self.handle_unsubscribe_reply(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_unsubscribe_reply" => { self.handle_unsubscribe_reply(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "parse_funding_rate_ws" => self.parse_funding_rate_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "parse_sbe_account" => self.parse_sbe_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "parse_sbe_bbo" => self.parse_sbe_bbo(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "parse_sbe_fill" => self.parse_sbe_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "parse_sbe_funding_data" => self.parse_sbe_funding_data(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "parse_sbe_market_summary" => self.parse_sbe_market_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_account" => self.parse_sbe_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_bbo" => self.parse_sbe_bbo(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_fill" => self.parse_sbe_fill(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_funding_data" => self.parse_sbe_funding_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_market_summary" => self.parse_sbe_market_summary(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
             "parse_sbe_message" => self.parse_sbe_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "parse_sbe_order" => self.parse_sbe_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "parse_sbe_order_book" => self.parse_sbe_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "parse_sbe_position" => self.parse_sbe_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-            "parse_sbe_trade" => self.parse_sbe_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_order" => self.parse_sbe_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_order_book" => self.parse_sbe_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_position" => self.parse_sbe_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "parse_sbe_trade" => self.parse_sbe_trade(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -179,13 +179,13 @@ impl Paradex {
             "sbe_read_flags" => self.sbe_read_flags(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "sbe_read_int64" => crate::Value::from(self.sbe_read_int64(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "sbe_read_timestamp" => self.sbe_read_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "sbe_read_uint" => self.sbe_read_uint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "sbe_read_uint" => self.sbe_read_uint(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "sbe_read_var_strings" => self.sbe_read_var_strings(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
             "send_request" => { crate::exchange_stubs::enqueue_spawn("send_request", args.to_vec()); crate::Value::Null },
             "send_unsubscribe" => { crate::exchange_stubs::enqueue_spawn("send_unsubscribe", args.to_vec()); crate::Value::Null },
             "subscribe_channels" => { crate::exchange_stubs::enqueue_spawn("subscribe_channels", args.to_vec()); crate::Value::Null },
             "subscribe_markets_summary" => { crate::exchange_stubs::enqueue_spawn("subscribe_markets_summary", args.to_vec()); crate::Value::Null },
-            "subscribe_request" => self.subscribe_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "subscribe_request" => self.subscribe_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "un_watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("un_watch_bids_asks", args.to_vec()); crate::Value::Null },
             "un_watch_funding_rate" => { crate::exchange_stubs::enqueue_spawn("un_watch_funding_rate", args.to_vec()); crate::Value::Null },
             "un_watch_order_book" => { crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.to_vec()); crate::Value::Null },
@@ -197,7 +197,7 @@ impl Paradex {
             "unsubscribe_channel_at" => { crate::exchange_stubs::enqueue_spawn("unsubscribe_channel_at", args.to_vec()); crate::Value::Null },
             "unsubscribe_channels" => { crate::exchange_stubs::enqueue_spawn("unsubscribe_channels", args.to_vec()); crate::Value::Null },
             "unsubscribe_channels_from" => { crate::exchange_stubs::enqueue_spawn("unsubscribe_channels_from", args.to_vec()); crate::Value::Null },
-            "unsubscribe_request" => self.unsubscribe_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "unsubscribe_request" => self.unsubscribe_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "unsubscribed_channels" => self.unsubscribed_channels(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "wait_for_pending_unsubscribe" => { crate::exchange_stubs::enqueue_spawn("wait_for_pending_unsubscribe", args.to_vec()); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
@@ -345,7 +345,8 @@ impl Paradex {
  * @param {string} channel the channel to subscribe to
  * @returns {object} the subscribe request
  */
-    pub fn subscribe_request(&mut self, mut channel: Value) -> Value {
+    pub fn subscribe_request(&mut self, channel: &str) -> Value {
+        let mut channel: Value = channel.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -370,7 +371,8 @@ impl Paradex {
  * @param {string} channel the channel to unsubscribe from
  * @returns {object} the unsubscribe request
  */
-    pub fn unsubscribe_request(&mut self, mut channel: Value) -> Value {
+    pub fn unsubscribe_request(&mut self, channel: &str) -> Value {
+        let mut channel: Value = channel.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -444,9 +446,9 @@ impl Paradex {
             if pendingLength < 2 {
                 break;
             }
-            let mut channel: Value = get_value(&channels, &pending.get(0).cloned().unwrap_or(Value::Null));
-            let mut pendingRequest: crate::value::Dict = self.subscribe_request(channel.clone()).into_dict();
-            self.send_request(url.as_str().unwrap_or_default(), self.deep_extend(pendingRequest, &[params.clone()]), channel.as_str()).await;
+            let mut channel: Option<String> = get_value(&channels, &pending.get(0).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut pendingRequest: crate::value::Dict = self.subscribe_request(channel.as_deref().unwrap_or_default()).into_dict();
+            self.send_request(url.as_str().unwrap_or_default(), self.deep_extend(pendingRequest, &[params.clone()]), channel.as_deref()).await;
         }
         }
         // the last one goes with the watch, so that an update sent right after it is not missed
@@ -456,7 +458,7 @@ impl Paradex {
             return self.watch_multiple(&url, messageHashes.clone(), Value::Null, channels.clone(), Value::Null).await;
         }
         let mut index: Option<i64> = missing.get(0).and_then(Value::as_i64);
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(get_value(&channels, &Value::from(index))).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request((get_value(&channels, &Value::from(index))).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
         // a failed subscribe rejects the watchers of its own channel only
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -641,7 +643,7 @@ if _try_result.is_err() {
                 m.insert("symbols".to_string(), Value::from(channelSymbols));
             m
         });
-        let mut request: crate::value::Dict = self.unsubscribe_request(channel.clone()).into_dict();
+        let mut request: crate::value::Dict = self.unsubscribe_request(channel.as_str().unwrap_or_default()).into_dict();
         return self.send_unsubscribe(url, Value::Str(format!("{}{}", "unsubscribe:", channel).into()), &request, Value::Map(subscription), &[params]).await;
 
     Value::Null
@@ -709,7 +711,7 @@ if _try_result.is_err() {
             let mut error: crate::ExchangeError = crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), unsubHash).into()), " was not acknowledged"));
             client.reject(error, &unsubHash);
             // the subscriptions are forgotten, so that the next watch subscribes them again
-            self.clean_unsubscribed(client, unsubHash, &unsubscription);
+            self.clean_unsubscribed(client, unsubHash.as_str().unwrap_or_default(), &unsubscription);
         }
 
     Value::Null
@@ -800,7 +802,7 @@ if _try_result.is_err() {
             self.handle_authentication_message(client.clone(), message.clone());
         }
         if (requestId.is_some()) {
-            self.handle_unsubscribe_reply(client.clone(), requestId.clone().map(Value::from).unwrap_or(Value::Null));
+            self.handle_unsubscribe_reply(client.clone(), requestId.as_deref().unwrap_or_default());
             // sendRequest waits on the request id, a request without a subscription of its own is kept under it
             let mut requestHash: String = format!("{}{}", "request:", requestId.as_deref().unwrap_or("null"));
             if (__ch.has_subscription(requestHash.as_str())) {
@@ -810,7 +812,8 @@ if _try_result.is_err() {
         }
 }
 
-    pub fn handle_unsubscribe_reply(&mut self, mut client: Value, mut requestId: Value) {
+    pub fn handle_unsubscribe_reply(&mut self, mut client: Value, requestId: &str) {
+        let mut requestId: Value = requestId.into();
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         //
         // the reply to an unsubscribe, a modify_subscription with remove is acknowledged the same way
@@ -841,13 +844,14 @@ if _try_result.is_err() {
                 m
             })]).into_dict();
             if (self.safe_string_k(&subscription, "id", &[]).as_str() == requestId.as_str()) {
-                self.clean_unsubscribed(client.clone(), unsubHash.map(Value::from).unwrap_or(Value::Null), &subscription);
+                self.clean_unsubscribed(client.clone(), unsubHash.as_deref().unwrap_or_default(), &subscription);
             }
         }
         }
 }
 
-    pub fn clean_unsubscribed(&mut self, mut client: Value, mut unsubHash: Value, subscription: impl Into<crate::Value>) {
+    pub fn clean_unsubscribed(&mut self, mut client: Value, unsubHash: &str, subscription: impl Into<crate::Value>) {
+        let mut unsubHash: Value = unsubHash.into();
         let mut subscription: Value = subscription.into();
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subscribeHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subscribeHashes", &[Value::from(vec![])]).into_list();
@@ -913,7 +917,7 @@ if _try_result.is_err() {
         }
         let mut url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash.clone())])).await;
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(messageHash.clone())).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(messageHash.as_str()).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -1293,7 +1297,7 @@ if _try_result.is_err() {
             if isDeltas && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &snapshotChannel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
                 // arrives once the reply is in
-                let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(snapshotChannel.clone()).into_dict();
+                let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(snapshotChannel.as_str().unwrap_or_default()).into_dict();
                 __ch.remove_subscription(&snapshotChannel);
                 self.send_request(url.as_deref().unwrap_or_default(), &unsubscribe, None).await;
             }
@@ -1562,8 +1566,8 @@ if _try_result.is_err() {
         // a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
         // keep their ids in the subscriptions, so that an error reply reaches neither an unrelated watcher nor
         // the whole connection
-        let mut unsubscribe: Value = self.unsubscribe_request(channel.clone());
-        let mut subscribe: Value = self.subscribe_request(channel.clone());
+        let mut unsubscribe: Value = self.unsubscribe_request(channel.as_str().unwrap_or_default());
+        let mut subscribe: Value = self.subscribe_request(channel.as_str().unwrap_or_default());
         let mut unsubscribeHash: String = format!("{}{}", Value::Str("request:".into()), self.safe_string_k(unsubscribe.clone(), "id", &[]));
         __ch.add_subscription(unsubscribeHash.as_str(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1675,10 +1679,10 @@ if _try_result.is_err() {
                     }
                 }
                 }
-                let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(Value::from(channel.clone())).into_dict();
+                let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(channel.as_str()).into_dict();
                 self.send_request(url.as_deref().unwrap_or_default(), &unsubscribe, None).await;
             }
-            let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
+            let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel.as_str()).as_map().cloned().unwrap_or_default();
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -1818,7 +1822,7 @@ if _try_result.is_err() {
                     m.insert("symbols".to_string(), tickerSymbols.clone());
                 m
             });
-            let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(Value::from(channel.clone())).into_dict();
+            let mut unsubscribe: crate::value::Dict = self.unsubscribe_request(channel.as_str()).into_dict();
             return self.send_unsubscribe(url.as_deref().unwrap_or_default(), Value::Str(format!("{}{}", "unsubscribe:", channel).into()), &unsubscribe, Value::Map(channelSubscription), &[params.clone()]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1920,7 +1924,7 @@ if _try_result.is_err() {
                 m
             });
         }  else {
-            request = self.subscribe_request(Value::from(channel));
+            request = self.subscribe_request(channel.as_str());
             add_element_to_object(get_value_mut(&mut request, &Value::Str("params".into())), &Value::Str("markets".into()), missing);
             subscribeHashes.push(Value::from(scopedHash));
         }
@@ -2190,7 +2194,7 @@ if _try_result.is_err() {
             messageHash = format!("{}{}", "orders:", symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel.as_str()).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -2295,7 +2299,7 @@ if _try_result.is_err() {
             messageHash = format!("{}{}", "myTrades:", symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel.as_str()).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -2408,7 +2412,7 @@ if _try_result.is_err() {
             }
             }
         }
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel.as_str()).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -2521,7 +2525,7 @@ if _try_result.is_err() {
         let mut channel: String = "account".to_string();
         let mut url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         let mut messageHash: String = "balance".to_string();
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel.as_str()).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -2777,7 +2781,7 @@ if _try_result.is_err() {
         }  else {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(channel.clone()));
         }
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel)).as_map().cloned().unwrap_or_default();
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(channel.as_str()).as_map().cloned().unwrap_or_default();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
@@ -2900,51 +2904,51 @@ if _try_result.is_err() {
         if (frameLength.is_some() && frameLength < Some(8)) {
             return Value::Null;
         }
-        let mut blockLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(Value::from(frameHex.clone()), Value::Int(0), Value::Int(2)));
-        let mut templateId: Option<i64> = self.parse_to_int(self.sbe_read_uint(Value::from(frameHex.clone()), Value::Int(2), Value::Int(2)));
-        let mut schemaId: Option<i64> = self.parse_to_int(self.sbe_read_uint(Value::from(frameHex.clone()), Value::Int(4), Value::Int(2)));
+        let mut blockLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str(), Value::Int(0), Value::Int(2)));
+        let mut templateId: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str(), Value::Int(2), Value::Int(2)));
+        let mut schemaId: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str(), Value::Int(4), Value::Int(2)));
         if (schemaId != Some(1)) || (matches!((frameLength, ((if let Some(__m0) = blockLength { Some((__m0 + 8)) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) < (__r as f64))) {
             return Value::Null;
         }
         let mut channel: Option<String> = None;
         let mut data: Value = Value::Null;
         if (templateId == Some(1)) {
-            data = self.parse_sbe_trade(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
+            data = self.parse_sbe_trade(frameHex.as_str(), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("trades.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(2)) {
-            data = self.parse_sbe_bbo(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
+            data = self.parse_sbe_bbo(frameHex.as_str(), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("bbo.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(3)) {
             // the snapshot and deltas feeds send the same frame, handleOrderBook tells them apart by package type
-            data = self.parse_sbe_order_book(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
+            data = self.parse_sbe_order_book(frameHex.as_str(), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("order_book.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(4)) {
-            data = self.parse_sbe_market_summary(client, Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
+            data = self.parse_sbe_market_summary(client, frameHex.as_str(), Value::from(blockLength), Value::from(frameLength));
             channel = Some("markets_summary".to_string());
         }  else if (templateId == Some(5)) {
-            data = self.parse_sbe_funding_data(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
+            data = self.parse_sbe_funding_data(frameHex.as_str(), Value::from(blockLength), Value::from(frameLength));
             channel = Some("funding_data".to_string());
         }  else if (templateId == Some(20)) {
-            data = self.parse_sbe_order(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
+            data = self.parse_sbe_order(frameHex.as_str(), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("orders.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(21)) {
-            data = self.parse_sbe_fill(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
+            data = self.parse_sbe_fill(frameHex.as_str(), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("fills.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(22)) {
-            data = self.parse_sbe_position(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
+            data = self.parse_sbe_position(frameHex.as_str(), Value::from(blockLength), Value::from(frameLength));
             channel = Some("positions".to_string());
         }  else if (templateId == Some(23)) {
-            data = self.parse_sbe_account(Value::from(frameHex), Value::from(blockLength), Value::from(frameLength));
+            data = self.parse_sbe_account(frameHex.as_str(), Value::from(blockLength), Value::from(frameLength));
             channel = Some("account".to_string());
         }
         if (data == Value::Null) {
@@ -2965,7 +2969,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn sbe_read_uint(&self, mut frameHex: Value, mut offset: Value, mut length: Value) -> Value {
+    pub fn sbe_read_uint(&self, frameHex: &str, mut offset: Value, mut length: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         let mut digits: String = "0123456789abcdef".to_string();
         let mut result: Option<i64> = Some(0);
@@ -3000,8 +3005,8 @@ if _try_result.is_err() {
 
     pub fn sbe_read_int64(&self, mut frameHex: Value, mut offset: Value) -> Option<String> {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
-        let mut low: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), offset.clone(), Value::Int(4)));
-        let mut high: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex, self.sum(&[offset, Value::Int(4)]), Value::Int(4)));
+        let mut low: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), offset.clone(), Value::Int(4)));
+        let mut high: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), self.sum(&[offset, Value::Int(4)]), Value::Int(4)));
         if (high == Some(2147483648)) && (low == Some(0)) {
             return None;
         }
@@ -3038,7 +3043,7 @@ if _try_result.is_err() {
 
     pub fn sbe_read_enum(&self, mut frameHex: Value, mut offset: Value, values: impl Into<crate::Value>) -> Option<String> {
         let mut values: Value = values.into();
-        let mut value: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
+        let mut value: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), offset, Value::Int(1)));
         return self.safe_string_opt(values, Value::from(self.number_to_string(Value::from(value))), &[]);
 }
 
@@ -3096,7 +3101,7 @@ if _try_result.is_err() {
             if (position.is_some() && end.is_some() && position >= end) {
                 return Value::from(result);
             }
-            let mut length: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::from(position), Value::Int(1)));
+            let mut length: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), Value::from(position), Value::Int(1)));
             let mut next: Option<i64> = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m2)) = (position, length) { Some((__m0 + 1 + __m2)) } else { None })));
             if (next.is_some() && end.is_some() && next > end) {
                 return Value::from(vec![]);
@@ -3110,7 +3115,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_sbe_trade(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+    pub fn parse_sbe_trade(&self, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // TradeEvent (templateId 1), 50-byte block
@@ -3157,7 +3163,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_sbe_bbo(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+    pub fn parse_sbe_bbo(&self, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // BboEvent (templateId 2), 48-byte block
@@ -3188,7 +3195,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_sbe_order_book(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+    pub fn parse_sbe_order_book(&self, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // BookEvent (templateId 3), 89-byte block
@@ -3200,7 +3208,7 @@ if _try_result.is_err() {
         if (blockSize.is_some() && blockSize < Some(17)) {
             return Value::Null;
         }
-        let mut pkgType: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::Int(24), Value::Int(1)));
+        let mut pkgType: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), Value::Int(24), Value::Int(1)));
         if (pkgType != Some(0)) && (pkgType != Some(1)) {
             return Value::Null;
         }
@@ -3215,9 +3223,9 @@ if _try_result.is_err() {
             if matches!((((if let Some(__l) = position { Some(__l + 4) } else { None })), frameEnd), (Some(__l), Some(__r)) if (__l as f64) > (__r as f64)) {
                 return Value::Null;
             }
-            let mut entryLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::from(position), Value::Int(2)));
-            let mut numInGroup: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.clone(), Value::from((if let Some(__l) = position { Some(__l + 2) } else { None })), Value::Int(2)));
-            position = self.parse_to_int(Value::from((if let Some(__l) = position { Some(__l + 4) } else { None })));
+            let mut entryLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), Value::from(position), Value::Int(2)));
+            let mut numInGroup: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), Value::from((if let Some(__l) = position { Some(__l + 2) } else { None })), Value::Int(2)));
+            position = (if let Some(__l) = position { Some(__l + 4) } else { None });
             if ((entryLength.is_some() && entryLength < Some(16))) || (matches!(frameEnd, Some(__p) if Value::from(self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (position, ((if let (Some(__l), Some(__r)) = (numInGroup, entryLength) { Some(__l * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })))).as_f64().unwrap_or(f64::NAN) > (__p as f64))) {
                 return Value::Null;
             }
@@ -3258,7 +3266,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_sbe_market_summary(&self, mut client: Value, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+    pub fn parse_sbe_market_summary(&self, mut client: Value, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
@@ -3309,7 +3318,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_sbe_funding_data(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+    pub fn parse_sbe_funding_data(&self, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // FundingDataEvent (templateId 5), 66-byte block
@@ -3332,7 +3342,7 @@ if _try_result.is_err() {
         m.insert("funding_premium".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(48)).map(Value::from).unwrap_or(Value::Null));
         m.insert("funding_rate".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(24)).map(Value::from).unwrap_or(Value::Null));
         m.insert("funding_rate_8h".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(56)).map(Value::from).unwrap_or(Value::Null));
-        m.insert("funding_period_hours".to_string(), self.sbe_read_uint(frameHex.clone(), Value::Int(64), Value::Int(2)));
+        m.insert("funding_period_hours".to_string(), self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), Value::Int(64), Value::Int(2)));
         m.insert("created_at".to_string(), self.sbe_read_timestamp(frameHex, Value::Int(40)));
     m
 });
@@ -3340,7 +3350,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_sbe_order(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+    pub fn parse_sbe_order(&self, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
@@ -3441,7 +3452,7 @@ if _try_result.is_err() {
         let names = names.as_array().unwrap_or(&__names_empty);
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         let mut flags: Vec<Value> = Vec::new();
-        let mut bits: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
+        let mut bits: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str().unwrap_or_default(), offset, Value::Int(1)));
         {
                         let mut i: i64 = 0;
             let mut __for_first_622: bool = true;
@@ -3458,7 +3469,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_sbe_fill(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+    pub fn parse_sbe_fill(&self, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
@@ -3528,7 +3540,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_sbe_position(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+    pub fn parse_sbe_position(&self, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // PositionEvent (templateId 22), 154-byte block
@@ -3593,7 +3606,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_sbe_account(&self, mut frameHex: Value, mut blockLength: Value, mut frameLength: Value) -> Value {
+    pub fn parse_sbe_account(&self, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
+        let mut frameHex: Value = frameHex.into();
         let mut blockSize: Option<i64> = self.parse_to_int(blockLength.clone());
         //
         // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)

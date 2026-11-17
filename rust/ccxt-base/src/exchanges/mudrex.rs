@@ -2093,8 +2093,8 @@ impl Mudrex {
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         let mut pageSize: Option<i64> = (if (limit == Value::Null) { Some(0) } else { (if let Some(__l) = limit.as_i64() { Some(__l * 2) } else { None }) });
         let mut allRows: Vec<Value> = Vec::new();
-        let mut transactionsCount: Option<i64> = self.parse_to_int(Value::Int(0));
-        let mut calls: Option<i64> = self.parse_to_int(Value::Int(0));
+        let mut transactionsCount: i64 = 0;
+        let mut calls: i64 = 0;
         let mut offset: Option<i64> = Some(0);
         let mut paging: bool = true;
         while paging {
@@ -2119,16 +2119,16 @@ impl Mudrex {
                 if (self.safe_string_k(&entry, "fee_type", &[]).as_str() == Some("TRANSACTION")) {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (market.is_none()) || (self.safe_string_k(&entry, "symbol", &[]).as_str() == crate::value::KeyRead::key_read(&&market, "id").as_str()) {
-                        transactionsCount = self.parse_to_int(Value::from((if let Some(__l) = transactionsCount { Some(__l + 1) } else { None })));
+                        transactionsCount = (transactionsCount + 1);
                     }
                 }
             }
             }
-            calls = self.parse_to_int(Value::from((if let Some(__l) = calls { Some(__l + 1) } else { None })));
+            calls = (calls + 1);
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (limit != Value::Null) && (Some(dataLength) == pageSize) {
-                if ((transactionsCount.is_some() && limit.as_i64().is_some() && transactionsCount < limit.as_i64())) && ((calls.is_some() && maxCalls.is_some() && calls < maxCalls)) {
+                if (Some(transactionsCount) < limit.as_i64()) && (Some(calls) < maxCalls) {
                     // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                     offset = (if let (Some(__m0), Some(__m1)) = (offset, pageSize) { Some((__m0 + __m1)) } else { None });
                     paging = true;

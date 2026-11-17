@@ -73,7 +73,7 @@ impl crate::exchange_generated::ExchangeBase for Krakenfutures {
                 "prune_stale_balance_keys" => self.prune_stale_balance_keys(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "subscription_exists_for_hash" => self.subscription_exists_for_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "subscription_exists_for_hash" => self.subscription_exists_for_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_multi_helper" => self.watch_multi_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
@@ -122,7 +122,7 @@ impl Krakenfutures {
             "prune_stale_balance_keys" => self.prune_stale_balance_keys(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
             "subscribe_public" => { crate::exchange_stubs::enqueue_spawn("subscribe_public", args.to_vec()); crate::Value::Null },
-            "subscription_exists_for_hash" => self.subscription_exists_for_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "subscription_exists_for_hash" => self.subscription_exists_for_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.to_vec()); crate::Value::Null },
             "watch_multi_helper" => { crate::exchange_stubs::enqueue_spawn("watch_multi_helper", args.to_vec()); crate::Value::Null },
@@ -2231,7 +2231,7 @@ impl Krakenfutures {
             let mut messageHash: Value = self.get_message_hash(unifiedName, &[Value::Null, Value::from(self.symbol(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)))]).map(Value::from).unwrap_or(Value::Null);
             std::sync::Arc::make_mut(&mut messageHashes).push(messageHash.clone());
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if !(self.subscription_exists_for_hash(url.as_deref().unwrap_or_default(), messageHash).as_bool() == Some(true)) {
+            if !(self.subscription_exists_for_hash(url.as_deref().unwrap_or_default(), messageHash.as_str().unwrap_or_default()).as_bool() == Some(true)) {
                 rawSubs.push(Value::from((market).id.as_deref()));
             }
         }
@@ -2256,7 +2256,8 @@ impl Krakenfutures {
     Value::Null
 }
 
-    pub fn subscription_exists_for_hash(&mut self, url: &str, mut hash: Value) -> Value {
+    pub fn subscription_exists_for_hash(&mut self, url: &str, hash: &str) -> Value {
+        let mut hash: Value = hash.into();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url));
         return (Value::Bool(client.has_subscription(&hash)));
 

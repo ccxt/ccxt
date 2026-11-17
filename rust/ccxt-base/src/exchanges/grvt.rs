@@ -1117,7 +1117,7 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "time_in_force_to_int" => self.time_in_force_to_int(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
-                "uses_private_key" => self.uses_private_key(),
+                "uses_private_key" => crate::Value::from(self.uses_private_key()),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -2177,15 +2177,13 @@ impl Grvt {
     Value::Null
 }
 
-    pub fn uses_private_key(&self) -> Value {
-        let mut privateKeyDefined: Value = Value::Bool((self.privateKey.clone() != Value::Null) && (self.privateKey.as_str() != Some("")));
+    pub fn uses_private_key(&self) -> bool {
+        let mut privateKeyDefined: bool = (self.privateKey.clone() != Value::Null) && (self.privateKey.as_str() != Some(""));
         let mut apiKeyDefined: bool = (self.apiKey.clone() != Value::Null) && (self.apiKey.as_str() != Some(""));
-        if matches!(&privateKeyDefined, Value::Bool(true)) && apiKeyDefined {
+        if privateKeyDefined && apiKeyDefined {
             panic!("{}", crate::exchange_errors::exchange_error("You should provide either \"privateKey\" or \"apikey & secret\""));
         }
         return privateKeyDefined;
-
-    Value::Null
 }
 
 /*
@@ -4741,7 +4739,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut domainData: crate::value::Dict = self.eip_domain_data().into_dict();
         let mut definitions: indexmap::IndexMap<String, Value> = self.eip_definitions().as_map().cloned().unwrap_or_default();
         let mut ethEncodedMessage: crate::value::Bytes = self.eth_encode_structured_data(Value::Dict(domainData), definitions.get(structureType.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), messageData);
-        let mut usesPrivKey: bool = self.uses_private_key().as_bool().unwrap_or_default(); // py transpiler needs this line separated
+        let mut usesPrivKey: bool = self.uses_private_key(); // py transpiler needs this line separated
         let mut secretOrPrivkey: Option<String> = (if usesPrivKey { self.privateKey.as_str().map(str::to_owned) } else { self.secret.as_str().map(str::to_owned) });
         let mut privateKeyWithoutZero: Value = self.remove0x_prefix(secretOrPrivkey.map(Value::from).unwrap_or(Value::Null));
         let mut signature: crate::value::Dict = ecdsa(Value::from(self.hash(&ethEncodedMessage, Value::Str("keccak".into()), &[Value::Str("hex".into())])), privateKeyWithoutZero.clone(), Value::Str("secp256k1".into()), Value::Null);

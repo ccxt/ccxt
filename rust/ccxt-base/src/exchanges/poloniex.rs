@@ -3552,7 +3552,7 @@ impl Poloniex {
                 let mut cost: Option<f64> = self.safe_number_k(&queryOmitted, "cost", &[]).as_f64();
                 queryOmitted = self.omit(Value::Dict(queryOmitted), Value::Str("cost".into()), &[]).into_dict();
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                    quoteAmount = self.cost_to_precision(symbol.clone(), cost);
                 }  else if createMarketBuyOrderRequiresPrice && (market).spot {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));

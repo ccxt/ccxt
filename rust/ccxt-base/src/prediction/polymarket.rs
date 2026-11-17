@@ -3864,19 +3864,19 @@ impl Polymarket {
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         let mut orderTypeHash: crate::value::Bytes = self.hash_binary(self.encode(Value::from(orderTypeString.clone())), Value::Str("keccak".into()));
-        let mut contentsData: Value = self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("address".into()), Value::Str("uint256".into()), Value::Str("uint256".into()), Value::Str("uint256".into()), Value::Str("uint8".into()), Value::Str("uint8".into()),
-            Value::Str("uint256".into()), Value::Str("bytes32".into()), Value::Str("bytes32".into())]), Value::from(vec![Value::from(&orderTypeHash), self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("salt")).cloned().unwrap_or(Value::Null)), message.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null),
-            message.as_map().and_then(|__m| __m.get("signer")).cloned().unwrap_or(Value::Null), self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("tokenId")).cloned().unwrap_or(Value::Null)), self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("makerAmount")).cloned().unwrap_or(Value::Null)),
-            self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("takerAmount")).cloned().unwrap_or(Value::Null)), message.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null), message.as_map().and_then(|__m| __m.get("signatureType")).cloned().unwrap_or(Value::Null),
-            self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)), Value::from(self.base16_to_binary(self.remove0x_prefix(message.as_map().and_then(|__m| __m.get("metadata")).cloned().unwrap_or(Value::Null)), &[])),
-            Value::from(self.base16_to_binary(self.remove0x_prefix(message.as_map().and_then(|__m| __m.get("builder")).cloned().unwrap_or(Value::Null)), &[]))]));
-        let mut contentsHash: String = format!("{}{}", Value::Str("0x".into()), self.hash(contentsData, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
+        let mut contentsData: crate::value::Bytes = crate::value::Bytes(self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("address".into()), Value::Str("uint256".into()), Value::Str("uint256".into()), Value::Str("uint256".into()), Value::Str("uint8".into()),
+            Value::Str("uint8".into()), Value::Str("uint256".into()), Value::Str("bytes32".into()), Value::Str("bytes32".into())]), Value::from(vec![Value::from(&orderTypeHash), self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("salt")).cloned().unwrap_or(Value::Null)),
+            message.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null), message.as_map().and_then(|__m| __m.get("signer")).cloned().unwrap_or(Value::Null), self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("tokenId")).cloned().unwrap_or(Value::Null)),
+            self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("makerAmount")).cloned().unwrap_or(Value::Null)), self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("takerAmount")).cloned().unwrap_or(Value::Null)), message.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null),
+            message.as_map().and_then(|__m| __m.get("signatureType")).cloned().unwrap_or(Value::Null), self.convert_to_big_int(message.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)), Value::from(self.base16_to_binary(self.remove0x_prefix(message.as_map().and_then(|__m| __m.get("metadata")).cloned().unwrap_or(Value::Null)),
+            &[])), Value::from(self.base16_to_binary(self.remove0x_prefix(message.as_map().and_then(|__m| __m.get("builder")).cloned().unwrap_or(Value::Null)), &[]))])).into_list());
+        let mut contentsHash: String = format!("{}{}", Value::Str("0x".into()), self.hash(&contentsData, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
         let mut domainTypeHash: crate::value::Bytes = self.hash_binary(self.encode(Value::Str("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)".into())), Value::Str("keccak".into()));
         let mut nameHash: crate::value::Bytes = self.hash_binary(self.encode(Value::from(domainName)), Value::Str("keccak".into()));
         let mut versionHash: crate::value::Bytes = self.hash_binary(self.encode(domainVersion), Value::Str("keccak".into()));
-        let __yd0: Vec<Value> = vec![Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into())];
-        let mut appDomainData: Value = self.eth_abi_encode(Value::from(__yd0), Value::from(vec![Value::from(&domainTypeHash), Value::from(&nameHash), Value::from(&versionHash), self.convert_to_big_int(Value::from(self.number_to_string(Value::from(chainIdValue)))), exchangeAddress]));
-        let mut appDomainSep: String = format!("{}{}", Value::Str("0x".into()), self.hash(appDomainData, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
+        let mut appDomainData: crate::value::Bytes = crate::value::Bytes(self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into())]), Value::from(vec![Value::from(&domainTypeHash), Value::from(&nameHash), Value::from(&versionHash),
+            self.convert_to_big_int(Value::from(self.number_to_string(Value::from(chainIdValue)))), exchangeAddress])).into_list());
+        let mut appDomainSep: String = format!("{}{}", Value::Str("0x".into()), self.hash(&appDomainData, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
         let mut typedDataSignStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("contents".into()));
@@ -4269,14 +4269,14 @@ impl Polymarket {
 }), &[params]);
             response = self.gamma_public_get_events_id(&[__ws_arg_17]).await.into_opt_dict();
         }
-        let mut eventForParsing: Value = self.safe_dict_k(&response, "event", &[response.clone().map_or(Value::Null, Value::Dict)]);
-        if (eventForParsing == Value::Null) {
+        let mut eventForParsing: Option<crate::value::Dict> = self.safe_dict_k(&response, "event", &[response.clone().map_or(Value::Null, Value::Dict)]).into_opt_dict();
+        if (eventForParsing.is_none()) {
             eventForParsing = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
+    let mut m = indexmap::IndexMap::new();
+    m
+}).into_opt_dict();
         }
-        let mut event: crate::value::Dict = self.parse_event(eventForParsing).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(&eventForParsing).into_dict();
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null

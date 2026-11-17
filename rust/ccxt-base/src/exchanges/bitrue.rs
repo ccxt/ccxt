@@ -3225,7 +3225,7 @@ impl Bitrue {
             let mut paramsNoClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["newClientOrderId", "clientOrderId"], &[]) } else { params }).into_dict();
             let mut triggerPrice: Option<f64> = self.safe_number2(Value::from(&paramsNoClientOrderId), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
             if (triggerPrice.is_some()) {
-                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(triggerPrice))));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
             }
             let mut paramsSpot: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&paramsNoClientOrderId, &["triggerPrice", "stopPrice"], &[]).into_dict() } else { paramsNoClientOrderId });
             let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsSpot]);

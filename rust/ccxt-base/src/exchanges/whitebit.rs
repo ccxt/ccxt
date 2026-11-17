@@ -3960,7 +3960,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut useCollateralEndpoint: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("swap"));
         let mut response: Option<crate::value::Dict> = None;
         if isStopOrder {
-            request.insert("activation_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("activation_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
             if isLimitOrder {
                 // stop limit order
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
@@ -4059,12 +4059,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut isStopOrder: bool = triggerPrice.is_some();
         // Handle activation price for stop orders
         if isStopOrder {
-            request.insert("activation_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("activation_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
         }
         let mut isLimitOrder: bool = type_var.as_str() == Some("limit");
         let mut total: Option<f64> = self.safe_number_k(params.clone(), "total", &[]).as_f64();
         if (total.is_some()) {
-            request.insert("total".into(), Value::from(self.amount_to_precision(symbol.clone(), Value::from(total))));
+            request.insert("total".into(), Value::from(self.amount_to_precision(symbol.clone(), total)));
         }  else if (amount != Value::Null) {
             if isLimitOrder {
                 // Limit orders always use amount parameter

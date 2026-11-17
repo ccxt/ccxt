@@ -135,7 +135,7 @@ impl Aster {
             "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "un_watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("un_watch_bids_asks", args.to_vec()); crate::Value::Null },
             "un_watch_mark_price" => { crate::exchange_stubs::enqueue_spawn("un_watch_mark_price", args.to_vec()); crate::Value::Null },
@@ -2067,7 +2067,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         self.authenticate(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarketType)]).await;
         let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
+        self.set_balance_cache(client.as_value(), typeMarketType.as_deref().unwrap_or_default());
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
@@ -2081,7 +2081,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }).await?))
     }
 
-    pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value) {
+    pub fn set_balance_cache(&mut self, mut client: Value, type_var: &str) {
+        let mut type_var: Value = type_var.into();
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         if (__ch.has_subscription(&type_var)) && (matches!((&self.balance, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
@@ -2497,7 +2498,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
         let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
+        self.set_balance_cache(client.as_value(), typeMarketType.as_deref().unwrap_or_default());
         let mut orders: Value = self.watch_multiple(url.as_deref(), Value::from(vec![Value::from(messageHash)]), Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)]), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -2556,7 +2557,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
         let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
+        self.set_balance_cache(client.as_value(), typeMarketType.as_deref().unwrap_or_default());
         let mut trades: Value = self.watch_multiple(url.as_deref(), Value::from(vec![Value::from(messageHash)]), Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)]), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -2853,8 +2854,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut messageInner: Value = self.safe_dict_k(message.clone(), "data", &[message.clone()]); // can be either wrapped in 'data' or full object itself
-        let mut event: Option<String> = self.safe_string_k_opt(messageInner.clone(), "e", &[]);
+        let mut messageInner: Option<crate::value::Dict> = self.safe_dict_k(message.clone(), "data", &[message.clone()]).into_opt_dict(); // can be either wrapped in 'data' or full object itself
+        let mut event: Option<String> = self.safe_string_k_opt(&messageInner, "e", &[]);
         let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("24hrTicker".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -2871,7 +2872,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         });
         let mut method: Option<String> = (if (event.is_none()) { None } else { self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned) });
         if (method.is_some()) {
-            self.dispatch_ws_handler(&method, &[client, messageInner]);
+            self.dispatch_ws_handler(&method, &[client, messageInner.map_or(Value::Null, Value::Dict)]);
         }
 }
 }

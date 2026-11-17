@@ -4590,8 +4590,8 @@ impl Coinbaseinternational {
         }
         if useEddsa {
             let mut byteArray: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
-            let mut seed: Value = self.array_slice(Value::from(&byteArray), Value::Int(0), &[Value::Int(32)]);
-            return Value::from(jwt(&request, seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({
+            let mut seed: crate::value::Bytes = crate::value::Bytes(std::sync::Arc::new(byteArray.0.iter().take(32).cloned().collect()));
+            return Value::from(jwt(&request, &seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("kid".to_string(), self.apiKey.clone());
         m.insert("nonce".to_string(), Value::from(nonce.as_str()));

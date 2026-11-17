@@ -1198,14 +1198,14 @@ impl Bitget {
             })]);
         }
         let mut channel: String = "books".to_string();
-        let mut limit: Value = self.safe_integer_k(paramsRequest.clone(), "limit", &[]);
-        let mut isFixedDepth: bool = (limit.as_f64() == Some(1.0)) || (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(15.0)) || (limit.as_f64() == Some(50.0));
+        let mut limit: Option<i64> = self.safe_integer_k(paramsRequest.clone(), "limit", &[]).as_i64();
+        let mut isFixedDepth: bool = (limit == Some(1)) || (limit == Some(5)) || (limit == Some(15)) || (limit == Some(50));
         let mut paramsOmitted: Value = paramsRequest.clone();
         if isFixedDepth {
             paramsOmitted = self.omit(paramsRequest, Value::Str("limit".into()), &[]);
         }
         if isFixedDepth {
-            channel.push_str(&(Value::Str(format!("{}", limit).into())).to_string());
+            channel.push_str(&(Value::Str((match limit { Some(__n) => __n.to_string(), None => "null".to_string() }).into())).to_string());
         }
         return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channel.as_str(), "orderbook", "watchOrderBook", &[paramsOmitted]).await;
         Value::Null

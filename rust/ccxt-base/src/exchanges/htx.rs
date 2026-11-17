@@ -5632,7 +5632,8 @@ impl Htx {
     Value::Null
 }
 
-    pub fn cost_to_precision(&self, mut symbol: Value, mut cost: Value) -> Option<String> {
+    pub fn cost_to_precision(&self, mut symbol: Value, cost: impl Into<crate::Value>) -> Option<String> {
+        let mut cost: Value = cost.into();
         return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone()]).as_str().map(str::to_owned);
 }
 
@@ -9015,7 +9016,7 @@ impl Htx {
             let mut quoteAmount: Option<String> = None;
             let mut createMarketBuyOrderRequiresPrice: Option<bool> = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
             if (cost.is_some()) {
-                quoteAmount = self.amount_to_precision(symbol.clone(), Value::from(cost));
+                quoteAmount = self.amount_to_precision(symbol.clone(), cost);
             }  else if (createMarketBuyOrderRequiresPrice == Some(true)) {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -9129,10 +9130,10 @@ impl Htx {
             // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
             if (stopLoss.is_some()) {
                 if (stopLossTriggerPriceAttached.is_some()) {
-                    request.insert("sl_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPriceAttached))));
+                    request.insert("sl_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossTriggerPriceAttached)));
                 }
                 if (stopLossOrderPrice.is_some()) {
-                    request.insert("sl_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossOrderPrice))));
+                    request.insert("sl_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossOrderPrice)));
                 }
                 if (stopLossType.is_some()) {
                     request.insert("sl_type".into(), stopLossType.map(Value::from).unwrap_or(Value::Null));
@@ -9141,10 +9142,10 @@ impl Htx {
             }
             if (takeProfit.is_some()) {
                 if (takeProfitTriggerPriceAttached.is_some()) {
-                    request.insert("tp_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPriceAttached))));
+                    request.insert("tp_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitTriggerPriceAttached)));
                 }
                 if (takeProfitOrderPrice.is_some()) {
-                    request.insert("tp_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitOrderPrice))));
+                    request.insert("tp_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitOrderPrice)));
                 }
                 if (takeProfitType.is_some()) {
                     request.insert("tp_type".into(), takeProfitType.map(Value::from).unwrap_or(Value::Null));
@@ -9183,7 +9184,7 @@ impl Htx {
             }
         }
         if isTrigger {
-            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
             if isLinear {
                 request.insert("type".into(), Value::Str("trigger".into()));
                 if (price != Value::Null) {
@@ -9203,7 +9204,7 @@ impl Htx {
                 }  else {
                     request.insert("type".into(), Value::Str("sl".into()));
                 }
-                request.insert("sl_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice))));
+                request.insert("sl_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossTriggerPrice)));
                 if (price != Value::Null) {
                     request.insert("sl_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 }
@@ -9213,7 +9214,7 @@ impl Htx {
                 }  else {
                     request.insert("type".into(), Value::Str("tp".into()));
                 }
-                request.insert("tp_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice))));
+                request.insert("tp_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitTriggerPrice)));
                 if (price != Value::Null) {
                     request.insert("tp_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 }

@@ -778,7 +778,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
                 m
             }), &[params.clone()]).into_dict();
             let mut paramsKeys: Vec<Value> = Value::Array(requestParams.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-            let mut strSortKey: Value = self.params_to_string(&requestParams, Value::Int(0));
+            let mut strSortKey: String = self.params_to_string(&requestParams, Value::Int(0));
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, nonce.as_deref().unwrap_or("null")).into()), self.apiKey.clone()).into()), strSortKey).into()), nonce.as_deref().unwrap_or("null"));
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut paramsKeysLength: i64 = paramsKeys.len() as i64;
@@ -881,7 +881,7 @@ impl crate::exchange_generated::ExchangeBase for Cryptocom {
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
-                "params_to_string" => self.params_to_string(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "params_to_string" => crate::Value::from(self.params_to_string(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_address" => self.parse_address(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2464,17 +2464,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if (symbols != Value::Null) {
-            let mut symbol: Value = Value::Null;
+            let mut symbol: Option<String> = None;
             if (matches!(&symbols, Value::Arr(_))) {
                 let mut symbolsLength: i64 = symbols.len() as i64;
                 if symbolsLength > 1 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchTickers() symbols argument cannot contain more than 1 symbol")));
                 }
-                symbol = self.safe_string(symbols.clone(), Value::Int(0), &[]);
+                symbol = self.safe_string_opt(symbols.clone(), Value::Int(0), &[]);
             }  else {
-                symbol = symbols.clone();
+                symbol = None;
             }
-            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -3100,14 +3100,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }  else {
                 request.insert("type".into(), Value::Str("STOP_LOSS".into()));
             }
-            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))));
+            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice)));
         }  else if isTakeProfitTrigger {
             if (uppercaseType == "LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
                 request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
             }  else {
                 request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
             }
-            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitPrice))));
+            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol, takeProfitPrice)));
         }  else {
             request.insert("type".into(), Value::from(uppercaseType));
         }
@@ -3396,7 +3396,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsCreateMarketBuy), Value::Str("cost".into()), Value::Str("notional".into()), &[]).as_f64();
             paramsMarketBuy = self.omit(&paramsCreateMarketBuy, Value::Str("cost".into()), &[]).into_dict();
             if (cost.is_some()) {
-                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
+                quoteAmount = self.cost_to_precision(symbol.clone(), cost);
             }  else if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
@@ -4980,17 +4980,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
-            let mut symbol: Value = Value::Null;
+            let mut symbol: Option<String> = None;
             if (symbolsNormalized.is_some()) {
                 let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
                 if symbolsLength > 1 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchPositions() symbols argument cannot contain more than 1 symbol")));
                 }
-                symbol = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null);
+                symbol = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).and_then(Value::as_str).map(str::to_owned);
             }  else {
-                symbol = symbolsNormalized.map_or(Value::Null, Value::Arr);
+                symbol = None;
             }
-            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
@@ -5040,17 +5040,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
 
 
-    pub fn params_to_string(&self, object: impl Into<crate::Value>, mut level: Value) -> Value {
+    pub fn params_to_string(&self, object: impl Into<crate::Value>, mut level: Value) -> String {
         let mut object: Value = object.into();
         let mut maxLevel: i64 = 3;
         let mut depth: Option<i64> = self.parse_to_int(level);
         if depth >= Some(maxLevel) {
-            return to_string_val(&object);
+            return to_string_val(&object).as_str().unwrap_or_default().to_owned();
         }
         if matches!(&object, Value::Str(_)) {
-            return object;
+            return object.as_str().unwrap_or_default().to_owned();
         }
-        let mut returnString: Value = Value::Str("".into());
+        let mut returnString: String = "".to_string();
         let mut paramsKeys: Value = Value::Null;
         if (matches!(&object, Value::Arr(_))) {
             paramsKeys = object.clone();
@@ -5063,26 +5063,24 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_602: bool = true;
             while { if !__for_first_602 { i += 1; } __for_first_602 = false; i < (paramsKeys.len() as i64) } {
             let mut key: String = self.safe_string(paramsKeys.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            returnString = Value::Str(format!("{}{}", returnString, key).into());
+            returnString.push_str(&key);
             let mut value: Value = get_value(&object, key.as_str());
             if (value.as_str() == Some("undefined")) {
-                returnString = Value::Str(format!("{}{}", returnString, "null").into());
+                returnString.push_str("null");
             }  else if (matches!(&value, Value::Arr(_))) {
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_601: bool = true;
                     while { if !__for_first_601 { j += 1; } __for_first_601 = false; j < (value.len() as i64) } {
-                    returnString = Value::Str(format!("{}{}", returnString, self.params_to_string(value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), Value::from((if let Some(__l) = depth { Some(__l + 1) } else { None })))).into());
+                    returnString.push_str(&self.params_to_string(value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), Value::from((if let Some(__l) = depth { Some(__l + 1) } else { None }))));
                 }
                 }
             }  else {
-                returnString = Value::Str(format!("{}{}", returnString, to_string_val(&value)).into());
+                returnString.push_str(&(to_string_val(&value)).to_string());
             }
         }
         }
         return returnString;
-
-    Value::Null
 }
 
 /*

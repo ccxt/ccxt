@@ -7598,14 +7598,14 @@ impl Kucoin {
         paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"], &[]).into_dict();
         if isTriggerOrder {
             if (triggerPrice.is_some()) {
-                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
             }  else if (stopLossPrice.is_some()) || (takeProfitPrice.is_some()) {
                 if (stopLossPrice.is_some()) {
                     request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("entry".into()) } else { Value::Str("loss".into()) }));
-                    request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))));
+                    request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice)));
                 }  else {
                     request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("loss".into()) } else { Value::Str("entry".into()) }));
-                    request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitPrice))));
+                    request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, takeProfitPrice)));
                 }
             }
             if (marginMode.as_deref() == Some("isolated")) {
@@ -7803,7 +7803,7 @@ impl Kucoin {
         paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"], &[]).into_dict();
         if (triggerPrice.is_some()) {
             request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("up".into()) } else { Value::Str("down".into()) }));
-            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
             request.insert("stopPriceType".into(), Value::from(triggerPriceTypeValue.as_deref()));
         }  else if hasStopLoss || hasTakeProfit {
             let mut priceType: Option<String> = triggerPriceTypeValue.clone();
@@ -7823,10 +7823,10 @@ impl Kucoin {
         }  else if (stopLossPrice.is_some()) || (takeProfitPrice.is_some()) {
             if (stopLossPrice.is_some()) {
                 request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("up".into()) } else { Value::Str("down".into()) }));
-                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice)));
             }  else {
                 request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("down".into()) } else { Value::Str("up".into()) }));
-                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice))));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice)));
             }
             request.insert("reduceOnly".into(), Value::Bool(true));
             request.insert("stopPriceType".into(), triggerPriceTypeValue.map(Value::from).unwrap_or(Value::Null));
@@ -8075,7 +8075,7 @@ impl Kucoin {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice")));
             }
             request.insert("triggerDirection".into(), (if (triggerDirection.as_deref() == Some("ascending")) { Value::Str("UP".into()) } else { Value::Str("DOWN".into()) }));
-            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice)));
         }  else if hasStopLoss || hasTakeProfit {
             if (isContract != true) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() stopLoss and takeProfit parameters are only supported for contract orders")));
@@ -8095,14 +8095,14 @@ impl Kucoin {
         }  else if (stopLossPrice.is_some()) || (takeProfitPrice.is_some()) {
             if (stopLossPrice.is_some()) {
                 request.insert("triggerDirection".into(), (if (side.as_str() == Some("buy")) { Value::Str("UP".into()) } else { Value::Str("DOWN".into()) }));
-                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))));
+                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice)));
                 if (isContract == true) {
                     let mut stopLossPriceType: String = self.safe_string2(&paramsOmitted, Value::Str("stopLossPriceType".into()), Value::Str("triggerPriceType".into()), &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("triggerPriceType".into(), self.safe_string(&triggerPriceTypes, Value::from(stopLossPriceType.clone()), &[Value::from(stopLossPriceType)]));
                 }
             }  else {
                 request.insert("triggerDirection".into(), (if (side.as_str() == Some("buy")) { Value::Str("DOWN".into()) } else { Value::Str("UP".into()) }));
-                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitPrice))));
+                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, takeProfitPrice)));
                 if (isContract == true) {
                     let mut takeProfitPriceType: String = self.safe_string2(&paramsOmitted, Value::Str("takeProfitPriceType".into()), Value::Str("triggerPriceType".into()), &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("triggerPriceType".into(), self.safe_string(&triggerPriceTypes, Value::from(takeProfitPriceType.clone()), &[Value::from(takeProfitPriceType)]));

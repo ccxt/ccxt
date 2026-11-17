@@ -160,7 +160,7 @@ impl Gate {
             "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "request_id" => crate::Value::from(self.request_id()),
             "request_private" => { crate::exchange_stubs::enqueue_spawn("request_private", args.to_vec()); crate::Value::Null },
-            "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
+            "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]); crate::Value::Null },
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
             "subscribe_public" => { crate::exchange_stubs::enqueue_spawn("subscribe_public", args.to_vec()); crate::Value::Null },
             "subscribe_public_multiple" => { crate::exchange_stubs::enqueue_spawn("subscribe_public_multiple", args.to_vec()); crate::Value::Null },
@@ -1130,13 +1130,13 @@ impl Gate {
 })])));
         let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
         if (nonce.is_none()) {
-            let mut cacheLength: Option<i64> = self.parse_to_int(Value::Int(0));
+            let mut cacheLength: Option<i64> = Some(0);
             if (storedOrderBook.is_some()) {
                 let mut storedCacheLength: Value = get_array_length(&storedOrderBook.book_field("cache"));
                 cacheLength = self.parse_to_int(storedCacheLength);
             }
             let mut snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(10)]));
-            let mut waitAmount: Option<i64> = self.parse_to_int(Value::Int(0));
+            let mut waitAmount: Option<i64> = Some(0);
             if isSpot {
                 waitAmount = snapshotDelay;
             }
@@ -2229,7 +2229,7 @@ impl Gate {
         let mut isInverse: bool = subType.as_deref() == Some("inverse");
         let mut url: Option<String> = self.get_url_by_market_type(type_var.as_deref(), &[Value::Bool(isInverse)]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
+        self.set_positions_cache(client.as_value(), type_var.as_deref().unwrap_or_default(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&type_var);
@@ -2245,7 +2245,8 @@ impl Gate {
         }).await?))
     }
 
-    pub fn set_positions_cache(&mut self, mut client: Value, mut type_var: Value, optional_args: &[Value]) {
+    pub fn set_positions_cache(&mut self, mut client: Value, type_var: &str, optional_args: &[Value]) {
+        let mut type_var: Value = type_var.into();
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         if (self.positionsByType.has(&type_var)) {

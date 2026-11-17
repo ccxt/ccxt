@@ -2422,9 +2422,9 @@ impl Bullish {
         if (method.as_str() != Some("fetchOHLCV")) && (method.as_str() != Some("fetchFundingRateHistory")) && (method.as_str() != Some("fetchTrades")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " safeDeterministicCall() does not support the ").into()), method).into()), " method")));
         }
-        let mut errors: Option<i64> = self.parse_to_int(Value::Int(0));
+        let mut errors: i64 = 0;
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMaxRetries, Value::Str("until".into()), &[]).into_dict();
-        while (errors.is_some() && maxRetries.is_some() && errors <= maxRetries) {
+        while Some(errors) <= maxRetries {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 if (method.as_str() == Some("fetchOHLCV")) {
                     return crate::types::IntoRaw::into_raw(self.fetch_ohlcv(symbol.as_str().unwrap_or_default(), timeframe.as_str(), since.as_i64(), limit.as_i64(), Value::from(&paramsOmitted)).await);
@@ -2438,8 +2438,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if e.names("RateLimitExceeded") {
                     panic!("{}", e);
                 }
-                errors = self.parse_to_int(Value::from((if let Some(__l) = errors { Some(__l + 1) } else { None })));
-                if (errors.is_some() && maxRetries.is_some() && errors > maxRetries) {
+                errors = (errors + 1);
+                if (maxRetries.is_some() && Some(errors) > maxRetries) {
                     panic!("{}", e);
                 }
              } }

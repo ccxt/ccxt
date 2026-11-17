@@ -5418,8 +5418,8 @@ if _try_result.is_err() {
         let mut message: Option<String> = self.prepare_message(header, payload);
         let mut messageBytes: crate::value::Bytes = self.encode(message.map(Value::from).unwrap_or(Value::Null));
         let mut secretBytes: crate::value::Bytes = self.base58_to_binary(privateKey, &[]);
-        let mut seed: Value = self.array_slice(Value::from(&secretBytes), Value::Int(0), &[Value::Int(32)]);
-        let mut signatureBase64: String = eddsa(&messageBytes, seed, Value::Str("ed25519".into()));
+        let mut seed: crate::value::Bytes = crate::value::Bytes(std::sync::Arc::new(secretBytes.0.iter().take(32).cloned().collect()));
+        let mut signatureBase64: String = eddsa(&messageBytes, &seed, Value::Str("ed25519".into()));
         let mut signatureBinary: crate::value::Bytes = self.base64_to_binary(Value::from(signatureBase64), &[]);
         let mut signatureBase58: Value = Value::from(self.binary_to_base58(&signatureBinary, &[]));
         return signatureBase58.as_str().map(str::to_owned);

@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..]).await,
-                "create_public_request" => self.create_public_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
+                "create_public_request" => self.create_public_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -102,7 +102,7 @@ impl Deepcoin {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "create_public_request" => self.create_public_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
+            "create_public_request" => self.create_public_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]),
             "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => { self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -280,7 +280,8 @@ impl Deepcoin {
         return newValue;
 }
 
-    pub fn create_public_request(&self, market: Option<&crate::types::Market>, mut requestId: Value, mut topicID: Value, optional_args: &[Value]) -> Value {
+    pub fn create_public_request(&self, market: Option<&crate::types::Market>, mut requestId: Value, topicID: &str, optional_args: &[Value]) -> Value {
+        let mut topicID: Value = topicID.into();
         let mut suffix = get_arg(optional_args, 0, Value::Str("".into()));
         let unWatch: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
         let mut marketId: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string(); // spot markets use symbol with slash
@@ -311,7 +312,6 @@ impl Deepcoin {
 
     pub async fn watch_public(&mut self, market: Option<&crate::types::Market>, messageHash: &str, topicID: &str, optional_args: &[Value]) -> Value {
         let mut messageHash: Value = messageHash.into();
-        let mut topicID: Value = topicID.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -335,7 +335,6 @@ impl Deepcoin {
 
     pub async fn un_watch_public(&mut self, market: Option<&crate::types::Market>, messageHash: &str, topicID: &str, optional_args: &[Value]) -> Value {
         let mut messageHash: Value = messageHash.into();
-        let mut topicID: Value = topicID.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

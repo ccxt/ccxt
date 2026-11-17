@@ -1719,8 +1719,8 @@ impl P2b {
         }
         let mut untilParam: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
-        let mut until: Option<i64> = self.parse_to_int(Value::Int(0));
-        let mut sinceResolved: Option<i64> = self.parse_to_int(Value::Int(0));
+        let mut until: Option<i64> = Some(0);
+        let mut sinceResolved: Option<i64> = Some(0);
         if (untilParam.is_some()) {
             until = self.parse_to_int(Value::from(untilParam));
             if (since != Value::Null) {
@@ -1729,7 +1729,7 @@ impl P2b {
                 }
                 sinceResolved = self.parse_to_int(since.clone());
             }  else {
-                sinceResolved = self.parse_to_int(Value::from((if let Some(__l) = untilParam { Some(__l - 86400000) } else { None })));
+                sinceResolved = (if let Some(__l) = untilParam { Some(__l - 86400000) } else { None });
             }
         }  else if (since != Value::Null) {
             until = self.parse_to_int((match (&(since), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
@@ -1737,7 +1737,7 @@ impl P2b {
         }  else {
             let mut now: i64 = self.milliseconds();
             until = self.parse_to_int(Value::from(now));
-            sinceResolved = self.parse_to_int(Value::Int((now - 86400000)));
+            sinceResolved = Some((now - 86400000));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut sinceSec: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = sinceResolved { Some((__l as f64) / 1000.0) } else { None })));
@@ -1827,8 +1827,8 @@ impl P2b {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut until: Option<i64> = self.parse_to_int(Value::Int(0));
-        let mut sinceResolved: Option<i64> = self.parse_to_int(Value::Int(0));
+        let mut until: Option<i64> = Some(0);
+        let mut sinceResolved: Option<i64> = Some(0);
         if (untilParam.is_some()) {
             until = self.parse_to_int(Value::from(untilParam));
             if (since != Value::Null) {
@@ -1837,7 +1837,7 @@ impl P2b {
                 }
                 sinceResolved = self.parse_to_int(since.clone());
             }  else {
-                sinceResolved = self.parse_to_int(Value::from((if let Some(__l) = untilParam { Some(__l - 86400000) } else { None })));
+                sinceResolved = (if let Some(__l) = untilParam { Some(__l - 86400000) } else { None });
             }
         }  else if (since != Value::Null) {
             until = self.parse_to_int((match (&(since), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
@@ -1845,7 +1845,7 @@ impl P2b {
         }  else {
             let mut now: i64 = self.milliseconds();
             until = self.parse_to_int(Value::from(now));
-            sinceResolved = self.parse_to_int(Value::Int((now - 86400000)));
+            sinceResolved = Some((now - 86400000));
         }
         let mut sinceSec: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = sinceResolved { Some((__l as f64) / 1000.0) } else { None })));
         let mut untilSec: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })));

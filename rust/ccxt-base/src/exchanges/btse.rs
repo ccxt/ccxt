@@ -4639,8 +4639,8 @@ impl Btse {
         //
         // the response is a bare array of position rows
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
-        return self.parse_positions(rows, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut rows: Option<crate::value::List> = self.safe_list_k(response.clone(), "data", &[response.clone()]).into_opt_list();
+        return self.parse_positions(&rows, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

@@ -1193,8 +1193,8 @@ impl crate::exchange::DerivedExchange for Backpack {
                 payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instruction=", instruction).into()), "&").into()), queryString).into()), "timestamp=").into()), ts.as_deref().unwrap_or("null")).into()), "&window=").into()), recvWindow).into());
             }
             let mut secretBytes: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
-            let mut seed: Value = self.array_slice(Value::from(&secretBytes), Value::Int(0), &[Value::Int(32)]);
-            let mut signature: String = eddsa(self.encode(payload), seed, Value::Str("ed25519".into()));
+            let mut seed: crate::value::Bytes = crate::value::Bytes(std::sync::Arc::new(secretBytes.0.iter().take(32).cloned().collect()));
+            let mut signature: String = eddsa(self.encode(payload), &seed, Value::Str("ed25519".into()));
             headersSigned = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Timestamp".to_string(), ts.map(Value::from).unwrap_or(Value::Null));
