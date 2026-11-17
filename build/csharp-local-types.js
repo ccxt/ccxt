@@ -7370,7 +7370,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             if (parent.left === n) {
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
-                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context);
+                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context) ?? nullSeedStringConcatWriteType90c4 (csharp, declaration, parent.right, context);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
@@ -11478,7 +11478,9 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
     if (scan !== undefined) {
         // only a declaration that prints with no cast: its initializer is already a string-or-null call
         const own = (scan.declaration.initializer?.kind === ts.SyntaxKind.CallExpression) ? callReturnType (csharp, scan.declaration.initializer) : undefined;
-        if (own !== 'string?' && own !== 'string') {
+        // ral-90c4 R1: a null seed (`let x: Str = undefined`) prints `string? x = null;`, also with no cast;
+        // every write is checked by the rest of the retype scan, so its box is a string or null
+        if (own !== 'string?' && own !== 'string' && !nullSeedGuardedConcat90c4 (scan.declaration)) {
             return false;
         }
     }
@@ -11489,6 +11491,71 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
         guardedConcatReads.add (n);
     }
     return ok;
+}
+
+// ral-90c4 R4 use gate: the seed is compared `===` / `!==` with a string literal somewhere in its function
+// (`(x is "lit")` on object becomes the native `x == "lit"` once typed)
+function nullSeedLiteralCompare90c4 (declaration) {
+    const name = declaration.name.text;
+    const scope = enclosingFunction (declaration);
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.BinaryExpression && (n.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken || n.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken)) {
+            const l = stripParens (n.left);
+            const r = stripParens (n.right);
+            const isName = (x) => x?.kind === ts.SyntaxKind.Identifier && x.text === name;
+            const isLit = (x) => x?.kind === ts.SyntaxKind.StringLiteral && x.text.length > 0 && !/^[-+.0-9]|^(NaN|Infinity)$/.test (x.text);
+            if ((isName (l) && isLit (r)) || (isName (r) && isLit (l))) {
+                found = true;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
+    return found;
+}
+
+// ral-90c4 R4: a write `x = a + r1 + …` into a Str null seed whose leftmost leaf `a` is a local the classifier
+// types `string` / `string?`: the left leaf selects add(string, *) / the native `+` / the printer's null guard
+// `(a == null ? null : a + …)`, all of static type string, so the write needs no cast and the value is the
+// same text the `object` declaration received
+function nullSeedStringConcatWriteType90c4 (csharp, declaration, node, context) {
+    if (!nullSeedGuardedConcat90c4 (declaration) || !nullSeedLiteralCompare90c4 (declaration)) {
+        return undefined;
+    }
+    let base = stripParens (node);
+    if (base?.kind !== ts.SyntaxKind.BinaryExpression || base.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    while (base?.kind === ts.SyntaxKind.BinaryExpression && base.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        base = stripParens (base.left);
+    }
+    if (base?.kind !== ts.SyntaxKind.Identifier || isSelfRead (csharp, base, declaration)) {
+        return undefined;
+    }
+    const target = resolveReference (csharp, base);
+    if (target?.kind !== ts.SyntaxKind.VariableDeclaration) {
+        return undefined;
+    }
+    const leaf = localIdentifierType (csharp, base);
+    return (leaf === 'string' || leaf === 'string?') ? 'string' : undefined;
+}
+
+// ral-90c4 R1: `let x: Str = undefined` / `let x: string = undefined` (TS annotation only names the
+// string family; the writes still go through the retype scan)
+function nullSeedGuardedConcat90c4 (declaration) {
+    // signatures belong to lane 90c1: inside the call-site parameter proof the seed stays `object`
+    if (c5ParameterProofDepth > 0 || !isNullInit (declaration) || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const t = declaration.type;
+    const isStr = (n) => n?.kind === ts.SyntaxKind.StringKeyword || (n?.kind === ts.SyntaxKind.TypeReference && n.typeName?.kind === ts.SyntaxKind.Identifier && n.typeName.text === 'Str');
+    return isStr (t);
 }
 
 // the initializer predicates of the `string?` -> `string` retries in csharpLocalTypeOf
@@ -13068,13 +13135,61 @@ function typeofStringGuardName (condition) {
     return (literal === 'string') ? subject : undefined;
 }
 
+// ral-90c4 R2: `const isString = (typeof x === 'string'); … if (isString) { y = x; }`: the alias is a
+// single const of the enclosing function declared before the test, and x is never written in that
+// function, so the then-branch holds the same string box the direct guard proves
+function typeofStringAliasGuardName90c4 (condition) {
+    const alias = stripParens (condition);
+    if (alias?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const scope = enclosingFunction (alias);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const declarations = [];
+    let subjectWritten = false;
+    let subject;
+    const collect = (node) => {
+        if (node.kind === ts.SyntaxKind.VariableDeclaration && node.name?.kind === ts.SyntaxKind.Identifier && node.name.text === alias.text) {
+            declarations.push (node);
+        }
+        node.forEachChild (collect);
+    };
+    collect (scope);
+    const declaration = declarations[0];
+    if (declarations.length !== 1 || (declaration.parent?.flags & ts.NodeFlags.Const) === 0 || declaration.getEnd () > alias.getStart ()) {
+        return undefined;
+    }
+    subject = typeofStringGuardName (stripParens (declaration.initializer));
+    if (subject === undefined) {
+        return undefined;
+    }
+    const writes = (node) => {
+        if (node.kind === ts.SyntaxKind.BinaryExpression && node.left?.kind === ts.SyntaxKind.Identifier && node.left.text === subject
+                && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            subjectWritten = true;
+        }
+        if ((node.kind === ts.SyntaxKind.PrefixUnaryExpression || node.kind === ts.SyntaxKind.PostfixUnaryExpression) && node.operand?.kind === ts.SyntaxKind.Identifier && node.operand.text === subject) {
+            subjectWritten = true;
+        }
+        if (node.kind === ts.SyntaxKind.ArrayLiteralExpression && node.parent?.kind === ts.SyntaxKind.BinaryExpression && node.parent.left === node
+                && node.elements.some ((e) => e.kind === ts.SyntaxKind.Identifier && e.text === subject)) {
+            subjectWritten = true;
+        }
+        node.forEachChild (writes);
+    };
+    writes (scope);
+    return subjectWritten ? undefined : subject;
+}
+
 // the identifier a `typeof <id> === 'string'` then-branch narrows, or undefined
 function narrowedCopyNodeName (node) {
     let current = node?.parent;
     while (current !== undefined && current.kind !== ts.SyntaxKind.FunctionLikeDeclaration) {
         if (current.kind === ts.SyntaxKind.IfStatement && current.thenStatement !== undefined
                 && current.thenStatement.getStart () <= node.getStart () && node.getEnd () <= current.thenStatement.getEnd ()) {
-            const name = typeofStringGuardName (current.expression);
+            const name = typeofStringGuardName (current.expression) ?? typeofStringAliasGuardName90c4 (current.expression);
             if (name !== undefined) {
                 return name;
             }

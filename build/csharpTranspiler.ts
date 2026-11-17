@@ -8694,7 +8694,7 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...copyLocalSnippetChecks87c5 () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...copyLocalSnippetChecks87c5 () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12887,6 +12887,27 @@ export function nullSeedNativeStringChecks87c4 (): string[] {
     // R4: `let p = undefined; p = this.safeDict (o, 1, {}); … p = this.omit (p, k)` is IDictionary, so the omit binds the dict overload
     const r4 = print ('safeDict (o, k, d = undefined) { return d; }\n omit (o, k) { return o; }\n f (o) { let p = undefined; p = this.safeDict (o, 1, {}); if (o) { p = this.omit (p, \'a\'); } return p; }');
     if (!r4.includes ('IDictionary<string, object> p = null;')) problems.push (`87c4 R4 null-seed self-omit: ${r4.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// ral-90c4 snippet checks (part of `csharpTranspiler.ts --self-test`)
+export function nullSeedChecks90c4 (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string } };
+    const pre = 'type Str = string | undefined;\nclass Test {\n signed (a: Str): Str { if (a === undefined) { return undefined; } return \'-\' + a; }\n';
+    const print = (body: string) => emit.transpileCSharp (pre + body + '\n}').content;
+    // R1: a `Str` null seed read as the LEFT of `+` keeps the printer's guarded concat, typed string?, no ((object)..) box
+    const r1 = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = \'p\'; } x += \'?\' + a; return x; }');
+    if (!r1.includes ('string? x = null;') || r1.includes ('((object)(x == null')) problems.push (`90c4 R1 null-seed guarded concat: ${r1.replace (/\n/g, ' | ').slice (-400)}`);
+    // R2: a `typeof r === 'string'` const alias guards the copy `x = r` like the direct test, so the receiver prints natively
+    const r2 = print ('f (r) { let x: Str = undefined; const isString = (typeof r === \'string\'); if (isString) { x = r; } else { x = this.signed (\'a\'); } const u = (x as string).toUpperCase (); return u; }');
+    if (!r2.includes ('string? x = null;') || !r2.includes ('x = ((string)r);')) problems.push (`90c4 R2 typeof alias copy: ${r2.replace (/\n/g, ' | ').slice (-400)}`);
+    // R4: a concat write whose left leaf is a typed string local, into a seed compared with a string literal: native ==
+    const r4 = print ('safeString (o, k, d = undefined): Str { return d; }\n f (o) { let x: Str = undefined; const a = this.safeString (o, 4); const b = this.safeString (o, 5); if (a === \'limit\') { x = a; } else { x = a + \' \' + b; } if (x === \'stop loss\') { return 1; } return 0; }');
+    if (!r4.includes ('string? x = null;') || !r4.includes ('x == "stop loss"')) problems.push (`90c4 R4 concat write: ${r4.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
 
