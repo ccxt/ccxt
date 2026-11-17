@@ -346,19 +346,19 @@ export default class bitflyer extends Exchange {
                 const splitId = (id as string).split (currencyIds as string);
                 const expiryDate = this.safeString (splitId, 1);
                 if (expiryDate === undefined) {
-                    return undefined;
+                    return {} as Market;
                 }
                 expiry = this.parseExpiryDate (expiryDate);
             }
             if (expiry === undefined) {
-                return undefined;
+                return {} as Market;
             }
             type = 'future';
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         if ((base === undefined) || (quote === undefined)) {
-            return undefined;
+            return {} as Market;
         }
         let symbol = base + '/' + quote;
         let taker = this.safeNumber (this.fees['trading'], 'taker');
