@@ -871,111 +871,115 @@ public partial class bitfinex : Exchange
         List<object> futuresMarketsInfo = this.safeList(response, 1, new List<object>() {});
         List<object> marginIds = this.safeList(response, 3, new List<object>() {});
         List<object> markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        List<object> result = new List<object>() {};
-        for (int i = 0; i < (markets?.Count ?? 0); i++)
+        this.options["marginIds"] = marginIds;
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
+    }
+
+    public override Dictionary<string, object> parseMarket(object pairObj)
+    {
+        //
+        //     [ 'AAVE:USD', [ null, null, null, "0.02", "5000.0", null, null, null, null, null, null, null ] ]
+        //
+        List<object> marginIds = this.safeList(this.options, "marginIds", new List<object>() {});
+        string? id = this.safeStringUpper(pairObj, 0, "");
+        List<object> market = this.safeList(pairObj, 1, new List<object>() {});
+        bool spot = true;
+        string? type = null;
+        if (id.IndexOf("F0", StringComparison.Ordinal) >= 0)
         {
-            List<object> pairObj = this.safeList(markets, i);
-            string? id = this.safeStringUpper(pairObj, 0, "");
-            List<object> market = this.safeList(pairObj, 1, new List<object>() {});
-            bool spot = true;
-            string? type = null;
-            if (id.IndexOf("F0", StringComparison.Ordinal) >= 0)
-            {
-                spot = false;
-                type = "swap";
-            } else
-            {
-                type = "spot";
-            }
-            bool swap = type == "swap";
-            object baseId = null;
-            object quoteId = null;
-            if (id.IndexOf(":", StringComparison.Ordinal) >= 0)
-            {
-                List<object> parts = id.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
-                baseId = (parts != null && 0 < parts.Count ? parts[0] : null);
-                quoteId = (parts != null && 1 < parts.Count ? parts[1] : null);
-            } else
-            {
-                baseId = ((id == null) ? null : id.Substring(0, Math.Min(3, id.Length)));
-                quoteId = ((id == null) ? null : id.Substring(Math.Min(3, id.Length), Math.Min(6, id.Length) - Math.Min(3, id.Length)));
-            }
-            string? bs = this.safeCurrencyCode(baseId);
-            string? quote = this.safeCurrencyCode(quoteId);
-            List<object> splitBase = bs.Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
-            List<object> splitQuote = quote.Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
-            bs = this.safeString(splitBase, 0);
-            quote = this.safeString(splitQuote, 0);
-            if (((bs == null)) || ((quote == null)))
-            {
-                continue;
-            }
-            string symbol = ((bs + "/") + quote);
-            // baseId = 'f' + baseId;
-            // quoteId = 'f' + quoteId;
-            string? settle = null;
-            string? settleId = null;
-            if (swap)
-            {
-                settle = quote;
-                settleId = quote;
-                symbol = ((symbol + ":") + settle);
-            }
-            string? minOrderSizeString = this.safeString(market, 3);
-            string? maxOrderSizeString = this.safeString(market, 4);
-            result.Add(new Dictionary<string, object>() {
-                { "id", ("t" + id) },
-                { "symbol", symbol },
-                { "base", bs },
-                { "quote", quote },
-                { "settle", settle },
-                { "baseId", baseId },
-                { "quoteId", quoteId },
-                { "settleId", settleId },
-                { "type", type },
-                { "spot", spot },
-                { "margin", (spot && this.inArray(id, marginIds)) },
-                { "swap", swap },
-                { "future", false },
-                { "option", false },
-                { "active", true },
-                { "contract", !spot },
-                { "linear", swap ? true : null },
-                { "inverse", swap ? false : null },
-                { "maker", this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker") },
-                { "taker", this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker") },
-                { "contractSize", swap ? this.parseNumber("1") : null },
-                { "expiry", null },
-                { "expiryDatetime", null },
-                { "strike", null },
-                { "optionType", null },
-                { "precision", new Dictionary<string, object>() {
-                    { "amount", 8L },
-                    { "price", 5L },
-                } },
-                { "limits", new Dictionary<string, object>() {
-                    { "leverage", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minOrderSizeString) },
-                        { "max", this.parseNumber(maxOrderSizeString) },
-                    } },
-                    { "price", new Dictionary<string, object>() {
-                        { "min", this.parseNumber("1e-8") },
-                        { "max", null },
-                    } },
-                    { "cost", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "created", null },
-                { "info", market },
-            });
+            spot = false;
+            type = "swap";
+        } else
+        {
+            type = "spot";
         }
-        return ccxt.BaseExchange.ToMarketInterfaceList(result);
+        bool swap = type == "swap";
+        object baseId = null;
+        object quoteId = null;
+        if (id.IndexOf(":", StringComparison.Ordinal) >= 0)
+        {
+            List<object> parts = id.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
+            baseId = (parts != null && 0 < parts.Count ? parts[0] : null);
+            quoteId = (parts != null && 1 < parts.Count ? parts[1] : null);
+        } else
+        {
+            baseId = ((id == null) ? null : id.Substring(0, Math.Min(3, id.Length)));
+            quoteId = ((id == null) ? null : id.Substring(Math.Min(3, id.Length), Math.Min(6, id.Length) - Math.Min(3, id.Length)));
+        }
+        string? bs = this.safeCurrencyCode(baseId);
+        string? quote = this.safeCurrencyCode(quoteId);
+        List<object> splitBase = bs.Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
+        List<object> splitQuote = quote.Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
+        bs = this.safeString(splitBase, 0);
+        quote = this.safeString(splitQuote, 0);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return null;
+        }
+        string symbol = ((bs + "/") + quote);
+        // baseId = 'f' + baseId;
+        // quoteId = 'f' + quoteId;
+        string? settle = null;
+        string? settleId = null;
+        if (swap)
+        {
+            settle = quote;
+            settleId = quote;
+            symbol = ((symbol + ":") + settle);
+        }
+        string? minOrderSizeString = this.safeString(market, 3);
+        string? maxOrderSizeString = this.safeString(market, 4);
+        return new Dictionary<string, object>() {
+            { "id", ("t" + id) },
+            { "symbol", symbol },
+            { "base", bs },
+            { "quote", quote },
+            { "settle", settle },
+            { "baseId", baseId },
+            { "quoteId", quoteId },
+            { "settleId", settleId },
+            { "type", type },
+            { "spot", spot },
+            { "margin", (spot && this.inArray(id, marginIds)) },
+            { "swap", swap },
+            { "future", false },
+            { "option", false },
+            { "active", true },
+            { "contract", !spot },
+            { "linear", swap ? true : null },
+            { "inverse", swap ? false : null },
+            { "maker", this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker") },
+            { "taker", this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker") },
+            { "contractSize", swap ? this.parseNumber("1") : null },
+            { "expiry", null },
+            { "expiryDatetime", null },
+            { "strike", null },
+            { "optionType", null },
+            { "precision", new Dictionary<string, object>() {
+                { "amount", 8L },
+                { "price", 5L },
+            } },
+            { "limits", new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.parseNumber(minOrderSizeString) },
+                    { "max", this.parseNumber(maxOrderSizeString) },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", this.parseNumber("1e-8") },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "created", null },
+            { "info", market },
+        };
     }
 
     /**
