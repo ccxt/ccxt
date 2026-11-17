@@ -11,7 +11,7 @@ public partial class BaseExchange
     public void ensureWhitelistedFile(object filePath)
     {
         var sanitized = Path.GetFullPath(filePath as string);
-        var exts = new[] { "ccxtfile", "pem" };
+        var exts = new[] { "ccxtfile", "pem", "wasm" };
         foreach (var ext in exts)
         {
             if (sanitized.EndsWith("." + ext))

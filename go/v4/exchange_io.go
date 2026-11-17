@@ -56,7 +56,7 @@ func (this *BaseExchange) EnsureWhitelistedFile(filePath any) {
 	if err != nil {
 		panic("invalid file path: " + derefScalar(filePath).(string))
 	}
-	exts := []string{"ccxtfile", "pem"}
+	exts := []string{"ccxtfile", "pem", "wasm"}
 	for _, ext := range exts {
 		if strings.HasSuffix(sanitized, "."+ext) {
 			return
