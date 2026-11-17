@@ -11062,18 +11062,22 @@ function javaVenueListReadNames () {
         }
         const sf = ts.createSourceFile (file, text);
         const visit = (node) => {
-            if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.initializer !== undefined) {
-                const init = unwrapParens (node.initializer);
+            // ral-90j8: also `x = await this.m (..)` into a `let x: T[] = []` local of the same function
+            const r90j8Write = r90j8ArrayLocalAwaitWrite (node);
+            const decl = r90j8Write !== undefined ? r90j8Write.declaration : node;
+            if (r90j8Write !== undefined || (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.initializer !== undefined)) {
+                const init = r90j8Write !== undefined ? r90j8Write.right : unwrapParens (node.initializer);
                 const call = init.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (init.expression) : undefined;
-                const scope = isThisCall (call) ? enclosingFunction (node) : undefined;
+                const scope = isThisCall (call) && (r90j8Write === undefined || r90j8VenueReturnsFreshList (file, call.expression.name.text))
+                    ? enclosingFunction (decl) : undefined;
                 if (scope !== undefined) {
-                    const local = node.name.text;
+                    const local = decl.name.text;
                     let read = false;
                     const uses = (n) => {
                         if (read) {
                             return;
                         }
-                        if (ts.isIdentifier (n) && n.text === local && n !== node.name) {
+                        if (ts.isIdentifier (n) && n.text === local && n !== decl.name) {
                             const parent = n.parent;
                             read = (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.name.text === 'length')
                                 || (ts.isElementAccessExpression (parent) && parent.expression === n);
@@ -24279,6 +24283,20 @@ function r87j8StringElement (printer, node, depth = 0, internalCalls = true) {
         && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
         return true;
     }
+    // ral-90j8 R4: `const s = x.toString ()` prints `String.valueOf (x)` (printToStringCall), a non-null String,
+    // when section 1 declares the local String
+    const init90 = unwrapParens (declaration.initializer);
+    if (ts.isCallExpression (init90) && init90.arguments.length === 0 && ts.isPropertyAccessExpression (init90.expression)
+        && init90.expression.name.text === 'toString' && (declaration.parent.flags & ts.NodeFlags.Const) !== 0
+        && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
+        return true;
+    }
+    // ral-90j8: `const id = market['id']` on a structure local whose DTO declares the key String (section 1's
+    // structure-key arm prints `String id = (String) market.get("id")`)
+    if (structureKeyReadLocalType (printer, unwrapParens (declaration.initializer))?.type === 'String'
+        && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
+        return true;
+    }
     return r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true;
 }
 
@@ -25285,3 +25303,250 @@ export function installJavaR90j7MapDelete (transpiler) {
 }
 // the declared-type spellings sections publish for a Map<String, Object> local
 const J90J7_MAP_DECLARED = new Set ([ 'java.util.Map<String, Object>', 'Map<String, Object>', 'final java.util.Map<String, Object>', 'final Map<String, Object>' ]);
+
+// ===== 90j8. omit of an untyped Object parameter whose first use already casts it to a Map =====
+// `const query = this.omit (params, ..)` where params prints `Object` (sign / fetch2 overrides): the
+// Object overload hands a List source back untouched, so the local stays Object unless the value is
+// cast to a Map anyway. When the FIRST use (same block, reached through plain declaration /
+// expression statements only) is `Object.keys (x)` of a Dict-typed x, the printer already prints an
+// unconditional `((Map<String, Object>)x)` there; moving that checkcast to the declaration keeps the
+// same ClassCastException on the same input and makes every later use native.
+function r90j8IsObjectParameterOmit (printer, call) {
+    if (call === undefined || !ts.isCallExpression (call) || !isThisCall (call) || call.expression.name.text !== 'omit'
+        || call.arguments.length < 2 || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    let resolved;
+    try {
+        resolved = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (resolved === undefined || !COLLECTION_SOURCE_FILE.test (resolved.getSourceFile ().fileName)) {
+        return false;
+    }
+    const source = unwrapParens (call.arguments[0]);
+    if (!ts.isIdentifier (source)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (source)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return declaration !== undefined && ts.isParameterDeclaration (declaration)
+        && !javaOmitSourceIsMap (printer, source, 0);
+}
+
+function r90j8FirstUseIsMapKeys (printer, declaration) {
+    const statement = declaration.parent?.parent;
+    const block = statement?.parent;
+    if (statement === undefined || !ts.isVariableStatement (statement) || block === undefined
+        || !(ts.isBlock (block) || ts.isSourceFile (block))) {
+        return false;
+    }
+    const name = String (declaration.name.text);
+    const mentions = (node) => {
+        let found;
+        const walk = (n) => {
+            if (found !== undefined) {
+                return;
+            }
+            if (ts.isIdentifier (n) && n.text === name && n !== declaration.name) {
+                found = n;
+                return;
+            }
+            n.forEachChild (walk);
+        };
+        walk (node);
+        return found;
+    };
+    const statements = block.statements;
+    for (let i = statements.indexOf (statement) + 1; i < statements.length; i++) {
+        const next = statements[i];
+        const use = mentions (next);
+        if (use === undefined) {
+            if (!ts.isVariableStatement (next) && !ts.isExpressionStatement (next)) {
+                return false;
+            }
+            continue;
+        }
+        // the first mention: `Object.keys (x)`, evaluated unconditionally in this statement
+        const call = use.parent;
+        if (call === undefined || !ts.isCallExpression (call) || call.arguments[0] !== use
+            || !ts.isPropertyAccessExpression (call.expression) || call.expression.name.text !== 'keys'
+            || !ts.isIdentifier (call.expression.expression) || call.expression.expression.text !== 'Object') {
+            return false;
+        }
+        // only the statement's own expression runs unconditionally (not an if's branches)
+        const head = ts.isIfStatement (next) ? next.expression
+            : ts.isVariableStatement (next) || ts.isExpressionStatement (next) || ts.isReturnStatement (next) ? next : undefined;
+        if (head === undefined || !r90j8Contains (head, call)) {
+            return false;
+        }
+        for (let up = call.parent; up !== next; up = up.parent) {
+            if (up === undefined || ts.isConditionalExpression (up) || ts.isFunctionLike (up) || ts.isBlock (up)
+                || (ts.isBinaryExpression (up) && [ ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken,
+                    ts.SyntaxKind.QuestionQuestionToken ].includes (up.operatorToken.kind) && up.left !== call
+                    && !r90j8Contains (up.left, call))) {
+                return false;
+            }
+        }
+        let type;
+        try {
+            type = printer.getChecker ().getTypeAtLocation (use);
+        } catch (e) {
+            return false;
+        }
+        return printer.isJavaMapStructureType?.(type) === true;
+    }
+    return false;
+}
+
+function r90j8Contains (outer, inner) {
+    for (let n = inner; n !== undefined; n = n.parent) {
+        if (n === outer) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function r90j8OmitParamMapLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent)) {
+        return false;
+    }
+    if (!r90j8IsObjectParameterOmit (printer, unwrapParens (declaration.initializer))) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || !r90j8FirstUseIsMapKeys (printer, declaration)) {
+        return false;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    return isSafeToNarrow (printer, declaration, name, JAVA_MAP_TYPE, isProFile, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: (right) => javaOmitSelfCall (printer, right, declaration) || javaOmitMapCall (printer, right) !== undefined,
+    });
+}
+
+export function installJavaR90j8OmitParamLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR90j8OmitParamPatched) {
+        return;
+    }
+    printer._javaR90j8OmitParamPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = (typed.has (declaration) || r87j6HeadIsObject (printer, declaration, upto))
+                && r90j8OmitParamMapLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const marker = `${iden}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        typed.set (declaration, JAVA_MAP_TYPE);
+        return printed.slice (0, at) + r87j6Head (printer, declaration, identation, JAVA_MAP_TYPE)
+            + '(' + JAVA_MAP_TYPE + ') ' + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// ral-90j8: `x = await this.m (..)` where x is a single `let x: T[] = []` declaration of the same function
+function r90j8ArrayLocalAwaitWrite (node) {
+    if (!ts.isBinaryExpression (node) || node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+        return undefined;
+    }
+    const right = unwrapParens (node.right);
+    if (right === undefined || right.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const scope = enclosingFunction (node);
+    let found;
+    let count = 0;
+    const walk = (n) => {
+        if (ts.isVariableDeclaration (n) && ts.isIdentifier (n.name) && n.name.text === node.left.text) {
+            count++;
+            found = n;
+        }
+        n.forEachChild (walk);
+    };
+    if (scope === undefined) {
+        return undefined;
+    }
+    walk (scope);
+    const init = found === undefined ? undefined : unwrapParens (found.initializer);
+    return count === 1 && init !== undefined && ts.isArrayLiteralExpression (init) && init.elements.length === 0
+        && found.type !== undefined && ts.isArrayTypeNode (found.type) ? { right, declaration: found } : undefined;
+}
+
+// ral-90j8: every declaration of m in the file returns a local declared `[]` (an ArrayList<Object> the printer
+// declares List) or this.arraySlice; a returned awaited response (Object) would not compile in the List core
+function r90j8VenueReturnsFreshList (file, name) {
+    const text = readTsIndexSource (file);
+    if (text === undefined) {
+        return false;
+    }
+    const sf = ts.createSourceFile (file, text);
+    let ok = true;
+    let found = 0;
+    const visitMethod = (member) => {
+        if (member.kind !== ts.SyntaxKind.MethodDeclaration || !ts.isIdentifier (member.name ?? {}) || member.name.text !== name
+            || member.body === undefined) {
+            return;
+        }
+        found++;
+        const locals = new Map ();
+        const collect = (n) => {
+            if (ts.isVariableDeclaration (n) && ts.isIdentifier (n.name)) {
+                locals.set (n.name.text, (locals.get (n.name.text) ?? []).concat ([ n ]));
+            }
+            n.forEachChild (collect);
+        };
+        collect (member.body);
+        const walk = (n) => {
+            if (!ok || (n !== member && ts.isFunctionLike (n))) {
+                return;
+            }
+            if (ts.isReturnStatement (n)) {
+                const value = unwrapParens (n.expression);
+                const decls = value !== undefined && ts.isIdentifier (value) ? (locals.get (value.text) ?? []) : [];
+                const init = decls.length === 1 ? unwrapParens (decls[0].initializer) : undefined;
+                ok = (init !== undefined && ts.isArrayLiteralExpression (init))
+                    || (value !== undefined && isThisCall (value) && value.expression.name.text === 'arraySlice');
+                return;
+            }
+            n.forEachChild (walk);
+        };
+        walk (member);
+    };
+    for (const statement of sf.statements) {
+        if (ts.isClassDeclaration (statement)) {
+            statement.members.forEach (visitMethod);
+        }
+    }
+    return ok && found > 0;
+}
