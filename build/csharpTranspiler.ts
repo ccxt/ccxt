@@ -8704,6 +8704,12 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
         [ 'object k = ' ], [ 'string? k = ' ]);
     check ('90c3 character of a string local read by indexOf', 'hx (hex: string) { const digits = "0123456789abcdef"; const lower = hex.toLowerCase (); let r = 0; for (let i = 0; i < lower.length; i++) { const ch = lower[i]; r = r + digits.indexOf (ch); } return r; }',
         [ 'string? ch = ((string)' ], [ 'object ch = ' ]);
+    check ('string-list element read as the key of a declared dictionary', 'kr (s: Dict, h: string[]) { const r = { "hs": h }; s["r"] = r; const d = {}; const hs = this.safeList (s, "hs", []); let n = 0; for (let i = 0; i < hs.length; i++) { const k = hs[i]; n = d[k]; } return n; }',
+        [ 'string? k = ((string)hs[i])', 'd.ContainsKey(k)' ], [ 'object k = ' ]);
+    check ('Object.keys element compared to a literal while the list goes to a reader', 'nk (n: Dict) { const ks = Object.keys (n); for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k === "ERC20") { return k; } } return this.safeString (ks, 0); }',
+        [ 'string? k = ((string)ks[i])', 'k == \"ERC20\"' ], [ 'object k = ' ]);
+    check ('Object.keys element only tested by in on an untyped dict keeps object', 'nu (n: Dict, m) { const ks = Object.keys (n); for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k in m) { return 1; } } return this.safeString (ks, 0); }',
+        [ 'object k = ' ], [ 'string? k = ' ]);
     return problems;
 }
 
