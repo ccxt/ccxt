@@ -18071,6 +18071,7 @@ const JAVA_LIST_PARAM_SLOTS = {
     'reduceFeesByCurrency': [ 0 ],
     'parseSettlements': [ 0 ],
     'parseTransactionsByType': [ 1 ],
+    'handleBookDeltas': [ 1 ],
 };
 // dictionary slots: every caller hands a checker-proven string-indexed object
 // (calculateRateLimiterCost params stays boxed: fetch2 forwards implicit-endpoint list bodies)
@@ -18126,7 +18127,9 @@ export function installJavaListParamSlots (transpiler) {
         if (slot !== undefined && slot === type) {
             const checker = printer.getChecker ();
             const argType = checker.getTypeAtLocation (arg);
-            const isList = (t) => checker.isArrayType (t) || checker.isTupleType (t);
+            // a string[] argument may print List<String>, which no List<Object> slot accepts
+            const isList = (t) => (checker.isArrayType (t) || checker.isTupleType (t))
+                && !checker.isTupleType (t) && ((checker.getTypeArguments (t)?.[0]?.flags ?? 0) & ts.TypeFlags.StringLike) === 0;
             const isMap = (t) => printer.isJavaMapType (t) && checker.getIndexInfosOfType?.(t)?.length !== 0;
             const ok = slot === JAVA_LIST_PARAM_SLOT_TYPE ? isList (argType) || printer.isJavaNullishUnion (argType, isList)
                 : isMap (argType) || printer.isJavaNullishUnion (argType, isMap);
