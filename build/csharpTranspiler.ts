@@ -9495,6 +9495,20 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('87c2 literal-key read pushed only inside a branch keeps object',
             'f (eventGroup: Dict, m) { const groupMarkets = eventGroup[\'markets\']; if (m) { groupMarkets.push (m); } return groupMarkets; }',
             'object groupMarkets = ');
+        // 90c2 R2: arms are parameters the printed signature names IList<object>; R3/R4: element reads of local literal maps
+        // (R2 needs the printed IList<object> signature, which only the corpus run records: gated on the farm)
+        check ('90c2 c ? <object param> : <object param> keeps object',
+            'f (xs, zs, m) { const ys = (m === undefined) ? zs : xs; return ys.length; }',
+            'object ys = ');
+        check ('90c2 read of a local string-literal map used as a key -> string?',
+            'f (has: Dict, k) { const fb: Dict = { \'a\': \'b\' }; const s = fb[k]; if (s in has) { has[k] = has[s]; } }',
+            'string? s = ((string)(', 'object s = ');
+        check ('90c2 read of a local string-literal map never used as a key keeps object',
+            'f (k) { const fb: Dict = { \'a\': \'b\' }; const s = fb[k]; return s; }',
+            'object s = ');
+        check ('90c2 read of a local list-literal map with write-back -> List with a native element write',
+            'safeValue (o, k) { return o; }\n f (n: number, p: number) { const cs = {}; const k = n.toString (); if (!(k in cs)) { cs[k] = [ p, p ]; } else { const c = cs[k]; c[1] = p; cs[k] = c; } return this.safeValue (cs, k); }',
+            'c[Convert.ToInt32(1)] = p;', 'object c = ');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {

@@ -21360,3 +21360,219 @@ function listBucketMapReadLocal87c7 (csharp, declaration, context) {
     const type = 'List<object>';
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type, castWhole: true } : undefined;
 }
+
+// ===== 90c2: conditional initialisers proven from the TS AST (continues 87c2) =====
+// shared by R2: some use of the local prints natively on a list (`.length` -> Count, `[i]`, `push`)
+function c90ListLocalHasNativeUse (csharp, scope, declaration) {
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
+            continue;
+        }
+        const p = n.parent;
+        if (p?.kind === ts.SyntaxKind.PropertyAccessExpression && p.expression === n
+                && (p.name?.text === 'length' || (p.name?.text === 'push' && p.parent?.kind === ts.SyntaxKind.CallExpression && p.parent.expression === p))) {
+            return true;
+        }
+        if (p?.kind === ts.SyntaxKind.ElementAccessExpression && p.expression === n) {
+            return true;
+        }
+    }
+    return false;
+}
+// (R2) a conditional whose arms are parameters (or typed locals) the PRINTED signature names as one
+// collection interface (`IList<object>` / `IDictionary<string, object>`, nullable or not, recorded by
+// the printer before the body prints: csharpPrintedParamType). Both arms are references of that
+// interface, so the conditional's natural type is the interface and the declaration names it with no
+// cast; taken only with a native list use (`.length` -> Count, `[i]`).
+const C90_COLLECTION_PARAM_TYPES = { 'IList<object>': 'IList<object>', 'IList<object>?': 'IList<object>' };
+function c90CollectionArmType (csharp, arm, ctx) {
+    const node = stripParens (arm);
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        // a `[]` / `[ v ]` literal arm: List<object> converts to the IList<object> arm implicitly
+        return (node?.kind === ts.SyntaxKind.ArrayLiteralExpression && csharpTypeOfValue (csharp, node, ctx) === 'List<object>') ? 'IList<object>' : undefined;
+    }
+    const printed = (typeof csharp.csharpPrintedParamType === 'function') ? csharp.csharpPrintedParamType (node) : undefined;
+    if (printed !== undefined) {
+        return Object.prototype.hasOwnProperty.call (C90_COLLECTION_PARAM_TYPES, printed) ? C90_COLLECTION_PARAM_TYPES[printed] : undefined;
+    }
+    const local = localIdentifierType (csharp, node);
+    return (local === 'IList<object>' || local === 'List<object>') ? 'IList<object>' : undefined;
+}
+function c90CollectionParamConditionalLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const conditional = stripParens (declaration.initializer);
+    if (conditional?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const a = c90CollectionArmType (csharp, conditional.whenTrue, ctx);
+    const b = c90CollectionArmType (csharp, conditional.whenFalse, ctx);
+    const bothLiteral = stripParens (conditional.whenTrue)?.kind === ts.SyntaxKind.ArrayLiteralExpression && stripParens (conditional.whenFalse)?.kind === ts.SyntaxKind.ArrayLiteralExpression;
+    if (a === undefined || a !== b || bothLiteral || !c90ListLocalHasNativeUse (csharp, scope, declaration)) {
+        return undefined;
+    }
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, a, ctx) ? { type: a } : undefined;
+}
+const c90UpstreamLocalDeclarationR2 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c90UpstreamLocalDeclarationR2 (csharp, declaration, context) ?? c90CollectionParamConditionalLocal (csharp, declaration, context);
+};
+
+// (R3) `const v = map[k]` (printed `(map.ContainsKey(k) ? map[k] : null)`) over a function-local
+// `const map = { 'a': 'x', ... }` whose every value is a string literal and which is never written or
+// handed on (only element reads and `k in map`): every value is a string, so the read holds a string or
+// null and the declaration names `string?` behind one cast on the whole conditional. Taken only where
+// the local is read as a dictionary key (`obj[v]`, `v in obj`), whose `(string)v` cast / `is string`
+// guard then print natively.
+function c90StringLiteralMapReadLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined
+            || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const read = stripParens (declaration.initializer);
+    if (read?.kind !== ts.SyntaxKind.ElementAccessExpression || stripParens (read.expression)?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const map = resolveReference (csharp, stripParens (read.expression));
+    if (map?.kind !== ts.SyntaxKind.VariableDeclaration || enclosingFunction (map) !== scope || map.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const init = stripParens (map.initializer);
+    if (init?.kind !== ts.SyntaxKind.ObjectLiteralExpression || init.properties.length === 0
+            || !init.properties.every ((p) => p.kind === ts.SyntaxKind.PropertyAssignment && stripParens (p.initializer)?.kind === ts.SyntaxKind.StringLiteral)) {
+        return undefined;
+    }
+    for (const use of (indexScope (csharp, scope).identifiers.get (map.name.text) ?? [])) {
+        if (use === map.name || isNotAUse (use)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, map, use) !== true) {
+            return undefined;
+        }
+        const p = use.parent;
+        if (p?.kind === ts.SyntaxKind.ElementAccessExpression && p.expression === use) {
+            const holder = p.parent;
+            if ((holder?.kind === ts.SyntaxKind.BinaryExpression && holder.left === p && ASSIGNMENT_OPERATORS.includes (holder.operatorToken.kind))
+                    || holder?.kind === ts.SyntaxKind.DeleteExpression || holder?.kind === ts.SyntaxKind.PrefixUnaryExpression || holder?.kind === ts.SyntaxKind.PostfixUnaryExpression) {
+                return undefined;
+            }
+            continue;
+        }
+        if (p?.kind === ts.SyntaxKind.BinaryExpression && p.right === use && p.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            continue;
+        }
+        // `Object.keys (map)` only reads the keys
+        if (p?.kind === ts.SyntaxKind.CallExpression && p.arguments.length === 1 && p.arguments[0] === use && p.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && p.expression.expression?.kind === ts.SyntaxKind.Identifier && p.expression.expression.text === 'Object' && p.expression.name?.text === 'keys') {
+            continue;
+        }
+        return undefined;
+    }
+    if (!localIsReadAsKey (csharp, scope, declaration)) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const type = 'string?';
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: 'string', castWhole: true } : undefined;
+}
+
+// (R4) `const c = map[k]` over a function-local `const map = {}` whose every element write stores an
+// array literal or `c` itself (the write-back `map[k] = c` of the local being decided), and which is
+// otherwise only read (`map[k]`, `k in map`, `this.safeValue / safeList (map, k)`): every value is a
+// List<object> box, so the read holds a List<object> or null, declared behind one cast on the whole
+// conditional; its `c[i] = v` writes then print without the `((List<object>)c)` cast. (87c7 R3 takes
+// only empty-list writes and no write-back.)
+function c90ListLiteralMapReadLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined
+            || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const read = stripParens (declaration.initializer);
+    if (read?.kind !== ts.SyntaxKind.ElementAccessExpression || stripParens (read.expression)?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const map = resolveReference (csharp, stripParens (read.expression));
+    if (map?.kind !== ts.SyntaxKind.VariableDeclaration || enclosingFunction (map) !== scope || map.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const init = stripParens (map.initializer);
+    if (init?.kind !== ts.SyntaxKind.ObjectLiteralExpression || init.properties.length !== 0) {
+        return undefined;
+    }
+    let sawNonSelfWrite = false;
+    for (const use of (indexScope (csharp, scope).identifiers.get (map.name.text) ?? [])) {
+        if (use === map.name || isNotAUse (use)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, map, use) !== true) {
+            return undefined;
+        }
+        const p = use.parent;
+        if (p?.kind === ts.SyntaxKind.ElementAccessExpression && p.expression === use) {
+            const holder = p.parent;
+            if (holder?.kind === ts.SyntaxKind.BinaryExpression && holder.left === p && ASSIGNMENT_OPERATORS.includes (holder.operatorToken.kind)) {
+                const v = stripParens (holder.right);
+                if (holder.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+                    return undefined;
+                }
+                if (v?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+                    sawNonSelfWrite = true;
+                    continue;
+                }
+                if (v?.kind === ts.SyntaxKind.Identifier && v.text === declaration.name.text && useRefersToDeclaration (csharp, scope, declaration, v) === true) {
+                    continue;
+                }
+                return undefined;
+            }
+            if (holder?.kind === ts.SyntaxKind.DeleteExpression || holder?.kind === ts.SyntaxKind.PrefixUnaryExpression || holder?.kind === ts.SyntaxKind.PostfixUnaryExpression) {
+                return undefined;
+            }
+            continue;
+        }
+        if (p?.kind === ts.SyntaxKind.BinaryExpression && p.right === use && p.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            continue;
+        }
+        if (p?.kind === ts.SyntaxKind.CallExpression && p.arguments[0] === use && p.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && p.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && (p.expression.name?.text === 'safeValue' || p.expression.name?.text === 'safeList')) {
+            continue;
+        }
+        return undefined;
+    }
+    // the local must also never be rebound, and some use must be a native element write / read
+    let native = false;
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
+            continue;
+        }
+        const p = n.parent;
+        if (p?.kind === ts.SyntaxKind.ElementAccessExpression && p.expression === n) {
+            native = true;
+        }
+    }
+    if (!sawNonSelfWrite || !native) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const type = 'List<object>';
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type, castWhole: true } : undefined;
+}
+const c90UpstreamLocalDeclarationR3 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c90UpstreamLocalDeclarationR3 (csharp, declaration, context) ?? c90StringLiteralMapReadLocal (csharp, declaration, context) ?? c90ListLiteralMapReadLocal (csharp, declaration, context);
+};
