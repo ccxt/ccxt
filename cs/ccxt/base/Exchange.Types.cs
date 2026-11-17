@@ -266,6 +266,9 @@ public struct Market
     public string? id2;
     public Int64? instIdCode;
     public Dictionary<string, object>? tiers;
+    public Int64? priceScale;
+    public Int64? valueScale;
+    public Int64? ratioScale;
     public string? market;
     public string? marketType;
     public string? executionModel;
@@ -314,6 +317,9 @@ public struct Market
         id2 = Exchange.SafeString(market, "id2");
         instIdCode = Exchange.SafeInteger(market, "instIdCode");
         tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
+        priceScale = Exchange.SafeInteger(market, "priceScale");
+        valueScale = Exchange.SafeInteger(market, "valueScale");
+        ratioScale = Exchange.SafeInteger(market, "ratioScale");
         this.market = Exchange.SafeString(market, "market");
         marketType = Exchange.SafeString(market, "marketType");
         executionModel = Exchange.SafeString(market, "executionModel");
@@ -2001,6 +2007,9 @@ public struct MarketInterface
     public string? id2;
     public Int64? instIdCode;
     public Dictionary<string, object>? tiers;
+    public Int64? priceScale;
+    public Int64? valueScale;
+    public Int64? ratioScale;
     public string? market;
     public string? marketType;
     public string? executionModel;
@@ -2056,6 +2065,9 @@ public struct MarketInterface
         id2 = Exchange.SafeString(market, "id2");
         instIdCode = Exchange.SafeInteger(market, "instIdCode");
         tiers = Exchange.SafeValue(market, "tiers") != null ? (Dictionary<string, object>)Exchange.SafeValue(market, "tiers") : null;
+        priceScale = Exchange.SafeInteger(market, "priceScale");
+        valueScale = Exchange.SafeInteger(market, "valueScale");
+        ratioScale = Exchange.SafeInteger(market, "ratioScale");
         this.market = Exchange.SafeString(market, "market");
         marketType = Exchange.SafeString(market, "marketType");
         executionModel = Exchange.SafeString(market, "executionModel");
