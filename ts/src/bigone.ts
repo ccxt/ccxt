@@ -673,27 +673,32 @@ export default class bigone extends Exchange {
         //    ]
         //
         const markets: Dict[] = this.safeList (response, 'data', []);
-        const result: Market[] = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+        const contractMarkets = this.toArray (contractResponse);
+        const allMarkets = this.arrayConcat (markets, contractMarkets);
+        return this.parseMarkets (allMarkets);
+    }
+
+    override parseMarket (market: Dict): Market {
+        if ('base_asset' in market) {
+            // spot
             const baseAsset = this.safeDict (market, 'base_asset', {});
             const quoteAsset = this.safeDict (market, 'quote_asset', {});
-            const baseId = this.safeString (baseAsset, 'symbol');
-            const quoteId = this.safeString (quoteAsset, 'symbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
+            const spotBaseId = this.safeString (baseAsset, 'symbol');
+            const spotQuoteId = this.safeString (quoteAsset, 'symbol');
+            const spotBase = this.safeCurrencyCode (spotBaseId);
+            const spotQuote = this.safeCurrencyCode (spotQuoteId);
+            if ((spotBase === undefined) || (spotQuote === undefined)) {
+                return {} as Market;
             }
-            result.push (this.safeMarketStructure ({
+            return this.safeMarketStructure ({
                 'id': this.safeString (market, 'name'),
                 'uuid': this.safeString (market, 'id'),
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
+                'symbol': spotBase + '/' + spotQuote,
+                'base': spotBase,
+                'quote': spotQuote,
                 'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'baseId': spotBaseId,
+                'quoteId': spotQuoteId,
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
@@ -734,72 +739,68 @@ export default class bigone extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
-            }));
+            });
         }
-        const contractMarkets = this.toArray (contractResponse);
-        for (let i = 0; i < contractMarkets.length; i++) {
-            const market = contractMarkets[i];
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
-            const settleId = this.safeString (market, 'settleCurrency');
-            const marketId = this.safeString (market, 'symbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            const settle = this.safeCurrencyCode (settleId);
-            const inverse = this.safeBool (market, 'isInverse');
-            result.push (this.safeMarketStructure ({
-                'id': marketId,
-                'symbol': base + '/' + quote + ':' + settle,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'swap',
-                'spot': false,
-                'margin': false,
-                'swap': true,
-                'future': false,
-                'option': false,
-                'active': this.safeBool (market, 'enable'),
-                'contract': true,
-                'linear': (inverse !== true),
-                'inverse': inverse,
-                'contractSize': this.safeNumber (market, 'multiplier'),
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'valuePrecision'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': this.safeNumber (market, 'priceMin'),
-                        'max': this.safeNumber (market, 'priceMax'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'initialMargin'),
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            }));
+        // contract
+        const baseId = this.safeString (market, 'baseCurrency');
+        const quoteId = this.safeString (market, 'quoteCurrency');
+        const settleId = this.safeString (market, 'settleCurrency');
+        const marketId = this.safeString (market, 'symbol');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return {} as Market;
         }
-        return result;
+        const settle = this.safeCurrencyCode (settleId);
+        const inverse = this.safeBool (market, 'isInverse');
+        return this.safeMarketStructure ({
+            'id': marketId,
+            'symbol': base + '/' + quote + ':' + settle,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'active': this.safeBool (market, 'enable'),
+            'contract': true,
+            'linear': (inverse !== true),
+            'inverse': inverse,
+            'contractSize': this.safeNumber (market, 'multiplier'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'valuePrecision'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': this.safeNumber (market, 'priceMin'),
+                    'max': this.safeNumber (market, 'priceMax'),
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'initialMargin'),
+                    'max': undefined,
+                },
+            },
+            'info': market,
+        });
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
