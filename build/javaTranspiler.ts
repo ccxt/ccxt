@@ -40,6 +40,7 @@ import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
 import { installJavaR84j8Locals } from './java-local-types.js';
 import { installJavaR87j2WsLocals } from './java-local-types.js';
 import { installJavaR87j2UrlLocals } from './java-local-types.js';
+import { installJavaR87j3SumCounterLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2504,6 +2505,7 @@ class NewTranspiler {
         installJavaR84j8Locals(this.transpiler);
         installJavaR87j2WsLocals(this.transpiler);
         installJavaR87j2UrlLocals(this.transpiler);
+        installJavaR87j3SumCounterLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5933,17 +5935,67 @@ function mapLocalsSelfTest (): string[] {
             'export default class zz84j3selftest extends Exchange {',
             "    enc (q: Dict, p: string) { let body = ''; if (p === 'a') { body = this.urlencode (q); } const base = p + '/'; let auth = ''; auth = base; auth = body + '|' + base; return auth + body; }",
             "    num (m: string) { let nonce = ''; nonce = this.milliseconds ().toString (); let a = ''; a = nonce + m; return a; }",
-            "    neg (q: any) { let other = ''; other = JSON.stringify (q); return other; }",
+            "    neg (q: any, p: string) { let other = ''; other = this.implodeParams (p, q); return other; }",
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r84j3).content as string;
         if (!/String body = "";/.test(out) || !/String auth = "";/.test(out)) problems.push("ral-84j3: 'body' (urlencode write) and 'auth' (const String copy) must print String");
         if (!/String nonce = "";/.test(out)) problems.push("ral-84j3: 'nonce' (`this.milliseconds ().toString ()` write) must print String");
-        if (!/Object other = "";/.test(out)) problems.push("ral-84j3: 'other' (Helpers.json may answer null) must stay Object");
+        if (!/Object other = "";/.test(out)) problems.push("ral-84j3: 'other' (implodeParams is declared Object) must stay Object");
     } catch (e: any) {
         problems.push(`ral-84j3 self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(r84j3, { force: true });
+    }
+    // ral-87j3 R1: JSON.stringify / toUpperCase / replaceAll-of-self / remove0xPrefix writes keep a non-null String local String
+    const r87j3 = path.join(process.cwd(), 'ts', 'src', `zz87j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r87j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict, Str } from './base/types.js';",
+            'export default class zz87j3selftest extends Exchange {',
+            "    js (q: Dict, p: string) { let body = ''; if (p === 'a') { body = JSON.stringify (q); } let auth = ''; auth = p + '?'; auth += body; return auth; }",
+            "    up (p: string, k: string) { let s = ''; s = p.toUpperCase (); s = s.replaceAll (k, '-'); const parts = s.split ('-'); return parts; }",
+            "    hex (p: string) { let h = ''; h = this.remove0xPrefix (p); return h + '00'; }",
+            "    neg (p: Str, k: string) { let t = ''; t = p.replaceAll (k, '-'); return t + k; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j3).content as string;
+        if (!/String body = "";/.test(out) || !/auth = \(auth \+ body\)/.test(out)) problems.push("ral-87j3: 'body' (JSON.stringify write) must print String and `auth += body` a native concat");
+        if (!/String s = "";/.test(out) || !/\(s\.split\(/.test(out)) problems.push("ral-87j3: 's' (toUpperCase / replaceAll-of-self writes) must print String with a bare split receiver");
+        if (!/String h = "";/.test(out)) problems.push("ral-87j3: 'h' (remove0xPrefix write) must print String");
+        if (!/Object t = "";/.test(out)) problems.push("ral-87j3: 't' (replaceAll of a nullable Str receiver) must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-87j3 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(r87j3, { force: true });
+    }
+    // ral-87j3 R2: an int-literal counter written only by base this.sum of integral operands prints Long and compares natively
+    const r87j3b = path.join(process.cwd(), 'ts', 'src', `zz87j3bselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r87j3b, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz87j3bselftest extends Exchange {',
+            "    walk (xs: any[], step: number) { const n = xs.length; let i = 0; while (i < n) { i = this.sum (i, 1); } return i; }",
+            "    neg (xs: any[], p: Dict) { const n = xs.length; let j = 0; while (j < n) { j = this.sum (j, this.safeValue (p, 'k')); } return j; }",
+            "    arg (p: Dict) { let k = 0; k = this.sum (k, 1); return this.safeValue (p, k); }",
+            "    cap (xs: any[], p: Dict) { const n = xs.length; const a = this.safeInteger (p, 'a', 1); let e = this.sum (a, 2); if (e > n) { e = n; } return e; }",
+            "    left (s: string) { let d = 0; if (s.length < 5) { d = 5 - s.length; } return d > 2; }",
+            "    async step (xs: any[]) { let r = 0; for (let q = 0; q < xs.length; q++) { try { await this.loadMarkets (); } catch (e) { r = r + 1; } } return r; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j3b).content as string;
+        if (!/Long i = 0L;/.test(out) || !/i = \(Long\) this\.sum\(i, 1\)/.test(out)) problems.push("ral-87j3: 'i' (sum-of-integral counter) must print Long with a checkcast sum write");
+        if (!/Object j = 0;/.test(out)) problems.push("ral-87j3: 'j' (sum with an Object operand) must stay Object");
+        if (!/Object k = 0;/.test(out)) problems.push("ral-87j3: 'k' (no comparison / arithmetic use) must stay Object");
+        if (!/Long e = \(Long\) this\.sum\(a, 2\);/.test(out) || !/e = Long\.valueOf\(n\)/.test(out)) problems.push("ral-87j3 R3: 'e' (sum initializer, length-const write) must print Long");
+        if (!/Long d = 0L;/.test(out)) problems.push("ral-87j3 R3: 'd' (native long write) must print Long");
+        if (!/Long r = 0L;/.test(out) || !/r = \(r \+ 1L\);/.test(out)) problems.push("ral-87j3 R4: 'r' (self step write) must print Long with a native add");
+    } catch (e: any) {
+        problems.push(`ral-87j3 R2 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(r87j3b, { force: true });
     }
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [
