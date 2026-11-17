@@ -6588,7 +6588,6 @@ const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
 const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } } = {
     'unWatchTradesForSymbols': { 0: '[]string' },
     'unWatchOrderBookForSymbols': { 0: '[]string' },
-    'unWatchOHLCVForSymbols': { 0: '[][]string' },
     // createOrders (orders: OrderRequest[]) prints `orders []any` on the base, every venue and
     // ICreateOrders: every caller already hands over a `[]any`
     'createOrders': { 0: '[]any' },
