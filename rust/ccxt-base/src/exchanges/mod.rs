@@ -49,6 +49,10 @@ pub mod bingx_api;
 pub mod bit2c;
 #[cfg(feature = "bit2c")]
 pub mod bit2c_api;
+#[cfg(feature = "bit2me")]
+pub mod bit2me;
+#[cfg(feature = "bit2me")]
+pub mod bit2me_api;
 #[cfg(feature = "bitbank")]
 pub mod bitbank;
 #[cfg(feature = "bitbank")]
