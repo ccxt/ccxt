@@ -104,6 +104,12 @@ class Client(object):
         # backoff, mid-session errors and the ws warn noise floor must not
         self.dial_failed = False
         self.last_message_at = None
+        # set by on_close(): a server CLOSE frame runs on_close once with
+        # the frame's code, and the receive loop then runs it a second
+        # time with 1006 because the scheduled aiohttp_close has not
+        # marked the connection closed yet (see #31073) - the second call
+        # must be a no-op, not a second close notification
+        self.close_handled = False
 
     def future(self, message_hash):
         if message_hash not in self.futures or self.futures[message_hash].cancelled():
@@ -306,6 +312,13 @@ class Client(object):
     def on_close(self, code):
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
+        if self.close_handled:
+            # duplicate close notification, see __init__: the receive loop
+            # re-runs on_close with 1006 after a server CLOSE frame, and
+            # re-firing the callback would let the exchange unregister a
+            # replacement client created for the same URL in the meantime
+            return
+        self.close_handled = True
         if not self.error:
             self.reject(NetworkError('Connection closed by remote server, closing code ' + str(code)))
         self.on_close_callback(self, code)
