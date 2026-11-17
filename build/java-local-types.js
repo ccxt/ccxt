@@ -18072,7 +18072,13 @@ const JAVA_LIST_PARAM_SLOTS = {
     'parseSettlements': [ 0 ],
     'parseTransactionsByType': [ 1 ],
 };
+// dictionary slots: every caller hands a checker-proven string-indexed object
+const JAVA_MAP_PARAM_SLOTS = {
+    'calculateRateLimiterCost': [ 3 ],
+    'addKeyInArrayItems': [ 0 ],
+};
 const JAVA_LIST_PARAM_SLOT_TYPE = 'java.util.List<Object>';
+const JAVA_MAP_PARAM_SLOT_TYPE = 'java.util.Map<String, Object>';
 const JAVA_LIST_PARAM_SLOT_FILES = /(^|[\\/])ts[\\/]src[\\/](?:base[\\/](?:Prediction)?Exchange(?:\.nooverloads[^\\/]*)?|(?:pro[\\/]|prediction[\\/])?[a-z0-9_]+)\.ts$/;
 
 function javaListParamSlot (printer, node) {
@@ -18081,21 +18087,27 @@ function javaListParamSlot (printer, node) {
         || node.initializer !== undefined || node.questionToken !== undefined || node.dotDotDotToken !== undefined) {
         return undefined;
     }
-    const positions = JAVA_LIST_PARAM_SLOTS[method.name.text];
-    if (positions === undefined || !positions.includes (method.parameters.indexOf (node))
-        || !JAVA_LIST_PARAM_SLOT_FILES.test (node.getSourceFile ().fileName)) {
+    const type = javaParamSlotTypeAt (method.name.text, method.parameters.indexOf (node));
+    if (type === undefined || !JAVA_LIST_PARAM_SLOT_FILES.test (node.getSourceFile ().fileName)) {
         return undefined;
     }
-    return printer.javaParameterIsWritten (node) || printer.javaParameterIsCompoundAssigned (node) ? undefined : JAVA_LIST_PARAM_SLOT_TYPE;
+    return printer.javaParameterIsWritten (node) || printer.javaParameterIsCompoundAssigned (node) ? undefined : type;
 }
 
+function javaParamSlotTypeAt (name, index) {
+    if (JAVA_LIST_PARAM_SLOTS[name]?.includes (index)) {
+        return JAVA_LIST_PARAM_SLOT_TYPE;
+    }
+    return JAVA_MAP_PARAM_SLOTS[name]?.includes (index) ? JAVA_MAP_PARAM_SLOT_TYPE : undefined;
+}
+
+// the slot type of a `x.m (..)` argument position, if the table names it
 function javaListSlotArgument (arg) {
     const call = arg?.parent;
     if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)) {
-        return false;
+        return undefined;
     }
-    const positions = JAVA_LIST_PARAM_SLOTS[call.expression.name.text];
-    return positions !== undefined && positions.includes (call.arguments.indexOf (arg));
+    return javaParamSlotTypeAt (call.expression.name.text, call.arguments.indexOf (arg));
 }
 
 export function installJavaListParamSlots (transpiler) {
@@ -18110,12 +18122,16 @@ export function installJavaListParamSlots (transpiler) {
     };
     const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
     printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
-        if (type === JAVA_LIST_PARAM_SLOT_TYPE && javaListSlotArgument (arg)) {
+        const slot = javaListSlotArgument (arg);
+        if (slot !== undefined && slot === type) {
             const checker = printer.getChecker ();
             const argType = checker.getTypeAtLocation (arg);
             const isList = (t) => checker.isArrayType (t) || checker.isTupleType (t);
-            if (!isList (argType) && !printer.isJavaNullishUnion (argType, isList)) {
-                throw new Error (`java list param: argument ${arg.getText ()} is not a proven array`);
+            const isMap = (t) => printer.isJavaMapType (t) && checker.getIndexInfosOfType?.(t)?.length !== 0;
+            const ok = slot === JAVA_LIST_PARAM_SLOT_TYPE ? isList (argType) || printer.isJavaNullishUnion (argType, isList)
+                : isMap (argType) || printer.isJavaNullishUnion (argType, isMap);
+            if (!ok) {
+                throw new Error (`java param slot: argument ${arg.getText ()} is not a proven ${slot}`);
             }
         }
         return upstreamTyped (arg, type);
