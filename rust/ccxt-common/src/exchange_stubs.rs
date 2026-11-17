@@ -2362,7 +2362,7 @@ impl Exchange {
             if *pos + len > der.len() {
                 fail("unexpected end of the DH_param file");
             }
-            let hex_value = hex::encode(&der[*pos..*pos + len]);
+            let hex_value = crate::exchange::hex_encode(&der[*pos..*pos + len]);
             *pos += len;
             match hex_value.strip_prefix("00") { // strip sign byte
                 Some(rest) => rest.to_string(),

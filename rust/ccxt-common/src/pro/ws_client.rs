@@ -734,7 +734,7 @@ fn tls_connector(validate_server_ssl: bool) -> Result<Option<tokio_tungstenite::
     if validate_server_ssl {
         return Ok(None);
     }
-    static INSECURE: Lazy<Result<Arc<rustls::ClientConfig>, String>> = Lazy::new(|| {
+    static INSECURE: LazyLock<Result<Arc<rustls::ClientConfig>, String>> = LazyLock::new(|| {
         let provider = Arc::new(rustls::crypto::ring::default_provider());
         let config = rustls::ClientConfig::builder_with_provider(provider.clone())
             .with_safe_default_protocol_versions()
