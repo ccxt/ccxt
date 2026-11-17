@@ -17157,7 +17157,20 @@ export const SIGNATURE_ARG_TYPES = {
 export const PARSE_MARKET_IDICT_PARAMS = {
     'parseContractOrder': 1, 'parseMarketToEvent': 1, 'parseOrder': 1, 'parseSpotOrder': 1,
     'parseSwapOrder': 1, 'parseSxbetV3Fill': 1, 'parseUtaOrder': 1,
+    // ral-90c1: market-row forwarders whose every caller passes null, a dictionary or an admitted
+    // name's own `market` (fixed point of farm jobs 15694..15699; 24 names fed `object` dropped)
+    'handleStockParams': 2, 'stockDataRequest': 2,
 };
+
+// ral-90c1: the same shadowed retype for a `currency: Currency` parameter (row writes are
+// this.currency / this.safeCurrency); a member fed an `object currency` from outside is dropped
+export const PARSE_CURRENCY_IDICT_PARAMS = {
+    'getCurrencyFromChaincode': 1, 'getExtendedCurrencyCodeById': 1, 'parseLedger': 1, 'parseLedgerEntry': 1,
+    'parseTransaction': 1, 'parseTransactions': 1,
+    // the consumer chain the rows above forward to; parseConversion's two slots are fromCurrency / toCurrency
+    'safeCurrencyCode': 1, 'parseConversion': [ 1, 2 ],
+};
+const CURRENCY_SLOT_NAMES = [ 'currency', 'fromCurrency', 'toCurrency' ];
 
 // every write of the parameter is a market-row producer or a nullish reset (the text pass keeps
 // the same bodies unshadowed)
@@ -17205,7 +17218,7 @@ function parseMarketParamRowWrite (node) {
     }
     const callee = (node?.kind === ts.SyntaxKind.CallExpression) ? node.expression : undefined;
     return (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
-        && [ 'market', 'safeMarket' ].includes (callee.name?.text);
+        && [ 'market', 'safeMarket', 'currency', 'safeCurrency' ].includes (callee.name?.text);
 }
 
 // the declared parameter behind a PARSE_MARKET_IDICT_PARAMS position, or undefined
@@ -17214,8 +17227,11 @@ function parseMarketParamType (csharp, declaration) {
     if ((declaration?.kind !== ts.SyntaxKind.Parameter) || (owner?.kind !== ts.SyntaxKind.MethodDeclaration)) {
         return undefined;
     }
-    const at = PARSE_MARKET_IDICT_PARAMS[owner.name?.text];
-    if ((at === undefined) || (owner.parameters.indexOf (declaration) !== at) || (declaration.name?.text !== 'market')) {
+    const slot = declaration.name?.text;
+    const isCurrency = CURRENCY_SLOT_NAMES.includes (slot);
+    const table = isCurrency ? PARSE_CURRENCY_IDICT_PARAMS : PARSE_MARKET_IDICT_PARAMS;
+    const at = Object.prototype.hasOwnProperty.call (table, owner.name?.text) ? [].concat (table[owner.name?.text]) : undefined;
+    if ((at === undefined) || !at.includes (owner.parameters.indexOf (declaration)) || ((slot !== 'market') && !isCurrency)) {
         return undefined;
     }
     return parseMarketParamWritesAreRows (csharp, owner, declaration) ? 'IDictionary<string, object>' : undefined;
@@ -19192,6 +19208,16 @@ export const CSHARP_TUPLE_RETURN_ELEMENT0 = {
     'handleOptionBoolAndParams': 'bool?', 'handleOptionBoolAndParams2': 'bool?',
     'handleOptionIntegerAndParams': 'Int64?', 'handleOptionIntegerAndParams2': 'Int64?',
 };
+// ral-90c1: element 1 (the params bag) where every return path hands back the omit / extend result
+// the TS declares `Dict` (handleOptionAndParams' newParams, typed IDictionary in every body). Not
+// handleNetworkCodeAndParams: its bag is an `object` conditional local, a cast at the return is no typing;
+// nor the Integer pair (their `params: object` makes the destructured newParams an `object` local).
+export const CSHARP_TUPLE_RETURN_ELEMENT1 = {
+    'handleOptionStringAndParams': 'IDictionary<string, object>', 'handleOptionStringAndParams2': 'IDictionary<string, object>',
+    'handleMarginModeAndParams': 'IDictionary<string, object>',
+    'handleOptionBoolAndParams': 'IDictionary<string, object>', 'handleOptionBoolAndParams2': 'IDictionary<string, object>',
+};
+const tupleElement1 = (name) => (Object.prototype.hasOwnProperty.call (CSHARP_TUPLE_RETURN_ELEMENT1, name) ? CSHARP_TUPLE_RETURN_ELEMENT1[name] : 'object');
 const TUPLE_NAMES = Object.keys (CSHARP_TUPLE_RETURN_ELEMENT0).sort ((a, b) => b.length - a.length).join ('|');
 const TUPLE_CALL_RE = new RegExp ('\\b(?:this|base|exchange)\\.(' + TUPLE_NAMES + ')\\(', 'g');
 const TUPLE_SIG_RE = new RegExp ('^(\\s*public (?:virtual|override) )List<object> (' + TUPLE_NAMES + ')\\(');
@@ -19228,7 +19254,7 @@ function tupleElementRead (cast, element, type, file, line) {
         return element;
     }
     const target = cast.replace (/[()\s]/g, '');
-    if (target === type || (target === 'string' && type === 'string?')) {
+    if (target === type || target === type.replace (/\s/g, '') || (target === 'string' && type === 'string?')) {
         return element;
     }
     if (target === 'IDictionary<string,object>' && element.endsWith ('.Item2')) {
@@ -19252,7 +19278,7 @@ export function csharpTupleReturns (content, file = '') {
             const sig = TUPLE_SIG_RE.exec (line);
             method = (sig === null) ? undefined : sig[2];
             if (sig !== null) {
-                line = line.replace (TUPLE_SIG_RE, (all, pre, name) => pre + '(' + CSHARP_TUPLE_RETURN_ELEMENT0[name] + ', object) ' + name + '(');
+                line = line.replace (TUPLE_SIG_RE, (all, pre, name) => pre + '(' + CSHARP_TUPLE_RETURN_ELEMENT0[name] + ', ' + tupleElement1 (name) + ') ' + name + '(');
             }
         }
         if (method !== undefined && /^\s*return\b/.test (line)) {
@@ -19265,15 +19291,15 @@ export function csharpTupleReturns (content, file = '') {
         }
         const holder = TUPLE_HOLDER_RE.exec (line);
         if (holder !== null) {
-            holders.set (holder[2], CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]]);
-            line = holder[1] + '(' + CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]] + ', object) ' + holder[2] + ' = ' + holder[3] + line.slice (holder[0].length);
+            holders.set (holder[2], [ CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]], tupleElement1 (holder[4]) ]);
+            line = holder[1] + '(' + CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]] + ', ' + tupleElement1 (holder[4]) + ') ' + holder[2] + ' = ' + holder[3] + line.slice (holder[0].length);
         } else {
-            for (const [ name, type ] of holders) {
+            for (const [ name, types ] of holders) {
                 if (!new RegExp ('\\b' + name + '\\b').test (line)) {
                     continue;
                 }
                 const item = (i) => name + '.Item' + (Number (i) + 1);
-                const typeOf = (i) => (i === '0') ? type : 'object';
+                const typeOf = (i) => (i === '0') ? types[0] : types[1];
                 // `(T)H[i]`, `((T)(H != null && i < H.Count ? H[i] : null))`, `((IList<object>) H)[i]`, bare `H[i]`
                 const guarded = (group) => '\\(' + name + ' != null && (\\d) < ' + name + '\\.Count \\? ' + name + '\\[\\' + group + '\\] : null\\)';
                 line = line.replace (new RegExp ('\\(\\(([\\w<>?, ]+)\\)' + guarded (2) + '\\)', 'g'), (all, cast, i) => tupleElementRead (cast, item (i), typeOf (i), file, line) ?? ('((' + cast + ')' + item (i) + ')'));
@@ -19313,7 +19339,7 @@ export function csharpTupleReturns (content, file = '') {
                 tupleFail (file, out.slice (start, start + 120), 'getValue shape');
             }
             const call = out.slice (start, end);
-            const type = (tail[1] === '0') ? CSHARP_TUPLE_RETURN_ELEMENT0[m[1]] : 'object';
+            const type = (tail[1] === '0') ? CSHARP_TUPLE_RETURN_ELEMENT0[m[1]] : tupleElement1 (m[1]);
             let from = start - 'getValue('.length;
             let to = end + tail[0].length;
             let cast;
@@ -19342,7 +19368,7 @@ export function csharpTupleReturns (content, file = '') {
         const head = out.slice (lineStart, m.index);
         const end = tupleCloseParen (out, m.index + m[0].length - 1);
         const after = out.slice (end, end + 6);
-        const ok = /^\s*\((?:string|bool|Int64)\?, object\) \w+ = $/.test (head) || /^\s*return $/.test (head) || after.startsWith ('.Item') || /=> $/.test (head);
+        const ok = /^\s*\((?:string|bool|Int64)\?, (?:object|IDictionary<string, object>)\) \w+ = $/.test (head) || /^\s*return $/.test (head) || after.startsWith ('.Item') || /=> $/.test (head);
         if (!ok) {
             tupleFail (file, out.slice (lineStart, lineStart + 160), 'consumer shape');
         }
