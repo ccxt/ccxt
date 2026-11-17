@@ -166,10 +166,14 @@ export default class aster extends asterRest {
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const symbolsList: string[] = symbolsNormalized;
+        const numSymbols = symbolsList.length;
+        if (numSymbols === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
         const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
@@ -178,16 +182,16 @@ export default class aster extends asterRest {
         }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': this.requestId (url),
-        };
         for (let i = 0; i < symbolsList.length; i++) {
             const market = this.market (this.safeString (symbolsList, i, ''));
             subscriptionArgs.push (this.safeStringLower (market, 'id', '') + '@ticker');
             messageHashes.push ('ticker:' + this.safeString (market, 'symbol', ''));
         }
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': this.requestId (url),
+        };
         const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsCallerMethodName, 'callerMethodName')), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
@@ -218,10 +222,14 @@ export default class aster extends asterRest {
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchTickers');
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const symbolsList: string[] = symbolsNormalized;
+        const numSymbols = symbolsList.length;
+        if (numSymbols === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
         const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
@@ -232,11 +240,6 @@ export default class aster extends asterRest {
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': requestId,
-        };
         for (let i = 0; i < symbolsList.length; i++) {
             const market = this.market (this.safeString (symbolsList, i, ''));
             subscriptionArgs.push (this.safeStringLower (market, 'id', '') + '@ticker');
@@ -250,6 +253,11 @@ export default class aster extends asterRest {
             'topic': 'ticker',
             'messageHashes': messageHashes,
             'subMessageHashes': subMessageHashes,
+        };
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsCallerMethodName, 'callerMethodName')), messageHashes, subscription);
     }
@@ -308,10 +316,14 @@ export default class aster extends asterRest {
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchMarkPrices');
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const symbolsList: string[] = symbolsNormalized;
+        const numSymbols = symbolsList.length;
+        if (numSymbols === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
         const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const paramsOmitted: Dict = this.omit (paramsCallerMethodName, 'callerMethodName');
@@ -321,11 +333,6 @@ export default class aster extends asterRest {
         }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': this.requestId (url),
-        };
         const use1sFreq = this.safeBool (paramsOmitted, 'use1sFreq', true);
         for (let i = 0; i < symbolsList.length; i++) {
             const market = this.market (this.safeString (symbolsList, i, ''));
@@ -336,6 +343,11 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id', '') + '@markPrice' + suffix);
             messageHashes.push ('ticker:' + this.safeString (market, 'symbol', ''));
         }
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': this.requestId (url),
+        };
         const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
@@ -365,10 +377,14 @@ export default class aster extends asterRest {
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchMarkPrices');
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const symbolsList: string[] = symbolsNormalized;
+        const numSymbols = symbolsList.length;
+        if (numSymbols === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
+        }
         const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const paramsOmitted = this.omit (paramsCallerMethodName, 'callerMethodName');
@@ -380,11 +396,6 @@ export default class aster extends asterRest {
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': requestId,
-        };
         const use1sFreq = this.safeBool (paramsOmitted, 'use1sFreq', true);
         for (let i = 0; i < symbolsList.length; i++) {
             const market = this.market (this.safeString (symbolsList, i, ''));
@@ -403,6 +414,11 @@ export default class aster extends asterRest {
             'topic': 'ticker',
             'messageHashes': messageHashes,
             'subMessageHashes': subMessageHashes,
+        };
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes, subscription);
     }
@@ -508,10 +524,14 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
         const symbolsList: string[] = symbolsNormalized;
+        const numSymbols = symbolsList.length;
+        if (numSymbols === 0) {
+            throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
+        }
         const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
@@ -520,16 +540,16 @@ export default class aster extends asterRest {
         }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': this.requestId (url),
-        };
         for (let i = 0; i < symbolsList.length; i++) {
             const market = this.market (this.safeString (symbolsList, i, ''));
             subscriptionArgs.push (this.safeStringLower (market, 'id', '') + '@bookTicker');
             messageHashes.push ('bidask:' + this.safeString (market, 'symbol', ''));
         }
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': this.requestId (url),
+        };
         const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
@@ -559,10 +579,14 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        if (symbolsNormalized === undefined) {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
         const symbolsList: string[] = symbolsNormalized;
+        const numSymbols = symbolsList.length;
+        if (numSymbols === 0) {
+            throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
+        }
         const firstMarket = this.getMarketFromSymbols (symbolsList);
         const type = this.safeString (firstMarket, 'type', 'swap');
         const url = this.safeString (this.urls['api']['ws']['public'], type);
@@ -573,11 +597,6 @@ export default class aster extends asterRest {
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': requestId,
-        };
         for (let i = 0; i < symbolsList.length; i++) {
             const market = this.market (this.safeString (symbolsList, i, ''));
             subscriptionArgs.push (this.safeStringLower (market, 'id', '') + '@bookTicker');
@@ -591,6 +610,11 @@ export default class aster extends asterRest {
             'topic': 'bidsasks',
             'messageHashes': messageHashes,
             'subMessageHashes': subMessageHashes,
+        };
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
     }
@@ -705,11 +729,6 @@ export default class aster extends asterRest {
         }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': this.requestId (url),
-        };
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market (this.safeString (symbolsNormalized, i, ''));
             const marketId = this.safeStringLower (market, 'id');
@@ -719,6 +738,11 @@ export default class aster extends asterRest {
             subscriptionArgs.push (marketId + '@aggTrade');
             messageHashes.push ('trade::' + this.safeString (market, 'symbol', ''));
         }
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': this.requestId (url),
+        };
         const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsCallerMethodName, 'callerMethodName')), messageHashes);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
@@ -759,11 +783,6 @@ export default class aster extends asterRest {
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': requestId,
-        };
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market (this.safeString (symbolsNormalized, i, ''));
             subscriptionArgs.push (this.safeStringLower (market, 'id', '') + '@aggTrade');
@@ -777,6 +796,11 @@ export default class aster extends asterRest {
             'topic': 'trades',
             'messageHashes': messageHashes,
             'subMessageHashes': subMessageHashes,
+        };
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsCallerMethodName, 'callerMethodName')), messageHashes, subscription);
     }
@@ -1035,11 +1059,6 @@ export default class aster extends asterRest {
         }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': this.requestId (url),
-        };
         let depthSuffix = '@depth20';
         if (limit === 5) {
             depthSuffix = '@depth5';
@@ -1051,6 +1070,11 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id', '') + depthSuffix);
             messageHashes.push ('orderbook:' + this.safeString (market, 'symbol', ''));
         }
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': this.requestId (url),
+        };
         const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsCallerMethodName, 'callerMethodName')), messageHashes);
         return orderbook.limit ();
     }
@@ -1089,11 +1113,6 @@ export default class aster extends asterRest {
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': requestId,
-        };
         const limit = this.safeNumber (paramsOmitted, 'limit');
         let depthSuffix = '@depth20';
         if (limit === 5) {
@@ -1114,6 +1133,11 @@ export default class aster extends asterRest {
             'topic': 'orderbook',
             'messageHashes': messageHashes,
             'subMessageHashes': subMessageHashes,
+        };
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsOmitted, 'limit')), messageHashes, subscription);
     }
@@ -1229,11 +1253,6 @@ export default class aster extends asterRest {
         }
         const subscriptionArgs: string[] = [];
         const messageHashes: string[] = [];
-        const request: Dict = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': this.requestId (url),
-        };
         for (let i = 0; i < symbolsLength; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
@@ -1247,6 +1266,11 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id', '') + '@kline_' + timeframeId);
             messageHashes.push ('ohlcv:' + this.safeString (market, 'symbol', '') + ':' + unfiedTimeframe);
         }
+        const request: Dict = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': this.requestId (url),
+        };
         const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsCallerMethodName, 'callerMethodName')), messageHashes);
         let limitResolved = limit;
         if (this.newUpdates) {
@@ -1288,11 +1312,6 @@ export default class aster extends asterRest {
         const messageHashes: string[] = [];
         const subMessageHashes: string[] = [];
         const symbolsAndTimeframesResolved = [];
-        const request: Dict = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': requestId,
-        };
         for (let i = 0; i < symbolsLength; i++) {
             const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
@@ -1316,6 +1335,11 @@ export default class aster extends asterRest {
             'topic': 'ohlcv',
             'messageHashes': messageHashes,
             'subMessageHashes': subMessageHashes,
+        };
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
         };
         return await this.watchMultiple (url, messageHashes, this.extend (request, this.omit (paramsCallerMethodName, 'callerMethodName')), messageHashes, subscription);
     }
