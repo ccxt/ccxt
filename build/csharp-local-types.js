@@ -12809,7 +12809,193 @@ function narrowedCopyWriteType (declaration, node) {
 
 // the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
 function nullInitWriteValueType (csharp, declaration, node) {
-    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node) ?? nullSeedNativeStringCallWriteType (csharp, declaration, node);
+    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node) ?? nullSeedNativeStringCallWriteType (csharp, declaration, node) ?? arrayGuardedListWriteType (csharp, declaration, node)
+        ?? boolLiteralRowWriteType (csharp, declaration, node) ?? stringLiteralElementWriteType (csharp, declaration, node);
+}
+
+// ral-87c8 R4: `let x = '<literal>'` later written `x = parts[N]` where every element of `parts` is a string
+// (elementAccessElementType: split / Object.keys / string-list producers). The element read is a string or
+// null (off the end), so the local is `string?` and the write carries the identity `((string)...)` cast back.
+// Taken only when some read of the local prints natively once typed: a compare with a string literal or the
+// receiver of a member access (`.length`, `.slice (..)`, ...).
+const stringLiteralElementWrites = new WeakSet ();
+
+function stringLiteralElementWriteType (csharp, declaration, node) {
+    if (declaration.initializer?.kind !== ts.SyntaxKind.StringLiteral || declaration.parent?.declarations?.length !== 1
+            || declaration.name?.kind !== ts.SyntaxKind.Identifier || node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const write = node.parent;
+    if (write?.kind !== ts.SyntaxKind.BinaryExpression || write.right !== node || write.operatorToken.kind !== ts.SyntaxKind.EqualsToken
+            || write.left?.kind !== ts.SyntaxKind.Identifier || write.left.text !== declaration.name.text) {
+        return undefined;
+    }
+    if (elementAccessElementType (csharp, node, undefined) !== 'string') {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const native = (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []).some ((n) => {
+        const p = n.parent;
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            return false;
+        }
+        if (p?.kind === ts.SyntaxKind.PropertyAccessExpression && p.expression === n) {
+            return true;
+        }
+        if (p?.kind !== ts.SyntaxKind.BinaryExpression) {
+            return false;
+        }
+        const op = p.operatorToken.kind;
+        const other = (p.left === n) ? p.right : p.left;
+        return (op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken) && other?.kind === ts.SyntaxKind.StringLiteral;
+    });
+    if (!native) {
+        return undefined;
+    }
+    stringLiteralElementWrites.add (node);
+    return 'string?';
+}
+
+// ral-87c8 R3: `let x = true|false` later written `x = market['contract']` (a MARKET_ROW_BOOL_KEYS read of a
+// proven market row): that box is a bool or null, so the local is `bool?` and the write carries the exact
+// `((bool?)...)` cast back (the 84c2 conditional-arm proof, applied to a plain write)
+const boolLiteralRowWrites = new WeakSet ();
+
+function boolLiteralRowWriteType (csharp, declaration, node) {
+    const init = declaration.initializer?.kind;
+    if ((init !== ts.SyntaxKind.TrueKeyword && init !== ts.SyntaxKind.FalseKeyword) || declaration.parent?.declarations?.length !== 1
+            || node?.kind !== ts.SyntaxKind.ElementAccessExpression || marketRowBoolReadType (csharp, node) !== 'bool') {
+        return undefined;
+    }
+    const write = node.parent;
+    if (write?.kind !== ts.SyntaxKind.BinaryExpression || write.right !== node || write.left?.kind !== ts.SyntaxKind.Identifier
+            || write.left.text !== declaration.name?.text) {
+        return undefined;
+    }
+    // only a local some read of which compares it with a bool literal (`x === true`, prints `== true` once
+    // typed); a local only handed on to object parameters would gain nothing but the cast
+    const scope = enclosingFunction (declaration);
+    const compared = (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []).some ((n) => {
+        const p = n.parent;
+        if (n === declaration.name || p?.kind !== ts.SyntaxKind.BinaryExpression || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            return false;
+        }
+        const op = p.operatorToken.kind;
+        const other = (p.left === n) ? p.right : p.left;
+        return (op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken)
+            && (other?.kind === ts.SyntaxKind.TrueKeyword || other?.kind === ts.SyntaxKind.FalseKeyword);
+    });
+    if (!compared) {
+        return undefined;
+    }
+    boolLiteralRowWrites.add (node);
+    return 'bool?';
+}
+
+// ral-87c8 R1: `let x = []` (List<object>) written `x = y` as the FIRST statement of the then-block of
+// `if (Array.isArray (y))`. The guard prints `(y is IList<object>) || (y is a generic List<>)` and every
+// list box the generated code and JsonHelper build is a List<object> (ArrayCache derives from it), so
+// the write carries the exact `((List<object>)y)` cast back and the local keeps one List<object> box.
+// Only a local with a use that prints natively on the declared list (`x.length` -> Count, `x.push` ->
+// Add) is taken; a local that is only handed on to object parameters stays `object`.
+const arrayGuardedListWrites = new WeakSet ();
+
+function arrayIsArrayGuardedFirstWrite (node) {
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const write = node.parent;
+    if (write?.kind !== ts.SyntaxKind.BinaryExpression || write.right !== node || write.operatorToken.kind !== ts.SyntaxKind.EqualsToken
+            || write.left?.kind !== ts.SyntaxKind.Identifier || write.parent?.kind !== ts.SyntaxKind.ExpressionStatement) {
+        return false;
+    }
+    const block = write.parent.parent;
+    const guard = block?.parent;
+    if (block?.kind !== ts.SyntaxKind.Block || block.statements[0] !== write.parent || guard?.kind !== ts.SyntaxKind.IfStatement || guard.thenStatement !== block) {
+        return false;
+    }
+    const test = guard.expression;
+    return test?.kind === ts.SyntaxKind.CallExpression && test.arguments?.length === 1
+        && test.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && test.expression.expression?.kind === ts.SyntaxKind.Identifier
+        && test.expression.expression.text === 'Array' && test.expression.name?.text === 'isArray'
+        && test.arguments[0].kind === ts.SyntaxKind.Identifier && test.arguments[0].text === node.text;
+}
+
+function arrayGuardedListLocalHasNativeUse (csharp, declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === n
+                && (parent.name?.text === 'length' || (parent.name?.text === 'push' && parent.parent?.kind === ts.SyntaxKind.CallExpression && parent.parent.expression === parent))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function arrayGuardedListWriteType (csharp, declaration, node) {
+    if (declaration.initializer?.kind !== ts.SyntaxKind.ArrayLiteralExpression || declaration.parent?.declarations?.length !== 1
+            || !arrayIsArrayGuardedFirstWrite (node) || node.parent.left.text !== declaration.name?.text
+            || !arrayGuardedListLocalHasNativeUse (csharp, declaration)) {
+        return undefined;
+    }
+    arrayGuardedListWrites.add (node);
+    return 'List<object>';
+}
+
+// the cast back on the guarded write, only once the declaration was emitted List<object>
+function installArrayGuardedListWriteCasts (csharp) {
+    if (typeof csharp.printIdentifier !== 'function' || csharp._arrayGuardedListWriteCastsPatched) {
+        return;
+    }
+    const upstream = csharp.printIdentifier.bind (csharp);
+    csharp.printIdentifier = (node) => {
+        const printed = upstream (node);
+        if (typeof printed !== 'string' || !arrayGuardedListWrites.has (node)) {
+            return printed;
+        }
+        const target = resolveReference (csharp, node.parent.left);
+        return (target !== undefined && retypedDeclarationTypes.get (target) === 'List<object>') ? '((List<object>)' + printed + ')' : printed;
+    };
+    csharp._arrayGuardedListWriteCastsPatched = true;
+}
+
+function installBoolLiteralRowWriteCasts (csharp) {
+    if (typeof csharp.printElementAccessExpression !== 'function' || csharp._boolLiteralRowWriteCastsPatched) {
+        return;
+    }
+    const upstream = csharp.printElementAccessExpression.bind (csharp);
+    csharp.printElementAccessExpression = (node, identation) => {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || !boolLiteralRowWrites.has (node)) {
+            return printed;
+        }
+        const target = resolveReference (csharp, node.parent.left);
+        return (target !== undefined && retypedDeclarationTypes.get (target) === 'bool?') ? '((bool?)' + printed + ')' : printed;
+    };
+    csharp._boolLiteralRowWriteCastsPatched = true;
+}
+
+function installStringLiteralElementWriteCasts (csharp) {
+    if (typeof csharp.printElementAccessExpression !== 'function' || csharp._stringLiteralElementWriteCastsPatched) {
+        return;
+    }
+    const upstream = csharp.printElementAccessExpression.bind (csharp);
+    csharp.printElementAccessExpression = (node, identation) => {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || !stringLiteralElementWrites.has (node)) {
+            return printed;
+        }
+        const target = resolveReference (csharp, node.parent.left);
+        return (target !== undefined && retypedDeclarationTypes.get (target) === 'string?') ? '((string)' + printed + ')' : printed;
+    };
+    csharp._stringLiteralElementWriteCastsPatched = true;
 }
 
 // the write-time record of a retyped name-keyed local (`scope -> Map<printed name, declaration>`), read
@@ -14979,6 +15165,9 @@ export function installCsharpLocalTypes (transpiler) {
     // module actually emits, not the printer's `object ... = ` it replaced
     installCsharpDictionaryIndexWriteCastElision (csharp);
     installNullInitRowReadWriteCasts (csharp);
+    installArrayGuardedListWriteCasts (csharp);
+    installBoolLiteralRowWriteCasts (csharp);
+    installStringLiteralElementWriteCasts (csharp);
 }
 
 // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` — ast-transpiler's printer

@@ -262,3 +262,37 @@ describe ('ral-84c8-nonnull-default-rewrite', () => {
         assert.match (bybit, /if \(baseName == "BTC"\)/);
     });
 });
+
+describe ('ral-87c8-array-guarded-list-locals', () => {
+    test('hyperliquid: `let x = []` written from an Array.isArray-guarded response prints List<object> with native Count', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as any).transpileCSharpByPath ('./ts/src/hyperliquid.ts').content as string;
+        assert.match (out, /List<object> fundings = new List<object>\(\) \{\};/);
+        assert.match (out, /fundings = \(\(List<object>\)response\);/);
+        assert.match (out, /i < \(fundings\?\.Count \?\? 0\)/);
+        assert.doesNotMatch (out, /object fundings = /);
+    });
+});
+
+describe ('ral-87c8-bool-literal-row-write', () => {
+    test('kucoin: a bool literal local written from a market-row bool read prints bool? with a native compare', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as any).transpileCSharpByPath ('./ts/src/kucoin.ts').content as string;
+        assert.match (out, /bool\? isContractMarket = true;/);
+        assert.match (out, /isContractMarket = \(\(bool\?\)\(market\.ContainsKey\("contract"\) \? market\["contract"\] : null\)\);/);
+        assert.match (out, /if \(\(isContractMarket != true\)\)/);
+    });
+});
+
+describe ('ral-87c8-string-literal-split-element-write', () => {
+    test('prediction hyperliquid: a string literal local written from a split element prints string? with a native compare', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as any).transpileCSharpByPath ('./ts/src/prediction/hyperliquid.ts').content as string;
+        assert.match (out, /string\? expiryDate = "";/);
+        assert.match (out, /expiryDate = \(\(string\)\(expiryParts != null && 0 < expiryParts\.Count \? expiryParts\[0\] : null\)\);/);
+        assert.match (out, /if \(expiryDate != ""\)/);
+    });
+});
