@@ -37,6 +37,9 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "bingx":
 		bingxItf := NewBingx(exchangeArgs)
 		return bingxItf, true
+	case "bit2me":
+		bit2meItf := NewBit2me(exchangeArgs)
+		return bit2meItf, true
 	case "bitfinex":
 		bitfinexItf := NewBitfinex(exchangeArgs)
 		return bitfinexItf, true
