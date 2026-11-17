@@ -624,7 +624,7 @@ class BaseExchange(SyncExchange):
             pass
         else:
             # server disconnected a working connection
-            if self.clients.get(client.url) is client:
+            if client.url in self.clients:
                 del self.clients[client.url]
 
     async def close_ws_clients(self):
