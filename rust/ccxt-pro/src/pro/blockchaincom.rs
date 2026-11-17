@@ -265,8 +265,8 @@ impl Blockchaincom {
         let mut balances: crate::value::List = __pro_message.get("balances").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_161: bool = true;
-            while { if !__for_first_161 { i += 1; } __for_first_161 = false; i < (balances.len() as i64) } {
+            let mut __for_first_166: bool = true;
+            while { if !__for_first_166 { i += 1; } __for_first_166 = false; i < (balances.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -791,8 +791,8 @@ impl Blockchaincom {
             let mut orders: crate::value::List = __pro_message.get("orders").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_162: bool = true;
-                while { if !__for_first_162 { i += 1; } __for_first_162 = false; i < (orders.len() as i64) } {
+                let mut __for_first_167: bool = true;
+                while { if !__for_first_167 { i += 1; } __for_first_167 = false; i < (orders.len() as i64) } {
                 let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
                 cachedOrders.append(Value::Dict(parsedOrder));
@@ -1024,8 +1024,8 @@ impl Blockchaincom {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_163: bool = true;
-            while { if !__for_first_163 { i += 1; } __for_first_163 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_168: bool = true;
+            while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (deltas.len() as i64) } {
             self.handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }

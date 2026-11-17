@@ -404,8 +404,8 @@ impl Bittrade {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_141: bool = true;
-            while { if !__for_first_141 { i += 1; } __for_first_141 = false; i < (data.len() as i64) } {
+            let mut __for_first_146: bool = true;
+            while { if !__for_first_146 { i += 1; } __for_first_146 = false; i < (data.len() as i64) } {
             let mut trade: crate::value::Dict = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
             tradesCache.append(Value::Dict(trade));
         }
@@ -654,8 +654,8 @@ impl Bittrade {
         let mut messages: crate::value::List = orderbook.cache_items();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_142: bool = true;
-            while { if !__for_first_142 { i += 1; } __for_first_142 = false; i < (messages.len() as i64) } {
+            let mut __for_first_147: bool = true;
+            while { if !__for_first_147 { i += 1; } __for_first_147 = false; i < (messages.len() as i64) } {
             self.handle_order_book_message(client.clone(), messages.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&orderbook));
         }
         }

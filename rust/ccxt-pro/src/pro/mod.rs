@@ -28,6 +28,8 @@ pub mod binanceus;
 pub mod binanceusdm;
 #[cfg(feature = "bingx")]
 pub mod bingx;
+#[cfg(feature = "bit2me")]
+pub mod bit2me;
 #[cfg(feature = "bitfinex")]
 pub mod bitfinex;
 #[cfg(feature = "bitget")]
@@ -179,6 +181,8 @@ pub use binanceus::Binanceus;
 pub use binanceusdm::Binanceusdm;
 #[cfg(feature = "bingx")]
 pub use bingx::Bingx;
+#[cfg(feature = "bit2me")]
+pub use bit2me::Bit2me;
 #[cfg(feature = "bitfinex")]
 pub use bitfinex::Bitfinex;
 #[cfg(feature = "bitget")]
@@ -333,6 +337,8 @@ pub async fn with_exchange<V: crate::exchange::ExchangeVisitor>(id: &str, config
         "binanceusdm" => Some(visitor.visit(binanceusdm::Binanceusdm::new(config)).await),
         #[cfg(feature = "bingx")]
         "bingx" => Some(visitor.visit(bingx::Bingx::new(config)).await),
+        #[cfg(feature = "bit2me")]
+        "bit2me" => Some(visitor.visit(bit2me::Bit2me::new(config)).await),
         #[cfg(feature = "bitfinex")]
         "bitfinex" => Some(visitor.visit(bitfinex::Bitfinex::new(config)).await),
         #[cfg(feature = "bitget")]

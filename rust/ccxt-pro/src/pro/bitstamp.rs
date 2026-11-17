@@ -397,8 +397,8 @@ impl Bitstamp {
         let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_137: bool = true;
-            while { if !__for_first_137 { i += 1; } __for_first_137 = false; i < (bidAsks.len() as i64) } {
+            let mut __for_first_142: bool = true;
+            while { if !__for_first_142 { i += 1; } __for_first_142 = false; i < (bidAsks.len() as i64) } {
             let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(bidAsks.get(i as usize).cloned().unwrap_or(Value::Null), &[]).into_list();
             bookSide.store_array(Value::Arr(bidAsk));
         }
@@ -418,8 +418,8 @@ impl Bitstamp {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_138: bool = true;
-            while { if !__for_first_138 { i += 1; } __for_first_138 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_143: bool = true;
+            while { if !__for_first_143 { i += 1; } __for_first_143 = false; i < (deltas.len() as i64) } {
             let mut delta: crate::value::Dict = self.safe_dict(deltas.clone(), Value::Int(i), &[]).into_dict();
             let mut deltaNonce: Option<i64> = self.safe_integer_k(&delta, "microtimestamp", &[]).as_i64();
             if (deltaNonce == nonce) {
@@ -1204,8 +1204,8 @@ impl Bitstamp {
         let mut entries: crate::value::List = self.to_array(cache).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_139: bool = true;
-            while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (entries.len() as i64) } {
+            let mut __for_first_144: bool = true;
+            while { if !__for_first_144 { i += 1; } __for_first_144 = false; i < (entries.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = entries.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             let mut entrySymbol: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             if !self.in_array(&entrySymbol, symbols.clone()) {
@@ -1274,8 +1274,8 @@ impl Bitstamp {
         let mut keys: Vec<Value> = Value::Array(methods.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_140: bool = true;
-            while { if !__for_first_140 { i += 1; } __for_first_140 = false; i < (keys.len() as i64) } {
+            let mut __for_first_145: bool = true;
+            while { if !__for_first_145 { i += 1; } __for_first_145 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if ((if let (Some(__h), Some(__n)) = (channel.as_deref(), key.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) > -1 {
                 let mut method: Option<String> = methods.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);

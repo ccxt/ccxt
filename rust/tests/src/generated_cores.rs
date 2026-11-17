@@ -16,6 +16,7 @@ pub(crate) use ccxt::exchanges::{
     binanceusdm::Binanceusdm,
     bingx::Bingx,
     bit2c::Bit2c,
+    bit2me::Bit2me,
     bitbank::Bitbank,
     bitbns::Bitbns,
     bitfinex::Bitfinex,
@@ -139,6 +140,7 @@ pub(crate) use ccxt_pro::pro::{
     binanceus::Binanceus as WsBinanceus,
     binanceusdm::Binanceusdm as WsBinanceusdm,
     bingx::Bingx as WsBingx,
+    bit2me::Bit2me as WsBit2me,
     bitfinex::Bitfinex as WsBitfinex,
     bitget::Bitget as WsBitget,
     bithumb::Bithumb as WsBithumb,
@@ -220,6 +222,7 @@ macro_rules! for_each_core {
         $cb!(binanceusdm, Binanceusdm);
         $cb!(bingx, Bingx);
         $cb!(bit2c, Bit2c);
+        $cb!(bit2me, Bit2me);
         $cb!(bitbank, Bitbank);
         $cb!(bitbns, Bitbns);
         $cb!(bitfinex, Bitfinex);
@@ -333,6 +336,7 @@ macro_rules! for_each_ws_core {
         $cb!(binanceus, WsBinanceus);
         $cb!(binanceusdm, WsBinanceusdm);
         $cb!(bingx, WsBingx);
+        $cb!(bit2me, WsBit2me);
         $cb!(bitfinex, WsBitfinex);
         $cb!(bitget, WsBitget);
         $cb!(bithumb, WsBithumb);
