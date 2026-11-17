@@ -245,7 +245,7 @@ export default class sxbet extends Exchange {
         const rawMarkets: Dict[] = [];
         const collectCap = this.safeInteger ({ 'limit': userLimit }, 'limit');
         let paginationKey: Str = undefined;
-        let page = this.parseToInt (0);
+        let page = 0;
         while (true) {
             const request: Dict = { 'pageSize': pageSize };
             if (paginationKey !== undefined) {
@@ -259,7 +259,7 @@ export default class sxbet extends Exchange {
                 rawMarkets.push (pageMarkets[i]);
             }
             paginationKey = this.safeString (result, 'nextKey');
-            page = this.parseToInt (page + 1);
+            page = page + 1;
             const collectedLength = this.parseToInt (rawMarkets.length);
             if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((collectCap !== undefined) && (collectedLength >= collectCap))) {
                 break;
