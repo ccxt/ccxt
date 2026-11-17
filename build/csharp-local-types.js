@@ -8855,6 +8855,279 @@ function siblingBoundStringListElementType (csharp, initializer) {
     return 'string';
 }
 
+// ral-90c3 rule A: `const x = xs[i]` where `xs` is a once-bound, never-written local initialised
+// from `this.safeList (recv, 'K'[, default])`, and EVERY same-file writer of the key `K` (an object
+// literal property or a `recv['K'] = v` write) stores a list the TS checker types as a string list,
+// as does the default. The element is then a string or null off the end, the box the `(string)`
+// cast names (subMessageHashesProducer's proof, keyed on any literal key). Admitted only when the
+// local has a use the typed declaration prints natively: the key of a `delete`, the left operand of `in`, a string-method receiver or a string-literal equality operand; a local that is
+// only handed to object parameters keeps `object` (87c3 rule 3 sank on exactly those).
+function keyedWriteIsStringList (csharp, value) {
+    const checker = (typeof csharp.getChecker === 'function') ? csharp.getChecker () : undefined;
+    if (checker === undefined || value === undefined) {
+        return false;
+    }
+    let type;
+    try {
+        type = checker.getTypeAtLocation (value);
+    } catch (e) {
+        return false;
+    }
+    // only an array reference carries type arguments (getTypeArguments panics on anything else);
+    // a union (`string[] | undefined`) needs every non-nullish member to be a string array
+    const members = (typeof type?.isUnionType === 'function' && type.isUnionType ()) ? ts.typeParts (type) : [ type ];
+    let lists = 0;
+    for (const member of members) {
+        if ((member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0) {
+            continue;
+        }
+        if (!(member.flags & ts.TypeFlags.Object) || !((member.objectFlags ?? 0) & ts.ObjectFlags.Reference) || !checker.isArrayType (member)) {
+            return false;
+        }
+        const args = checker.getTypeArguments (member);
+        if (args.length !== 1 || (args[0].flags & ts.TypeFlags.StringLike) === 0 || (args[0].flags & ~ts.TypeFlags.StringLike) !== 0) {
+            return false;
+        }
+        lists++;
+    }
+    return lists > 0;
+}
+
+function keyedStringListDefaultIsStringList (csharp, node) {
+    if (node === undefined) {
+        return true;
+    }
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.AsExpression) {
+        node = node.expression;
+    }
+    if (node?.kind === ts.SyntaxKind.ArrayLiteralExpression && node.elements.length === 0) {
+        return true;
+    }
+    return keyedWriteIsStringList (csharp, node);
+}
+
+function keyedStringListProducer (csharp, initializer) {
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.AsExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.CallExpression || node.arguments?.length < 2 || node.arguments.length > 3) {
+        return false;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || callee.name?.text !== 'safeList') {
+        return false;
+    }
+    const keyName = elementAccessLiteralKey (node.arguments[1]);
+    if (keyName === undefined || !keyedStringListDefaultIsStringList (csharp, node.arguments[2])) {
+        return false;
+    }
+    const source = node.getSourceFile?.();
+    if (source === undefined) {
+        return false;
+    }
+    let writes = 0;
+    let ok = true;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.PropertyAssignment && elementAccessLiteralKey (n.name) === keyName) {
+            writes++;
+            ok = keyedWriteIsStringList (csharp, n.initializer);
+        } else if (n.kind === ts.SyntaxKind.ShorthandPropertyAssignment && n.name?.text === keyName) {
+            ok = false; // a shorthand writer: no value node to ask the checker about
+        } else if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken?.kind)
+                && n.left?.kind === ts.SyntaxKind.ElementAccessExpression && elementAccessLiteralKey (n.left.argumentExpression) === keyName) {
+            writes++;
+            ok = keyedWriteIsStringList (csharp, n.right);
+        }
+        n?.forEachChild (visit);
+    };
+    source.forEachChild (visit);
+    return ok && writes > 0;
+}
+
+function stringElementLocalHasNativeUse (csharp, declaration) {
+    const name = declaration?.name?.text;
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (name === undefined || scope === undefined) {
+        return false;
+    }
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.argumentExpression === use) {
+            const grand = parent.parent;
+            // `delete d[x]` prints `Remove(x)` without the cast; a `d[x] = v` write keeps its
+            // `(string)` key cast on a typed local too, so it is not a native use
+            if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+                return true;
+            }
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && parent.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            return true;
+        }
+        // rule D: the argument of `s.indexOf (x)` / `s.startsWith (x)` on a string receiver (the
+        // printer casts an `object` argument there)
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && DICT_ROW_STRING_METHODS.has (parent.expression.name?.text) && parent.expression.expression?.kind === ts.SyntaxKind.Identifier
+                && localIdentifierType (csharp, parent.expression.expression) === 'string') {
+            return true;
+        }
+        if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use && DICT_ROW_STRING_METHODS.has (parent.name?.text)
+                && parent.parent?.kind === ts.SyntaxKind.CallExpression && parent.parent.expression === parent) {
+            return true;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression
+                && [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (parent.operatorToken.kind)
+                && ts.isStringLiteralLike ((parent.left === use) ? parent.right : parent.left)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// ral-90c3 rule B: `const x = xs[i]` where `xs` is a `string[]` / `Strings` PARAMETER the printer's own
+// list-parameter census prints `IList<object>` (csharpArrayListParamType: every declaration of the
+// (method, position) pair and every resolved call agree, never rebound), and the body neither
+// writes nor mutates it in place (stringListParameterElementType's use scan, which only covers the
+// CORE_LIST_ARGS positions). Same `string?` + `(string)` cast; admitted only with a native use.
+function censusStringListParameterElementType (csharp, initializer, declaration) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier
+            || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || typeof csharp.csharpArrayListParamType !== 'function') {
+        return undefined;
+    }
+    const fileName = (initializer.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const parameter = csharpIdentifierDeclaration (csharp, initializer.expression);
+    if (parameter?.kind !== ts.SyntaxKind.Parameter || parameter.name?.kind !== ts.SyntaxKind.Identifier || !stringListParameterAnnotation (parameter)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+    if (scope === undefined || parameter.parent !== scope || enclosingFunction (declaration) !== scope) {
+        return undefined;
+    }
+    let listType;
+    try {
+        listType = csharp.csharpArrayListParamType (parameter);
+    } catch (e) {
+        return undefined;
+    }
+    if (listType !== 'IList<object>') {
+        return undefined;
+    }
+    for (const use of indexScope (csharp, scope).identifiers.get (parameter.name.text) ?? []) {
+        if (use === parameter.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, parameter, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            return undefined;
+        }
+        if (parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
+            return undefined;
+        }
+    }
+    return stringElementLocalHasNativeUse (csharp, declaration) ? 'string' : undefined;
+}
+
+// ral-90c3 rule D: two more string-element receivers, same `string?` + `(string)` cast and the same
+// native-use gate. (1) `const xs = this.requireValue (p, ..)` over a narrowed string-list parameter
+// (stringListParameterElementType: a CORE_LIST_ARGS position, never written or mutated): requireValue
+// hands its argument back unchanged or throws. (2) `s[i]` over a local this module prints `string`:
+// GetValue's string branch answers a one-character string (an out-of-range index throws there both
+// ways). A receiver of either kind must be once-bound, declared before the read and never written.
+function requireValueStringListOrStringReceiver (csharp, initializer, declaration) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier
+            || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const fileName = (initializer.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const receiver = initializer.expression;
+    const receiverDeclaration = csharpIdentifierDeclaration (csharp, receiver);
+    if (receiverDeclaration?.kind !== ts.SyntaxKind.VariableDeclaration || receiverDeclaration.name?.kind !== ts.SyntaxKind.Identifier
+            || receiverDeclaration.getStart () > initializer.getStart ()) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+    if (scope === undefined || enclosingFunction (receiverDeclaration) !== enclosingFunction (initializer)) {
+        return undefined;
+    }
+    let proven = false;
+    let init = receiverDeclaration.initializer;
+    while (init?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        init = init.expression;
+    }
+    if (init?.kind === ts.SyntaxKind.CallExpression && init.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && init.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && init.expression.name?.text === 'requireValue'
+            && init.arguments?.[0]?.kind === ts.SyntaxKind.Identifier) {
+        const parameter = csharpIdentifierDeclaration (csharp, init.arguments[0]);
+        proven = parameter?.kind === ts.SyntaxKind.Parameter && parameter.parent === scope && stringListParameterElementType (csharp, scope, parameter);
+    } else if (localIdentifierType (csharp, receiver) === 'string') {
+        proven = true;
+    }
+    if (!proven) {
+        return undefined;
+    }
+    for (const n of indexScope (csharp, scope).identifiers.get (receiver.text) ?? []) {
+        if (n === receiver || n === receiverDeclaration.name || (n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && n.parent.name === n)) {
+            continue;
+        }
+        if (csharpIdentifierDeclaration (csharp, n) !== receiverDeclaration) {
+            continue;
+        }
+        if (receiverUseIsWrite (n)) {
+            return undefined;
+        }
+    }
+    return stringElementLocalHasNativeUse (csharp, declaration) ? 'string' : undefined;
+}
+
+function keyedStringListElementType (csharp, initializer, declaration) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier
+            || declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const fileName = (initializer.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined; // the test / example tiers keep `object` (as useProvenElementBox)
+    }
+    const receiver = initializer.expression;
+    const receiverDeclaration = csharpIdentifierDeclaration (csharp, receiver);
+    if (receiverDeclaration?.kind !== ts.SyntaxKind.VariableDeclaration || receiverDeclaration.name?.kind !== ts.SyntaxKind.Identifier
+            || receiverDeclaration.getStart () > initializer.getStart ()) {
+        return undefined;
+    }
+    if (!keyedStringListProducer (csharp, receiverDeclaration.initializer)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+    if (scope === undefined || enclosingFunction (receiverDeclaration) !== enclosingFunction (initializer)) {
+        return undefined;
+    }
+    for (const n of indexScope (csharp, scope).identifiers.get (receiver.text) ?? []) {
+        if (n === receiver || n === receiverDeclaration.name || (n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && n.parent.name === n)) {
+            continue;
+        }
+        if (csharpIdentifierDeclaration (csharp, n) !== receiverDeclaration) {
+            continue;
+        }
+        if (receiverUseIsWrite (n)) {
+            return undefined;
+        }
+    }
+    return stringElementLocalHasNativeUse (csharp, declaration) ? 'string' : undefined;
+}
+
 // `market['symbol']` — a MARKET ROW read by a literal key. getValue hands back the raw box, so
 // naming the value `string?` needs the `(string)` cast back (see the MARKET_ROW_* header).
 // Keys outside the set (booleans / numerics / dicts) keep the local `object`.
@@ -11439,7 +11712,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `const x = recv[key]`: the runtime element is a proven box, but the call's C# type
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
-        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer)) : undefined;
+        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer) ?? keyedStringListElementType (csharp, declaration.initializer, declaration) ?? censusStringListParameterElementType (csharp, declaration.initializer, declaration) ?? requireValueStringListOrStringReceiver (csharp, declaration.initializer, declaration)) : undefined;
         // `const key = keys[i]` over a receiver whose PRINTED declaration head is a scalar list
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back

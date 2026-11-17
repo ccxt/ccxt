@@ -8681,6 +8681,14 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
     check ('87c3 length alias with a moved index keeps object', 'w (a: Dict) { const ks = Object.keys (a); const n = ks.length; let r = 0; for (let i = 0; i < n; i++) { i = i + 1; const k = ks[i]; r = k + "=" + a[k]; } return r; }',
         [ 'object k = ' ], [ 'string k = ' ]);
     check ('keyed read into a local keeps object', 'n (data: Dict[]) { const row = data[0]; row["a"] = 1; const s = row["b"]; return s; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('90c3 keyed string-list element read by in / delete', 'x (s: Dict, d: Dict, h: string[]) { const r = { "hs": h }; s["r"] = r; const hs = this.safeList (s, "hs", []); for (let i = 0; i < hs.length; i++) { const k = hs[i]; if (k in d) { delete d[k]; } } }',
+        [ 'string? k = ((string)hs[i])' ], [ 'object k = ' ]);
+    check ('90c3 keyed list with a non-string writer keeps object', 'y (s: Dict, d: Dict, h: any[]) { const r = { "hs": h }; s["r"] = r; const hs = this.safeList (s, "hs", []); for (let i = 0; i < hs.length; i++) { const k = hs[i]; if (k in d) { delete d[k]; } } }',
+        [ 'object k = ' ], [ 'string? k = ' ]);
+    check ('90c3 keyed string-list element passed only to an object call keeps object', 'z (s: Dict, h: string[]) { const r = { "hs": h }; s["r"] = r; const hs = this.safeList (s, "hs", []); for (let i = 0; i < hs.length; i++) { const k = hs[i]; this.safeString (s, k); } }',
+        [ 'object k = ' ], [ 'string? k = ' ]);
+    check ('90c3 character of a string local read by indexOf', 'hx (hex: string) { const digits = "0123456789abcdef"; const lower = hex.toLowerCase (); let r = 0; for (let i = 0; i < lower.length; i++) { const ch = lower[i]; r = r + digits.indexOf (ch); } return r; }',
+        [ 'string? ch = ((string)' ], [ 'object ch = ' ]);
     return problems;
 }
 
