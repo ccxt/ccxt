@@ -649,12 +649,12 @@ func (this *Bit2me) ParseCurrency(rawCurrency any) map[string]any {
 	var deposit bool = this.InArray("deposit", actions)
 	var withdraw bool = this.InArray("withdrawal", actions)
 	// the exponent is only published for a handful of assets, fall back to the usual decimals
-	var defaultExponent string
-	if assetType != nil && *assetType == "fiat" {
-		defaultExponent = "2"
-	} else {
-		defaultExponent = "8"
-	}
+	var defaultExponent string = func() string {
+		if assetType != nil && *assetType == "fiat" {
+			return "2"
+		}
+		return "8"
+	}()
 	var precision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "exponent", defaultExponent)))
 	var networks map[string]any = map[string]any{}
 	var networkId *string = this.SafeString(rawCurrency, "network")
@@ -1132,12 +1132,12 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 		return nil
 	}
-	var requestLimit int64
-	if limit == nil {
-		requestLimit = int64(maxLimit)
-	} else {
-		requestLimit = min(*limit, int64(maxLimit))
-	}
+	var requestLimit any = func() any {
+		if limit == nil {
+			return maxLimit
+		}
+		return mathMin(limit, maxLimit)
+	}()
 	var untilPtr *int64 = nil
 	untilPtr, paramsUntil := this.HandleParamInteger(paramsPaginate, "until")
 	until := func() any {
@@ -1162,7 +1162,7 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			}
 			return this.Milliseconds()
 		}()
-		request["startTime"] = Subtract(end, requestLimit*duration)
+		request["startTime"] = Subtract(end, Multiply(requestLimit, duration))
 	}
 	if until != nil {
 		request["endTime"] = until
@@ -1532,12 +1532,12 @@ func (this *Bit2me) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Bit2me) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bit2me) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bit2me) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
+func (this *Bit2me) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1739,12 +1739,12 @@ func (this *Bit2me) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	}()
 	// startTime and endTime must always be sent together
 	if (since != nil) || (until != nil) {
-		var start int64
-		if since != nil {
-			start = *since
-		} else {
-			start = 0
-		}
+		var start int64 = func() int64 {
+			if since != nil {
+				return *since
+			}
+			return 0
+		}()
 		var end any = func() any {
 			if until != nil {
 				return until
@@ -2108,12 +2108,12 @@ func (this *Bit2me) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	}()
 	// startTime and endTime must always be sent together
 	if (since != nil) || (until != nil) {
-		var start int64
-		if since != nil {
-			start = *since
-		} else {
-			start = 0
-		}
+		var start int64 = func() int64 {
+			if since != nil {
+				return *since
+			}
+			return 0
+		}()
 		var end any = func() any {
 			if until != nil {
 				return until
