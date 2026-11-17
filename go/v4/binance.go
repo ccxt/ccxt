@@ -598,6 +598,9 @@ func (this *Binance) Describe() map[string]any {
 					"sub-account/transaction-statistics": map[string]any{
 						"cost": 0.40002,
 					},
+					"sub-account/subAccountApi": map[string]any{
+						"cost": 20.001,
+					},
 					"sub-account/subAccountApi/ipRestriction": map[string]any{
 						"cost": 20.001,
 					},
@@ -1144,6 +1147,12 @@ func (this *Binance) Describe() map[string]any {
 					"sub-account/virtualSubAccount": map[string]any{
 						"cost": 0.1,
 					},
+					"sub-account/subAccountApi": map[string]any{
+						"cost": 20.001,
+					},
+					"sub-account/subAccountApiPermission": map[string]any{
+						"cost": 20.001,
+					},
 					"sub-account/margin/transfer": map[string]any{
 						"cost": 4.0002,
 					},
@@ -1514,6 +1523,9 @@ func (this *Binance) Describe() map[string]any {
 					"algo/futures/order": map[string]any{
 						"cost": 0.1,
 					},
+					"sub-account/subAccountApi": map[string]any{
+						"cost": 20.001,
+					},
 					"sub-account/subAccountApi/ipRestriction/ipList": map[string]any{
 						"cost": 20.001,
 					},
@@ -1558,6 +1570,9 @@ func (this *Binance) Describe() map[string]any {
 				"post": map[string]any{
 					"eth-staking/eth/stake": map[string]any{
 						"cost": 15,
+					},
+					"sub-account/subAccountApi": map[string]any{
+						"cost": 20.001,
 					},
 					"sub-account/subAccountApi/ipRestriction": map[string]any{
 						"cost": 20.001,
@@ -7099,11 +7114,11 @@ func (this *Binance) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes516319 []any = r1.Value
-		if retRes516319 == nil {
+		var retRes516819 []any = r1.Value
+		if retRes516819 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes516319)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes516819)}
 		}
 		return nil
 	}
@@ -7642,11 +7657,11 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes559519 []any = r1.Value
-		if retRes559519 == nil {
+		var retRes560019 []any = r1.Value
+		if retRes560019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes559519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes560019)}
 		}
 		return nil
 	}
@@ -10460,11 +10475,11 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes788019 []any = r1.Value
-		if retRes788019 == nil {
+		var retRes788519 []any = r1.Value
+		if retRes788519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes788019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes788519)}
 		}
 		return nil
 	}
@@ -12134,11 +12149,11 @@ func (this *Binance) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes914615 []any = TradesToList(r1.Value)
-	if retRes914615 == nil {
+	var retRes915115 []any = TradesToList(r1.Value)
+	if retRes915115 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes914615)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes915115)}
 	}
 	return nil
 }
@@ -12198,11 +12213,11 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes918019 []any = r1.Value
-		if retRes918019 == nil {
+		var retRes918519 []any = r1.Value
+		if retRes918519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes918019)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes918519)}
 		}
 		return nil
 	}
@@ -12745,11 +12760,11 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes961319 []any = r1.Value
-		if retRes961319 == nil {
+		var retRes961819 []any = r1.Value
+		if retRes961819 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes961319)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes961819)}
 		}
 		return nil
 	}
@@ -12871,11 +12886,11 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes973619 []any = r1.Value
-		if retRes973619 == nil {
+		var retRes974119 []any = r1.Value
+		if retRes974119 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes973619)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes974119)}
 		}
 		return nil
 	}
@@ -13450,11 +13465,11 @@ func (this *Binance) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1029819 []any = r1.Value
-		if retRes1029819 == nil {
+		var retRes1030319 []any = r1.Value
+		if retRes1030319 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes1029819)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes1030319)}
 		}
 		return nil
 	}
@@ -14528,11 +14543,11 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1118419 []any = r1.Value
-		if retRes1118419 == nil {
+		var retRes1118919 []any = r1.Value
+		if retRes1118919 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes1118419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes1118919)}
 		}
 		return nil
 	}
@@ -15809,11 +15824,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes1224519 []any = PositionsToList(r.Value)
-		if retRes1224519 == nil {
+		var retRes1225019 []any = PositionsToList(r.Value)
+		if retRes1225019 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1224519)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1225019)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -15822,11 +15837,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1224719 []any = PositionsToList(r1.Value)
-		if retRes1224719 == nil {
+		var retRes1225219 []any = PositionsToList(r1.Value)
+		if retRes1225219 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1224719)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1225219)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "option" {
@@ -15835,11 +15850,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes1224919 []any = PositionsToList(r2.Value)
-		if retRes1224919 == nil {
+		var retRes1225419 []any = PositionsToList(r2.Value)
+		if retRes1225419 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1224919)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1225419)}
 		}
 		return nil
 	} else {
@@ -17061,11 +17076,11 @@ func (this *Binance) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1314319 []any = r1.Value
-		if retRes1314319 == nil {
+		var retRes1314819 []any = r1.Value
+		if retRes1314819 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes1314319)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes1314819)}
 		}
 		return nil
 	}
@@ -18729,11 +18744,11 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInte
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1438719 []any = r1.Value
-		if retRes1438719 == nil {
+		var retRes1439219 []any = r1.Value
+		if retRes1439219 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes1438719)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes1439219)}
 		}
 		return nil
 	}
@@ -19011,11 +19026,11 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1457919 []any = r1.Value
-		if retRes1457919 == nil {
+		var retRes1458419 []any = r1.Value
+		if retRes1458419 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1457919)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1458419)}
 		}
 		return nil
 	}
