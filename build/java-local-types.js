@@ -2481,6 +2481,10 @@ const VENUE_RETURN_KINDS = {
     // pro kraken `formatNumber (data: string): string` (one declaration in ts/src): returns its own concat
     // of two safeString (.., '') reads, trimmed by slice; the checksum concat of two calls goes native
     'formatNumber': [ 'String' ],
+    // gate `getGateFuturesSignedAmount (..): Str` (one declaration): returns amountToPrecision's String local or
+    // Precise.stringNeg (public static String); its null seed is parsed through `x as string`
+    'getGateFuturesSignedAmount': [ 'String' ],
+    'getPrivateWsUrl': [ 'String' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2584,6 +2588,17 @@ function venueReturnCast (printer, node, method, javaType) {
     }
     if (javaType === 'Long' && numericFamilyCallType (printer, expression) === 'Long') {
         return undefined; // already a declared Long (safeInteger/parseToInt): no conversion
+    }
+    // a `+` the printer emits as the native Java concat is statically String: no checkcast
+    if (javaType === 'String' && ts.isBinaryExpression (expression) && expression.operatorToken.kind === ts.SyntaxKind.PlusToken
+        && printedConcatIsNative (printer, expression.left, expression.right)) {
+        return undefined;
+    }
+    // Precise.string* statics are declared `public static String`: no checkcast
+    if (javaType === 'String' && ts.isCallExpression (expression) && ts.isPropertyAccessExpression (expression.expression)
+        && ts.isIdentifier (expression.expression.expression) && expression.expression.expression.text === 'Precise'
+        && PRECISE_STRING_STATICS.has (String (expression.expression.name.text))) {
+        return undefined;
     }
     // a const local fed by this.market/safeMarket is already declared Map<String, Object>: no cast
     if (javaType === JAVA_ARRAY_TYPE_MAP () && constMapCallLocal (printer, expression)) {
@@ -13037,8 +13052,58 @@ function nullScalarWriteType (printer, node) {
     const r84 = nullSeedWriteType (printer, value);
     if (r84 !== undefined) {
         NULL_SEED_R84_WRITES.add (node);
+        return r84;
     }
-    return r84;
+    // `x = market['baseId']` of a structure local whose DTO field is `public String`: the write takes the
+    // String-slot conversion the uses printed before (`Objects.toString(v, null)`); lands only with a native use
+    if (ts.isElementAccessExpression (value) && (structureKeyReadLocalType (printer, value)?.type === JAVA_DATAFLOW_STRING
+        || nullSeedMarketParamKeyRead (printer, value))) {
+        NULL_SEED_R84_WRITES.add (node);
+        NULL_SEED_CAST_WRITES.add (value);
+        return JAVA_DATAFLOW_STRING;
+    }
+    return undefined;
+}
+const NULL_SEED_CAST_WRITES = new WeakSet ();
+// `market['baseId']` on a never-written `market: Market` parameter: MarketInterface declares the key `public String`
+// (the write prints Objects.toString, so a non-String raw value still converts as the String-slot use did)
+function nullSeedMarketParamKeyRead (printer, value) {
+    const receiver = value.expression;
+    const key = value.argumentExpression;
+    if (!ts.isIdentifier (receiver) || key === undefined || !ts.isStringLiteral (key)
+        || structureKeyTable ('MarketInterface')[key.text] !== JAVA_DATAFLOW_STRING) {
+        return false;
+    }
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+        if (declaration === undefined || declaration.type === undefined || !ts.isTypeReferenceNode (declaration.type)
+            || declaration.type.getText () !== 'Market' || enclosingFunction (declaration) !== enclosingFunction (value)) {
+            return false;
+        }
+        if (ts.isParameterDeclaration (declaration)) {
+            return printer.javaParameterIsWritten?.(declaration) === false;
+        }
+        // a `let market: Market` local: every write is undefined or this.market (..) / this.safeMarket (..)
+        if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || !isNullishInitializer (declaration.initializer)) {
+            return false;
+        }
+        const symbol = printer.getChecker ().getSymbolAtLocation (declaration.name);
+        return (identifierIndex (enclosingFunction (declaration)).get (String (declaration.name.text)) ?? []).every ((n) => {
+            if (n === declaration.name || printer.getChecker ().getSymbolAtLocation (n) !== symbol) {
+                return true;
+            }
+            const host = unwrapParensUp (n);
+            const parent = host.parent;
+            if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host) {
+                const right = unwrapParens (parent.right);
+                return parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && (isNullishInitializer (right)
+                    || (isThisCall (right) && [ 'market', 'safeMarket' ].includes (String (right.expression.name.text))));
+            }
+            return !(parent !== undefined && (ts.isArrayLiteralExpression (parent) || ts.isPrefixUnaryExpression (parent) || ts.isPostfixUnaryExpression (parent)));
+        });
+    } catch (e) {
+        return false;
+    }
 }
 
 // r84-j4: null-seed writes typed from the TS AST and checker that section 24's first pass declined.
@@ -13065,6 +13130,11 @@ function nullSeedHasNativeUse (printer, declaration, type) {
             if (types[at] === 'String') {
                 return true;
             }
+        }
+        // a String seed receiver of `indexOf` / `slice` drops the `((String)x)` receiver cast
+        if (type === JAVA_DATAFLOW_STRING && parent !== undefined && ts.isPropertyAccessExpression (parent) && parent.expression === host
+            && [ 'indexOf', 'slice', 'toLowerCase', 'toUpperCase' ].includes (String (parent.name.text)) && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
+            return true;
         }
         // `x as string` on a String seed prints the bare local (this section's printAsExpression wrapper)
         if (type === JAVA_DATAFLOW_STRING && parent !== undefined && ts.isAsExpression (parent) && parent.type.kind === ts.SyntaxKind.StringKeyword) {
@@ -13170,7 +13240,8 @@ function nullSeedLaterIntegralBounds (printer, value) {
             }
             const init = unwrapParens (d.initializer);
             return printer.javaPrintsIntegralNumber (init)
-                || (isThisCall (init) && init.expression.name.text === 'parseToInt' && nullSeedResolvedInBase (printer, init));
+                || (isThisCall (init) && init.expression.name.text === 'parseToInt' && nullSeedResolvedInBase (printer, init))
+                || nullSeedStringIndexOf (printer, init);
         } catch (e) {
             return false;
         }
@@ -13241,6 +13312,15 @@ function nullSeedWriteType (printer, value, depth = 0) {
         return JAVA_DATAFLOW_STRING;
     }
     return undefined;
+}
+
+// `s.indexOf (lit)` on a checker-string receiver prints `((String)s).indexOf(..)`, an int (the bound is read
+// through `((Number)b).intValue()` or natively): an integral slice bound
+function nullSeedStringIndexOf (printer, init) {
+    return init !== undefined && ts.isCallExpression (init) && ts.isPropertyAccessExpression (init.expression)
+        && init.expression.name.text === 'indexOf' && init.arguments.length === 1 && ts.isStringLiteral (init.arguments[0])
+        && ts.isIdentifier (init.expression.expression)
+        && nullSeedCheckerIs (printer, init.expression.expression, (c, t) => (t.flags & ts.TypeFlags.StringLike) !== 0);
 }
 
 // r87-j4 R2: the const declaration of `id` in the same function, positioned after the use's own seed
@@ -13361,6 +13441,7 @@ function nullScalarLocalTypeOpen (printer, declaration) {
     const sourceName = String (declaration.name.text);
     let type;
     let r84Write = false;
+    let venueString = false;
     for (const n of (identifierIndex (scope).get (sourceName) ?? [])) {
         if (n === declaration.name || dataflowNotAUse (n) || checker.getSymbolAtLocation (n) !== symbol) {
             continue;
@@ -13380,6 +13461,9 @@ function nullScalarLocalTypeOpen (printer, declaration) {
             if (written === undefined || (written !== 'null' && type !== undefined && written !== type)) {
                 return undefined;
             }
+            // a VENUE_RETURN_KINDS String callee write: `x as string` on the seed may print as the bare local
+            venueString = venueString || (written === JAVA_DATAFLOW_STRING && isThisCall (unwrapParens (parent.right))
+                && venueCallJavaType (printer, unwrapParens (parent.right)) === JAVA_DATAFLOW_STRING);
             r84Write = r84Write || NULL_SEED_R84_WRITES.has (parent.right);
             type = (written === 'null') ? type : written;
         }
@@ -13414,7 +13498,7 @@ function nullScalarLocalTypeOpen (printer, declaration) {
     const destructureOk = (assignment, at) => nullSeedPairSlotWrite (printer, assignment.left.elements[at]) === type;
     // `x as string` on a String seed is the identity checkcast (admitted only where a String core slot / overload
     // is the seed's native use: nullSeedHasNativeUse)
-    const stringAsCast = type === JAVA_DATAFLOW_STRING && r84Write;
+    const stringAsCast = type === JAVA_DATAFLOW_STRING && (r84Write || (venueString && nullSeedHasNativeUse (printer, declaration, type)));
     return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk, noCastAssertions: container, writeOnly: container, destructureOk, stringAsCast }) ? type : undefined;
 }
 
@@ -13483,6 +13567,40 @@ export function installJavaNullScalarLocalTypes (transpiler) {
             }
         }
         return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
+    };
+    // a String-retyped seed is a String receiver for the printer's toLowerCase / toUpperCase arms
+    const upstreamElementLocal = printer.javaDeclaredStringElementLocal?.bind (printer);
+    if (upstreamElementLocal !== undefined) {
+        printer.javaDeclaredStringElementLocal = function (node, printedText) {
+            if (node !== undefined && ts.isIdentifier (node) && printedText === node.text) {
+                try {
+                    const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+                    if (declaration !== undefined && retyped.get (declaration) === JAVA_DATAFLOW_STRING) {
+                        return true;
+                    }
+                } catch (e) {
+                    // fall through to the upstream answer
+                }
+            }
+            return upstreamElementLocal (node, printedText);
+        };
+    }
+    // a structure-key String write to a String-retyped seed prints the String-slot conversion
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const right = unwrapParens (node?.right);
+        if (node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (node.left) && right !== undefined
+            && NULL_SEED_CAST_WRITES.has (right)) {
+            try {
+                const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+                if (declaration !== undefined && retyped.get (declaration) === JAVA_DATAFLOW_STRING) {
+                    return `${printer.printNode (node.left, 0)} = java.util.Objects.toString(${printer.printNode (right, 0)}, null)`;
+                }
+            } catch (e) {
+                // fall through to the upstream print
+            }
+        }
+        return upstreamBinary (node, identation);
     };
     // `x as string` of a String-retyped seed is the identity: print the bare local
     const upstreamAs = printer.printAsExpression.bind (printer);
