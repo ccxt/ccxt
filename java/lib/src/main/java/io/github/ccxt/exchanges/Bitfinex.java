@@ -944,11 +944,11 @@ public class Bitfinex extends BitfinexApi
                     type = "spot";
                 }
                 Boolean swap = java.util.Objects.equals(type, "swap");
-                Object baseId = null;
-                Object quoteId = null;
+                String baseId = null;
+                String quoteId = null;
                 if (((String)id).indexOf(":") >= 0)
                 {
-                    List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(":"))));
+                    List<String> parts = new ArrayList<String>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(":"))));
                     baseId = (parts == null || 0 >= parts.size() ? null : parts.get(0));
                     quoteId = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 } else
@@ -956,8 +956,8 @@ public class Bitfinex extends BitfinexApi
                     baseId = (id == null ? null : ((String)id).substring(0, Math.min(3, ((String)id).length())));
                     quoteId = (id == null ? null : ((String)id).substring(Math.min(3, ((String)id).length()), Math.min(6, ((String)id).length())));
                 }
-                String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-                String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+                String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 List<Object> splitBase = new ArrayList<Object>(Arrays.asList(((String)base).split(java.util.regex.Pattern.quote("F0"))));
                 List<Object> splitQuote = new ArrayList<Object>(Arrays.asList(((String)quote).split(java.util.regex.Pattern.quote("F0"))));
                 base = this.safeString(splitBase, 0);

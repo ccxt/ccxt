@@ -1352,7 +1352,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Map<String, Object> timeframeResolved = (Map<String, Object>) this.safeDict(timeframesResolved, key, new HashMap<String, Object>() {{}});
             if (Helpers.isEqual(timeframeResolved.get("unit"), Helpers.GetValue(timeframe, "unit")) && Helpers.isEqual(timeframeResolved.get("period"), Helpers.GetValue(timeframe, "period")))
             {
-                return (String) (key);
+                return key;
             }
         }
         return null;

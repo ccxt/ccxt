@@ -1874,16 +1874,16 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             {
                 return null;
             }
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String eventTrigger = this.safeString(parameters, "event_trigger");
                 if (!java.util.Objects.equals(eventTrigger, null))
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash((String) (channelName), (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
+                    messageHashes.add(this.getMessageHash((String) (channelName), (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 } else
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash((String) (unifiedName), (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
+                    messageHashes.add(this.getMessageHash((String) (unifiedName), (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1999,7 +1999,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             messageHash = (messageHash + ("#" + subChannelName));
         }
-        return (String) (messageHash);
+        return messageHash;
     }
 
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)
@@ -2058,7 +2058,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "topic", "trades" );
                 put( "symbols", new ArrayList<Object>(Arrays.asList(symbol)) );
             }});
-            this.cleanUnsubscription(client, (String) (subMessageHash), ("unsubscribe:" + subMessageHash), false);
+            this.cleanUnsubscription(client, subMessageHash, ("unsubscribe:" + subMessageHash), false);
         } else if (java.util.Objects.equals(channel, "ohlc"))
         {
             Long interval = this.safeInteger(result, "interval");
@@ -2069,7 +2069,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "topic", "ohlcv" );
                 put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))) );
             }});
-            this.cleanUnsubscription(client, (String) (subMessageHash), unsubMessageHash, false);
+            this.cleanUnsubscription(client, subMessageHash, unsubMessageHash, false);
         }
         return message;
     }

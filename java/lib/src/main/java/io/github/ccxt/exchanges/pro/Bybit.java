@@ -754,12 +754,12 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsValue == null || 0 >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(0)), null), false, "watchBidsAsks", parameters)).join();
             Map<String, Object> paramsValue = this.cleanParams((Map<String, Object>) (parameters));
             List<String> marketIds = this.marketIds(symbolsValue);
-            List<Object> topics = new ArrayList<Object>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = this.safeString(marketIds, i, "");
                 String topic = ("orderbook.1." + marketId);
-                ((List<Object>)topics).add(topic);
+                topics.add(topic);
                 messageHashes.add(("bidask:" + this.safeString(symbolsValue, i, "")));
             }
             Object ticker = (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
@@ -1089,16 +1089,16 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     throw new BadRequest(((((this.id + " watchOrderBookForSymbols(): for ") + this.safeString(market, "type", "")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
                 }
             }
-            List<Object> topics = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 String marketId = this.marketId(symbol);
                 String topic = ((("orderbook." + this.numberToString(limitResolved)) + ".") + marketId);
-                ((List<Object>)topics).add(topic);
+                topics.add(topic);
                 String messageHash = ("orderbook:" + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
             return orderbook.limit();
@@ -1139,7 +1139,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             channel = (channel + String.valueOf(limit));
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<Object> topics = new ArrayList<Object>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -1148,7 +1148,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 String topic = ((channel + ".") + marketId);
                 messageHashes.add(("unsubscribe:orderbook:" + symbol));
                 subMessageHashes.add(("orderbook:" + symbol));
-                ((List<Object>)topics).add(topic);
+                topics.add(topic);
             }
             String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)), null), false, "watchOrderBook", paramsOmitted)).join();
             return (this.unWatchTopics(url, "orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsOmitted, new HashMap<String, Object>() {{}})).join();
@@ -1321,17 +1321,17 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             Map<String, Object> paramsValue = this.cleanParams((Map<String, Object>) (parameters));
             String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)), null), false, "watchTrades", paramsValue)).join();
-            List<Object> topics = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
                 String marketId = this.safeString(market, "id", "");
                 String topic = ("publicTrade." + marketId);
-                ((List<Object>)topics).add(topic);
+                topics.add(topic);
                 String messageHash = ("trade:" + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
             }
             List<Object> trades = (List<Object>) (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
@@ -1366,8 +1366,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)), null), false, "unWatchTradesForSymbols", parameters)).join();
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> topics = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
@@ -1375,9 +1375,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Map<String, Object> market = this.market(symbol);
                 String marketId = this.safeString(market, "id", "");
                 String topic = ("publicTrade." + marketId);
-                ((List<Object>)topics).add(topic);
+                topics.add(topic);
                 String messageHash = ("unsubscribe:trade:" + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
                 subMessageHashes.add(("trade:" + symbol));
             }
             return (this.unWatchTopics(url, "trades", symbolsNormalized, messageHashes, subMessageHashes, topics, parameters, new HashMap<String, Object>() {{}})).join();
@@ -1992,7 +1992,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 cache.append(position);
             }
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -3057,35 +3057,77 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             this.handleSubscriptionStatus(client, message);
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "orderbook", "handleOrderBook");
-            put( "kline", "handleOHLCV");
-            put( "order", "handleOrder");
-            put( "stopOrder", "handleOrder");
-            put( "ticker", "handleTicker");
-            put( "trade", "handleTrades");
-            put( "publicTrade", "handleTrades");
-            put( "depth", "handleOrderBook");
-            put( "wallet", "handleBalance");
-            put( "outboundAccountInfo", "handleBalance");
-            put( "execution", "handleMyTrades");
-            put( "execution.fast", "handleMyTrades");
-            put( "ticketInfo", "handleMyTrades");
-            put( "user.openapi.perp.trade", "handleMyTrades");
-            put( "position", "handlePositions");
-            put( "liquidation", "handleLiquidation");
-            put( "allLiquidation", "handleLiquidation");
-            put( "pong", "handlePong");
-            put( "order.create", "handleOrderWs");
-            put( "order.amend", "handleOrderWs");
-            put( "order.cancel", "handleOrderWs");
-            put( "auth", "handleAuthenticate");
-            put( "unsubscribe", "handleUnSubscribe");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("orderbook", "handleOrderBook");
+            put("kline", "handleOHLCV");
+            put("order", "handleOrder");
+            put("stopOrder", "handleOrder");
+            put("ticker", "handleTicker");
+            put("trade", "handleTrades");
+            put("publicTrade", "handleTrades");
+            put("depth", "handleOrderBook");
+            put("wallet", "handleBalance");
+            put("outboundAccountInfo", "handleBalance");
+            put("execution", "handleMyTrades");
+            put("execution.fast", "handleMyTrades");
+            put("ticketInfo", "handleMyTrades");
+            put("user.openapi.perp.trade", "handleMyTrades");
+            put("position", "handlePositions");
+            put("liquidation", "handleLiquidation");
+            put("allLiquidation", "handleLiquidation");
+            put("pong", "handlePong");
+            put("order.create", "handleOrderWs");
+            put("order.amend", "handleOrderWs");
+            put("order.cancel", "handleOrderWs");
+            put("auth", "handleAuthenticate");
+            put("unsubscribe", "handleUnSubscribe");
         }};
-        Object exacMethod = this.safeValue(methods, topic);
+        String exacMethod = methods.get(topic);
         if (!java.util.Objects.equals(exacMethod, null))
         {
-            Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
+            switch (exacMethod) {
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                case "handleMyTrades":
+                    this.handleMyTrades(client, message);
+                    break;
+                case "handlePositions":
+                    this.handlePositions(client, message);
+                    break;
+                case "handleLiquidation":
+                    this.handleLiquidation(client, message);
+                    break;
+                case "handlePong":
+                    this.handlePong(client, message);
+                    break;
+                case "handleOrderWs":
+                    this.handleOrderWs(client, message);
+                    break;
+                case "handleAuthenticate":
+                    this.handleAuthenticate(client, message);
+                    break;
+                case "handleUnSubscribe":
+                    this.handleUnSubscribe(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + exacMethod);
+            }
             return;
         }
         // 'order' is a substring of 'orderbook', so an orderbook topic like
@@ -3103,8 +3145,50 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (((String)topic).indexOf(key) >= 0)
             {
-                Object method = (methods == null || key == null ? null : methods.get(key));
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                String method = methods.get(key);
+                switch (method) {
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    case "handleMyTrades":
+                        this.handleMyTrades(client, message);
+                        break;
+                    case "handlePositions":
+                        this.handlePositions(client, message);
+                        break;
+                    case "handleLiquidation":
+                        this.handleLiquidation(client, message);
+                        break;
+                    case "handlePong":
+                        this.handlePong(client, message);
+                        break;
+                    case "handleOrderWs":
+                        this.handleOrderWs(client, message);
+                        break;
+                    case "handleAuthenticate":
+                        this.handleAuthenticate(client, message);
+                        break;
+                    case "handleUnSubscribe":
+                        this.handleUnSubscribe(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
                 return;
             }
         }

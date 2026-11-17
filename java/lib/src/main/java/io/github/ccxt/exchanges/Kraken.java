@@ -3864,7 +3864,7 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
-    public CompletableFuture<Object> fetchDepositMethods(String code, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchDepositMethods(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3944,13 +3944,13 @@ public class Kraken extends KrakenApi
             // we pass it as is, otherwise we take the 'network' unified param
             if (java.util.Objects.equals(depositMethod, null))
             {
-                Object depositMethods = (this.fetchDepositMethods((String) (codeResolved), new HashMap<String, Object>() {{}})).join();
+                List<Object> depositMethods = (this.fetchDepositMethods((String) (codeResolved), new HashMap<String, Object>() {{}})).join();
                 if (!java.util.Objects.equals(network, null))
                 {
                     // find best matching deposit method, or fallback to the first one
-                    for (var i = 0; i < ((List<?>)depositMethods).size(); i++)
+                    for (var i = 0; i < depositMethods.size(); i++)
                     {
-                        String entry = this.safeString((depositMethods == null || i < 0 || i >= ((List<?>)depositMethods).size() ? null : ((List<?>)depositMethods).get(i)), "method");
+                        String entry = this.safeString((depositMethods == null || i < 0 || i >= depositMethods.size() ? null : depositMethods.get(i)), "method");
                         if (java.util.Objects.equals(entry, null))
                         {
                             throw new ExchangeError((this.id + " fetchDepositAddress() missing entry")) ;

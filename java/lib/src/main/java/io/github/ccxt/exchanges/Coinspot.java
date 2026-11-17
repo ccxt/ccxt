@@ -639,8 +639,8 @@ public class Coinspot extends CoinspotApi
             List<Object> currencyIdsMap = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < currencyIdsMap.size(); i++)
             {
-                Object currencyId = (currencyIdsMap == null || i < 0 || i >= currencyIdsMap.size() ? null : currencyIdsMap.get(i));
-                String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+                String currencyId = (String) (currencyIdsMap == null || i < 0 || i >= currencyIdsMap.size() ? null : currencyIdsMap.get(i));
+                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 Map<String, Object> account = this.account();
                 account.put("total", this.safeString(balances, currencyId));
                 if (!java.util.Objects.equals(code, null))

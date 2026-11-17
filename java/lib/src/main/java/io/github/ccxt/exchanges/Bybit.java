@@ -5764,7 +5764,7 @@ public class Bybit extends BybitApi
             if ((!java.util.Objects.equals(cost, null)) || (!java.util.Objects.equals(price, null)))
             {
                 request.put("marketUnit", "quoteCoin");
-                Object orderCost = null;
+                String orderCost = null;
                 if (!java.util.Objects.equals(cost, null))
                 {
                     orderCost = cost;
@@ -5773,7 +5773,7 @@ public class Bybit extends BybitApi
                     String quoteAmount = Precise.stringMul(amountString, priceString);
                     orderCost = quoteAmount;
                 }
-                request.put("qty", this.getCost(symbolValue, (String) (orderCost)));
+                request.put("qty", this.getCost(symbolValue, orderCost));
             } else
             {
                 request.put("marketUnit", "baseCoin");
@@ -5800,7 +5800,7 @@ public class Bybit extends BybitApi
                     {
                         costRequest = cost;
                     }
-                    request.put("qty", this.getCost(symbolValue, (String) (costRequest)));
+                    request.put("qty", this.getCost(symbolValue, costRequest));
                 }
             } else
             {
@@ -6125,7 +6125,7 @@ public class Bybit extends BybitApi
                 request.put("tpTriggerBy", tpTriggerBy);
             }
         }
-        return (Map<String, Object>) (request);
+        return request;
     }
 
     /**

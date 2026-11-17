@@ -1207,16 +1207,16 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //
         // incoming data updates' examples can be seen under each handler method
         //
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "trades", "handleTrades");
-            put( "books", "handleOrderBook");
-            put( "tickers", "handleTicker");
-            put( "candle", "handleOHLCV");
-            put( "account", "handleBalance");
-            put( "orders", "handleOrders");
-            put( "orders-algo", "handleOrders");
-            put( "positions", "handlePositions");
-            put( "funding-rate", "handleFundingRate");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("trades", "handleTrades");
+            put("books", "handleOrderBook");
+            put("tickers", "handleTicker");
+            put("candle", "handleOHLCV");
+            put("account", "handleBalance");
+            put("orders", "handleOrders");
+            put("orders-algo", "handleOrders");
+            put("positions", "handlePositions");
+            put("funding-rate", "handleFundingRate");
         }};
         Object method = null;
         String eventVar = this.safeString(message, "event");
@@ -1238,7 +1238,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", (Object) null);
         String channelName = this.safeString(arg, "channel");
-        method = this.safeValue(methods, channelName);
+        method = methods.get(channelName);
         if ((java.util.Objects.equals(method, null)) && (((String)channelName).indexOf("candle") >= 0))
         {
             method = methods.get("candle");

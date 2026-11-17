@@ -1308,12 +1308,12 @@ public class Kalshi extends KalshiApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Integer tickersLength = tickers.size();
             Long lastTickerIndex = (((long) tickersLength) - 1L);
-            Object chunk = new ArrayList<Object>(Arrays.asList());
+            List<String> chunk = new ArrayList<String>(Arrays.asList());
             // flush a request every chunkSize tickers and once more for the trailing partial chunk
             for (var ti = 0; (tickersLength != null && ti < tickersLength); ti++)
             {
-                ((List<Object>)chunk).add((tickers == null || ti < 0 || ti >= tickers.size() ? null : tickers.get(ti)));
-                Integer chunkLength = ((List<?>)chunk).size();
+                chunk.add((tickers == null || ti < 0 || ti >= tickers.size() ? null : tickers.get(ti)));
+                Integer chunkLength = chunk.size();
                 if (((chunkSize != null && (chunkLength == null || chunkLength < chunkSize))) && ((lastTickerIndex != null && ti < lastTickerIndex)))
                 {
                     continue;
@@ -1321,7 +1321,7 @@ public class Kalshi extends KalshiApi
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("tickers", String.join(",", (List<String>)chunk));
                 request.put("limit", chunkSize);
-                chunk = new ArrayList<Object>(Arrays.asList());
+                chunk = new ArrayList<String>(Arrays.asList());
                 Map<String, Object> response = (this.kalshiPublicGetMarkets(this.extend(request, parameters))).join();
                 List<Object> rawMarkets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < rawMarkets.size(); i++)
@@ -1811,7 +1811,7 @@ public class Kalshi extends KalshiApi
         {
             outcomeKey = (ticker + "-NO");
         }
-        Map<String, Object> mkt = this.safeOutcome((String) (outcomeKey), market);
+        Map<String, Object> mkt = this.safeOutcome(outcomeKey, market);
         Long ts = this.parse8601(this.safeString(fill, "created_time"));
         // action is the order side (buy/sell) of the held leg
         String action = this.safeStringLower(fill, "action");
@@ -1958,7 +1958,7 @@ public class Kalshi extends KalshiApi
             {
                 return this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             }
-            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
+            List<Object> parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Map<String, Object> wantedTickers = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(outcomes, null))
             {
@@ -1975,9 +1975,9 @@ public class Kalshi extends KalshiApi
                 }
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)parsed).size(); i++)
+            for (var i = 0; i < parsed.size(); i++)
             {
-                Object position = (parsed == null || i < 0 || i >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(i));
+                Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
                 Map<String, Object> positionInfo = (Map<String, Object>) this.safeDict(position, "info", new HashMap<String, Object>() {{}});
                 String positionTicker = this.safeString(positionInfo, "ticker");
                 if ((!java.util.Objects.equals(positionTicker, null)) && (wantedTickers.containsKey(positionTicker)))
@@ -2330,7 +2330,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         String id = this.safeString(order, "order_id");
         String ticker = this.safeString(order, "ticker");
@@ -2342,7 +2342,7 @@ public class Kalshi extends KalshiApi
         {
             outcomeKey = (ticker + "-NO");
         }
-        Map<String, Object> mkt = this.safeOutcome((String) (outcomeKey), market);
+        Map<String, Object> mkt = this.safeOutcome(outcomeKey, market);
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
@@ -2516,10 +2516,10 @@ public class Kalshi extends KalshiApi
             Map<String, Object> response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, paramsSelfTradePreventionType))).join();
             // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
             // the known order details and resolve the status from the remaining count
-            Object order = this.parsePredictionOrder(response, outcomeObj);
-            Helpers.addElementToObject(order, "side", side);
-            Helpers.addElementToObject(order, "amount", amount);
-            Helpers.addElementToObject(order, "price", price);
+            Map<String, Object> order = this.parsePredictionOrder(response, outcomeObj);
+            order.put("side", side);
+            order.put("amount", amount);
+            order.put("price", price);
             // the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
             // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
             // otherwise a fully-filled order would return status 'closed' with filled 0
@@ -2527,14 +2527,14 @@ public class Kalshi extends KalshiApi
             Double filledCount = this.safeNumber(response, "fill_count", (Object) null);
             if (!java.util.Objects.equals(filledCount, null))
             {
-                Helpers.addElementToObject(order, "filled", filledCount);
+                order.put("filled", filledCount);
             } else if (!java.util.Objects.equals(remainingCount, null))
             {
-                Helpers.addElementToObject(order, "filled", Helpers.subtract(amount, remainingCount));
+                order.put("filled", Helpers.subtract(amount, remainingCount));
             }
             if (!java.util.Objects.equals(remainingCount, null))
             {
-                Helpers.addElementToObject(order, "remaining", remainingCount);
+                order.put("remaining", remainingCount);
             }
             if (java.util.Objects.equals(this.safeString(order, "status"), null))
             {
@@ -2543,7 +2543,7 @@ public class Kalshi extends KalshiApi
                 {
                     resolvedStatus = "closed";
                 }
-                Helpers.addElementToObject(order, "status", resolvedStatus);
+                order.put("status", resolvedStatus);
             }
             return order;
         }).thenApply(PredictionOrder::new);
@@ -2615,14 +2615,14 @@ public class Kalshi extends KalshiApi
             }}, parameters))).join();
             // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
             // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-            Object order = this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), outcomeObj);
+            Map<String, Object> order = this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), outcomeObj);
             if (java.util.Objects.equals(this.safeString(order, "id"), null))
             {
-                Helpers.addElementToObject(order, "id", id);
+                order.put("id", id);
             }
             if (java.util.Objects.equals(this.safeString(order, "status"), null))
             {
-                Helpers.addElementToObject(order, "status", "canceled");
+                order.put("status", "canceled");
             }
             return order;
         }).thenApply(PredictionOrder::new);
@@ -2673,8 +2673,8 @@ public class Kalshi extends KalshiApi
                     (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(mapLiteral11, parameters))).join();
                     // the DELETE body is minimal — parse the already-fetched resting order instead, which
                     // carries the true side/outcome/price/count, then mark it canceled
-                    Object parsed = this.parsePredictionOrder(restingOrder, (Map<String, Object>) null);
-                    Helpers.addElementToObject(parsed, "status", "canceled");
+                    Map<String, Object> parsed = this.parsePredictionOrder(restingOrder, (Map<String, Object>) null);
+                    parsed.put("status", "canceled");
                     ((List<Object>)canceledOrders).add(parsed);
                 }
             }
@@ -2753,8 +2753,8 @@ public class Kalshi extends KalshiApi
             } else
             {
                 // tags / category / series_ticker resolve to a set of series; fetch their events, capped
-                Object seriesTickers = (this.resolveEventSeriesTickers(((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
-                Integer seriesTickersLength = ((List<?>)seriesTickers).size();
+                List<Object> seriesTickers = (this.resolveEventSeriesTickers(((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+                Integer seriesTickersLength = seriesTickers.size();
                 if (java.util.Objects.equals(seriesTickersLength, 0))
                 {
                     this.requireEventQuery(((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
@@ -2897,7 +2897,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [params] the fetchEvents params carrying tags / category / series_ticker
      * @returns {string[]} deduplicated series tickers
      */
-    public CompletableFuture<Object> resolveEventSeriesTickers(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> resolveEventSeriesTickers(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

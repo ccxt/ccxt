@@ -977,7 +977,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         String timeframe = this.findTimeframe(channel, timeframes);
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, market);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        Object stored = (((java.util.Objects.equals(timeframe, null)))) ? null : this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((((java.util.Objects.equals(timeframe, null)))) ? null : this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe));
         if (!java.util.Objects.equals(symbol, null))
         {
             if (java.util.Objects.equals(stored, null))
@@ -989,7 +989,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
                 }
             }
-            ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
+            stored.append(parsed);
             if (!java.util.Objects.equals(channel, null))
             {
                 String messageHash = ((channel + "::") + symbol);
@@ -1029,7 +1029,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 String symbol = this.safeString(trade, "symbol");
                 String type = "trades";
                 String messageHash = ((type + "::") + this.safeString(trade, "symbol", ""));
-                Object tradesArray = (((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
+                io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) ((((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol));
                 if (java.util.Objects.equals(tradesArray, null))
                 {
                     Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1039,7 +1039,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         this.trades.put(symbol, tradesArray);
                     }
                 }
-                ((io.github.ccxt.ws.ArrayCache) tradesArray).append(trade);
+                tradesArray.append(trade);
                 client.resolve(tradesArray, messageHash);
             }
         }
@@ -1440,7 +1440,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 }
             }
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "ticker::");
+        List<Object> messageHashes = this.findMessageHashes(client, "ticker::");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -1550,8 +1550,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         List<Object> bid = (List<Object>) this.safeList(bids, j, (Object) null);
                         Double price = this.safeNumber(bid, 0, (Object) null);
                         Double amount = this.safeNumber(bid, 1, (Object) null);
-                        Object bidsSide = (orderbook == null ? null : orderbook.get("bids"));
-                        ((io.github.ccxt.ws.OrderBookSide) bidsSide).store(price, amount);
+                        io.github.ccxt.ws.OrderBookSide bidsSide = (io.github.ccxt.ws.OrderBookSide) ((orderbook == null ? null : orderbook.get("bids")));
+                        bidsSide.store(price, amount);
                     }
                 }
                 if (!java.util.Objects.equals(asks, null))
@@ -1561,8 +1561,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         List<Object> ask = (List<Object>) this.safeList(asks, j, (Object) null);
                         Double price = this.safeNumber(ask, 0, (Object) null);
                         Double amount = this.safeNumber(ask, 1, (Object) null);
-                        Object asksSide = (orderbook == null ? null : orderbook.get("asks"));
-                        ((io.github.ccxt.ws.OrderBookSide) asksSide).store(price, amount);
+                        io.github.ccxt.ws.OrderBookSide asksSide = (io.github.ccxt.ws.OrderBookSide) ((orderbook == null ? null : orderbook.get("asks")));
+                        asksSide.store(price, amount);
                     }
                 }
                 orderbook.put("symbol", symbol);

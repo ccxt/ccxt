@@ -2545,7 +2545,7 @@ public class Pacifica extends PacificaApi
             sigPayload.put("order_id", this.parseToInt(id));
         }
         Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
-        return (Map<String, Object>) (request);
+        return request;
     }
 
     /**
@@ -4630,6 +4630,6 @@ public class Pacifica extends PacificaApi
         finalHeaders.put("timestamp", this.safeInteger(signatureHeader, "timestamp"));
         finalHeaders.put("expiry_window", this.safeInteger(signatureHeader, "expiry_window"));
         Map<String, Object> request = this.extend(finalHeaders, sigPayload);
-        return (Map<String, Object>) (request);
+        return request;
     }
 }

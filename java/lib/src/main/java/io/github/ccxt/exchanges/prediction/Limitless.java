@@ -2109,7 +2109,7 @@ public class Limitless extends LimitlessApi
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -2600,12 +2600,12 @@ public class Limitless extends LimitlessApi
                 request.put("postOnly", postOnly);
             }
             Map<String, Object> response = (this.limitlessPrivatePostOrders(this.extend(request, paramsValue))).join();
-            Object parsedOrder = this.parsePredictionOrder(response, outcomeObj);
+            Map<String, Object> parsedOrder = this.parsePredictionOrder(response, outcomeObj);
             // the create-order response omits a status field; a freshly accepted order is open
             String parsedStatus = this.safeString(parsedOrder, "status");
             if (java.util.Objects.equals(parsedStatus, null))
             {
-                Helpers.addElementToObject(parsedOrder, "status", "open");
+                parsedOrder.put("status", "open");
             }
             return parsedOrder;
         }).thenApply(PredictionOrder::new);
@@ -2795,16 +2795,16 @@ public class Limitless extends LimitlessApi
             }};
             Map<String, Object> response = (this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, parameters))).join();
             // the delete response carries no order body, so backfill the id and the resulting status
-            Object order = this.parsePredictionOrder(response, (Map<String, Object>) null);
+            Map<String, Object> order = this.parsePredictionOrder(response, (Map<String, Object>) null);
             String orderId = this.safeString(order, "id");
             if (java.util.Objects.equals(orderId, null))
             {
-                Helpers.addElementToObject(order, "id", id);
+                order.put("id", id);
             }
             String orderStatus = this.safeString(order, "status");
             if (java.util.Objects.equals(orderStatus, null))
             {
-                Helpers.addElementToObject(order, "status", "canceled");
+                order.put("status", "canceled");
             }
             return order;
         }).thenApply(PredictionOrder::new);
@@ -3063,7 +3063,7 @@ public class Limitless extends LimitlessApi
                     }
                 }
             }
-            Object parsedTrades = this.parsePredictionTrades(trades, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            List<Object> parsedTrades = this.parsePredictionTrades(trades, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterByOutcomeSinceLimit(parsedTrades, outcomeSymbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -3522,11 +3522,11 @@ public class Limitless extends LimitlessApi
                 // tags scope: resolve the tags to limitless categories and page only those
                 // categories' listings server-side — never the whole active listing
                 List<Object> requestedTags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-                Object listRaw = (this.fetchRawMarketsByTags(requestedTags, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
-                Integer listRawLength = ((List<?>)listRaw).size();
+                List<Object> listRaw = (this.fetchRawMarketsByTags(requestedTags, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
+                Integer listRawLength = listRaw.size();
                 for (var i = 0; (listRawLength != null && i < listRawLength); i++)
                 {
-                    ((List<Object>)rawMarkets).add((listRaw == null || i < 0 || i >= ((List<?>)listRaw).size() ? null : ((List<?>)listRaw).get(i)));
+                    ((List<Object>)rawMarkets).add((listRaw == null || i < 0 || i >= listRaw.size() ? null : listRaw.get(i)));
                 }
             }
             if (java.util.Objects.equals(this.events, null))
@@ -3613,7 +3613,7 @@ public class Limitless extends LimitlessApi
      * @param {string} [categoryId] a limitless category id — pages only that category's listing
      * @returns {object[]} raw limitless market objects
      */
-    public CompletableFuture<Object> fetchRawActiveMarkets(Map<String, Object> parameters, String categoryId)
+    public CompletableFuture<List<Object>> fetchRawActiveMarkets(Map<String, Object> parameters, String categoryId)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3673,7 +3673,7 @@ public class Limitless extends LimitlessApi
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    public CompletableFuture<Object> fetchRawMarketsByTags(Object tags, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawMarketsByTags(Object tags, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3723,11 +3723,11 @@ public class Limitless extends LimitlessApi
             List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
             for (var ci = 0; (categoryIdsLength != null && ci < categoryIdsLength); ci++)
             {
-                Object categoryMarkets = (this.fetchRawActiveMarkets(parameters, (categoryIds == null || ci < 0 || ci >= categoryIds.size() ? null : categoryIds.get(ci)))).join();
-                Integer categoryMarketsLength = ((List<?>)categoryMarkets).size();
+                List<Object> categoryMarkets = (this.fetchRawActiveMarkets(parameters, (categoryIds == null || ci < 0 || ci >= categoryIds.size() ? null : categoryIds.get(ci)))).join();
+                Integer categoryMarketsLength = categoryMarkets.size();
                 for (var mi = 0; (categoryMarketsLength != null && mi < categoryMarketsLength); mi++)
                 {
-                    Object raw = (categoryMarkets == null || mi < 0 || mi >= ((List<?>)categoryMarkets).size() ? null : ((List<?>)categoryMarkets).get(mi));
+                    Object raw = (categoryMarkets == null || mi < 0 || mi >= categoryMarkets.size() ? null : categoryMarkets.get(mi));
                     String slug = this.safeString(raw, "slug");
                     if ((!java.util.Objects.equals(slug, null)) && !(seen.containsKey(slug)))
                     {

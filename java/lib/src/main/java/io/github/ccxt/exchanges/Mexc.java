@@ -5666,7 +5666,7 @@ public class Mexc extends MexcApi
                 put( "coin", currency.get("id") );
             }};
             String networkCode = this.safeString(parameters, "network");
-            Object networkId = null;
+            String networkId = null;
             if (!java.util.Objects.equals(networkCode, null))
             {
                 // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
@@ -5735,7 +5735,7 @@ public class Mexc extends MexcApi
                 throw new ArgumentsRequired((this.id + " createDepositAddress requires a `network` parameter")) ;
             }
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-            Object networkId = null;
+            String networkId = null;
             String networkUnified = this.networkIdToCode(networkCode, code);
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
@@ -6011,14 +6011,14 @@ public class Mexc extends MexcApi
         String type = (((java.util.Objects.equals(id, null)))) ? "deposit" : "withdrawal";
         Long timestamp = (Long) this.safeInteger2(transaction, "insertTime", "applyTime");
         Long updated = this.safeInteger(transaction, "updateTime");
-        Object currencyId = null;
+        String currencyId = null;
         String currencyWithNetwork = this.safeString(transaction, "coin");
         if (!java.util.Objects.equals(currencyWithNetwork, null))
         {
-            List<Object> currencyParts = new ArrayList<Object>(Arrays.asList(((String)currencyWithNetwork).split(java.util.regex.Pattern.quote("-"))));
+            List<String> currencyParts = new ArrayList<String>(Arrays.asList(((String)currencyWithNetwork).split(java.util.regex.Pattern.quote("-"))));
             currencyId = (currencyParts == null || 0 >= currencyParts.size() ? null : currencyParts.get(0));
         }
-        String code = this.safeCurrencyCode((String) (currencyId), currency);
+        String code = this.safeCurrencyCode(currencyId, currency);
         String network = null;
         String rawNetwork = this.safeString(transaction, "network");
         if (!java.util.Objects.equals(rawNetwork, null))

@@ -625,18 +625,18 @@ public class Bithumb extends BithumbApi
                 {
                     Object entry = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                     String marketId = this.safeString(entry, "market");
-                    Object baseId = null;
-                    Object quoteId = null;
+                    String baseId = null;
+                    String quoteId = null;
                     Object base = null;
                     String quote = null;
                     if (!java.util.Objects.equals(marketId, null))
                     {
-                        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
+                        List<String> parts = new ArrayList<String>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
                         // to match gen 1, the quoteId is the first currency derived from the market id
                         baseId = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                         quoteId = (parts == null || 0 >= parts.size() ? null : parts.get(0));
-                        base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-                        quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+                        base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+                        quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                     }
                     if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                     {
@@ -823,14 +823,14 @@ public class Bithumb extends BithumbApi
             List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
             for (var i = 0; i < codes.size(); i++)
             {
-                Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+                String code = (String) (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Map<String, Object> account = this.account();
-                Map<String, Object> currency = this.currency((String) (code));
+                Map<String, Object> currency = this.currency(code);
                 String lowerCurrencyId = this.safeStringLower(currency, "id", "");
                 account.put("total", this.safeString(balances, ("total_" + lowerCurrencyId)));
                 account.put("used", this.safeString(balances, ("in_use_" + lowerCurrencyId)));
                 account.put("free", this.safeString(balances, ("available_" + lowerCurrencyId)));
-                result.put((String)code, account);
+                result.put(code, account);
             }
         } else
         {
@@ -1157,7 +1157,7 @@ public class Bithumb extends BithumbApi
             {
                 // Bithumb v2 ticker payloads are inconsistent for all-market calls,
                 // so we aggregate 300 markets per request only when symbols are not provided.
-                List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
+                List<String> marketIds = new ArrayList<String>(Arrays.asList());
                 List<String> symbolsForMarketIds = this.symbols;
                 if (!java.util.Objects.equals(symbols, null))
                 {
@@ -1167,7 +1167,7 @@ public class Bithumb extends BithumbApi
                 for (var i = 0; (symbolsForMarketIdsLength != null && i < symbolsForMarketIdsLength); i++)
                 {
                     Map<String, Object> market = this.market((symbolsForMarketIds == null || i < 0 || i >= symbolsForMarketIds.size() ? null : symbolsForMarketIds.get(i)));
-                    ((List<Object>)marketIds).add(this.getGen2MarketId(market));
+                    marketIds.add(this.getGen2MarketId(market));
                 }
                 Integer marketIdsLength = marketIds.size();
                 if (java.util.Objects.equals(marketIdsLength, 0))
@@ -1179,18 +1179,18 @@ public class Bithumb extends BithumbApi
                 // the exchange rejects more than 200 market ids per request
                 Long maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
                 Long maxMarketIdsPerRequest = this.parseToInt(((((java.util.Objects.equals(maxMarketIdsOption, null)) || (((maxMarketIdsOption == null || maxMarketIdsOption < 1)))))) ? 200 : maxMarketIdsOption);
-                Object marketIdsChunk = new ArrayList<Object>(Arrays.asList());
+                List<String> marketIdsChunk = new ArrayList<String>(Arrays.asList());
                 for (var i = 0; (marketIdsLength != null && i < marketIdsLength); i++)
                 {
-                    ((List<Object>)marketIdsChunk).add((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
-                    Integer marketIdsChunkLength = ((List<?>)marketIdsChunk).size();
+                    marketIdsChunk.add((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                    Integer marketIdsChunkLength = marketIdsChunk.size();
                     Boolean isLastMarketId = ((i == ((((long) marketIdsLength) - 1L))));
                     if (((maxMarketIdsPerRequest == null || (marketIdsChunkLength != null && marketIdsChunkLength >= maxMarketIdsPerRequest))) || Boolean.TRUE.equals(isLastMarketId))
                     {
                         ((List<Object>)marketIdsChunks).add(marketIdsChunk);
                         request.put("markets", String.join(",", (List<String>)marketIdsChunk));
                         ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-                        marketIdsChunk = new ArrayList<Object>(Arrays.asList());
+                        marketIdsChunk = new ArrayList<String>(Arrays.asList());
                     }
                 }
                 //

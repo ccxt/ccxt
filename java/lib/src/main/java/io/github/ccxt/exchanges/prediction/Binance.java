@@ -235,13 +235,13 @@ public class Binance extends BinanceApi
             }
             Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
             Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit")));
-            Object rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
+            List<Object> rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
-            Integer rawTopicsLength = ((List<?>)rawTopics).size();
+            Integer rawTopicsLength = rawTopics.size();
             for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
-                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
+                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
                 ((List<Object>)parsedEvents).add(parsedEvent);
                 List<Object> eventMarkets = (List<Object>) this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer eventMarketsLength = eventMarkets.size();
@@ -266,7 +266,7 @@ public class Binance extends BinanceApi
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    public CompletableFuture<Object> fetchRawTopics(Object maxTopics, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchRawTopics(Object maxTopics, Map<String, Object> rest)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -516,7 +516,7 @@ public class Binance extends BinanceApi
                         ((List<Object>)postOmitKeys).add("sortBy");
                     }
                 }
-                Object listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
+                List<Object> listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
                 rawTopics = (this.completeRawTopics(listed)).join();
             }
             Integer rawTopicsLength = ((List<?>)rawTopics).size();
@@ -1157,7 +1157,7 @@ public class Binance extends BinanceApi
      * @param {object} [outcomeObj] the ourtome the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> outcomeObj)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> outcomeObj)
     {
         //
         // {
@@ -1540,12 +1540,12 @@ public class Binance extends BinanceApi
             {
                 return this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             }
-            Object positions = this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
+            List<Object> positions = this.parsePredictionPositions(data, new HashMap<String, Object>() {{}});
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
-            Integer positionsLength = ((List<?>)positions).size();
+            Integer positionsLength = positions.size();
             for (var i = 0; (positionsLength != null && i < positionsLength); i++)
             {
-                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
+                Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String positionOutcome = this.safeString(position, "outcome");
                 if ((!java.util.Objects.equals(positionOutcome, null)) && (requestedOutcomeSymbols.containsKey(positionOutcome)))
                 {
@@ -1586,7 +1586,7 @@ public class Binance extends BinanceApi
             //
             //
             List<Object> positions = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-            Object parsedPositions = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
+            List<Object> parsedPositions = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, java.util.Objects.toString(outcome, null), (Long) null, (Long) null, false);
             return this.safeDict(filteredPositions, 0, (Object) null);
         }).thenApply(PredictionPosition::new);
@@ -1753,7 +1753,7 @@ public class Binance extends BinanceApi
             // }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            Object parsedTrades = this.parsePredictionTrades(trades, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            List<Object> parsedTrades = this.parsePredictionTrades(trades, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterByOutcomeSinceLimit(parsedTrades, outcome, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -2200,13 +2200,13 @@ public class Binance extends BinanceApi
             Integer failedOrdersLength = failedOrders.size();
             if ((failedOrdersLength != null && failedOrdersLength > 0))
             {
-                Object failedDetails = new ArrayList<Object>(Arrays.asList());
+                List<String> failedDetails = new ArrayList<String>(Arrays.asList());
                 for (var i = 0; (failedOrdersLength != null && i < failedOrdersLength); i++)
                 {
                     Map<String, Object> failedOrder = (Map<String, Object>) this.safeDict(failedOrders, i, (Object) null);
                     String failedOrderId = this.safeString(failedOrder, "orderId", "");
                     String failedReason = this.safeString(failedOrder, "reason", "");
-                    ((List<Object>)failedDetails).add(((failedOrderId + ": ") + failedReason));
+                    failedDetails.add(((failedOrderId + ": ") + failedReason));
                 }
                 throw new OrderNotFound(((this.id + " cancelOrders() failed for ") + String.join(", ", (List<String>)failedDetails))) ;
             }

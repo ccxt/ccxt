@@ -269,12 +269,12 @@ public class Sxbet extends SxbetApi
 
             Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
             Long userLimit = this.safeInteger(parameters, "limit");
-            Object rawMarkets = (this.fetchRawMarketsPaged(rest, userLimit)).join();
+            List<Object> rawMarkets = (this.fetchRawMarketsPaged(rest, userLimit)).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+            Integer rawMarketsLength = rawMarkets.size();
             for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
             {
-                ((List<Object>)markets).add(this.parseSxbetMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i)))));
+                ((List<Object>)markets).add(this.parseSxbetMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i)))));
             }
             Integer marketsLength = markets.size();
             if ((!java.util.Objects.equals(userLimit, null)) && ((marketsLength != null && (userLimit == null || marketsLength > userLimit))))
@@ -295,7 +295,7 @@ public class Sxbet extends SxbetApi
      * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
      * @returns {object[]} the raw (unparsed) sx.bet market objects
      */
-    public CompletableFuture<Object> fetchRawMarketsPaged(Map<String, Object> extra, Long userLimit)
+    public CompletableFuture<List<Object>> fetchRawMarketsPaged(Map<String, Object> extra, Long userLimit)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1494,7 +1494,7 @@ public class Sxbet extends SxbetApi
      * @param {object} [market] the outcome object the order belongs to (resolved from the cache by outcomeId when omitted)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -3287,7 +3287,7 @@ public class Sxbet extends SxbetApi
         {
             Object rawRow = (rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i));
             Object row = this.safeDict(rawRow, "order", rawRow);
-            Object order = this.parsePredictionOrder((Map<String, Object>) (row), (Map<String, Object>) null);
+            Map<String, Object> order = this.parsePredictionOrder((Map<String, Object>) (row), (Map<String, Object>) null);
             if (java.util.Objects.equals(this.orders, null))
             {
                 Long cacheLimit = this.safeInteger(this.options, "ordersLimit", 1000);

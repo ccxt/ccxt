@@ -189,7 +189,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "subscribe" );
                 put( "args", args );
             }};
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -299,7 +299,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.authenticate(mapLiteral1)).join();
             }
             String url = this.getUrl(channel, access);
-            List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -357,7 +357,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.authenticate(mapLiteral2)).join();
             }
             String url = this.getUrl(channel, access);
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -504,7 +504,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             String url = this.getUrl(channel, "public");
-            Object fundingRate = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            Object fundingRate = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 String symbol = this.safeString(fundingRate, "symbol");
@@ -742,7 +742,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             String url = this.getUrl(channel, "public");
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -841,7 +841,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "subscribe" );
                 put( "args", args );
             }};
-            Object newTickers = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            Object newTickers = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
@@ -1008,7 +1008,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     }})) );
             }};
             String url = this.getUrl(channel, "public");
-            Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            Object newLiquidations = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return newLiquidations;
@@ -1117,7 +1117,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     }})) );
             }};
             String url = this.getUrl(channel, "private");
-            Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, paramsOmitted), messageHashes, null)).join();
+            Object newLiquidations = (this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsOmitted), messageHashes, null)).join();
             if (this.newUpdates)
             {
                 return newLiquidations;
@@ -1377,7 +1377,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             String url = this.getUrl("candle", "public");
-            var symboltimeframecandlesVariable = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            var symboltimeframecandlesVariable = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
@@ -1437,7 +1437,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             String url = this.getUrl("candle", "public");
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -1607,9 +1607,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     put( "op", "unsubscribe" );
                     put( "args", resyncTopics );
                 }};
-                (this.watchMultiple((String) (url), resyncHashes, unsubscribeRequest, resyncHashes, null)).join();
+                (this.watchMultiple(url, resyncHashes, unsubscribeRequest, resyncHashes, null)).join();
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1677,7 +1677,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", topics );
             }};
             String url = this.getUrl(depth, "public");
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
     }

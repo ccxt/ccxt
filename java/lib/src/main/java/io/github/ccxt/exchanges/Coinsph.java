@@ -2320,7 +2320,7 @@ public class Coinsph extends CoinsphApi
                 throw new InvalidAddress((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
             }
             String networkCode = this.safeString(paramsWithdrawTag, "network");
-            Object networkId = (((java.util.Objects.equals(networkCode, null)))) ? null : this.networkCodeToId(networkCode, code);
+            String networkId = (((java.util.Objects.equals(networkCode, null)))) ? null : this.networkCodeToId(networkCode, code);
             if (java.util.Objects.equals(networkId, null))
             {
                 throw new BadRequest((this.id + " withdraw() require network parameter")) ;
@@ -2628,7 +2628,7 @@ public class Coinsph extends CoinsphApi
         return BaseExchange.supplyAsync(() -> {
 
             String networkCode = this.safeString(parameters, "network");
-            Object networkId = (((java.util.Objects.equals(networkCode, null)))) ? null : this.networkCodeToId(networkCode, code);
+            String networkId = (((java.util.Objects.equals(networkCode, null)))) ? null : this.networkCodeToId(networkCode, code);
             if (java.util.Objects.equals(networkId, null))
             {
                 throw new BadRequest((this.id + " fetchDepositAddress() require network parameter")) ;

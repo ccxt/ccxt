@@ -256,7 +256,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "ticker";
             String methodName = "unWatchTicker";
-            return (this.unWatch(messageHash, (String) (subMessageHash), messageHash, dataType, topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
         });
 
     }
@@ -428,7 +428,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             hash = (hash + ("::" + extra));
         }
-        return (String) (hash);
+        return hash;
     }
 
     /**
@@ -527,7 +527,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "trades";
             String methodName = "unWatchTrades";
-            return (this.unWatch(messageHash, (String) (subMessageHash), messageHash, (this.safeString(market, "id", "") + "@trade"), topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, (this.safeString(market, "id", "") + "@trade"), topic, market, methodName, parameters)).join();
         });
 
     }
@@ -1719,7 +1719,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "swap:positions::");
+        List<Object> messageHashes = this.findMessageHashes(client, "swap:positions::");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = this.safeString(messageHashes, i, "");

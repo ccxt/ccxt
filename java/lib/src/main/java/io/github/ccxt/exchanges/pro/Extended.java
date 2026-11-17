@@ -454,8 +454,8 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
         for (var i = 0; i < subscriptions.size(); i++)
         {
-            Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
-            if ((((String)messageHash).indexOf("myTrades:") == 0))
+            String messageHash = (String) (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
+            if ((messageHash.indexOf("myTrades:") == 0))
             {
                 client.resolve(stored, messageHash);
             }
@@ -551,7 +551,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             ((List<Object>)newPositions).add(position);
             stored.append(position);
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -631,8 +631,8 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
         for (var i = 0; i < subscriptions.size(); i++)
         {
-            Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
-            if ((((String)messageHash).indexOf("orders:") == 0))
+            String messageHash = (String) (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
+            if ((messageHash.indexOf("orders:") == 0))
             {
                 client.resolve(orders, messageHash);
             }

@@ -195,7 +195,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 put( "marketId", market.get("id") );
             }});
             String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            return (this.subscribePublic((String) (url), symbolValue, (String) (messageHash), (Object) null, parameters)).join();
+            return (this.subscribePublic(url, symbolValue, (String) (messageHash), (Object) null, parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -318,7 +318,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String marketId = this.safeString(market, "id", "");
             String messageHash = (("market." + marketId) + ".trade.detail");
             String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            List<Object> trades = (List<Object>) (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic(url, symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -439,7 +439,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String marketId = this.safeString(market, "id", "");
             String messageHash = ((("market." + marketId) + ".kline.") + interval);
             String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            List<Object> ohlcv = (List<Object>) (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribePublic(url, symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -585,7 +585,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 method = null;
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), symbolValue, messageHash, method, paramsExtended)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(url, symbolValue, messageHash, method, paramsExtended)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1801,7 +1801,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object side = null;
         if (!java.util.Objects.equals(type, null))
         {
-            List<Object> typeParts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
+            List<String> typeParts = new ArrayList<String>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
             side = (typeParts == null || 0 >= typeParts.size() ? null : typeParts.get(0));
             type = (String) (typeParts == null || 1 >= typeParts.size() ? null : typeParts.get(1));
         }
@@ -2016,10 +2016,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             List<String> prefixes = new ArrayList<String>(Arrays.asList("cross:positions", "isolated:positions"));
             for (var i = 0; i < prefixes.size(); i++)
             {
-                Object messageHashes = this.findMessageHashes(client, (prefixes == null || i < 0 || i >= prefixes.size() ? null : prefixes.get(i)));
-                for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
+                List<Object> messageHashes = this.findMessageHashes(client, (prefixes == null || i < 0 || i >= prefixes.size() ? null : prefixes.get(i)));
+                for (var j = 0; j < messageHashes.size(); j++)
                 {
-                    client.resolve(new ArrayList<Object>(Arrays.asList()), (messageHashes == null || j < 0 || j >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(j)));
+                    client.resolve(new ArrayList<Object>(Arrays.asList()), (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j)));
                 }
             }
             return;
@@ -2054,10 +2054,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             Object marginMode = (marginModes == null || i < 0 || i >= marginModes.size() ? null : marginModes.get(i));
             List<Object> marginModePositions = (List<Object>) this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList()));
-            Object messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
-            for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
+            List<Object> messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
+            for (var j = 0; j < messageHashes.size(); j++)
             {
-                String messageHash = (String) (messageHashes == null || j < 0 || j >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(j));
+                String messageHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
                 String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolsString.split(java.util.regex.Pattern.quote(","))));

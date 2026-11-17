@@ -1098,34 +1098,34 @@ public class Myriad extends MyriadApi
                 put( "timeInForce", timeInForce );
             }});
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-            Object parsed = this.parsePredictionOrder(wrapper, outcomeObj);
+            Map<String, Object> parsed = this.parsePredictionOrder(wrapper, outcomeObj);
             // the POST /orders response is minimal (hash + status), so backfill the known request values
             // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
             String sideStr = (((java.util.Objects.equals(side, null)))) ? null : ((String)((String)side)).toLowerCase();
             String typeStr = (((java.util.Objects.equals(type, null)))) ? "limit" : ((String)type).toLowerCase();
             if (java.util.Objects.equals(this.safeString(parsed, "side"), null))
             {
-                Helpers.addElementToObject(parsed, "side", sideStr);
+                parsed.put("side", sideStr);
             }
             if (java.util.Objects.equals(this.safeString(parsed, "type"), null))
             {
-                Helpers.addElementToObject(parsed, "type", typeStr);
+                parsed.put("type", typeStr);
             }
             if (java.util.Objects.equals(this.safeString(parsed, "timeInForce"), null))
             {
-                Helpers.addElementToObject(parsed, "timeInForce", timeInForce);
+                parsed.put("timeInForce", timeInForce);
             }
             if ((java.util.Objects.equals(this.safeNumber(parsed, "price", (Object) null), null)) && (!java.util.Objects.equals(price, null)))
             {
-                Helpers.addElementToObject(parsed, "price", price);
+                parsed.put("price", price);
             }
             if ((java.util.Objects.equals(this.safeNumber(parsed, "amount", (Object) null), null)) && (!java.util.Objects.equals(amount, null)))
             {
-                Helpers.addElementToObject(parsed, "amount", amount);
+                parsed.put("amount", amount);
             }
             if (java.util.Objects.equals(this.safeString(parsed, "status"), null))
             {
-                Helpers.addElementToObject(parsed, "status", "open");
+                parsed.put("status", "open");
             }
             return parsed;
         });
@@ -1334,7 +1334,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> quote = (Map<String, Object>) this.safeDict(parameters, "quote", (Object) null);
             if (java.util.Objects.equals(quote, null))
             {
-                quote = (this.fetchTradeQuote((String) (outcome), (String) (sideStr), amount, quoteParams)).join();
+                quote = (this.fetchTradeQuote((String) (outcome), sideStr, amount, quoteParams)).join();
             }
             String calldata = this.safeString(this.safeDict(quote, "info", new HashMap<String, Object>() {{}}), "calldata");
             if (java.util.Objects.equals(calldata, null))
@@ -1359,7 +1359,7 @@ public class Myriad extends MyriadApi
             {
                 (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000)).join();
             }
-            return this.parseTradeTx((String) (txHash), quote, outcomeObj, (String) (sideStr));
+            return this.parseTradeTx((String) (txHash), quote, outcomeObj, sideStr);
         });
 
     }
@@ -1617,7 +1617,7 @@ public class Myriad extends MyriadApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         Map<String, Object> inner = (Map<String, Object>) this.safeDict(order, "order", new HashMap<String, Object>() {{}});
         String orderHash = this.safeString2(order, "orderHash", "hash");
@@ -3482,9 +3482,9 @@ public class Myriad extends MyriadApi
             //     }
             //
             Boolean responseIsArray = (response instanceof List);
-            Object rows = ((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) (((Boolean.TRUE.equals(responseIsArray))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Map<String, Object> row = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
                 String action = this.safeString(row, "action");
@@ -4304,12 +4304,12 @@ public class Myriad extends MyriadApi
 
             // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
             Object trades = (this.watchTrades(outcome, since, limit, parameters)).join();
-            Object ohlcvc = this.buildOHLCVC(((Object)trades), java.util.Objects.requireNonNullElse(timeframe, "1m"), 0, 2147483647);
+            List<Object> ohlcvc = this.buildOHLCVC(((Object)trades), java.util.Objects.requireNonNullElse(timeframe, "1m"), 0, 2147483647);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer ohlcvcLength = ((List<?>)ohlcvc).size();
+            Integer ohlcvcLength = ohlcvc.size();
             for (var i = 0; (ohlcvcLength != null && i < ohlcvcLength); i++)
             {
-                Object candle = (ohlcvc == null || i < 0 || i >= ((List<?>)ohlcvc).size() ? null : ((List<?>)ohlcvc).get(i));
+                Object candle = (ohlcvc == null || i < 0 || i >= ohlcvc.size() ? null : ohlcvc.get(i));
                 ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((List<Object>)candle).get(0), ((List<Object>)candle).get(1), ((List<Object>)candle).get(2), ((List<Object>)candle).get(3), ((List<Object>)candle).get(4), ((List<Object>)candle).get(5))));
             }
             return this.filterBySinceLimit(result, since, limit, 0, true);
@@ -4444,7 +4444,7 @@ public class Myriad extends MyriadApi
         mapLiteral18.put("status", status);
         mapLiteral18.put("fee", null);
         mapLiteral18.put("trades", null);
-        Object parsed = this.safePredictionOrder(mapLiteral18, (Object) null);
+        Map<String,Object> parsed = this.safePredictionOrder(mapLiteral18, (Object) null);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         stored.append(parsed);
         client.resolve(stored, "orders");

@@ -1878,18 +1878,18 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             String url = this.getPrivateUrl(type);
             Client client = this.client(url);
             this.setPositionsCache(client);
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             String messageHash = "positions";
             List<String> symbolsNormalized = this.marketSymbols(symbols, "swap", true, true, false);
             if (java.util.Objects.equals(symbolsNormalized, null))
             {
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
             } else
             {
                 for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                    ((List<Object>)messageHashes).add(((messageHash + "::") + symbol));
+                    messageHashes.add(((messageHash + "::") + symbol));
                 }
             }
             boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
@@ -2012,7 +2012,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, messageHash);
+        List<Object> messageHashes = this.findMessageHashes(client, messageHash);
         if (!this.isEmpty(messageHashes))
         {
             for (var i = 0; i < newPositions.size(); i++)
@@ -2387,7 +2387,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
         String symbol = this.safeString(market, "symbol", "");
         cache.append(parsed);
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, messageHash);
+        List<Object> messageHashes = this.findMessageHashes(client, messageHash);
         if (!this.isEmpty(messageHashes))
         {
             String symbolMessageHash = ((messageHash + "::") + symbol);

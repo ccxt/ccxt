@@ -471,7 +471,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -1967,7 +1967,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             messageHash = (messageHash + ("#" + subChannelName));
         }
-        return (String) (messageHash);
+        return messageHash;
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

@@ -3496,7 +3496,7 @@ public class Coinbase extends CoinbaseApi
         Object accountId = null;
         if (!java.util.Objects.equals(path, null))
         {
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)path).split(java.util.regex.Pattern.quote("/"))));
+            List<String> parts = new ArrayList<String>(Arrays.asList(((String)path).split(java.util.regex.Pattern.quote("/"))));
             Integer numParts = parts.size();
             if ((numParts != null && numParts > 3))
             {

@@ -1054,7 +1054,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, (Map<String, Object>) null);
         cache.append(position);
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "position::contract");
+        List<Object> messageHashes = this.findMessageHashes(client, "position::contract");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -1249,7 +1249,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             ((List<Object>)newTickers).add(ticker);
         }
         String messageHashStart = ((this.safeString(message, "topic", "") + "::") + tradeType);
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (messageHashStart + "::"));
+        List<Object> messageHashes = this.findMessageHashes(client, (messageHashStart + "::"));
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));

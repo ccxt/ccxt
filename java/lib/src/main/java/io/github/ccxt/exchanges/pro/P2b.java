@@ -545,8 +545,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 List<Object> bid = (List<Object>) this.safeList(bids, i, (Object) null);
                 Double price = this.safeNumber(bid, 0, (Object) null);
                 Double amount = this.safeNumber(bid, 1, (Object) null);
-                Object bookSide = (orderbook == null ? null : orderbook.get("bids"));
-                ((io.github.ccxt.ws.OrderBookSide) bookSide).store(price, amount);
+                io.github.ccxt.ws.OrderBookSide bookSide = (io.github.ccxt.ws.OrderBookSide) ((orderbook == null ? null : orderbook.get("bids")));
+                bookSide.store(price, amount);
             }
         }
         if (!java.util.Objects.equals(asks, null))
@@ -556,8 +556,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 List<Object> ask = (List<Object>) this.safeList(asks, i, (Object) null);
                 Double price = this.safeNumber(ask, 0, (Object) null);
                 Double amount = this.safeNumber(ask, 1, (Object) null);
-                Object bookside = (orderbook == null ? null : orderbook.get("asks"));
-                ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+                io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) ((orderbook == null ? null : orderbook.get("asks")));
+                bookside.store(price, amount);
             }
         }
         orderbook.put("symbol", symbol);

@@ -5005,7 +5005,7 @@ public Map<String, Object> describe()
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.isEqual((timeframesResolved == null || key == null ? null : timeframesResolved.get(key)), timeframe))
             {
-                return (String) (key);
+                return key;
             }
         }
         return null;
@@ -5202,7 +5202,7 @@ public Map<String, Object> describe()
         return address;
     }
 
-    public Object findMessageHashes(Client client, Object element)
+    public List<Object> findMessageHashes(Client client, Object element)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
@@ -8215,7 +8215,7 @@ public Map<String, Object> describe()
             {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 String defaultNetworkCode = this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), currencyCode, this.safeString(this.options, "defaultNetwork"));
-                Object defaultNetworkId = ((java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false))) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, java.util.Objects.toString(currencyCode, null));
+                String defaultNetworkId = ((java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false))) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, java.util.Objects.toString(currencyCode, null));
                 if (java.util.Objects.equals(defaultNetworkId, null))
                 {
                     throw new ExchangeError((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
@@ -9252,7 +9252,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object buildOHLCVC(Object trades, String timeframe, Object since, Object limit)
+    public List<Object> buildOHLCVC(Object trades, String timeframe, Object since, Object limit)
     {
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value

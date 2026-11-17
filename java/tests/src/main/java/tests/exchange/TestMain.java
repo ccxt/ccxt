@@ -1895,7 +1895,7 @@ public class TestMain extends BaseTest
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
         List<Object> keys = Helpers.objectKeys(target);
-        Object count = 0;
+        Long count = 0L;
         for (var i = 0; i < keys.size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1903,7 +1903,7 @@ public class TestMain extends BaseTest
             {
                 continue;
             }
-            count = Helpers.add(count, 1);
+            count = (count + 1L);
         }
         return count;
     }

@@ -265,7 +265,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Object url = ((Boolean.TRUE.equals(isSpot))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
+            String url = (String) (((Boolean.TRUE.equals(isSpot))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap"));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSpot))
             {
@@ -276,7 +276,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 request.put("params", new HashMap<String, Object>() {{}});
                 messageHashes.add("ticker");
             }
-            Object ticker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, paramsMarketType), messageHashes, null)).join();
+            Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, paramsMarketType), messageHashes, null)).join();
             if ((Boolean.TRUE.equals(isSpot) && this.newUpdates))
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -2050,7 +2050,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Object url = ((Boolean.TRUE.equals(isSpot))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
+            String url = (String) (((Boolean.TRUE.equals(isSpot))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap"));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSpot))
             {
@@ -2062,7 +2062,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 messageHashes.add("unsubscribe:ticker");
             }
             Client client = this.client(url);
-            this.watchMultiple((String) (url), messageHashes, this.extend(request, paramsMarketType), messageHashes, null);
+            this.watchMultiple(url, messageHashes, this.extend(request, paramsMarketType), messageHashes, null);
             this.handleUnsubscriptions(client, messageHashes);
             return null;
         });

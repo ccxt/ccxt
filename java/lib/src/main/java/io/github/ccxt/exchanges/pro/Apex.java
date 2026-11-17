@@ -127,7 +127,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
             String url = this.getWsPublicUrl();
             List<String> topics = new ArrayList<String>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -135,7 +135,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 String marketId = this.safeString(market, "id2", "");
                 topics.add(("recentlyTrade.H." + marketId));
                 String messageHash = ("trade:" + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
             }
             List<Object> trades = (List<Object>) (this.watchTopics((String) (url), messageHashes, topics, parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
@@ -283,7 +283,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
             String url = this.getWsPublicUrl();
             List<String> topics = new ArrayList<String>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 25 : limit;
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
@@ -292,7 +292,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 String marketId = this.safeString(market, "id2", "");
                 topics.add(((("orderBook" + this.numberToString(limitValue)) + ".H.") + marketId));
                 String messageHash = ("orderbook:" + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchTopics((String) (url), messageHashes, topics, parameters)).join();
             return orderbook.limit();
@@ -491,7 +491,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             String url = this.getWsPublicUrl();
             List<String> topics = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -501,7 +501,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 String marketId = this.safeString(market, "id2", "");
                 topics.add((("instrumentInfo" + ".H.") + marketId));
                 String messageHash = ("ticker:" + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
             }
             Object ticker = (this.watchTopics((String) (url), messageHashes, topics, parameters)).join();
             if (this.newUpdates)
@@ -889,7 +889,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(lists, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
             String symbol = (String) parsed.get("symbol");
-            symbols.put((String)symbol, true);
+            symbols.put(symbol, true);
             trades.append(parsed);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
@@ -946,7 +946,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.safeDict(lists, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = (String) parsed.get("symbol");
-            symbols.put((String)symbol, true);
+            symbols.put(symbol, true);
             orders.append(parsed);
         }
         List<String> symbolsArray = new ArrayList<String>(symbols.keySet());
@@ -1057,7 +1057,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 cache.append(position);
             }
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -1224,24 +1224,51 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return;
         }
         String topic = this.safeString2(message, "topic", "op", "");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "ws_zk_accounts_v3", "handleAccount");
-            put( "orderBook", "handleOrderBook");
-            put( "depth", "handleOrderBook");
-            put( "candle", "handleOHLCV");
-            put( "kline", "handleOHLCV");
-            put( "ticker", "handleTicker");
-            put( "instrumentInfo", "handleTicker");
-            put( "trade", "handleTrades");
-            put( "recentlyTrade", "handleTrades");
-            put( "pong", "handlePong");
-            put( "auth", "handleAuthenticate");
-            put( "ping", "handlePing");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("ws_zk_accounts_v3", "handleAccount");
+            put("orderBook", "handleOrderBook");
+            put("depth", "handleOrderBook");
+            put("candle", "handleOHLCV");
+            put("kline", "handleOHLCV");
+            put("ticker", "handleTicker");
+            put("instrumentInfo", "handleTicker");
+            put("trade", "handleTrades");
+            put("recentlyTrade", "handleTrades");
+            put("pong", "handlePong");
+            put("auth", "handleAuthenticate");
+            put("ping", "handlePing");
         }};
-        Object exacMethod = this.safeValue(methods, topic);
+        String exacMethod = methods.get(topic);
         if (!java.util.Objects.equals(exacMethod, null))
         {
-            Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
+            switch (exacMethod) {
+                case "handleAccount":
+                    this.handleAccount(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handlePong":
+                    this.handlePong(client, message);
+                    break;
+                case "handleAuthenticate":
+                    this.handleAuthenticate(client, message);
+                    break;
+                case "handlePing":
+                    this.handlePing(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + exacMethod);
+            }
             return;
         }
         List<String> keys = new ArrayList<String>(methods.keySet());
@@ -1250,8 +1277,35 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
-                Object method = (methods == null || key == null ? null : methods.get(key));
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                String method = methods.get(key);
+                switch (method) {
+                    case "handleAccount":
+                        this.handleAccount(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handlePong":
+                        this.handlePong(client, message);
+                        break;
+                    case "handleAuthenticate":
+                        this.handleAuthenticate(client, message);
+                        break;
+                    case "handlePing":
+                        this.handlePing(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
                 return;
             }
         }

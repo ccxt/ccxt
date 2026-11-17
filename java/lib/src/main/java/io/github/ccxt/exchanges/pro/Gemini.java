@@ -672,13 +672,13 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             {
                 throw new NotSupported((this.id + " watchMultiple supports only spot or linear-swap symbols")) ;
             }
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             Object marketIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = this.safeString(symbolsNormalized, i, "");
                 String messageHash = ((itemHashName + ":") + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
                 Map<String, Object> market = this.market(symbol);
                 ((List<Object>)marketIds).add(market.get("id"));
             }

@@ -466,15 +466,27 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         if (java.util.Objects.equals(type, "DATA"))
         {
             String topic = this.safeString(message, "channel", "");
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "ORDERBOOK", "handleOrderBook");
-                put( "TICKER", "handleTicker");
-                put( "TRADE", "handleTrades");
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("ORDERBOOK", "handleOrderBook");
+                put("TICKER", "handleTicker");
+                put("TRADE", "handleTrades");
             }};
-            Object exacMethod = this.safeValue(methods, topic);
+            String exacMethod = methods.get(topic);
             if (!java.util.Objects.equals(exacMethod, null))
             {
-                Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
+                switch (exacMethod) {
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + exacMethod);
+                }
                 return;
             }
             List<String> keys = new ArrayList<String>(methods.keySet());
@@ -483,8 +495,20 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (((String)topic).indexOf(key) >= 0)
                 {
-                    Object method = (methods == null || key == null ? null : methods.get(key));
-                    Helpers.callDynamically(this, method, new Object[] {client, message});
+                    String method = methods.get(key);
+                    switch (method) {
+                        case "handleOrderBook":
+                            this.handleOrderBook(client, message);
+                            break;
+                        case "handleTicker":
+                            this.handleTicker(client, message);
+                            break;
+                        case "handleTrades":
+                            this.handleTrades(client, message);
+                            break;
+                        default:
+                            throw new RuntimeException("Method not found: " + method);
+                    }
                     return;
                 }
             }

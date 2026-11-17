@@ -827,7 +827,7 @@ public class Polymarket extends PolymarketApi
      * @param {int} [params.limit] max number of events to fetch (default options.fetchMarketsLimit); the listing is ordered by 24h volume so the most active markets come first
      * @returns {object[]} an array of raw gamma event objects
      */
-    public CompletableFuture<Object> fetchRawEventsList(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawEventsList(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -869,10 +869,10 @@ public class Polymarket extends PolymarketApi
                 {
                     Map<String, Object> singleTagParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
                     singleTagParams.put("tags", new ArrayList<Object>(Arrays.asList((requestedTags == null || ti < 0 || ti >= requestedTags.size() ? null : requestedTags.get(ti)))));
-                    Object tagEvents = (this.fetchRawEventsList(singleTagParams)).join();
-                    for (var ei = 0; ei < ((List<?>)tagEvents).size(); ei++)
+                    List<Object> tagEvents = (this.fetchRawEventsList(singleTagParams)).join();
+                    for (var ei = 0; ei < tagEvents.size(); ei++)
                     {
-                        Object rawEvent = (tagEvents == null || ei < 0 || ei >= ((List<?>)tagEvents).size() ? null : ((List<?>)tagEvents).get(ei));
+                        Object rawEvent = (tagEvents == null || ei < 0 || ei >= tagEvents.size() ? null : tagEvents.get(ei));
                         String eventId = this.safeString(rawEvent, "id");
                         if ((!java.util.Objects.equals(eventId, null)) && !(seen.containsKey(eventId)))
                         {
@@ -1317,13 +1317,13 @@ public class Polymarket extends PolymarketApi
                 }
                 // token ids are ~78 chars each, so cap the batch to keep the URL under common limits
                 Long chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 50);
-                Object startIndex = 0;
-                while (((tokenIdsLength != null && !(((Number) startIndex).doubleValue() >= tokenIdsLength))))
+                Long startIndex = 0L;
+                while ((tokenIdsLength != null && (startIndex == null || startIndex < tokenIdsLength)))
                 {
-                    Object endIndex = this.sum(startIndex, chunkSize);
-                    if ((endIndex != null && (tokenIdsLength == null || ((Number) endIndex).doubleValue() > tokenIdsLength)))
+                    Long endIndex = (Long) this.sum(startIndex, chunkSize);
+                    if ((endIndex != null && (tokenIdsLength == null || endIndex > tokenIdsLength)))
                     {
-                        endIndex = tokenIdsLength;
+                        endIndex = Long.valueOf(tokenIdsLength);
                     }
                     List<Object> chunk = new ArrayList<Object>(Arrays.asList());
                     for (long i = ((long) (switch ((Object) (startIndex)) { case null -> Long.parseLong("null"); case Long hx4J40v11 -> hx4J40v11.longValue(); case Integer hx4J40v11 -> hx4J40v11.longValue(); case Double hx4J40v11 -> hx4J40v11.longValue(); case Float hx4J40v11 -> hx4J40v11.longValue(); case java.math.BigDecimal hx4J40v11 -> hx4J40v11.longValue(); case String hx4J40v11 -> Long.parseLong(hx4J40v11); case Object hx4J40v11 -> Long.parseLong(String.valueOf(hx4J40v11)); })); ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, endIndex); i++)
@@ -1349,7 +1349,7 @@ public class Polymarket extends PolymarketApi
                         }
                         ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)mkt).get("market"), mkt);
                     }
-                    startIndex = this.sum(startIndex, chunkSize);
+                    startIndex = (Long) this.sum(startIndex, chunkSize);
                 }
                 this.populateOutcomes();
             }
@@ -1479,13 +1479,13 @@ public class Polymarket extends PolymarketApi
             Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 200);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Integer tokenIdsLength = tokenIds.size();
-            Object startIndex = 0;
-            while (((tokenIdsLength != null && !(((Number) startIndex).doubleValue() >= tokenIdsLength))))
+            Long startIndex = 0L;
+            while ((tokenIdsLength != null && (startIndex == null || startIndex < tokenIdsLength)))
             {
-                Object endIndex = this.sum(startIndex, chunkSize);
-                if ((endIndex != null && (tokenIdsLength == null || ((Number) endIndex).doubleValue() > tokenIdsLength)))
+                Long endIndex = (Long) this.sum(startIndex, chunkSize);
+                if ((endIndex != null && (tokenIdsLength == null || endIndex > tokenIdsLength)))
                 {
-                    endIndex = tokenIdsLength;
+                    endIndex = Long.valueOf(tokenIdsLength);
                 }
                 List<Object> bookParams = new ArrayList<Object>(Arrays.asList());
                 for (long i = ((long) (switch ((Object) (startIndex)) { case null -> Long.parseLong("null"); case Long hx4J40v10 -> hx4J40v10.longValue(); case Integer hx4J40v10 -> hx4J40v10.longValue(); case Double hx4J40v10 -> hx4J40v10.longValue(); case Float hx4J40v10 -> hx4J40v10.longValue(); case java.math.BigDecimal hx4J40v10 -> hx4J40v10.longValue(); case String hx4J40v10 -> Long.parseLong(hx4J40v10); case Object hx4J40v10 -> Long.parseLong(String.valueOf(hx4J40v10)); })); ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, endIndex); i++)
@@ -1535,7 +1535,7 @@ public class Polymarket extends PolymarketApi
                     String symbolKey = this.safeString(ticker, "outcome", tokenId);
                     result.put(symbolKey, ticker);
                 }
-                startIndex = this.sum(startIndex, chunkSize);
+                startIndex = (Long) this.sum(startIndex, chunkSize);
             }
             return result;
         }).thenApply(PredictionTickers::new);
@@ -2273,7 +2273,7 @@ public class Polymarket extends PolymarketApi
             {
                 return this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             }
-            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
+            List<Object> parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Map<String, Object> wantedIds = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(outcomes, null))
             {
@@ -2285,9 +2285,9 @@ public class Polymarket extends PolymarketApi
                 wantedIds.put((String)outcomeObj.get("outcomeId"), true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)parsed).size(); i++)
+            for (var i = 0; i < parsed.size(); i++)
             {
-                Object position = (parsed == null || i < 0 || i >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(i));
+                Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(position, "info", new HashMap<String, Object>() {{}});
                 String assetId = this.safeString(info, "asset");
                 if ((!java.util.Objects.equals(assetId, null)) && (wantedIds.containsKey(assetId)))
@@ -2441,7 +2441,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // {
@@ -4291,7 +4291,7 @@ public class Polymarket extends PolymarketApi
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Object parsed = this.parsePredictionOrder((Map<String, Object>) (eventVar), (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parsePredictionOrder((Map<String, Object>) (eventVar), (Map<String, Object>) null);
         stored.append(parsed);
         client.resolve(stored, "orders");
         String outcome = this.safeString(parsed, "outcome");

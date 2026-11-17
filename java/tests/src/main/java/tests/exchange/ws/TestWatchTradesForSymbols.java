@@ -28,7 +28,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 30000);
         Object symbolsLength = ((List<?>)symbols).size();
-        List<Object> returnedSymbols = new ArrayList<Object>(Arrays.asList());
+        List<String> returnedSymbols = new ArrayList<String>(Arrays.asList());
         Boolean allReceived = false;
         // keep watching until every symbol traded or the deadline passed, a quiet market can stay silent for a while
         while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(allReceived))
@@ -59,7 +59,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
                     TestSharedMethods.AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!Helpers.isTrue(exchange.inArray(symbol, returnedSymbols)))
                     {
-                        ((List<Object>)returnedSymbols).add(symbol);
+                        returnedSymbols.add(symbol);
                     }
                 }
                 Object returnedLength = returnedSymbols.size();

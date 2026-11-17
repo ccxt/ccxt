@@ -1212,7 +1212,7 @@ public class Lighter extends LighterApi
                 ((List<Object>)orders).add(orderObj);
             }
         }
-        return (List<Object>) (orders);
+        return orders;
     }
 
     public CompletableFuture<Long> fetchNonce(Object accountIndex, Object apiKeyIndex, Map<String, Object> parameters)

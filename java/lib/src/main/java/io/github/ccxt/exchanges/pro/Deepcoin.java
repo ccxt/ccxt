@@ -1287,18 +1287,18 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Object listenKey = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String messageHash = "positions";
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     String symbolMessageHash = ((messageHash + "::") + symbol);
-                    ((List<Object>)messageHashes).add(symbolMessageHash);
+                    messageHashes.add(symbolMessageHash);
                 }
             } else
             {
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
             }
             String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private", "") + "?listenKey=") + listenKey);
             Object positions = (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), null)).join();

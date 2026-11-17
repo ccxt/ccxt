@@ -168,7 +168,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             String channel = this.safeString(query, "channel");
             List<String> normalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<Object> symbolsResolved = new ArrayList<Object>(Arrays.asList());
-            Object topics = new ArrayList<Object>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
             Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(apiUrls, "ws", new HashMap<String, Object>() {{}});
@@ -266,7 +266,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 {
                     if (!this.inArray(topic, topics))
                     {
-                        ((List<Object>)topics).add(topic);
+                        topics.add(topic);
                     }
                 }
                 ((List<Object>)symbolsResolved).add(symbol);
@@ -279,7 +279,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Map<String, Object> payload = this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source", "interval", "channel")));
             if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(unwatch, false)))
             {
-                Integer topicsLength = ((List<?>)topics).size();
+                Integer topicsLength = topics.size();
                 if ((topicsLength != null && topicsLength > 0))
                 {
                     Map<String, Object> request = this.extend(new HashMap<String, Object>() {{

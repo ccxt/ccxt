@@ -2396,7 +2396,7 @@ public class Predictfun extends PredictfunApi
             {
                 return this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
             }
-            Object parsed = this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
+            List<Object> parsed = this.parsePredictionPositions(rows, new HashMap<String, Object>() {{}});
             // the venue filters by marketId only, so a set of outcome handles is applied here
             Map<String, Object> wanted = new HashMap<String, Object>() {{}};
             List<Object> wantedOutcomes = this.toArray(outcomes);
@@ -2407,10 +2407,10 @@ public class Predictfun extends PredictfunApi
                 wanted.put(wantedId, true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer parsedLength = ((List<?>)parsed).size();
+            Integer parsedLength = parsed.size();
             for (var i = 0; (parsedLength != null && i < parsedLength); i++)
             {
-                Object position = (parsed == null || i < 0 || i >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(i));
+                Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
                 String outcomeId = this.safeString(position, "outcomeId");
                 if ((!java.util.Objects.equals(outcomeId, null)) && (wanted.containsKey(outcomeId)))
                 {
@@ -2840,7 +2840,7 @@ public class Predictfun extends PredictfunApi
      * @param {object} [market] the outcome the order belongs to, resolved from the token id when omitted
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // fetchOrder
@@ -3172,22 +3172,22 @@ public class Predictfun extends PredictfunApi
             if (java.util.Objects.equals(side, "sell"))
             {
                 String ctfToken = this.safeString(parameters, "token", this.conditionalTokensAddress(isNegRisk, isYieldBearing));
-                List<Object> operators = new ArrayList<Object>(Arrays.asList());
+                List<String> operators = new ArrayList<String>(Arrays.asList());
                 String explicitOperator = this.safeString(parameters, "spender");
                 if (!java.util.Objects.equals(explicitOperator, null))
                 {
-                    ((List<Object>)operators).add(explicitOperator);
+                    operators.add(explicitOperator);
                 } else if (java.util.Objects.equals(outcome, null))
                 {
                     throw new ArgumentsRequired((this.id + " approve() requires an \"outcome\" to resolve the contracts to approve for selling, or an explicit \"spender\" parameter")) ;
                 } else
                 {
-                    ((List<Object>)operators).add(this.exchangeAddress(isNegRisk, isYieldBearing));
+                    operators.add(this.exchangeAddress(isNegRisk, isYieldBearing));
                     // a neg risk match mints and merges through the adapter, which moves the seller's
                     // shares itself, so approving the exchange alone leaves the sell side half open
                     if (Boolean.TRUE.equals(isNegRisk))
                     {
-                        ((List<Object>)operators).add(this.adapterAddress(isYieldBearing));
+                        operators.add(this.adapterAddress(isYieldBearing));
                     }
                 }
                 if ((java.util.Objects.equals(rpcUrl, null)) || (java.util.Objects.equals(ctfToken, null)))

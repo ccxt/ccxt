@@ -1981,7 +1981,7 @@ public class Bitvavo extends BitvavoApi
             throw new ArgumentsRequired((this.id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         request.put("market", market.get("id"));
-        return (Map<String, Object>) (request);
+        return request;
     }
 
     /**

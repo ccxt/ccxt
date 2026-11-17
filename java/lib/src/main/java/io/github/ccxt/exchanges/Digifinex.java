@@ -2868,7 +2868,7 @@ public class Digifinex extends DigifinexApi
             lastTradeTimestamp = this.safeTimestamp(order, "finished_date");
             if (!java.util.Objects.equals(sideRaw, null))
             {
-                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)sideRaw).split(java.util.regex.Pattern.quote("_"))));
+                List<String> parts = new ArrayList<String>(Arrays.asList(((String)sideRaw).split(java.util.regex.Pattern.quote("_"))));
                 Integer numParts = parts.size();
                 if ((numParts != null && numParts > 1))
                 {
@@ -5606,7 +5606,7 @@ public class Digifinex extends DigifinexApi
         }
         String url = (apiUrl + payload);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object urlencoded = "";
+        String urlencoded = "";
         if (Boolean.TRUE.equals(signed) && (java.util.Objects.equals(pathPart, "/swap/v2")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))
         {
             urlencoded = Helpers.json(parameters);
@@ -5616,7 +5616,7 @@ public class Digifinex extends DigifinexApi
         }
         if (Boolean.TRUE.equals(signed))
         {
-            Object auth = "";
+            String auth = "";
             String nonce = "";
             if (java.util.Objects.equals(pathPart, "/swap/v2"))
             {
@@ -5630,7 +5630,7 @@ public class Digifinex extends DigifinexApi
                     }
                 } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {
-                    auth = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(auth, urlencoded);
+                    auth = (auth + urlencoded);
                 }
             } else
             {
@@ -5646,7 +5646,7 @@ public class Digifinex extends DigifinexApi
                 }
             }
             Boolean hasPostBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) && (!java.util.Objects.equals(urlencoded, ""));
-            Object requestBody = null;
+            String requestBody = null;
             if (Boolean.TRUE.equals(hasPostBody))
             {
                 requestBody = urlencoded;

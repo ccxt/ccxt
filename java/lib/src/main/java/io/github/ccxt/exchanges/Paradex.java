@@ -1219,7 +1219,7 @@ public class Paradex extends ParadexApi
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
                 String symbol = (String) fee.get("symbol");
-                result.put((String)symbol, fee);
+                result.put(symbol, fee);
             }
             return result;
         }).thenApply(TradingFees::new);

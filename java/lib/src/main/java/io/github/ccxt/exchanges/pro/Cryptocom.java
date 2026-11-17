@@ -488,7 +488,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            List<Object> topics = new ArrayList<Object>(Arrays.asList());
+            List<String> topics = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
@@ -496,7 +496,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 Map<String, Object> market = this.market(symbol);
                 String currentTopic = ("trade." + this.safeString(market, "id", ""));
                 messageHashes.add(("unsubscribe:trades:" + market.get("symbol")));
-                ((List<Object>)topics).add(currentTopic);
+                topics.add(currentTopic);
             }
             return (this.unWatchPublicMultiple("trades", symbolsNormalized, messageHashes, topics, topics, parameters, new HashMap<String, Object>() {{}})).join();
         });
@@ -1262,7 +1262,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));

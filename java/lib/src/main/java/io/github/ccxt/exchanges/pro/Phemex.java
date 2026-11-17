@@ -1038,7 +1038,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
             Map<String, Object> snapshot = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
-            Helpers.addElementToObject(snapshot, "nonce", nonce);
+            snapshot.put("nonce", nonce);
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
             // after a re-subscription snapshot

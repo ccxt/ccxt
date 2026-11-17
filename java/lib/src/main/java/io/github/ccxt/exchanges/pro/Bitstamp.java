@@ -1069,12 +1069,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "live_trades", "handleTrade");
-            put( "diff_order_book", "handleOrderBook");
-            put( "funding_rate", "handleFundingRate");
-            put( "private-my_orders", "handleOrders");
-            put( "private-my_trades", "handleMyTrades");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("live_trades", "handleTrade");
+            put("diff_order_book", "handleOrderBook");
+            put("funding_rate", "handleFundingRate");
+            put("private-my_orders", "handleOrders");
+            put("private-my_trades", "handleMyTrades");
         }};
         List<String> keys = new ArrayList<String>(methods.keySet());
         for (var i = 0; i < keys.size(); i++)
@@ -1082,8 +1082,26 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (((String)channel).indexOf(key) > -1)
             {
-                Object method = (methods == null || key == null ? null : methods.get(key));
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                String method = methods.get(key);
+                switch (method) {
+                    case "handleTrade":
+                        this.handleTrade(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleFundingRate":
+                        this.handleFundingRate(client, message);
+                        break;
+                    case "handleOrders":
+                        this.handleOrders(client, message);
+                        break;
+                    case "handleMyTrades":
+                        this.handleMyTrades(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
             }
         }
     }

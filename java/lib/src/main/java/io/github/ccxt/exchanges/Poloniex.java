@@ -3520,7 +3520,7 @@ public class Poloniex extends PoloniexApi
         {
             throw new ArgumentsRequired((((this.id + " fetchDepositAddress requires a network parameter for ") + code) + ".")) ;
         }
-        Object exchangeNetworkId = null;
+        String exchangeNetworkId = null;
         networkCode = this.networkIdToCode(networkCode, code);
         Map<String, Object> networkEntry = (Map<String, Object>) ((((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(currency.get("networks"), networkCode, (Object) null));
         if (!java.util.Objects.equals(networkEntry, null))

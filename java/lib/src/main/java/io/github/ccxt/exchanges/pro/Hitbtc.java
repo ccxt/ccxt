@@ -219,12 +219,12 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         return BaseExchange.supplyAsync(() -> {
 
             String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String subMessageHash = ((messageHashPrefix + "::") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-                ((List<Object>)subMessageHashes).add(subMessageHash);
+                subMessageHashes.add(subMessageHash);
                 messageHashes.add(("unsubscribe:" + subMessageHash));
             }
             Long requestId = this.incrementingNonce();

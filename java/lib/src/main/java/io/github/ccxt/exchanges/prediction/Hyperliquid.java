@@ -294,7 +294,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             label = "YES";
         }
-        Object base = underlying.toUpperCase();
+        String base = underlying.toUpperCase();
         if (!java.util.Objects.equals(targetPrice, ""))
         {
             base = ((base + "_ABOVE_") + targetPrice);
@@ -727,15 +727,15 @@ public class Hyperliquid extends HyperliquidApi
         Long szDecimalsInt = this.parseToInt(szDecimals);
         Object maxDecimals = (8L - szDecimalsInt);
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
-        Object digitsLeft = 0;
+        Long digitsLeft = 0L;
         if ((intPartLength == null || intPartLength <= 5))
         {
             digitsLeft = (5L - ((long) intPartLength));
         }
-        Object cappedDecimals = (((((!(((Number) maxDecimals).doubleValue() >= ((Number) digitsLeft).doubleValue())))))) ? maxDecimals : digitsLeft;
+        Object cappedDecimals = (((((digitsLeft != null && !(((Number) maxDecimals).doubleValue() >= digitsLeft)))))) ? maxDecimals : digitsLeft;
         // appends max (1, cappedDecimals) - 1 zeros
         String zeros = "";
-        for (var zi = 1; ((!(zi >= ((Number) cappedDecimals).doubleValue()))); zi++)
+        for (var zi = 1; ((cappedDecimals != null && !(zi >= ((Number) cappedDecimals).doubleValue()))); zi++)
         {
             zeros = (zeros + "0");
         }
@@ -1309,7 +1309,7 @@ public class Hyperliquid extends HyperliquidApi
         return this.safePredictionPosition(mapLiteral7);
     }
 
-    public Object findOutcomeInMarket(Map<String, Object> market, String sideHint)
+    public Map<String, Object> findOutcomeInMarket(Map<String, Object> market, String sideHint)
     {
         List<Object> outcomesList = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
         String normalizedHint = (((!java.util.Objects.equals(sideHint, null) && !java.util.Objects.equals(sideHint, "")))) ? ((String)sideHint).toUpperCase() : null;
@@ -1335,7 +1335,7 @@ public class Hyperliquid extends HyperliquidApi
                 return oc;
             }
         }
-        return this.safeDict(outcomesList, 0, new HashMap<String, Object>() {{}});
+        return (Map<String, Object>) (this.safeDict(outcomesList, 0, new HashMap<String, Object>() {{}}));
     }
 
     public String parseOutcomeInputSideHint(String outcomeInput)
@@ -1420,8 +1420,8 @@ public class Hyperliquid extends HyperliquidApi
             {
                 sideHintOrDefault = sideHint;
             }
-            Object found = this.findOutcomeInMarket(market, sideHintOrDefault);
-            if (((Map<String, Object>)found).size() > 0)
+            Map<String, Object> found = this.findOutcomeInMarket(market, sideHintOrDefault);
+            if (found.size() > 0)
             {
                 return found;
             }
@@ -1908,7 +1908,7 @@ public class Hyperliquid extends HyperliquidApi
                 orderStatus = response;
             }
             Object orderWrapper = this.safeDict(orderStatus, "order", orderStatus);
-            Object parsed = this.parsePredictionOrder((Map<String, Object>) (orderWrapper), (Map<String, Object>) null);
+            Map<String, Object> parsed = this.parsePredictionOrder((Map<String, Object>) (orderWrapper), (Map<String, Object>) null);
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -1933,7 +1933,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [market] the market the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         // from frontendOpenOrders:
@@ -2157,7 +2157,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             // parse without an outcome fallback — fills span every market the wallet traded, so a
             // requested-outcome fallback would mislabel fills whose market is no longer listed
-            Object parsedTrades = this.parsePredictionTrades(fills, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            List<Object> parsedTrades = this.parsePredictionTrades(fills, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -2703,7 +2703,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             return null;
         }
-        Object normalized = address;
+        String normalized = address;
         if (((String)normalized).startsWith("0x") || ((String)normalized).startsWith("0X"))
         {
             normalized = (normalized == null ? null : ((String)normalized).substring(Math.min(2, ((String)normalized).length())));

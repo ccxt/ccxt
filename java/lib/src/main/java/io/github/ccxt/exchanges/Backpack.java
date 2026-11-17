@@ -1808,7 +1808,7 @@ public class Backpack extends BackpackApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
             {
-                Object marketSymbol = (symbolsResolved == null || i < 0 || i >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(i));
+                String marketSymbol = (String) (symbolsResolved == null || i < 0 || i >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(i));
                 Map<String, Object> market = this.market(marketSymbol);
                 if (Boolean.TRUE.equals(stockOnly) && (!java.util.Objects.equals(market.get("stock"), true)))
                 {
@@ -1818,7 +1818,7 @@ public class Backpack extends BackpackApi
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, marketSymbol, (Object) null);
                 if ((!java.util.Objects.equals(ticker, null)) && ((!java.util.Objects.equals(source, "External")) || (java.util.Objects.equals(market.get("stock"), true))))
                 {
-                    result.put((String)marketSymbol, ticker);
+                    result.put(marketSymbol, ticker);
                 } else if (Boolean.TRUE.equals(marketIsRfq))
                 {
                     String underlyingId = ((this.safeString(market, "baseId", "") + "_") + this.safeString(market, "quoteId", ""));
@@ -1827,7 +1827,7 @@ public class Backpack extends BackpackApi
                     Map<String, Object> underlyingTicker = (Map<String, Object>) this.safeDict(tickerSource, underlyingId, (Object) null);
                     if (!java.util.Objects.equals(underlyingTicker, null))
                     {
-                        result.put((String)marketSymbol, this.parseTicker(underlyingTicker, market));
+                        result.put(marketSymbol, this.parseTicker(underlyingTicker, market));
                     }
                 }
             }

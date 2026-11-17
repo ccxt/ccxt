@@ -897,7 +897,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Map<String, Object> rawTrade = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
             String symbol = (String) parsed.get("symbol");
-            symbols.put((String)symbol, true);
+            symbols.put(symbol, true);
             trades.append(parsed);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
@@ -1673,7 +1673,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             cache.append(position);
         }
         String baseMessageHash = "clearinghouseState::positions";
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, baseMessageHash);
+        List<Object> messageHashes = this.findMessageHashes(client, baseMessageHash);
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -2283,25 +2283,61 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             return;
         }
         String topic = this.safeString(message, "channel", "");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "pong", "handlePong");
-            put( "trades", "handleTrades");
-            put( "l2Book", "handleOrderBook");
-            put( "candle", "handleOHLCV");
-            put( "orderUpdates", "handleOrder");
-            put( "userFills", "handleMyTrades");
-            put( "allMids", "handleWsTickers");
-            put( "activeAssetCtx", "handleActiveAssetCtx");
-            put( "activeSpotAssetCtx", "handleActiveAssetCtx");
-            put( "post", "handleWsPost");
-            put( "subscriptionResponse", "handleSubscriptionResponse");
-            put( "clearinghouseState", "handleBalance");
-            put( "spotState", "handleBalance");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("pong", "handlePong");
+            put("trades", "handleTrades");
+            put("l2Book", "handleOrderBook");
+            put("candle", "handleOHLCV");
+            put("orderUpdates", "handleOrder");
+            put("userFills", "handleMyTrades");
+            put("allMids", "handleWsTickers");
+            put("activeAssetCtx", "handleActiveAssetCtx");
+            put("activeSpotAssetCtx", "handleActiveAssetCtx");
+            put("post", "handleWsPost");
+            put("subscriptionResponse", "handleSubscriptionResponse");
+            put("clearinghouseState", "handleBalance");
+            put("spotState", "handleBalance");
         }};
-        Object exacMethod = this.safeValue(methods, topic);
+        String exacMethod = methods.get(topic);
         if (!java.util.Objects.equals(exacMethod, null))
         {
-            Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
+            switch (exacMethod) {
+                case "handlePong":
+                    this.handlePong(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleMyTrades":
+                    this.handleMyTrades(client, message);
+                    break;
+                case "handleWsTickers":
+                    this.handleWsTickers(client, message);
+                    break;
+                case "handleActiveAssetCtx":
+                    this.handleActiveAssetCtx(client, message);
+                    break;
+                case "handleWsPost":
+                    this.handleWsPost(client, message);
+                    break;
+                case "handleSubscriptionResponse":
+                    this.handleSubscriptionResponse(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + exacMethod);
+            }
             return;
         }
         List<String> keys = new ArrayList<String>(methods.keySet());
@@ -2310,8 +2346,44 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
-                Object method = (methods == null || key == null ? null : methods.get(key));
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                String method = methods.get(key);
+                switch (method) {
+                    case "handlePong":
+                        this.handlePong(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleMyTrades":
+                        this.handleMyTrades(client, message);
+                        break;
+                    case "handleWsTickers":
+                        this.handleWsTickers(client, message);
+                        break;
+                    case "handleActiveAssetCtx":
+                        this.handleActiveAssetCtx(client, message);
+                        break;
+                    case "handleWsPost":
+                        this.handleWsPost(client, message);
+                        break;
+                    case "handleSubscriptionResponse":
+                        this.handleSubscriptionResponse(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
                 return;
             }
         }

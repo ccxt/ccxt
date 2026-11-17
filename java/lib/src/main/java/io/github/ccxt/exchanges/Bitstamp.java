@@ -1176,7 +1176,7 @@ public class Bitstamp extends BitstampApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetchMarketsFromCache(parameters)).join();
+            List<Object> response = (this.fetchMarketsFromCache(parameters)).join();
             //
             //    [
             //
@@ -1223,7 +1223,7 @@ public class Bitstamp extends BitstampApi
             //         }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.safeDict(response, i, (Object) null);
                 String baseId = this.safeString(market, "base_currency");
@@ -1361,7 +1361,7 @@ public class Bitstamp extends BitstampApi
         }
     }
 
-    public CompletableFuture<Object> fetchMarketsFromCache(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarketsFromCache(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1417,7 +1417,7 @@ public class Bitstamp extends BitstampApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetchMarketsFromCache(parameters)).join();
+            List<Object> response = (this.fetchMarketsFromCache(parameters)).join();
             //
             //     [
             //         {

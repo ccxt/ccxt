@@ -3406,8 +3406,8 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Map<String, Object> balance = (Map<String, Object>) this.parseBalance(account);
             balance.put("info", response);
-            Helpers.addElementToObject(balance, "timestamp", this.parse8601(datetime));
-            Helpers.addElementToObject(balance, "datetime", datetime);
+            balance.put("timestamp", this.parse8601(datetime));
+            balance.put("datetime", datetime);
             return balance;
         }).thenApply(Balances::new);
 

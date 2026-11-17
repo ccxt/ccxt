@@ -1397,7 +1397,7 @@ public class Opinion extends OpinionApi
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1792,7 +1792,7 @@ public class Opinion extends OpinionApi
             {
                 return this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             }
-            Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
+            List<Object> parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Map<String, Object> wantedTokenIds = new HashMap<String, Object>() {{}};
             // copy to a plain list so the strict null checks see one shape
             List<Object> outcomesList = (List<Object>) ((((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes);
@@ -1806,9 +1806,9 @@ public class Opinion extends OpinionApi
                 }
             }
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)parsed).size(); i++)
+            for (var i = 0; i < parsed.size(); i++)
             {
-                Object position = (parsed == null || i < 0 || i >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(i));
+                Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(position, "info", new HashMap<String, Object>() {{}});
                 String tokenId = this.safeString(info, "tokenId");
                 if ((!java.util.Objects.equals(tokenId, null)) && (wantedTokenIds.containsKey(tokenId)))
@@ -2506,7 +2506,7 @@ public class Opinion extends OpinionApi
         mapLiteral9.put("filled", this.safeNumber(message, "filledShares", (Object) null));
         mapLiteral9.put("fee", null);
         mapLiteral9.put("trades", new ArrayList<Object>(Arrays.asList()));
-        Object order = this.safePredictionOrder(mapLiteral9, outcomeObj);
+        Map<String,Object> order = this.safePredictionOrder(mapLiteral9, outcomeObj);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);

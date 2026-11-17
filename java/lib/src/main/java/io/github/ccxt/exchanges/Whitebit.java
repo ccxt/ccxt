@@ -1274,9 +1274,9 @@ public class Whitebit extends WhitebitApi
         {
             String entry = (String) (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             List<Object> splitEntry = new ArrayList<Object>(Arrays.asList(entry.split(java.util.regex.Pattern.quote(" "))));
-            Object currencyId = (splitEntry == null || 0 >= splitEntry.size() ? null : splitEntry.get(0));
+            String currencyId = (String) (splitEntry == null || 0 >= splitEntry.size() ? null : splitEntry.get(0));
             Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(response, entry, (Object) null);
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
                 Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, (Object) null);
@@ -2070,8 +2070,8 @@ public class Whitebit extends WhitebitApi
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeValue(response, marketId), market);
-                Object symbol = ticker.get("symbol");
-                result.put((String)((String)symbol), ticker);
+                String symbol = (String) ticker.get("symbol");
+                result.put(symbol, ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);

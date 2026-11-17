@@ -1674,7 +1674,7 @@ public class Mudrex extends MudrexApi
             List<Object> rebateKeys = new ArrayList<Object>(Arrays.asList());
             List<String> rebateAmounts = new ArrayList<String>(Arrays.asList());
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
-            List<Object> transactionKeys = new ArrayList<Object>(Arrays.asList());
+            List<String> transactionKeys = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < allRows.size(); i++)
             {
                 Object entry = (allRows == null || i < 0 || i >= allRows.size() ? null : allRows.get(i));
@@ -1683,7 +1683,7 @@ public class Mudrex extends MudrexApi
                 if (java.util.Objects.equals(feeType, "TRANSACTION"))
                 {
                     ((List<Object>)transactions).add(entry);
-                    ((List<Object>)transactionKeys).add(pairKey);
+                    transactionKeys.add(pairKey);
                 } else if (java.util.Objects.equals(feeType, "REBATE"))
                 {
                     ((List<Object>)rebateKeys).add(pairKey);

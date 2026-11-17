@@ -904,7 +904,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             positions.append(position);
             ((List<Object>)newPositions).add(position);
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));

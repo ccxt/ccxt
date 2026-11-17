@@ -2325,7 +2325,7 @@ public class Derive extends DeriveApi
         }};
     }
 
-    public Object hashOrderMessage(Object order)
+    public String hashOrderMessage(Object order)
     {
         Object accountHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address")), order), keccak(), "binary");
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -2337,13 +2337,13 @@ public class Derive extends DeriveApi
         }
         byte[] binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         byte[] prefix = this.base16ToBinary("1901");
-        return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak(), "hex");
+        return (String) (this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak(), "hex"));
     }
 
     public String signOrder(Object order, String privateKey)
     {
-        Object hashOrder = this.hashOrderMessage(order);
-        return this.signHash((String) (hashOrder), (String) (privateKey));
+        String hashOrder = this.hashOrderMessage(order);
+        return this.signHash(hashOrder, (String) (privateKey));
     }
 
     /**

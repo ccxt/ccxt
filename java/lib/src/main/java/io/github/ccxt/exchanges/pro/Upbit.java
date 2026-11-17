@@ -81,13 +81,13 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 client.subscriptions.put(subscriptionsKey, this.createSafeDictionary(true));
             }
             Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(client.subscriptions, subscriptionsKey, new HashMap<String, Object>() {{}});
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String marketId = this.safeString(marketIds, i, "");
                 String symbol = this.safeString(symbolsNormalized, i, "");
                 String messageHash = ((channel + ":") + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
                 if (!(subscriptions.containsKey(messageHash)))
                 {
                     HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();

@@ -1121,7 +1121,7 @@ public class Upbit extends UpbitApi
                 idsString = (idsString + ",");
             }
             idsString = (idsString + this.safeString(ids, i, ""));
-            if (((String)idsString).length() >= 4000)
+            if (idsString.length() >= 4000)
             {
                 ((List<Object>)queries).add(idsString);
                 idsString = "";

@@ -105,7 +105,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             this.setBrokerHeaders();
             String baseIdString = this.safeString(market, "baseId", "");
             String quoteIdString = this.safeString(market, "quoteId", "");
-            Object assetId = baseIdString.toLowerCase();
+            String assetId = baseIdString.toLowerCase();
             assetId = (assetId + quoteIdString.toLowerCase());
             Map<String, Object> subscribe = new HashMap<String, Object>();
             subscribe.put("id", this.requestId());
@@ -129,7 +129,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<Object> assets = new ArrayList<Object>(Arrays.asList());
+            List<String> assets = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -138,9 +138,9 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
                     messageHashes.add(("ticker:" + market.get("symbol")));
                     String baseIdString = this.safeString(market, "baseId", "");
                     String quoteIdString = this.safeString(market, "quoteId", "");
-                    Object assetId = baseIdString.toLowerCase();
+                    String assetId = baseIdString.toLowerCase();
                     assetId = (assetId + quoteIdString.toLowerCase());
-                    ((List<Object>)assets).add(assetId);
+                    assets.add(assetId);
                 }
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");

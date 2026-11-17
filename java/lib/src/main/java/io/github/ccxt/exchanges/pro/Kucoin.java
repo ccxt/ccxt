@@ -1391,7 +1391,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             List<String> marketIds = this.marketIds(symbolsNormalized);
             String url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subscriptionHashes = new ArrayList<String>(Arrays.asList());
             String channelName = "/market/match:";
             if (Boolean.TRUE.equals(isFuturesMethod))
             {
@@ -1403,7 +1403,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(("trades:" + symbol));
                 String marketId = this.safeString(marketIds, i, "");
-                ((List<Object>)subscriptionHashes).add((channelName + marketId));
+                subscriptionHashes.add((channelName + marketId));
             }
             List<Object> trades = (List<Object>) (this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters, (Object) null)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);

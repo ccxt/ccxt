@@ -1832,7 +1832,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (instType + ":positions::"));
+        List<Object> messageHashes = this.findMessageHashes(client, (instType + ":positions::"));
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));

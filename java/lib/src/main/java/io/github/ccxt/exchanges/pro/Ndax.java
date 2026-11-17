@@ -218,13 +218,13 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)), (Map<String, Object>) null);
             String symbol = this.safeString(trade, "symbol");
-            Object tradesArray = (((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) ((((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol));
             if (java.util.Objects.equals(tradesArray, null))
             {
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)limit).intValue());
             }
-            ((io.github.ccxt.ws.ArrayCache) tradesArray).append(trade);
+            tradesArray.append(trade);
             if (!java.util.Objects.equals(symbol, null))
             {
                 this.trades.put(symbol, tradesArray);
@@ -551,17 +551,17 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Double amount = this.safeFloat(bidask, 8);
             Long side = this.safeInteger(bidask, 9);
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            Object orderbookSide = ((((side != null && side == 0)))) ? (orderbook == null ? null : orderbook.get("bids")) : (orderbook == null ? null : orderbook.get("asks"));
+            io.github.ccxt.ws.OrderBookSide orderbookSide = (io.github.ccxt.ws.OrderBookSide) (((((side != null && side == 0)))) ? (orderbook == null ? null : orderbook.get("bids")) : (orderbook == null ? null : orderbook.get("asks")));
             // 0 new, 1 update, 2 remove
             if ((type != null && type == 0))
             {
-                ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, amount);
+                orderbookSide.store(price, amount);
             } else if ((type != null && type == 1))
             {
-                ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, amount);
+                orderbookSide.store(price, amount);
             } else if ((type != null && type == 2))
             {
-                ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, 0);
+                orderbookSide.store(price, 0);
             }
         }
         orderbook.put("nonce", nonce);

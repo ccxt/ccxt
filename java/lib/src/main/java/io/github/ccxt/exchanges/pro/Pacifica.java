@@ -1807,21 +1807,48 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }
         String postType = this.safeString(message, "type");
         String topic = this.safeString(message, "channel", "");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "pong", "handlePong");
-            put( "trades", "handleTrades");
-            put( "book", "handleOrderBook");
-            put( "candle", "handleOHLCV");
-            put( "account_order_updates", "handleOrder");
-            put( "account_trades", "handleMyTrades");
-            put( "prices", "handleWsTickers");
-            put( "subscribe", "handleSubscriptionResponse");
-            put( "unsubscribe", "handleSubscriptionResponse");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("pong", "handlePong");
+            put("trades", "handleTrades");
+            put("book", "handleOrderBook");
+            put("candle", "handleOHLCV");
+            put("account_order_updates", "handleOrder");
+            put("account_trades", "handleMyTrades");
+            put("prices", "handleWsTickers");
+            put("subscribe", "handleSubscriptionResponse");
+            put("unsubscribe", "handleSubscriptionResponse");
         }};
-        Object exacMethod = this.safeValue(methods, topic);
+        String exacMethod = methods.get(topic);
         if (!java.util.Objects.equals(exacMethod, null))
         {
-            Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
+            switch (exacMethod) {
+                case "handlePong":
+                    this.handlePong(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleMyTrades":
+                    this.handleMyTrades(client, message);
+                    break;
+                case "handleWsTickers":
+                    this.handleWsTickers(client, message);
+                    break;
+                case "handleSubscriptionResponse":
+                    this.handleSubscriptionResponse(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + exacMethod);
+            }
             return;
         }
         if (!java.util.Objects.equals(postType, null))
@@ -1835,8 +1862,35 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
-                Object method = (methods == null || key == null ? null : methods.get(key));
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                String method = methods.get(key);
+                switch (method) {
+                    case "handlePong":
+                        this.handlePong(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleMyTrades":
+                        this.handleMyTrades(client, message);
+                        break;
+                    case "handleWsTickers":
+                        this.handleWsTickers(client, message);
+                        break;
+                    case "handleSubscriptionResponse":
+                        this.handleSubscriptionResponse(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
                 return;
             }
         }

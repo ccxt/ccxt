@@ -592,7 +592,7 @@ public Map<String, Object> describe()
         outcomeObjValue.put("label", null);
         outcomeObjValue.put("event", null);
         outcomeObjValue.put("info", new HashMap<String, Object>() {{}});
-        return (Map<String, Object>) (outcomeObjValue);
+        return outcomeObjValue;
     }
 
     public Object safeOutcomeSymbol(String outcomeIdOrSymbol, Object outcomeObj)
@@ -640,7 +640,7 @@ public Map<String, Object> describe()
         String lower = (((java.util.Objects.equals(slug, null)))) ? "" : ((String)slug).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         List<String> chars = this.stringToCharsArray(lower);
-        Object s = "";
+        String s = "";
         Boolean lastDash = true; // start true to drop leading separators
         for (var i = 0; i < chars.size(); i++)
         {
@@ -665,14 +665,14 @@ public Map<String, Object> describe()
                 s = Helpers.replaceAll(((String)s), replacementKey, replacementValue);
             }
         }
-        List<Object> rawParts = new ArrayList<Object>(Arrays.asList(((String)s).split(java.util.regex.Pattern.quote("-"))));
-        Object parts = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawParts = new ArrayList<Object>(Arrays.asList(s.split(java.util.regex.Pattern.quote("-"))));
+        List<String> parts = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < rawParts.size(); i++)
         {
             String w = (String) (rawParts == null || i < 0 || i >= rawParts.size() ? null : rawParts.get(i));
             if (w.length() > 0 && !this.inArray(w, stopWords))
             {
-                ((List<Object>)parts).add(w);
+                parts.add(w);
             }
         }
         String joined = String.join("_", (List<String>)parts);
@@ -710,7 +710,7 @@ public Map<String, Object> describe()
         String upper = (((java.util.Objects.equals(outcome, null)))) ? "" : ((String)outcome).toUpperCase();
         String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         List<String> chars = this.stringToCharsArray(upper);
-        Object label = "";
+        String label = "";
         Boolean pendingSep = false;
         for (var i = 0; i < chars.size(); i++)
         {
@@ -1023,7 +1023,7 @@ public Map<String, Object> describe()
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
         String normalized = ((String)marketPart).toLowerCase().replace("-", "_");
         List<Object> rawWords = new ArrayList<Object>(Arrays.asList(((String)normalized).split(java.util.regex.Pattern.quote("_"))));
-        Object words = new ArrayList<Object>(Arrays.asList());
+        List<String> words = new ArrayList<String>(Arrays.asList());
         Boolean hasLetters = false;
         String letters = "abcdefghijklmnopqrstuvwxyz";
         for (var i = 0; i < rawWords.size(); i++)
@@ -1053,10 +1053,10 @@ public Map<String, Object> describe()
             {
                 continue;
             }
-            ((List<Object>)words).add(word);
+            words.add(word);
             hasLetters = true;
         }
-        Integer wordsLength = ((List<?>)words).size();
+        Integer wordsLength = words.size();
         if ((java.util.Objects.equals(wordsLength, 0)) || !Boolean.TRUE.equals(hasLetters))
         {
             // a purely numeric/symbolic handle is an id, not searchable text
@@ -1580,7 +1580,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object safePredictionOrder(Map<String, Object> outcomeOrder, Object outcomeObj)
+    public Map<String, Object> safePredictionOrder(Map<String, Object> outcomeOrder, Object outcomeObj)
     {
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
@@ -1597,8 +1597,8 @@ public Map<String, Object> describe()
         Long lastTradeTimestamp = this.safeInteger(outcomeOrder, "lastTradeTimestamp");
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         List<Object> rawTrades = (List<Object>) this.safeList(outcomeOrder, "trades", new ArrayList<Object>(Arrays.asList()));
-        Object trades = this.parsePredictionTrades(rawTrades, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        Integer tradesLength = ((List<?>)trades).size();
+        List<Object> trades = this.parsePredictionTrades(rawTrades, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        Integer tradesLength = trades.size();
         List<Object> feeList = new ArrayList<Object>(Arrays.asList());
         if ((tradesLength != null && tradesLength > 0))
         {
@@ -1612,7 +1612,7 @@ public Map<String, Object> describe()
             }
             for (var i = 0; (tradesLength != null && i < tradesLength); i++)
             {
-                Object trade = (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i));
+                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 String tradeAmount = this.safeString(trade, "amount");
                 if (!java.util.Objects.equals(tradeAmount, null))
                 {
@@ -1884,7 +1884,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parsePredictionTicker() is not supported yet")) ;
     }
 
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parsePredictionOrder() is not supported yet")) ;
     }
@@ -1916,7 +1916,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public Object parsePredictionTrades(Object trades, Object outcomeObj, Long since, Long limit, Map<String, Object> parameters)
+    public List<Object> parsePredictionTrades(Object trades, Object outcomeObj, Long since, Long limit, Map<String, Object> parameters)
     {
         // prediction-market analogue of the base parseTrades: the base aggregator post-filters
         // by the market's `symbol` key, but prediction structures carry an `outcome` handle
@@ -1972,7 +1972,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public Object parsePredictionPositions(Object positions, Map<String, Object> parameters)
+    public List<Object> parsePredictionPositions(Object positions, Map<String, Object> parameters)
     {
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`
         // argument through marketSymbols() and would throw BadSymbol on outcome handles.
@@ -2087,7 +2087,7 @@ public Map<String, Object> describe()
         {
             concatenated = (concatenated + this.safeString(items, i, ""));
         }
-        Long byteLength = this.parseToInt((((double) ((String)concatenated).length()) / ((double) 2)));
+        Long byteLength = this.parseToInt((((double) concatenated.length()) / ((double) 2)));
         if (((byteLength == null || byteLength < 56)))
         {
             return (this.intToBase16((192L + byteLength)) + concatenated);

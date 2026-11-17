@@ -306,14 +306,14 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
                 String messageHash = ("orderbook:" + market.get("symbol"));
                 ((List<Object>)markets).add(market);
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
                 if (!(((Map<?, ?>)this.orderbooks).containsKey(market.get("symbol"))))
                 {
                     OrderBook snapshot = (this.fetchOrderBook(symbol, limit, new HashMap<String, Object>() {{}})).join();
@@ -2202,7 +2202,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
         for (var i = 0; i < subscriptions.size(); i++)
         {
-            Object unsubscribeHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
+            String unsubscribeHash = (String) (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubscribeHash, (Object) null);
             String subscriptionId = this.safeString(subscription, "id");
             if (!java.util.Objects.equals(subscriptionId, id))
@@ -2212,7 +2212,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String messageHash = this.safeString(subscription, "messageHash");
             if (!java.util.Objects.equals(messageHash, null))
             {
-                this.cleanUnsubscription(client, (String) (messageHash), (String) (unsubscribeHash), false);
+                this.cleanUnsubscription(client, (String) (messageHash), unsubscribeHash, false);
                 this.handleUnsubscriptionCache((String) (messageHash));
             }
             client.resolve(true, unsubscribeHash);

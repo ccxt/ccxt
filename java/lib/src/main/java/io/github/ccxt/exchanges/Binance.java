@@ -9305,11 +9305,11 @@ public class Binance extends BinanceApi
             }
             for (var i = 0; i < clientOrderIdKeys.size(); i++)
             {
-                Object currentClientOrderIdKey = (clientOrderIdKeys == null || i < 0 || i >= clientOrderIdKeys.size() ? null : clientOrderIdKeys.get(i));
+                String currentClientOrderIdKey = (String) (clientOrderIdKeys == null || i < 0 || i >= clientOrderIdKeys.size() ? null : clientOrderIdKeys.get(i));
                 String currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
                 if (java.util.Objects.equals(currentClientOrderId, null))
                 {
-                    parameters.put((String)currentClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+                    parameters.put(currentClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
                 }
             }
         } else if (java.util.Objects.equals(path, "batchOrders"))

@@ -263,8 +263,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String topic = "ticker";
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -272,8 +272,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String marketId = this.safeString(market, "id", "");
                 String channelName = ((marketId + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
-                ((List<Object>)channels).add(channelName);
+                messageHashes.add(messageHash);
+                channels.add(channelName);
             }
             Object newTicker = (this.subscribePublic(messageHashes, channels, isContract, parameters, new HashMap<String, Object>() {{}})).join();
             if (this.newUpdates)
@@ -334,9 +334,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String topic = "ticker";
-            List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subHashes = new ArrayList<String>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            List<String> unSubHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -345,9 +345,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String channelName = ((marketId + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
-                ((List<Object>)subHashes).add(messageHash);
-                ((List<Object>)channels).add(channelName);
-                ((List<Object>)unSubHashes).add(unSubMessageHash);
+                subHashes.add(messageHash);
+                channels.add(channelName);
+                unSubHashes.add(unSubMessageHash);
             }
             Map<String, Object> subscription = new HashMap<String, Object>();
             subscription.put("unsubscribe", true);
@@ -504,8 +504,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String topic = "trade";
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -513,8 +513,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String marketId = this.safeString(market, "id", "");
                 String channelName = ((marketId + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
-                ((List<Object>)channels).add(channelName);
+                messageHashes.add(messageHash);
+                channels.add(channelName);
             }
             List<Object> trades = (List<Object>) (this.subscribePublic(messageHashes, channels, isContract, parameters, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
@@ -572,9 +572,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
             Boolean isContract = (Boolean) firstMarket.get("contract");
             String topic = "trade";
-            List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subHashes = new ArrayList<String>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            List<String> unSubHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -583,9 +583,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String channelName = ((marketId + "@") + topic);
                 String messageHash = ((topic + "::") + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
-                ((List<Object>)subHashes).add(messageHash);
-                ((List<Object>)channels).add(channelName);
-                ((List<Object>)unSubHashes).add(unSubMessageHash);
+                subHashes.add(messageHash);
+                channels.add(channelName);
+                unSubHashes.add(unSubMessageHash);
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
@@ -745,8 +745,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             String callerMethodName = this.safeString(parameters, "callerMethodName", "watchOHLCVForSymbols");
             Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> firstEntry = (List<Object>) this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
             String firstSymbol = this.safeString(firstEntry, 0);
             Map<String, Object> firstMarket = this.market(firstSymbol);
@@ -774,8 +774,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String marketId = this.safeString(market, "id", "");
                 String channel = ((((marketId + "@kline_") + interval) + "_") + priceType);
                 String messageHash = ((("ohlcv::" + symbolString) + "::") + unifiedTimeframe);
-                ((List<Object>)channels).add(channel);
-                ((List<Object>)messageHashes).add(messageHash);
+                channels.add(channel);
+                messageHashes.add(messageHash);
             }
             var symboltimeframestoredVariable = (this.subscribePublic(messageHashes, channels, isContract, paramsPriceType, new HashMap<String, Object>() {{}})).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
@@ -835,9 +835,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             String callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
             Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            List<String> subHashes = new ArrayList<String>(Arrays.asList());
+            List<String> unSubHashes = new ArrayList<String>(Arrays.asList());
             List<Object> firstEntry = (List<Object>) this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
             String firstSymbol = this.safeString(firstEntry, 0);
             Map<String, Object> firstMarket = this.market(firstSymbol);
@@ -866,9 +866,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String channel = ((((marketId + "@kline_") + interval) + "_") + priceType);
                 String messageHash = ((("ohlcv::" + symbolString) + "::") + unifiedTimeframe);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
-                ((List<Object>)channels).add(channel);
-                ((List<Object>)subHashes).add(messageHash);
-                ((List<Object>)unSubHashes).add(unSubMessageHash);
+                channels.add(channel);
+                subHashes.add(messageHash);
+                unSubHashes.add(unSubMessageHash);
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
@@ -1019,8 +1019,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, (String) (callerMethodName), "depth", depth);
             String depthOption = depthOptionparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -1028,8 +1028,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String messageHash = ("orderbook::" + symbol);
                 String marketId = this.safeString(market, "id", "");
                 String channel = ((marketId + "@depth") + depthOption);
-                ((List<Object>)messageHashes).add(messageHash);
-                ((List<Object>)channels).add(channel);
+                messageHashes.add(messageHash);
+                channels.add(channel);
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "limit", limit );
@@ -1091,9 +1091,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, (String) (callerMethodName), "depth", depth);
             String depthOption = depthOptionparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
-            List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subHashes = new ArrayList<String>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            List<String> unSubHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -1102,9 +1102,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String marketId = this.safeString(market, "id", "");
                 String channel = ((marketId + "@depth") + depthOption);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
-                ((List<Object>)subHashes).add(messageHash);
-                ((List<Object>)channels).add(channel);
-                ((List<Object>)unSubHashes).add(unSubMessageHash);
+                subHashes.add(messageHash);
+                channels.add(channel);
+                unSubHashes.add(unSubMessageHash);
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
@@ -1204,8 +1204,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 throw new NotSupported((this.id + " watchBidsAsks is supported for spot markets only")) ;
             }
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -1213,8 +1213,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String marketId = this.safeString(market, "id", "");
                 String channelName = ((marketId + "@") + "bookTicker");
                 String messageHash = ("bidask::" + symbol);
-                ((List<Object>)messageHashes).add(messageHash);
-                ((List<Object>)channels).add(channelName);
+                messageHashes.add(messageHash);
+                channels.add(channelName);
             }
             Object newTicker = (this.subscribePublic(messageHashes, channels, false, parameters, new HashMap<String, Object>() {{}})).join();
             if (this.newUpdates)
@@ -1256,9 +1256,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 throw new NotSupported((this.id + " unWatchBidsAsks is supported for spot markets only")) ;
             }
-            List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
-            List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
+            List<String> subHashes = new ArrayList<String>(Arrays.asList());
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            List<String> unSubHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -1267,9 +1267,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 String channelName = ((marketId + "@") + "bookTicker");
                 String messageHash = ("bidask::" + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
-                ((List<Object>)subHashes).add(messageHash);
-                ((List<Object>)channels).add(channelName);
-                ((List<Object>)unSubHashes).add(unSubMessageHash);
+                subHashes.add(messageHash);
+                channels.add(channelName);
+                unSubHashes.add(unSubMessageHash);
             }
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
@@ -1378,7 +1378,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
             String channel = "fill";
-            List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash, (String) (subscriptionHash), channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1626,7 +1626,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
             String channel = "orders";
-            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, (String) (subscriptionHash), channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2148,7 +2148,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            List<Object> newPositions = (List<Object>) (this.subscribePrivate(messageHash, (String) (subscriptionHash), channel, true, parameters, new HashMap<String, Object>() {{}})).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, true, parameters, new HashMap<String, Object>() {{}})).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2284,7 +2284,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             cache.append(position);
             ((List<Object>)newPositions).add(position);
         }
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));

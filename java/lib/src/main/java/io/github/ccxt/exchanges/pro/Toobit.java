@@ -1392,7 +1392,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to
         // ':$positions::' and find_message_hashes () matches nothing in PHP
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (accountType + ":positions::"));
+        List<Object> messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
         for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));

@@ -2331,12 +2331,12 @@ public class Gate extends GateApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
+            List<Object> swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
             if (Boolean.TRUE.equals(this.safeBool(this.options, "sandboxMode", false)))
             {
                 swapSettlementCurrencies = new ArrayList<Object>(Arrays.asList("usdt")); // gate sandbox only has usdt-margined swaps
             }
-            for (var c = 0; c < ((List<?>)swapSettlementCurrencies).size(); c++)
+            for (var c = 0; c < swapSettlementCurrencies.size(); c++)
             {
                 String settleId = this.safeString(swapSettlementCurrencies, c);
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2368,8 +2368,8 @@ public class Gate extends GateApi
                 return new ArrayList<Object>(Arrays.asList());  // right now sandbox does not have inverse swaps
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
-            for (var c = 0; c < ((List<?>)futureSettlementCurrencies).size(); c++)
+            List<Object> futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
+            for (var c = 0; c < futureSettlementCurrencies.size(); c++)
             {
                 String settleId = this.safeString(futureSettlementCurrencies, c);
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2604,10 +2604,10 @@ public class Gate extends GateApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object underlyings = (this.fetchOptionUnderlyings()).join();
-            for (var i = 0; i < ((List<?>)underlyings).size(); i++)
+            List<Object> underlyings = (this.fetchOptionUnderlyings()).join();
+            for (var i = 0; i < underlyings.size(); i++)
             {
-                Object underlying = (underlyings == null || i < 0 || i >= ((List<?>)underlyings).size() ? null : ((List<?>)underlyings).get(i));
+                Object underlying = (underlyings == null || i < 0 || i >= underlyings.size() ? null : underlyings.get(i));
                 Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, parameters);
                 query.put("underlying", underlying);
                 List<Object> response = (this.publicOptionsGetContracts(query)).join();
@@ -2745,7 +2745,7 @@ public class Gate extends GateApi
 
     }
 
-    public CompletableFuture<Object> fetchOptionUnderlyings()
+    public CompletableFuture<List<Object>> fetchOptionUnderlyings()
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2927,12 +2927,12 @@ public class Gate extends GateApi
         return new ArrayList<Object>(Arrays.asList(marginMode, paramsUnifiedAccount));
     }
 
-    public Object getSettlementCurrencies(String type, String method)
+    public List<Object> getSettlementCurrencies(String type, String method)
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, type, new HashMap<String, Object>() {{}}); // [ 'BTC', 'USDT' ] unified codes
         Map<String, Object> fetchMarketsContractOptions = (Map<String, Object>) this.safeDict(options, method, new HashMap<String, Object>() {{}});
         List<String> defaultSettle = (((java.util.Objects.equals(type, "swap")))) ? new ArrayList<String>(Arrays.asList("usdt")) : new ArrayList<String>(Arrays.asList("btc"));
-        return this.safeList(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle);
+        return (List<Object>) (this.safeList(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle));
     }
 
     /**
