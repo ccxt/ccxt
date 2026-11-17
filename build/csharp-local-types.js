@@ -14632,6 +14632,27 @@ export const CSHARP_METHOD_RETURN_TYPES = {
 // return type instead of `object`. Mirrors the fork's csharpBooleanReturnType rule, which
 // already covers `: boolean`; only sync MethodDeclarations with a listed name are touched,
 // and every other call falls through to the upstream printer untouched. Idempotent.
+// the venue market lookups return null, a Dictionary row (implicit upcast) or their own typed
+// `market` slot: each converts to IDictionary<string, object> without the boundary cast
+const MARKET_LOOKUP_RETURNS = new Set ([ 'findSwapMarketByWsBaseQuote', 'resolveMarketByAltnameOrId', 'findMarketByAltnameOrId', 'getDelistedMarketById', 'getMarketFromTrade' ]);
+function marketLookupReturnConverts (csharp, owner, expression) {
+    if (!MARKET_LOOKUP_RETURNS.has (owner?.name?.text)) {
+        return false;
+    }
+    const node = unwrapPassthroughExpression (expression);
+    if ((node?.kind === ts.SyntaxKind.NullKeyword) || ((node?.kind === ts.SyntaxKind.Identifier) && (node.text === 'undefined'))) {
+        return true;
+    }
+    if (node?.kind === ts.SyntaxKind.CallExpression) {
+        return callReturnType (csharp, node) === 'Dictionary<string, object>';
+    }
+    if (node?.kind === ts.SyntaxKind.Identifier) {
+        const reference = resolveReference (csharp, node);
+        return (reference?.kind === ts.SyntaxKind.Parameter) && (parseMarketParamType (csharp, reference) === 'IDictionary<string, object>');
+    }
+    return false;
+}
+
 export function installCsharpMethodReturnTypes (csharp) {
     if (!csharp || typeof csharp.printFunctionType !== 'function' || typeof csharp.printReturnStatement !== 'function' || csharp._localMethodReturnTypesPatched) {
         return;
@@ -14663,6 +14684,9 @@ export function installCsharpMethodReturnTypes (csharp) {
         // signature names it, or a local declared with it) needs no boundary cast:
         // `((T)((object)(x)))` would box and unbox the same value
         if (callReturnIsMapped (csharp, node.expression, retype) || (retype.startsWith ('ccxt.pro.') && (csharp.csharpPrintedParamType (node.expression) ?? '').startsWith (retype))) {
+            return upstreamReturnStatement (node, identation);
+        }
+        if (marketLookupReturnConverts (csharp, ts.findAncestor (node.parent, ts.isFunctionLike), node.expression)) {
             return upstreamReturnStatement (node, identation);
         }
         // the printed expression is the `object` box the rest of the printer produces;
@@ -17809,6 +17833,9 @@ export const PARSE_MARKET_IDICT_PARAMS = {
     // ral-90c1: market-row forwarders whose every caller passes null, a dictionary or an admitted
     // name's own `market` (fixed point of farm jobs 15694..15699; 24 names fed `object` dropped)
     'handleStockParams': 2, 'stockDataRequest': 2,
+    // the trade / order row chain: every caller passes null, a dictionary row or its own typed `market`
+    'parseTrade': 1, 'parseWsTrade': 1, 'safeTrade': 1, 'parseTrades': 1, 'parseWsTrades': 1, 'parseTradesHelper': 2,
+    'safeOrder': 1, 'parseOrders': 1, 'parseWsOrder': 1, 'parseWsOrders': 1, 'resolveMarketByAltnameOrId': 1,
 };
 
 // ral-90c1: the same shadowed retype for a `currency: Currency` parameter (row writes are
@@ -20920,6 +20947,10 @@ const CSHARP_EXCHANGE_LOCAL_RETURN_TYPES = {
     'parseSbeFundingData': 'Dictionary<string, object>', 'parseSbeMarketSummary': 'Dictionary<string, object>',
     'parseSbeOrder': 'Dictionary<string, object>', 'parseSbeOrderBook': 'Dictionary<string, object>',
     'parseSbePosition': 'Dictionary<string, object>', 'parseSbeTrade': 'Dictionary<string, object>',
+    // venue market lookups (TS `: Market`): every path returns a market-row read, a row literal or null
+    'findSwapMarketByWsBaseQuote': 'IDictionary<string, object>', 'resolveMarketByAltnameOrId': 'IDictionary<string, object>',
+    'findMarketByAltnameOrId': 'IDictionary<string, object>', 'getDelistedMarketById': 'IDictionary<string, object>',
+    'getMarketFromTrade': 'IDictionary<string, object>',
 };
 for (const [ name, type ] of Object.entries (CSHARP_EXCHANGE_LOCAL_RETURN_TYPES)) {
     if (CSHARP_METHOD_RETURN_TYPES[name] === undefined) {
