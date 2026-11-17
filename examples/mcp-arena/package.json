@@ -11,6 +11,6 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "ccxt": "^4.5.84",
     "ccxt-mcp": "^0.1.3",
-    "zod": "^3.25.76"
+    "zod": "^4.6.6"
   }
 }
