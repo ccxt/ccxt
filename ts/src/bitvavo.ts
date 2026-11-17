@@ -472,73 +472,68 @@ export default class bitvavo extends Exchange {
         return this.parseMarkets (response);
     }
 
-    override parseMarkets (markets: any) {
-        const result: Market[] = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = this.safeDict (markets, i);
-            const id = this.safeString (market, 'market');
-            const baseId = this.safeString (market, 'base');
-            const quoteId = this.safeString (market, 'quote');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            const status = this.safeString (market, 'status');
-            result.push (this.safeMarketStructure ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'trading'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'taker': this.safeNumber (this.fees['trading'], 'taker'),
-                'maker': this.safeNumber (this.fees['trading'], 'maker'),
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityDecimals'))),
-                    'price': this.safeNumber (market, 'tickSize'),
-                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'notionalDecimals'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minOrderInBaseAsset'),
-                        'max': this.safeNumber (market, 'maxOrderInBaseAsset'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'minOrderInQuoteAsset'),
-                        'max': this.safeNumber (market, 'maxOrderInQuoteAsset'),
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            }));
+    override parseMarket (market: Dict): Market {
+        const id = this.safeString (market, 'market');
+        const baseId = this.safeString (market, 'base');
+        const quoteId = this.safeString (market, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return {} as Market;
         }
-        return result;
+        const status = this.safeString (market, 'status');
+        return this.safeMarketStructure ({
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'trading'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'taker': this.safeNumber (this.fees['trading'], 'taker'),
+            'maker': this.safeNumber (this.fees['trading'], 'maker'),
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityDecimals'))),
+                'price': this.safeNumber (market, 'tickSize'),
+                'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'notionalDecimals'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'minOrderInBaseAsset'),
+                    'max': this.safeNumber (market, 'maxOrderInBaseAsset'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'minOrderInQuoteAsset'),
+                    'max': this.safeNumber (market, 'maxOrderInQuoteAsset'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        });
     }
 
     /**
