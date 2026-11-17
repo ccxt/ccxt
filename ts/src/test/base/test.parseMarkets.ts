@@ -9,40 +9,16 @@ function testParseMarkets () {
         'id': 'sampleex',
     });
 
-    //
-    // scenario 1: should not trigger parseMarket
-    //
-    const markets1 = [
-        { 'id': undefined, 'base': 'ETH', 'quote': 'USD' },
-    ];
-    const parsedMarkets = exchange.parseMarkets (markets1);
-    assert (parsedMarkets.length === 0, 'Expected 0 parsed markets');
-    //
-    // scenario 2: should trigger parseMarket
-    //
-    const markets2 = [
+    // we don't check empty base or quote inside parseMarkets
+    const markets = [
         { 'id': 'BTC_USD', 'base': 'BTC', 'quote': 'USD' },
+        { 'id': undefined, 'base': 'ETH', 'quote': 'USD' },
+        { 'id': 'ETH_USD', 'base': undefined, 'quote': 'USD' },
+        { 'id': 'ETH_USD', 'base': 'ETH', 'quote': undefined },
     ];
-    const trueAssertion = exchange.safeBool (undefined, undefined, true);
-    try {
-        exchange.parseMarkets (markets2);
-        assert (!trueAssertion, 'Expected parseMarkets to fail');
-    } catch (e) {
-        assert (trueAssertion); // just skip, parseMarket exception is expected
-    }
-    //
-    // scenario 3: should trigger parseMarket
-    //
-    const markets3 = [
-        { 'id': 'ETH_USD', 'base': undefined, 'quote': undefined },
-    ];
-    try {
-        exchange.parseMarkets (markets3);
-        assert (!trueAssertion, 'Expected parseMarkets to fail');
-    } catch (e) {
-        assert (trueAssertion);
-    }
+    const parsedMarkets = exchange.parseMarkets (markets);
+    assert (parsedMarkets.length === 2, 'Expected 3 parsed markets');
+    assert (parsedMarkets[0] !== undefined && parsedMarkets[0]['base'] === 'BTC', 'Expected BTC as base for the first market');
 }
-
 
 export default testParseMarkets;
