@@ -28,6 +28,10 @@ import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
 import { installJavaR90j2ElementListLocals } from './java-local-types.js';
 import { installJavaR90j2PromiseAllLocals } from './java-local-types.js';
 import { installJavaR90j2ElementMapLocals } from './java-local-types.js';
+import { installJavaR90j6StringListReaders } from './java-local-types.js';
+import { installJavaR90j6AsStringListReaders } from './java-local-types.js';
+import { installJavaR90j6PairLocals } from './java-local-types.js';
+import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
@@ -195,6 +199,10 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaR90j2ElementMapLocals (cachedTranspiler);
         installJavaR90j3NativeSumLocals (cachedTranspiler);
         installJavaR90j3CounterLoops (cachedTranspiler);
+        installJavaR90j6StringListReaders (cachedTranspiler);
+        installJavaR90j6AsStringListReaders (cachedTranspiler);
+        installJavaR90j6PairLocals (cachedTranspiler);
+        installJavaR90j6ListCopyLocals (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
