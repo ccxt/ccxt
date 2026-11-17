@@ -739,7 +739,7 @@ export default class sxbet extends Exchange {
         const digits = '0123456789abcdef';
         const lowerHex = hex.toLowerCase ();
         const hexLength = lowerHex.length;
-        let result = this.parseToInt (0);
+        let result = 0;
         for (let i = 0; i < hexLength; i++) {
             const ch = lowerHex[i];
             const digitValue = this.parseToInt (digits.indexOf (ch));

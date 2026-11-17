@@ -8022,7 +8022,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                             && nonNullStringDefaultCall (csharp, parent.right, context))
                             // ral-87c4 R3: the uninitialised `let x: string;` whose every write is such a call
                             || definiteStringDefaultWrites87c4 (csharp, scope, declaration, varName, context));
-                        const guardedSelfWrite = guardedSelfConcatWrite (csharp, declaration, parent.right, csharpType, context) || selfPadWrite92c7 (parent.right, varName, csharpType);
+                        const guardedSelfWrite = guardedSelfConcatWrite (csharp, declaration, parent.right, csharpType, context) || selfPadWrite92c7 (parent.right, varName, csharpType)
+                            || (csharpType === 'Int64?' && int64ChainCandidates.has (declaration) && int64ChainValue (csharp, declaration, parent.right, 0));
                         if (!selfConcat && !selfStringWrite && !nonNullWrite && !nonNullDefaultWrite && !selfOmit && !selfTernary && !guardedSelfWrite && !assignable (csharpType, selfRead)) {
                             return false;
                         }
@@ -12008,7 +12009,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context) ?? outcomesMapLocal93c7 (csharp, declaration, context) ?? currenciesViewLocal93c7 (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context) ?? outcomesMapLocal93c7 (csharp, declaration, context) ?? currenciesViewLocal93c7 (csharp, declaration, context) ?? int64ChainLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -24235,4 +24236,58 @@ function currenciesViewLocal93c7 (csharp, declaration, context) {
     const type = 'IDictionary<string, object>';
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx) ? { type, nativeValue90c7: 'this.currenciesDict' } : undefined;
+}
+
+// ===== integer-valued write chains =====
+// Every write (initializer and each later `=`) is an integer literal, an integer-typed local or
+// parameter, the local itself, an integer reader call, or `+ - *` of those: declared Int64?.
+const INT64_CHAIN_OPERAND_TYPES = [ 'int', 'long', 'Int64', 'Int64?' ];
+const int64ChainCandidates = new WeakSet ();
+
+function int64ChainValue (csharp, declaration, node, depth) {
+    const value = stripParens (node);
+    if (value === undefined || depth > 8) {
+        return false;
+    }
+    switch (value.kind) {
+    case ts.SyntaxKind.NumericLiteral:
+        return integerLiteralArithmeticLiteral (value);
+    case ts.SyntaxKind.PrefixUnaryExpression:
+        return value.operator === ts.SyntaxKind.MinusToken && integerLiteralArithmeticLiteral (value.operand);
+    case ts.SyntaxKind.Identifier: {
+        if (value.text === declaration.name.text && resolveReference (csharp, value) === declaration) {
+            return true;
+        }
+        const type = localIdentifierType (csharp, value) ?? parameterArithmeticType (csharp, value);
+        return INT64_CHAIN_OPERAND_TYPES.includes (type);
+    }
+    case ts.SyntaxKind.BinaryExpression: {
+        const op = value.operatorToken.kind;
+        // nullable `a + b` binds the add (object, object) helper unless one side is an int literal
+        const literalSide = integerLiteralArithmeticLiteral (stripParens (value.left)) || integerLiteralArithmeticLiteral (stripParens (value.right));
+        return (op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.AsteriskToken || (op === ts.SyntaxKind.PlusToken && literalSide))
+            && int64ChainValue (csharp, declaration, value.left, depth + 1) && int64ChainValue (csharp, declaration, value.right, depth + 1);
+    }
+    case ts.SyntaxKind.CallExpression:
+        return value.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && value.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
+            && INT64_CHAIN_OPERAND_TYPES.includes (csharpTypeOfValue (csharp, value));
+    }
+    return false;
+}
+
+function int64ChainLocal (csharp, declaration, context) {
+    if (declaration.initializer === undefined || !isBlockScopedDeclaration (declaration) || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined || !int64ChainValue (csharp, declaration, declaration.initializer, 0)) {
+        return undefined;
+    }
+    int64ChainCandidates.add (declaration);
+    try {
+        const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+        return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'Int64?', ctx) ? { type: 'Int64?' } : undefined;
+    } finally {
+        int64ChainCandidates.delete (declaration);
+    }
 }

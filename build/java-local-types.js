@@ -27602,6 +27602,7 @@ export function installJavaR92j2StringSlotLocals (transpiler) {
             return false;
         }
     };
+    installJavaIntSeedLongLocals (transpiler);
 }
 
 // the declaration whose initializer is `call` has a use of its own binding read as a list (`x.length`, `x[i]`)
@@ -27795,4 +27796,143 @@ export function installJavaR93j2ListLocals (transpiler) {
         return r87j6Head (printer, declaration, identation, R93J2_LIST_TYPE) + `(${R93J2_LIST_TYPE}) (${body})` + (semi === -1 ? '' : rest.slice (semi));
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// ===== whole-number `let` locals seeded by an int literal print `Long` =====
+// Every write (initializer included) is an int literal (printed `NL`), a base Long reader, a Long-declared
+// local or native long arithmetic, and at least one write is not a literal. Decided from the TS AST only.
+function intSeedLongWrite (printer, node, declaration) {
+    const n = unwrapParens (node);
+    if (n === undefined) {
+        return undefined;
+    }
+    if (numericLongLiteralText (n) !== undefined) {
+        return 'literal';
+    }
+    // never-null readers only: a null box would unbox in the native arithmetic the Long local admits
+    if ((isThisCall (n) && [ 'parseToInt', 'milliseconds', 'seconds' ].includes (n.expression.name.text)
+        && numericFamilyCallType (printer, n) === 'Long') || r90j3IntDefaultSafeInteger (printer, n)) {
+        return 'value';
+    }
+    if (ts.isBinaryExpression (n)) {
+        return r87j3LongValue (printer, n) ? 'value' : undefined;
+    }
+    if (!ts.isIdentifier (n) || printer.printNode (n, 0) !== n.text) {
+        return undefined;
+    }
+    const source = printer.getChecker ().getSymbolAtLocation (n)?.valueDeclaration?.resolve ();
+    if (source === undefined || source === declaration || source.getStart () >= n.getStart ()) {
+        return undefined;
+    }
+    const declared = String (printer.javaDeclaredTypeOfDeclaration?.(source) ?? '').replace (/^final\s+/, '').trim ();
+    if (declared === 'Long' || declared === 'long') {
+        return 'value';
+    }
+    // a const reader local declared later in print order: the numeric section's own decision
+    return ts.isVariableDeclaration (source) && source.initializer !== undefined && ts.isVariableDeclarationList (source.parent)
+        && (source.parent.flags & ts.NodeFlags.Const) !== 0 && numericLocalTypeForDeclaration (printer, source) === 'Long' ? 'value' : undefined;
+}
+
+function intSeedLongLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || !ts.isVariableDeclarationList (declaration.parent)
+        || declaration.parent.declarations.length !== 1 || (declaration.parent.flags & ts.NodeFlags.Const) !== 0
+        || !ts.isVariableStatement (declaration.parent.parent) || declaration.initializer === undefined) {
+        return false;
+    }
+    const kinds = [ intSeedLongWrite (printer, declaration.initializer, declaration) ];
+    const uses = r90j2BindingUses (printer, declaration);
+    if (uses === undefined || kinds[0] === undefined) {
+        return false;
+    }
+    for (const n of uses) {
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        // a conditional arm next to a non-identifier arm could take binary numeric promotion
+        const otherArm = ts.isConditionalExpression (parent) && parent.condition !== host
+            ? unwrapParens (parent.whenTrue === host ? parent.whenFalse : parent.whenTrue) : undefined;
+        if (enclosingFunction (n) !== enclosingFunction (declaration) || (otherArm !== undefined && !ts.isIdentifier (otherArm))
+            || ts.isPrefixUnaryExpression (parent) || ts.isPostfixUnaryExpression (parent)) {
+            return false;
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === host && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            kinds.push (intSeedLongWrite (printer, parent.right, declaration));
+        }
+    }
+    if (kinds.includes (undefined) || !kinds.includes ('value')) {
+        return false;
+    }
+    return isSafeToNarrow (printer, declaration, declaration.name.text, 'Long',
+        /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), {
+            nonNull: true,
+            writeOnly: true,
+            ownBinding: true,
+            writeOk: (rhs) => intSeedLongWrite (printer, rhs, declaration) !== undefined,
+        });
+}
+
+export function installJavaIntSeedLongLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaIntSeedLongLocalsPatched) {
+        return;
+    }
+    printer._javaIntSeedLongLocalsPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = (typed.has (declaration) || r87j6HeadIsObject (printer, declaration, upto)) && intSeedLongLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        const literal = numericLongLiteralText (unwrapParens (declaration.initializer));
+        const rest = printed.slice (marker.length);
+        const semi = rest.lastIndexOf (';');
+        const tail = semi === -1 ? '' : rest.slice (semi);
+        if (tail !== '' && tail.trim () !== ';') {
+            return printed;
+        }
+        const body = literal !== undefined ? `${literal}L` : (semi === -1 ? rest : rest.slice (0, semi));
+        typed.set (declaration, 'Long');
+        return r87j6Head (printer, declaration, identation, 'Long') + body + tail;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // an int literal written into such a local prints `NL`; native long arithmetic into any Long local autoboxes
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        if (node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (node.left)
+            && printer.printNode (node.left, 0) === node.left.text) {
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            } catch (e) {
+                declaration = undefined;
+            }
+            if (declaration !== undefined && typed.get (declaration) === 'Long') {
+                const literal = numericLongLiteralText (unwrapParens (node.right));
+                if (literal !== undefined) {
+                    return `${node.left.text} = ${literal}L`;
+                }
+            }
+            // native long arithmetic into a Long local autoboxes: no checkcast
+            if (declaration !== undefined && ts.isVariableDeclaration (declaration) && r87j3LongValue (printer, node.right)
+                && String (printer.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').trim () === 'Long') {
+                return `${node.left.text} = ${printer.printNode (node.right, 0)}`;
+            }
+        }
+        return upstreamBinary (node, identation);
+    };
 }

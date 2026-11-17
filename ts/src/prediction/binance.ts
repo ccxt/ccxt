@@ -206,7 +206,7 @@ export default class binance extends Exchange {
             maxTopicsResolved = this.parseToInt (maxTopics);
         }
         const pageLimitOption = this.safeInteger (this.options, 'marketsPageLimit', 100);
-        let pageLimit = this.parseToInt (100);
+        let pageLimit = 100;
         if (pageLimitOption < 100) {
             pageLimit = this.parseToInt (pageLimitOption);
         }
@@ -445,13 +445,13 @@ export default class binance extends Exchange {
         const seen: Dict = {};
         const collected: List = [];
         const queriesLength = queries.length;
-        let limitValue = this.parseToInt (20);
+        let limitValue = 20;
         if (limit !== undefined) {
             limitValue = this.parseToInt (limit);
         }
         let limitResolved = limitValue;
         if (limitValue > 50) {
-            limitResolved = this.parseToInt (50);
+            limitResolved = 50;
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
