@@ -62,7 +62,7 @@ import { installJavaR92j3HexStringCalls } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaR92j1AssertedStringLocals } from './java-local-types.js';
 import { installJavaR92j1StringRowLocals } from './java-local-types.js';
-import { installJavaR92j2MarketTypeParams } from './java-local-types.js';
+import { installJavaR92j2MarketTypeParams, installJavaTypedDefaultReaders } from './java-local-types.js';
 import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
@@ -2566,6 +2566,7 @@ class NewTranspiler {
         installJavaR92j1AssertedStringLocals(this.transpiler);
         installJavaR92j1StringRowLocals(this.transpiler);
         installJavaR92j2MarketTypeParams(this.transpiler);
+        installJavaTypedDefaultReaders(this.transpiler);
         installJavaR92j2MapSlotHandOff(this.transpiler);
         installJavaR92j2StringSlotLocals(this.transpiler);
     }
@@ -7210,7 +7211,7 @@ function javaMapLocalsSelfTest (): string[] {
     try {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
-        if (!/Map<String, Object> a = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("'a' (safeDict + omit-self) must print Map<String, Object> with a checkcast");
+        if (!/Map<String, Object> a = (\(java\.util\.Map<String, Object>\) )?this\.safeDict\(/.test(out)) problems.push("'a' (safeDict + omit-self) must print Map<String, Object>");
         if (!/Map<String, Object> b = (\(java\.util\.Map<String, Object>\) )?this\.depositWithdrawFee\(/.test(out)) problems.push("'b' (fresh-map method) must print Map<String, Object>");
         if (!/Map<String, Object> c = /.test(out)) problems.push("'c' (safeDict + Map copy) must print Map<String, Object>");
         if (/Helpers\.addElementToObject\(a, /.test(out) || /Helpers\.GetValue\(a, /.test(out)) problems.push("'a' put/get must go native");
@@ -7326,7 +7327,7 @@ function javaListLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<Object> a = /.test(out)) problems.push("'a' ([] + arrayConcat) must print List<Object>");
         if (!/a = \(java\.util\.List<Object>\) this\.arrayConcat\(/.test(out)) problems.push("'a' arrayConcat write needs a checkcast");
-        if (!/List<Object> b = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("'b' (safeList + safeList write) must print List<Object> with a checkcast");
+        if (!/List<Object> b = (\(java\.util\.List<Object>\) )?this\.safeList\(/.test(out)) problems.push("'b' (safeList + safeList write) must print List<Object>");
         if (!/List<Object> c = /.test(out)) problems.push("'c' (Object.keys) must print List<Object>");
         if (/Helpers\.getArrayLength\((a|b)\)/.test(out) || /Helpers\.GetValue\((a|b), /.test(out)) problems.push("'a'/'b' length/get must go native");
         // shapes no earlier section types: toArray / fresh-list method writes, a List<Object> core + sortBy

@@ -42,7 +42,7 @@ import { installJavaR92j3HexStringCalls } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaR92j1AssertedStringLocals } from './java-local-types.js';
 import { installJavaR92j1StringRowLocals } from './java-local-types.js';
-import { installJavaR92j2MarketTypeParams } from './java-local-types.js';
+import { installJavaR92j2MarketTypeParams, installJavaTypedDefaultReaders } from './java-local-types.js';
 import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
@@ -229,6 +229,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots, handed,
         installJavaR92j1AssertedStringLocals (cachedTranspiler);
         installJavaR92j1StringRowLocals (cachedTranspiler);
         installJavaR92j2MarketTypeParams (cachedTranspiler);
+        installJavaTypedDefaultReaders (cachedTranspiler);
         installJavaR92j2MapSlotHandOff (cachedTranspiler);
         installJavaR92j2StringSlotLocals (cachedTranspiler);
         cachedConfigKey = key;
