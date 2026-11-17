@@ -193669,7 +193669,12 @@ if (_platform_js__rspack_import_0/* .isNode */.Ll) {
         throw new Error('path module is not available');
     }
     const sanitizedFilePath = pathSyncModule.resolve(filePath);
-    if (sanitizedFilePath.startsWith(filePath) && sanitizedFilePath.endsWith('.ccxtfile') || sanitizedFilePath.endsWith('.wasm')) {
+    const exts = [
+        'ccxtfile',
+        'pem',
+        'wasm'
+    ];
+    if (exts.some((ext)=>sanitizedFilePath.endsWith('.' + ext))) {
         return;
     }
     throw new Error('invalid file path: ' + filePath);
@@ -219449,6 +219454,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     '100490': _base_errors_js__rspack_import_2.BadSymbol,
                     '101481': _base_errors_js__rspack_import_2.DuplicateOrderId,
                     '109201': _base_errors_js__rspack_import_2.DuplicateOrderId,
+                    '104414': _base_errors_js__rspack_import_2.BadRequest,
                     '109400': _base_errors_js__rspack_import_2.BadRequest,
                     '109418': _base_errors_js__rspack_import_2.BadSymbol,
                     '109421': _base_errors_js__rspack_import_2.OrderNotFound,
