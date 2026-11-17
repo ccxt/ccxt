@@ -10390,6 +10390,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -11658,6 +11665,20 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -12512,6 +12533,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -12601,6 +12629,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -16452,6 +16487,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -17720,6 +17762,20 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -18574,6 +18630,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -18663,6 +18726,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -22514,6 +22584,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -23999,6 +24076,20 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -24930,6 +25021,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -25054,6 +25152,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -28947,6 +29052,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -30215,6 +30327,20 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -31069,6 +31195,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -31158,6 +31291,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -118562,6 +118702,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -119830,6 +119977,20 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -120684,6 +120845,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -120773,6 +120941,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -124624,6 +124799,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -126109,6 +126291,20 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -127040,6 +127236,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -127164,6 +127367,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -131057,6 +131267,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.40002
         });
     }
+    sapiGetSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'GET', params, {
+            'cost': 20.001
+        });
+    }
     sapiGetSubAccountSubAccountApiIpRestriction(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction', [
             'sapi'
@@ -132325,6 +132542,20 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiPostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
+    sapiPostSubAccountSubAccountApiPermission(params = {}) {
+        return this.request('sub-account/subAccountApiPermission', [
+            'sapi'
+        ], 'POST', params, {
+            'cost': 20.001
+        });
+    }
     sapiPostSubAccountMarginTransfer(params = {}) {
         return this.request('sub-account/margin/transfer', [
             'sapi'
@@ -133179,6 +133410,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'cost': 0.1
         });
     }
+    sapiDeleteSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapi'
+        ], 'DELETE', params, {
+            'cost': 20.001
+        });
+    }
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params = {}) {
         return this.request('sub-account/subAccountApi/ipRestriction/ipList', [
             'sapi'
@@ -133268,6 +133506,13 @@ class binance extends _pro_binance_js__rspack_import_0/* ["default"] */.A {
             'sapiV2'
         ], 'POST', params, {
             'cost': 15
+        });
+    }
+    sapiV2PostSubAccountSubAccountApi(params = {}) {
+        return this.request('sub-account/subAccountApi', [
+            'sapiV2'
+        ], 'POST', params, {
+            'cost': 20.001
         });
     }
     sapiV2PostSubAccountSubAccountApiIpRestriction(params = {}) {
@@ -200370,6 +200615,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                         'sub-account/transaction-statistics': {
                             'cost': 0.40002
                         },
+                        'sub-account/subAccountApi': {
+                            'cost': 20.001
+                        },
                         'sub-account/subAccountApi/ipRestriction': {
                             'cost': 20.001
                         },
@@ -200936,6 +201184,12 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                         'sub-account/virtualSubAccount': {
                             'cost': 0.1
                         },
+                        'sub-account/subAccountApi': {
+                            'cost': 20.001
+                        },
+                        'sub-account/subAccountApiPermission': {
+                            'cost': 20.001
+                        },
                         'sub-account/margin/transfer': {
                             'cost': 4.0002
                         },
@@ -201320,6 +201574,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                         'algo/futures/order': {
                             'cost': 0.1
                         },
+                        'sub-account/subAccountApi': {
+                            'cost': 20.001
+                        },
                         'sub-account/subAccountApi/ipRestriction/ipList': {
                             'cost': 20.001
                         }
@@ -201364,6 +201621,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                     'post': {
                         'eth-staking/eth/stake': {
                             'cost': 15
+                        },
+                        'sub-account/subAccountApi': {
+                            'cost': 20.001
                         },
                         'sub-account/subAccountApi/ipRestriction': {
                             'cost': 20.001
