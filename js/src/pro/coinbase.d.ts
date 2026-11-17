@@ -1,9 +1,9 @@
 import type { Market } from './../base/types.js';
 import coinbaseRest from '../coinbase.js';
-import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict, OHLCV } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 export default class coinbase extends coinbaseRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method
@@ -15,7 +15,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribe(name: string, isPrivate: boolean, symbol?: Str | Strings, params?: Dict): Promise<any>;
+    subscribe(name: string, isPrivate?: boolean, symbol?: Str, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -27,7 +27,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    unSubscribe(topic: string, name: string, isPrivate: boolean, symbol?: Str | Strings): Promise<any>;
+    unSubscribe(topic: string, name: string, isPrivate?: boolean, symbol?: Str): Promise<any>;
     /**
      * @ignore
      * @method
@@ -39,7 +39,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribeMultiple(name: string, isPrivate: boolean, symbols?: Strings, params?: Dict): Promise<any>;
+    subscribeMultiple(name: string, isPrivate?: boolean, symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -52,7 +52,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    unSubscribeMultiple(topic: string, name: string, isPrivate: boolean, symbols?: Strings, params?: Dict): Promise<any>;
+    unSubscribeMultiple(topic: string, name: string, isPrivate?: boolean, symbols?: Strings, params?: Dict): Promise<any>;
     createWSAuth(name: string, productIds: Str[]): Dict;
     /**
      * @method
@@ -96,6 +96,20 @@ export default class coinbase extends coinbaseRest {
     unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
     handleTickers(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
+    /**
+     * @method
+     * @name coinbase#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, close price, and volume of a market
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels#candles-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents, only 5m is supported
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
     /**
      * @method
      * @name coinbase#watchTrades

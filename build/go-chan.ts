@@ -11,7 +11,7 @@ const GO_CHAN_TABLE_FILE = path.join (path.dirname (fileURLToPath (import.meta.u
 export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.Extend': 'map[string]any', 'this.DeepExtend': 'map[string]any', 'this.ParseToInt': 'int64', 'this.Json': 'string',
     'this.IndexBy': 'map[string]any',
-    // retyped by goTranspiler.ts#retypeGoProvenParseMethods (base + every override)
+    // retyped by the printer's provenReturnFamilies (base + every override)
     'this.ParseCurrencies': 'map[string]any', 'this.DerivedExchange.ParseCurrencies': 'map[string]any', 'this.ParseCurrenciesCustom': 'map[string]any', 'this.ArraysConcat': '[]any',
     'OrderToMap': 'map[string]any', 'TickerToMap': 'map[string]any', 'TradeToMap': 'map[string]any', 'StructToMap': 'map[string]any',
     'PositionToMap': 'map[string]any', 'TransactionToMap': 'map[string]any', 'LedgerEntryToMap': 'map[string]any', 'DepositAddressToMap': 'map[string]any',
@@ -32,26 +32,26 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.SafeInteger': '*int64', 'this.SafeInteger2': '*int64', 'this.SafeIntegerN': '*int64',
     'this.SafeFloat': '*float64', 'this.SafeFloat2': '*float64', 'this.SafeFloatN': '*float64',
     'this.SafeNumber': '*float64', 'this.SafeNumber2': '*float64', 'this.SafeNumberN': '*float64',
-    'this.InsertMissingCandles': '[]any', 'this.DerivedExchange.InsertMissingCandles': '[]any', // gochan32-U05
-    'this.ParseTradingViewOHLCV': '[]any', 'this.DerivedExchange.ParseTradingViewOHLCV': '[]any', // gochan32-U05
-    // venue balance parsers retyped by goTranspiler.ts#retypeGoProvenParseMethods (goProvenMapCollectionMethods)
+    'this.InsertMissingCandles': '[]any', 'this.DerivedExchange.InsertMissingCandles': '[]any',
+    'this.ParseTradingViewOHLCV': '[]any', 'this.DerivedExchange.ParseTradingViewOHLCV': '[]any',
+    // venue balance parsers retyped by the printer's provenReturnFamilies (goProvenMapCollectionMethods)
     ...Object.fromEntries ([ 'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
-        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance' ]
+        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', 'ParseBalanceList' ]
         .flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])),
     'this.SafeBool': '*bool', 'this.SafeBool2': '*bool', 'this.SafeBoolN': '*bool',
-    'this.ParseMarginLoan': 'map[string]any', 'this.DerivedExchange.ParseMarginLoan': 'map[string]any', 'this.ParseIsolatedBorrowRates': 'map[string]any', 'this.DerivedExchange.ParseIsolatedBorrowRates': 'map[string]any', 'this.ParseBorrowRateHistory': '[]any', 'this.DerivedExchange.ParseBorrowRateHistory': '[]any', // U15
-    ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U06
-    'this.ParseTransactionsByType': '[]any', // U09: retyped by goProvenListMethods (kraken only)
-    ...Object.fromEntries ([ [ 'ParseLeverageTiers', 'map[string]any' ], [ 'ParseLeverages', 'map[string]any' ], [ 'ParseMarginModes', 'map[string]any' ], [ 'ParseMarketLeverageTiers', '[]any' ], [ 'ParseEmulatedLeverageTiers', '[]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U14
-    ...Object.fromEntries ([ [ 'ParseOpenInterestsHistory', '[]any' ], [ 'ParseLiquidations', '[]any' ], [ 'ParseADLRanks', '[]any' ], [ 'FilterByArrayADLRanks', '[]any' ], [ 'ParseOpenInterests', 'map[string]any' ], [ 'ParseADLRank', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U16
-    ...Object.fromEntries ([ [ 'ParseConversions', '[]any' ], [ 'ParseLongShortRatioHistory', '[]any' ], [ 'ParseAccounts', '[]any' ], [ 'ParseAllGreeks', 'map[string]any' ], [ 'ParseOptionChain', 'map[string]any' ], [ 'ParseAccount', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U17
-    'this.ParsePredictionOrders': '[]any', 'this.FilterByOutcomeSinceLimit': '[]any', // U03
-    ...Object.fromEntries ([ 'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories' ].flatMap ((n) => [ [ 'this.' + n, '[]any' ], [ 'this.DerivedExchange.' + n, '[]any' ] ])), // U13
-    'this.ParsePredictionTrades': '[]any', // U04
-    'this.ParseDepositAddressSpecial': 'map[string]any', 'this.DerivedExchange.ParseDepositAddressSpecial': 'map[string]any', // U11
-    ...Object.fromEntries ([ 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee', 'ParsePublicDepositWithdrawFees' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U12
-    'this.SafePosition': 'map[string]any', 'this.DerivedExchange.SafePosition': 'map[string]any', 'this.ParsePosition': 'map[string]any', 'this.DerivedExchange.ParsePosition': 'map[string]any', 'this.ParseOptionPosition': 'map[string]any', 'this.DerivedExchange.ParseOptionPosition': 'map[string]any', // gochan32-U10
-    'this.ParsePredictionPositions': '[]any', 'this.DerivedExchange.ParsePredictionPositions': '[]any', // U10
+    'this.ParseMarginLoan': 'map[string]any', 'this.DerivedExchange.ParseMarginLoan': 'map[string]any', 'this.ParseIsolatedBorrowRates': 'map[string]any', 'this.DerivedExchange.ParseIsolatedBorrowRates': 'map[string]any', 'this.ParseBorrowRateHistory': '[]any', 'this.DerivedExchange.ParseBorrowRateHistory': '[]any',
+    ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])),
+    'this.ParseTransactionsByType': '[]any', // retyped by goProvenListMethods (kraken only)
+    ...Object.fromEntries ([ [ 'ParseLeverageTiers', 'map[string]any' ], [ 'ParseLeverages', 'map[string]any' ], [ 'ParseMarginModes', 'map[string]any' ], [ 'ParseMarketLeverageTiers', '[]any' ], [ 'ParseEmulatedLeverageTiers', '[]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])),
+    ...Object.fromEntries ([ [ 'ParseOpenInterestsHistory', '[]any' ], [ 'ParseLiquidations', '[]any' ], [ 'ParseADLRanks', '[]any' ], [ 'FilterByArrayADLRanks', '[]any' ], [ 'ParseOpenInterests', 'map[string]any' ], [ 'ParseADLRank', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])),
+    ...Object.fromEntries ([ [ 'ParseConversions', '[]any' ], [ 'ParseLongShortRatioHistory', '[]any' ], [ 'ParseAccounts', '[]any' ], [ 'ParseAllGreeks', 'map[string]any' ], [ 'ParseOptionChain', 'map[string]any' ], [ 'ParseAccount', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])),
+    'this.ParsePredictionOrders': '[]any', 'this.FilterByOutcomeSinceLimit': '[]any',
+    ...Object.fromEntries ([ 'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories' ].flatMap ((n) => [ [ 'this.' + n, '[]any' ], [ 'this.DerivedExchange.' + n, '[]any' ] ])),
+    'this.ParsePredictionTrades': '[]any',
+    'this.ParseDepositAddressSpecial': 'map[string]any', 'this.DerivedExchange.ParseDepositAddressSpecial': 'map[string]any',
+    ...Object.fromEntries ([ 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee', 'ParsePublicDepositWithdrawFees' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])),
+    'this.SafePosition': 'map[string]any', 'this.DerivedExchange.SafePosition': 'map[string]any', 'this.ParsePosition': 'map[string]any', 'this.DerivedExchange.ParsePosition': 'map[string]any', 'this.ParseOptionPosition': 'map[string]any', 'this.DerivedExchange.ParseOptionPosition': 'map[string]any',
+    'this.ParsePredictionPositions': '[]any', 'this.DerivedExchange.ParsePredictionPositions': '[]any',
     'this.ParseDepositAddresses': '[]any', 'this.DerivedExchange.ParseDepositAddresses': '[]any', // W15
     'this.ParseTransfers': '[]any', 'this.DerivedExchange.ParseTransfers': '[]any', // W16
     'this.ParseEvent': 'map[string]any', 'this.ParseMarketToEvent': 'map[string]any', // W18
@@ -85,9 +85,6 @@ export function goChanTable (): Map<string, string> {
     return GO_CHAN_TABLE;
 }
 
-export function goChanSetTableForTest (table: Map<string, string> | undefined) {
-    GO_CHAN_TABLE = table;
-}
 
 // comments and string/rune/raw literals blanked to spaces, newlines kept (offsets match the input)
 export function goChanMask (content: string): string {
@@ -166,6 +163,10 @@ export function goChanSendType (expr: string, fnMasked: string, signature: strin
     }
     if (/^"(?:[^"\\\n]|\\.)*"$/.test (expr)) {
         return { 'type': 'string' };
+    }
+    // the four BaseExchange market tables are `map[string]any` fields (go/v4/exchange.go)
+    if (/^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)$/.test (expr)) {
+        return { 'type': 'map[string]any' };
     }
     const literal = /^(map\[string\]any|\[\]any|\[\]string)\{/.exec (expr);
     if (literal !== null) {
@@ -250,7 +251,7 @@ function goChanOwnReturn (masked: string, receiver: string, name: string): strin
     return ((t === null) || (t[1] === 'any') || (t[1] === 'interface{}')) ? undefined : t[1];
 }
 
-// ===== G10K-gochan2: sends of base methods (Parse*/Filter*/Safe*) once their base return is typed =====
+// ===== sends of base methods (Parse*/Filter*/Safe*) once their base return is typed =====
 let GO_CHAN_BASE_RETURNS: { key: string, map: Map<string, string> } | undefined = undefined;
 let GO_CHAN_BASE_RETURNS_TEST: Map<string, string> | undefined = undefined;
 
@@ -503,7 +504,7 @@ function goChanConsumerEdits (content: string, masked: string, table: Map<string
         const nilable = /\?$/.test (table.get (m[1]) as string);
         const type = goChanType (table.get (m[1])) as string;
         let recvStart = m.index;
-        // G10K-gochan2: `this.DerivedExchange.(IName)` / `exchange.(ccxt.IName)` assert to the interface --apply-hand retypes
+        // `this.DerivedExchange.(IName)` / `exchange.(ccxt.IName)` assert to the interface --apply-hand retypes
         const asserted = /(?<![\w.])(this\.DerivedExchange|exchange)\.\((?:ccxt\.)?I\w+\)$/.exec (masked.substring (Math.max (0, m.index - 120), m.index));
         if (asserted !== null) {
             recvStart = m.index - asserted[0].length;
@@ -637,10 +638,6 @@ export function goChanCarrierPass (content: string, table: Map<string, string> =
     return edits.length ? goChanSplice (content, edits) : content;
 }
 
-// audit over generated Go text: per method, each core's verdict (reason '' = provable) and send types
-export function goChanAudit (content: string, report: (method: string, receiver: string, reason: string, types: string[]) => void) {
-    goChanCores (content, goChanMask (content), new Map (), report);
-}
 
 export function goChanSelfTest (): string[] {
     const problems: string[] = [];
@@ -701,7 +698,7 @@ export function goChanSelfTest (): string[] {
     ok (throws ('\tch <- this.ParseThing(a)\n\treturn nil\n'), 'any-typed call rejected');
     const ownOk = goChanCarrierPass ('package ccxt\n' + core ('X', '\tch <- this.ParseRows(a)\n\treturn nil\n') + 'func (this *X) ParseRows(a any) map[string]any {\n\treturn nil\n}\n', table);
     ok (ownOk.includes ('\tchValue := this.ParseRows(a)\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'own typed call send');
-    // G10K-gochan2: inherited base returns
+    // inherited base returns
     goChanSetBaseReturnsForTest (new Map ([ [ 'BaseExchange.ParseBase', 'map[string]any' ], [ 'Exchange.ParseShadow', '' ], [ 'BaseExchange.ParseShadow', 'map[string]any' ] ]));
     const embed = 'package ccxt\ntype X struct {\n\tExchange\n}\n';
     const inherited = goChanCarrierPass (embed + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n'), table);

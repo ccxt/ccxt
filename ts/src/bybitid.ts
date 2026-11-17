@@ -3,11 +3,12 @@
 
 import bybit from './abstract/bybitid.js';
 import { PermissionDenied } from './base/errors.js';
+import type { Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class bybitid extends bybit {
-    override describe (): any {
+    override describe (): Dict {
         // Bybit Indonesia serves the same v5 API as the global exchange, with the
         // same product categories (spot, linear, inverse, option) but its own
         // listings and accounts, so only the identity and hostname differ here.

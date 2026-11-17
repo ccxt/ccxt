@@ -15,7 +15,7 @@ func newBitbns() *Bitbns {
 	return p
 }
 
-func (this *Bitbns) Describe() any {
+func (this *Bitbns) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bitbns",
 		"name":      "Bitbns",
@@ -371,11 +371,11 @@ func (this *Bitbns) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp370 := <-this.WwwGetOrderFetchMarkets(params)
-	if listEp370.Err != nil {
-		panic(listEp370.Err)
+	responseRecv := <-this.WwwGetOrderFetchMarkets(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp370.Value
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -402,12 +402,7 @@ func (this *Bitbns) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = func() any {
-			if i >= 0 && i < len(rawMarkets) {
-				return DerefScalar(rawMarkets[i])
-			}
-			return nil
-		}()
+		var market any = DerefScalar(rawMarkets[i])
 		var id *string = this.SafeString(market, "id")
 		var baseId *string = this.SafeString(market, "base")
 		var quoteId *string = this.SafeString(market, "quote")
@@ -696,11 +691,12 @@ func (this *Bitbns) ParseBalance(response any) map[string]any {
 		var parts []string = strings.Split(key, "availableorder")
 		var numParts int = len(parts)
 		if numParts > 1 {
+			var usedCurrencyId string = *this.SafeString(parts, 1, "")
 			var currencyId *string = this.SafeString(parts, 1)
 			// note that "Money" stands for INR - the only fiat in bitbns
 			var account map[string]any = this.Account()
 			account["free"] = this.SafeString(data, key)
-			account["used"] = this.SafeString(data, Add("inorder", currencyId))
+			account["used"] = this.SafeString(data, "inorder"+usedCurrencyId)
 			if currencyId != nil && *currencyId == "Money" {
 				currencyId = SafeStringPtr("INR")
 			}
@@ -1035,12 +1031,12 @@ func (this *Bitbns) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitbns) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitbns) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitbns) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitbns) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1411,11 +1407,11 @@ func (this *Bitbns) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		"market": market["quoteId"],
 	}
 
-	listEp1343 := <-this.WwwGetExchangeDataTradedetails(this.Extend(request, params))
-	if listEp1343.Err != nil {
-		panic(listEp1343.Err)
+	responseRecv := <-this.WwwGetExchangeDataTradedetails(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1343.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -1609,7 +1605,7 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.Parse8601(this.SafeString2(transaction, "date", "timestamp"))
 	var typeVar *string = this.SafeString(transaction, "type")
-	var expTime *string = this.SafeString(transaction, "expTime", "")
+	var expTime string = *this.SafeString(transaction, "expTime", "")
 	var status *string = nil
 	if typeVar != nil {
 		if func() int {
@@ -1625,7 +1621,7 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) Trans
 				return -1
 			}
 			return strings.Index(*typeVar, "withdraw")
-		}() >= 0) || (strings.Index(*expTime, "withdraw") >= 0) {
+		}() >= 0) || (strings.Index(expTime, "withdraw") >= 0) {
 			typeVar = SafeStringPtr("withdrawal")
 		}
 	}
@@ -1722,42 +1718,34 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	})}
 	return nil
 }
-func (this *Bitbns) Nonce() any {
+func (this *Bitbns) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"www"})
+func (this *Bitbns) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"www"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var urls any = this.Urls
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
-	if !(InOp(GetValue(urls, "api"), apiName)) {
-		panic(ExchangeError(this.Id + " does not have a testnet/sandbox URL for " + *apiName + " endpoints"))
-	}
-	if apiName == nil || *apiName != "www" {
-		this.CheckRequiredCredentials()
-	}
-	var apiKeyHeaders map[string]any = map[string]any{
-		"X-BITBNS-APIKEY": this.ApiKey,
-	}
-	var requestHeaders any = func() any {
-		if apiName == nil || *apiName != "www" {
-			return apiKeyHeaders
-		}
-		return nil
-	}()
+	var apiName string = api[0]
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
-		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+		panic(ExchangeError(this.Id + " does not have a testnet/sandbox URL for " + apiName + " endpoints"))
+	}
+	if apiName != "www" {
+		this.CheckRequiredCredentials()
+	}
+	var requestHeaders map[string]any = map[string]any{}
+	if apiName != "www" {
+		requestHeaders["X-BITBNS-APIKEY"] = this.ApiKey
 	}
 	var baseUrl string = this.ImplodeHostname(baseApiUrl)
 	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var nonce string = ToString(this.Nonce())
-	var queryLength int = len(ObjectKeys(query))
+	var nonce *string = this.NumberToString(this.Nonce())
+	queryMap, _ := query.(map[string]any)
+	var queryLength int = len(queryMap)
 	var postBody string = "{}"
 	if queryLength > 0 {
 		postBody = this.Json(query)
@@ -1779,15 +1767,9 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 		}
 		var payload string = this.StringToBase64(this.Json(auth))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
-		requestHeaders = func() any {
-			if IsEqual(requestHeaders, nil) {
-				return map[string]any{}
-			}
-			return requestHeaders
-		}()
-		AddElementToObject(requestHeaders, "X-BITBNS-PAYLOAD", payload)
-		AddElementToObject(requestHeaders, "X-BITBNS-SIGNATURE", signature)
-		AddElementToObject(requestHeaders, "Content-Type", "application/x-www-form-urlencoded")
+		requestHeaders["X-BITBNS-PAYLOAD"] = payload
+		requestHeaders["X-BITBNS-SIGNATURE"] = signature
+		requestHeaders["Content-Type"] = "application/x-www-form-urlencoded"
 	}
 	return map[string]any{
 		"url":     url,
@@ -1796,7 +1778,7 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitbns) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitbns) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1804,12 +1786,12 @@ func (this *Bitbns) HandleErrors(httpCode any, reason any, url any, method any, 
 	//     {"msg":"Invalid Request","status":-1,"code":400}
 	//     {"data":[],"status":0,"error":"Nothing to show","code":417}
 	//
-	var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
-	var error bool = (code != nil) && (code == nil || *code != "200") && (code == nil || *code != "204")
+	var error bool = (codeError != nil) && (codeError == nil || *codeError != "200") && (codeError == nil || *codeError != "204")
 	if error || (message != nil) {
 		var feedback string = this.Id + " " + body
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
@@ -1826,7 +1808,7 @@ func NewBitbns(userConfig map[string]any) *Bitbns {
 func (this *Bitbns) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

@@ -10,7 +10,7 @@ import ccxt.async_support.bybitid as bybitidRest
 
 class bybitid(bybit):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         # eslint-disable-next-line new-cap
         restInstance = bybitidRest()
         restDescribe = restInstance.describe()

@@ -16,26 +16,29 @@ public partial class BaseTest
             // markets is summed into a single flat entry, missing fields stay undefined.
             // the helper returns the merged dict and callers reassign it: PHP arrays are
             // passed by value, so mutating the argument alone is invisible there.
-            // the local is seeded from the helper itself so the Go port infers the
-            // helper's own return type instead of a map literal it cannot assign back to
-            Dictionary<string, object> btcAccount = exchange.account();
-            btcAccount["free"] = "1";
-            btcAccount["used"] = "0.5";
-            btcAccount["debt"] = "0.1";
-            Dictionary<string, object> result = exchange.mergeBalanceAccount(new Dictionary<string, object>() {}, "BTC", btcAccount);
+            // accounts and the result are map literals; extend keeps the reassigned local a dictionary
+            Dictionary<string, object> btcAccount = new Dictionary<string, object>() {
+                { "free", "1" },
+                { "used", "0.5" },
+                { "debt", "0.1" },
+            };
+            Dictionary<string, object> result = new Dictionary<string, object>() {};
+            result = exchange.extend(exchange.mergeBalanceAccount(result, "BTC", btcAccount));
             Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "free"), "1"));
-            Dictionary<string, object> btcAccount2 = exchange.account();
-            btcAccount2["free"] = "2";
-            btcAccount2["used"] = "0.25";
-            btcAccount2["total"] = "2.25";
-            result = exchange.mergeBalanceAccount(result, "BTC", btcAccount2);
+            Dictionary<string, object> btcAccount2 = new Dictionary<string, object>() {
+                { "free", "2" },
+                { "used", "0.25" },
+                { "total", "2.25" },
+            };
+            result = exchange.extend(exchange.mergeBalanceAccount(result, "BTC", btcAccount2));
             Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "free"), "3"));
             Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "used"), "0.75"));
             Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "total"), "2.25"));
             Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("BTC") ? result["BTC"] : null), "debt"), "0.1"));
-            Dictionary<string, object> usdtAccount = exchange.account();
-            usdtAccount["free"] = "5";
-            result = exchange.mergeBalanceAccount(result, "USDT", usdtAccount);
+            Dictionary<string, object> usdtAccount = new Dictionary<string, object>() {
+                { "free", "5" },
+            };
+            result = exchange.extend(exchange.mergeBalanceAccount(result, "USDT", usdtAccount));
             Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("USDT") ? result["USDT"] : null), "free"), "5"));
             Assert(isEqual(exchange.safeString((result != null && result.ContainsKey("USDT") ? result["USDT"] : null), "used"), null));
             List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);

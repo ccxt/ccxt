@@ -2,7 +2,7 @@ import grvtRest from '../grvt.js';
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, Market, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class grvt extends grvtRest {
-    describe(): any;
+    describe(): Dict;
     handleMessage(client: Client, message: Dict): void;
     subscribeMultiple(messageHashes: string[], request: Dict, rawHashes: string[], publicOrPrivate?: boolean): Promise<any>;
     requestId(): number;

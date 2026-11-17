@@ -313,7 +313,7 @@ export default class mercado extends Exchange {
         const amountLimits = this.safeDict(this.options, 'limits', {});
         const coins = this.toArray(response);
         for (let i = 0; i < coins.length; i++) {
-            const coin = coins[i];
+            const coin = this.safeString(coins, i, '');
             const baseId = coin;
             const quoteId = 'BRL';
             const base = this.safeCurrencyCode(baseId);
@@ -617,7 +617,7 @@ export default class mercado extends Exchange {
         // TODO: replace this with a call to parseOrder for unification
         return this.safeOrder({
             'info': response,
-            'id': response['response_data']['order']['order_id'].toString(),
+            'id': this.safeString(this.safeValue(this.safeValue(response, 'response_data'), 'order'), 'order_id'),
         }, market);
     }
     /**
@@ -706,7 +706,7 @@ export default class mercado extends Exchange {
         const id = this.safeString(order, 'order_id');
         const order_type = this.safeString(order, 'order_type');
         let side = undefined;
-        if ('order_type' in order) {
+        if (order_type !== undefined) {
             side = (order_type === '1') ? 'buy' : 'sell';
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
@@ -768,7 +768,7 @@ export default class mercado extends Exchange {
         const market = this.market(symbol);
         const request = {
             'coin_pair': market['id'],
-            'order_id': parseInt(id),
+            'order_id': this.parseToInt(id),
         };
         const response = await this.privatePostGetOrder(this.extend(request, params));
         const responseData = this.safeDict(response, 'response_data', {});
@@ -910,7 +910,7 @@ export default class mercado extends Exchange {
         const market = this.market(symbol);
         const request = {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
-            'symbol': market['base'] + '-' + market['quote'], // exceptional endpoint, that needs custom symbol syntax
+            'symbol': this.safeString(market, 'base', '') + '-' + this.safeString(market, 'quote', ''), // exceptional endpoint, that needs custom symbol syntax
         };
         // set some default limit, as it's required if user doesn't provide it
         const limitResolved = (limit === undefined) ? 100 : limit;
@@ -1013,7 +1013,7 @@ export default class mercado extends Exchange {
     ordersToTrades(orders) {
         const result = [];
         for (let i = 0; i < orders.length; i++) {
-            const trades = this.safeList(orders[i], 'trades', []);
+            const trades = this.safeList(this.safeValue(orders, i), 'trades', []);
             for (let y = 0; y < trades.length; y++) {
                 result.push(trades[y]);
             }
@@ -1033,7 +1033,7 @@ export default class mercado extends Exchange {
         let url = apiUrl + '/';
         const query = this.omit(params, this.extractParams(path));
         const isPublic = (apiName === 'public') || (apiName === 'v4Public') || (apiName === 'v4PublicNet');
-        let privateBody = undefined;
+        let privateBody = '';
         let privateHeaders = undefined;
         if (isPublic) {
             url += this.implodeParams(path, params);
@@ -1067,7 +1067,7 @@ export default class mercado extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

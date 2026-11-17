@@ -96,9 +96,9 @@ public partial class mexc : ccxt.mexc
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            string channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + ((market.ContainsKey("id") ? market["id"] : null)));
+            string channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
             return ccxt.BaseExchange.ToTicker(await this.watchSpotPublic(channel, messageHash, parameters));
         } else
         {
@@ -183,9 +183,9 @@ public partial class mexc : ccxt.mexc
         string? marketId = this.safeString2(message, "s", "symbol");
         Int64? timestamp = this.safeInteger2(message, "t", "sendTime");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> ticker = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             this.handleBidAsk(client, message); // the bids-asks channel is spot only
             ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(rawTicker, market));
@@ -219,7 +219,7 @@ public partial class mexc : ccxt.mexc
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null);
         List<object> messageHashes = new List<object>() {};
         string? firstSymbol = this.safeString(symbolsNormalized, 0);
         IDictionary<string, object> market = null;
@@ -231,7 +231,7 @@ public partial class mexc : ccxt.mexc
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         bool isSpot = ((type == "spot"));
-        object url = isSpot ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
+        object url = isSpot ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isSpot)
         {
@@ -344,19 +344,19 @@ public partial class mexc : ccxt.mexc
             {
                 ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(entry));
             }
-            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+            string? symbol = this.safeString(ticker, "symbol");
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = ticker;
             }
             result.Add(ticker);
-            string messageHash = ("ticker:" + symbol);
+            string messageHash = ("ticker:" + this.safeString(ticker, "symbol", ""));
             client.resolve(ticker, messageHash);
         }
         client.resolve(result, topic);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
     {
         // protobuf ticker
         // "bidPrice": "93387.28",  // Best bid price
@@ -433,7 +433,7 @@ public partial class mexc : ccxt.mexc
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, false, true);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, true, false, true);
         if ((symbolsNormalized == null))
         {
             throw new ArgumentsRequired ((this.id + " watchBidsAsks required symbols argument")) ;
@@ -454,11 +454,11 @@ public partial class mexc : ccxt.mexc
             if (isSpot)
             {
                 Dictionary<string, object> market = this.market(symbolsNormalized[i]);
-                topics.Add(("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + ((market.ContainsKey("id") ? market["id"] : null))));
+                topics.Add(("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + this.safeString(market, "id", "")));
             }
             messageHashes.Add(("bidask:" + (symbolsNormalized[i])));
         }
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"));
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIPTION" },
             { "params", topics },
@@ -519,7 +519,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
     {
         IDictionary<string, object> data = this.safeDictN(ticker, new List<object>() {"d", "data", "publicAggreBookTicker"});
         string? marketId = this.safeString2(ticker, "s", "symbol");
@@ -543,7 +543,7 @@ public partial class mexc : ccxt.mexc
         parameters ??= new Dictionary<string, object>();
         bool? unsubscribed = this.safeBool(parameters, "unsubscribed", false);
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"unsubscribed"}));
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"));
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null));
         string method = "SUBSCRIPTION";
         if ((unsubscribed == true))
         {
@@ -564,7 +564,7 @@ public partial class mexc : ccxt.mexc
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? listenKey = await this.authenticate(channel);
-        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
+        string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "spot");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchSpotPrivate() has no spot websocket url")) ;
@@ -580,7 +580,7 @@ public partial class mexc : ccxt.mexc
     public async virtual Task<object> watchSwapPublic(object channel, object messageHash, IDictionary<string, object> requestParams, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap"));
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", channel },
             { "param", requestParams },
@@ -594,7 +594,7 @@ public partial class mexc : ccxt.mexc
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string channel = "login";
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap"));
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null));
         string timestamp = this.milliseconds().ToString();
         string payload = (this.apiKey + timestamp);
         string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
@@ -633,14 +633,14 @@ public partial class mexc : ccxt.mexc
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar);
         string messageHash = ((("candles:" + symbolValue) + ":") + (timeframeVar));
         object ohlcv = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            string channel = ((("spot@public.kline.v3.api.pb@" + ((market.ContainsKey("id") ? market["id"] : null))) + "@") + timeframeId);
+            string channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
             ohlcv = await this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
@@ -657,7 +657,7 @@ public partial class mexc : ccxt.mexc
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -734,7 +734,7 @@ public partial class mexc : ccxt.mexc
             symbol = this.symbol(this.safeString(message, "symbol"));
             IDictionary<string, object> data = this.safeDict(message, "publicSpotKline", new Dictionary<string, object>() {});
             string? timeframeId = this.safeString(data, "interval");
-            timeframe = this.findTimeframe(timeframeId, (this.options.ContainsKey("timeframes") ? this.options["timeframes"] : null));
+            timeframe = this.findTimeframe(timeframeId, (this.options != null && this.options.ContainsKey("timeframes") ? this.options["timeframes"] : null));
             parsed = this.parseWsOHLCV(data, this.safeMarket(symbol));
         } else
         {
@@ -840,15 +840,14 @@ public partial class mexc : ccxt.mexc
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ("orderbook:" + symbolValue);
+        string messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
         object orderbook = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             (string?, object) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             string? frequency = frequencyparamsFrequencyVariable.Item1;
             IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
-            string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
+            string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
             orderbook = await this.watchSpotPublic(channel, messageHash, paramsFrequency);
         } else
         {
@@ -859,7 +858,7 @@ public partial class mexc : ccxt.mexc
             orderbook = await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         orderbook = this.requireValue(orderbook, "watchOrderBook() orderbook is required");
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message)
@@ -874,7 +873,7 @@ public partial class mexc : ccxt.mexc
         int partsLength = parts.Count; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         string? marketId = this.safeString(parts, (partsLength - 1));
         string? symbol = this.safeSymbol(marketId);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
@@ -910,7 +909,7 @@ public partial class mexc : ccxt.mexc
                 return i;
             }
         }
-        return cache?.Count ?? 0;
+        return (cache?.Count ?? 0);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -988,7 +987,7 @@ public partial class mexc : ccxt.mexc
         string messageHash = ("orderbook:" + symbol);
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash);
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -997,9 +996,9 @@ public partial class mexc : ccxt.mexc
         bool shouldReturn = false;
         if ((nonce == null))
         {
-            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
-            object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
-            if (isEqual(cacheLength, snapshotDelay))
+            Int64? cacheLength = this.parseToInt(((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0));
+            Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 25));
+            if ((cacheLength == snapshotDelay))
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}});
             }
@@ -1039,7 +1038,7 @@ public partial class mexc : ccxt.mexc
             object bidask = (bidasks != null && i < bidasks.Count ? bidasks[i] : null);
             if (((bidask is IList<object>) || (bidask.GetType().IsGenericType && bidask.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                (bookside as IOrderBookSide).storeArray(bidask);
+                (bookside as IOrderBookSide).storeArray(this.toArray(bidask));
             } else
             {
                 double? price = this.safeFloat2(bidask, "p", "price");
@@ -1088,12 +1087,12 @@ public partial class mexc : ccxt.mexc
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("trades:" + symbolValue);
         object trades = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            string channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + ((market.ContainsKey("id") ? market["id"] : null)));
+            string channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
             trades = await this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
@@ -1109,7 +1108,7 @@ public partial class mexc : ccxt.mexc
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -1166,7 +1165,7 @@ public partial class mexc : ccxt.mexc
         //
         string? marketId = this.safeString2(message, "s", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("trades:" + symbol);
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
@@ -1184,7 +1183,7 @@ public partial class mexc : ccxt.mexc
         for (int j = 0; j < trades.Count; j++)
         {
             Dictionary<string, object> parsedTrade = null;
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            if ((this.safeBool(market, "spot", false) == true))
             {
                 parsedTrade = ccxt.BaseExchange.FromTrade(this.parseWsTrade(trades[j], market));
             } else
@@ -1224,7 +1223,7 @@ public partial class mexc : ccxt.mexc
         string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = ((messageHash + ":") + symbolResolved);
+            messageHash = (("myTrades" + ":") + this.safeString(market, "symbol", ""));
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -1288,9 +1287,9 @@ public partial class mexc : ccxt.mexc
         string? futuresMarketId = this.safeString(data, "symbol");
         string? marketId = this.safeString2(message, "s", "symbol", futuresMarketId);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> trade = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             trade = ccxt.BaseExchange.FromTrade(this.parseWsTrade(data, market));
         } else if ((data != null))
@@ -1431,7 +1430,7 @@ public partial class mexc : ccxt.mexc
         string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = ((messageHash + ":") + symbolResolved);
+            messageHash = (("orders" + ":") + this.safeString(market, "symbol", ""));
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -1533,9 +1532,9 @@ public partial class mexc : ccxt.mexc
         string? futuresMarketId = this.safeString(data, "symbol");
         string? marketId = this.safeString2(message, "s", "symbol", futuresMarketId);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> parsed = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(data, market));
             Int64? sendTime = this.safeInteger(message, "sendTime");
@@ -1797,9 +1796,9 @@ public partial class mexc : ccxt.mexc
         {
             this.balance[type] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = data;
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["datetime"] = this.iso8601(timestamp);
         string? currencyId = this.safeString2(data, "currency", "vcoinName");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> account = this.account();
@@ -1807,10 +1806,10 @@ public partial class mexc : ccxt.mexc
         account["used"] = this.safeString2(data, "frozenBalance", "frozenAmount");
         if ((code != null))
         {
-            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
+            ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[(string)code] = account;
         }
-        this.balance[type] = this.safeBalance((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
-        client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
+        this.balance[type] = this.safeBalance((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
+        client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
     }
 
     /**
@@ -1861,7 +1860,7 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> requestParams = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
+        url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
         this.spawn(this.watchSwapPublic, new object[] { channel, messageHash, requestParams, parameters});
         var client = this.client(url);
         this.handleUnsubscriptions(client, new List<object>() {messageHash});
@@ -1884,12 +1883,12 @@ public partial class mexc : ccxt.mexc
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(data);
-        string? symbol = ((string)(fundingRate != null && fundingRate.ContainsKey("symbol") ? fundingRate["symbol"] : null));
+        string? symbol = this.safeString(fundingRate, "symbol");
         if ((symbol != null))
         {
             this.fundingRates[(string)symbol] = fundingRate;
         }
-        string messageHash = ("fundingRate:" + symbol);
+        string messageHash = ("fundingRate:" + this.safeString(fundingRate, "symbol", ""));
         client.resolve(fundingRate, messageHash);
     }
 
@@ -1912,10 +1911,10 @@ public partial class mexc : ccxt.mexc
         string messageHash = ("unsubscribe:ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         object url = null;
         string? channel = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + ((market.ContainsKey("id") ? market["id"] : null)));
-            url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
+            channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
+            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, parameters});
         } else
@@ -1924,7 +1923,7 @@ public partial class mexc : ccxt.mexc
             Dictionary<string, object> requestParams = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
+            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
             this.spawn(this.watchSwapPublic, new object[] { channel, messageHash, requestParams, parameters});
         }
         var client = this.client(url);
@@ -1959,7 +1958,7 @@ public partial class mexc : ccxt.mexc
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         bool isSpot = ((type == "spot"));
-        object url = isSpot ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
+        object url = isSpot ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isSpot)
         {
@@ -2012,11 +2011,11 @@ public partial class mexc : ccxt.mexc
             if (isSpot)
             {
                 Dictionary<string, object> market = this.market(symbolsNormalized[i]);
-                topics.Add(("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + ((market.ContainsKey("id") ? market["id"] : null))));
+                topics.Add(("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + this.safeString(market, "id", "")));
             }
             messageHashes.Add(("unsubscribe:bidask:" + (symbolsNormalized[i])));
         }
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"));
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIPTION" },
             { "params", topics },
@@ -2047,20 +2046,19 @@ public partial class mexc : ccxt.mexc
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar);
-        string messageHash = ((("unsubscribe:candles:" + symbolValue) + ":") + (timeframeVar));
+        string messageHash = ((("unsubscribe:candles:" + this.safeString(market, "symbol", "")) + ":") + (timeframeVar));
         object url = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
-            string channel = ((("spot@public.kline.v3.api.pb@" + ((market.ContainsKey("id") ? market["id"] : null))) + "@") + timeframeId);
+            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
+            string channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, parameters});
         } else
         {
-            url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
+            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
             string channel = "unsub.kline";
             Dictionary<string, object> requestParams = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2090,21 +2088,20 @@ public partial class mexc : ccxt.mexc
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ("unsubscribe:orderbook:" + symbolValue);
+        string messageHash = ("unsubscribe:orderbook:" + this.safeString(market, "symbol", ""));
         object url = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
+            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
             (string?, object) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             string? frequency = frequencyparamsFrequencyVariable.Item1;
             IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
-            string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
+            string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
             paramsFrequency["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, paramsFrequency});
         } else
         {
-            url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
+            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
             string channel = "unsub.depth";
             Dictionary<string, object> requestParams = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2133,18 +2130,17 @@ public partial class mexc : ccxt.mexc
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ("unsubscribe:trades:" + symbolValue);
+        string messageHash = ("unsubscribe:trades:" + this.safeString(market, "symbol", ""));
         object url = null;
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
-            string channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + ((market.ContainsKey("id") ? market["id"] : null)));
+            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
+            string channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, parameters});
         } else
         {
-            url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "swap");
+            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
             string channel = "unsub.deal";
             Dictionary<string, object> requestParams = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2160,13 +2156,13 @@ public partial class mexc : ccxt.mexc
     {
         for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
-            object messageHash = getValue(messageHashes, i);
-            string subMessageHash = ((string)messageHash).Replace("unsubscribe:", (string)"");
+            string? messageHash = this.safeString(messageHashes, i, "");
+            string subMessageHash = messageHash.Replace("unsubscribe:", (string)"");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
-            if (getIndexOf(messageHash, "ticker") >= 0)
+            if ((messageHash?.IndexOf("ticker", StringComparison.Ordinal) ?? -1) >= 0)
             {
-                string symbol = ((string)messageHash).Replace("unsubscribe:ticker:", (string)"");
-                if (((string)symbol).IndexOf("unsubscribe", StringComparison.Ordinal) >= 0)
+                string symbol = messageHash.Replace("unsubscribe:ticker:", (string)"");
+                if (symbol.IndexOf("unsubscribe", StringComparison.Ordinal) >= 0)
                 {
                     // unWatchTickers
                     List<object> symbols = new List<object>(this.tickers.Keys);
@@ -2178,43 +2174,43 @@ public partial class mexc : ccxt.mexc
                 {
                     this.tickers.Remove(symbol);
                 }
-            } else if (getIndexOf(messageHash, "bidask") >= 0)
+            } else if ((messageHash?.IndexOf("bidask", StringComparison.Ordinal) ?? -1) >= 0)
             {
-                string symbol = ((string)messageHash).Replace("unsubscribe:bidask:", (string)"");
+                string symbol = messageHash.Replace("unsubscribe:bidask:", (string)"");
                 if ((this.bidsasks != null && this.bidsasks.ContainsKey(symbol)))
                 {
                     this.bidsasks.Remove(symbol);
                 }
-            } else if (getIndexOf(messageHash, "candles") >= 0)
+            } else if ((messageHash?.IndexOf("candles", StringComparison.Ordinal) ?? -1) >= 0)
             {
-                List<object> splitHashes = ((string)messageHash).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
-                object symbol = this.safeString(splitHashes, 2);
+                List<object> splitHashes = messageHash.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
+                string candlesSymbol = this.safeString(splitHashes, 2, "");
                 int splitHashesLength = splitHashes.Count; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (splitHashesLength > 4)
                 {
-                    symbol = add(symbol, (":" + this.safeString(splitHashes, 3)));
+                    candlesSymbol = candlesSymbol + (":" + this.safeString(splitHashes, 3, ""));
                 }
-                if (((symbol != null)) && ((this.ohlcvs != null && symbol is string inOpKey0 && this.ohlcvs.ContainsKey(inOpKey0))))
+                if ((this.ohlcvs != null && candlesSymbol != null && this.ohlcvs.ContainsKey(candlesSymbol)))
                 {
-                    this.ohlcvs.Remove((string)symbol);
+                    this.ohlcvs.Remove(candlesSymbol);
                 }
-            } else if (getIndexOf(messageHash, "orderbook") >= 0)
+            } else if ((messageHash?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
             {
-                string symbol = ((string)messageHash).Replace("unsubscribe:orderbook:", (string)"");
+                string symbol = messageHash.Replace("unsubscribe:orderbook:", (string)"");
                 if ((this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
-            } else if (getIndexOf(messageHash, "trades") >= 0)
+            } else if ((messageHash?.IndexOf("trades", StringComparison.Ordinal) ?? -1) >= 0)
             {
-                string symbol = ((string)messageHash).Replace("unsubscribe:trades:", (string)"");
+                string symbol = messageHash.Replace("unsubscribe:trades:", (string)"");
                 if ((this.trades != null && this.trades.ContainsKey(symbol)))
                 {
                     this.trades.Remove(symbol);
                 }
-            } else if (getIndexOf(messageHash, "fundingRate") >= 0)
+            } else if ((messageHash?.IndexOf("fundingRate", StringComparison.Ordinal) ?? -1) >= 0)
             {
-                string symbol = ((string)messageHash).Replace("unsubscribe:fundingRate:", (string)"");
+                string symbol = messageHash.Replace("unsubscribe:fundingRate:", (string)"");
                 if ((this.fundingRates != null && this.fundingRates.ContainsKey(symbol)))
                 {
                     this.fundingRates.Remove(symbol);
@@ -2236,7 +2232,7 @@ public partial class mexc : ccxt.mexc
         // spot ws client - the first caller fetches the listenKey, concurrent
         // callers wait on the future and resume when the listenKey is ready,
         // otherwise the user-data subscriptions would be split across two connections
-        var client = this.client(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"));
+        var client = this.client((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null));
         string messageHash = "authenticate:listenKey";
         bool? isFetching = this.safeBool(this.options, "listenKeyFetching", false);
         if ((isFetching == true))
@@ -2287,7 +2283,7 @@ public partial class mexc : ccxt.mexc
             this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
         } catch(Exception error)
         {
-            string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
+            string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "spot");
             if ((wsUrl == null))
             {
                 throw new ExchangeError ((this.id + " keepAliveListenKey() has no spot websocket url")) ;
@@ -2296,7 +2292,7 @@ public partial class mexc : ccxt.mexc
             var client = this.client(url);
             this.options["listenKey"] = null;
             client.reject(error);
-            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove(url);
+            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)client.url);
         }
     }
 
@@ -2339,7 +2335,7 @@ public partial class mexc : ccxt.mexc
             {
                 string? subscriptionHash = ((string)subscriptionHashes[i]);
                 string? subscribedChannel = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "channel");
-                if (((subscribedChannel != null)) && (getIndexOf(msg, (("[" + subscribedChannel) + "]")) >= 0))
+                if (((subscribedChannel != null)) && ((msg?.IndexOf((("[" + subscribedChannel) + "]"), StringComparison.Ordinal) ?? -1) >= 0))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
                     client.reject(error, subscriptionHash);
@@ -2415,24 +2411,24 @@ public partial class mexc : ccxt.mexc
         return true;
     }
 
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        if ((message is "Invalid listen key"))
+        {
+            var error = new AuthenticationError((this.id + " invalid listen key"));
+            client.reject(error);
+        }
+    }
+
+    public override void handleBinaryMessage(WebSocketClient client, object message)
+    {
+        object decodedMessage = this.decodeProtoMsg(message);
+        this.handleProtobufMessage(client, decodedMessage);
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if ((message is string))
-        {
-            if ((message is "Invalid listen key"))
-            {
-                var error = new AuthenticationError((this.id + " invalid listen key"));
-                client.reject(error);
-                return;
-            }
-        }
-        if (this.isBinaryMessage(message))
-        {
-            object decodedMessage = this.decodeProtoMsg(message);
-            this.handleProtobufMessage(client, decodedMessage);
-            return;
-        }
-        if (inOp(message, "msg"))
+        if ((message != null && ((IDictionary<string, object>)message).ContainsKey("msg")))
         {
             this.handleSubscriptionStatus(client, message);
             return;
@@ -2468,9 +2464,9 @@ public partial class mexc : ccxt.mexc
             { "pong", this.handlePong },
             { "push.funding.rate", this.handleFundingRate },
         };
-        if (((channel != null)) && (((channel != null) && (methods?.ContainsKey(channel) == true))))
+        Delegate method = ((Delegate)this.safeValue(methods, channel));
+        if ((method != null))
         {
-            object method = (channel != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }
     }

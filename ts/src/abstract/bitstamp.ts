@@ -109,7 +109,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('trade_history/{pair}', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
-    privatePostAccountBalances (params = {}): Promise<Dict> {
+    privatePostAccountBalances (params = {}): Promise<List> {
         return this.request ('account_balances/', [ 'private' ], 'POST', params, { 'cost': 1 });
     }
 

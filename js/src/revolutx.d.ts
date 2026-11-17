@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, Dict, Int, int, Market, MarketInte
  * @augments Exchange
  */
 export default class revolutx extends Exchange {
-    describe(): any;
+    describe(): Dict;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     /**
      * @method
@@ -324,5 +324,5 @@ export default class revolutx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

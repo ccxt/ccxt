@@ -2,7 +2,7 @@ import cryptocomRest from '../cryptocom.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cryptocom extends cryptocomRest {
-    describe(): any;
+    describe(): Dict;
     pong(client: Client, message: Dict): Promise<void>;
     /**
      * @method

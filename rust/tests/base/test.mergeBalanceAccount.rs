@@ -18,29 +18,38 @@ pub fn testMergeBalanceAccount() {
     // markets is summed into a single flat entry, missing fields stay undefined.
     // the helper returns the merged dict and callers reassign it: PHP arrays are
     // passed by value, so mutating the argument alone is invisible there.
-    // the local is seeded from the helper itself so the Go port infers the
-    // helper's own return type instead of a map literal it cannot assign back to
-    let mut btcAccount: Value = exchange.account();
-    add_element_to_object(&mut btcAccount, &Value::Str("free".into()), Value::Str("1".into()));
-    add_element_to_object(&mut btcAccount, &Value::Str("used".into()), Value::Str("0.5".into()));
-    add_element_to_object(&mut btcAccount, &Value::Str("debt".into()), Value::Str("0.1".into()));
-    let mut result: Value = exchange.merge_balance_account(Value::Map({
+    // accounts and the result are map literals; extend keeps the reassigned local a dictionary
+    let mut btcAccount: Value = Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("free".to_string(), Value::Str("1".into()));
+            m.insert("used".to_string(), Value::Str("0.5".into()));
+            m.insert("debt".to_string(), Value::Str("0.1".into()));
+        m
+    });
+    let mut result: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
-    }), Value::Str("BTC".into()), btcAccount.clone());
+    });
+    result = exchange.extend(exchange.merge_balance_account(result.clone(), Value::Str("BTC".into()), btcAccount.clone()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("1")))));
-    let mut btcAccount2: Value = exchange.account();
-    add_element_to_object(&mut btcAccount2, &Value::Str("free".into()), Value::Str("2".into()));
-    add_element_to_object(&mut btcAccount2, &Value::Str("used".into()), Value::Str("0.25".into()));
-    add_element_to_object(&mut btcAccount2, &Value::Str("total".into()), Value::Str("2.25".into()));
-    result = exchange.merge_balance_account(result.clone(), Value::Str("BTC".into()), btcAccount2.clone());
+    let mut btcAccount2: Value = Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("free".to_string(), Value::Str("2".into()));
+            m.insert("used".to_string(), Value::Str("0.25".into()));
+            m.insert("total".to_string(), Value::Str("2.25".into()));
+        m
+    });
+    result = exchange.extend(exchange.merge_balance_account(result.clone(), Value::Str("BTC".into()), btcAccount2.clone()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("3")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]).as_str() == Some("0.75")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]).as_str() == Some("2.25")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("debt".into()), &[]).as_str() == Some("0.1")))));
-    let mut usdtAccount: Value = exchange.account();
-    add_element_to_object(&mut usdtAccount, &Value::Str("free".into()), Value::Str("5".into()));
-    result = exchange.merge_balance_account(result.clone(), Value::Str("USDT".into()), usdtAccount.clone());
+    let mut usdtAccount: Value = Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("free".to_string(), Value::Str("5".into()));
+        m
+    });
+    result = exchange.extend(exchange.merge_balance_account(result.clone(), Value::Str("USDT".into()), usdtAccount.clone()), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("5")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]) == Value::Null))));
     let mut keys: Value = object_keys(&result);

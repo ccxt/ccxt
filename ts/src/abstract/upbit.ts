@@ -97,7 +97,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('orderbook/instruments', [ 'public' ], 'GET', params, { 'cost': 2 });
     }
 
-    privateGetAccounts (params = {}): Promise<Dict> {
+    privateGetAccounts (params = {}): Promise<List> {
         return this.request ('accounts', [ 'private' ], 'GET', params, { 'cost': 0.67 });
     }
 

@@ -613,12 +613,12 @@ export default class coinmate extends Exchange {
             'ask': this.safeNumber(ticker, 'ask'),
             'vwap': undefined,
             'askVolume': undefined,
-            'open': undefined,
+            'open': this.safeNumber(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeNumber(ticker, 'change'),
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'amount'),
             'quoteVolume': undefined,
@@ -1281,8 +1281,9 @@ export default class coinmate extends Exchange {
         }
         let url = apiUrl + '/' + path;
         if (apiName === 'public') {
-            if (Object.keys(params).length > 0) {
-                url += '?' + this.urlencode(params);
+            const publicQuery = this.extend({}, params);
+            if (Object.keys(publicQuery).length > 0) {
+                url += '?' + this.urlencode(publicQuery);
             }
         }
         else {

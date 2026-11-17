@@ -10,10 +10,14 @@ public partial class BaseExchange
 
     public void ensureWhitelistedFile(object filePath)
     {
-        var tempDir = getTempDir();
         var sanitized = Path.GetFullPath(filePath as string);
-        if (sanitized.StartsWith(tempDir) && sanitized.EndsWith(".ccxtfile")) {
-            return;
+        var exts = new[] { "ccxtfile", "pem", "wasm" };
+        foreach (var ext in exts)
+        {
+            if (sanitized.EndsWith("." + ext))
+            {
+                return;
+            }
         }
         throw new InvalidOperationException($"invalid file path: {filePath as string}");
     }

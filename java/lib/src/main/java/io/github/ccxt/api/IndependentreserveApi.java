@@ -279,9 +279,9 @@ public class IndependentreserveApi extends Exchange
      * Calls the privatePostGetAccounts endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privatePostGetAccounts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privatePostGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetAccounts", optionalArgs);
     }

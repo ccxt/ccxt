@@ -248,7 +248,7 @@ function injectWsMessage (exchange: any, url: string, message: any) {
     // feed one already-json-parsed frame into the exchange's ws message
     // handler — the same entry point the real transport invokes
     const client = exchange.client (url);
-    exchange.handleMessage (client, message);
+    exchange.routeMessage (client, message);
 }
 
 function wsClientHasPendingFutures (exchange: any, url: string) {

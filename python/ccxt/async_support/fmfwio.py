@@ -9,7 +9,7 @@ from ccxt.abstract.fmfwio import ImplicitAPI
 
 class fmfwio(hitbtc, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(fmfwio, self).describe(), {
             'id': 'fmfwio',
             'name': 'FMFW.io',

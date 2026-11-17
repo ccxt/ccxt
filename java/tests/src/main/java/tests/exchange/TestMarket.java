@@ -17,7 +17,7 @@ import java.util.Map;
 
 
 public class TestMarket extends BaseTest {
-    public static void testMarket(BaseExchange exchange, Object skippedProperties, Object method, Object market)
+    public static void testMarket(BaseExchange exchange, Object skippedProperties, String method, Map<String, Object> market)
     {
         if (java.util.Objects.equals(market, null))
         {
@@ -75,23 +75,23 @@ public class TestMarket extends BaseTest {
             put( "info", new HashMap<String, Object>() {{}} );
         }};
         // temporary: only test QUANTO markets where that prop exists (todo: add in type later)
-        if (((Map<?, ?>)market).containsKey("quanto"))
+        if (market.containsKey("quanto"))
         {
             ((Map<String, Object>)format).put("quanto", false); // whether the market is QUANTO or not
         }
         // define locals
-        Object spot = ((Map<String, Object>)market).get("spot");
-        Object contract = ((Map<String, Object>)market).get("contract");
-        Object swap = ((Map<String, Object>)market).get("swap");
-        Object future = ((Map<String, Object>)market).get("future");
-        Object option = ((Map<String, Object>)market).get("option");
+        Object spot = market.get("spot");
+        Object contract = market.get("contract");
+        Object swap = market.get("swap");
+        Object future = market.get("future");
+        Object option = market.get("option");
         Object index = exchange.safeBool(market, "index", (Object) null); // todo: unify
         Boolean isIndex = (!java.util.Objects.equals(index, null)) && Helpers.isTrue(index);
-        Object linear = ((Map<String, Object>)market).get("linear");
-        Object inverse = ((Map<String, Object>)market).get("inverse");
+        Object linear = market.get("linear");
+        Object inverse = market.get("inverse");
         Object quanto = exchange.safeBool(market, "quanto", (Object) null); // todo: unify
         Boolean isQuanto = (!java.util.Objects.equals(quanto, null)) && Helpers.isTrue(quanto);
-        Boolean isInactiveMarket = java.util.Objects.equals(((Map<String, Object>)market).get("active"), false);
+        Boolean isInactiveMarket = java.util.Objects.equals(market.get("active"), false);
         //
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("margin"));
         if (!java.util.Objects.equals(contract, true))
@@ -129,25 +129,25 @@ public class TestMarket extends BaseTest {
             // deprecated 'symbol' key is intentionally absent from their structures
             format = exchange.omit(format, new ArrayList<Object>(Arrays.asList("symbol")));
         }
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), market, format, emptyAllowedFor);
         // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
-        if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), "prediction"))
+        if (!java.util.Objects.equals(market.get("type"), "prediction"))
         {
-            TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, market, "symbol");
+            TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), market, "symbol");
         }
-        Object logText = TestSharedMethods.logTemplate(exchange, method, market);
+        Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), market);
         // check taker/maker
         // todo: check not all to be within 0-1.0
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "taker", "-100");
-        TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "taker", "100");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "maker", "-100");
-        TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "maker", "100");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), market, "taker", "-100");
+        TestSharedMethods.AssertLess(exchange, skippedProperties, (String) (method), market, "taker", "100");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), market, "maker", "-100");
+        TestSharedMethods.AssertLess(exchange, skippedProperties, (String) (method), market, "maker", "100");
         // validate type ('prediction' for prediction-market exchanges)
         List<String> validTypes = new ArrayList<String>(Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "type", validTypes);
         // validate subTypes
         List<String> validSubTypes = new ArrayList<String>(Arrays.asList("linear", "inverse", "quanto", null));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "subType", validSubTypes);
         // check if 'type' is consistent
         List<String> checkedTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option"));
         for (var i = 0; i < ((List<?>)checkedTypes).size(); i++)
@@ -155,7 +155,7 @@ public class TestMarket extends BaseTest {
             Object type = Helpers.GetValue(checkedTypes, i);
             if (java.util.Objects.equals(Helpers.GetValue(market, type), true))
             {
-                Assert(java.util.Objects.equals(type, ((Map<String, Object>)market).get("type")), ((((("market.type (" + ((Map<String, Object>)market).get("type")) + ") not equal to \"") + type) + "\"") + logText));
+                Assert(java.util.Objects.equals(type, market.get("type")), ((((("market.type (" + market.get("type")) + ") not equal to \"") + type) + "\"") + logText));
             }
         }
         // check if 'subType' is consistent
@@ -167,7 +167,7 @@ public class TestMarket extends BaseTest {
                 Object subType = Helpers.GetValue(checkedSubTypes, i);
                 if (java.util.Objects.equals(Helpers.GetValue(market, subType), true))
                 {
-                    Assert(java.util.Objects.equals(subType, ((Map<String, Object>)market).get("subType")), ((((("market.subType (" + ((Map<String, Object>)market).get("subType")) + ") not equal to \"") + subType) + "\"") + logText));
+                    Assert(java.util.Objects.equals(subType, market.get("subType")), ((((("market.subType (" + market.get("subType")) + ") not equal to \"") + subType) + "\"") + logText));
                 }
             }
         }
@@ -175,14 +175,14 @@ public class TestMarket extends BaseTest {
         if (java.util.Objects.equals(spot, true))
         {
             // for spot market, 'margin' can be either true/false or undefined
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "margin", new ArrayList<Object>(Arrays.asList(true, false, null)));
+            TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "margin", new ArrayList<Object>(Arrays.asList(true, false, null)));
         } else
         {
             // otherwise, it must be false or undefined
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "margin", new ArrayList<Object>(Arrays.asList(false, null)));
+            TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "margin", new ArrayList<Object>(Arrays.asList(false, null)));
         }
         // check mutually exclusive fields
-        Boolean isPrediction = (java.util.Objects.equals(((Map<String, Object>)market).get("type"), "prediction"));
+        Boolean isPrediction = (java.util.Objects.equals(market.get("type"), "prediction"));
         if (Boolean.TRUE.equals(isPrediction))
         {
             // prediction markets trade outcome shares — neither spot nor a derivative contract
@@ -215,7 +215,7 @@ public class TestMarket extends BaseTest {
             // contract size should be above zero
             Assert((Helpers.inOp(skippedProperties, "contractSize")) || Precise.stringGt(contractSize, "0"), ("\"contractSize\" must be > 0 when \"contract\" is true" + logText));
             // settle should be defined
-            Assert((Helpers.inOp(skippedProperties, "settle")) || (!java.util.Objects.equals(((Map<String, Object>)market).get("settle"), null) && !java.util.Objects.equals(((Map<String, Object>)market).get("settleId"), null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + logText));
+            Assert((Helpers.inOp(skippedProperties, "settle")) || (!java.util.Objects.equals(market.get("settle"), null) && !java.util.Objects.equals(market.get("settleId"), null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + logText));
         } else if (!java.util.Objects.equals(contract, true))
         {
             // linear & inverse needs to be undefined
@@ -223,16 +223,16 @@ public class TestMarket extends BaseTest {
             // contract size should be undefined
             Assert(java.util.Objects.equals(contractSize, null), ("\"contractSize\" must be undefined when \"contract\" is false" + logText));
             // settle should be undefined
-            Assert((java.util.Objects.equals(((Map<String, Object>)market).get("settle"), null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("settleId"), null)), ("\"settle\" must be undefined when \"contract\" is false" + logText));
+            Assert((java.util.Objects.equals(market.get("settle"), null)) && (java.util.Objects.equals(market.get("settleId"), null)), ("\"settle\" must be undefined when \"contract\" is false" + logText));
         }
         // future, swap and option should be mutually exclusive
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))
+        if (java.util.Objects.equals(market.get("future"), true))
         {
-            Assert((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (!java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)) && (!Boolean.TRUE.equals(isIndex)), ("market swap and option must be false when \"future\" is true" + logText));
-        } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Assert((!java.util.Objects.equals(market.get("swap"), true)) && (!java.util.Objects.equals(market.get("option"), true)) && (!Boolean.TRUE.equals(isIndex)), ("market swap and option must be false when \"future\" is true" + logText));
+        } else if (java.util.Objects.equals(market.get("swap"), true))
         {
             Assert((!java.util.Objects.equals(future, true)) && (!java.util.Objects.equals(option, true)), ("market future and option must be false when \"swap\" is true" + logText));
-        } else if (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true))
+        } else if (java.util.Objects.equals(market.get("option"), true))
         {
             Assert((!java.util.Objects.equals(future, true)) && (!java.util.Objects.equals(swap, true)), ("market future and swap must be false when \"option\" is true" + logText));
         }
@@ -240,60 +240,60 @@ public class TestMarket extends BaseTest {
         if ((java.util.Objects.equals(option, true)) || (java.util.Objects.equals(future, true)))
         {
             // future or option markets need 'expiry' and 'expiryDatetime'
-            Assert(!java.util.Objects.equals(((Map<String, Object>)market).get("expiry"), null), ("\"expiry\" must be defined when \"future\" is true" + logText));
-            Assert(!java.util.Objects.equals(((Map<String, Object>)market).get("expiryDatetime"), null), ("\"expiryDatetime\" must be defined when \"future\" is true" + logText));
+            Assert(!java.util.Objects.equals(market.get("expiry"), null), ("\"expiry\" must be defined when \"future\" is true" + logText));
+            Assert(!java.util.Objects.equals(market.get("expiryDatetime"), null), ("\"expiryDatetime\" must be defined when \"future\" is true" + logText));
             // expiry datetime should be correct
-            Object isoString = exchange.iso8601(((Map<String, Object>)market).get("expiry"));
-            Assert(java.util.Objects.equals(((Map<String, Object>)market).get("expiryDatetime"), isoString), ((((("expiryDatetime (\"" + ((Map<String, Object>)market).get("expiryDatetime")) + "\") must be equal to expiry in iso8601 format \"") + isoString) + "\"") + logText));
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "expiry", "0");
+            Object isoString = exchange.iso8601(market.get("expiry"));
+            Assert(java.util.Objects.equals(market.get("expiryDatetime"), isoString), ((((("expiryDatetime (\"" + market.get("expiryDatetime")) + "\") must be equal to expiry in iso8601 format \"") + isoString) + "\"") + logText));
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), market, "expiry", "0");
             if (java.util.Objects.equals(option, true))
             {
                 // strike should be defined
-                Assert(((Helpers.inOp(skippedProperties, "strike")) || !java.util.Objects.equals(((Map<String, Object>)market).get("strike"), null)), ("\"strike\" must be defined when \"option\" is true" + logText));
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "strike", "0");
+                Assert(((Helpers.inOp(skippedProperties, "strike")) || !java.util.Objects.equals(market.get("strike"), null)), ("\"strike\" must be defined when \"option\" is true" + logText));
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), market, "strike", "0");
                 // optionType should be defined
-                Assert(((Helpers.inOp(skippedProperties, "optionType")) || !java.util.Objects.equals(((Map<String, Object>)market).get("optionType"), null)), ("\"optionType\" must be defined when \"option\" is true" + logText));
-                TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "optionType", new ArrayList<Object>(Arrays.asList("put", "call")));
+                Assert(((Helpers.inOp(skippedProperties, "optionType")) || !java.util.Objects.equals(market.get("optionType"), null)), ("\"optionType\" must be defined when \"option\" is true" + logText));
+                TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), market, "optionType", new ArrayList<Object>(Arrays.asList("put", "call")));
             } else
             {
                 // if not option, then strike and optionType should be undefined
-                Assert(java.util.Objects.equals(((Map<String, Object>)market).get("strike"), null), ("\"strike\" must be undefined when \"option\" is false" + logText));
-                Assert(java.util.Objects.equals(((Map<String, Object>)market).get("optionType"), null), ("\"optionType\" must be undefined when \"option\" is false" + logText));
+                Assert(java.util.Objects.equals(market.get("strike"), null), ("\"strike\" must be undefined when \"option\" is false" + logText));
+                Assert(java.util.Objects.equals(market.get("optionType"), null), ("\"optionType\" must be undefined when \"option\" is false" + logText));
             }
         } else if (java.util.Objects.equals(spot, true))
         {
             // otherwise, expiry needs to be undefined
-            Assert((java.util.Objects.equals(((Map<String, Object>)market).get("expiry"), null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("expiryDatetime"), null)), ("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market" + logText));
+            Assert((java.util.Objects.equals(market.get("expiry"), null)) && (java.util.Objects.equals(market.get("expiryDatetime"), null)), ("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market" + logText));
         }
         // check precisions
-        List<String> precisionKeys = new ArrayList<String>(((Map<String, Object>)((Map<String, Object>)market).get("precision")).keySet());
+        List<String> precisionKeys = new ArrayList<String>(((Map<String, Object>)market.get("precision")).keySet());
         Integer precisionKeysLen = ((List<?>)precisionKeys).size();
         Assert(((precisionKeysLen != null && precisionKeysLen >= 2)), ("precision should have \"amount\" and \"price\" keys at least" + logText));
         for (var i = 0; i < ((List<?>)precisionKeys).size(); i++)
         {
             String priceOrAmountKey = (precisionKeys == null || i < 0 || i >= precisionKeys.size() ? null : precisionKeys.get(i));
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
-            Boolean isExclusivePair = java.util.Objects.equals(((Map<String, Object>)market).get("baseId"), "BTC");
+            Boolean isExclusivePair = java.util.Objects.equals(market.get("baseId"), "BTC");
             Boolean isNonSpot = !java.util.Objects.equals(spot, true); // such high precision is only allowed in contract markets
             Boolean isPrice = java.util.Objects.equals(priceOrAmountKey, "price");
-            Object isTickSize5 = Precise.stringEq("5", exchange.safeString(((Map<String, Object>)market).get("precision"), priceOrAmountKey));
+            Object isTickSize5 = Precise.stringEq("5", exchange.safeString(market.get("precision"), priceOrAmountKey));
             if (Boolean.TRUE.equals(isNonSpot) && Boolean.TRUE.equals(isPrice) && Boolean.TRUE.equals(isExclusivePair) && Boolean.TRUE.equals(isTickSize5))
             {
                 continue;
             }
             if (!(Helpers.inOp(skippedProperties, "precision")))
             {
-                TestSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, ((Map<String, Object>)market).get("precision"), priceOrAmountKey);
+                TestSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, (String) (method), market.get("precision"), priceOrAmountKey);
             }
         }
         // check limits
-        List<String> limitsKeys = new ArrayList<String>(((Map<String, Object>)((Map<String, Object>)market).get("limits")).keySet());
+        List<String> limitsKeys = new ArrayList<String>(((Map<String, Object>)market.get("limits")).keySet());
         Integer limitsKeysLength = ((List<?>)limitsKeys).size();
         Assert(((limitsKeysLength != null && limitsKeysLength >= 3)), ("limits should have \"amount\", \"price\" and \"cost\" keys at least" + logText));
         for (var i = 0; i < ((List<?>)limitsKeys).size(); i++)
         {
             String key = (limitsKeys == null || i < 0 || i >= limitsKeys.size() ? null : limitsKeys.get(i));
-            Object limitEntry = Helpers.GetValue(((Map<String, Object>)market).get("limits"), key);
+            Object limitEntry = Helpers.GetValue(market.get("limits"), key);
             if (Boolean.TRUE.equals(isInactiveMarket))
             {
                 continue;
@@ -301,14 +301,14 @@ public class TestMarket extends BaseTest {
             if (!(Helpers.inOp(skippedProperties, "limits")))
             {
                 // min >= 0
-                TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "min", "0");
+                TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), limitEntry, "min", "0");
                 // max >= 0
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, limitEntry, "max", "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), limitEntry, "max", "0");
                 // max >= min
                 String minString = exchange.safeString(limitEntry, "min");
                 if (!java.util.Objects.equals(minString, null))
                 {
-                    TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "max", minString);
+                    TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), limitEntry, "max", minString);
                 }
             }
         }
@@ -316,20 +316,20 @@ public class TestMarket extends BaseTest {
         // not a currency, so baseId is the market/outcome id and won't map to a currency code)
         if (!Boolean.TRUE.equals(isInactiveMarket) && !Boolean.TRUE.equals(isPrediction))
         {
-            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, ((Map<String, Object>)market).get("baseId"), ((Map<String, Object>)market).get("base"));
-            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, ((Map<String, Object>)market).get("quoteId"), ((Map<String, Object>)market).get("quote"));
-            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, ((Map<String, Object>)market).get("settleId"), ((Map<String, Object>)market).get("settle"));
+            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, (String) (method), market, (String) (market.get("baseId")), (String) (market.get("base")));
+            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, (String) (method), market, (String) (market.get("quoteId")), (String) (market.get("quote")));
+            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, (String) (method), market, (String) (market.get("settleId")), (String) (market.get("settle")));
         }
         // check ts
-        TestSharedMethods.AssertTimestamp(exchange, skippedProperties, method, market, null, "created");
+        TestSharedMethods.AssertTimestamp(exchange, skippedProperties, (String) (method), market, null, "created");
         // margin modes
         if (!(Helpers.inOp(skippedProperties, "marginModes")))
         {
             Object marginModes = exchange.safeDict(market, "marginModes", new HashMap<String, Object>() {{}}); // in future, remove safeDict
             Assert(((Map<?, ?>)marginModes).containsKey("cross"), ("marginModes should have \"cross\" key" + logText));
             Assert(((Map<?, ?>)marginModes).containsKey("isolated"), ("marginModes should have \"isolated\" key" + logText));
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, marginModes, "cross", new ArrayList<Object>(Arrays.asList(true, false, null)));
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, marginModes, "isolated", new ArrayList<Object>(Arrays.asList(true, false, null)));
+            TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), marginModes, "cross", new ArrayList<Object>(Arrays.asList(true, false, null)));
+            TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), marginModes, "isolated", new ArrayList<Object>(Arrays.asList(true, false, null)));
         }
     }
 

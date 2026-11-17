@@ -33,7 +33,7 @@ public class Coincheck extends CoincheckApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "coincheck" );
@@ -372,22 +372,23 @@ public class Coincheck extends CoincheckApi
         }});
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = this.currency((String) (code));
             String currencyId = (String) currency.get("id");
-            if ((switch ((Object)(response)) { case List<?> j39v2 -> ((Object)(currencyId)) != null && j39v2.contains(currencyId); case Map<?, ?> j39v1 -> ((Object)(currencyId)) instanceof String && j39v1.containsKey(currencyId); case null, default -> false; }))
+            String free = this.safeString(response, currencyId);
+            if (!java.util.Objects.equals(free, null))
             {
                 Map<String, Object> account = this.account();
                 String reserved = (currencyId + "_reserved");
-                account.put("free", this.safeString(response, currencyId));
+                account.put("free", free);
                 account.put("used", this.safeString(response, reserved));
                 result.put((String)code, account);
             }
@@ -726,12 +727,13 @@ public class Coincheck extends CoincheckApi
         String side = null;
         Map<String, Object> fee = null;
         String orderId = null;
-        if (((Map<?, ?>)trade).containsKey("liquidity"))
+        String liquidity = this.safeString(trade, "liquidity");
+        if (!java.util.Objects.equals(liquidity, null))
         {
-            if (java.util.Objects.equals(this.safeString(trade, "liquidity"), "T"))
+            if (java.util.Objects.equals(liquidity, "T"))
             {
                 takerOrMaker = "taker";
-            } else if (java.util.Objects.equals(this.safeString(trade, "liquidity"), "M"))
+            } else if (java.util.Objects.equals(liquidity, "M"))
             {
                 takerOrMaker = "maker";
             }
@@ -1232,7 +1234,7 @@ public class Coincheck extends CoincheckApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1242,9 +1244,10 @@ public class Coincheck extends CoincheckApi
         }
         String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
+        Boolean hasQuery = ((Map<String, Object>)query).size() > 0;
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (Boolean.TRUE.equals(hasQuery))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1255,16 +1258,16 @@ public class Coincheck extends CoincheckApi
             String queryString = "";
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (Boolean.TRUE.equals(hasQuery))
                 {
                     url = (url + ("?" + this.urlencode(this.keysort(query))));
                 }
             } else
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (Boolean.TRUE.equals(hasQuery))
                 {
-                    bodySigned = this.urlencode(this.keysort(query));
-                    queryString = bodySigned;
+                    queryString = this.urlencode(this.keysort(query));
+                    bodySigned = queryString;
                 }
             }
             String auth = ((nonce + url) + queryString);
@@ -1289,7 +1292,7 @@ public class Coincheck extends CoincheckApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1304,9 +1307,9 @@ public class Coincheck extends CoincheckApi
         {
             String error = this.safeString(response, "error");
             String feedback = ((this.id + " ") + this.json(response));
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-            throw new ExchangeError(((this.id + " ") + this.json(response))) ;
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

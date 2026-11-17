@@ -23,14 +23,12 @@ import (
 	// "golang.org/x/crypto/sha3"
 )
 
-func Sha1() string      { return "sha1" }
 func Sha256() string    { return "sha256" }
 func sha256() string    { return "sha256" }
 func Sha384() string    { return "sha384" }
 func sha384() string    { return "sha384" }
 func Sha512() string    { return "sha512" }
 func sha512() string    { return "sha512" }
-func Md5() string       { return "md5" }
 func md5() string       { return "md5" }
 func Ed25519() string   { return "ed25519" }
 func ed25519() string   { return "ed25519" }
@@ -39,8 +37,6 @@ func Secp256k1() string { return "secp256k1" }
 func P256() string      { return "p256" }
 func keccak() string    { return "keccak" }
 func secp256k1() string { return "secp256k1" }
-func p256() string      { return "p256" }
-
 func (this *BaseExchange) Hmac(request2 any, secret2 any, algorithm2 func() string, args ...any) string {
 	digest := GetArg(args, 0, "hex").(string)
 	return Hmac(request2, secret2, algorithm2, digest)
@@ -153,10 +149,6 @@ func Hash(request2 any, hash func() string, digest2 any) any {
 		return hex.EncodeToString(signature)
 	}
 	return base64.StdEncoding.EncodeToString(signature)
-}
-
-func (this *BaseExchange) Axolotl(a any, b any, c any) string {
-	return ""
 }
 
 func signSHA256(data string) []byte {
@@ -344,16 +336,6 @@ func Rsa(data2 any, privateKey2 any, algorithm2 func() string, optionalArgs ...a
 
 	// Return base64 encoded signature
 	return base64.StdEncoding.EncodeToString(signData)
-}
-
-func Base64ToBase64URL(base64Str string, stripPadding bool) string {
-	base64URL := strings.NewReplacer("+", "-", "/", "_").Replace(base64Str)
-
-	if stripPadding {
-		base64URL = strings.TrimRight(base64URL, "=")
-	}
-
-	return base64URL
 }
 
 func Eddsa(data2 any, secret any, curve any) string {

@@ -2,7 +2,7 @@ import poloniexRest from '../poloniex.js';
 import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method

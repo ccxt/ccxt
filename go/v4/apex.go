@@ -18,7 +18,7 @@ func newApex() *Apex {
 	return p
 }
 
-func (this *Apex) Describe() any {
+func (this *Apex) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "apex",
 		"name":      "Apex",
@@ -408,7 +408,7 @@ func (this *Apex) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any
 	ch <- AsyncResult[*int64]{Value: this.SafeInteger(data, "time")}
 	return nil
 }
-func (this *Apex) ParseBalance(response any) map[string]any {
+func (this *Apex) ParseBalance(response map[string]any) map[string]any {
 	//
 	// {
 	//     "totalEquityValue": "100.000000",
@@ -637,9 +637,9 @@ func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	// }
 	var rows []any = SafeListTypedDefault(spotConfig, "assets", []any{})
 	var chains any = this.SafeList(multiChain, "chains", []any{})
-	this.Options.Store("_temp_currencies_chains", chains)
+	this.Options["_temp_currencies_chains"] = chains
 	var result map[string]any = this.ParseCurrencies(rows)
-	this.Options.Delete("_temp_currencies_chains")
+	delete(this.Options, "_temp_currencies_chains")
 
 	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil
@@ -649,8 +649,8 @@ func (this *Apex) ParseCurrency(currency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(currency, "displayName")
 	var networks map[string]any = map[string]any{}
-	var chains any = GetValue(this.Options, "_temp_currencies_chains")
-	for j := 0; j < GetArrayLength(chains); j++ {
+	var chains []any = SafeListTyped(this.Options, "_temp_currencies_chains")
+	for j := 0; j < len(chains); j++ {
 		var chain map[string]any = SafeMapTyped(chains, j)
 		var tokens []any = SafeListTyped(chain, "tokens")
 		for f := 0; f < len(tokens); f++ {
@@ -813,7 +813,7 @@ func (this *Apex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(perpetualContract))}
 	return nil
 }
-func (this *Apex) ParseMarket(market any) any {
+func (this *Apex) ParseMarket(market any) map[string]any {
 	var id *string = this.SafeString(market, "symbol")
 	var id2 *string = this.SafeString(market, "crossSymbolName")
 	var quoteId *string = this.SafeString(market, "l2PairId")
@@ -827,14 +827,8 @@ func (this *Apex) ParseMarket(market any) any {
 	}
 	var symbol string = *baseId + "/" + *quote + ":" + *settle
 	var expiry int = 0
-	var takerFee *float64
-	if derefNum, isNum := this.ParseNumber("0.0002").(float64); isNum {
-		takerFee = &derefNum
-	}
-	var makerFee *float64
-	if derefNum, isNum := this.ParseNumber("0.0005").(float64); isNum {
-		makerFee = &derefNum
-	}
+	var takerFee *float64 = this.ParseNumber("0.0002")
+	var makerFee *float64 = this.ParseNumber("0.0005")
 	return this.SafeMarketStructure(map[string]any{
 		"id":           id,
 		"id2":          id2,
@@ -1474,12 +1468,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	var data map[string]any = SafeMapTyped(response, "data")
 	var resultList []any = SafeListTyped(data, "historyFunds")
 	for i := 0; i < len(resultList); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(resultList) {
-				return DerefScalar(resultList[i])
-			}
-			return nil
-		}()
+		var entry any = resultList[i]
 		var timestamp *int64 = this.SafeInteger(entry, "fundingTimestamp")
 		var marketId *string = this.SafeString(entry, "symbol")
 		rates = append(rates, map[string]any{
@@ -1642,15 +1631,14 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = marketType
 	var marketResolved any = market
 	if (market == nil) && (marketId != nil) {
-		var marketsById any = this.Markets_by_id
 		if (this.Markets != nil) && (InOp(this.Markets, marketId)) {
 			marketResolved = GetValue(this.Markets, marketId)
-		} else if (!IsEqual(marketsById, nil)) && (InOp(marketsById, marketId)) {
-			marketResolved = GetValue(marketsById, marketId)
+		} else if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
+			marketResolved = GetValue(this.Markets_by_id, marketId)
 		} else {
 			var newMarketId any = this.AddHyphenBeforeUsdt(marketId)
-			if (!IsEqual(marketsById, nil)) && (InOp(marketsById, newMarketId)) {
-				var markets any = GetValue(marketsById, newMarketId)
+			if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, newMarketId)) {
+				var markets any = GetValue(this.Markets_by_id, newMarketId)
 				var numMarkets int = GetArrayLength(markets)
 				if numMarkets > 0 {
 					if IsEqual(GetValue(GetValue(markets, 0), "id2"), marketId) {
@@ -1660,12 +1648,11 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	return MarketTyped(this.Exchange.SafeMarket(marketId, marketResolved, delimiter, marketType))
+	return this.Exchange.SafeMarket(marketId, marketResolved, delimiter, marketType)
 }
 func (this *Apex) GenerateRandomClientIdOmni(_accountId any) any {
-	var hasAccountId bool = (!IsEqual(_accountId, nil)) && (!IsEqual(_accountId, ""))
-	var accountId any = nil
-	if hasAccountId {
+	var accountId any = ""
+	if (!IsEqual(_accountId, nil)) && (!IsEqual(_accountId, "")) {
 		accountId = _accountId
 	} else {
 		accountId = strconv.FormatInt(this.RandNumber(12), 10)
@@ -1696,15 +1683,15 @@ func (this *Apex) GetAccountIdAsync() <-chan AsyncResult[*string] {
 func (this *Apex) getAccountIdBody(ch chan AsyncResult[*string]) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var accountId *string = this.SafeString(this.Options, "accountId", "0")
-	if accountId != nil && *accountId == "0" {
+	var accountId string = *this.SafeString(this.Options, "accountId", "0")
+	if accountId == "0" {
 
 		r := <-this.FetchAccountAsync()
 		if r.Err != nil {
 			panic(r.Err)
 		}
 		var accountData map[string]any = StructResultMap(r.Value, AccountToMap)
-		this.Options.Store("accountId", this.SafeString(accountData, "id", "0"))
+		this.Options["accountId"] = DerefScalar(this.SafeString(accountData, "id", "0"))
 	}
 
 	ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "accountId")}
@@ -1766,7 +1753,8 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var fees map[string]any = SafeMapTyped(this.Fees, "swap")
 	var taker *string = this.SafeString(fees, "taker", "0.0005")
 	var maker *string = this.SafeString(fees, "maker", "0.0002")
-	var limitFee string = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(market["precision"], "price"))), TRUNCATE, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
+	var pricePrecision any = GetValue(market["precision"], "price")
+	var limitFee string = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(pricePrecision)), TRUNCATE, pricePrecision, this.PrecisionMode, this.PaddingMode)
 	var timeNow int64 = this.Milliseconds()
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -1881,12 +1869,12 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
  * @param {string} [params.transferId] UUID, which is unique across the platform
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Apex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Apex) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1906,9 +1894,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var configResponse map[string]any = r1.Value
 	var configData map[string]any = SafeMapTyped(configResponse, "data")
 	var contractConfig map[string]any = SafeMapTyped(configData, "contractConfig")
-	var contractAssets any = this.SafeList(contractConfig, "assets", []any{})
 	var spotConfig map[string]any = SafeMapTyped(configData, "spotConfig")
-	var spotAssets any = this.SafeList(spotConfig, "assets", []any{})
 	var globalConfig map[string]any = SafeMapTyped(spotConfig, "global")
 	var receiverAddress *string = this.SafeString(globalConfig, "contractAssetPoolEthAddress", "")
 	var receiverZkAccountId *string = this.SafeString(globalConfig, "contractAssetPoolZkAccountId", "")
@@ -1925,29 +1911,24 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var zkAccountId *string = this.SafeString(spotAccount, "zkAccountId", "")
 	var subAccountId *string = this.SafeString(spotAccount, "defaultSubAccountId", "0")
 	var subAccounts []any = SafeListTyped(spotAccount, "subAccounts")
-	var nonce any = "0"
+	var nonce string = "0"
 	if len(subAccounts) > 0 {
-		nonce = DerefScalar(this.SafeString(func() any {
-			if 0 >= 0 && 0 < len(subAccounts) {
-				return DerefScalar(subAccounts[0])
-			}
-			return nil
-		}(), "nonce", "0"))
+		nonce = (*this.SafeString(subAccounts[0], "nonce", "0"))
 	}
 	var finalNonce any = nonce // java req
 	var ethAddress *string = this.SafeString(accountData, "ethereumAddress", "")
 	var accountId *string = this.SafeString(accountData, "id", "")
 	var currency any = map[string]any{}
-	var assets any = []any{}
-	var isContract bool = (ToLower(fromAccount) == "contract")
+	var isContract bool = (strings.ToLower(fromAccount) == "contract")
+	var assets any = this.SafeList(spotConfig, "assets", []any{})
 	if isContract {
-		assets = contractAssets
-	} else {
-		assets = spotAssets
+		assets = this.SafeList(contractConfig, "assets", []any{})
 	}
-	for i := 0; i < GetArrayLength(assets); i++ {
-		if *this.SafeString(GetValue(assets, i), "token", "") == code {
-			currency = GetValue(assets, i)
+	var numAssets int = GetArrayLength(assets)
+	for i := 0; i < numAssets; i++ {
+		var asset map[string]any = this.SafeDictMap(assets, i, map[string]any{})
+		if this.SafeString(asset, "token", "") != nil && *this.SafeString(asset, "token", "") == code {
+			currency = asset
 		}
 	}
 	var tokenId *string = this.SafeString(currency, "tokenId", "")
@@ -1959,10 +1940,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		return *decimalsNum
 	}()
 	var mathPowResult float64 = (math.Pow(10, decimalsNumber))
-	var amountNum *float64
-	if derefNum, isNum := this.ParseNumber(amount).(float64); isNum {
-		amountNum = &derefNum
-	}
+	var amountNum *float64 = this.ParseNumber(amount)
 	var amountValue float64 = func() float64 {
 		if amountNum == nil {
 			return 0
@@ -2017,10 +1995,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		response := r4.Raw
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 		var currentTime int64 = this.Milliseconds()
-		var parsedAmount *float64
-		if derefNum, isNum := this.ParseNumber(amount).(float64); isNum {
-			parsedAmount = &derefNum
-		}
+		var parsedAmount *float64 = this.ParseNumber(amount)
 
 		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(TransferEntryToMap(this.ParseTransfer(data, this.Currency(code))), map[string]any{
 			"timestamp":   currentTime,
@@ -2048,10 +2023,9 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 			panic(r5.Err)
 		}
 		signature := r5.Value
-		var amountStr string = ToString(amount)
 		var ts int64 = timestampSeconds // java req
 		var request map[string]any = map[string]any{
-			"amount":               amountStr,
+			"amount":               this.NumberToString(amount),
 			"timestamp":            ts,
 			"clientTransferId":     finalClientOrderId,
 			"signature":            signature,
@@ -2211,12 +2185,12 @@ func (this *Apex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Apex) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Apex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Apex) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2756,14 +2730,14 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) Position {
 		"percentage":                  nil,
 	})
 }
-func (this *Apex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Apex) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -2777,15 +2751,16 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 	var signPath string = "/api/" + path
 	var signBody *string = nil
 	if strings.ToUpper(method) != "POST" {
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			signPath += "?" + this.Rawencode(params)
 			url += "?" + this.Rawencode(params)
 		}
 	} else {
 		var sortedQuery map[string]any = this.Keysort(params)
-		signBody = SafeStringPtr(this.Rawencode(sortedQuery))
+		rawencodeText := this.Rawencode(sortedQuery)
+		signBody = &rawencodeText
 	}
-	if apiName != nil && *apiName == "private" {
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var messageString string = timestamp + strings.ToUpper(method) + signPath
@@ -2805,7 +2780,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 		"headers": headersValue,
 	}
 }
-func (this *Apex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Apex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//
 	// {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
 	// {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
@@ -2818,7 +2793,7 @@ func (this *Apex) HandleErrors(code any, reason any, url any, method any, header
 		var feedback string = this.Id + " " + body
 		var message *string = this.SafeString2(response, "key", "msg")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-		var status string = ToString(code)
+		var status string = strconv.FormatInt(code, 10)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], status, feedback)
 		panic(ExchangeError(feedback))
 	}
@@ -2834,7 +2809,7 @@ func NewApex(userConfig map[string]any) *Apex {
 func (this *Apex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -2852,7 +2827,10 @@ func (this *Apex) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

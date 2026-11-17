@@ -15,18 +15,17 @@ public final class OrderBook extends TypedMap {
     @SuppressWarnings("unchecked")
     public OrderBook(Object raw) {
         super(raw);
-        // Handle WsOrderBook (WebSocket) — extract data directly from its typed fields
-        // Handle WsOrderBook (WebSocket) — copy live data from its OrderBookSide fields
+        // Handle WsOrderBook (WebSocket) — read its published record, not the live sides
         if (raw instanceof io.github.ccxt.ws.WsOrderBook wsOb) {
-            // WsOrderBook.bids/asks are OrderBookSide (extends ArrayList<Object>)
-            // Each element is a List<Object> [price, amount]
-            // Copy them via parseEntries which converts to List<List<Double>>
-            this.bids = parseEntries(new java.util.ArrayList<>(wsOb.bids));
-            this.asks = parseEntries(new java.util.ArrayList<>(wsOb.asks));
-            this.symbol = wsOb.symbol;
-            this.timestamp = (wsOb.timestamp instanceof Number n) ? n.longValue() : null;
-            this.datetime = (wsOb.datetime instanceof String s) ? s : null;
-            this.nonce = (wsOb.nonce instanceof Number n) ? n.longValue() : null;
+            // read the book's published record, never its live sides: this runs on the caller's
+            // thread while the ws owner thread keeps applying deltas
+            Map<String, Object> published = wsOb.toMap();
+            this.bids = parseEntries(published.get("bids"));
+            this.asks = parseEntries(published.get("asks"));
+            this.symbol = (published.get("symbol") instanceof String s) ? s : null;
+            this.timestamp = (published.get("timestamp") instanceof Number n) ? n.longValue() : null;
+            this.datetime = (published.get("datetime") instanceof String s) ? s : null;
+            this.nonce = (published.get("nonce") instanceof Number n) ? n.longValue() : null;
             return;
         }
         Map<String, Object> data = TypeHelper.toMap(raw);

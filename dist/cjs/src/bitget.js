@@ -2053,8 +2053,8 @@ class bitget extends bitget$1["default"] {
         }
         let productType = this.safeString2(paramsSubType, 'productType', 'category', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
-            const settle = market['settle'];
-            if (market['spot'] === true) {
+            const settle = this.safeString(market, 'settle');
+            if (this.safeBool(market, 'spot', false)) {
                 let marginMode = undefined;
                 [marginMode, paramsSubType] = this.handleMarginModeAndParams('handleProductTypeAndParams', paramsSubType);
                 if (marginMode !== undefined) {
@@ -2152,7 +2152,7 @@ class bitget extends bitget$1["default"] {
         }
         const [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'fetchMarkets', 'stock', false);
         const [uta, paramsUTA] = await this.handleUTAAndParams(paramsStock, 'fetchMarkets', false);
-        if ((stock === true) || (uta === true)) {
+        if (stock || (uta === true)) {
             return await this.fetchUtaMarkets(paramsUTA);
         }
         return await this.fetchDefaultMarkets(paramsUTA);
@@ -2393,7 +2393,7 @@ class bitget extends bitget$1["default"] {
             if (symbolType === 'perpetual') {
                 type = 'swap';
                 swap = true;
-                symbol = symbol + ':' + settle;
+                symbol = base + '/' + quote + ':' + settle;
             }
             else if (symbolType === 'delivery') {
                 expiry = this.safeInteger(market, 'deliveryTime');
@@ -2403,12 +2403,13 @@ class bitget extends bitget$1["default"] {
                 const yearPart = this.safeString(expiryParts, 0, '');
                 const dayPart = this.safeString(expiryParts, 2, '');
                 const year = yearPart.slice(2, 4);
-                const month = this.safeString(expiryParts, 1);
+                const month = expiryParts[1];
                 const day = dayPart.slice(0, 2);
-                const expiryString = year + month + day;
+                const monthDay = month + day;
+                const expiryString = year + monthDay;
                 type = 'future';
                 future = true;
-                symbol = symbol + ':' + settle + '-' + expiryString;
+                symbol = base + '/' + quote + ':' + settle + '-' + expiryString;
             }
             contract = true;
             inverse = (base === settle);
@@ -2683,7 +2684,7 @@ class bitget extends bitget$1["default"] {
             if (symbolType === 'perpetual') {
                 type = 'swap';
                 swap = true;
-                symbol = symbol + ':' + settle;
+                symbol = base + '/' + quote + ':' + settle;
             }
             else if (symbolType === 'delivery') {
                 expiry = this.safeInteger(market, 'deliveryTime');
@@ -2693,12 +2694,13 @@ class bitget extends bitget$1["default"] {
                 const yearPart = this.safeString(expiryParts, 0, '');
                 const dayPart = this.safeString(expiryParts, 2, '');
                 const year = yearPart.slice(2, 4);
-                const month = this.safeString(expiryParts, 1);
+                const month = expiryParts[1];
                 const day = dayPart.slice(0, 2);
-                const expiryString = year + month + day;
+                const monthDay = month + day;
+                const expiryString = year + monthDay;
                 type = 'future';
                 future = true;
-                symbol = symbol + ':' + settle + '-' + expiryString;
+                symbol = base + '/' + quote + ':' + settle + '-' + expiryString;
             }
             contract = true;
             inverse = (base === settle);
@@ -2942,7 +2944,7 @@ class bitget extends bitget$1["default"] {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketPositionTier(this.extend(request, paramsMarginMode));
         }
-        else if ((market['swap'] === true) || (market['future'] === true)) {
+        else if ((this.safeBool(market, 'swap', false)) || (this.safeBool(market, 'future', false))) {
             request['productType'] = productType;
             request['symbol'] = market['id'];
             response = await this.publicMixGetV2MixMarketQueryPositionLever(this.extend(request, paramsMarginMode));
@@ -3091,7 +3093,7 @@ class bitget extends bitget$1["default"] {
         const tiers = [];
         let minNotional = 0;
         for (let i = 0; i < info.length; i++) {
-            const item = info[i];
+            const item = this.safeValue(info, i);
             const minimumNotional = this.safeNumber2(item, 'startUnit', 'minTierValue');
             if (minimumNotional !== undefined) {
                 minNotional = minimumNotional;
@@ -3656,7 +3658,7 @@ class bitget extends bitget$1["default"] {
         const isStock = market['stock'];
         const paramsStock = this.omit(paramsProductType, 'stock');
         const [uta, paramsUTA] = await this.handleUTAAndParams(paramsStock, 'fetchOrderBook', false);
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         const isStockOrUta = (isStockSpot || (uta === true));
         if (isStockSpot) {
             if (limit !== undefined) {
@@ -3671,7 +3673,7 @@ class bitget extends bitget$1["default"] {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketOrderbook(this.extend(request, paramsUTA));
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             response = await this.publicSpotGetV2SpotMarketOrderbook(this.extend(request, paramsUTA));
         }
         else {
@@ -3882,12 +3884,12 @@ class bitget extends bitget$1["default"] {
         const isStock = market['stock'];
         const paramsStock = this.omit(paramsProductType, 'stock');
         const [uta, paramsUTA] = await this.handleUTAAndParams(paramsStock, 'fetchTicker', false);
-        const isStockOrUta = ((isStock && market['spot']) || (uta === true));
+        const isStockOrUta = ((isStock && (market['spot'] === true)) || (uta === true));
         if (isStockOrUta) {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA));
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             response = await this.publicSpotGetV2SpotMarketTickers(this.extend(request, paramsUTA));
         }
         else {
@@ -4038,7 +4040,7 @@ class bitget extends bitget$1["default"] {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' fetchMarkPrice() is not supported for spot markets');
         }
         else {
@@ -4098,7 +4100,7 @@ class bitget extends bitget$1["default"] {
             if (isStock) {
                 request['category'] = 'SPOT';
             }
-            else if (!('category' in request)) {
+            else {
                 request['category'] = productType;
             }
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsUTA));
@@ -4114,8 +4116,9 @@ class bitget extends bitget$1["default"] {
         if (isStock && (symbols === undefined)) {
             // for returning only tokenized stock symbols
             symbolsResolved = [];
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
+            const allSymbols = this.symbols;
+            for (let i = 0; i < allSymbols.length; i++) {
+                const symbol = allSymbols[i];
                 const entry = this.market(symbol);
                 const isStockMarket = this.safeBool(entry, 'stock', false);
                 if (isStockMarket) {
@@ -4368,22 +4371,17 @@ class bitget extends bitget$1["default"] {
         const posMode = this.safeString(trade, 'posMode');
         const category = this.safeString(trade, 'category');
         const isFeeStructure = (posMode !== undefined) || (category !== undefined);
-        const feeStructure = isFeeStructure ? feeDetail[0] : feeDetail;
+        const feeStructure = isFeeStructure ? this.safeValue(feeDetail, 0) : feeDetail;
         if (feeStructure !== undefined) {
             const feeCoin = this.safeString(feeStructure, 'feeCoin');
             const currencyCode = this.safeCurrencyCode(feeCoin);
-            fee = {
-                'currency': currencyCode,
-            };
             const feeCostString = this.safeString2(feeStructure, 'totalFee', 'fee');
             const deductionString = this.safeString(feeStructure, 'deduction');
             const deduction = (deductionString === 'yes');
-            if (deduction) {
-                fee['cost'] = feeCostString;
-            }
-            else {
-                fee['cost'] = Precise["default"].stringNeg(feeCostString);
-            }
+            fee = {
+                'currency': currencyCode,
+                'cost': deduction ? feeCostString : Precise["default"].stringNeg(feeCostString),
+            };
         }
         return this.safeTrade({
             'info': trade,
@@ -4429,7 +4427,7 @@ class bitget extends bitget$1["default"] {
         [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTrades', 'paginate', false);
         const market = this.market(symbol);
         const isStock = market['stock'];
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         paramsPaginate = this.omit(paramsPaginate, 'stock');
         if (paginate) {
             if (isStockSpot) {
@@ -4447,7 +4445,7 @@ class bitget extends bitget$1["default"] {
             if (isStockOrUta) {
                 request['limit'] = Math.min(limit, 100);
             }
-            else if (market['contract'] === true) {
+            else if (this.safeBool(market, 'contract', false)) {
                 request['limit'] = Math.min(limit, 1000);
             }
             else {
@@ -4479,7 +4477,7 @@ class bitget extends bitget$1["default"] {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketFills(this.extend(request, paramsPaginate));
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             const spotOptions = this.safeDict(options, 'spot', {});
             const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory');
             const spotMethod = this.safeString(paramsPaginate, 'method', defaultSpotMethod);
@@ -4613,7 +4611,7 @@ class bitget extends bitget$1["default"] {
         }
         let marginMode = undefined;
         [marginMode, paramsUTA] = this.handleMarginModeAndParams('fetchTradingFee', paramsUTA);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (marginMode !== undefined) {
                 request['businessType'] = 'margin';
             }
@@ -4842,8 +4840,8 @@ class bitget extends bitget$1["default"] {
         //         "1399132.341"
         //     ]
         //
-        const inverse = this.safeBool(market, 'inverse');
-        const volumeIndex = (inverse === true) ? 6 : 5;
+        const inverse = this.safeBool(market, 'inverse', false);
+        const volumeIndex = inverse ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
@@ -4902,19 +4900,19 @@ class bitget extends bitget$1["default"] {
             'symbol': market['id'],
         };
         const isStock = market['stock'];
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         const paramsStock = this.omit(paramsUTA, 'stock');
         let marketType = undefined;
         let timeframes = undefined;
         const timeframesOption = this.handleOption('fetchOHLCV', 'timeframes');
         const isStockOrUta = (isStockSpot || (uta === true));
         if (isStockOrUta) {
-            timeframes = timeframesOption['uta'];
+            timeframes = this.safeDict(timeframesOption, 'uta');
             request['interval'] = this.safeString(timeframes, timeframe, timeframe);
         }
         else {
-            marketType = (market['spot'] === true) ? 'spot' : 'swap';
-            timeframes = timeframesOption[marketType];
+            marketType = (this.safeBool(market, 'spot', false)) ? 'spot' : 'swap';
+            timeframes = this.safeDict(timeframesOption, marketType);
             request['granularity'] = this.safeString(timeframes, timeframe, timeframe);
         }
         const msInDay = 86400000;
@@ -4928,7 +4926,7 @@ class bitget extends bitget$1["default"] {
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
         let key = 'swap';
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             key = 'spot';
         }
         const ohlcOptions = this.safeDict(this.options['fetchOHLCV'], key, {});
@@ -4984,7 +4982,7 @@ class bitget extends bitget$1["default"] {
             calculatedStartTime = calculatedEndTime - historicalDuration;
             request['startTime'] = calculatedStartTime;
             // for contract, maximum 90 days allowed between start-end times
-            if (market['spot'] !== true) {
+            if (!this.safeBool(market, 'spot', false)) {
                 const maxDistanceForContracts = 90 * msInDay;
                 // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
                 if ((calculatedEndTime !== undefined) && (historicalDuration > maxDistanceForContracts)) {
@@ -5019,7 +5017,7 @@ class bitget extends bitget$1["default"] {
                 response = await this.publicUtaGetV3MarketCandles(this.extend(request, paramsProductType));
             }
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             // checks if we need history endpoint
             if (historicalEndpointNeeded) {
                 response = await this.publicSpotGetV2SpotMarketHistoryCandles(this.extend(request, paramsProductType));
@@ -5276,7 +5274,7 @@ class bitget extends bitget$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
     parseUtaBalance(balance, response = undefined) {
         const info = (response !== undefined) ? response : balance;
@@ -5319,7 +5317,7 @@ class bitget extends bitget$1["default"] {
         }
         return this.safeBalance(result);
     }
-    parseBalance(balance) {
+    parseBalanceList(balance) {
         const result = { 'info': balance };
         //
         // spot
@@ -5744,7 +5742,7 @@ class bitget extends bitget$1["default"] {
         }
         const orderType = this.safeString(order, 'orderType');
         const isBuyMarket = (side === 'buy') && (orderType === 'market');
-        if ((marketResolved['spot'] === true) && isBuyMarket) {
+        if ((this.safeBool(marketResolved, 'spot', false)) && isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = this.safeString(order, 'baseVolume');
         }
@@ -5793,7 +5791,7 @@ class bitget extends bitget$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -5855,7 +5853,7 @@ class bitget extends bitget$1["default"] {
         const marginParams = this.handleMarginModeAndParams('createOrder', params);
         const marginMode = marginParams[0];
         const isStock = market['stock'];
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         const paramsStock = this.omit(params, 'stock');
         const triggerPrice = this.safeNumber2(paramsStock, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeNumber(paramsStock, 'stopLossPrice');
@@ -5892,7 +5890,7 @@ class bitget extends bitget$1["default"] {
         }
         else {
             const request = this.createOrderRequest(symbol, type, side, amount, price, paramsUTA);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 if (isTriggerOrder) {
                     response = await this.privateSpotPostV2SpotTradePlacePlanOrder(request);
                 }
@@ -6248,11 +6246,8 @@ class bitget extends bitget$1["default"] {
                 }
             }
             if (!isStopLossOrTakeProfitTrigger) {
-                if (marginMode === undefined) {
-                    marginMode = 'cross';
-                }
                 let marginModeRequest = 'isolated';
-                if (marginMode === 'cross') {
+                if ((marginMode === undefined) || (marginMode === 'cross')) {
                     marginModeRequest = 'crossed';
                 }
                 request['marginMode'] = marginModeRequest;
@@ -6463,12 +6458,9 @@ class bitget extends bitget$1["default"] {
             'orderList': ordersRequests,
         };
         let response = undefined;
-        if ((market['swap'] === true) || (market['future'] === true)) {
-            if (marginMode === undefined) {
-                marginMode = 'cross';
-            }
+        if ((this.safeBool(market, 'swap', false)) || (this.safeBool(market, 'future', false))) {
             let marginModeRequest = 'isolated';
-            if (marginMode === 'cross') {
+            if ((marginMode === undefined) || (marginMode === 'cross')) {
                 marginModeRequest = 'crossed';
             }
             request['marginMode'] = marginModeRequest;
@@ -6634,7 +6626,7 @@ class bitget extends bitget$1["default"] {
                 response = await this.privateUtaPostV3TradeModifyOrder(this.extend(request, paramsOmitted));
             }
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             const cost = this.safeString(paramsOmitted, 'cost');
             paramsOmitted = this.omit(paramsOmitted, 'cost');
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
@@ -6676,8 +6668,8 @@ class bitget extends bitget$1["default"] {
             }
         }
         else {
-            if ((market['swap'] !== true) && (market['future'] !== true)) {
-                throw new errors.NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders');
+            if ((!this.safeBool(market, 'swap', false)) && (!this.safeBool(market, 'future', false))) {
+                throw new errors.NotSupported(this.id + ' editOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
             }
             request['symbol'] = market['id'];
             request['productType'] = productType;
@@ -6800,19 +6792,19 @@ class bitget extends bitget$1["default"] {
         let paramsMarginMode = undefined;
         [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('cancelOrder', params);
         const isStock = market['stock'];
-        const isStockSpot = isStock && market['spot'];
+        const isStockSpot = isStock && (market['spot'] === true);
         paramsMarginMode = this.omit(paramsMarginMode, 'stock');
         const request = {};
-        const trailing = this.safeBool(paramsMarginMode, 'trailing');
+        const trailing = this.safeBool(paramsMarginMode, 'trailing', false);
         const trigger = this.safeBool2(paramsMarginMode, 'stop', 'trigger');
         paramsMarginMode = this.omit(paramsMarginMode, ['stop', 'trigger', 'trailing']);
-        if (!((market['spot'] === true) && (trigger === true))) {
+        if (!((this.safeBool(market, 'spot', false)) && (trigger === true))) {
             request['symbol'] = market['id'];
         }
         let uta = undefined;
         [uta, paramsMarginMode] = await this.handleUTAAndParams(paramsMarginMode, 'cancelOrder', false);
         const isStockOrUta = (isStockSpot || (uta === true));
-        const isPlanOrder = (trigger === true) || (trailing === true);
+        const isPlanOrder = (trigger === true) || trailing;
         const isContract = (market['swap'] === true) || (market['future'] === true);
         const isContractTriggerEndpoint = isContract && isPlanOrder && !isStockOrUta;
         const clientOrderId = this.safeString2(paramsMarginMode, 'clientOrderId', 'clientOid');
@@ -6852,11 +6844,11 @@ class bitget extends bitget$1["default"] {
                 response = await this.privateUtaPostV3TradeCancelOrder(this.extend(request, paramsMarginMode));
             }
         }
-        else if ((market['swap'] === true) || (market['future'] === true)) {
+        else if ((this.safeBool(market, 'swap', false)) || (this.safeBool(market, 'future', false))) {
             let productType = undefined;
             [productType, paramsMarginMode] = this.handleProductTypeAndParams(market, paramsMarginMode);
             request['productType'] = productType;
-            if (trailing === true) {
+            if (trailing) {
                 const planType = this.safeString(paramsMarginMode, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder(this.extend(request, paramsMarginMode));
@@ -6868,7 +6860,7 @@ class bitget extends bitget$1["default"] {
                 response = await this.privateMixPostV2MixOrderCancelOrder(this.extend(request, paramsMarginMode));
             }
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             if (marginMode !== undefined) {
                 if (marginMode === 'isolated') {
                     response = await this.privateMarginPostV2MarginIsolatedCancelOrder(this.extend(request, paramsMarginMode));
@@ -6887,7 +6879,7 @@ class bitget extends bitget$1["default"] {
             }
         }
         else {
-            throw new errors.NotSupported(this.id + ' cancelOrder() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' cancelOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         //
         // spot, swap, future, spot margin and tokenized stock
@@ -6966,7 +6958,7 @@ class bitget extends bitget$1["default"] {
         const productType = this.handleProductTypeAndParams(market, params)[0];
         const requestList = [];
         for (let i = 0; i < ids.length; i++) {
-            const individualId = ids[i];
+            const individualId = this.safeString(ids, i);
             const order = {
                 'orderId': individualId,
                 'symbol': market['id'],
@@ -7029,7 +7021,7 @@ class bitget extends bitget$1["default"] {
         paramsUTA = this.omit(paramsUTA, ['stop', 'trigger']);
         const orderIdList = [];
         for (let i = 0; i < ids.length; i++) {
-            const individualId = ids[i];
+            const individualId = this.safeString(ids, i);
             const orderId = {
                 'orderId': individualId,
             };
@@ -7038,14 +7030,14 @@ class bitget extends bitget$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if ((market['spot'] === true) && (marginMode === undefined)) {
+        if ((this.safeBool(market, 'spot', false)) && (marginMode === undefined)) {
             request['orderList'] = orderIdList;
         }
         else {
             request['orderIdList'] = orderIdList;
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (marginMode !== undefined) {
                 if (marginMode === 'cross') {
                     response = await this.privateMarginPostV2MarginCrossedBatchCancelOrder(this.extend(request, paramsUTA));
@@ -7150,7 +7142,7 @@ class bitget extends bitget$1["default"] {
             //     }
             //
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             if (marginMode !== undefined) {
                 throw new errors.NotSupported(this.id + ' cancelAllOrders() does not support margin markets, you can use cancelOrders() instead');
             }
@@ -7259,17 +7251,17 @@ class bitget extends bitget$1["default"] {
         if (uta === true) {
             response = await this.privateUtaGetV3TradeOrderInfo(this.extend(request, paramsUTA));
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             response = await this.privateSpotGetV2SpotTradeOrderInfo(this.extend(request, paramsUTA));
         }
-        else if ((market['swap'] === true) || (market['future'] === true)) {
+        else if ((this.safeBool(market, 'swap', false)) || (this.safeBool(market, 'future', false))) {
             request['symbol'] = market['id'];
             const [productType, paramsProductType] = this.handleProductTypeAndParams(market, paramsUTA);
             request['productType'] = productType;
             response = await this.privateMixGetV2MixOrderDetail(this.extend(request, paramsProductType));
         }
         else {
-            throw new errors.NotSupported(this.id + ' fetchOrder() does not support ' + market['type'] + ' orders');
+            throw new errors.NotSupported(this.id + ' fetchOrder() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         //
         // spot
@@ -7442,8 +7434,9 @@ class bitget extends bitget$1["default"] {
             request['symbol'] = market['id'];
             const defaultType = this.safeString2(this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             let marketType = defaultType;
-            if ('type' in market) {
-                marketType = market['type'];
+            const marketTypeValue = this.safeString(market, 'type');
+            if (marketTypeValue !== undefined) {
+                marketType = marketTypeValue;
             }
             type = this.safeString(paramsMarginMode, 'type', marketType);
         }
@@ -7473,7 +7466,7 @@ class bitget extends bitget$1["default"] {
             return await this.fetchPaginatedCallCursor('fetchOpenOrders', symbol, since, limit, paramsMarginMode, cursorReceived, cursorSent);
         }
         let response = undefined;
-        const trailing = this.safeBool(paramsMarginMode, 'trailing');
+        const trailing = this.safeBool(paramsMarginMode, 'trailing', false);
         const trigger = this.safeBool2(paramsMarginMode, 'stop', 'trigger');
         const planTypeValue = this.safeString(paramsMarginMode, 'planType');
         const planTypeDefined = (planTypeValue !== undefined);
@@ -7537,7 +7530,7 @@ class bitget extends bitget$1["default"] {
         }
         else {
             request['productType'] = productType;
-            if (trailing === true) {
+            if (trailing) {
                 const planType = this.safeString(paramsMarginMode, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanPending(this.extend(request, paramsMarginMode));
@@ -7947,7 +7940,7 @@ class bitget extends bitget$1["default"] {
             return await this.fetchPaginatedCallCursor('fetchCanceledAndClosedOrders', symbol, since, limit, paramsUTA, cursorReceived, 'idLessThan');
         }
         let response = undefined;
-        const trailing = this.safeBool(paramsUTA, 'trailing');
+        const trailing = this.safeBool(paramsUTA, 'trailing', false);
         const trigger = this.safeBool2(paramsUTA, 'stop', 'trigger');
         paramsUTA = this.omit(paramsUTA, ['stop', 'trigger', 'trailing']);
         [request, paramsUTA] = this.handleUntilOption('endTime', request, paramsUTA);
@@ -8004,7 +7997,7 @@ class bitget extends bitget$1["default"] {
             request['productType'] = productType;
             const planTypeValue = this.safeString(paramsUTA, 'planType');
             const planTypeDefined = (planTypeValue !== undefined);
-            if (trailing === true) {
+            if (trailing) {
                 const planType = this.safeString(paramsUTA, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory(this.extend(request, paramsUTA));
@@ -8889,7 +8882,7 @@ class bitget extends bitget$1["default"] {
                 cursorReceived = 'cursor';
                 cursorSent = 'cursor';
             }
-            else if (market['spot'] === true) {
+            else if (this.safeBool(market, 'spot', false)) {
                 if (marginMode !== undefined) {
                     cursorReceived = 'minId';
                     cursorSent = 'idLessThan';
@@ -8907,7 +8900,7 @@ class bitget extends bitget$1["default"] {
         }
         else {
             request['symbol'] = market['id'];
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 if (marginMode !== undefined) {
                     if (since === undefined) {
                         request['startTime'] = this.milliseconds() - 7776000000;
@@ -9066,7 +9059,7 @@ class bitget extends bitget$1["default"] {
             const fills = this.safeList(data, 'list', []);
             return this.parseTrades(fills, market, since, limit);
         }
-        else if (((market['swap'] === true) || (market['future'] === true))) {
+        else if (((this.safeBool(market, 'swap', false)) || (this.safeBool(market, 'future', false)))) {
             const fills = this.safeList(data, 'fillList', []);
             return this.parseTrades(fills, market, since, limit);
         }
@@ -9746,7 +9739,7 @@ class bitget extends bitget$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         let productType = undefined;
@@ -10059,7 +10052,7 @@ class bitget extends bitget$1["default"] {
             return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'endId', 'idLessThan');
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const [productType, paramsProductType] = this.handleProductTypeAndParams(market, paramsPaginate);
@@ -10557,7 +10550,7 @@ class bitget extends bitget$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const [productType, paramsProductType] = this.handleProductTypeAndParams(market, params);
@@ -10846,17 +10839,19 @@ class bitget extends bitget$1["default"] {
         //
         const chains = this.safeList(fee, 'chains', []);
         const chainsLength = chains.length;
+        const networks = {};
+        const withdraw = {
+            'fee': undefined,
+            'percentage': undefined,
+        };
         const result = {
             'info': fee,
-            'withdraw': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
+            'withdraw': withdraw,
             'deposit': {
                 'fee': undefined,
                 'percentage': undefined,
             },
-            'networks': {},
+            'networks': networks,
         };
         for (let i = 0; i < chainsLength; i++) {
             const chain = this.safeDict(chains, i);
@@ -10864,14 +10859,14 @@ class bitget extends bitget$1["default"] {
             const currencyCode = this.safeString(currency, 'code');
             const networkCode = this.networkIdToCode(networkId, currencyCode);
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
                     'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
                 };
             }
             if (chainsLength === 1) {
-                result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
-                result['withdraw']['percentage'] = false;
+                withdraw['fee'] = this.safeNumber(chain, 'withdrawFee');
+                withdraw['percentage'] = false;
             }
         }
         return result;
@@ -12352,7 +12347,7 @@ class bitget extends bitget$1["default"] {
             request['period'] = timeframe;
         }
         let response = undefined;
-        if ((market['swap'] === true) || (market['future'] === true)) {
+        if ((this.safeBool(market, 'swap', false)) || (this.safeBool(market, 'future', false))) {
             response = await this.publicMixGetV2MixMarketAccountLongShort(this.extend(request, params));
             //
             //     {
@@ -12468,9 +12463,7 @@ class bitget extends bitget$1["default"] {
         let url = this.implodeHostname(apiUrl) + payload;
         const query = this.omit(params, this.extractParams(path));
         if (!signed && (method === 'GET')) {
-            const keys = Object.keys(query);
-            const keysLength = keys.length;
-            if (keysLength > 0) {
+            if (Object.keys(query).length > 0) {
                 url = url + '?' + this.urlencode(query);
             }
         }
@@ -12478,7 +12471,7 @@ class bitget extends bitget$1["default"] {
         let requestHeaders = undefined;
         if (signed) {
             this.checkRequiredCredentials();
-            const timestamp = this.nonce().toString();
+            const timestamp = this.numberToString(this.nonce());
             let auth = timestamp + method + payload;
             if (method === 'POST') {
                 requestBody = this.json(params);

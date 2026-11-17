@@ -492,6 +492,122 @@
                     "symbol": "BTC/USDT"
                 }
             }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "spot trades unsubscribe on the trade channel, resolved by phemex's answer to the request id; frame shape from a live unsubscribe",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.phemex.com",
+                "messages": [
+                    {
+                        "error": null,
+                        "id": 1,
+                        "result": {
+                            "status": "success"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "trade.unsubscribe",
+                        "id": 1,
+                        "params": [
+                            "sBTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "usdt perpetual trades unsubscribe on the trade_p channel, resolved by phemex's answer to the request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.phemex.com",
+                "messages": [
+                    {
+                        "error": null,
+                        "id": 1,
+                        "result": {
+                            "status": "success"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "trade_p.unsubscribe",
+                        "id": 1,
+                        "params": [
+                            "BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "spot 1h candles unsubscribe sends the interval so only that kline stream is dropped, resolved by the answer to the request id; frame shape from a live unsubscribe",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT",
+                    "1h"
+                ],
+                "url": "wss://ws.phemex.com",
+                "messages": [
+                    {
+                        "error": null,
+                        "id": 1,
+                        "result": {
+                            "status": "success"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "kline.unsubscribe",
+                        "id": 1,
+                        "params": [
+                            "sBTCUSDT",
+                            3600
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "usdt perpetual 1m candles unsubscribe on the kline_p channel, resolved by the answer to the request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m"
+                ],
+                "url": "wss://ws.phemex.com",
+                "messages": [
+                    {
+                        "error": null,
+                        "id": 1,
+                        "result": {
+                            "status": "success"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "kline_p.unsubscribe",
+                        "id": 1,
+                        "params": [
+                            "BTCUSDT",
+                            60
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }

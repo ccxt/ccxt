@@ -13,7 +13,7 @@ declare abstract class Exchange extends _Exchange {
     publicGetGetfundingrate(params?: {}): Promise<Dict>;
     publicGetGetfundingratehistory(params?: {}): Promise<List>;
     privateGetGetpermissions(params?: {}): Promise<List>;
-    privateGetGetbalance(params?: {}): Promise<Dict>;
+    privateGetGetbalance(params?: {}): Promise<List>;
     privateGetGetbalancehistory(params?: {}): Promise<List>;
     privateGetGetcollateral(params?: {}): Promise<Dict>;
     privateGetGetcollateralhistory(params?: {}): Promise<List>;

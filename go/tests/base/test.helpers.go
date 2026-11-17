@@ -496,7 +496,7 @@ func Capitalize(s string) string {
 	return ccxt.Capitalize(s)
 }
 
-func CallInternalMethod(cache *sync.Map, itf interface{}, name2 string, args ...interface{}) <-chan ccxt.AsyncResult[any] {
+func CallInternalMethod(cache map[string]any, itf interface{}, name2 string, args ...interface{}) <-chan ccxt.AsyncResult[any] {
 	return ccxt.CallInternalMethod(cache, itf, name2, args...)
 }
 

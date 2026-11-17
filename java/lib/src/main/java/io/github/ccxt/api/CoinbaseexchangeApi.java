@@ -202,9 +202,9 @@ public class CoinbaseexchangeApi extends Exchange
      * Calls the privateGetAccounts endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privateGetAccounts (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccounts", optionalArgs);
     }

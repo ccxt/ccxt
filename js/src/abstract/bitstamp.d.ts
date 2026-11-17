@@ -26,7 +26,7 @@ declare abstract class Exchange extends _Exchange {
     privateGetEarnTransactions(params?: {}): Promise<List>;
     privateGetTradeHistory(params?: {}): Promise<List>;
     privateGetTradeHistoryPair(params?: {}): Promise<List>;
-    privatePostAccountBalances(params?: {}): Promise<Dict>;
+    privatePostAccountBalances(params?: {}): Promise<List>;
     privatePostAccountBalancesCurrency(params?: {}): Promise<Dict>;
     privatePostBalance(params?: {}): Promise<Dict>;
     privatePostBalancePair(params?: {}): Promise<Dict>;

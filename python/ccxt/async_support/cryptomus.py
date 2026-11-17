@@ -5,9 +5,10 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptomus import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -16,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class cryptomus(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(cryptomus, self).describe(), {
             'id': 'cryptomus',
             'name': 'Cryptomus',
@@ -80,7 +81,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchConvertTradeHistory': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': True,
+                'fetchCurrencies': False,  # v1/exchange/market/assets is nginx 404
                 'fetchDepositAddress': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,
@@ -121,7 +122,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchOption': False,
                 'fetchOptionChain': False,
                 'fetchOrder': True,
-                'fetchOrderBook': True,
+                'fetchOrderBook': False,  # v1/exchange/market/order-book is nginx 404
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
                 'fetchPosition': False,
@@ -134,10 +135,10 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': False,
                 'fetchStatus': False,
-                'fetchTicker': False,
-                'fetchTickers': True,
+                'fetchTicker': True,
+                'fetchTickers': False,  # v1/exchange/market/tickers is nginx 404; price is per symbol
                 'fetchTime': False,
-                'fetchTrades': True,
+                'fetchTrades': False,  # v1/exchange/market/trades is nginx 404
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
@@ -172,12 +173,10 @@ class cryptomus(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         'v2/user-api/exchange/markets': {'cost': 1},  # done
-                        'v2/user-api/exchange/market/price': {'cost': 1},  # not used
-                        'v2/user-api/exchange/markets/price': {'cost': 1},
-                        'v1/exchange/market/assets': {'cost': 1},  # done
-                        'v1/exchange/market/order-book/{currencyPair}': {'cost': 1},  # done
-                        'v1/exchange/market/tickers': {'cost': 1},  # done
-                        'v1/exchange/market/trades/{currencyPair}': {'cost': 1},  # done
+                        'v2/user-api/exchange/markets/price': {'cost': 1},  # done
+                        'v1/exchange/market/assets': {'cost': 1},  # nginx 404
+                        'v1/exchange/market/order-book/{currencyPair}': {'cost': 1},  # nginx 404
+                        'v1/exchange/market/trades/{currencyPair}': {'cost': 1},  # nginx 404
                     },
                 },
                 'private': {
@@ -272,7 +271,9 @@ class cryptomus(Exchange, ImplicitAPI):
                     # {"message":"Minimum amount 15 USDT","state":1}
                     # {"message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1}
                 },
-                'broad': {},
+                'broad': {
+                    'Market ': BadSymbol,  # {"code":1,"message":"Market NOPE_USDT doesn't exist."}
+                },
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
@@ -286,7 +287,7 @@ class cryptomus(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for the exchange
 
-        https://doc.cryptomus.com/personal/market-cap/tickers
+        https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -333,8 +334,8 @@ class cryptomus(Exchange, ImplicitAPI):
         if marketId is None:
             raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('_')
-        baseId = parts[0]
-        quoteId = parts[1]
+        baseId = self.safe_string(parts, 0)
+        quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
@@ -429,7 +430,7 @@ class cryptomus(Exchange, ImplicitAPI):
         groupedArray = list(groupedById.values())
         return self.parse_currencies(groupedArray)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: list) -> CurrencyInterface:
         # currency here is array of networks
         id = None  # all entries have same id, as they were grouped by
         code = None
@@ -470,50 +471,40 @@ class cryptomus(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
-        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://doc.cryptomus.com/personal/market-cap/tickers
+        https://doc.cryptomus.com/methods/exchange/get-current-market-price
 
-        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             await self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols)
-        response = await self.publicGetV1ExchangeMarketTickers(params)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetV2UserApiExchangeMarketsPrice(self.extend(request, params))
         #
         #     {
-        #         "data": [
-        #         {
-        #             "currency_pair": "MATIC_USDT",
-        #             "last_price": "0.342",
-        #             "base_volume": "1676.84092771",
-        #             "quote_volume": "573.48033609043"
-        #         },
-        #         ...
+        #         "price": "78450.4"
         #     }
         #
-        data = self.safe_list(response, 'data')
-        return self.parse_tickers(data, symbolsNormalized)
+        return self.parse_ticker(response, market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
-        #         "currency_pair": "XMR_USDT",
-        #         "last_price": "158.04829772",
-        #         "base_volume": "0.35185785",
-        #         "quote_volume": "55.523761128544"
+        #         "price": "78450.4"
         #     }
         #
-        marketId = self.safe_string(ticker, 'currency_pair')
-        marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
-        last = self.safe_string(ticker, 'last_price')
+        marketResolved = self.safe_market(None, market)
+        last = self.safe_string(ticker, 'price')
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': None,
             'datetime': None,
             'high': None,
@@ -530,8 +521,8 @@ class cryptomus(Exchange, ImplicitAPI):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'base_volume'),
-            'quoteVolume': self.safe_string(ticker, 'quote_volume'),
+            'baseVolume': None,
+            'quoteVolume': None,
             'info': ticker,
         }, marketResolved)
 
@@ -675,9 +666,9 @@ class cryptomus(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_list(response, 'result', [])
-        return self.parse_balance(result)
+        return self.parse_balance_list(result)
 
-    def parse_balance(self, balance: object) -> Balances:
+    def parse_balance_list(self, balance: list[dict]) -> Balances:
         #
         #     {
         #         "ticker": "AVAX",
@@ -731,7 +722,8 @@ class cryptomus(Exchange, ImplicitAPI):
         sideBuy = side == 'buy'
         amountToString = self.number_to_string(amount)
         priceToString = self.number_to_string(price)
-        costParam, paramsCost = self.handle_param_string(paramsOmitted, 'cost')
+        paramsCost = self.omit(paramsOmitted, 'cost')
+        costParam = self.safe_string(paramsOmitted, 'cost')
         cost = costParam
         response: dict
         if type == 'market':
@@ -742,12 +734,12 @@ class cryptomus(Exchange, ImplicitAPI):
             if sideBuy:
                 createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0]
                 if createMarketBuyOrderRequiresPrice:
-                    if (price is None) and (cost is None):
+                    if (price is None) and (costParam is None):
                         raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to False and pass the cost to spend in the amount argument')
-                    elif cost is None:
+                    elif costParam is None:
                         cost = Precise.string_mul(amountToString, priceToString)
                 else:
-                    cost = cost if (cost is not None and cost != '') else amountToString
+                    cost = costParam if (costParam is not None and costParam != '') else amountToString
                 request['value'] = cost
             else:
                 request['quantity'] = amountToString
@@ -859,8 +851,7 @@ class cryptomus(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         orders = []
         for i in range(0, len(result)):
-            order = result[i]
-            orders.append(self.parse_order(order, market))
+            orders.append(self.parse_order(result[i], market))
         return orders
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -1163,19 +1154,20 @@ class cryptomus(Exchange, ImplicitAPI):
                 url += '?' + query
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
-        if 'code' in response:
-            code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'message')
+        if codeError is not None:
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)
-        elif 'message' in response:
+        elif message is not None:
             #
             #      {"message":"Minimum amount 15 USDT","state":1}
             #
-            message = self.safe_string(response, 'message')
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
