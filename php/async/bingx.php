@@ -647,6 +647,7 @@ class bingx extends Exchange {
                     '100490' => '\\ccxt\\BadSymbol', // spot trading pair is offline
                     '101481' => '\\ccxt\\DuplicateOrderId',
                     '109201' => '\\ccxt\\DuplicateOrderId',
+                    '104414' => '\\ccxt\\BadRequest', // {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400' => '\\ccxt\\BadRequest', // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418' => '\\ccxt\\BadSymbol', // trading pair is offline and cannot be ordered through the api
                     '109421' => '\\ccxt\\OrderNotFound',

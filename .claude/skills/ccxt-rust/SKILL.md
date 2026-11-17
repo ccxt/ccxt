@@ -903,7 +903,7 @@ Typed signatures cover the unified API. Three ways down to the dynamic `Value` l
 
 ```rust
 let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
-let info = ccxt::get_value(&ticker.raw, &ccxt::Value::Str("info".to_string()));
+let info = ccxt::get_value(&ticker.raw, &ccxt::Value::Str("info".into()));
 let count = ccxt::safe_string(&info, "count", None);
 ```
 
@@ -1186,7 +1186,7 @@ Err(e) if e.is("InvalidOrder")  => ...,
 let value = ticker.last * amount;
 
 // Correct — decide what a missing price means
-let Some(last) = ticker.last else { return Err(...) };
+let Some(last) = ticker.last else { return Err(ccxt::ExchangeError::new("BadResponse", "ticker has no last price")) };
 let value = last * amount;
 ```
 

@@ -3741,6 +3741,7 @@ impl Bingx {
         m.insert("100490".to_string(), Value::Str("BadSymbol".into()));
         m.insert("101481".to_string(), Value::Str("DuplicateOrderId".into()));
         m.insert("109201".to_string(), Value::Str("DuplicateOrderId".into()));
+        m.insert("104414".to_string(), Value::Str("BadRequest".into()));
         m.insert("109400".to_string(), Value::Str("BadRequest".into()));
         m.insert("109418".to_string(), Value::Str("BadSymbol".into()));
         m.insert("109421".to_string(), Value::Str("OrderNotFound".into()));

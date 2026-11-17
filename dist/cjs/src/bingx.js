@@ -641,6 +641,7 @@ class bingx extends bingx$1["default"] {
                     '100490': errors.BadSymbol, // spot trading pair is offline
                     '101481': errors.DuplicateOrderId,
                     '109201': errors.DuplicateOrderId,
+                    '104414': errors.BadRequest, // {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400': errors.BadRequest, // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418': errors.BadSymbol, // trading pair is offline and cannot be ordered through the api
                     '109421': errors.OrderNotFound,

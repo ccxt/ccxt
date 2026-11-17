@@ -1034,6 +1034,7 @@ public partial class bingx : Exchange
                     { "100490", typeof(BadSymbol) },
                     { "101481", typeof(DuplicateOrderId) },
                     { "109201", typeof(DuplicateOrderId) },
+                    { "104414", typeof(BadRequest) },
                     { "109400", typeof(BadRequest) },
                     { "109418", typeof(BadSymbol) },
                     { "109421", typeof(OrderNotFound) },
