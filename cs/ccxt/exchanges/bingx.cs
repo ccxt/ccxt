@@ -2097,7 +2097,7 @@ public partial class bingx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4022,7 +4022,7 @@ public partial class bingx : Exchange
      * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4035,7 +4035,7 @@ public partial class bingx : Exchange
         {
             throw new NotSupported ((this.id + " createOrder() only supports test orders for linear swap markets")) ;
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "test"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "test");
         Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         object response = null;
         if ((this.safeBool(market, "swap", false) == true))
@@ -4173,7 +4173,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7331,8 +7331,8 @@ public partial class bingx : Exchange
         object result = null;
         for (int i = 0; i < rawKeysLength; i++)
         {
-            object key = (rawKeys != null && i < rawKeys.Count ? rawKeys[i] : null);
-            object value = (sortedParams != null && key != null && sortedParams.ContainsKey((string)key) ? sortedParams[(string)key] : null);
+            string key = ((string)(rawKeys != null && i < rawKeys.Count ? rawKeys[i] : null));
+            object value = (sortedParams != null && key != null && sortedParams.ContainsKey(key) ? sortedParams[key] : null);
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 object arrStr = null;
@@ -7365,10 +7365,10 @@ public partial class bingx : Exchange
             }
             if ((i == 0))
             {
-                result = ((object)(key == null ? null : key + "=" + (string)(object)(value)));
+                result = ((key + "=") + (value));
             } else
             {
-                result = ((object)(result == null ? null : result + (string)(object)(((("&" + (key)) + "=") + (value)))));
+                result = ((object)(result == null ? null : result + (string)(object)(((("&" + key) + "=") + (value)))));
             }
         }
         return ((string?)((object)(result)));

@@ -5620,7 +5620,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " fetchContractTickers() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.OrderBooks> FetchOrderBooks(IList<object> symbols = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.OrderBooks> FetchOrderBooks(IList<object> symbols = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchOrderBooks() is not supported yet")) ;
@@ -5703,7 +5703,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual object setTakeProfitAndStopLossParams(string? symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> setTakeProfitAndStopLossParams(string? symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (((takeProfit == null)) && ((stopLoss == null)))
@@ -5768,13 +5768,13 @@ public partial class BaseExchange
         return paramsOmitted;
     }
 
-    public async virtual Task<List<ccxt.Order>> CreateSpotOrders(IList<object> orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CreateSpotOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " createSpotOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CreateContractOrders(IList<object> orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CreateContractOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " createContractOrders() is not supported yet")) ;
@@ -6905,7 +6905,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual string? handleTimeInForce(object parameters = null)
+    public virtual string? handleTimeInForce(IDictionary<string, object> parameters = null)
     {
         /**
         * @ignore

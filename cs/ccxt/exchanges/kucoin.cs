@@ -4412,7 +4412,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false, the uta orderbook endpoint is public
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4598,7 +4598,7 @@ public partial class kucoin : Exchange
      * Check createSpotOrder(), createContractOrder() and createUtaOrder () for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4669,7 +4669,7 @@ public partial class kucoin : Exchange
      * @param {bool} [params.sync] set to true to use the hf sync call
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4678,7 +4678,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? testOrder = this.safeBool(parameters, "test", false);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "test"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "test");
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(paramsOmitted);
         bool? hf = (bool?)hfparamsHfVariable[0];
         IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
@@ -4743,7 +4743,7 @@ public partial class kucoin : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -4757,7 +4757,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         // required param, cannot be used twice
         string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId", this.uuid());
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
+        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "clientOid", clientOrderId },
             { "side", side },
@@ -4770,7 +4770,7 @@ public partial class kucoin : Exchange
         string? marginMode = null;
         (string?, object) marginModeparamsOmittedVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted);
         marginMode = marginModeparamsOmittedVariable.Item1;
-        paramsOmitted = marginModeparamsOmittedVariable.Item2;
+        paramsOmitted = (IDictionary<string, object>)marginModeparamsOmittedVariable.Item2;
         if ((type == "market"))
         {
             if ((quoteAmount != null))
@@ -4833,7 +4833,7 @@ public partial class kucoin : Exchange
         bool? postOnly = null;
         IList<object> postOnlyparamsOmittedVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsOmitted);
         postOnly = (bool?)postOnlyparamsOmittedVariable[0];
-        paramsOmitted = postOnlyparamsOmittedVariable[1];
+        paramsOmitted = (IDictionary<string, object>)postOnlyparamsOmittedVariable[1];
         if ((postOnly == true))
         {
             request["postOnly"] = true;
@@ -4891,7 +4891,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4900,7 +4900,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? testOrder = this.safeBool(parameters, "test", false);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "test"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "test");
         bool hasTpOrSlOrder = ((this.safeDict(paramsOmitted, "stopLoss") != null)) || ((this.safeDict(paramsOmitted, "takeProfit") != null));
         Dictionary<string, object> orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         Dictionary<string, object> response = null;
@@ -4943,7 +4943,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         // required param, cannot be used twice
         string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId", this.uuid());
-        IDictionary<string, object> paramsOmitted2 = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"}));
+        Dictionary<string, object> paramsOmitted2 = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "clientOid", clientOrderId },
             { "side", side },
@@ -5430,7 +5430,7 @@ public partial class kucoin : Exchange
      * Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5485,7 +5485,7 @@ public partial class kucoin : Exchange
      * @param {bool} [params.sync] false, // true to use the hf sync call
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateSpotOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateSpotOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5594,7 +5594,7 @@ public partial class kucoin : Exchange
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateContractOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateContractOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -12497,12 +12497,12 @@ public partial class kucoin : Exchange
         uta = utaparamsRequestVariable.Item1;
         paramsRequest = (IDictionary<string, object>)utaparamsRequestVariable.Item2;
         IDictionary<string, object> market = null;
-        object isContractMarket = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
+        bool? isContractMarket = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
         if ((symbol != null))
         {
             market = this.market(symbol);
-            isContractMarket = (market.ContainsKey("contract") ? market["contract"] : null);
-            if (!(isContractMarket is true))
+            isContractMarket = ((bool?)(market.ContainsKey("contract") ? market["contract"] : null));
+            if ((isContractMarket != true))
             {
                 if (uta != true)
                 {

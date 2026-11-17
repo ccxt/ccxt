@@ -1275,7 +1275,7 @@ public partial class deribit : Exchange
                 Int64? expiry = this.safeInteger(market, "expiration_timestamp");
                 double? strike = null;
                 string? optionType = null;
-                object symbol = id;
+                string? symbol = id;
                 string type = "swap";
                 if (future)
                 {
@@ -1297,13 +1297,13 @@ public partial class deribit : Exchange
                     symbol = ((((bs + "/") + quote) + ":") + settle);
                     if (option || future)
                     {
-                        symbol = ((object)(symbol == null ? null : symbol + "-" + (string)(object)(this.yymmdd(expiry, ""))));
+                        symbol = (symbol == null ? null : symbol + "-" + (string)(object)(this.yymmdd(expiry, "")));
                         if (option)
                         {
                             strike = this.safeNumber(market, "strike");
                             optionType = this.safeString(market, "option_type");
                             string letter = (optionType == "call") ? "C" : "P";
-                            symbol = ((object)(symbol == null ? null : symbol + "-" + this.numberToString(strike) + "-" + letter));
+                            symbol = (symbol == null ? null : symbol + "-" + this.numberToString(strike) + "-" + letter);
                         }
                     }
                     inverse = ((quote != settle));
@@ -2204,7 +2204,7 @@ public partial class deribit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2478,7 +2478,7 @@ public partial class deribit : Exchange
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2581,7 +2581,7 @@ public partial class deribit : Exchange
                 request["time_in_force"] = "fill_or_kill";
             }
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"});
         Dictionary<string, object> response = null;
         if ((this.capitalize(side) == "Buy"))
         {

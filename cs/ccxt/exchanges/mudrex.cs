@@ -831,7 +831,7 @@ public partial class mudrex : Exchange
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -850,7 +850,7 @@ public partial class mudrex : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
             }
-            IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "positionId", "position_id"}));
+            Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "positionId", "position_id"});
             Dictionary<string, object> riskRequest = new Dictionary<string, object>() {
                 { "position_id", positionId },
             };
@@ -896,7 +896,7 @@ public partial class mudrex : Exchange
             request["is_stoploss"] = true;
             request["stoploss_price"] = this.priceToPrecision(symbol, this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "price"}));
         }
-        IDictionary<string, object> orderParams = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "takeProfit", "stopLoss"}));
+        Dictionary<string, object> orderParams = this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "takeProfit", "stopLoss"});
         Dictionary<string, object> response = await this.privatePostFuturesAssetIdOrder(this.extend(request, orderParams));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info

@@ -874,7 +874,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
@@ -1167,7 +1167,7 @@ public partial class opinion : PredictionExchange
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiKey();
@@ -1202,7 +1202,7 @@ public partial class opinion : PredictionExchange
         int sideInt = (sideStr == "BUY") ? 0 : 1;
         string? salt = this.numberToString(this.milliseconds());
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
-        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"postOnly"}));
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"postOnly"});
         string? maker = await this.loadMultiSignAddress();
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong

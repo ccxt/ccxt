@@ -864,7 +864,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1197,10 +1197,10 @@ public partial class bithumb : Exchange
                 {
                     expectedMarketId = firstMarketId;
                 }
-                object tickers = new List<object>() {};
+                List<object> tickers = new List<object>() {};
                 if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
-                    tickers = response;
+                    tickers = ((List<object>)response);
                 } else if (this.isDictionary(response))
                 {
                     if ((inOp(response, "market")) || (inOp(response, "trade_date")) || (inOp(response, "trade_timestamp")))
@@ -1221,9 +1221,9 @@ public partial class bithumb : Exchange
                         }
                     }
                 }
-                for (int j = 0; j < getArrayLength(tickers); j++)
+                for (int j = 0; j < (tickers?.Count ?? 0); j++)
                 {
-                    object entry = getValue(tickers, j);
+                    object entry = tickers[j];
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
                     if ((marketId == null))
                     {
@@ -1817,7 +1817,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2007,7 +2007,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

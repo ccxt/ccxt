@@ -2006,7 +2006,7 @@ public partial class xt : Exchange
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3106,7 +3106,7 @@ public partial class xt : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', for trailing orders only, default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3117,7 +3117,7 @@ public partial class xt : Exchange
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((this.safeBool(market, "spot", false) == true))
         {
-            bool isTrailing = (((IDictionary<string, object>)parameters).ContainsKey("trailingPercent")) || (((IDictionary<string, object>)parameters).ContainsKey("trailingAmount")) || (((IDictionary<string, object>)parameters).ContainsKey("trailingTriggerPrice"));
+            bool isTrailing = (parameters.ContainsKey("trailingPercent")) || (parameters.ContainsKey("trailingAmount")) || (parameters.ContainsKey("trailingTriggerPrice"));
             if (isTrailing)
             {
                 throw new NotSupported ((this.id + " createOrder() trailing orders are only supported on swap markets")) ;
@@ -3129,7 +3129,7 @@ public partial class xt : Exchange
         }
     }
 
-    public async virtual Task<ccxt.Order> CreateSpotOrder(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(object symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((side == null))
@@ -3227,7 +3227,7 @@ public partial class xt : Exchange
         return this.parseOrder(order, market);
     }
 
-    public async virtual Task<ccxt.Order> CreateContractOrder(object symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateContractOrder(object symbol, string? type, string? side, object amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

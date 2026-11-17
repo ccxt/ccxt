@@ -744,7 +744,7 @@ public partial class upbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public async override Task<ccxt.OrderBooks> FetchOrderBooks(IList<object> symbols = null, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBooks> FetchOrderBooks(IList<object> symbols = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -830,7 +830,7 @@ public partial class upbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> orderbooks = ccxt.BaseExchange.FromOrderBooks(await this.FetchOrderBooks(new List<object>() {symbol}, limit, parameters));
@@ -1361,7 +1361,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
-    public virtual string? calcOrderPrice(string? symbol, double? amount = null, double? price = null, object parameters = null)
+    public virtual string? calcOrderPrice(string? symbol, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? quoteAmount = null;
@@ -1416,7 +1416,7 @@ public partial class upbit : Exchange
      * @param {boolean} [params.test] If test is true, testOrder will be executed. It allows you to validate the request without creating an actual order. Default is false.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1478,7 +1478,7 @@ public partial class upbit : Exchange
         {
             throw new InvalidOrder ((this.id + " createOrder() supports only limit or market types in the type argument.")) ;
         }
-        IDictionary<string, object> paramsOrdType = ((IDictionary<string, object>)((customType == "best") ? this.omit(parameters, new List<object>() {"ordType", "ord_type"}) : parameters));
+        IDictionary<string, object> paramsOrdType = (customType == "best") ? this.omit(parameters, new List<object>() {"ordType", "ord_type"}) : parameters;
         if (customType == "best")
         {
             request["ord_type"] = "best";

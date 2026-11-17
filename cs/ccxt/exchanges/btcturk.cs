@@ -502,7 +502,7 @@ public partial class btcturk : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -922,7 +922,7 @@ public partial class btcturk : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -940,10 +940,10 @@ public partial class btcturk : Exchange
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
-        if (((IDictionary<string, object>)parameters).ContainsKey("clientOrderId"))
+        if (parameters.ContainsKey("clientOrderId"))
         {
-            request["newClientOrderId"] = ((IDictionary<string,object>)parameters)["clientOrderId"];
-        } else if (!(((IDictionary<string, object>)parameters).ContainsKey("newClientOrderId")))
+            request["newClientOrderId"] = parameters["clientOrderId"];
+        } else if (!(parameters.ContainsKey("newClientOrderId")))
         {
             request["newClientOrderId"] = this.uuid();
         }

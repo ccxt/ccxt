@@ -440,8 +440,8 @@ public partial class kalshi : PredictionExchange
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
-                        object entryMarkets = (eventEntry != null && eventEntry.ContainsKey("markets") ? eventEntry["markets"] : null);
-                        ((IList<object>)entryMarkets).Add(m);
+                        IList<object> entryMarkets = ((IList<object>)(eventEntry != null && eventEntry.ContainsKey("markets") ? eventEntry["markets"] : null));
+                        entryMarkets.Add(m);
                         eventEntry["markets"] = entryMarkets;
                     }
                 }
@@ -1233,7 +1233,7 @@ public partial class kalshi : PredictionExchange
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             List<object> grouped = this.safeList(outcomesByTicker, ticker, new List<object>() {});
-            ((IList<object>)grouped).Add(outcomeObj);
+            grouped.Add(outcomeObj);
             outcomesByTicker[(string)ticker] = grouped;
         }
         Int64? chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
@@ -1265,10 +1265,10 @@ public partial class kalshi : PredictionExchange
                 {
                     continue;
                 }
-                object grouped = (outcomesByTicker.ContainsKey(marketTicker) ? outcomesByTicker[marketTicker] : null);
-                for (int j = 0; j < getArrayLength(grouped); j++)
+                List<object> grouped = ((List<object>)((outcomesByTicker.ContainsKey(marketTicker) ? outcomesByTicker[marketTicker] : null)));
+                for (int j = 0; j < (grouped?.Count ?? 0); j++)
                 {
-                    Dictionary<string, object> ticker = this.parsePredictionTicker(raw, getValue(grouped, j));
+                    Dictionary<string, object> ticker = this.parsePredictionTicker(raw, grouped[j]);
                     string? symbolKey = this.safeString(ticker, "outcome");
                     if ((symbolKey != null))
                     {
@@ -1290,7 +1290,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -2333,7 +2333,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         // kalshi has no market orders — every order is a limit order and the price is required
         parameters ??= new Dictionary<string, object>();
@@ -2363,7 +2363,7 @@ public partial class kalshi : PredictionExchange
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         string? unifiedTif = this.safeStringUpper(parameters, "timeInForce");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "timeInForce"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "timeInForce");
         string defaultTif = "good_till_canceled";
         if (isMarket)
         {

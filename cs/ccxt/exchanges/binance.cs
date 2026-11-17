@@ -6037,7 +6037,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6059,7 +6059,7 @@ public partial class binance : Exchange
         } else if ((this.safeBool(market, "linear", false) == true))
         {
             bool? rpi = this.safeBool(parameters, "rpi", false);
-            IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "rpi"));
+            Dictionary<string, object> paramsOmitted = this.omit(parameters, "rpi");
             if ((rpi == true))
             {
                 // rpi limit only supports 1000
@@ -8766,7 +8766,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8899,7 +8899,7 @@ public partial class binance : Exchange
      * @param {string} [params.tradingSession] *stock only* required for limit orders, RTH, EXTENDED or 24H, default is 24H
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8924,7 +8924,7 @@ public partial class binance : Exchange
         bool? sor = this.safeBool2(parameters, "sor", "SOR", false);
         bool? test = this.safeBool(parameters, "test", false);
         bool? stock = this.safeBool(market, "stock", false);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"sor", "SOR", "test"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"sor", "SOR", "test"});
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
         // }
@@ -9207,7 +9207,7 @@ public partial class binance : Exchange
      * @param {object} [params] the params passed to createOrder
      * @returns {boolean} true if the order is conditional
      */
-    public virtual bool isConditionalOrder(object parameters = null)
+    public virtual bool isConditionalOrder(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> conditionalKeys = new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "trailingPercent", "callbackRate", "trailingDelta"};
@@ -13295,8 +13295,8 @@ public partial class binance : Exchange
             double? taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
             for (int i = 0; i < symbols.Count; i++)
             {
-                object symbol = symbols[i];
-                object market = (markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null);
+                string? symbol = ((string)symbols[i]);
+                object market = (markets != null && symbol != null && markets.ContainsKey(symbol) ? markets[symbol] : null);
                 if ((this.safeBool(market, "linear", false) == true))
                 {
                     linearFees[(string)symbol] = new Dictionary<string, object>() {
@@ -13334,8 +13334,8 @@ public partial class binance : Exchange
             double? taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
             for (int i = 0; i < symbols.Count; i++)
             {
-                object symbol = symbols[i];
-                object market = (markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null);
+                string? symbol = ((string)symbols[i]);
+                object market = (markets != null && symbol != null && markets.ContainsKey(symbol) ? markets[symbol] : null);
                 if ((this.safeBool(market, "inverse", false) == true))
                 {
                     inverseFees[(string)symbol] = new Dictionary<string, object>() {

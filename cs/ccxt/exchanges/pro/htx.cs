@@ -1057,12 +1057,12 @@ public partial class htx : ccxt.htx
         {
             marketCode = this.safeStringLower(market, "lowercaseId");
         }
-        object baseId = null;
+        string? baseId = null;
         if ((market != null))
         {
-            baseId = (market != null && market.ContainsKey("baseId") ? market["baseId"] : null);
+            baseId = ((string)(market != null && market.ContainsKey("baseId") ? market["baseId"] : null));
         }
-        object prefix = orderType;
+        string? prefix = orderType;
         messageHash = prefix;
         if ((subType == "linear"))
         {
@@ -1071,7 +1071,7 @@ public partial class htx : ccxt.htx
             object marginPrefix = prefix;
             if (marginMode == "cross")
             {
-                marginPrefix = ((object)(prefix == null ? null : prefix + "_cross"));
+                marginPrefix = (prefix == null ? null : prefix + "_cross");
             }
             messageHash = marginPrefix;
             if ((marketCode != null))
@@ -1087,22 +1087,22 @@ public partial class htx : ccxt.htx
             // inverse futures Example: BCH/USD:BCH-220408
             if ((baseId != null))
             {
-                channel = ((object)(prefix == null ? null : prefix + "." + ((string)baseId).ToLower()));
+                channel = (prefix == null ? null : prefix + "." + baseId.ToLower());
                 messageHash = channel;
             } else
             {
-                channel = ((object)(prefix == null ? null : prefix + "." + "*"));
+                channel = (prefix == null ? null : prefix + "." + "*");
             }
         } else
         {
             // inverse swaps: Example: BTC/USD:BTC
             if ((marketCode != null))
             {
-                channel = ((object)(prefix == null ? null : prefix + "." + marketCode));
+                channel = (prefix == null ? null : prefix + "." + marketCode);
                 messageHash = channel;
             } else
             {
-                channel = ((object)(prefix == null ? null : prefix + "." + "*"));
+                channel = (prefix == null ? null : prefix + "." + "*");
             }
         }
         return new List<object>() {channel, messageHash};
@@ -1111,19 +1111,19 @@ public partial class htx : ccxt.htx
     public virtual List<object> getV5LinearChannelAndMessageHash(string? topic, IDictionary<string, object>? market = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object contractCode = null;
+        string? contractCode = null;
         if ((market != null))
         {
-            contractCode = (market != null && market.ContainsKey("id") ? market["id"] : null);
+            contractCode = ((string)(market != null && market.ContainsKey("id") ? market["id"] : null));
         } else
         {
             contractCode = this.safeString(parameters, "contract_code", "*");
         }
         string channel = topic;
         string messageHash = topic;
-        if (((contractCode != null)) && (!(contractCode is "*")))
+        if (((contractCode != null)) && (contractCode != "*"))
         {
-            messageHash = ((topic + ".") + ((string)contractCode).ToLower());
+            messageHash = ((topic + ".") + contractCode.ToLower());
         }
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "contract_code");
         Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {
@@ -1994,8 +1994,8 @@ public partial class htx : ccxt.htx
             List<object> messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
             for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
             {
-                object messageHash = messageHashes[j];
-                List<object> parts = ((string)messageHash).Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
+                string? messageHash = ((string)messageHashes[j]);
+                List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
                 string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
                 List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
                 IList<object> positions = ((IList<object>)this.filterByArray(marginModePositions, "symbol", symbols, false));

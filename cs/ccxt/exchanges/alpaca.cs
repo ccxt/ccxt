@@ -896,7 +896,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1363,7 +1363,7 @@ public partial class alpaca : Exchange
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1403,7 +1403,7 @@ public partial class alpaca : Exchange
         {
             request["qty"] = this.amountToPrecision(symbol, amount);
         }
-        IDictionary<string, object> paramsCost = ((IDictionary<string, object>)(((cost != null)) ? this.omit(parameters, "cost") : parameters));
+        IDictionary<string, object> paramsCost = ((cost != null)) ? this.omit(parameters, "cost") : parameters;
         (string?, object) defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce");
         string? defaultTIF = defaultTIFparamsTimeInForceVariable.Item1;
         IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)defaultTIFparamsTimeInForceVariable.Item2);

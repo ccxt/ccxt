@@ -970,7 +970,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1486,7 +1486,7 @@ public partial class apex : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1542,7 +1542,7 @@ public partial class apex : Exchange
                 timeInForce = "IMMEDIATE_OR_CANCEL";
             }
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "timeInForce"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "timeInForce");
         Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, "postOnly");
         string? clientOrderId = this.safeStringN(paramsOmitted2, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
         string? accountId = await this.getAccountId();

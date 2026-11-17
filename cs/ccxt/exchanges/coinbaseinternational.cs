@@ -826,7 +826,7 @@ public partial class coinbaseinternational : Exchange
         {
             type = "option";
         }
-        object symbol = instrumentName;
+        string? symbol = instrumentName;
         if (!isComboMarket && ((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
@@ -849,7 +849,7 @@ public partial class coinbaseinternational : Exchange
         if (!isComboMarket && (isOption || isFuture))
         {
             string? expiryString = this.yymmdd(expiry, "");
-            symbol = ((object)(symbol == null ? null : symbol + "-" + expiryString));
+            symbol = (symbol == null ? null : symbol + "-" + expiryString);
         }
         if (!isComboMarket && isOption)
         {
@@ -859,7 +859,7 @@ public partial class coinbaseinternational : Exchange
                 optionTypeLetter = "C";
             }
             string? strikeString = this.numberToString(strike);
-            symbol = ((object)(symbol == null ? null : symbol + "-" + strikeString + "-" + optionTypeLetter));
+            symbol = (symbol == null ? null : symbol + "-" + strikeString + "-" + optionTypeLetter);
         }
         Dictionary<string, object> marketStructure = new Dictionary<string, object>() {
             { "id", instrumentName },
@@ -1477,7 +1477,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOrderBook", parameters);
@@ -1858,15 +1858,15 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object summaries = new List<object>() {response};
+        List<object> summaries = new List<object>() {response};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            summaries = response;
+            summaries = ((List<object>)response);
         } else if (this.isNativeDeribitCredentials())
         {
             summaries = this.safeList(response, "summaries", new List<object>() {response});
         }
-        for (int i = 0; i < getArrayLength(summaries); i++)
+        for (int i = 0; i < (summaries?.Count ?? 0); i++)
         {
             IDictionary<string, object> data = this.safeDict(summaries, i);
             string? currencyId = this.safeString(data, "currency");
@@ -2518,7 +2518,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("createOrder", parameters);

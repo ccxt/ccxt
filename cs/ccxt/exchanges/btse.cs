@@ -1001,7 +1001,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2059,7 +2059,7 @@ public partial class btse : Exchange
      * @param {string} [params.stopLoss.priceType] *contract markets only* 'markPrice' or 'lastPrice', default is 'markPrice'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2100,7 +2100,7 @@ public partial class btse : Exchange
      * @param {float} [params.stopPrice] *NB - It is NOT stopLossPrice or triggerPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2116,14 +2116,14 @@ public partial class btse : Exchange
         {
             request["clOrderId"] = clientOrderId;
         }
-        object query = this.omit(parameters, "clientOrderId");
+        IDictionary<string, object> query = this.omit(parameters, "clientOrderId");
         bool isMarketOrder = (typeValue == "MARKET");
         bool isLimitOrder = (typeValue == "LIMIT");
         bool? postOnly = false;
         // exchange-specific postOnly is the same as the unified one
         IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, query);
         postOnly = (bool?)postOnlyqueryVariable[0];
-        query = postOnlyqueryVariable[1]; // this will remove PO from params.timeInForce if present
+        query = (IDictionary<string, object>)postOnlyqueryVariable[1]; // this will remove PO from params.timeInForce if present
         if ((postOnly == true))
         {
             request["postOnly"] = true;
@@ -2157,7 +2157,7 @@ public partial class btse : Exchange
             bool? createMarketBuyOrderRequiresPrice = true;
             (bool?, object) createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.Item1;
-            query = createMarketBuyOrderRequiresPricequeryVariable.Item2;
+            query = (IDictionary<string, object>)createMarketBuyOrderRequiresPricequeryVariable.Item2;
             string? cost = this.safeString(query, "cost");
             query = this.omit(query, "cost");
             if ((cost != null))
@@ -2343,7 +2343,7 @@ public partial class btse : Exchange
      * @param {float} [params.stopPrice] *NB - It is NOT the stopLossPrice!!! OCO orders only* the limit price of the stop loss leg
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2359,7 +2359,7 @@ public partial class btse : Exchange
         {
             request["clOrderId"] = clientOrderId;
         }
-        object query = this.omit(parameters, "clientOrderId");
+        IDictionary<string, object> query = this.omit(parameters, "clientOrderId");
         // handle positionMode
         string? positionMode = this.safeString(query, "positionMode");
         // if positionMode is provided, we will get it from params and send it as is
@@ -2368,11 +2368,11 @@ public partial class btse : Exchange
             bool? hedged = false;
             (bool?, object) hedgedqueryVariable = this.handleOptionBoolAndParams(query, "createOrder", "hedged", hedged);
             hedged = hedgedqueryVariable.Item1;
-            query = hedgedqueryVariable.Item2;
+            query = (IDictionary<string, object>)hedgedqueryVariable.Item2;
             string? marginMode = "cross";
             (string?, object) marginModequeryVariable = this.handleOptionStringAndParams(query, "createOrder", "marginMode", marginMode);
             marginMode = marginModequeryVariable.Item1;
-            query = marginModequeryVariable.Item2;
+            query = (IDictionary<string, object>)marginModequeryVariable.Item2;
             if (marginMode == "isolated")
             {
                 if ((hedged == true))
@@ -2391,7 +2391,7 @@ public partial class btse : Exchange
         // exchange-specific postOnly is the same as the unified one
         IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, query);
         postOnly = (bool?)postOnlyqueryVariable[0];
-        query = postOnlyqueryVariable[1]; // this will remove PO from params.timeInForce if present
+        query = (IDictionary<string, object>)postOnlyqueryVariable[1]; // this will remove PO from params.timeInForce if present
         if ((postOnly == true))
         {
             request["postOnly"] = true;
@@ -4116,15 +4116,15 @@ public partial class btse : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), legacyMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
-        object rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = response;
+            rows = ((List<object>)response);
         } else
         {
             rows = new List<object>() {response};
         }
-        for (int i = 0; i < getArrayLength(rows); i++)
+        for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             IDictionary<string, object> row = this.safeDict(rows, i);
             string? status = this.safeString(row, "status");

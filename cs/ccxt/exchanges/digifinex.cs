@@ -1162,7 +1162,7 @@ public partial class digifinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1956,7 +1956,7 @@ public partial class digifinex : Exchange
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2019,7 +2019,7 @@ public partial class digifinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5085,8 +5085,8 @@ public partial class digifinex : Exchange
                     depositWithdrawFees[(string)code] = feeStructure;
                 }
                 IDictionary<string, object> depositWithdrawFee = ((IDictionary<string, object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null));
-                object depositWithdrawInfo = (depositWithdrawFee != null && depositWithdrawFee.ContainsKey("info") ? depositWithdrawFee["info"] : null);
-                ((IList<object>)depositWithdrawInfo).Add(entry);
+                IList<object> depositWithdrawInfo = ((IList<object>)(depositWithdrawFee != null && depositWithdrawFee.ContainsKey("info") ? depositWithdrawFee["info"] : null));
+                depositWithdrawInfo.Add(entry);
                 string? networkId = this.safeString(entry, "chain");
                 double? withdrawFee = this.safeNumber(entry, "min_withdraw_fee");
                 Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {

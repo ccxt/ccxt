@@ -1056,7 +1056,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1850,7 +1850,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1861,7 +1861,7 @@ public partial class lbank : Exchange
         string? clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        object paramsRequest = this.omit(parameters, new List<object>() {"custom_id", "clientOrderId", "timeInForce", "postOnly"});
+        IDictionary<string, object> paramsRequest = this.omit(parameters, new List<object>() {"custom_id", "clientOrderId", "timeInForce", "postOnly"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -1900,7 +1900,7 @@ public partial class lbank : Exchange
                 bool? createMarketBuyOrderRequiresPrice = true;
                 (bool?, object) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item1;
-                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
+                paramsRequest = (IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
                 double? cost = this.safeNumber(paramsRequest, "cost");
                 paramsRequest = this.omit(paramsRequest, "cost");
                 if ((cost != null))
@@ -1933,7 +1933,7 @@ public partial class lbank : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "createOrder", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "spotPrivatePostSupplementCreateOrder");
         string? method = this.safeString(paramsRequest, "method", defaultMethod);
-        object paramsOmitted = this.omit(paramsRequest, "method");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsRequest, "method");
         Dictionary<string, object> response = null;
         if (method == "spotPrivatePostCreateOrder")
         {

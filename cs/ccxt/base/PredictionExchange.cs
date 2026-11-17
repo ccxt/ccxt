@@ -1082,7 +1082,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async virtual Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchOrderBook() is not supported yet")) ;
@@ -1135,7 +1135,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " createOrder() is not supported yet")) ;
@@ -1346,7 +1346,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<List<ccxt.PredictionOrder>> CreateOrders(IList<object> orders, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " createOrders() is not supported yet")) ;

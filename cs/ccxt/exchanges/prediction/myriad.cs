@@ -946,14 +946,14 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.expiration] unix-seconds expiration for a GTD order
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         string? defaultModel = this.safeString(info, "tradingModel", "amm");
         string? tradingModel = this.safeStringLower(parameters, "tradingModel", defaultModel);
-        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"tradingModel"}));
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"tradingModel"});
         if (tradingModel == "ob")
         {
             return await this.CreateOrderbookOrder(outcome,type,side, amount, price, rest);
@@ -1130,7 +1130,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int ordersLength = orders?.Count ?? 0;
@@ -2842,7 +2842,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);

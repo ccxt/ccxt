@@ -452,7 +452,7 @@ public partial class blockchaincom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.FetchL2OrderBook(symbol, limit, parameters);
@@ -487,7 +487,7 @@ public partial class blockchaincom : Exchange
         return ccxt.BaseExchange.ToOrderBookL3(this.parseOrderBookL3(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "px", "qty", "num"));
     }
 
-    public async override Task<ccxt.OrderBook> FetchL2OrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchL2OrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -673,7 +673,7 @@ public partial class blockchaincom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -684,7 +684,7 @@ public partial class blockchaincom : Exchange
         string? orderType = this.safeString(parameters, "ordType", type);
         string uppercaseOrderType = orderType.ToUpper();
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
         this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ordType", uppercaseOrderType },

@@ -1193,7 +1193,7 @@ public partial class predictfun : PredictionExchange
         List<object> topicMarkets = this.safeList(rawTopic, "markets", new List<object>() {});
         int marketCount = topicMarkets.Count;
         string? symbolTitle = this.titleForMarketSymbol(topicSlug, title, marketCount);
-        string? marketSymbol = this.slugToMarketSymbol(topicSlug, symbolTitle);
+        string marketSymbol = this.slugToMarketSymbol(topicSlug, symbolTitle);
         string? tradingStatus = this.safeString(rawMarket, "tradingStatus");
         string? status = this.safeString(rawMarket, "status");
         bool active = (tradingStatus == "OPEN");
@@ -1223,7 +1223,7 @@ public partial class predictfun : PredictionExchange
             string? rawLabel = this.safeStringUpper(rawOutcome, "name");
             string? label = this.stripPriceFormatting(rawLabel);
             string? tokenId = this.safeString(rawOutcome, "onChainId");
-            string? outcomeHandle = ((string)(marketSymbol == null ? null : marketSymbol + ":" + label));
+            string outcomeHandle = ((marketSymbol + ":") + label);
             bool? winner = null;
             string? outcomeStatus = this.safeString(rawOutcome, "status");
             int? settleFractionRaw = null;
@@ -1335,7 +1335,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -2059,7 +2059,7 @@ public partial class predictfun : PredictionExchange
      * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();

@@ -609,7 +609,7 @@ public partial class cryptomus : Exchange
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -805,7 +805,7 @@ public partial class cryptomus : Exchange
      * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -819,7 +819,7 @@ public partial class cryptomus : Exchange
             { "tag", "ccxt" },
         };
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)(((clientOrderId != null)) ? this.omit(parameters, "clientOrderId") : parameters));
+        IDictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, "clientOrderId") : parameters;
         if ((clientOrderId != null))
         {
             request["client_order_id"] = clientOrderId;

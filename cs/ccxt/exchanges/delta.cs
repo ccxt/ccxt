@@ -1560,7 +1560,7 @@ public partial class delta : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2195,7 +2195,7 @@ public partial class delta : Exchange
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2212,7 +2212,7 @@ public partial class delta : Exchange
             request["limit_price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
         }
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
         if ((clientOrderId != null))
         {
             request["client_order_id"] = clientOrderId;
@@ -2222,7 +2222,7 @@ public partial class delta : Exchange
         {
             request["reduce_only"] = reduceOnly;
         }
-        IDictionary<string, object> paramsOmitted2 = ((reduceOnly == true)) ? this.omit(paramsOmitted, "reduceOnly") : paramsOmitted;
+        Dictionary<string, object> paramsOmitted2 = ((reduceOnly == true)) ? this.omit(paramsOmitted, "reduceOnly") : paramsOmitted;
         Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, paramsOmitted2));
         //
         //     {

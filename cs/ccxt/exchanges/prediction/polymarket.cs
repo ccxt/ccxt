@@ -1271,13 +1271,13 @@ public partial class polymarket : PredictionExchange
             Int64 startIndex = 0;
             while ((startIndex < tokenIdsLength))
             {
-                object endIndex = this.sum(startIndex, chunkSize);
-                if (isGreaterThan(endIndex, tokenIdsLength))
+                Int64 endIndex = this.sum(startIndex, chunkSize);
+                if (endIndex > tokenIdsLength)
                 {
                     endIndex = tokenIdsLength;
                 }
                 List<object> chunk = new List<object>() {};
-                for (Int64 i = startIndex; isLessThan(i, endIndex); i++)
+                for (Int64 i = startIndex; (i < endIndex); i++)
                 {
                     chunk.Add((tokenIds != null && i < tokenIds.Count ? tokenIds[(int)i] : null));
                 }
@@ -1425,13 +1425,13 @@ public partial class polymarket : PredictionExchange
         Int64 startIndex = 0;
         while ((startIndex < tokenIdsLength))
         {
-            object endIndex = this.sum(startIndex, chunkSize);
-            if (isGreaterThan(endIndex, tokenIdsLength))
+            Int64 endIndex = this.sum(startIndex, chunkSize);
+            if (endIndex > tokenIdsLength)
             {
                 endIndex = tokenIdsLength;
             }
             List<object> bookParams = new List<object>() {};
-            for (Int64 i = startIndex; isLessThan(i, endIndex); i++)
+            for (Int64 i = startIndex; (i < endIndex); i++)
             {
                 bookParams.Add(new Dictionary<string, object>() {
                     { "token_id", (tokenIds != null && i < tokenIds.Count ? tokenIds[(int)i] : null) },
@@ -1592,7 +1592,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
@@ -2414,7 +2414,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
@@ -2437,7 +2437,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
@@ -2501,7 +2501,7 @@ public partial class polymarket : PredictionExchange
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    public virtual Dictionary<string, object> buildClobOrderBody(string? outcome, string? type, string? side, double? amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> buildClobOrderBody(string? outcome, string? type, string? side, double? amount, object price = null, IDictionary<string, object> parameters = null)
     {
         // pure builder, no network I/O — intentionally synchronous. a no-op async method
         // transpiles in php to a promise-typed wrapper around a body that returns a plain
@@ -2571,7 +2571,7 @@ public partial class polymarket : PredictionExchange
         string? expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         double? cost = this.safeNumber(parameters, "cost");
-        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"}));
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"});
         Dictionary<string, object> amounts = this.polymarketOrderRawAmounts(sideStr, amount, priceResolved, tickSize, cost);
         string? makerAmount = this.safeString(amounts, "makerAmount");
         string? takerAmount = this.safeString(amounts, "takerAmount");

@@ -1194,8 +1194,8 @@ public partial class deribit : ccxt.deribit
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         var client = this.client(url);
         Int64 time = this.milliseconds();
-        string? timeString = this.numberToString(time);
-        string? nonce = timeString;
+        string timeString = this.numberToString(time);
+        string nonce = timeString;
         string messageHash = "authenticated";
         var future = this.safeValue(client.subscriptions, messageHash);
         if ((future == null))
@@ -1203,7 +1203,7 @@ public partial class deribit : ccxt.deribit
             this.checkRequiredCredentials();
             Int64 requestId = this.requestId();
             string lineBreak = "\n"; // eslint-disable-line quotes
-            string signature = this.hmac(this.encode((timeString == null ? null : timeString + lineBreak + nonce + lineBreak)), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode((((timeString + lineBreak) + nonce) + lineBreak)), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "jsonrpc", "2.0" },
                 { "id", requestId },

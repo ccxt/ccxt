@@ -1270,7 +1270,7 @@ public partial class bitrue : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2158,7 +2158,7 @@ public partial class bitrue : Exchange
      * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2258,7 +2258,7 @@ public partial class bitrue : Exchange
             {
                 request["newClientOrderId"] = clientOrderId;
             }
-            IDictionary<string, object> paramsNoClientOrderId = ((IDictionary<string, object>)(((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId"}) : parameters));
+            IDictionary<string, object> paramsNoClientOrderId = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId"}) : parameters;
             double? triggerPrice = this.safeNumber2(paramsNoClientOrderId, "triggerPrice", "stopPrice");
             if ((triggerPrice != null))
             {

@@ -115,7 +115,7 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public virtual List<object> orderRequestWs(string method, string? symbol, string? type, IDictionary<string, object> request, IDictionary<string, object> orderParams, double? amount, object price = null, object parameters = null)
+    public virtual List<object> orderRequestWs(string method, string? symbol, string? type, IDictionary<string, object> request, IDictionary<string, object> orderParams, double? amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimitOrder = type.EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
@@ -353,7 +353,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

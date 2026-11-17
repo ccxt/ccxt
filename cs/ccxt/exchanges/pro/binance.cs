@@ -3201,16 +3201,16 @@ public partial class binance : ccxt.binance
         }
         string? channelName = null;
         List<object> resolvedMessageHashes = new List<object>() {};
-        object rawTickers = new List<object>() {};
+        List<object> rawTickers = new List<object>() {};
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         if (((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rawTickers = message;
+            rawTickers = ((List<object>)message);
         } else
         {
-            ((IList<object>)rawTickers).Add(message);
+            rawTickers.Add(message);
         }
-        for (int i = 0; i < getArrayLength(rawTickers); i++)
+        for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
             IDictionary<string, object> ticker = this.safeDict(rawTickers, i);
             string? eventVar = this.safeString(ticker, "e");
@@ -4372,7 +4372,7 @@ public partial class binance : ccxt.binance
         return new List<object>() {type, subType, paramsSubType};
     }
 
-    public virtual string? getMarketType(string? method, IDictionary<string, object> market, object parameters = null)
+    public virtual string? getMarketType(string? method, IDictionary<string, object> market, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? type = null;
@@ -4409,7 +4409,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} params.returnRateLimits set to true to return rate limit information, default false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

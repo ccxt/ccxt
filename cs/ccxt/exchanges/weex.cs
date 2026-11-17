@@ -1663,7 +1663,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2029,13 +2029,13 @@ public partial class weex : Exchange
             tradeMarketType = "swap";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? tradeMarketId : null, market, null, tradeMarketType);
-        object isSpot = false;
+        bool? isSpot = false;
         if ((market == null))
         {
             isSpot = tradeMarketType == "spot";
         } else
         {
-            isSpot = getValue(market, "spot");
+            isSpot = ((bool?)getValue(market, "spot"));
         }
         Dictionary<string, object> fee = null;
         string? commission = this.safeString(trade, "commission");
@@ -2043,7 +2043,7 @@ public partial class weex : Exchange
         {
             string? commissionAsset = this.safeString(trade, "commissionAsset");
             string? feeCurrency = this.safeCurrencyCode(commissionAsset);
-            if ((isSpot is true))
+            if ((isSpot == true))
             {
                 if (side == "buy")
                 {
@@ -2494,7 +2494,7 @@ public partial class weex : Exchange
      * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2531,7 +2531,7 @@ public partial class weex : Exchange
      * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'FOK'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2557,7 +2557,7 @@ public partial class weex : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2584,7 +2584,7 @@ public partial class weex : Exchange
             request["price"] = this.priceToPrecision(symbol, price);
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "clientOrderId"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "clientOrderId");
         if ((clientOrderId == null))
         {
             string partner = this.safeString(paramsOmitted, "partner", "b-WEEX111125");
@@ -2626,7 +2626,7 @@ public partial class weex : Exchange
      * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateContractOrder(string? symbol, string? type, string? side, object amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2659,7 +2659,7 @@ public partial class weex : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual Dictionary<string, object> createContractOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createContractOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2745,13 +2745,13 @@ public partial class weex : Exchange
                 throw new BadRequest ((this.id + " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
             }
             request["clientAlgoId"] = clientOrderId;
-            ((IDictionary<string,object>)parameters)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+            parameters["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             if (isMarketOrder)
             {
-                ((IDictionary<string,object>)parameters)["type"] = "STOP_MARKET";
+                parameters["type"] = "STOP_MARKET";
             } else
             {
-                ((IDictionary<string,object>)parameters)["type"] = "STOP";
+                parameters["type"] = "STOP";
             }
             // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
             if (hasStopLoss)
@@ -2761,7 +2761,7 @@ public partial class weex : Exchange
                 string? stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if ((stopLossPriceType != null))
                 {
-                    ((IDictionary<string,object>)parameters)["SlWorkingType"] = this.encodeTriggerPriceType(stopLossPriceType);
+                    parameters["SlWorkingType"] = this.encodeTriggerPriceType(stopLossPriceType);
                 }
             }
             if (hasTakeProfit)
@@ -2771,7 +2771,7 @@ public partial class weex : Exchange
                 string? takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if ((takeProfitPriceType != null))
                 {
-                    ((IDictionary<string,object>)parameters)["TpWorkingType"] = this.encodeTriggerPriceType(takeProfitPriceType);
+                    parameters["TpWorkingType"] = this.encodeTriggerPriceType(takeProfitPriceType);
                 }
             }
         } else if (isStopLoss || isTakeProfit)
@@ -2799,9 +2799,9 @@ public partial class weex : Exchange
                 string? stopLossPriceType = this.safeString2(parameters, "stopLossPriceType", "triggerPriceType");
                 if ((stopLossPriceType != null))
                 {
-                    ((IDictionary<string,object>)parameters)["SlWorkingType"] = this.encodeTriggerPriceType(stopLossPriceType);
+                    parameters["SlWorkingType"] = this.encodeTriggerPriceType(stopLossPriceType);
                 }
-                ((IDictionary<string,object>)parameters)["triggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
+                parameters["triggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
                 if (isMarketOrder)
                 {
                     orderType = "STOP_MARKET";
@@ -2814,9 +2814,9 @@ public partial class weex : Exchange
                 string? takeProfitPriceType = this.safeString2(parameters, "takeProfitPriceType", "triggerPriceType");
                 if ((takeProfitPriceType != null))
                 {
-                    ((IDictionary<string,object>)parameters)["TpWorkingType"] = this.encodeTriggerPriceType(takeProfitPriceType);
+                    parameters["TpWorkingType"] = this.encodeTriggerPriceType(takeProfitPriceType);
                 }
-                ((IDictionary<string,object>)parameters)["triggerPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
+                parameters["triggerPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
                 if (isMarketOrder)
                 {
                     orderType = "TAKE_PROFIT_MARKET";
@@ -2825,7 +2825,7 @@ public partial class weex : Exchange
                     orderType = "TAKE_PROFIT";
                 }
             }
-            ((IDictionary<string,object>)parameters)["type"] = orderType;
+            parameters["type"] = orderType;
         } else
         {
             if (!isMarketOrder && (timeInForce == null))
@@ -2840,7 +2840,7 @@ public partial class weex : Exchange
                 string? stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if ((stopLossPriceType != null))
                 {
-                    ((IDictionary<string,object>)parameters)["SlWorkingType"] = this.encodeTriggerPriceType(stopLossPriceType);
+                    parameters["SlWorkingType"] = this.encodeTriggerPriceType(stopLossPriceType);
                 }
             }
             if (hasTakeProfit)
@@ -2850,11 +2850,11 @@ public partial class weex : Exchange
                 string? takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if ((takeProfitPriceType != null))
                 {
-                    ((IDictionary<string,object>)parameters)["TpWorkingType"] = this.encodeTriggerPriceType(takeProfitPriceType);
+                    parameters["TpWorkingType"] = this.encodeTriggerPriceType(takeProfitPriceType);
                 }
             }
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName"});
         return this.extend(request, paramsOmitted);
     }
 
@@ -5058,11 +5058,11 @@ public partial class weex : Exchange
                 throw new NotSupported ((((this.id + " ") + path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
-            string? timestamp = this.numberToString(this.nonce());
-            object payload = (timestamp == null ? null : timestamp + (string)(object)(method) + "/" + endpoint);
+            string timestamp = this.numberToString(this.nonce());
+            string payload = (((timestamp + method) + "/") + endpoint);
             if (hasJsonBody)
             {
-                payload = ((object)(payload == null ? null : payload + requestBody));
+                payload = payload + requestBody;
             }
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             requestHeaders = new Dictionary<string, object>() {

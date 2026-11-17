@@ -1296,7 +1296,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2197,7 +2197,7 @@ public partial class hyperliquid : Exchange
                 { "type", "userAbstraction" },
                 { "user", userAddress },
             };
-            object response = null;
+            string? response = null;
             try
             {
                 // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
@@ -2205,7 +2205,7 @@ public partial class hyperliquid : Exchange
                 object rawResponse = await this.publicPostInfo(this.extend(paramsEnableUnifiedMargin, request));
                 if ((rawResponse is string))
                 {
-                    response = rawResponse;
+                    response = ((string)rawResponse);
                 }
             } catch(Exception e)
             {
@@ -2220,9 +2220,9 @@ public partial class hyperliquid : Exchange
             //
             if ((response != null))
             {
-                response = ((string)response).Replace("\"", (string)"");
-                response = ((string)response).Replace("\"", (string)"");
-                enableUnifiedMargin = (response is "unifiedAccount");
+                response = response.Replace("\"", (string)"");
+                response = response.Replace("\"", (string)"");
+                enableUnifiedMargin = response == "unifiedAccount";
             }
             // don't cache this result if this is a different addresss
             this.options["enableUnifiedMargin"] = enableUnifiedMargin; // cache this for future calls
@@ -2378,7 +2378,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2484,7 +2484,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2623,7 +2623,7 @@ public partial class hyperliquid : Exchange
         return orderObj;
     }
 
-    public virtual Dictionary<string, object> createOrdersRequest(IList<object> orders, object parameters = null)
+    public virtual Dictionary<string, object> createOrdersRequest(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         /**
         * @method
@@ -2662,7 +2662,7 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        object params2 = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"});
+        IDictionary<string, object> params2 = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"});
         Int64? nonce = this.incrementingNonce();
         List<object> orderReq = new List<object>() {};
         string? grouping = "na";
@@ -2740,7 +2740,7 @@ public partial class hyperliquid : Exchange
         string? vaultAddress = null;
         (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "createOrder", "vaultAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
-        params2 = vaultAddressparams2Variable.Item2;
+        params2 = (IDictionary<string, object>)vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
         Dictionary<string, object> orderAction = new Dictionary<string, object>() {
             { "type", "order" },
@@ -3501,12 +3501,12 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        object fundings = new List<object>() {};
+        List<object> fundings = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            fundings = response;
+            fundings = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(fundings); i++)
+        for (int i = 0; i < (fundings?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(fundings, i);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -3591,12 +3591,12 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         List<object> orderWithStatus = new List<object>() {};
-        object rawOrders = new List<object>() {};
+        List<object> rawOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rawOrders = response;
+            rawOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(rawOrders); i++)
+        for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(rawOrders, i);
             Dictionary<string, object> extendOrder = new Dictionary<string, object>() {};
@@ -3737,14 +3737,14 @@ public partial class hyperliquid : Exchange
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         Dictionary<string, object> deduplicatedByOid = new Dictionary<string, object>() {};
-        object historicalOrders = new List<object>() {};
+        List<object> historicalOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            historicalOrders = response;
+            historicalOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(historicalOrders); i++)
+        for (int i = 0; i < (historicalOrders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(historicalOrders, i));
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)historicalOrders[i]);
             IDictionary<string, object> entry = this.safeDict(rawOrder, "order", rawOrder);
             string? oid = this.safeString(entry, "oid");
             if ((oid != null))
@@ -3784,7 +3784,7 @@ public partial class hyperliquid : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = null;
-        object params2 = null;
+        IDictionary<string, object> params2 = null;
         userAddress = this.safeString(this.handlePublicAddress("fetchOrder", parameters), 0);
         params2 = this.safeDict(this.handlePublicAddress("fetchOrder", parameters), 1, new Dictionary<string, object>() {});
         if ((this.markets == null))
@@ -5261,7 +5261,7 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         string? userAddress = null;
-        object params2 = null;
+        IDictionary<string, object> params2 = null;
         userAddress = this.safeString(this.handlePublicAddress("fetchLedger", parameters), 0);
         params2 = this.safeDict(this.handlePublicAddress("fetchLedger", parameters), 1, new Dictionary<string, object>() {});
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5951,7 +5951,7 @@ public partial class hyperliquid : Exchange
         return this.safeNumber(config, "cost", 1);
     }
 
-    public virtual List<object> parseCreateEditOrderArgs(string? id, string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual List<object> parseCreateEditOrderArgs(string? id, string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);

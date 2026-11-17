@@ -5366,7 +5366,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7740,7 +7740,7 @@ public partial class bitget : Exchange
      * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7752,7 +7752,7 @@ public partial class bitget : Exchange
         string? marginMode = marginParams.Item1;
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
         bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
-        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)this.omit(parameters, "stock"));
+        Dictionary<string, object> paramsStock = this.omit(parameters, "stock");
         double? triggerPrice = this.safeNumber2(paramsStock, "stopPrice", "triggerPrice");
         double? stopLossTriggerPrice = this.safeNumber(paramsStock, "stopLossPrice");
         double? takeProfitTriggerPrice = this.safeNumber(paramsStock, "takeProfitPrice");
@@ -8419,7 +8419,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -14765,12 +14765,12 @@ public partial class bitget : Exchange
         if (signed)
         {
             this.checkRequiredCredentials();
-            string? timestamp = this.numberToString(this.nonce());
-            object auth = (timestamp == null ? null : timestamp + (string)(object)(method) + payload);
+            string timestamp = this.numberToString(this.nonce());
+            string auth = ((timestamp + method) + payload);
             if ((method == "POST"))
             {
                 requestBody = this.json(parameters);
-                auth = ((object)(auth == null ? null : auth + requestBody));
+                auth = auth + requestBody;
             } else
             {
                 if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -14787,7 +14787,7 @@ public partial class bitget : Exchange
                     // signature must use the decoded values (e.g. non-ascii market ids).
                     // sort explicitly (true) so the signed order matches the url order in Go,
                     // where map iteration is not ordered (keysort's order is otherwise lost)
-                    auth = ((object)(auth == null ? null : auth + (string)(object)(("?" + this.rawencode(sortedParams, true)))));
+                    auth = auth + ("?" + this.rawencode(sortedParams, true));
                 }
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");

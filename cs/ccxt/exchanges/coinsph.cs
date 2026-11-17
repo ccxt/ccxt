@@ -1203,7 +1203,7 @@ public partial class coinsph : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1600,7 +1600,7 @@ public partial class coinsph : Exchange
      * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         // todo: add test order low priority
         parameters ??= new Dictionary<string, object>();
@@ -1610,7 +1610,7 @@ public partial class coinsph : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? testOrder = this.safeBool(parameters, "test", false);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "test"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "test");
         string? orderType = this.safeString(paramsOmitted, "type", type);
         orderType = this.encodeOrderType(orderType);
         Dictionary<string, object> paramsType = this.omit(paramsOmitted, "type");

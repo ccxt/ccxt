@@ -709,7 +709,7 @@ public partial class binance : PredictionExchange
         string? vendor = this.safeString(rawTopic, "vendor");
         string? collateral = this.safeString(rawTopic, "collateral", "USDT");
         string? title = this.safeString(rawMarket, "title", marketId);
-        string? marketSymbol = this.slugToMarketSymbol(topicSlug, title);
+        string marketSymbol = this.slugToMarketSymbol(topicSlug, title);
         string? tradingStatus = this.safeString(rawMarket, "tradingStatus");
         string? status = this.safeString(rawMarket, "status");
         bool active = (tradingStatus == "OPEN");
@@ -738,7 +738,7 @@ public partial class binance : PredictionExchange
             IDictionary<string, object> rawOutcome = this.safeDict(rawOutcomes, oi);
             string? label = this.safeStringUpper(rawOutcome, "name");
             string? tokenId = this.safeString(rawOutcome, "tokenId");
-            string? outcomeHandle = ((string)(marketSymbol == null ? null : marketSymbol + ":" + label));
+            string outcomeHandle = ((marketSymbol + ":") + label);
             string? price = this.safeString(rawOutcome, "price");
             bool? winnerRaw = null;
             int? settleFractionRaw = null;
@@ -998,7 +998,7 @@ public partial class binance : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1758,7 +1758,7 @@ public partial class binance : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    public async virtual Task<Dictionary<string, object>> FetchWallet(string methodName, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchWallet(string methodName, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.safeDict(this.options, "wallet") != null))
@@ -1891,7 +1891,7 @@ public partial class binance : PredictionExchange
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1955,7 +1955,7 @@ public partial class binance : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " createOrder requires accountType (SPOT, FUNDING)")) ;
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"timeInForce", "accountType", "cost"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "accountType", "cost"});
         Dictionary<string, object> quoteRequest = this.extend(commonRequest, new Dictionary<string, object>() {
             { "tokenId", (outcomeObj != null && outcomeObj.ContainsKey("id") ? outcomeObj["id"] : null) },
             { "side", sideUpper },

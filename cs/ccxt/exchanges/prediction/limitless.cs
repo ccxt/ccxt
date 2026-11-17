@@ -442,8 +442,8 @@ public partial class limitless : PredictionExchange
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
-                object groupMarkets = (eventGroup != null && eventGroup.ContainsKey("markets") ? eventGroup["markets"] : null);
-                ((IList<object>)groupMarkets).Add(m);
+                IList<object> groupMarkets = ((IList<object>)(eventGroup != null && eventGroup.ContainsKey("markets") ? eventGroup["markets"] : null));
+                groupMarkets.Add(m);
                 eventGroup["markets"] = groupMarkets;
             }
         }
@@ -1488,7 +1488,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -2339,7 +2339,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> accounts = await this.loadAccounts();
@@ -2365,10 +2365,10 @@ public partial class limitless : PredictionExchange
         {
             maker = this.walletAddress;
         }
-        object paramsValue = parameters;
+        IDictionary<string, object> paramsValue = parameters;
         IList<object> makerparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "createOrder", "maker", maker);
         maker = makerparamsValueVariable[0];
-        paramsValue = makerparamsValueVariable[1];
+        paramsValue = (IDictionary<string, object>)makerparamsValueVariable[1];
         try
         {
             this.checkAddress(maker);
@@ -2388,7 +2388,7 @@ public partial class limitless : PredictionExchange
         }
         IList<object> signerparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "createOrder", "signer", signer);
         signer = signerparamsValueVariable[0];
-        paramsValue = signerparamsValueVariable[1];
+        paramsValue = (IDictionary<string, object>)signerparamsValueVariable[1];
         try
         {
             this.checkAddress(signer);
@@ -2399,7 +2399,7 @@ public partial class limitless : PredictionExchange
         object taker = this.safeString(this.options, "nullAddress", "0x0000000000000000000000000000000000000000");
         IList<object> takerparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "createOrder", "taker", taker);
         taker = takerparamsValueVariable[0];
-        paramsValue = takerparamsValueVariable[1];
+        paramsValue = (IDictionary<string, object>)takerparamsValueVariable[1];
         try
         {
             this.checkAddress(taker);
@@ -2419,7 +2419,7 @@ public partial class limitless : PredictionExchange
         object signatureType = isSmartWallet ? 2 : 0;
         IList<object> signatureTypeparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType);
         signatureType = signatureTypeparamsValueVariable[0];
-        paramsValue = signatureTypeparamsValueVariable[1];
+        paramsValue = (IDictionary<string, object>)signatureTypeparamsValueVariable[1];
         Dictionary<string, object> signRequest = new Dictionary<string, object>() {
             { "salt", nonce },
             { "maker", maker },
@@ -2449,7 +2449,7 @@ public partial class limitless : PredictionExchange
         bool? postOnly = false;
         IList<object> postOnlyparamsValueVariable = (IList<object>)this.handlePostOnly(isMarket, false, paramsValue);
         postOnly = (bool?)postOnlyparamsValueVariable[0];
-        paramsValue = postOnlyparamsValueVariable[1];
+        paramsValue = (IDictionary<string, object>)postOnlyparamsValueVariable[1];
         string? timeInForce = this.safeString(paramsValue, "timeInForce");
         paramsValue = this.omit(paramsValue, "timeInForce");
         if ((timeInForce == null))
@@ -2462,7 +2462,7 @@ public partial class limitless : PredictionExchange
             bool? createMarketBuyOrderRequiresPrice = true;
             (bool?, object) createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.Item1;
-            paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.Item2;
+            paramsValue = (IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsValueVariable.Item2;
             double? cost = this.safeNumber(paramsValue, "cost");
             paramsValue = this.omit(paramsValue, "cost");
             if ((createMarketBuyOrderRequiresPrice == true))
@@ -3455,8 +3455,8 @@ public partial class limitless : PredictionExchange
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
-                object groupMarkets = (eventGroup != null && eventGroup.ContainsKey("markets") ? eventGroup["markets"] : null);
-                ((IList<object>)groupMarkets).Add(m);
+                IList<object> groupMarkets = ((IList<object>)(eventGroup != null && eventGroup.ContainsKey("markets") ? eventGroup["markets"] : null));
+                groupMarkets.Add(m);
                 eventGroup["markets"] = groupMarkets;
             }
         }
@@ -3664,9 +3664,9 @@ public partial class limitless : PredictionExchange
                 }, headersValue);
             }
             this.checkRequiredCredentials();
-            string? timestamp = this.iso8601(this.milliseconds());
+            string timestamp = this.iso8601(this.milliseconds());
             string newline = "\n"; // eslint-disable-line quotes
-            string? payload = ((string)(timestamp == null ? null : timestamp + newline + (string)(object)(method) + newline + (string)(object)(url) + newline + bodyString));
+            string payload = ((((((timestamp + newline) + method) + newline) + (url)) + newline) + bodyString);
             string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
             headersValue = this.extend(headersValue, new Dictionary<string, object>() {
                 { "lmts-timestamp", timestamp },

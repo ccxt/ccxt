@@ -252,11 +252,11 @@ public partial class hyperliquid : PredictionExchange
         string? targetPrice = this.safeString(desc, "targetPrice", "");
         string? expiry = this.safeString(desc, "expiry", "");
         // Parse expiry: "20260503-0600" → "20260503"
-        object expiryDate = "";
+        string? expiryDate = "";
         if (expiry != "")
         {
             List<object> expiryParts = expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            expiryDate = (expiryParts != null && 0 < expiryParts.Count ? expiryParts[0] : null);
+            expiryDate = ((string)(expiryParts != null && 0 < expiryParts.Count ? expiryParts[0] : null));
         }
         string label = "NO";
         if (isEqual(side, 0))
@@ -268,9 +268,9 @@ public partial class hyperliquid : PredictionExchange
         {
             bs = ((bs + "_ABOVE_") + targetPrice);
         }
-        if (!(expiryDate is ""))
+        if (expiryDate != "")
         {
-            bs = ((bs + "_") + (expiryDate));
+            bs = ((bs + "_") + expiryDate);
         }
         return ((bs + ":") + label);
     }
@@ -295,11 +295,11 @@ public partial class hyperliquid : PredictionExchange
         {
             string? targetPrice = this.safeString(desc, "targetPrice", "");
             string? expiry = this.safeString(desc, "expiry", "");
-            object expiryDate = "";
+            string? expiryDate = "";
             if (expiry != "")
             {
                 List<object> expiryParts = expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-                expiryDate = (expiryParts != null && 0 < expiryParts.Count ? expiryParts[0] : null);
+                expiryDate = ((string)(expiryParts != null && 0 < expiryParts.Count ? expiryParts[0] : null));
             }
             string targetPart = "";
             if (targetPrice != "")
@@ -307,9 +307,9 @@ public partial class hyperliquid : PredictionExchange
                 targetPart = ("_ABOVE_" + targetPrice);
             }
             string expiryPart = "";
-            if (!(expiryDate is ""))
+            if (expiryDate != "")
             {
-                expiryPart = ("_" + (expiryDate));
+                expiryPart = ("_" + expiryDate);
             }
             return ((underlying.ToUpper() + targetPart) + expiryPart);
         }
@@ -322,16 +322,16 @@ public partial class hyperliquid : PredictionExchange
             {
                 string? questionUnderlying = this.safeString(questionDesc, "underlying");
                 string? questionExpiry = this.safeString(questionDesc, "expiry", "");
-                object questionExpiryDate = "";
+                string? questionExpiryDate = "";
                 if (questionExpiry != "")
                 {
                     List<object> questionExpiryParts = questionExpiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-                    questionExpiryDate = (questionExpiryParts != null && 0 < questionExpiryParts.Count ? questionExpiryParts[0] : null);
+                    questionExpiryDate = ((string)(questionExpiryParts != null && 0 < questionExpiryParts.Count ? questionExpiryParts[0] : null));
                 }
                 string questionExpiryPart = "";
-                if (!(questionExpiryDate is ""))
+                if (questionExpiryDate != "")
                 {
-                    questionExpiryPart = ("_" + (questionExpiryDate));
+                    questionExpiryPart = ("_" + questionExpiryDate);
                 }
                 string? thresholdsRaw = this.safeString(questionDesc, "priceThresholds", "");
                 string? indexStr = this.safeString(desc, "index");
@@ -532,11 +532,11 @@ public partial class hyperliquid : PredictionExchange
         string? name = this.safeString(outcomeInfo, "name", "");
         List<object> sideSpecs = this.safeList(outcomeInfo, "sideSpecs", new List<object>() {});
         Dictionary<string, object> desc = this.parseOutcomeDescription(description);
-        string? parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
+        string parentSymbol = this.buildOutcomeParentSymbol(desc, outcomeId, name, question);
         object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         object noEncoding = this.outcomeEncoding(outcomeId, 1);
-        string? yesOutcomeSymbol = ((string)(parentSymbol == null ? null : parentSymbol + ":YES"));
-        string? noOutcomeSymbol = ((string)(parentSymbol == null ? null : parentSymbol + ":NO"));
+        string yesOutcomeSymbol = (parentSymbol + ":YES");
+        string noOutcomeSymbol = (parentSymbol + ":NO");
         // Parse expiry from description
         string? expiry = this.safeString(desc, "expiry");
         Int64? expiryMs = null;
@@ -549,12 +549,12 @@ public partial class hyperliquid : PredictionExchange
             if (expPartsLength >= 1 && (((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null)).Length == 8))
             {
                 string? ymd = ((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null));
-                object hm = "0000";
+                string? hm = "0000";
                 if (expPartsLength >= 2)
                 {
-                    hm = (expParts != null && 1 < expParts.Count ? expParts[1] : null);
+                    hm = ((string)(expParts != null && 1 < expParts.Count ? expParts[1] : null));
                 }
-                string isoStr = (((((((((((ymd == null) ? null : ymd.Substring(0, Math.Min(4, ymd.Length))) + "-") + ((ymd == null) ? null : ymd.Substring(Math.Min(4, ymd.Length), Math.Min(6, ymd.Length) - Math.Min(4, ymd.Length)))) + "-") + ((ymd == null) ? null : ymd.Substring(Math.Min(6, ymd.Length), Math.Min(8, ymd.Length) - Math.Min(6, ymd.Length)))) + "T") + ((hm == null) ? null : ((string)hm).Substring(0, Math.Min(2, ((string)hm).Length)))) + ":") + ((hm == null) ? null : ((string)hm).Substring(Math.Min(2, ((string)hm).Length), Math.Min(4, ((string)hm).Length) - Math.Min(2, ((string)hm).Length)))) + ":00Z");
+                string isoStr = (((((((((((ymd == null) ? null : ymd.Substring(0, Math.Min(4, ymd.Length))) + "-") + ((ymd == null) ? null : ymd.Substring(Math.Min(4, ymd.Length), Math.Min(6, ymd.Length) - Math.Min(4, ymd.Length)))) + "-") + ((ymd == null) ? null : ymd.Substring(Math.Min(6, ymd.Length), Math.Min(8, ymd.Length) - Math.Min(6, ymd.Length)))) + "T") + ((hm == null) ? null : hm.Substring(0, Math.Min(2, hm.Length)))) + ":") + ((hm == null) ? null : hm.Substring(Math.Min(2, hm.Length), Math.Min(4, hm.Length) - Math.Min(2, hm.Length)))) + ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;
             }
@@ -904,7 +904,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1395,7 +1395,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.initializeClient();
@@ -1685,14 +1685,14 @@ public partial class hyperliquid : PredictionExchange
         };
         object response = await this.publicPostInfo(this.extend(request, paramsMethod));
         List<object> ordersWithStatus = new List<object>() {};
-        object rawOrders = new List<object>() {};
+        List<object> rawOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rawOrders = response;
+            rawOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(rawOrders); i++)
+        for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(rawOrders, i));
+            IDictionary<string, object> order = ((IDictionary<string, object>)rawOrders[i]);
             ordersWithStatus.Add(this.extend(order, new Dictionary<string, object>() {
                 { "ccxtStatus", "open" },
             }));
@@ -1733,14 +1733,14 @@ public partial class hyperliquid : PredictionExchange
         object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
         // Deduplicate by oid keeping most recent statusTimestamp
         Dictionary<string, object> deduped = new Dictionary<string, object>() {};
-        object historicalOrders = new List<object>() {};
+        List<object> historicalOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            historicalOrders = response;
+            historicalOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(historicalOrders); i++)
+        for (int i = 0; i < (historicalOrders?.Count ?? 0); i++)
         {
-            object raw = getValue(historicalOrders, i);
+            object raw = historicalOrders[i];
             object entry = this.safeDict(raw, "order");
             if ((entry == null))
             {
@@ -2294,12 +2294,12 @@ public partial class hyperliquid : PredictionExchange
             if (partsLength >= 1 && (((string)(parts != null && 0 < parts.Count ? parts[0] : null)).Length == 8))
             {
                 string? ymd = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
-                object hm = "0000";
+                string? hm = "0000";
                 if (partsLength >= 2)
                 {
-                    hm = (parts != null && 1 < parts.Count ? parts[1] : null);
+                    hm = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
                 }
-                string isoStr = (((((((((((ymd == null) ? null : ymd.Substring(0, Math.Min(4, ymd.Length))) + "-") + ((ymd == null) ? null : ymd.Substring(Math.Min(4, ymd.Length), Math.Min(6, ymd.Length) - Math.Min(4, ymd.Length)))) + "-") + ((ymd == null) ? null : ymd.Substring(Math.Min(6, ymd.Length), Math.Min(8, ymd.Length) - Math.Min(6, ymd.Length)))) + "T") + ((hm == null) ? null : ((string)hm).Substring(0, Math.Min(2, ((string)hm).Length)))) + ":") + ((hm == null) ? null : ((string)hm).Substring(Math.Min(2, ((string)hm).Length), Math.Min(4, ((string)hm).Length) - Math.Min(2, ((string)hm).Length)))) + ":00Z");
+                string isoStr = (((((((((((ymd == null) ? null : ymd.Substring(0, Math.Min(4, ymd.Length))) + "-") + ((ymd == null) ? null : ymd.Substring(Math.Min(4, ymd.Length), Math.Min(6, ymd.Length) - Math.Min(4, ymd.Length)))) + "-") + ((ymd == null) ? null : ymd.Substring(Math.Min(6, ymd.Length), Math.Min(8, ymd.Length) - Math.Min(6, ymd.Length)))) + "T") + ((hm == null) ? null : hm.Substring(0, Math.Min(2, hm.Length)))) + ":") + ((hm == null) ? null : hm.Substring(Math.Min(2, hm.Length), Math.Min(4, hm.Length) - Math.Min(2, hm.Length)))) + ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;
             }
@@ -2417,15 +2417,15 @@ public partial class hyperliquid : PredictionExchange
     {
         byte[] dataBinary = this.packb(action);
         string dataHex = this.binaryToBase16(dataBinary);
-        object data = dataHex;
-        data = ((object)(data == null ? null : data + ("00000" + this.intToBase16(nonce))));
+        string? data = dataHex;
+        data = (data == null ? null : data + ("00000" + this.intToBase16(nonce)));
         if ((vaultAddress == null))
         {
-            data = ((object)(data == null ? null : data + "00"));
+            data = (data == null ? null : data + "00");
         } else
         {
-            data = ((object)(data == null ? null : data + "01"));
-            data = ((object)(data == null ? null : data + (string)(object)(vaultAddress)));
+            data = (data == null ? null : data + "01");
+            data = (data == null ? null : data + (string)(object)(vaultAddress));
         }
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
@@ -2598,7 +2598,7 @@ public partial class hyperliquid : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object baseUrl = null;
+        string baseUrl = null;
         if ((sandboxMode == true))
         {
             IDictionary<string, object> testUrls = this.safeDict(this.urls, "test", new Dictionary<string, object>() {});
@@ -2608,7 +2608,7 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, "public", ""));
         }
-        string? url = ((string)(add(add(baseUrl, "/"), path)));
+        string url = ((baseUrl + "/") + path);
         Dictionary<string, object> headersValue = null;
         string? bodyValue = null;
         if ((method == "POST"))

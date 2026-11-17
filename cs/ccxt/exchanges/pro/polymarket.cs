@@ -486,15 +486,15 @@ public partial class polymarket : ccxt.polymarket
         // as a single object, so both shapes are handled here
         //
         object data = this.safeValue(message, "data");
-        object rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = data;
+            rows = ((List<object>)data);
         } else
         {
-            ((IList<object>)rows).Add(data);
+            rows.Add(data);
         }
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
         {
             return;
@@ -789,15 +789,15 @@ public partial class polymarket : ccxt.polymarket
         //     }
         //
         object data = this.safeValue(message, "data");
-        object rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = data;
+            rows = ((List<object>)data);
         } else
         {
-            ((IList<object>)rows).Add(data);
+            rows.Add(data);
         }
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
         {
             return;
@@ -895,15 +895,15 @@ public partial class polymarket : ccxt.polymarket
         //     }
         //
         object data = this.safeValue(message, "data");
-        object rows = new List<object>() {};
+        List<object> rows = new List<object>() {};
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rows = data;
+            rows = ((List<object>)data);
         } else
         {
-            ((IList<object>)rows).Add(data);
+            rows.Add(data);
         }
-        int rowsLength = getArrayLength(rows);
+        int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
         {
             return;

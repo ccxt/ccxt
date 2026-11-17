@@ -3317,7 +3317,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6280,7 +6280,7 @@ public partial class htx : Exchange
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    public async virtual Task<Dictionary<string, object>> CreateSpotOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateSpotOrderRequest(object symbol, string? type, object side, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -6422,7 +6422,7 @@ public partial class htx : Exchange
         return this.extend(request, paramsOmitted);
     }
 
-    public virtual Dictionary<string, object> createContractOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createContractOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -6713,7 +6713,7 @@ public partial class htx : Exchange
      * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6897,7 +6897,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8324,23 +8324,23 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
         string? fromAccountId = this.convertTypeToAccount(fromAccount);
         string? toAccountId = this.convertTypeToAccount(toAccount);
-        object fromAccountIdStr = fromAccountId;
+        string? fromAccountIdStr = fromAccountId;
         string? toAccountIdStr = toAccountId;
         bool toCross = toAccountIdStr == "cross";
-        bool fromCross = (fromAccountIdStr is "cross");
+        bool fromCross = fromAccountIdStr == "cross";
         bool toIsolated = (((this.ids != null)) && this.inArray(toAccountIdStr, this.ids));
         bool fromIsolated = (((this.ids != null)) && this.inArray(fromAccountIdStr, this.ids));
-        bool fromSpot = (fromAccountIdStr is "pro");
+        bool fromSpot = fromAccountIdStr == "pro";
         bool toSpot = toAccountIdStr == "pro";
         if (fromSpot && toSpot)
         {
             throw new BadRequest (((((this.id + " transfer () cannot make a transfer between ") + fromAccount) + " and ") + toAccount)) ;
         }
-        bool fromOrToFuturesAccount = ((fromAccountIdStr is "futures")) || (toAccountIdStr == "futures");
+        bool fromOrToFuturesAccount = (fromAccountIdStr == "futures") || (toAccountIdStr == "futures");
         Dictionary<string, object> response = null;
         if (fromOrToFuturesAccount)
         {
-            string? type = ((string)((object)(fromAccountIdStr == null ? null : fromAccountIdStr + "-to-" + toAccountIdStr)));
+            string? type = ((string)(fromAccountIdStr == null ? null : fromAccountIdStr + "-to-" + toAccountIdStr));
             type = this.safeString(paramsSubType, "type", type);
             request["type"] = type;
             response = await this.spotPrivatePostV1FuturesTransfer(this.extend(request, paramsSubType));
@@ -8363,7 +8363,7 @@ public partial class htx : Exchange
             IDictionary<string, object> query = paramsSubType;
             if ((subType == "linear"))
             {
-                if (((fromAccountIdStr is "swap")) || ((fromAccount == "linear-swap")))
+                if ((fromAccountIdStr == "swap") || ((fromAccount == "linear-swap")))
                 {
                     fromAccountId = "linear-swap";
                 } else

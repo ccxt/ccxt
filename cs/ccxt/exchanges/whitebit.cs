@@ -2008,7 +2008,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2291,7 +2291,7 @@ public partial class whitebit : Exchange
             // It refuses an end past its own clock, which may be behind this one, so an end within a
             // timeframe of now is left out, and the latest candles it then returns cover the range
             int duration = this.parseTimeframe(timeframeVar);
-            object endTime = null;
+            Int64? endTime = null;
             if ((until != null))
             {
                 endTime = this.sum(this.parseToInt(((double?)until / 1000)), duration);
@@ -2301,12 +2301,12 @@ public partial class whitebit : Exchange
                 Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
                 Int64 rangeEnd = this.sum(start, (duration * cappedLimit));
-                if (((endTime == null)) || (isLessThan(rangeEnd, endTime)))
+                if (((endTime == null)) || ((rangeEnd < endTime)))
                 {
                     endTime = rangeEnd;
                 }
             }
-            if ((!(endTime == null)) && (isLessThan(this.sum(endTime, duration), this.seconds())))
+            if (((endTime != null)) && (isLessThan(this.sum(endTime, duration), this.seconds())))
             {
                 request["end"] = endTime;
             }
@@ -2446,7 +2446,7 @@ public partial class whitebit : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

@@ -174,7 +174,7 @@ public partial class gate : ccxt.gate
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -186,7 +186,7 @@ public partial class gate : ccxt.gate
         string messageType = this.getTypeByMarket(market);
         string channel = (messageType + ".order_place");
         string? url = this.getUrlByMarket(market);
-        ((IDictionary<string,object>)parameters)["textIsRequired"] = true;
+        parameters["textIsRequired"] = true;
         Dictionary<string, object> request = this.createOrderRequest(symbolValue, type, side, amount, price, parameters);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, request, channel);

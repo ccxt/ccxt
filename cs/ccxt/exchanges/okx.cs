@@ -3115,7 +3115,7 @@ public partial class okx : Exchange
      * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4686,7 +4686,7 @@ public partial class okx : Exchange
      * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4740,7 +4740,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8282,26 +8282,26 @@ public partial class okx : Exchange
             }
             hasJsonBody = ((method != "GET")) && (isArray || (!this.isEmpty(query)));
             jsonBody = hasJsonBody ? this.json(query) : null;
-            string? timestamp = this.iso8601(this.nonce());
+            string timestamp = this.iso8601(this.nonce());
             privateHeaders = new Dictionary<string, object>() {
                 { "OK-ACCESS-KEY", this.apiKey },
                 { "OK-ACCESS-PASSPHRASE", this.password },
                 { "OK-ACCESS-TIMESTAMP", timestamp },
             };
-            object auth = (timestamp == null ? null : timestamp + (string)(object)(method) + request);
+            string auth = ((timestamp + method) + request);
             if ((method == "GET"))
             {
                 if (!this.isEmpty(query))
                 {
                     string urlencodedQuery = ("?" + this.urlencode(query));
                     url = url + urlencodedQuery;
-                    auth = ((object)(auth == null ? null : auth + urlencodedQuery));
+                    auth = auth + urlencodedQuery;
                 }
             } else
             {
                 if (hasJsonBody)
                 {
-                    auth = ((object)(auth == null ? null : auth + jsonBody));
+                    auth = auth + jsonBody;
                 }
                 privateHeaders["Content-Type"] = "application/json";
             }

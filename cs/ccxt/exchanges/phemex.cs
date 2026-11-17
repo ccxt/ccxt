@@ -1506,7 +1506,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3071,7 +3071,7 @@ public partial class phemex : Exchange
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3104,7 +3104,7 @@ public partial class phemex : Exchange
         {
             request["clOrdID"] = clientOrderId;
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)(((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId"}) : parameters));
+        IDictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId"}) : parameters;
         string? triggerPrice = this.safeStringN(paramsOmitted, new List<object>() {"stopPx", "stopPrice", "triggerPrice"});
         if ((triggerPrice != null))
         {
@@ -3116,7 +3116,7 @@ public partial class phemex : Exchange
                 request["stopPxEp"] = this.toEp(triggerPrice, market);
             }
         }
-        object orderParams = this.omit(paramsOmitted, new List<object>() {"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"});
+        IDictionary<string, object> orderParams = this.omit(paramsOmitted, new List<object>() {"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"});
         if ((this.safeBool(market, "spot", false) == true))
         {
             string? qtyType = this.safeString(orderParams, "qtyType", "ByBase");

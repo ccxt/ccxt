@@ -2369,7 +2369,7 @@ public partial class poloniex : Exchange
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2418,7 +2418,7 @@ public partial class poloniex : Exchange
      * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2508,7 +2508,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToOrderList(results);
     }
 
-    public virtual List<object> orderRequest(string? symbol, string? type, string? side, object amount, IDictionary<string, object> request, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? symbol, string? type, string? side, object amount, IDictionary<string, object> request, object price = null, IDictionary<string, object> parameters = null)
     {
         // build the request on a copy: the caller keeps its own dict and reads ours
         parameters ??= new Dictionary<string, object>();
@@ -2523,7 +2523,7 @@ public partial class poloniex : Exchange
         string? hedged = (string)hedgedparamsHedgedVariable[0];
         IDictionary<string, object> paramsHedged = ((IDictionary<string, object>)hedgedparamsHedgedVariable[1]);
         // marginMode and hedged are consumed for contract markets only
-        object query = parameters;
+        IDictionary<string, object> query = parameters;
         if (isContract)
         {
             query = paramsHedged;
@@ -2551,7 +2551,7 @@ public partial class poloniex : Exchange
         string upperCaseType = type.ToUpper();
         bool isMarket = upperCaseType == "MARKET";
         bool isPostOnly = this.isPostOnly(isMarket, upperCaseType == "LIMIT_MAKER", query);
-        object queryOmitted = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
+        IDictionary<string, object> queryOmitted = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
         if ((triggerPrice != null))
         {
             if (!(this.safeBool(market, "spot", false) == true))
@@ -2573,7 +2573,7 @@ public partial class poloniex : Exchange
                 bool? createMarketBuyOrderRequiresPrice = true;
                 (bool?, object) createMarketBuyOrderRequiresPricequeryOmittedVariable = this.handleOptionBoolAndParams(queryOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryOmittedVariable.Item1;
-                queryOmitted = createMarketBuyOrderRequiresPricequeryOmittedVariable.Item2;
+                queryOmitted = (IDictionary<string, object>)createMarketBuyOrderRequiresPricequeryOmittedVariable.Item2;
                 double? cost = this.safeNumber(queryOmitted, "cost");
                 queryOmitted = this.omit(queryOmitted, "cost");
                 if ((cost != null))
@@ -3221,7 +3221,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
