@@ -6236,6 +6236,79 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r90j7, { force: true });
     }
+    // a parse* result typed Map from its declaration (returns this.safePosition ({..})) is read natively
+    const r92j7 = path.join(process.cwd(), 'ts', 'src', `zz92j7selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7, [
+            "import Exchange from './abstract/kucoin.js';",
+            "import type { Dict, Market } from './base/types.js';",
+            'export default class zz92j7selftest extends Exchange {',
+            "    parseWsUtaPosition (position: Dict, market: Market = undefined): Dict { return this.safePosition ({ 'info': position, 'symbol': undefined }); }",
+            "    zzUta (data: Dict) { const newPosition = this.parseWsUtaPosition (data); const keys = Object.keys (newPosition); for (let i = 0; i < keys.length; i++) { const key = keys[i]; if (newPosition[key] === undefined) { delete newPosition[key]; } } return newPosition; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7).content as string;
+        if (!/Map<String, ?Object> newPosition = this\.parseWsUtaPosition\(/.test(out) || !/newPosition\.remove\(key\);/.test(out)) problems.push("ral-92j7: a parseWsUtaPosition result must print Map<String, Object> with a bare remove");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7, { force: true });
+    }
+    // okx parseTradingBalance (returns this.safeBalance (..)) prints Map: its result keys are read natively
+    const r92j7b = path.join(process.cwd(), 'ts', 'src', `zz92j7bselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7b, [
+            "import Exchange from './okx.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz92j7bselftest extends Exchange {',
+            "    zzBalance (message: Dict) { const balance = this.parseTradingBalance (message); const keys = Object.keys (balance); return keys.length; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7b).content as string;
+        if (!/Map<String, ?Object> balance = this\.parseTradingBalance\(/.test(out) || !/\(balance\.keySet\(\)\)/.test(out)) problems.push("ral-92j7: a parseTradingBalance result must print Map<String, Object> read by keySet()");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7b, { force: true });
+    }
+    // parsePositions / parseDepositAddresses print List<Object>: a result read as a list goes native, a pass-through stays Object
+    const r92j7c = path.join(process.cwd(), 'ts', 'src', `zz92j7cselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7c, [
+            "import Exchange from './abstract/htx.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz92j7cselftest extends Exchange {',
+            "    zzAddr (data: Dict[], code: string) { const allAddresses: Dict[] = this.parseDepositAddresses (data, [ code ], false); let n = 0; for (let i = 0; i < allAddresses.length; i++) { n += 1; } return n; }",
+            "    zzPos (raw: Dict[]) { const positions = this.parsePositions (raw); const positionsLength = positions.length; return positionsLength; }",
+            "    zzPass (raw: Dict[]) { const passed = this.parsePositions (raw); return this.filterBySinceLimit (passed, undefined, undefined); }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7c).content as string;
+        if (!/List<Object> allAddresses = this\.parseDepositAddresses\(/.test(out) || !/i < allAddresses\.size\(\)/.test(out)) problems.push("ral-92j7: a parseDepositAddresses result read by length must print List<Object> with a native size()");
+        if (!/List<Object> positions = this\.parsePositions\(/.test(out) || !/= positions\.size\(\);/.test(out)) problems.push("ral-92j7: a parsePositions result read by length must print List<Object> with a native size()");
+        if (!/\bObject passed = this\.parsePositions\(/.test(out)) problems.push("ral-92j7: a pass-through parsePositions result must stay Object");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7c, { force: true });
+    }
+    // parseTickers prints Map (filterByArrayTickers -> indexBy): a result handed to a Map parameter needs no cast
+    const r92j7d = path.join(process.cwd(), 'ts', 'src', `zz92j7dselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j7d, [
+            "import Exchange from './abstract/gemini.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz92j7dselftest extends Exchange {',
+            "    zzTickers (response: Dict[], keys: string[]): Dict { const result = this.parseTickers (response); return this.removeKeysFromDict (result, keys); }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7d).content as string;
+        if (!/Map<String, ?Object> result = this\.parseTickers\(/.test(out) || !/removeKeysFromDict\(result, keys\)/.test(out)) problems.push("ral-92j7: a parseTickers result handed to a Map parameter must print Map<String, Object> with no cast");
+    } catch (e) {
+        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j7d, { force: true });
+    }
     return problems;
 }
 
