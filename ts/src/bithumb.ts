@@ -613,7 +613,7 @@ export default class bithumb extends Exchange {
         const extension = this.safeDict (quoteCurrencies, quote, {});
         const base = this.safeCurrencyCode (currencyId);
         if (base === undefined) {
-            return undefined;
+            return {} as Market;
         }
         let active = true;
         if (Array.isArray (market)) {
