@@ -2980,7 +2980,8 @@ impl Exchange {
     }
 
     pub fn write_file(&self, p: Value, content: Value) -> Value {
-        self.ensure_whitelisted_file(&p);        let path = match &p {
+        self.ensure_whitelisted_file(&p);
+        let path = match &p {
             Value::Str(s) => s.to_string(),
             _ => return Value::Bool(false),
         };
