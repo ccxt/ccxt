@@ -21644,11 +21644,75 @@ function r84j1StringOnlyProducer (printer, value) {
     return stringElementsProducer (init);
 }
 
+// (R1, ral-90j1) a parameter or local whose own annotation is `string[]` (checker: every non-nullish part
+// an array of plain `string`), owned by this function and never re-bound, element-written or deleted
+// from: its elements are String or null on every path the type checker admits
+function r90j1AnnotatedStringList (printer, receiver, symbol, declaration, scope, depth = 1) {
+    if (declaration === undefined || !ts.isIdentifier (declaration.name)
+        || !(ts.isParameterDeclaration (declaration) || ts.isVariableDeclaration (declaration)) || enclosingFunction (declaration) !== scope) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    if (declaration.type === undefined) {
+        // (R4, ral-90j1) `const row = rows[i]` (counter or literal index) of an unwritten `string[][]`
+        // parameter / annotated local: the row is itself a String-only list
+        const read = declaration.initializer === undefined ? undefined : unwrapParens (declaration.initializer);
+        if (read === undefined || !ts.isVariableDeclaration (declaration) || (declaration.parent.flags & ts.NodeFlags.Const) === 0
+            || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+            || !(printer.javaPrimitiveCounterIndex?.(read.argumentExpression)
+                || (ts.isNumericLiteral (read.argumentExpression) && /^[0-9]+$/.test (read.argumentExpression.text)))) {
+            return false;
+        }
+        const outerSymbol = checker.getSymbolAtLocation (read.expression);
+        return r90j1AnnotatedStringList (printer, read.expression, outerSymbol, outerSymbol?.valueDeclaration?.resolve (), scope, depth + 1)
+            && r90j1ListNeverWritten (checker, symbol, declaration, scope);
+    }
+    const annotated = checker.getTypeFromTypeNode (declaration.type);
+    const parts = ((annotated.flags & ts.TypeFlags.Union) !== 0 ? ts.typeParts (annotated) : [ annotated ])
+        .filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+    const stringsAtDepth = (t, d) => checker.isArrayType (t) && (d === 1
+        ? checker.getTypeArguments (t)?.[0]?.flags === ts.TypeFlags.String
+        : stringsAtDepth (checker.getTypeArguments (t)?.[0], d - 1));
+    if (parts.length === 0 || depth > 2 || !parts.every ((t) => t !== undefined && stringsAtDepth (t, depth))) {
+        return false;
+    }
+    return r90j1ListNeverWritten (checker, symbol, declaration, scope);
+}
+
+function r90j1ListNeverWritten (checker, symbol, declaration, scope) {
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const parent = n.parent;
+        // a mutating call may only add values the checker types as plain `string` (an `any` argument could
+        // carry another box past the annotation)
+        if (ts.isPropertyAccessExpression (parent) && parent.expression === n && LIST_MUTATING_METHODS.has (String (parent.name.text))) {
+            const call = parent.parent;
+            if (!ts.isCallExpression (call) || call.expression !== parent || String (parent.name.text) !== 'push'
+                || !call.arguments.every ((a) => !ts.isSpreadElement (a) && checker.getTypeAtLocation (a)?.flags === ts.TypeFlags.String)) {
+                return false;
+            }
+        }
+        if (ts.isBinaryExpression (parent) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)
+            && (parent.left === n || (ts.isElementAccessExpression (parent.left) && parent.left.expression === n))) {
+            return false;
+        }
+        if (parent.kind === ts.SyntaxKind.DeleteExpression || (ts.isElementAccessExpression (parent) && parent.expression === n && parent.parent?.kind === ts.SyntaxKind.DeleteExpression)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function r84j1StringOnlyList (printer, receiver, scope) {
     if (!ts.isIdentifier (receiver)) {
         return false;
     }
     const symbol = printer.getChecker ().getSymbolAtLocation (receiver);
+    if (r90j1AnnotatedStringList (printer, receiver, symbol, symbol?.valueDeclaration?.resolve (), scope)) {
+        return true;
+    }
     const declaration = symbol?.valueDeclaration?.resolve ();
     if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer === undefined
         || !ts.isIdentifier (declaration.name) || enclosingFunction (declaration) !== scope) {
@@ -21993,6 +22057,10 @@ function r84j1BoxUse (printer, n) {
             if (method === 'push' && parent.arguments.length === 1 && !isThisOrSuperCall (parent)) {
                 return 'same';
             }
+            // (R3, ral-90j1) the ws cache `append (Object item)`: one hand-written overload, takes the box as is
+            if (method === 'append' && parent.arguments.length === 1 && !isThisOrSuperCall (parent)) {
+                return 'same';
+            }
             if (isThisCall (parent) && R84J1_OBJECT_ARG_READERS.has (method) && resolvesToBaseOrStrippedAccessor (printer, parent, method)) {
                 return 'same';
             }
@@ -22013,6 +22081,21 @@ function r84j1BoxUse (printer, n) {
     return undefined;
 }
 
+// (R3, ral-90j1) a unified structure interface of ts/src/base/types.ts (Trade, Order, Position, ...): the
+// Java side of every such value is a TypedMap view (a java.util.Map) or null, so an element of a
+// `Trade[]` list holds exactly what an element of a `Dict[]` list holds
+function r90j1UnifiedStructureType (checker, type) {
+    if (type === undefined || (type.flags & ts.TypeFlags.Object) === 0 || checker.isArrayType (type) || checker.isTupleType (type)) {
+        return false;
+    }
+    const declaration = type.getSymbol?.()?.declarations?.[0]?.resolve?.();
+    if (declaration === undefined || !ts.isInterfaceDeclaration (declaration)
+        || !/(^|[\\/])ts[\\/]src[\\/]base[\\/]types\.ts$/.test (declaration.getSourceFile ().fileName)) {
+        return false;
+    }
+    return checker.getIndexTypeOfType (type, ts.IndexKind.Number) === undefined;
+}
+
 function r84j1BoxElementLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
@@ -22020,8 +22103,10 @@ function r84j1BoxElementLocal (printer, declaration) {
         return false;
     }
     const read = unwrapParens (declaration.initializer);
+    // (R2, ral-90j1) a non-negative integer literal index prints the same bounds-checked List read
     if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
-        || !printer.javaPrimitiveCounterIndex (read.argumentExpression)) {
+        || !(printer.javaPrimitiveCounterIndex (read.argumentExpression)
+            || (ts.isNumericLiteral (read.argumentExpression) && /^[0-9]+$/.test (read.argumentExpression.text)))) {
         return false;
     }
     const checker = printer.getChecker ();
@@ -22030,13 +22115,16 @@ function r84j1BoxElementLocal (printer, declaration) {
         return false;
     }
     const element = checker.getTypeArguments (listType)?.[0];
-    if (element === undefined || !printer.javaJsonBoxType (element)) {
+    if (element === undefined || !(printer.javaJsonBoxType (element) || r90j1UnifiedStructureType (checker, element))) {
         return false;
     }
     const scope = enclosingFunction (declaration);
     const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
     const name = String (declaration.name.text);
-    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+    // (R2, ral-90j1) a name bound by several sibling `const` declarations is decided per binding, as 87j1 r5
+    // does for String elements: every use below is matched to THIS binding by checker symbol
+    if (index === undefined || index.parameterNames.has (name)
+        || ((index.bindingCounts.get (name) ?? 0) !== 1 && !r87j1SiblingConstBindings (index, name))
         || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, 'java.util.Map<String, Object>')) {
         return false;
     }
