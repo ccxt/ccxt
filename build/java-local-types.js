@@ -1891,6 +1891,45 @@ function javaCoreSegmentSpellings (printer, segment, name) {
     return out;
 }
 
+// base-tier spellings the main process printed before the venue pool ran (kind -> name -> spellings);
+// a worker asks for a base return before that base body is printed in its own thread
+let javaCoreHandedSpellings;
+let javaCoreHandedGeneration = 0;
+let javaCoreHandedKey;
+export function javaCoreSetHandedSpellings (key, table) {
+    if (key === javaCoreHandedKey) {
+        return;
+    }
+    javaCoreHandedKey = key;
+    javaCoreHandedGeneration++;
+    javaCoreHandedSpellings = table === undefined ? undefined
+        : new Map (Object.entries (table).map (([ kind, names ]) => [ kind, new Map (Object.entries (names)) ]));
+}
+
+// the spellings of every declaration of the base-tier segments this printer's program holds
+export function javaCoreBaseTierSpellings (printer, kinds) {
+    const state = javaCoreProgram (printer);
+    if (state === undefined) {
+        return undefined;
+    }
+    const out = {};
+    for (const kind of kinds) {
+        const segment = javaCoreSegment (state, undefined, kind, '');
+        if (segment === undefined || segment.decls === undefined) {
+            continue;
+        }
+        const names = {};
+        for (const name of new Set (segment.decls.map ((m) => m.name.text))) {
+            const spellings = javaCoreSegmentSpellings (printer, segment, name);
+            if (spellings !== undefined) {
+                names[name] = spellings;
+            }
+        }
+        out[kind] = names;
+    }
+    return out;
+}
+
 // every return spelling of `name` over the chain of the call's file, or undefined when one is unknown
 function javaCoreChainSpellings (printer, node, name) {
     const state = javaCoreProgram (printer);
@@ -1899,7 +1938,7 @@ function javaCoreChainSpellings (printer, node, name) {
     }
     const tier = javaCoreTierOf (node);
     const id = sourceExchangeId (node);
-    const key = tier + '|' + id + '|' + name;
+    const key = tier + '|' + id + '|' + name + '|' + javaCoreHandedGeneration;
     if (state.names.has (key)) {
         return state.names.get (key);
     }
@@ -1919,7 +1958,7 @@ function javaCoreChainSpellings (printer, node, name) {
             spellings = undefined;
             break;
         }
-        const own2 = javaCoreSegmentSpellings (printer, segment, name);
+        const own2 = javaCoreHandedSpellings?.get (kind)?.get (name) ?? javaCoreSegmentSpellings (printer, segment, name);
         if (own2 === undefined) {
             spellings = undefined;
             break;

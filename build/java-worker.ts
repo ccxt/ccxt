@@ -3,6 +3,7 @@ import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
 import { installJavaExpressionTypeResolver, installJavaOwnerStores, installJavaRepoMethodUses } from './javaTranspiler.js';
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
+import { javaCoreSetHandedSpellings } from './java-local-types.js';
 import { installJavaFreshObjectMapWrites } from './java-local-types.js';
 import { installJavaStringCoreArgs } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJavaLiteralReplace } from './java-local-types.js';
@@ -104,6 +105,8 @@ interface JavaWorkerTask {
     file?: string;
     files?: string[];
     roots?: string[];
+    handed?: Record<string, Record<string, string[]>>;
+    handedKey?: string;
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread
@@ -124,7 +127,8 @@ let programCache: ReturnType<typeof Transpiler.createProgramCache> | null = null
 
 const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
 
-export default async ({ transpilerConfig, configKey, file, files, roots }: JavaWorkerTask) => {
+export default async ({ transpilerConfig, configKey, file, files, roots, handed, handedKey }: JavaWorkerTask) => {
+    javaCoreSetHandedSpellings (handedKey ?? '', handed);
     const key = configKey || JSON.stringify (transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
         if (!programCache) programCache = Transpiler.createProgramCache ();

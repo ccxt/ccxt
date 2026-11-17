@@ -72,6 +72,7 @@ import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
 import { installJ6ReaderLocals } from './java-local-types.js';
 import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
 import { installJ84j6StringListLocals } from './java-local-types.js';
+import { javaCoreBaseTierSpellings } from './java-local-types.js';
 import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose, javaTypedCoreDirectReturnSelfTest } from "./javaTypedCore.js";
@@ -2162,6 +2163,7 @@ class NewTranspiler {
     // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
     // are reused across every stage instead of paying a cold pool per call
     piscina: Piscina | undefined;
+    javaCoreHanded: Record<string, Record<string, string[]>> | undefined;
     // Cached transpiled body of the TS `Exchange extends BaseExchange` tier (the 62
     // trading methods), reused by both the Exchange.java injection and the
     // PredictionExchange.java convenience-method injection.
@@ -3357,6 +3359,8 @@ class NewTranspiler {
         }
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
         const baseFile: any = this.transpiler.transpileJavaByPath(predictionBaseFile);
+        // the base-tier returns just printed here are handed to the venue workers with each task
+        this.javaCoreHanded = javaCoreBaseTierSpellings ((this.transpiler as any).javaTranspiler, [ 'predictionBase', 'exchange', 'base' ]);
         let baseClass = baseFile.content as any;
         // qualified-this inside anonymous-class initializers names the lexically enclosing class,
         // which for these methods is PredictionExchange (not Exchange/BaseExchange).
@@ -3573,6 +3577,8 @@ class NewTranspiler {
         }
         const piscina = this.piscina;
         const configKey = JSON.stringify(parserConfig);
+        const handed = this.javaCoreHanded;
+        const handedKey = handed === undefined ? '' : JSON.stringify (handed);
 
         // One file per task (load-balances; a slow file can't stall others). `roots` is
         // the FULL stage list on every task so each worker builds ONE sticky ts.Program
@@ -3580,7 +3586,7 @@ class NewTranspiler {
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {
-            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file] }));
+            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file], handed, handedKey }));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
