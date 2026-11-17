@@ -671,88 +671,87 @@ export default class bitstamp extends Exchange {
         //             "isin": "EZHKD4DNKHY3"
         //         }
         //
-        const result: List = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = this.safeDict (response, i);
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'counter_currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            let settleId: Str = undefined;
-            const marketTypeRaw = this.safeString (market, 'market_type');
-            let symbol = base + '/' + quote;
-            let type: Str = undefined;
-            let subType: Str = undefined;
-            if (marketTypeRaw === 'SPOT') {
-                type = 'spot';
-            } else if (marketTypeRaw === 'PERPETUAL') {
-                type = 'swap';
-                settleId = quoteId;
-                symbol = base + '/' + quote + ':' + this.safeString (market, 'counter_currency', '');
-                const payoffType = this.safeString (market, 'payoff_type');
-                if (payoffType === 'Linear') {
-                    subType = 'linear';
-                } else if (payoffType === 'Inverse') {
-                    subType = 'inverse';
-                }
-            }
-            const isSpot = (type === 'spot');
-            const settle = (settleId !== undefined && settleId !== '') ? this.safeCurrencyCode (settleId) : undefined;
-            result.push ({
-                'id': this.safeString (market, 'market_symbol'),
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'subType': subType,
-                'spot': isSpot,
-                'margin': false,
-                'future': false,
-                'swap': !isSpot,
-                'option': false,
-                'active': (this.safeString (market, 'trading') === 'Enabled'),
-                'contract': !isSpot,
-                'linear': isSpot ? undefined : true,
-                'inverse': isSpot ? undefined : false,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'counter_decimals'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minimum_order_amount'),
-                        'max': this.safeNumber (market, 'maximum_order_amount'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'minimum_order_value'),
-                        'max': this.safeNumber (market, 'maximum_order_value'),
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
+        return this.parseMarkets (response);
+    }
+
+    override parseMarket (market: Dict): Market {
+        const baseId = this.safeString (market, 'base_currency');
+        const quoteId = this.safeString (market, 'counter_currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return {} as Market;
         }
-        return result;
+        let settleId: Str = undefined;
+        const marketTypeRaw = this.safeString (market, 'market_type');
+        let symbol = base + '/' + quote;
+        let type: Str = undefined;
+        let subType: Str = undefined;
+        if (marketTypeRaw === 'SPOT') {
+            type = 'spot';
+        } else if (marketTypeRaw === 'PERPETUAL') {
+            type = 'swap';
+            settleId = quoteId;
+            symbol = base + '/' + quote + ':' + this.safeString (market, 'counter_currency', '');
+            const payoffType = this.safeString (market, 'payoff_type');
+            if (payoffType === 'Linear') {
+                subType = 'linear';
+            } else if (payoffType === 'Inverse') {
+                subType = 'inverse';
+            }
+        }
+        const isSpot = (type === 'spot');
+        const settle = (settleId !== undefined && settleId !== '') ? this.safeCurrencyCode (settleId) : undefined;
+        return {
+            'id': this.safeString (market, 'market_symbol'),
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'subType': subType,
+            'spot': isSpot,
+            'margin': false,
+            'future': false,
+            'swap': !isSpot,
+            'option': false,
+            'active': (this.safeString (market, 'trading') === 'Enabled'),
+            'contract': !isSpot,
+            'linear': isSpot ? undefined : true,
+            'inverse': isSpot ? undefined : false,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'counter_decimals'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'minimum_order_amount'),
+                    'max': this.safeNumber (market, 'maximum_order_amount'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'minimum_order_value'),
+                    'max': this.safeNumber (market, 'maximum_order_value'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        } as Market;
     }
 
     constructCurrencyObject (id: Str, code: Str, name: Str, precision: Int, minCost: Num, originalPayload: Dict): Dict {
