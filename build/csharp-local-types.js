@@ -2602,6 +2602,18 @@ function wsWatchAwaitMethodName (declaration) {
     return (typeof name === 'string' && CSHARP_WS_WATCH_METHOD_NAMES.includes (name)) ? name : undefined;
 }
 
+// `await this.<m> (...)` where <m> is a same-file method whose every return is an awaited
+// watch / watchMultiple chain (the wrapper hands the watched future's value back unchanged)
+function wsSameFileWatchWrapperCall (declaration) {
+    const initializer = declaration?.initializer;
+    const call = (initializer?.kind === ts.SyntaxKind.AwaitExpression) ? initializer.expression : undefined;
+    const fileName = (declaration?.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (call?.kind !== ts.SyntaxKind.CallExpression || !fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/')) {
+        return false;
+    }
+    return wsWrapperWatchedPrefixes (call, enclosingFunction (declaration), undefined, 0) !== undefined;
+}
+
 // `<name>.limit ()` (also `(<name> as OrderBook).limit ()`) anywhere in the statement
 function statementCallsLimitOn (statement, name) {
     let found = false;
@@ -2642,7 +2654,7 @@ function statementAfter (declaration) {
 // the C# type of the ws order book subscriber local, or undefined when the immediate next
 // statement does not dereference it through `limit ()`
 function wsOrderBookWatchType (declaration) {
-    if (wsWatchAwaitMethodName (declaration) === undefined) {
+    if (wsWatchAwaitMethodName (declaration) === undefined && !wsSameFileWatchWrapperCall (declaration)) {
         return undefined;
     }
     const name = declaration.name?.text;
@@ -2735,6 +2747,9 @@ function wsHashPrefixes (node, scope, params, depth) {
             if (params !== undefined && index !== undefined && index >= 0 && params[index] !== undefined) {
                 return params[index] ();
             }
+            if (params === undefined && index !== undefined && index >= 0) {
+                return wsParameterCallSitePrefixes (scope, index, depth) ?? any;
+            }
             return any;
         }
         const out = writes.flatMap ((w) => wsHashPrefixes (w, scope, params, depth + 1));
@@ -2790,6 +2805,41 @@ function wsIdentifierWrites (identifier, scope) {
 }
 
 // prefixes of a hash LIST: array literal elements, or a local list's literal / pushed elements
+// a method parameter with no bound caller: the union of what every same-file `this.<m> (...)`
+// call passes in that slot; any other reference to the method (a callback, a spread) is unknown
+function wsParameterCallSitePrefixes (method, index, depth) {
+    const name = (method?.kind === ts.SyntaxKind.MethodDeclaration) ? method.name?.text : undefined;
+    const parameter = method?.parameters?.[index];
+    if (name === undefined || parameter?.dotDotDotToken !== undefined || depth > 3) {
+        return undefined;
+    }
+    const out = [];
+    let ok = true;
+    let calls = 0;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.PropertyAccessExpression && n.expression?.kind === ts.SyntaxKind.ThisKeyword && n.name?.text === name) {
+            const call = n.parent;
+            if (call?.kind !== ts.SyntaxKind.CallExpression || call.expression !== n || call.arguments.some ((a) => a.kind === ts.SyntaxKind.SpreadElement)) {
+                ok = false;
+                return;
+            }
+            calls++;
+            const arg = (index < call.arguments.length) ? call.arguments[index] : parameter.initializer;
+            if (arg === undefined) {
+                ok = false;
+                return;
+            }
+            out.push (...wsHashPrefixes (arg, enclosingFunction (call), undefined, depth + 2));
+        }
+        n?.forEachChild (visit);
+    };
+    method.getSourceFile ()?.forEachChild (visit);
+    return (ok && calls > 0 && sourceFileMethods (method.getSourceFile (), name).length === 1) ? out : undefined;
+}
+
 function wsHashListPrefixes (node, scope, params, depth) {
     const any = [ { 'lit': '', 'exact': false } ];
     if (node === undefined || depth > 6) {
@@ -2982,6 +3032,12 @@ function wsResolvedCacheBox (csharp, value, depth) {
             && v.arguments[0].expression?.kind === ts.SyntaxKind.ThisKeyword
             && CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES[v.arguments[0].name?.text] !== undefined && wsCacheElementSourceOk (v)) {
         return bareCsharpType (CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES[v.arguments[0].name.text]);
+    }
+    // `this.safeValue (this.ohlcvs[s] | this.safeDict (this.ohlcvs, s), tf)` reads the same bucket element
+    if (v.kind === ts.SyntaxKind.CallExpression && v.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && v.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && v.expression.name?.text === 'safeValue'
+            && v.arguments?.length === 2 && wsCacheElementSourceOk (v) && wsOhlcvsReceiver (v.arguments[0])) {
+        return 'ArrayCacheByTimestamp';
     }
     const element = wsCacheElementReadType (v) ?? wsOhlcvsBucketReadType (v);
     if (element !== undefined) {
@@ -4526,6 +4582,18 @@ function wsCacheElementReadType (node) {
 // `this.ohlcvs[symbol][timeframe]` — printed `getValue(getValue(this.ohlcvs, symbol), timeframe)`.
 // Every writer stores `new ArrayCacheByTimestamp`, a SIBLING of ArrayCache (both : BaseCache),
 // so the exact box is ArrayCacheByTimestamp; an ArrayCache cast throws on the first kline frame.
+// `this.ohlcvs[s]` or `this.safeDict (this.ohlcvs, s)`: one symbol's timeframe buckets
+function wsOhlcvsReceiver (node) {
+    let bucket;
+    if (node?.kind === ts.SyntaxKind.ElementAccessExpression) {
+        bucket = node.expression;
+    } else if (node?.kind === ts.SyntaxKind.CallExpression && node.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && node.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && node.expression.name?.text === 'safeDict' && node.arguments?.length === 2) {
+        bucket = node.arguments[0];
+    }
+    return bucket?.kind === ts.SyntaxKind.PropertyAccessExpression && bucket.expression?.kind === ts.SyntaxKind.ThisKeyword && bucket.name?.text === 'ohlcvs';
+}
+
 function wsOhlcvsBucketReadType (node) {
     if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
