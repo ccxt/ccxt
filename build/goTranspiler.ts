@@ -469,7 +469,6 @@ function goChanType (value: string | undefined): string | undefined {
     return (value === undefined) ? undefined : value.replace (/\?$/, '');
 }
 
-// this.DerivedExchange is IDerivedExchange, whose tabled lines --apply-hand retypes with the cores
 const GO_CHAN_RECEIVERS = /^(?:this|this\.base|this\.Exchange|this\.BaseExchange|this\.DerivedExchange|exchange)$/;
 
 let GO_CHAN_TABLE: Map<string, string> | undefined = undefined;
@@ -905,7 +904,6 @@ function goChanConsumerEdits (content: string, masked: string, table: Map<string
         const nilable = /\?$/.test (table.get (m[1]) as string);
         const type = goChanType (table.get (m[1])) as string;
         let recvStart = m.index;
-        // `this.DerivedExchange.(IName)` / `exchange.(ccxt.IName)` assert to the interface --apply-hand retypes
         const asserted = /(?<![\w.])(this\.DerivedExchange|exchange)\.\((?:ccxt\.)?I\w+\)$/.exec (masked.substring (Math.max (0, m.index - 120), m.index));
         if (asserted !== null) {
             recvStart = m.index - asserted[0].length;
