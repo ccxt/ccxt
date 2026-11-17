@@ -16,6 +16,7 @@ import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaPredictionMapLocals } from './java-local-types.js';
 import { installJavaListParamSlots } from './java-local-types.js';
+import { installJavaNonNullMapPuts } from './java-local-types.js';
 import log from 'ololog'
 import { readFileSync, existsSync } from 'fs';
 import { dirname, resolve as resolvePath } from 'path';
@@ -158,6 +159,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJavaPredictionMapLocals (cachedTranspiler);
         installJavaListParamSlots (cachedTranspiler);
         installJavaTypedBaseFields (cachedTranspiler);
+        installJavaNonNullMapPuts (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

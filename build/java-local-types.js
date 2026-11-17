@@ -18244,3 +18244,250 @@ export function installJavaTypedBaseFields (transpiler) {
         return ok ? `(${leftText} ${negated ? '!=' : '=='} ${rightText})` : undefined;
     };
 }
+
+// ===== declared-Map receivers written with a value proven non-null =====
+// put(k, v) with v != null is the helper's Map branch on every Map (a ConcurrentHashMap included),
+// so a String-keyed write on a Map-declared identifier is native once the value is never null.
+const J3_PRECISION_CALLS = new Set ([ 'priceToPrecision', 'amountToPrecision', 'costToPrecision' ]);
+// String-or-null accessors that hand back their String default when the value is missing (SafeMethods)
+const J3_STRING_DEFAULT_AT = { safeString: 2, safeString2: 3, safeStringN: 2, safeStringLower: 2, safeStringUpper: 2 };
+
+function j3BaseOnly (call) {
+    if (!javaFreshMapMethods ().classes.has (path.resolve (call.getSourceFile ().fileName))) {
+        javaFreshMapMethodIndex = undefined; // the class index predates this file: rebuild it once
+    }
+    const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, call.expression.name.text);
+    return declarations !== undefined && declarations.length > 0 && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
+}
+
+function j3StringTyped (checker, node) {
+    const type = checker.getTypeAtLocation (node);
+    const parts = (type.flags & ts.TypeFlags.Union) ? type.types : [ type ];
+    const nullish = ts.TypeFlags.Undefined | ts.TypeFlags.Null;
+    const real = parts.filter ((t) => (t.flags & nullish) === 0);
+    return real.length > 0 && real.every ((t) => (t.flags & ts.TypeFlags.StringLike) !== 0);
+}
+
+// `test` true (truthy) / false proves `symbol` non-null; a const boolean alias (`const isX = (x !== undefined)`) counts
+function j3TestProves (printer, checker, test, symbol, truthy, depth) {
+    test = javaFreshMapUnwrap (test);
+    if (test === undefined || depth > 4) {
+        return false;
+    }
+    if (ts.isPrefixUnaryExpression (test) && test.operator === ts.SyntaxKind.ExclamationToken) {
+        return j3TestProves (printer, checker, test.operand, symbol, !truthy, depth + 1);
+    }
+    if (ts.isBinaryExpression (test) && (test.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken || test.operatorToken.kind === ts.SyntaxKind.BarBarToken)) {
+        return truthy === (test.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken)
+            && (j3TestProves (printer, checker, test.left, symbol, truthy, depth + 1) || j3TestProves (printer, checker, test.right, symbol, truthy, depth + 1));
+    }
+    if (ts.isIdentifier (test)) {
+        const alias = checker.getSymbolAtLocation (test)?.valueDeclaration?.resolve ();
+        return alias !== undefined && ts.isVariableDeclaration (alias) && ts.isIdentifier (alias.name) && alias.initializer !== undefined
+            && ts.isVariableDeclarationList (alias.parent) && (alias.parent.flags & ts.NodeFlags.Const) !== 0
+            && j3TestProves (printer, checker, alias.initializer, symbol, truthy, depth + 1);
+    }
+    return printer.javaTestProvesNonNull (test, symbol, truthy);
+}
+
+// the read is only reached with its (never rebound) binding non-null
+function j3GuardAdmits (printer, checker, node) {
+    const symbol = checker.getSymbolAtLocation (node);
+    if (symbol === undefined) {
+        return false;
+    }
+    const proves = (test, truthy) => j3TestProves (printer, checker, test, symbol, truthy, 0);
+    for (let current = node; current.parent !== undefined && !ts.isFunctionLike (current); current = current.parent) {
+        const parent = current.parent;
+        const logical = ts.isBinaryExpression (parent) ? parent.operatorToken.kind : undefined;
+        if ((logical === ts.SyntaxKind.AmpersandAmpersandToken || logical === ts.SyntaxKind.BarBarToken) && parent.right === current
+            && proves (parent.left, logical === ts.SyntaxKind.AmpersandAmpersandToken)) {
+            return true;
+        }
+        if (ts.isIfStatement (parent) || ts.isConditionalExpression (parent)) {
+            const test = ts.isIfStatement (parent) ? parent.expression : parent.condition;
+            const whenTrue = ts.isIfStatement (parent) ? parent.thenStatement : parent.whenTrue;
+            const whenFalse = ts.isIfStatement (parent) ? parent.elseStatement : parent.whenFalse;
+            if ((whenTrue === current && proves (test, true)) || (whenFalse === current && proves (test, false))) {
+                return true;
+            }
+        }
+        if (ts.isBlock (parent)) {
+            for (const sibling of parent.statements) {
+                if (sibling === current) {
+                    break;
+                }
+                if (ts.isIfStatement (sibling) && ((proves (sibling.expression, false) && printer.javaStatementAlwaysExits (sibling.thenStatement))
+                    || (proves (sibling.expression, true) && printer.javaStatementAlwaysExits (sibling.elseStatement)))) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// a binding with no write after its declaration (const, unwritten let, unwritten parameter)
+function j3Unwritten (printer, checker, declaration, symbol) {
+    if (ts.isParameterDeclaration (declaration)) {
+        return declaration.dotDotDotToken === undefined && !printer.javaParameterIsWritten (declaration);
+    }
+    if (ts.isBindingElement (declaration)) {
+        let list = declaration.parent;
+        while (list !== undefined && !ts.isVariableDeclarationList (list)) {
+            list = list.parent;
+        }
+        return list !== undefined && (list.flags & ts.NodeFlags.Const) !== 0 && !ts.isForInStatement (list.parent) && !ts.isForOfStatement (list.parent);
+    }
+    if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || !ts.isVariableDeclarationList (declaration.parent)
+        || ts.isForInStatement (declaration.parent.parent) || ts.isForOfStatement (declaration.parent.parent)) {
+        return false;
+    }
+    if ((declaration.parent.flags & ts.NodeFlags.Const) !== 0) {
+        return true;
+    }
+    let written = false;
+    const walk = (n) => {
+        if (written || n === undefined) {
+            return;
+        }
+        if (ts.isBinaryExpression (n) && n.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && n.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            const left = javaFreshMapUnwrap (n.left);
+            if ((ts.isIdentifier (left) && checker.getSymbolAtLocation (left) === symbol)
+                || ((ts.isArrayLiteralExpression (left) || ts.isObjectLiteralExpression (left)) && printer.javaPatternBindsSymbol (left, symbol))) {
+                written = true;
+                return;
+            }
+        }
+        if ((ts.isPrefixUnaryExpression (n) || ts.isPostfixUnaryExpression (n)) && ts.isIdentifier (n.operand) && checker.getSymbolAtLocation (n.operand) === symbol) {
+            written = true;
+            return;
+        }
+        n.forEachChild (walk);
+    };
+    walk (enclosingFunction (declaration));
+    return !written;
+}
+
+// the value's Java print is never null; `env` holds callee parameters bound to proven arguments
+function j3NonNull (printer, node, env, depth) {
+    const value = javaFreshMapUnwrap (node);
+    if (value === undefined || depth > 4) {
+        return false;
+    }
+    if (printer.javaPrintsNonNullValue (value) || ts.isNoSubstitutionTemplateLiteral (value)) {
+        return true;
+    }
+    const checker = printer.getChecker ();
+    if (ts.isIdentifier (value)) {
+        const symbol = checker.getSymbolAtLocation (value);
+        if (symbol === undefined) {
+            return false;
+        }
+        if (env.has (symbol)) {
+            return env.get (symbol);
+        }
+        const declaration = symbol.valueDeclaration?.resolve ();
+        if (declaration === undefined || !j3Unwritten (printer, checker, declaration, symbol)) {
+            return false;
+        }
+        if (ts.isVariableDeclaration (declaration) && declaration.initializer !== undefined
+            && j3NonNull (printer, declaration.initializer, env, depth + 1)) {
+            return true;
+        }
+        return j3GuardAdmits (printer, checker, value);
+    }
+    if (!isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const name = value.expression.name.text;
+    const args = value.arguments;
+    if (name === 'extend' || name === 'deepExtend') {
+        return javaFreshMapExtendCall (value);
+    }
+    if (J3_PRECISION_CALLS.has (name)) {
+        // base body: null only for a null amount, else decimalToPrecision's String or a throw
+        return args.length === 2 && j3BaseOnly (value) && !javaFreshMapMethods ().handWritten.some ((t) => t === undefined || new RegExp (`\\s${name}\\s*\\(`).test (t))
+            && j3NonNull (printer, args[1], env, depth + 1);
+    }
+    if (J3_STRING_DEFAULT_AT[name] !== undefined) {
+        const at = J3_STRING_DEFAULT_AT[name];
+        return args.length === at + 1 && j3BaseOnly (value) && j3StringTyped (checker, args[at]) && j3NonNull (printer, args[at], env, depth + 1);
+    }
+    // a sync venue method with no override whose single return is non-null under the caller's arguments
+    if (!javaFreshMapMethods ().classes.has (path.resolve (value.getSourceFile ().fileName))) {
+        javaFreshMapMethodIndex = undefined;
+    }
+    const declarations = javaFreshMapDispatch (value.getSourceFile ().fileName, name);
+    if (declarations === undefined || declarations.length !== 1 || javaFreshMapMethods ().handWritten.some ((t) => t === undefined || new RegExp (`\\s${name}\\s*\\(`).test (t))) {
+        return false;
+    }
+    const method = declarations[0];
+    if (!ts.isMethodDeclaration (method) || method.body === undefined || BASE_SOURCE_FILE.test (method.getSourceFile ().fileName)
+        || (ts.getModifiers (method) ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
+        return false;
+    }
+    // the index parses its own tree: bind the checker's declaration of the same method
+    const resolved = checker.getResolvedSignature (value)?.declaration?.resolve ();
+    if (resolved === undefined || !ts.isMethodDeclaration (resolved) || resolved.pos !== method.pos
+        || path.resolve (resolved.getSourceFile ().fileName) !== path.resolve (method.getSourceFile ().fileName)) {
+        return false;
+    }
+    const returns = [];
+    const walk = (n) => {
+        if (n !== resolved && ts.isFunctionLike (n)) {
+            return;
+        }
+        if (ts.isReturnStatement (n)) {
+            returns.push (n);
+        }
+        n.forEachChild (walk);
+    };
+    walk (resolved.body);
+    if (returns.length !== 1 || returns[0].expression === undefined || resolved.parameters.length < args.length) {
+        return false;
+    }
+    const inner = new Map ();
+    for (let i = 0; i < resolved.parameters.length; i++) {
+        const parameter = resolved.parameters[i];
+        const symbol = ts.isIdentifier (parameter.name) ? checker.getSymbolAtLocation (parameter.name) : undefined;
+        if (symbol === undefined) {
+            return false;
+        }
+        inner.set (symbol, i < args.length && !printer.javaParameterIsWritten (parameter) && j3NonNull (printer, args[i], env, depth + 1));
+    }
+    return j3NonNull (printer, returns[0].expression, inner, depth + 1);
+}
+
+export function installJavaNonNullMapPuts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printCustomBinaryExpressionIfAny !== 'function' || typeof printer.javaTestProvesNonNull !== 'function'
+        || printer._javaNonNullMapPutsPatched) {
+        return;
+    }
+    printer._javaNonNullMapPutsPatched = true;
+    const upstream = printer.printCustomBinaryExpressionIfAny.bind (printer);
+    printer.printCustomBinaryExpressionIfAny = function (node, identation) {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isElementAccessExpression (node.left)) {
+            return printed;
+        }
+        const receiver = node.left.expression;
+        const key = javaFreshMapUnwrap (node.left.argumentExpression);
+        if (!ts.isIdentifier (receiver) || key === undefined || !(ts.isStringLiteralLike (key) || printer.javaDeclaredStringType (key))) {
+            return printed;
+        }
+        const recv = printer.printNode (receiver, 0);
+        const head = `Helpers.addElementToObject(${recv}, `;
+        if (!/^\w+$/.test (recv) || !printed.startsWith (head) || !printed.endsWith (')') || !printer.javaDeclaredMapReceiver (receiver)) {
+            return printed;
+        }
+        let proven = false;
+        try {
+            proven = j3NonNull (printer, node.right, new Map (), 0);
+        } catch (e) {
+            proven = false;
+        }
+        return proven ? `${recv}.put(${printed.slice (head.length)}` : printed;
+    };
+}
