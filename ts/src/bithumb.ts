@@ -517,7 +517,72 @@ export default class bithumb extends Exchange {
 
     override parseMarket (market: Dict): Market {
         if ('currencyId' in market) {
-            return this.parseGen1Market (market);
+            //
+            // generation 1: a ticker entry wrapped as { 'info': ticker, 'currencyId': baseId, 'quoteId': quoteId }
+            //
+            const ticker = this.safeValue (market, 'info');
+            const currencyId = this.safeString (market, 'currencyId');
+            const gen1Quote = this.safeString (market, 'quoteId');
+            const gen1QuoteId = gen1Quote;
+            const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
+            const extension = this.safeDict (quoteCurrencies, gen1Quote, {});
+            const gen1Base = this.safeCurrencyCode (currencyId);
+            if (gen1Base === undefined) {
+                return undefined;
+            }
+            let active = true;
+            if (Array.isArray (ticker)) {
+                const numElements = ticker.length;
+                if (numElements === 0) {
+                    active = false;
+                }
+            }
+            return this.deepExtend ({
+                'id': currencyId,
+                'symbol': gen1Base + '/' + gen1Quote,
+                'base': gen1Base,
+                'quote': gen1Quote,
+                'settle': undefined,
+                'baseId': currencyId,
+                'quoteId': gen1QuoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': active,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': parseInt ('4'),
+                    'price': parseInt ('4'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {}, // set via options
+                },
+                'created': undefined,
+                'info': ticker,
+            }, extension);
         }
         //
         // generation 2
@@ -594,80 +659,6 @@ export default class bithumb extends Exchange {
             'created': undefined,
             'info': market,
         } as Market;
-    }
-
-    parseGen1Market (wrapper: Dict): Market {
-        /**
-         * @ignore
-         * @method
-         * @name bithumb#parseGen1Market
-         * @description parses a generation 1 ticker entry wrapped as { 'info': ticker, 'currencyId': baseId, 'quoteId': quoteId }
-         * @param {object} wrapper the wrapped ticker entry
-         * @returns {object} a market structure
-         */
-        const market = this.safeValue (wrapper, 'info');
-        const currencyId = this.safeString (wrapper, 'currencyId');
-        const quote = this.safeString (wrapper, 'quoteId');
-        const quoteId = quote;
-        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
-        const extension = this.safeDict (quoteCurrencies, quote, {});
-        const base = this.safeCurrencyCode (currencyId);
-        if (base === undefined) {
-            return undefined;
-        }
-        let active = true;
-        if (Array.isArray (market)) {
-            const numElements = market.length;
-            if (numElements === 0) {
-                active = false;
-            }
-        }
-        return this.deepExtend ({
-            'id': currencyId,
-            'symbol': base + '/' + quote,
-            'base': base,
-            'quote': quote,
-            'settle': undefined,
-            'baseId': currencyId,
-            'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
-            'margin': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'active': active,
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
-            'precision': {
-                'amount': parseInt ('4'),
-                'price': parseInt ('4'),
-            },
-            'limits': {
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {}, // set via options
-            },
-            'created': undefined,
-            'info': market,
-        }, extension);
     }
 
     parseBalanceList (response: any): Balances {
