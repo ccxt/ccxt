@@ -4343,6 +4343,7 @@ function auditSelfTest (): string[] {
         x21SelfTest,
         x22SelfTest,
         javaPaginationCursorSelfTest,
+        javaNonNullMapPutsSelfTest,
     ];
     return problems.concat(...wired.map((selfTest) => selfTest()));
 }
@@ -4411,6 +4412,18 @@ function javaFreshMapParameterSelfTest (): string[] {
         [ /zzBuildB[\s\S]*?Helpers\.addElementToObject\(request, "k", v\)/, true, "fresh param: 'zzBuildB' (a params caller) must keep the helper" ],
         [ /zzBuildC[\s\S]*?Helpers\.addElementToObject\(request, "k", v\)/, true, "fresh param: 'zzBuildC' (written param) must keep the helper" ],
     ] });
+}
+
+// a declared-Map receiver written with a never-null value puts natively; a nullable value keeps the helper
+function javaNonNullMapPutsSelfTest (): string[] {
+    const cls = 'zznonnullputselftest';
+    return javaProbeCases({ files: [ [ cls, [ "import Exchange from './abstract/binance.js';", "import type { Dict, Str } from './base/types.js';", `export default class ${cls} extends Exchange {`,
+        "    zzEnc (t: Str): Str { const m: Dict = { 'a': 'A' }; return this.safeString (m, t, t); }",
+        "    zzPut (symbol: Str, price: any, t: Str, params: Dict = {}) { if (price !== undefined) { params['p'] = this.priceToPrecision (symbol, price); } const kind = this.safeString (params, 'kind'); if (kind !== undefined) { params['k'] = this.zzEnc (kind); } params['d'] = this.safeString (params, 'd', 'x'); params['n'] = this.safeString (params, 'n'); params['q'] = this.priceToPrecision (symbol, price); return params; }",
+    '}' ] ] ], checks: [
+        [ [ /parameters\.put\("p", this\.priceToPrecision\(/, /parameters\.put\("k", this\.zzEnc\(/, /parameters\.put\("d", this\.safeString\(/ ], true, "non-null puts: guarded / defaulted values must put natively" ],
+        [ [ /Helpers\.addElementToObject\(parameters, "n", /, /Helpers\.addElementToObject\(parameters, "q", / ], true, "non-null puts: nullable values must keep the helper" ],
+    ], output: true });
 }
 
 function runStringTypeAudit (): void {

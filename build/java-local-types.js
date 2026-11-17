@@ -18068,6 +18068,9 @@ const J3_PRECISION_CALLS = new Set ([ 'priceToPrecision', 'amountToPrecision', '
 const J3_STRING_DEFAULT_AT = { safeString: 2, safeString2: 3, safeStringN: 2, safeStringLower: 2, safeStringUpper: 2 };
 
 function j3BaseOnly (call) {
+    if (!javaFreshMapMethods ().classes.has (path.resolve (call.getSourceFile ().fileName))) {
+        javaFreshMapMethodIndex = undefined; // the class index predates this file: rebuild it once
+    }
     const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, call.expression.name.text);
     return declarations !== undefined && declarations.length > 0 && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
 }
@@ -18227,6 +18230,9 @@ function j3NonNull (printer, node, env, depth) {
         return args.length === at + 1 && j3BaseOnly (value) && j3StringTyped (checker, args[at]) && j3NonNull (printer, args[at], env, depth + 1);
     }
     // a sync venue method with no override whose single return is non-null under the caller's arguments
+    if (!javaFreshMapMethods ().classes.has (path.resolve (value.getSourceFile ().fileName))) {
+        javaFreshMapMethodIndex = undefined;
+    }
     const declarations = javaFreshMapDispatch (value.getSourceFile ().fileName, name);
     if (declarations === undefined || declarations.length !== 1 || javaFreshMapMethods ().handWritten.some ((t) => t === undefined || new RegExp (`\\s${name}\\s*\\(`).test (t))) {
         return false;
