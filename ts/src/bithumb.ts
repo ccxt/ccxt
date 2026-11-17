@@ -433,7 +433,6 @@ export default class bithumb extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        const result: Market[] = [];
         const request: Dict = {};
         const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'fetchMarkets', 'generation', 2);
         if (generation === 2) {
@@ -449,193 +448,217 @@ export default class bithumb extends Exchange {
             //         },
             //     ]
             //
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
-                const marketId = this.safeString (entry, 'market');
-                let baseId: Str = undefined;
-                let quoteId: Str = undefined;
-                let base: Str = undefined;
-                let quote: Str = undefined;
-                if (marketId !== undefined) {
-                    const parts = marketId.split ('-');
-                    // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = parts[1];
-                    quoteId = parts[0];
-                    base = this.safeCurrencyCode (baseId);
-                    quote = this.safeCurrencyCode (quoteId);
-                }
-                if ((base === undefined) || (quote === undefined)) {
+            return this.parseMarkets (response);
+        }
+        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
+        const quotes = Object.keys (quoteCurrencies);
+        const promises: Promise<any>[] = [];
+        for (let i = 0; i < quotes.length; i++) {
+            request['quoteId'] = quotes[i];
+            promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, paramsGeneration)));
+            //
+            //    {
+            //        "status": "0000",
+            //        "data": {
+            //            "ETH": {
+            //                "opening_price": "0.05153399",
+            //                "closing_price": "0.05145144",
+            //                "min_price": "0.05145144",
+            //                "max_price": "0.05160781",
+            //                "units_traded": "6.541124172077830855",
+            //                "acc_trade_value": "0.33705472498492329997697755",
+            //                "prev_closing_price": "0.0515943",
+            //                "units_traded_24H": "43.368879902677400513",
+            //                "acc_trade_value_24H": "2.24165339555398079994373342",
+            //                "fluctate_24H": "-0.00018203",
+            //                "fluctate_rate_24H": "-0.35"
+            //            },
+            //            "XRP": {
+            //                "opening_price": "0.00000918",
+            //                "closing_price": "0.0000092",
+            //                "min_price": "0.00000918",
+            //                "max_price": "0.0000092",
+            //                "units_traded": "6516.949363",
+            //                "acc_trade_value": "0.0598792533602796",
+            //                "prev_closing_price": "0.00000916",
+            //                "units_traded_24H": "229161.50354738",
+            //                "acc_trade_value_24H": "2.0446589371637117",
+            //                "fluctate_24H": "0.00000049",
+            //                "fluctate_rate_24H": "5.63"
+            //            },
+            //            ...
+            //            "date": "1721675913145"
+            //        }
+            //    }
+            //
+        }
+        const results = await Promise.all (promises);
+        const rawMarkets: List = [];
+        for (let i = 0; i < quotes.length; i++) {
+            const quote = quotes[i];
+            const response = this.safeDict (results, i);
+            const data = this.safeDict (response, 'data', {});
+            const currencyIds = Object.keys (data);
+            for (let j = 0; j < currencyIds.length; j++) {
+                const currencyId = currencyIds[j];
+                if (currencyId === 'date') {
                     continue;
                 }
-                result.push ({
-                    'id': marketId,
-                    'symbol': base + '/' + quote,
-                    'base': base,
-                    'quote': quote,
-                    'settle': undefined,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'settleId': undefined,
-                    'type': 'spot',
-                    'spot': true,
-                    'margin': false,
-                    'swap': false,
-                    'future': false,
-                    'option': false,
-                    'active': true,
-                    'contract': false,
-                    'linear': undefined,
-                    'inverse': undefined,
-                    'contractSize': undefined,
-                    'expiry': undefined,
-                    'expiryDatetime': undefined,
-                    'strike': undefined,
-                    'optionType': undefined,
-                    'precision': {
-                        'amount': parseInt ('4'),
-                        'price': parseInt ('4'),
-                    },
-                    'limits': {
-                        'leverage': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'created': undefined,
-                    'info': entry,
+                // generation 1 tickers are keyed by base currency id and grouped by quote, so wrap them with that context
+                rawMarkets.push ({
+                    'info': data[currencyId],
+                    'currencyId': currencyId,
+                    'quoteId': quote,
                 });
             }
-        } else {
+        }
+        return this.parseMarkets (rawMarkets);
+    }
+
+    override parseMarket (market: Dict): Market {
+        if ('currencyId' in market) {
+            //
+            // generation 1: a ticker entry wrapped as { 'info': ticker, 'currencyId': baseId, 'quoteId': quoteId }
+            //
+            const ticker = this.safeValue (market, 'info');
+            const currencyId = this.safeString (market, 'currencyId');
+            const gen1Quote = this.safeString (market, 'quoteId');
+            const gen1QuoteId = gen1Quote;
             const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
-            const quotes = Object.keys (quoteCurrencies);
-            const promises: Promise<any>[] = [];
-            for (let i = 0; i < quotes.length; i++) {
-                request['quoteId'] = quotes[i];
-                promises.push (this.publicGetPublicTickerALLQuoteId (this.extend (request, paramsGeneration)));
-                //
-                //    {
-                //        "status": "0000",
-                //        "data": {
-                //            "ETH": {
-                //                "opening_price": "0.05153399",
-                //                "closing_price": "0.05145144",
-                //                "min_price": "0.05145144",
-                //                "max_price": "0.05160781",
-                //                "units_traded": "6.541124172077830855",
-                //                "acc_trade_value": "0.33705472498492329997697755",
-                //                "prev_closing_price": "0.0515943",
-                //                "units_traded_24H": "43.368879902677400513",
-                //                "acc_trade_value_24H": "2.24165339555398079994373342",
-                //                "fluctate_24H": "-0.00018203",
-                //                "fluctate_rate_24H": "-0.35"
-                //            },
-                //            "XRP": {
-                //                "opening_price": "0.00000918",
-                //                "closing_price": "0.0000092",
-                //                "min_price": "0.00000918",
-                //                "max_price": "0.0000092",
-                //                "units_traded": "6516.949363",
-                //                "acc_trade_value": "0.0598792533602796",
-                //                "prev_closing_price": "0.00000916",
-                //                "units_traded_24H": "229161.50354738",
-                //                "acc_trade_value_24H": "2.0446589371637117",
-                //                "fluctate_24H": "0.00000049",
-                //                "fluctate_rate_24H": "5.63"
-                //            },
-                //            ...
-                //            "date": "1721675913145"
-                //        }
-                //    }
-                //
+            const extension = this.safeDict (quoteCurrencies, gen1Quote, {});
+            const gen1Base = this.safeCurrencyCode (currencyId);
+            if (gen1Base === undefined) {
+                return undefined;
             }
-            const results = await Promise.all (promises);
-            for (let i = 0; i < quotes.length; i++) {
-                const quote = quotes[i];
-                const quoteId = quote;
-                const response = this.safeDict (results, i);
-                const data = this.safeDict (response, 'data', {});
-                const extension = this.safeDict (quoteCurrencies, quote, {});
-                const currencyIds = Object.keys (data);
-                for (let j = 0; j < currencyIds.length; j++) {
-                    const currencyId = currencyIds[j];
-                    if (currencyId === 'date') {
-                        continue;
-                    }
-                    const market = data[currencyId];
-                    const base = this.safeCurrencyCode (currencyId);
-                    if (base === undefined) {
-                        continue;
-                    }
-                    let active = true;
-                    if (Array.isArray (market)) {
-                        const numElements = market.length;
-                        if (numElements === 0) {
-                            active = false;
-                        }
-                    }
-                    const entry = this.deepExtend ({
-                        'id': currencyId,
-                        'symbol': base + '/' + quote,
-                        'base': base,
-                        'quote': quote,
-                        'settle': undefined,
-                        'baseId': currencyId,
-                        'quoteId': quoteId,
-                        'settleId': undefined,
-                        'type': 'spot',
-                        'spot': true,
-                        'margin': false,
-                        'swap': false,
-                        'future': false,
-                        'option': false,
-                        'active': active,
-                        'contract': false,
-                        'linear': undefined,
-                        'inverse': undefined,
-                        'contractSize': undefined,
-                        'expiry': undefined,
-                        'expiryDatetime': undefined,
-                        'strike': undefined,
-                        'optionType': undefined,
-                        'precision': {
-                            'amount': parseInt ('4'),
-                            'price': parseInt ('4'),
-                        },
-                        'limits': {
-                            'leverage': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'amount': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'price': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'cost': {}, // set via options
-                        },
-                        'created': undefined,
-                        'info': market,
-                    }, extension);
-                    result.push (entry);
+            let active = true;
+            if (Array.isArray (ticker)) {
+                const numElements = ticker.length;
+                if (numElements === 0) {
+                    active = false;
                 }
             }
+            return this.deepExtend ({
+                'id': currencyId,
+                'symbol': gen1Base + '/' + gen1Quote,
+                'base': gen1Base,
+                'quote': gen1Quote,
+                'settle': undefined,
+                'baseId': currencyId,
+                'quoteId': gen1QuoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': active,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': parseInt ('4'),
+                    'price': parseInt ('4'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {}, // set via options
+                },
+                'created': undefined,
+                'info': ticker,
+            }, extension);
         }
-        return result;
+        //
+        // generation 2
+        //
+        //     {
+        //         "market": "KRW-BTC",
+        //         "korean_name": "비트코인",
+        //         "english_name": "Bitcoin",
+        //         "market_warning": "NONE"
+        //     }
+        //
+        const marketId = this.safeString (market, 'market');
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        let base: Str = undefined;
+        let quote: Str = undefined;
+        if (marketId !== undefined) {
+            const parts = marketId.split ('-');
+            // to match gen 1, the quoteId is the first currency derived from the market id
+            baseId = parts[1];
+            quoteId = parts[0];
+            base = this.safeCurrencyCode (baseId);
+            quote = this.safeCurrencyCode (quoteId);
+        }
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        return {
+            'id': marketId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': parseInt ('4'),
+                'price': parseInt ('4'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        } as Market;
     }
 
     parseBalanceList (response: any): Balances {
