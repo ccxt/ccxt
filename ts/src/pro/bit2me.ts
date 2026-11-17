@@ -848,6 +848,17 @@ export default class bit2me extends bit2meRest {
             const messageHash = this.safeString (hashes, name);
             if (messageHash !== undefined) {
                 client.reject (exception, messageHash);
+                if ((name === 'my-orders') || (name === 'my-trades')) {
+                    // the private channels are account-wide, a symbol-scoped watchOrders / watchMyTrades waits on orders:SYMBOL / myTrades:SYMBOL
+                    const scopedPrefix = messageHash + ':';
+                    const pendingHashes = Object.keys (client.futures);
+                    for (let i = 0; i < pendingHashes.length; i++) {
+                        const pendingHash = pendingHashes[i];
+                        if (pendingHash.startsWith (scopedPrefix)) {
+                            client.reject (exception, pendingHash);
+                        }
+                    }
+                }
                 if ((name !== undefined) && (name in client.subscriptions)) {
                     delete client.subscriptions[name];
                 }

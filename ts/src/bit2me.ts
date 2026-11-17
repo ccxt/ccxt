@@ -1849,7 +1849,12 @@ export default class bit2me extends Exchange {
             let message = nonce + ':' + url;
             if (!isGetOrDelete) {
                 // always send a json body, some http clients label an empty body as octet-stream and the gateway rejects it
-                requestBody = this.json (query);
+                // an empty query is spelled out, php encodes an empty array as [] and would sign and post that instead of {}
+                if (Object.keys (query).length > 0) {
+                    requestBody = this.json (query);
+                } else {
+                    requestBody = '{}';
+                }
                 message += ':' + requestBody;
             }
             const digest = this.hash (this.encode (message), sha256, 'binary');
