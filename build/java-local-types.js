@@ -14451,6 +14451,9 @@ function stringListWriteOk (printer, node, seen, depth = 0) {
     if (stringListBaseSymbolsRead (printer, value)) {
         return true; // the base field is declared List<String>
     }
+    if (stringListNativeKeysOfLocal (printer, value)) {
+        return true;
+    }
     if (ts.isIdentifier (value)) {
         const declaration = stringListLocalDeclaration (printer, value);
         if (declaration === undefined) {
@@ -14459,6 +14462,24 @@ function stringListWriteOk (printer, node, seen, depth = 0) {
         return stringListLocalType (printer, declaration, seen) !== undefined;
     }
     return false;
+}
+
+// `Object.keys (m)` of a local the printer copies natively (`new ArrayList<Object>(m.keySet())`, m a
+// String-keyed Map): the copy of a Set<String> is retyped ArrayList<String> with the declaration
+function stringListNativeKeysOfLocal (printer, value) {
+    if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression) || value.arguments.length !== 1
+        || !ts.isIdentifier (value.expression.expression) || value.expression.expression.text !== 'Object'
+        || value.expression.name.text !== 'keys' || typeof printer.printNativeObjectKeysCall !== 'function'
+        || !(ts.isIdentifier (value.arguments[0]) || stringListKeysAssertedMap (value.arguments[0]))) {
+        return false;
+    }
+    return printer.printNativeObjectKeysCall (value) !== undefined;
+}
+
+// `x as Dict` (not a base field read the printer null-guards): the checker branch prints the cast key copy
+function stringListKeysAssertedMap (node) {
+    return ts.isAsExpression (node) && ts.isTypeReferenceNode (node.type) && ts.isIdentifier (node.type.typeName)
+        && node.type.typeName.text === 'Dict';
 }
 
 // `this.symbols` (base field, printed List<Object>): its values are the market symbols
@@ -14629,6 +14650,10 @@ function stringListLocalType (printer, declaration, seen = undefined) {
 }
 
 function stringListRetypeValue (text) {
+    const keys = OBJECT_KEYS_NATIVE_COPY.exec (text);
+    if (keys !== null) {
+        return `new java.util.ArrayList<String>(${keys[1]}.keySet())${keys[2]}`;
+    }
     return text.split (STRING_LIST_ARRAY_OPEN).join ('new java.util.ArrayList<String>(java.util.Arrays.asList(')
         .replace (/^(\s*)\(java\.util\.List<Object>\)\s*/, '$1');
 }
@@ -22250,6 +22275,8 @@ export function installJ6ReaderLocals (transpiler) {
 //     runs (the printed guard is `v instanceof java.util.List` / Helpers.isArray, and a rest
 //     parameter - a Java array - is excluded), so the local is List<Object> and that write takes
 //     the checkcast its Object source needs.
+let j8EarlyStringSources = 0;
+
 function j8ScalarSourceType (printer, identifier) {
     if (identifier === undefined || !ts.isIdentifier (identifier) || printer.printNode (identifier, 0) !== identifier.text) {
         return undefined;
@@ -22264,6 +22291,11 @@ function j8ScalarSourceType (printer, identifier) {
         return declared;
     }
     const declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    // decided before the source prints (an accumulator declared above it): the source's own String decision
+    if (j8EarlyStringSources > 0 && declared === undefined && declaration !== undefined && ts.isVariableDeclaration (declaration)
+        && r87j8StringElement (printer, identifier, 1, false)) {
+        return 'String';
+    }
     if (declaration === undefined || !ts.isParameterDeclaration (declaration) || declaration.initializer === undefined
         || declaration.dotDotDotToken !== undefined || printer.javaParameterIsWritten?.(declaration) !== false) {
         return undefined;
@@ -25609,7 +25641,20 @@ function r87j8StringElement (printer, node, depth = 0, internalCalls = true) {
         && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
         return true;
     }
-    return r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true;
+    if (r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true) {
+        return true;
+    }
+    // a `const x = <expr> as string` local (92j1 R2) whose push into this list is its native use
+    if (r92j1AssertedStringLocal (printer, declaration, true)) {
+        return true;
+    }
+    // a String copy (section 77j8 (a), `let t: Str = s; if (c) { t = s.slice (0, -3); }`) decided before it prints
+    j8EarlyStringSources++;
+    try {
+        return j8ScalarCopyLocal (printer, declaration) === 'String';
+    } finally {
+        j8EarlyStringSources--;
+    }
 }
 
 // 87j8 (b): `x = r.slice (<literal>[, <literal>])` where r is the local itself or a String source: the printer's
@@ -25629,6 +25674,12 @@ function r87j8NativeStringSlice (printer, value, declaration) {
     let printed;
     try {
         printed = printer.nativeSliceCallIfProvable (value, receiver.text);
+        // a repeatable non-literal bound on a String-printed receiver: the printer's typed slice arm
+        if (printed === undefined && typeof printer.javaTypedStringSliceCall === 'function'
+            && value.arguments.every ((a) => !ts.isSpreadElement (a))) {
+            const args = value.arguments.map ((a) => printer.printNode (a, 0));
+            printed = printer.javaTypedStringSliceCall (value, receiver.text, args[0], args[1], 0);
+        }
     } catch (e) {
         return false;
     }
@@ -25668,6 +25719,25 @@ export function installJavaR87j8CopyStringResolver (transpiler) {
         }
         return printed;
     };
+    // a String-method receiver on such a local needs no checkcast (only String writes reach it)
+    if (typeof printer.javaDeclaredStringElementLocal === 'function') {
+        const upstreamElement = printer.javaDeclaredStringElementLocal.bind (printer);
+        printer.javaDeclaredStringElementLocal = function (node, name) {
+            if (upstreamElement (node, name)) {
+                return true;
+            }
+            const target = unwrapParens (node);
+            if (target === undefined || !ts.isIdentifier (target) || name !== target.text || !r93j8StringMethodReceiver (target)) {
+                return false;
+            }
+            try {
+                const declaration = printer.getChecker ().getSymbolAtLocation (target)?.valueDeclaration?.resolve ();
+                return declaration !== undefined && strings.has (declaration);
+            } catch (e) {
+                return false;
+            }
+        };
+    }
     const upstreamResolver = printer.javaExpressionTypeResolver;
     printer.javaExpressionTypeResolver = function (node) {
         const target = unwrapParens (node);
@@ -25684,6 +25754,14 @@ export function installJavaR87j8CopyStringResolver (transpiler) {
         }
         return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
     };
+}
+
+// `x.m ()` with no arguments (toUpperCase / toLowerCase / trim): no literal argument cast can follow
+function r93j8StringMethodReceiver (node) {
+    const access = node.parent;
+    return access !== undefined && ts.isPropertyAccessExpression (access) && access.expression === node
+        && ts.isCallExpression (access.parent) && access.parent.expression === access && access.parent.arguments.length === 0
+        && [ 'toUpperCase', 'toLowerCase', 'trim' ].includes (access.name.text);
 }
 
 // 87j8 (d): `xs[i]` with a number key on a bare identifier the printer already declared List<String>
@@ -26893,7 +26971,7 @@ function r92j1WsClientUrlRead (printer, init) {
         && /[\\/]ts[\\/]src[\\/]base[\\/]ws[\\/]Client\.ts$/.test (declaration.getSourceFile ().fileName);
 }
 
-function r92j1AssertedStringLocal (printer, declaration) {
+function r92j1AssertedStringLocal (printer, declaration, pushNative = false) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || (declaration.parent.flags & ts.NodeFlags.Const) === 0
         || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement || declaration.type !== undefined) {
@@ -26920,15 +26998,30 @@ function r92j1AssertedStringLocal (printer, declaration) {
         if (ts.isBinaryExpression (n.parent) && n.parent.left === n && ASSIGNMENT_OPERATORS.includes (n.parent.operatorToken.kind)) {
             return false;
         }
-        if (r84j1NativeUse (printer, n) && r92j1KeyUseIsNative (printer, n)) {
+        if ((r84j1NativeUse (printer, n) && r92j1KeyUseIsNative (printer, n)) || r93j8PushIntoStringList (printer, n)) {
             native++;
         }
     }
-    if (native === 0) {
+    if (native === 0 && !pushNative) {
         return false;
     }
     const info = { type: 'String', nonNull: false, strictPlus: true, stringListElement: true, stringAsCast: true };
     return isSafeToNarrow (printer, declaration, name, 'String', /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info);
+}
+
+// `xs.push (x)` on a list the printer declared List<String>: the push is the typed add the list needs
+function r93j8PushIntoStringList (printer, n) {
+    const push = n.parent;
+    if (push === undefined || !ts.isCallExpression (push) || push.arguments.length !== 1 || push.arguments[0] !== n
+        || !ts.isPropertyAccessExpression (push.expression) || push.expression.name.text !== 'push'
+        || !ts.isExpressionStatement (push.parent) || typeof printer.javaDeclaredTypeOf !== 'function') {
+        return false;
+    }
+    const receiver = push.expression.expression;
+    if (!ts.isIdentifier (receiver)) {
+        return false;
+    }
+    return /^(java\.util\.)?List<String>$/.test (String (printer.javaDeclaredTypeOf (receiver) ?? '').trim ());
 }
 
 // a put / delete key only loses its cast on a receiver declared a Java Map (a field chain or an Object
