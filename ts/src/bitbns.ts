@@ -290,81 +290,101 @@ export default class bitbns extends Exchange {
         //         },
         //     ]
         //
-        const result: List = [];
         const rawMarkets = this.toArray (response);
-        for (let i = 0; i < rawMarkets.length; i++) {
-            const market = rawMarkets[i];
-            const id = this.safeString (market, 'id');
-            const baseId = this.safeString (market, 'base');
-            const quoteId = this.safeString (market, 'quote');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((baseId === undefined) || (base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            const marketPrecision = this.safeDict (market, 'precision', {});
-            const marketLimits = this.safeDict (market, 'limits', {});
-            const amountLimits = this.safeDict (marketLimits, 'amount', {});
-            const priceLimits = this.safeDict (marketLimits, 'price', {});
-            const costLimits = this.safeDict (marketLimits, 'cost', {});
-            const usdt = (quoteId === 'USDT');
-            // INR markets don't need a _INR prefix
-            let uppercaseId: Str = baseId;
-            if (usdt) {
-                uppercaseId = (baseId + '_' + quoteId);
-            }
-            result.push ({
-                'id': id,
-                'uppercaseId': uppercaseId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': this.safeBool (market, 'active'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (marketPrecision, 'amount'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (marketPrecision, 'price'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (amountLimits, 'min'),
-                        'max': this.safeNumber (amountLimits, 'max'),
-                    },
-                    'price': {
-                        'min': this.safeNumber (priceLimits, 'min'),
-                        'max': this.safeNumber (priceLimits, 'max'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber (costLimits, 'min'),
-                        'max': this.safeNumber (costLimits, 'max'),
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
+        return this.parseMarkets (rawMarkets);
+    }
+
+    override parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "id":"BTC",
+        //         "symbol":"BTC/INR",
+        //         "base":"BTC",
+        //         "quote":"INR",
+        //         "baseId":"BTC",
+        //         "quoteId":"",
+        //         "active":true,
+        //         "limits":{
+        //             "amount":{"min":"0.00017376","max":20},
+        //             "price":{"min":2762353.2359999996,"max":6445490.883999999},
+        //             "cost":{"min":800,"max":128909817.67999998}
+        //         },
+        //         "precision":{
+        //             "amount":8,
+        //             "price":2
+        //         },
+        //         "info":{}
+        //     }
+        //
+        const id = this.safeString (market, 'id');
+        const baseId = this.safeString (market, 'base');
+        const quoteId = this.safeString (market, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((baseId === undefined) || (base === undefined) || (quote === undefined)) {
+            return {} as Market;
         }
-        return result;
+        const marketPrecision = this.safeDict (market, 'precision', {});
+        const marketLimits = this.safeDict (market, 'limits', {});
+        const amountLimits = this.safeDict (marketLimits, 'amount', {});
+        const priceLimits = this.safeDict (marketLimits, 'price', {});
+        const costLimits = this.safeDict (marketLimits, 'cost', {});
+        const usdt = (quoteId === 'USDT');
+        // INR markets don't need a _INR prefix
+        let uppercaseId: Str = baseId;
+        if (usdt) {
+            uppercaseId = (baseId + '_' + quoteId);
+        }
+        return {
+            'id': id,
+            'uppercaseId': uppercaseId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': this.safeBool (market, 'active'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (marketPrecision, 'amount'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (marketPrecision, 'price'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (amountLimits, 'min'),
+                    'max': this.safeNumber (amountLimits, 'max'),
+                },
+                'price': {
+                    'min': this.safeNumber (priceLimits, 'min'),
+                    'max': this.safeNumber (priceLimits, 'max'),
+                },
+                'cost': {
+                    'min': this.safeNumber (costLimits, 'min'),
+                    'max': this.safeNumber (costLimits, 'max'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     /**
