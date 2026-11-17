@@ -55,6 +55,8 @@ import { installJavaR90j6PairLocals } from './java-local-types.js';
 import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
 import { installJavaR90j7MapDelete } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
+import { installJavaR92j1AssertedStringLocals } from './java-local-types.js';
+import { installJavaR92j1StringRowLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2534,6 +2536,8 @@ class NewTranspiler {
         installJavaR90j6ListCopyLocals(this.transpiler);
         installJavaR90j7MapDelete(this.transpiler);
         installJavaR90j8OmitParamLocals(this.transpiler);
+        installJavaR92j1AssertedStringLocals(this.transpiler);
+        installJavaR92j1StringRowLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -10063,7 +10067,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j1selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
-        "import type { Dict, Ticker, Trade } from './base/types.js';", "import { ArrayCache } from './base/ws/Cache.js';",
+        "import type { Dict, Ticker, Trade } from './base/types.js';", "import { ArrayCache } from './base/ws/Cache.js';", "import Client from './base/ws/Client.js';",
         'export default class zzr84j1selftest extends Exchange {',
         "    tick (t: Ticker, m: Dict) { const symbol = t['symbol']; m[(symbol as string)] = t; return m; }",
         "    keys (m: any) { const ks = Object.keys (m); const out: Dict = {}; for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k.startsWith ('x')) { delete m[k]; } out[k] = this.currency (k); } return out; }",
@@ -10075,6 +10079,11 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         "    unified (m: Dict, trades: Trade[], cache: ArrayCache) { const out: Dict = {}; for (let i = 0; i < trades.length; i++) { const trade = trades[i]; cache.append (trade); out[trade['id']] = 1; } return out; }",
         "    pairs (sts: string[][]) { const out = []; for (let i = 0; i < sts.length; i++) { const st = sts[i]; const sy = st[0]; out.push (sy.toUpperCase ()); } return out; }",
         "    neg (m: Dict, xs: string[]) { const vs: any[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < vs.length; i++) { const a = vs[i]; out.push (a.length); const b = xs[i]; out.push (b.toUpperCase ()); } return out; }",
+        "    asserted (m: Dict) { const out: Dict = {}; const tf = this.safeValue (m, 'tf') as string; out[tf] = 1; return tf.toUpperCase (); }",
+        "    url92 (client: Client) { const url = client.url; if (url.indexOf ('v2') >= 0) { return 1; } return 0; }",
+        "    zzFlags92 (bits: number, zzNames92: string[]) { const out = []; for (let i = 0; i < zzNames92.length; i++) { out.push (zzNames92[i]); } return out; }",
+        "    zzFlagsCaller92 () { return this.zzFlags92 (1, [ 'a', 'b' ]); }",
+        "    rows92 (sts: string[][]) { const out = []; for (let i = 0; i < sts.length; i++) { const row = sts[i]; out.push (this.market (row[0])); out.push (row[1]); } return out; }",
         '}',
     ].join('\n');
     try {
@@ -10091,6 +10100,10 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if (!/Map<String, Object> first = \(java\.util\.Map<String, Object>\) \(ls == null \|\| 0 >= /.test(out) || !/\bfirst\.put\("z"/.test(out)) problems.push("90j1 r2: 'first' (literal-index read of a Dict[] list) must print Map<String, Object> with a native put");
         if (!/Map<String, Object> trade = \(java\.util\.Map<String, Object>\) \(trades == null/.test(out) || !/\btrade\.get\("id"\)/.test(out)) problems.push("90j1 r3: 'trade' (element of a Trade[] list, appended to a ws cache) must print Map<String, Object> with a native get");
         if (!/String sy = \(String\) \(st == null \|\| 0 >= /.test(out) || !/\bsy\.toUpperCase\(/.test(out)) problems.push("90j1 r4: 'sy' (literal-index read of a row of an unwritten `string[][]` parameter) must print String with a native toUpperCase");
+        if (!/String tf = \(\(String\)/.test(out) || !/\bout\.put\(tf, /.test(out) || !/\btf\.toUpperCase\(/.test(out)) problems.push("92j1 r2: 'tf' (a const `x as string` local) must print String with a native put key and toUpperCase");
+        if (!/zzFlags92\(Object bits, (java\.util\.)?List<Object> zzNames92\)/.test(out) || !/\bi < zzNames92\.size\(\)/.test(out)) problems.push("92j1 r1: venue-only `string[]` parameter 'zzNames92' (element / length uses, literal callers) must print List<Object> with a native size");
+        if (!/String url = client\.url;/.test(out) || !/\burl\.indexOf\("v2"\)/.test(out)) problems.push("92j1 r3: 'url' (ws Client url field) must print String with a native indexOf");
+        if (!/List<\?> row = \(java\.util\.List<\?>\) \(sts == null/.test(out) || !/\(row == null \|\| 0 >= row\.size\(\) \? null : row\.get\(0\)\)/.test(out)) problems.push("92j1 r4: 'row' (counter row of an unwritten `string[][]` parameter) must print List<?> with native literal reads");
         if (!/String b = \(String\) \(xs == null/.test(out) || !/\bb\.toUpperCase\(/.test(out)) problems.push("90j1 r1: 'b' (element of an unwritten `string[]` parameter) must print String with a native toUpperCase");
         for (const name of [ 'a', 'ro' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);
