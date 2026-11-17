@@ -16005,10 +16005,10 @@ function goTypedMaplistTupleMethods (): string {
     return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?|HandleOptionIntegerAndParams2?';
 }
 
-function goTypedMaplistTupleMap (func: string, name: string): boolean {
+function goTypedMaplistTupleMap (func: string, name: string, pairs: string = ''): boolean {
     const binds = new RegExp ('\\bvar ' + name + '\\b|(?<![\\w.])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|[(,]\\s*' + name + ' [\\w\\[*.]|&' + name + '\\b');
     const decls = func.split ('\n').filter ((l) => binds.test (l));
-    const tuple = new RegExp ('^\\s*\\w+, ' + name + ' := this\\.(?:Exchange\\.)?(?:' + goTypedMaplistTupleMethods () + ')\\(');
+    const tuple = new RegExp ('^\\s*\\w+, ' + name + ' := this\\.(?:Exchange\\.)?(?:' + goTypedMaplistTupleMethods () + pairs + ')\\(');
     return (decls.length === 1) && tuple.test (decls[0]);
 }
 
@@ -16017,6 +16017,8 @@ function goTypedMaplistOmitOfTupleMaps (content: string): string {
         return content;
     }
     const masked = goTextMaskLiteralsAndComments (content);
+    // the file's own pair producers (venue `[ Str|Dict, Dict ]` methods printed with a `(T, map[string]any)` result)
+    const pairs = [ ...masked.matchAll (/^func \(this \*\w+\) (\w+)\([^\n]*\) \((?:\*string|map\[string\]any), map\[string\]any\) \{$/gm) ].map ((p) => '|' + p[1]).join ('');
     const call = /(?<![\w.])(?:ccxt\.)?MapTyped\(this\.Omit\((\w+),/g;
     let out = '';
     let cursor = 0;
@@ -16025,7 +16027,7 @@ function goTypedMaplistOmitOfTupleMaps (content: string): string {
         const end = goMatchingCloseText (masked, open);
         const fs = masked.lastIndexOf ('\nfunc ', m.index);
         const fe = masked.indexOf ('\n}\n', m.index);
-        if ((end < 0) || (masked[end - 1] !== ')') || (fs < 0) || (fe < 0) || !goTypedMaplistTupleMap (masked.substring (fs, fe), m[1])) {
+        if ((end < 0) || (masked[end - 1] !== ')') || (fs < 0) || (fe < 0) || !goTypedMaplistTupleMap (masked.substring (fs, fe), m[1], pairs)) {
             continue;
         }
         const inner = content.substring (m.index + m[0].length, end - 1);
