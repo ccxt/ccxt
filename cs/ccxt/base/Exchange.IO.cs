@@ -11,7 +11,7 @@ public partial class BaseExchange
     public void ensureWhitelistedFile(object filePath)
     {
         var sanitized = Path.GetFullPath(filePath as string);
-        var exts = new[] { "ccxtfile", "pem", "wasm" };
+        var exts = new[] { "ccxtfile", "pem" };
         foreach (var ext in exts)
         {
             if (sanitized.EndsWith("." + ext))
@@ -19,7 +19,7 @@ public partial class BaseExchange
                 return;
             }
         }
-        throw new InvalidOperationException($"invalid file path: {filePath as string}");
+        throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed extensions are: {string.Join(" | ", exts)}");
     }
 
     public string readFile(object filePath)

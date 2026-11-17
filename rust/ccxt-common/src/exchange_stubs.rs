@@ -2928,11 +2928,11 @@ impl Exchange {
             Value::Str(s) => s.to_string(),
             _ => panic!("invalid file path: {}", stringify_param(p)),
         };
-        let exts = ["ccxtfile", "pem", "wasm"];
+        let exts = ["ccxtfile", "pem"];
         if exts.iter().any(|ext| path.ends_with(&format!(".{}", ext))) {
             return;
         }
-        panic!("invalid file path: {}, allowed extensions are only .ccxtfile and .pem", path);
+        panic!("invalid file path: {}, allowed extensions are: {}", path, exts.join(" | "));
     }
     pub fn exists_file(&self, p: Value) -> Value {
         self.ensure_whitelisted_file(&p);

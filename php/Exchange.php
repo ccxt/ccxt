@@ -1432,13 +1432,13 @@ class BaseExchange {
 
     public function ensure_whitelisted_file(string $filePath) {
         $sanitized = basename($filePath);
-        $exts = array('ccxtfile', 'pem', 'wasm');
+        $exts = array('ccxtfile', 'pem');
         foreach ($exts as $ext) {
             if (str_ends_with($sanitized, '.' . $ext)) {
                 return;
             }
         }
-        throw new \RuntimeException('invalid file path: ' . $filePath);
+        throw new \RuntimeException('invalid file path: ' . $filePath . ', allowed extensions are: ' . implode(' | ', $exts));
     }
 
     public function read_file(string $filePath) {

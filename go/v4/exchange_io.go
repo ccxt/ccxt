@@ -56,13 +56,13 @@ func (this *BaseExchange) EnsureWhitelistedFile(filePath any) {
 	if err != nil {
 		panic("invalid file path: " + derefScalar(filePath).(string))
 	}
-	exts := []string{"ccxtfile", "pem", "wasm"}
+	exts := []string{"ccxtfile", "pem"}
 	for _, ext := range exts {
 		if strings.HasSuffix(sanitized, "."+ext) {
 			return
 		}
 	}
-	panic("invalid file path: " + derefScalar(filePath).(string) + ", allowed extensions are only .ccxtfile and .pem")
+	panic("invalid file path: " + derefScalar(filePath).(string) + ", allowed extensions are: " + strings.Join(exts, " | "))
 }
 
 // GetTempDir returns the temporary directory

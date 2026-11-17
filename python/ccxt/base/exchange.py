@@ -499,10 +499,10 @@ class BaseExchange(object):
 
     def _ensure_whitelisted_file(self, file_path: str):
         sanitized = os.path.realpath(file_path)
-        exts = ['ccxtfile', 'pem', 'wasm']
+        exts = ['ccxtfile', 'pem']
         if any(sanitized.endswith('.' + ext) for ext in exts):
             return
-        raise ValueError(f'invalid file path: {file_path}')
+        raise ValueError(f'invalid file path: {file_path}, allowed extensions are: ' + ' | '.join(exts))
 
     def add_fetch_cache(self, data):
         if self.fetchHistoryCacheSize <= 0:
