@@ -19,11 +19,18 @@
       "scope": "private REST API (trade API v1)"
     },
     {
-      "id": "indodax-tradeapi-v2",
+      "id": "indodax-tradeapi-v2-public",
       "type": "hash",
-      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/INDODAX-TradeAPI-2.md",
-      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2.md",
-      "scope": "Trade API 2.0"
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/INDODAX-TradeAPI-2-Public.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2-Public.md",
+      "scope": "Trade API 2.0, public endpoints (replaced INDODAX-TradeAPI-2.md in Nov 2026)"
+    },
+    {
+      "id": "indodax-tradeapi-v2-private",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/INDODAX-TradeAPI-2-Private.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2-Private.md",
+      "scope": "Trade API 2.0, private endpoints and the legacy /tapi migration notes (replaced INDODAX-TradeAPI-2.md in Nov 2026)"
     },
     {
       "id": "indodax-stp",

@@ -10,7 +10,8 @@
       "url": "https://bit.team/trade/api/documentation.json",
       "link": "https://bit.team/trade/api/documentation",
       "scope": "all REST, including the /trade/api/ccxt endpoints (Swagger 2; no changelog exists)",
-      "specFormat": "openapi"
+      "specFormat": "openapi",
+      "expectBlocked": "DDoS-Guard answers 403 to datacenter IPs for the whole site (since 2026-11-15; fetched fine on 2026-11-10)"
     }
   ]
 }
