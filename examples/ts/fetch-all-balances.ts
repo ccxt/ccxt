@@ -90,13 +90,8 @@ const coins = [
 function initializeAllExchanges () {
     let numErrors = 0
     const ignore = [
-        'bcex',
-        'bitsane',
-        'chbtc',
         'coinbaseexchange',
-        'jubi',
         'hitbtc',
-        'bitstamp1',
         'bitfinex',
         'upbit',
         'htx',

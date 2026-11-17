@@ -99,6 +99,7 @@ impl crate::exchange_generated::ExchangeBase for NadoCore {
     {
         Box::pin(async move {
             match method {
+                "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => self.cancel_all_orders(&args[..]).await,
                 "cancel_all_orders_request" => self.cancel_all_orders_request(&args[..]).await,
                 "cancel_order" => self.cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -261,7 +262,16 @@ impl NadoCore {
 }));
         m.insert("query".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Int(2));
+        m.insert("byType".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("status".to_string(), Value::Int(1));
+        m.insert("contracts".to_string(), Value::Int(1));
+        m.insert("order".to_string(), Value::Int(1));
+        m.insert("subaccount_orders".to_string(), Value::Int(2));
+        m.insert("subaccount_info".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("edge/query".to_string(), Value::Map({
@@ -275,7 +285,16 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("query".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Int(2));
+        m.insert("byType".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("status".to_string(), Value::Int(1));
+        m.insert("contracts".to_string(), Value::Int(1));
+        m.insert("order".to_string(), Value::Int(1));
+        m.insert("subaccount_orders".to_string(), Value::Int(2));
+        m.insert("subaccount_info".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("edge/query".to_string(), Value::Map({
@@ -315,7 +334,7 @@ impl NadoCore {
 }));
         m.insert("pairs".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Int(2));
     m
 }));
         m.insert("orderbook".to_string(), Value::Map({
@@ -335,7 +354,16 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Int(2));
+        m.insert("byQuery".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("candlesticks".to_string(), Value::from(vec![Value::Int(2), Value::Int(100)]));
+        m.insert("events".to_string(), Value::from(vec![Value::Int(2), Value::Int(10)]));
+        m.insert("matches".to_string(), Value::from(vec![Value::Int(2), Value::Int(10)]));
+        m.insert("orders".to_string(), Value::from(vec![Value::Int(2), Value::Int(20)]));
+        m.insert("interest_and_funding".to_string(), Value::from(vec![Value::Int(5)]));
+    m
+}));
     m
 }));
     m
@@ -350,22 +378,23 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("tickers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Int(2));
     m
 }));
         m.insert("contracts".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Int(2));
     m
 }));
         m.insert("trades".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Int(4));
+        m.insert("byRows".to_string(), Value::from(vec![Value::Int(2), Value::Int(50)]));
     m
 }));
         m.insert("symbols".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Int(2));
     m
 }));
     m
@@ -4202,6 +4231,64 @@ impl NadoCore {
             return marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 5).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null).as_str().map(str::to_owned);
         }
         return marketId.as_str().map(str::to_owned);
+}
+
+    pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
+        let mut config = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        if (config.contains_key("byType")) && (in_op(&params, &Value::Str("type".into()))) {
+            let mut queryType: Value = crate::value::get_value_k(&params, "type");
+            let mut byType: Value = config.get("byType").cloned().unwrap_or(Value::Null);
+            if (matches!((&byType, &queryType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                return get_value(&byType, &queryType);
+            }
+        }
+        let mut byQuery: Value = (match config.get("byQuery") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+        if (byQuery != Value::Null) {
+            let mut queryNames: Vec<Value> = Value::Array(byQuery.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_995: bool = true;
+                while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (queryNames.len() as i64) } {
+                let mut queryName: Value = queryNames.get(i as usize).cloned().unwrap_or(Value::Null);
+                if (in_op(&params, &queryName)) {
+                    let mut weights: Value = self.safe_list(byQuery.clone(), queryName.clone(), &[Value::from(vec![])]);
+                    let mut baseWeight: Value = self.safe_integer(weights.clone(), Value::Int(0), &[Value::Int(2)]);
+                    let mut rowsPerWeight: Value = self.safe_integer(weights, Value::Int(1), &[]);
+                    if (rowsPerWeight == Value::Null) {
+                        return baseWeight;
+                    }
+                    let mut query: Value = self.safe_dict(params.clone(), queryName.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+                    let mut rows: Value = self.safe_integer_k(query.clone(), "limit", &[Value::Int(100)]); // the archive default page
+                    let mut nestedLimit: Value = self.safe_dict_k(query, "limit", &[]); // the events query sends { 'raw': 100 }
+                    if (nestedLimit != Value::Null) {
+                        rows = self.safe_integer_k(nestedLimit, "raw", &[Value::Int(100)]);
+                    }
+                    return self.sum(&[baseWeight, self.parse_to_int((match ((rows).as_f64(), (rowsPerWeight).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))]);
+                }
+            }
+            }
+        }
+        let mut byRows: Value = (match config.get("byRows") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null });
+        if (byRows != Value::Null) {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            let mut rowsBaseWeight: Value = self.safe_integer(byRows.clone(), Value::Int(0), &[Value::Int(2)]);
+            let mut rowsDivisor: Value = self.safe_integer(byRows, Value::Int(1), &[Value::Int(50)]);
+            let mut rowCount: Value = self.safe_integer_k(params, "limit", &[Value::Int(100)]); // the v2 default page
+            return self.sum(&[rowsBaseWeight, self.parse_to_int((match ((rowCount).as_f64(), (rowsDivisor).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))]);
+        }
+        return (match config.get("cost") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Int(1) });
+
+    Value::Null
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

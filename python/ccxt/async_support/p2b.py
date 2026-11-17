@@ -253,7 +253,7 @@ class p2b(Exchange, ImplicitAPI):
                     'fetchMyTrades': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBack': 100000,  # todo
+                        'daysBack': 90,  # 3 months
                         'untilDays': 1,
                         'symbolRequired': True,
                     },
@@ -269,8 +269,8 @@ class p2b(Exchange, ImplicitAPI):
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
-                        'daysBack': 100000,  # todo
-                        'daysBackCanceled': 1 / 12,  # todo
+                        'daysBack': 90,  # 3 months
+                        'daysBackCanceled': None,  # the orders history endpoint returns only filled or partially filled orders
                         'untilDays': 1,
                         'trigger': False,
                         'trailing': False,

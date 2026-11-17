@@ -303,7 +303,7 @@ export default class blofin extends blofinRest {
      */
     override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (symbols === undefined) {
-            throw new NotSupported (this.id + ' watchTickers() requires a list of symbols');
+            throw new ArgumentsRequired (this.id + ' watchTickers() requires a list of symbols');
         }
         const ticker = await this.watchMultipleWrapper (true, 'tickers', 'watchTickers', symbols, params);
         if (this.newUpdates) {

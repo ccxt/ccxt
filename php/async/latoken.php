@@ -879,6 +879,16 @@ class latoken extends Exchange {
         }
         $last = $this->safe_string($ticker, 'lastPrice');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
+        // during venue incidents a deleted level leaks a signed aggregate into the
+        // best sizes - the quoted prices stay usable, so only negatives are dropped
+        $bidVolume = $this->safe_string($ticker, 'bestBidQuantity');
+        if (($bidVolume !== null) && Precise::string_lt($bidVolume, '0')) {
+            $bidVolume = null;
+        }
+        $askVolume = $this->safe_string($ticker, 'bestAskQuantity');
+        if (($askVolume !== null) && Precise::string_lt($askVolume, '0')) {
+            $askVolume = null;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -886,9 +896,9 @@ class latoken extends Exchange {
             'low' => null,
             'high' => null,
             'bid' => $this->safe_string($ticker, 'bestBid'),
-            'bidVolume' => $this->safe_string($ticker, 'bestBidQuantity'),
+            'bidVolume' => $bidVolume,
             'ask' => $this->safe_string($ticker, 'bestAsk'),
-            'askVolume' => $this->safe_string($ticker, 'bestAskQuantity'),
+            'askVolume' => $askVolume,
             'vwap' => null,
             'open' => null,
             'close' => $last,

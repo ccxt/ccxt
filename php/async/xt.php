@@ -4067,10 +4067,20 @@ class xt extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $this->safe_symbol($marketId, $marketResolved, null, $marketType);
         $timestamp = $this->safe_integer_2($order, 'time', 'createdTime');
-        $quantity = $this->safe_number($order, 'origQty');
-        $amount = ($marketType === 'spot') ? $quantity : Precise::string_mul($this->number_to_string($quantity), $this->number_to_string($marketResolved['contractSize']));
-        $filledQuantity = $this->safe_number($order, 'executedQty');
-        $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($this->number_to_string($filledQuantity), $this->number_to_string($marketResolved['contractSize']));
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        $quantity = $this->safe_string($order, 'origQty');
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        $filledQuantity = $this->safe_string_2($order, 'tradeBase', 'executedQty');
+        $amount = ($marketType === 'spot') ? $quantity : Precise::string_mul($quantity, $contractSize);
+        $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($filledQuantity, $contractSize);
+        // leavingQty follows executedQty and is quote-denominated on the same
+        // spot market buy shape, so it is only read when the order carries a
+        // base-denominated origQty - otherwise safeOrder derives it from filled
+        $remaining = null;
+        if ($quantity !== null) {
+            $remaining = $this->safe_string($order, 'leavingQty');
+        }
         $lastUpdatedTimestamp = $this->safe_integer($order, 'updatedTime');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = null;
@@ -4105,7 +4115,7 @@ class xt extends Exchange {
             'lastTradeTimestamp' => $lastUpdatedTimestamp,
             'lastUpdateTimestamp' => $lastUpdatedTimestamp,
             'symbol' => $symbol,
-            'type' => $this->safe_string_lower_2($order, 'type', 'orderType'),
+            'type' => $this->parse_order_type($this->safe_string_lower_n($order, array( 'type', 'orderType', 'entrustType' ))),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
@@ -4115,8 +4125,8 @@ class xt extends Exchange {
             'takeProfitPrice' => $this->safe_number($order, 'triggerProfitPrice'),
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $this->safe_number($order, 'leavingQty'),
-            'cost' => null,
+            'remaining' => $remaining,
+            'cost' => $this->safe_string($order, 'tradeQuote'),
             'average' => $this->safe_number($order, 'avgPrice'),
             'status' => $this->parse_order_status($this->safe_string($order, 'state')),
             'fee' => array(
@@ -4125,6 +4135,17 @@ class xt extends Exchange {
             ),
             'trades' => null,
         ), $marketResolved);
+    }
+
+    public function parse_order_type(?string $type): ?string {
+        $types = array(
+            'stop' => 'limit',
+            'stop_market' => 'market',
+            'take_profit' => 'limit',
+            'take_profit_market' => 'market',
+            'trailing_stop_market' => 'market',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_order_status(?string $status): ?string {

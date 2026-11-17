@@ -6,6 +6,7 @@ import { runPhp } from "./php";
 import { runGo } from "./go";
 import { runCsharp } from "./csharp";
 import { runJava } from "./java";
+import { runRust } from "./rust";
 
 const runners: Record<
   RunnableLanguageId,
@@ -17,6 +18,7 @@ const runners: Record<
   go: runGo,
   csharp: runCsharp,
   java: runJava,
+  rust: runRust,
 };
 
 export async function runCode(

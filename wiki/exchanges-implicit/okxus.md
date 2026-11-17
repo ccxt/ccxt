@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official okxus API documentation:** [app.okx.com](https://app.okx.com/docs-v5/en/#overview)
 
-> 470 implicit endpoints across 2 access groups.
+> 471 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -119,6 +119,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetPublicVipInterestRateLoanQuota` | GET | `public/vip-interest-rate-loan-quota` | 10 |
 | `publicGetPublicMmInstrumentTypes` | GET | `public/mm-instrument-types` | 4 |
 | `publicGetPublicDeltaHedgeCurrencies` | GET | `public/delta-hedge-currencies` | 1 |
+| `publicGetPublicCorporateActions` | GET | `public/corporate-actions` | 1 |
 | `publicGetRubikStatTradingDataSupportCoin` | GET | `rubik/stat/trading-data/support-coin` | 4 |
 | `publicGetRubikStatContractsOpenInterestHistory` | GET | `rubik/stat/contracts/open-interest-history` | 2 |
 | `publicGetRubikStatTakerVolume` | GET | `rubik/stat/taker-volume` | 4 |

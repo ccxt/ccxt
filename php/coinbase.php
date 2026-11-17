@@ -1324,10 +1324,20 @@ class coinbase extends Exchange {
         $datetime = $this->safe_string_n($trade, array( 'created_at', 'trade_time', 'time' ));
         $side = $this->safe_string_lower_2($trade, 'resource', 'side');
         $takerOrMaker = $this->safe_string_lower($trade, 'liquidity_indicator');
+        $orderId = $this->safe_string($trade, 'order_id');
+        $entryId = $this->safe_string($trade, 'entry_id');
+        if (($orderId === null) && ($entryId === null) && ($this->safe_string($trade, 'resource') === null)) {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if ($side === 'buy') {
+                $side = 'sell';
+            } elseif ($side === 'sell') {
+                $side = 'buy';
+            }
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string_2($trade, 'id', 'trade_id'),
-            'order' => $this->safe_string($trade, 'order_id'),
+            'order' => $orderId,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'symbol' => $symbol,
@@ -1407,8 +1417,8 @@ class coinbase extends Exchange {
                         'type' => 'spot',
                         'spot' => true,
                         'margin' => false,
-                        'swap' => true,
-                        'future' => true,
+                        'swap' => false,
+                        'future' => false,
                         'option' => false,
                         'active' => null,
                         'contract' => false,
@@ -1549,8 +1559,6 @@ class coinbase extends Exchange {
         $fees = $this->safe_dict($promises, 1, array());
         $expiringFutures = $this->safe_dict($contractPromises, 0, array());
         $perpetualFutures = $this->safe_dict($contractPromises, 1, array());
-        $expiringFees = $this->safe_dict($contractPromises, 0, array());
-        $perpetualFees = $this->safe_dict($contractPromises, 1, array());
         //
         //     {
         //         "total_volume": 0,
@@ -1571,8 +1579,6 @@ class coinbase extends Exchange {
         //     }
         //
         $feeTier = $this->safe_dict($fees, 'fee_tier', array());
-        $expiringFeeTier = $this->safe_dict($expiringFees, 'fee_tier', array()); // fee tier null?
-        $perpetualFeeTier = $this->safe_dict($perpetualFees, 'fee_tier', array()); // fee tier null?
         $data = $this->safe_list($spot, 'products', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -1583,14 +1589,14 @@ class coinbase extends Exchange {
         }
         $futureData = $this->safe_list($expiringFutures, 'products', array());
         for ($i = 0; $i < count($futureData); $i++) {
-            $futureMarket = $this->parse_contract_market($futureData[$i], $expiringFeeTier);
+            $futureMarket = $this->parse_contract_market($futureData[$i]);
             if ($futureMarket !== null) {
                 $result[] = $futureMarket;
             }
         }
         $perpetualData = $this->safe_list($perpetualFutures, 'products', array());
         for ($i = 0; $i < count($perpetualData); $i++) {
-            $perpetualMarket = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
+            $perpetualMarket = $this->parse_contract_market($perpetualData[$i]);
             if ($perpetualMarket !== null) {
                 $result[] = $perpetualMarket;
             }
@@ -1710,7 +1716,7 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function parse_contract_market(array $market, array $feeTier): array {
+    public function parse_contract_market(array $market, ?array $feeTier = null): array {
         // expiring
         //
         //        {
@@ -1863,8 +1869,9 @@ class coinbase extends Exchange {
         }
         $takerFeeRate = $this->safe_number($feeTier, 'taker_fee_rate');
         $makerFeeRate = $this->safe_number($feeTier, 'maker_fee_rate');
-        $taker = ($takerFeeRate !== null && $takerFeeRate !== null && $takerFeeRate !== 0) ? $takerFeeRate : $this->parse_number('0.06');
-        $maker = ($makerFeeRate !== null && $makerFeeRate !== null && $makerFeeRate !== 0) ? $makerFeeRate : $this->parse_number('0.04');
+        // CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
+        $taker = ($takerFeeRate !== null && $takerFeeRate !== null && $takerFeeRate !== 0) ? $takerFeeRate : $this->parse_number('0.0002');
+        $maker = ($makerFeeRate !== null && $makerFeeRate !== null && $makerFeeRate !== 0) ? $makerFeeRate : $this->parse_number('0.0002');
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,

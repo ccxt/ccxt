@@ -2,6 +2,185 @@
     "exchange": "coinbase",
     "options": {},
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "public market trades: side is the maker side, unified side is the taker side",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD",
+                    null,
+                    4
+                ],
+                "httpResponse": {
+                    "trades": [
+                        {
+                            "trade_id": "1111135784",
+                            "product_id": "BTC-USD",
+                            "price": "79754.41",
+                            "size": "0.00000293",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        {
+                            "trade_id": "1111135783",
+                            "product_id": "BTC-USD",
+                            "price": "79754.4",
+                            "size": "0.00001836",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        {
+                            "trade_id": "1111135782",
+                            "product_id": "BTC-USD",
+                            "price": "79754.4",
+                            "size": "0.00000033",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        {
+                            "trade_id": "1111135781",
+                            "product_id": "BTC-USD",
+                            "price": "79754.39",
+                            "size": "0.00000004",
+                            "time": "2026-10-27T07:53:11.468847Z",
+                            "side": "BUY",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        }
+                    ],
+                    "best_bid": "79754.39",
+                    "best_ask": "79754.4"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "trade_id": "1111135781",
+                            "product_id": "BTC-USD",
+                            "price": "79754.39",
+                            "size": "0.00000004",
+                            "time": "2026-10-27T07:53:11.468847Z",
+                            "side": "BUY",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        "id": "1111135781",
+                        "order": null,
+                        "timestamp": 1793087591468,
+                        "datetime": "2026-10-27T07:53:11.468847Z",
+                        "symbol": "BTC/USD",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 79754.39,
+                        "amount": 4e-08,
+                        "cost": 0.0031901756,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "trade_id": "1111135782",
+                            "product_id": "BTC-USD",
+                            "price": "79754.4",
+                            "size": "0.00000033",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        "id": "1111135782",
+                        "order": null,
+                        "timestamp": 1793087591538,
+                        "datetime": "2026-10-27T07:53:11.538792Z",
+                        "symbol": "BTC/USD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 79754.4,
+                        "amount": 3.3e-07,
+                        "cost": 0.026318952,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "trade_id": "1111135783",
+                            "product_id": "BTC-USD",
+                            "price": "79754.4",
+                            "size": "0.00001836",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        "id": "1111135783",
+                        "order": null,
+                        "timestamp": 1793087591538,
+                        "datetime": "2026-10-27T07:53:11.538792Z",
+                        "symbol": "BTC/USD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 79754.4,
+                        "amount": 1.836e-05,
+                        "cost": 1.464290784,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "trade_id": "1111135784",
+                            "product_id": "BTC-USD",
+                            "price": "79754.41",
+                            "size": "0.00000293",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        "id": "1111135784",
+                        "order": null,
+                        "timestamp": 1793087591538,
+                        "datetime": "2026-10-27T07:53:11.538792Z",
+                        "symbol": "BTC/USD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 79754.41,
+                        "amount": 2.93e-06,
+                        "cost": 0.2336804213,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer USDC between portfolios",
@@ -1759,6 +1938,348 @@
                     [ 1789293600000, 76766.09, 76785, 76598.47, 76642.43, 60.57346818 ],
                     [ 1789297200000, 76642.44, 76774.94, 76457.09, 76759.13, 125.0873086 ],
                     [ 1789300800000, 76760.54, 76840, 76648.49, 76730.18, 123.32952784 ]
+                ]
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "contract markets: fee fallback when no fee tier is returned, and active=false for a trading_disabled product",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponseByUrl": {
+                    "FUTURE": {
+                        "products": [
+                            {
+                                "product_id": "BIT-30OCT26-CDE",
+                                "base_increment": "1",
+                                "quote_increment": "0.01",
+                                "quote_min_size": "0",
+                                "quote_max_size": "100000000",
+                                "base_min_size": "1",
+                                "base_max_size": "5000",
+                                "is_disabled": false,
+                                "trading_disabled": false,
+                                "product_type": "FUTURE",
+                                "quote_currency_id": "USD",
+                                "base_currency_id": "",
+                                "alias_to": [],
+                                "price_increment": "5",
+                                "display_name": "BTC 30 OCT 26",
+                                "product_venue": "FCM",
+                                "future_product_details": {
+                                    "venue": "cde",
+                                    "contract_code": "BIT",
+                                    "contract_expiry": "2026-10-30T16:00:00Z",
+                                    "contract_size": "0.01",
+                                    "contract_root_unit": "BTC",
+                                    "contract_expiry_type": "EXPIRING",
+                                    "funding_interval": null,
+                                    "display_name": "Bitcoin Futures (Oct 2026)"
+                                }
+                            },
+                            {
+                                "product_id": "BIP-20DEC30-CDE",
+                                "base_increment": "1",
+                                "quote_increment": "0.01",
+                                "quote_min_size": "0",
+                                "quote_max_size": "100000000",
+                                "base_min_size": "1",
+                                "base_max_size": "5000",
+                                "is_disabled": false,
+                                "trading_disabled": true,
+                                "product_type": "FUTURE",
+                                "quote_currency_id": "USD",
+                                "base_currency_id": "",
+                                "alias_to": [],
+                                "price_increment": "5",
+                                "display_name": "BTC PERP",
+                                "product_venue": "FCM",
+                                "future_product_details": {
+                                    "venue": "cde",
+                                    "contract_code": "BIP",
+                                    "contract_expiry": "2089-12-30T16:00:00Z",
+                                    "contract_size": "0.01",
+                                    "contract_root_unit": "BTC",
+                                    "contract_expiry_type": "EXPIRING",
+                                    "funding_interval": "3600s",
+                                    "display_name": "Bitcoin Perpetual"
+                                }
+                            }
+                        ],
+                        "num_products": 2
+                    },
+                    "transaction_summary": {},
+                    "market/products": {
+                        "products": []
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BIT-30OCT26-CDE",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USD:USD-261030",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": "USD",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": "USD",
+                        "type": "future",
+                        "spot": false,
+                        "margin": false,
+                        "swap": false,
+                        "future": true,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0002,
+                        "maker": 0.0002,
+                        "contractSize": 0.01,
+                        "expiry": 1793376000000,
+                        "expiryDatetime": "2026-10-30T16:00:00.000Z",
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1,
+                            "price": 5
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1,
+                                "max": 5000
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 0,
+                                "max": 100000000
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "product_id": "BIT-30OCT26-CDE",
+                            "base_increment": "1",
+                            "quote_increment": "0.01",
+                            "quote_min_size": "0",
+                            "quote_max_size": "100000000",
+                            "base_min_size": "1",
+                            "base_max_size": "5000",
+                            "is_disabled": false,
+                            "trading_disabled": false,
+                            "product_type": "FUTURE",
+                            "quote_currency_id": "USD",
+                            "base_currency_id": "",
+                            "alias_to": [],
+                            "price_increment": "5",
+                            "display_name": "BTC 30 OCT 26",
+                            "product_venue": "FCM",
+                            "future_product_details": {
+                                "venue": "cde",
+                                "contract_code": "BIT",
+                                "contract_expiry": "2026-10-30T16:00:00Z",
+                                "contract_size": "0.01",
+                                "contract_root_unit": "BTC",
+                                "contract_expiry_type": "EXPIRING",
+                                "funding_interval": null,
+                                "display_name": "Bitcoin Futures (Oct 2026)"
+                            }
+                        },
+                        "alias": null
+                    },
+                    {
+                        "id": "BIP-20DEC30-CDE",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USD:USD",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": "USD",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": "USD",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": false,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0002,
+                        "maker": 0.0002,
+                        "contractSize": 0.01,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1,
+                            "price": 5
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1,
+                                "max": 5000
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 0,
+                                "max": 100000000
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "product_id": "BIP-20DEC30-CDE",
+                            "base_increment": "1",
+                            "quote_increment": "0.01",
+                            "quote_min_size": "0",
+                            "quote_max_size": "100000000",
+                            "base_min_size": "1",
+                            "base_max_size": "5000",
+                            "is_disabled": false,
+                            "trading_disabled": true,
+                            "product_type": "FUTURE",
+                            "quote_currency_id": "USD",
+                            "base_currency_id": "",
+                            "alias_to": [],
+                            "price_increment": "5",
+                            "display_name": "BTC PERP",
+                            "product_venue": "FCM",
+                            "future_product_details": {
+                                "venue": "cde",
+                                "contract_code": "BIP",
+                                "contract_expiry": "2089-12-30T16:00:00Z",
+                                "contract_size": "0.01",
+                                "contract_root_unit": "BTC",
+                                "contract_expiry_type": "EXPIRING",
+                                "funding_interval": "3600s",
+                                "display_name": "Bitcoin Perpetual"
+                            }
+                        },
+                        "alias": null
+                    }
+                ]
+            },
+            {
+                "description": "fetchMarketsV2 spot markets are not flagged as swap or future",
+                "disabledGO": true,
+                "method": "fetchMarkets",
+                "input": [],
+                "options": {
+                    "fetchMarkets": "fetchMarketsV2",
+                    "fetchCurrencies": {
+                        "timestamp": 32503680000000,
+                        "currencies": {
+                            "data": [
+                                {
+                                    "id": "USD",
+                                    "name": "US Dollar",
+                                    "min_size": "0.01"
+                                }
+                            ]
+                        },
+                        "exchangeRates": {
+                            "data": {
+                                "currency": "USD",
+                                "rates": {
+                                    "BTC": "0.0000125"
+                                }
+                            }
+                        }
+                    }
+                },
+                "httpResponse": {},
+                "parsedResponse": [
+                    {
+                        "id": "BTC-USD",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USD",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": null,
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": null,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": null,
+                            "price": null
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 0.01,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "id": "USD",
+                            "name": "US Dollar",
+                            "min_size": "0.01"
+                        }
+                    }
                 ]
             }
         ]

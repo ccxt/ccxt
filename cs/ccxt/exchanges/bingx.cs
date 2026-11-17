@@ -1034,6 +1034,7 @@ public partial class bingx : Exchange
                     { "100490", typeof(BadSymbol) },
                     { "101481", typeof(DuplicateOrderId) },
                     { "109201", typeof(DuplicateOrderId) },
+                    { "104414", typeof(BadRequest) },
                     { "109400", typeof(BadRequest) },
                     { "109418", typeof(BadSymbol) },
                     { "109421", typeof(OrderNotFound) },
@@ -1663,7 +1664,9 @@ public partial class bingx : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            int paginationLimit = ((timeframeVar == "1m")) ? maxLimit : 1000;
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, paginationLimit));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1682,7 +1685,14 @@ public partial class bingx : Exchange
         object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
         if ((until != null))
         {
-            request["endTime"] = until;
+            object endTime = until;
+            if ((since != null))
+            {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
+                endTime = mathMin(until, this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, requestLimit)));
+            }
+            request["endTime"] = endTime;
         } else if ((this.safeBool(market, "inverse", false) == true) && ((since != null)))
         {
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
@@ -2675,7 +2685,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> response = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
-            response = await this.spotV1PublicGetTicker24hr(this.extend(request, parameters));
+            response = await this.spotV2PublicGetQuoteTicker(this.extend(request, parameters));
         } else
         {
             if ((this.safeBool(market, "inverse", false) == true))
@@ -2815,7 +2825,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> response = null;
         if ((type == "spot"))
         {
-            response = await this.spotV1PublicGetTicker24hr(paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker(paramsSubType);
         } else
         {
             if ((subType == "inverse"))
@@ -5595,6 +5605,23 @@ public partial class bingx : Exchange
         {
             bool? isTwapOrder = this.safeBool(paramsStandard, "twap", false);
             Dictionary<string, object> paramsOmitted = this.omit(paramsStandard, "twap");
+            if (isTwapOrder != true)
+            {
+                if ((limit != null))
+                {
+                    request["limit"] = Math.Min(limit.Value, 1000);
+                }
+                if ((since != null))
+                {
+                    request["startTime"] = since;
+                }
+                Int64? until = this.safeInteger(paramsOmitted, "until");
+                if (!(until == null))
+                {
+                    request["endTime"] = until;
+                    paramsOmitted = this.omit(paramsOmitted, "until");
+                }
+            }
             if ((isTwapOrder == true))
             {
                 request["pageIndex"] = 1;
@@ -7292,7 +7319,7 @@ public partial class bingx : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "makerCommissionRate") },
             { "taker", this.safeNumber(fee, "takerCommissionRate") },
-            { "percentage", false },
+            { "percentage", true },
             { "tierBased", false },
         };
     }

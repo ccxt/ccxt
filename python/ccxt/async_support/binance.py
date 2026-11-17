@@ -406,6 +406,7 @@ class binance(Exchange, ImplicitAPI):
                         'sub-account/universalTransfer': {'cost': 0.1},
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': {'cost': 1},
                         'sub-account/transaction-statistics': {'cost': 0.40002},  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset': {'cost': 0.1},
                         'managed-subaccount/accountSnapshot': {'cost': 240},
@@ -609,6 +610,8 @@ class binance(Exchange, ImplicitAPI):
                         'margin/max-leverage': {'cost': 300},  # Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn': {'cost': 0.1},
                         'sub-account/virtualSubAccount': {'cost': 0.1},
+                        'sub-account/subAccountApi': {'cost': 20.001},
+                        'sub-account/subAccountApiPermission': {'cost': 20.001},
                         'sub-account/margin/transfer': {'cost': 4.0002},  # Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable': {'cost': 0.1},
                         'sub-account/futures/enable': {'cost': 0.1},
@@ -749,6 +752,7 @@ class binance(Exchange, ImplicitAPI):
                         'broker/subAccountApi/ipRestriction/ipList': {'cost': 1},
                         'algo/spot/order': {'cost': 0.1},
                         'algo/futures/order': {'cost': 0.1},
+                        'sub-account/subAccountApi': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction/ipList': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     },
                 },
@@ -768,6 +772,7 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'eth-staking/eth/stake': {'cost': 15},  # Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'loan/flexible/borrow': {'cost': 40.002},  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/flexible/repay': {'cost': 40.002},  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
@@ -6567,7 +6572,14 @@ class binance(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = marketResolved['symbol']
         filled = self.safe_string_n(order, ['executedQty', 'filledQty', 'actualQty'], '0')  # actualQty: algo orders
-        timestamp = self.safe_integer_n(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt'])  # order of the keys matters here
+        timestamp = self.safe_integer_2(order, 'time', 'createTime')  # order of the keys matters here
+        if timestamp is None:
+            # spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            workingTime = self.safe_integer(order, 'workingTime')
+            if (workingTime is not None) and (workingTime > 0):
+                timestamp = workingTime
+            else:
+                timestamp = self.safe_integer_n(order, ['transactTime', 'updateTime', 'createdAt'])
         lastTradeTimestamp = None
         if ('transactTime' in order) or ('updateTime' in order) or ('updatedAt' in order):
             timestampValue = self.safe_integer_n(order, ['updateTime', 'transactTime', 'updatedAt'])
@@ -10508,7 +10520,7 @@ class binance(Exchange, ImplicitAPI):
         request = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000)
         defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'swap')
         type = self.safe_string(paramsPaginate, 'type', defaultType)
         market = None
@@ -12608,9 +12620,36 @@ class binance(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+        # sometimes it throws this error when providing tickers to fetchTickers
+        # <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+        # <HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+        # <TITLE>ERROR: The request could not be satisfied</TITLE>
+        # </HEAD><BODY>
+        # <H1>414 ERROR</H1>
+        # <H2>The request could not be satisfied.</H2>
+        # <HR noshade size="1px">
+        # Bad request.
+        # We can't connect to the server for this app or website at this time. There might be too much traffic or a configuration error. Try again later, or contact the app or website owner.
+        # <BR clear="all">
+        # If you provide content to customers through CloudFront, you can find steps to troubleshoot and help prevent this error by reviewing the CloudFront documentation.
+        # <BR clear="all">
+        # <HR noshade size="1px">
+        # <PRE>
+        # Generated by cloudfront (CloudFront)
+        # Request ID: ATZljS05bVwYoz1qziqrosYudg-svv4jHXZsFZVH6pM-TNgk0xp-GQ==
+        # </PRE>
+        # <ADDRESS>
+        # </ADDRESS>
+        # </BODY></HTML>
         # error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         # following block contains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
+        # only for http codes without a typed error in httpExceptions (e.g. 414), so 403/502/503/504 html pages keep their retryable errors from handleHttpStatusCode
+        httpCodeString = str(code)
+        isMappedHttpCode = (httpCodeString in self.httpExceptions)
+        # matching 'DOCTYPE HTML' at index 2 instead of startsWith ('<!DOCTYPE HTML'), because the "!" inside the literal gets transpiled to "not" in python
+        if not isMappedHttpCode and (body is not None) and (body.find('DOCTYPE HTML') == 2):
+            raise ExchangeError(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         if (code >= 400) and (body is not None):
             if body.find('Price * QTY is zero or less') >= 0:
                 raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)

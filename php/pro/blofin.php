@@ -340,7 +340,7 @@ class blofin extends \ccxt\async\blofin {
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($symbols === null) {
-            throw new NotSupported($this->id . ' watchTickers() requires a list of symbols');
+            throw new ArgumentsRequired($this->id . ' watchTickers() requires a list of symbols');
         }
         $ticker = Async\await($this->watch_multiple_wrapper(true, 'tickers', 'watchTickers', $symbols, $params));
         if ($this->newUpdates) {

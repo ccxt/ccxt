@@ -1269,6 +1269,11 @@ export default class toobit extends Exchange {
                 request['to'] = this.sum(since, duration * limit * 1000);
             }
         }
+        else if ((since !== undefined) && (limit !== undefined)) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            request['endTime'] = Math.min(this.sum(since, duration * limit) - 1, this.milliseconds());
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2067,6 +2072,9 @@ export default class toobit extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (this.safeString(params, 'clientOrderId') === undefined) {
             request['orderId'] = id;

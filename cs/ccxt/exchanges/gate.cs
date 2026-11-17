@@ -4599,7 +4599,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000));
         }
         Dictionary<string, object> market = this.market(symbol);
         if (!(this.safeBool(market, "swap", false) == true))
@@ -9768,25 +9768,27 @@ public partial class gate : Exchange
             quoteValueString = Precise.stringMul(baseValueString, priceString);
         }
         // --- derive side ---
+        // gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+        // is the side of the liquidation order: a long is closed by a sell, a short by a buy
         // 1) options payload has explicit 'side': 'long' | 'short'
         string? optPos = this.safeStringLower(liquidation, "side");
         string? side = null;
         if (optPos == "long")
         {
-            side = "buy";
+            side = "sell";
         } else if (optPos == "short")
         {
-            side = "sell";
+            side = "buy";
         } else
         {
             if ((size != null))
             {
                 if (Precise.stringGt(size, "0"))
                 {
-                    side = "buy";
+                    side = "sell";
                 } else if (Precise.stringLt(size, "0"))
                 {
-                    side = "sell";
+                    side = "buy";
                 }
             }
         }

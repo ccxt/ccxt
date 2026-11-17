@@ -688,6 +688,12 @@ abstract class binance extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function sapi_get_sub_account_subaccountapi($params = array()) {
+        return $this->request('sub-account/subAccountApi', array('sapi'), 'GET', $params, array("cost" => 20.001));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function sapi_get_sub_account_subaccountapi_iprestriction($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction', array('sapi'), 'GET', $params, array("cost" => 20.001));
     }
@@ -1774,6 +1780,18 @@ abstract class binance extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function sapi_post_sub_account_subaccountapi($params = array()) {
+        return $this->request('sub-account/subAccountApi', array('sapi'), 'POST', $params, array("cost" => 20.001));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_post_sub_account_subaccountapipermission($params = array()) {
+        return $this->request('sub-account/subAccountApiPermission', array('sapi'), 'POST', $params, array("cost" => 20.001));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function sapi_post_sub_account_margin_transfer($params = array()) {
         return $this->request('sub-account/margin/transfer', array('sapi'), 'POST', $params, array("cost" => 4.0002));
     }
@@ -2506,6 +2524,12 @@ abstract class binance extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function sapi_delete_sub_account_subaccountapi($params = array()) {
+        return $this->request('sub-account/subAccountApi', array('sapi'), 'DELETE', $params, array("cost" => 20.001));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function sapi_delete_sub_account_subaccountapi_iprestriction_iplist($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction/ipList', array('sapi'), 'DELETE', $params, array("cost" => 20.001));
     }
@@ -2580,6 +2604,12 @@ abstract class binance extends \ccxt\Exchange {
      */
     public function sapiv2_post_eth_staking_eth_stake($params = array()) {
         return $this->request('eth-staking/eth/stake', array('sapiV2'), 'POST', $params, array("cost" => 15));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiv2_post_sub_account_subaccountapi($params = array()) {
+        return $this->request('sub-account/subAccountApi', array('sapiV2'), 'POST', $params, array("cost" => 20.001));
     }
     /**
      * @return array<string, mixed>
@@ -5638,6 +5668,12 @@ abstract class binance extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function sapiGetSubAccountSubAccountApi($params = array()) {
+        return $this->request('sub-account/subAccountApi', array('sapi'), 'GET', $params, array("cost" => 20.001));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function sapiGetSubAccountSubAccountApiIpRestriction($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction', array('sapi'), 'GET', $params, array("cost" => 20.001));
     }
@@ -6724,6 +6760,18 @@ abstract class binance extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function sapiPostSubAccountSubAccountApi($params = array()) {
+        return $this->request('sub-account/subAccountApi', array('sapi'), 'POST', $params, array("cost" => 20.001));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiPostSubAccountSubAccountApiPermission($params = array()) {
+        return $this->request('sub-account/subAccountApiPermission', array('sapi'), 'POST', $params, array("cost" => 20.001));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function sapiPostSubAccountMarginTransfer($params = array()) {
         return $this->request('sub-account/margin/transfer', array('sapi'), 'POST', $params, array("cost" => 4.0002));
     }
@@ -7456,6 +7504,12 @@ abstract class binance extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function sapiDeleteSubAccountSubAccountApi($params = array()) {
+        return $this->request('sub-account/subAccountApi', array('sapi'), 'DELETE', $params, array("cost" => 20.001));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function sapiDeleteSubAccountSubAccountApiIpRestrictionIpList($params = array()) {
         return $this->request('sub-account/subAccountApi/ipRestriction/ipList', array('sapi'), 'DELETE', $params, array("cost" => 20.001));
     }
@@ -7530,6 +7584,12 @@ abstract class binance extends \ccxt\Exchange {
      */
     public function sapiV2PostEthStakingEthStake($params = array()) {
         return $this->request('eth-staking/eth/stake', array('sapiV2'), 'POST', $params, array("cost" => 15));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiV2PostSubAccountSubAccountApi($params = array()) {
+        return $this->request('sub-account/subAccountApi', array('sapiV2'), 'POST', $params, array("cost" => 20.001));
     }
     /**
      * @return array<string, mixed>

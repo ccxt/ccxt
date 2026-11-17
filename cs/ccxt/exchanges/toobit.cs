@@ -1490,6 +1490,11 @@ public partial class toobit : Exchange
             {
                 request["to"] = this.sum(since, ((duration * limit) * 1000));
             }
+        } else if (((since != null)) && ((limit != null)))
+        {
+            // without an end time the exchange returns the latest candles, not the ones starting at since
+            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
+            request["endTime"] = mathMin(((this.sum(since, (duration * limit))) - 1), this.milliseconds());
         }
         if ((limit != null))
         {
@@ -2316,6 +2321,10 @@ public partial class toobit : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((this.safeString(parameters, "clientOrderId") == null))
         {

@@ -250,7 +250,7 @@ class p2b extends Exchange {
                     'fetchMyTrades' => array(
                         'marginMode' => false,
                         'limit' => 100,
-                        'daysBack' => 100000, // todo
+                        'daysBack' => 90, // 3 months
                         'untilDays' => 1,
                         'symbolRequired' => true,
                     ),
@@ -266,8 +266,8 @@ class p2b extends Exchange {
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
-                        'daysBack' => 100000, // todo
-                        'daysBackCanceled' => 1 / 12, // todo
+                        'daysBack' => 90, // 3 months
+                        'daysBackCanceled' => null, // the orders history endpoint returns only filled or partially filled orders
                         'untilDays' => 1,
                         'trigger' => false,
                         'trailing' => false,

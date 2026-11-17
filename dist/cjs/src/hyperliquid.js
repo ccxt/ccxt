@@ -4507,7 +4507,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'type': 'vaultTransfer',
                 'vaultAddress': '0x' + vaultAddress,
                 'isDeposit': false,
-                'usd': amount,
+                // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd': this.parseToInt(Precise["default"].stringMul(this.numberToString(amount), '1000000')),
             };
             sig = this.signL1Action(action, nonce);
         }

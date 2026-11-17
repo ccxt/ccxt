@@ -361,7 +361,8 @@ npm run live-tests -- --csharp && npm run live-tests-ws -- --csharp  # C# full
 - [ ] `npm run check-python-syntax` + `npm run check-php-syntax`
 - [ ] Offline tests touched: `request-tests`, `response-tests`, `id-tests`; `test-base-rest`/`-ws` if base changed
 - [ ] At least one live smoke test on the affected exchange
-- [ ] Diff contains **only** `ts/src/**` (+ optional hand-written base / static JSON)
+- [ ] Unified API or public behaviour changed → AI-facing docs updated (§8.1) and `npm run check-ai-docs` passes
+- [ ] Diff contains **only** `ts/src/**` (+ optional hand-written base / static JSON / docs per §8)
 
 ### 6.6 GitHub Actions CI
 
@@ -429,10 +430,22 @@ Transpilers convert these to Python (`"""..."""` Sphinx), PHP (`/** */` PHPDoc),
 | New unified method | JSDoc on every implementer, `has` flag in `describe()`, test in `ts/src/test/Exchange/`, section in `wiki/Manual.md` |
 | Capability / feature flag | `wiki/Requirements.md` if new requirement; `features` block self-documents |
 | Examples-worthy behaviour | Example under `examples/ts/` (`npm run tsBuildExamples`) |
-| End-user usage docs | Matching section in `.claude/skills/ccxt-{typescript,python,php,csharp,go}/SKILL.md` |
-| Top-level summaries (`README.md`, `llms.txt`, `llms-full.txt`) | Only for top-level capability additions/removals |
+| End-user usage docs | Matching section in **every** `.claude/skills/ccxt-{typescript,python,php,csharp,go,java,rust,cli,mcp}/SKILL.md` |
+| Unified method added / renamed / re-signed / deprecated | The shared `## Complete Method Reference` block (identical in the TS/Python/PHP/C#/Go skills and `llms-full.txt`) + Java/Rust method lists + `llms.txt` overview |
+| Language binding shape (Go options, C# casing, Rust/Java typed layer) | That language's skill and its quick start in `llms.txt` / `llms-full.txt` |
+| Release version | Pinned versions in `llms*.txt` and `ccxt-rust`/`ccxt-java` install snippets (checked by `npm run check-ai-docs`) |
+| Top-level summaries (`README.md`) | Only for top-level capability additions/removals |
 
 User-facing skills under `.claude/skills/ccxt-<lang>/` are for callers asking AI assistants "how do I use this?" — separate from this CLAUDE.md (contributor-facing). Public API changes update both: wiki for humans, skills for AI-assisted callers.
+
+### 8.1 Keeping AI-facing docs in sync (`llms.txt`, `llms-full.txt`, `ccxt-*` skills)
+
+These files are **hand-written and nothing regenerates them**, so they drift silently. A Nov 2026 audit found invented methods, signatures missing `type`/`price`, deprecated methods recommended, a Go skill written against a package layout that doesn't exist, and C# examples using property names that don't compile. Agents copy these docs word for word, so a wrong doc means wrong code.
+
+- **Same PR as the code.** If your change touches a unified method's name, arguments, return shape, deprecation or `has`/`features` semantics, update the AI docs in the same PR.
+- **Run `npm run check-ai-docs`.** It is offline and fast, but not in CI yet, so run it yourself. It checks pinned versions against `package.json`; that every `` - `method(args)` `` reference entry exists in `ts/src` (any casing) and follows the base signature's argument names and order; and that deprecated base methods (throwing stubs or JSDoc `@deprecated`) appear only on lines that say so.
+- **Compile what you write.** The checker cannot tell whether a code block compiles. For any snippet you add or change, compile or run it in its language before committing. Detailed recipes and the binding gotchas are in `.claude/rules/ai-docs.md`.
+- **Never document from memory or from another language.** Copy shapes from the source of truth: `ts/src/base/Exchange.ts` for signatures; `go/v4/exchange_wrapper_structs.go` for Go options; `cs/ccxt/base/Exchange.TradingMethods.cs` and `Exchange.Types.cs` for C#; `python/ccxt/base/exchange.py` and `php/Exchange.php` for snake_case.
 
 ## 9. TS coding rules to keep the transpilers happy
 
@@ -499,7 +512,7 @@ Verified across recent (`pacifica.ts`, `weex.ts`, `hyperliquid.ts`, `aster.ts`) 
 ## 11. Pull-request etiquette
 
 - **One PR per exchange.** Don't bundle multiple exchanges.
-- Commit only `ts/src/**` (+ rarely hand-written base / static JSON fixtures). Generated files in your diff means you committed build output — undo that.
+- Commit only `ts/src/**` (+ rarely hand-written base / static JSON fixtures, and the hand-written docs listed in §8 — `wiki/`, `examples/`, `llms*.txt`, `.claude/skills/ccxt-*`). Generated files in your diff means you committed build output — undo that.
 - Set the pre-push hook once: `git config core.hooksPath .git-templates/hooks`.
 - Don't add language-specific behaviour. If something can't be uniform across all five langs, ask in the PR first.
 
@@ -532,6 +545,7 @@ Use the §6.5 checklist as the body. Paste actual output (or one-line summary) u
 - **Always write/update JSDoc** when adding/changing a public method (§7).
 - **Pass `--verbose`** when implementing/debugging an endpoint.
 - **Update docs when behaviour changes** (§8: wiki, examples, user-facing skills).
+- **Keep the AI-facing docs true.** `llms.txt`, `llms-full.txt` and `.claude/skills/ccxt-*/SKILL.md` are what other agents read before writing CCXT code. Update them with any unified-API change, run `npm run check-ai-docs`, and compile any snippet you touch (§8.1). If you notice drift while working on something else, fix it or flag it in the PR; don't leave it.
 - **Trust live responses over exchange docs.** Verify with `cli.ts ... --verbose` and capture a static-response fixture.
 - **Transpiled file = debugging scratchpad, not fix location.** Port back to `ts/src/`; never `git add` the transpiled file.
 
@@ -545,7 +559,7 @@ Don't update CLAUDE.md when: the lesson is exchange-specific (comment it in that
 
 Create a skill (`.claude/skills/<name>/SKILL.md`) when you've done the same multi-step workflow ≥3 times and it would benefit from being scriptable.
 
-Update `.claude/skills/ccxt-<lang>/` when public surface area changes (§8).
+Update `.claude/skills/ccxt-<lang>/`, `llms.txt` and `llms-full.txt` when public surface area changes (§8, §8.1). When you find a new kind of drift, add a rule for it to `build/check-ai-docs.ts` instead of only fixing that one instance.
 
 Keep CLAUDE.md compact. If a section grows large, split into `.claude/rules/<topic>.md` with `paths:` frontmatter so it loads only when relevant files are open.
 
@@ -586,5 +600,8 @@ examples/               per-language end-user examples
 .claude/skills/         per-language usage skills (/ccxt-python, /ccxt-typescript, …)
                         — public API reference for callers, NOT for editing CCXT
 .claude/rules/          topic-scoped contributor rules (auto-load via `paths:` frontmatter);
-                        prediction-outcomes.md = the outcome loading/caching pattern
+                        prediction-outcomes.md = the outcome loading/caching pattern;
+                        ai-docs.md = how to keep llms*.txt and ccxt-* skills correct
+llms.txt, llms-full.txt AI-facing summaries (hand-written; `npm run check-ai-docs`)
+build/check-ai-docs.ts  drift guard for llms*.txt + ccxt-* skills
 ```

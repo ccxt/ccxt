@@ -10,9 +10,6 @@ class Exchange extends _Exchange {
     publicGetV2UserApiExchangeMarkets(params = {}) {
         return this.request('v2/user-api/exchange/markets', ['public'], 'GET', params, { 'cost': 1 });
     }
-    publicGetV2UserApiExchangeMarketPrice(params = {}) {
-        return this.request('v2/user-api/exchange/market/price', ['public'], 'GET', params, { 'cost': 1 });
-    }
     publicGetV2UserApiExchangeMarketsPrice(params = {}) {
         return this.request('v2/user-api/exchange/markets/price', ['public'], 'GET', params, { 'cost': 1 });
     }
@@ -21,9 +18,6 @@ class Exchange extends _Exchange {
     }
     publicGetV1ExchangeMarketOrderBookCurrencyPair(params = {}) {
         return this.request('v1/exchange/market/order-book/{currencyPair}', ['public'], 'GET', params, { 'cost': 1 });
-    }
-    publicGetV1ExchangeMarketTickers(params = {}) {
-        return this.request('v1/exchange/market/tickers', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetV1ExchangeMarketTradesCurrencyPair(params = {}) {
         return this.request('v1/exchange/market/trades/{currencyPair}', ['public'], 'GET', params, { 'cost': 1 });

@@ -3458,7 +3458,7 @@ class gate(Exchange, ImplicitAPI):
             self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000)
         market = self.market(symbol)
         if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
@@ -7646,19 +7646,21 @@ class gate(Exchange, ImplicitAPI):
         if quoteValueString is None:
             quoteValueString = Precise.string_mul(baseValueString, priceString)
         # --- derive side ---
+        # gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+        # is the side of the liquidation order: a long is closed by a sell, a short by a buy
         # 1) options payload has explicit 'side': 'long' | 'short'
         optPos = self.safe_string_lower(liquidation, 'side')
         side = None
         if optPos == 'long':
-            side = 'buy'
-        elif optPos == 'short':
             side = 'sell'
+        elif optPos == 'short':
+            side = 'buy'
         else:
             if size is not None:  # 2) futures/perpetual (and fallback for options): infer from size
                 if Precise.string_gt(size, '0'):
-                    side = 'buy'
-                elif Precise.string_lt(size, '0'):
                     side = 'sell'
+                elif Precise.string_lt(size, '0'):
+                    side = 'buy'
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),

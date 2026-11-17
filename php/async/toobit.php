@@ -1302,6 +1302,10 @@ class toobit extends Exchange {
             } else {
                 $request['to'] = $this->sum($since, $duration * $limit * 1000);
             }
+        } elseif (($since !== null) && ($limit !== null)) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $request['endTime'] = min($this->sum($since, $duration * $limit) - 1, $this->milliseconds());
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2143,6 +2147,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         $request = array();
         if ($this->safe_string($params, 'clientOrderId') === null) {
             $request['orderId'] = $id;

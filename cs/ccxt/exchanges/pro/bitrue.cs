@@ -20,6 +20,8 @@ public partial class bitrue : ccxt.bitrue
                 { "watchOrders", true },
                 { "watchOrderBook", true },
                 { "watchOHLCV", true },
+                { "unWatchTrades", true },
+                { "unWatchOHLCV", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -461,6 +463,9 @@ public partial class bitrue : ccxt.bitrue
 
     public virtual object findSwapMarketByWsBaseQuote(string? wsBaseQuote)
     {
+        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
+        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
+        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
         if ((this.markets == null))
         {
             return null;
@@ -523,6 +528,46 @@ public partial class bitrue : ccxt.bitrue
     }
 
     /**
+     * @ignore
+     * @method
+     * @description sends an unsubscribe request and drops the subscription and its cache
+     * @param {string} subHash the messageHash the watch method subscribed with
+     * @param {string} channel the channel the watch method subscribed to
+     * @param {string} cbId the cb_id the watch method subscribed with
+     * @param {object} subscription the cache to clean, see cleanCache
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true
+     */
+    public async virtual Task<object> unSubscribe(object subHash, object channel, object cbId, IDictionary<string, object> subscription, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("futurePublic") ? this.urlsApiSections["ws"]["futurePublic"] : null));
+        var client = this.client(url);
+        if ((client.subscriptions != null && subHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        {
+            Dictionary<string, object> request = new Dictionary<string, object>() {
+                { "event", "unsub" },
+                { "params", new Dictionary<string, object>() {
+                    { "cb_id", cbId },
+                    { "channel", channel },
+                } },
+            };
+            try
+            {
+                await client.send(this.deepExtend(request, parameters));
+            } catch(Exception e)
+            {
+                throw new NetworkError ((((this.id + " could not unsubscribe ") + (subHash)) + ", the websocket connection is not open")) ;
+            }
+        }
+        // bitrue does not acknowledge an unsubscribe, it just stops streaming the channel,
+        // so the subscription is cleaned up as soon as the request is sent
+        this.cleanCache(subscription);
+        this.cleanUnsubscription(client, subHash, ("unsubscribe:" + (subHash)));
+        return true;
+    }
+
+    /**
      * @method
      * @name bitrue#watchTrades
      * @description watches public trades for a swap (futures) market
@@ -570,6 +615,39 @@ public partial class bitrue : ccxt.bitrue
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
+    /**
+     * @method
+     * @name bitrue#unWatchTrades
+     * @description unWatches public trades for a swap (futures) market
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+     */
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        {
+            throw new NotSupported ((this.id + " unWatchTrades is only supported for swap markets")) ;
+        }
+        string? baseIdLower = this.safeStringLower(market, "baseId");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId");
+        string wsId = (("e_" + baseIdLower) + quoteIdLower);
+        string channel = (("market_" + wsId) + "_trade_ticker");
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "topic", "trades" },
+            { "symbols", new List<object>() {symbolValue} },
+        };
+        return await this.unSubscribe(("trades:" + symbolValue), channel, wsId, subscription, parameters);
+    }
+
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         //
@@ -601,6 +679,13 @@ public partial class bitrue : ccxt.bitrue
         {
             return;
         }
+        string messageHash = ("trades:" + symbol);
+        if (!((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))
+        {
+            // a late push for a channel that was unwatched - bitrue does not acknowledge
+            // an unsubscribe, so frames it sent before processing it can still arrive
+            return;
+        }
         IDictionary<string, object> tick = this.safeDict(message, "tick", new Dictionary<string, object>() {});
         List<object> data = this.safeList(tick, "data", new List<object>() {});
         bool appended = false;
@@ -619,7 +704,6 @@ public partial class bitrue : ccxt.bitrue
         }
         if (appended)
         {
-            string messageHash = ("trades:" + symbol);
             client.resolve(stored, messageHash);
         }
     }
@@ -705,6 +789,48 @@ public partial class bitrue : ccxt.bitrue
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
+    /**
+     * @method
+     * @name bitrue#unWatchOHLCV
+     * @description unWatches OHLCV candles for a swap (futures) market
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    {
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        {
+            throw new NotSupported ((this.id + " unWatchOHLCV is only supported for swap markets")) ;
+        }
+        IDictionary<string, object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
+        string? interval = this.safeString(futuresTimeframes, timeframeVar);
+        if ((interval == null))
+        {
+            throw new NotSupported ((string)((this.id + " unWatchOHLCV does not support timeframe ") + (timeframeVar))) ;
+        }
+        string? baseIdLower = this.safeStringLower(market, "baseId");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId");
+        string wsId = (("e_" + baseIdLower) + quoteIdLower);
+        string channel = ((("market_" + wsId) + "_kline_") + interval);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "topic", "ohlcv" },
+            { "symbolsAndTimeframes", new List<object>() {new List<object>() {symbolValue, timeframeVar}} },
+        };
+        return await this.unSubscribe(((("ohlcv:" + symbolValue) + ":") + (timeframeVar)), channel, wsId, subscription, parameters);
+    }
+
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
     {
         //
@@ -741,6 +867,12 @@ public partial class bitrue : ccxt.bitrue
         {
             return;
         }
+        string messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
+        if (!((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))
+        {
+            // a late push for a channel that was unwatched, see handleTrades
+            return;
+        }
         IDictionary<string, object> tick = this.safeDict(message, "tick");
         if ((tick == null))
         {
@@ -758,7 +890,6 @@ public partial class bitrue : ccxt.bitrue
         }
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         stored.append(parsed);
-        string messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }
 

@@ -360,6 +360,9 @@ public partial class okx : Exchange
                         { "public/delta-hedge-currencies", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "public/corporate-actions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "rubik/stat/trading-data/support-coin", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },
@@ -3699,12 +3702,13 @@ public partial class okx : Exchange
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
-        if ((paginate == true))
-        {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 200));
-        }
         string? priceType = this.safeString(paramsPaginate, "price");
         bool isMarkOrIndex = this.inArray(priceType, new List<object>() {"mark", "index"});
+        if ((paginate == true))
+        {
+            int maxEntriesPerRequest = isMarkOrIndex ? 100 : 200;
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxEntriesPerRequest));
+        }
         Dictionary<string, object> paramsPrice = this.omit(paramsPaginate, "price");
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         string? timezone = this.safeString(options, "timezone", "UTC");
@@ -3750,7 +3754,11 @@ public partial class okx : Exchange
         Int64? until = this.safeInteger(paramsPrice, "until");
         if ((until != null))
         {
-            request["after"] = until;
+            Int64? afterSince = this.safeInteger(request, "after");
+            if (((afterSince == null)) || ((until < afterSince)))
+            {
+                request["after"] = until;
+            }
         }
         object paramsUntil = ((until != null)) ? this.omit(paramsPrice, "until") : paramsPrice;
         defaultType = this.safeString(options, "type", defaultType); // Candles or HistoryCandles
@@ -3817,6 +3825,7 @@ public partial class okx : Exchange
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -3836,7 +3845,7 @@ public partial class okx : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100));
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 400));
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3850,7 +3859,13 @@ public partial class okx : Exchange
         {
             request["limit"] = limit;
         }
-        Dictionary<string, object> response = await this.publicGetPublicFundingRateHistory(this.extend(request, paramsPaginate));
+        Int64? until = this.safeInteger(paramsPaginate, "until");
+        if ((until != null))
+        {
+            request["after"] = until;
+        }
+        object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, "until") : paramsPaginate;
+        Dictionary<string, object> response = await this.publicGetPublicFundingRateHistory(this.extend(request, paramsUntil));
         //
         //     {
         //         "code":"0",

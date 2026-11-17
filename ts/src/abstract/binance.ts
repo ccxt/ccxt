@@ -461,6 +461,10 @@ abstract class Exchange extends _Exchange {
         return this.request ('sub-account/transaction-statistics', [ 'sapi' ], 'GET', params, { 'cost': 0.40002 });
     }
 
+    sapiGetSubAccountSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
     sapiGetSubAccountSubAccountApiIpRestriction (params = {}): Promise<Dict> {
         return this.request ('sub-account/subAccountApi/ipRestriction', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
     }
@@ -1185,6 +1189,14 @@ abstract class Exchange extends _Exchange {
         return this.request ('sub-account/virtualSubAccount', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
     }
 
+    sapiPostSubAccountSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    sapiPostSubAccountSubAccountApiPermission (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApiPermission', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
     sapiPostSubAccountMarginTransfer (params = {}): Promise<Dict> {
         return this.request ('sub-account/margin/transfer', [ 'sapi' ], 'POST', params, { 'cost': 4.0002 });
     }
@@ -1673,6 +1685,10 @@ abstract class Exchange extends _Exchange {
         return this.request ('algo/futures/order', [ 'sapi' ], 'DELETE', params, { 'cost': 0.1 });
     }
 
+    sapiDeleteSubAccountSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi', [ 'sapi' ], 'DELETE', params, { 'cost': 20.001 });
+    }
+
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (params = {}): Promise<Dict> {
         return this.request ('sub-account/subAccountApi/ipRestriction/ipList', [ 'sapi' ], 'DELETE', params, { 'cost': 20.001 });
     }
@@ -1723,6 +1739,10 @@ abstract class Exchange extends _Exchange {
 
     sapiV2PostEthStakingEthStake (params = {}): Promise<Dict> {
         return this.request ('eth-staking/eth/stake', [ 'sapiV2' ], 'POST', params, { 'cost': 15 });
+    }
+
+    sapiV2PostSubAccountSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi', [ 'sapiV2' ], 'POST', params, { 'cost': 20.001 });
     }
 
     sapiV2PostSubAccountSubAccountApiIpRestriction (params = {}): Promise<Dict> {

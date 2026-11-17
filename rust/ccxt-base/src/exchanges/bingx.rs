@@ -1912,6 +1912,7 @@ impl BingxCore {
         m.insert("100490".to_string(), Value::Str("BadSymbol".into()));
         m.insert("101481".to_string(), Value::Str("DuplicateOrderId".into()));
         m.insert("109201".to_string(), Value::Str("DuplicateOrderId".into()));
+        m.insert("104414".to_string(), Value::Str("BadRequest".into()));
         m.insert("109400".to_string(), Value::Str("BadRequest".into()));
         m.insert("109418".to_string(), Value::Str("BadSymbol".into()));
         m.insert("109421".to_string(), Value::Str("OrderNotFound".into()));
@@ -2656,7 +2657,9 @@ impl BingxCore {
         let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), maxLimit.clone()]).await;
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            let mut paginationLimit: Value = (if (timeframe.as_str() == Some("1m")) { maxLimit.clone() } else { Value::Int(1000) });
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), paginationLimit]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2674,7 +2677,13 @@ impl BingxCore {
         let mut until: Value = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("endTime".into()), &[]);
         let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
         if (until != Value::Null) {
-            request.insert("endTime".into(), until);
+            let mut endTime: Value = until.clone();
+            if (since != Value::Null) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                endTime = crate::runtime::Math::min(&until, &self.sum(&[since.clone(), (match (&(duration), &(requestLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            }
+            request.insert("endTime".into(), endTime);
         }  else if matches!((self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)])), Value::Bool(true)) && (since != Value::Null) {
             let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             request.insert("endTime".into(), self.sum(&[since.clone(), (match (&(duration), &(requestLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
@@ -3718,7 +3727,7 @@ impl BingxCore {
         let mut response: Value = Value::Null;
         if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_15]).await;
+            response = self.spot_v2_public_get_quote_ticker(&[__ws_arg_15]).await;
         }  else {
             if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -3877,7 +3886,7 @@ impl BingxCore {
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
-            response = self.spot_v1_public_get_ticker24hr(&[paramsSubType.clone()]).await;
+            response = self.spot_v2_public_get_quote_ticker(&[paramsSubType.clone()]).await;
         }  else {
             if (subType.as_str() == Some("inverse")) {
                 response = self.cswap_v1_public_get_market_ticker(&[paramsSubType.clone()]).await;
@@ -6684,6 +6693,19 @@ impl BingxCore {
         }  else {
             let mut isTwapOrder: bool = self.safe_bool_k_opt(paramsStandard.clone(), "twap", &[Value::Bool(false)]).unwrap_or(false);
             let mut paramsOmitted: Value = self.omit(paramsStandard, Value::Str("twap".into()), &[]);
+            if !(isTwapOrder) {
+                if (limit != Value::Null) {
+                    request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
+                }
+                if (since != Value::Null) {
+                    request.insert("startTime".into(), since.clone());
+                }
+                let mut until: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "until", &[]).as_i64();
+                if (until.is_some()) {
+                    request.insert("endTime".into(), Value::from(until));
+                    paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("until".into()), &[]);
+                }
+            }
             if isTwapOrder {
                 request.insert("pageIndex".into(), Value::Int(1));
                 request.insert("pageSize".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() }));
@@ -8572,7 +8594,7 @@ impl BingxCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "makerCommissionRate", &[]));
         m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommissionRate", &[]));
-        m.insert("percentage".to_string(), Value::Bool(false));
+        m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
 });

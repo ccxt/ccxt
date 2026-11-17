@@ -5146,7 +5146,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
-		r2 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate)
+		r2 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -11268,19 +11268,21 @@ func (this *Gate) ParseLiquidation(liquidation any, optionalArgs ...any) any {
 		quoteValueString = Precise.StringMul(baseValueString, priceString)
 	}
 	// --- derive side ---
+	// gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+	// is the side of the liquidation order: a long is closed by a sell, a short by a buy
 	// 1) options payload has explicit 'side': 'long' | 'short'
 	var optPos *string = this.SafeStringLower(liquidation, "side")
 	var side *string = nil
 	if optPos != nil && *optPos == "long" {
-		side = SafeStringPtr("buy")
-	} else if optPos != nil && *optPos == "short" {
 		side = SafeStringPtr("sell")
+	} else if optPos != nil && *optPos == "short" {
+		side = SafeStringPtr("buy")
 	} else {
 		if size != nil {
 			if Precise.StringGt(size, "0") {
-				side = SafeStringPtr("buy")
-			} else if Precise.StringLt(size, "0") {
 				side = SafeStringPtr("sell")
+			} else if Precise.StringLt(size, "0") {
+				side = SafeStringPtr("buy")
 			}
 		}
 	}
