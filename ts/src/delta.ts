@@ -1973,7 +1973,7 @@ export default class delta extends Exchange {
         }
         const marketId = this.safeString (order, 'product_id');
         const marketsByNumericId = this.safeDict (this.options, 'marketsByNumericId', {});
-        const marketValue: Market = this.safeValue (marketsByNumericId, marketId, market);
+        const marketValue: Market = this.safeDict (marketsByNumericId, marketId, market) as Market;
         let symbol: Str = undefined;
         if (marketValue === undefined) {
             symbol = marketId;
