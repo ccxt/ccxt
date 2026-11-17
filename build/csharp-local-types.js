@@ -14071,7 +14071,40 @@ function narrowedCopyWriteType (declaration, node) {
 // the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
 function nullInitWriteValueType (csharp, declaration, node) {
     return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node) ?? nullSeedNativeStringCallWriteType (csharp, declaration, node) ?? arrayGuardedListWriteType (csharp, declaration, node)
-        ?? boolLiteralRowWriteType (csharp, declaration, node) ?? stringLiteralElementWriteType (csharp, declaration, node);
+        ?? boolLiteralRowWriteType (csharp, declaration, node) ?? stringLiteralElementWriteType (csharp, declaration, node)
+        ?? stringLiteralCalleeWriteType (csharp, declaration, node);
+}
+
+// `let x = '<literal>'` later written `x = this.m (..)` where m is declared once in the file, is sync and
+// prints a `string?` / `string` return: the write is that static string box with no cast. Taken only when a
+// read compares the local with a string literal (prints `==` once typed), as for the element write above.
+function stringLiteralCalleeWriteType (csharp, declaration, node) {
+    if (declaration.initializer?.kind !== ts.SyntaxKind.StringLiteral || declaration.parent?.declarations?.length !== 1
+            || declaration.name?.kind !== ts.SyntaxKind.Identifier || node?.kind !== ts.SyntaxKind.CallExpression
+            || node.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression || node.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || node.expression.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const write = node.parent;
+    if (write?.kind !== ts.SyntaxKind.BinaryExpression || write.right !== node || write.operatorToken.kind !== ts.SyntaxKind.EqualsToken
+            || write.left?.kind !== ts.SyntaxKind.Identifier || write.left.text !== declaration.name.text) {
+        return undefined;
+    }
+    const printed = sameFileSyncReturnType (csharp, node, node.expression.name.text);
+    if (printed !== 'string?' && printed !== 'string') {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const compared = (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []).some ((n) => {
+        const p = n.parent;
+        if (n === declaration.name || isNotAUse (n) || p?.kind !== ts.SyntaxKind.BinaryExpression || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            return false;
+        }
+        const op = p.operatorToken.kind;
+        const other = (p.left === n) ? p.right : p.left;
+        return (op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken) && other?.kind === ts.SyntaxKind.StringLiteral;
+    });
+    return compared ? 'string?' : undefined;
 }
 
 // ral-87c8 R4: `let x = '<literal>'` later written `x = parts[N]` where every element of `parts` is a string
@@ -14082,7 +14115,8 @@ function nullInitWriteValueType (csharp, declaration, node) {
 const stringLiteralElementWrites = new WeakSet ();
 
 function stringLiteralElementWriteType (csharp, declaration, node) {
-    if (declaration.initializer?.kind !== ts.SyntaxKind.StringLiteral || declaration.parent?.declarations?.length !== 1
+    // a safeString-family seed is a `string?` box too, so the same element write joins it
+    if ((declaration.initializer?.kind !== ts.SyntaxKind.StringLiteral && !safeStringFamilyLocal (declaration)) || declaration.parent?.declarations?.length !== 1
             || declaration.name?.kind !== ts.SyntaxKind.Identifier || node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
