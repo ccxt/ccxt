@@ -1037,9 +1037,9 @@ public partial class hollaex : Exchange
         };
         bool paginate = false;
         int maxLimit = 500;
-        (bool?, object) paginateOptionparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
+        (bool?, IDictionary<string, object>) paginateOptionparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
         bool? paginateOption = paginateOptionparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateOptionparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateOptionparamsPaginateVariable.Item2);
         if ((paginateOption == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -1928,7 +1928,7 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchWithdrawals, fetchDeposits

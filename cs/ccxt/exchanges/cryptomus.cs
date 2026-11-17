@@ -833,7 +833,7 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> response = null;
         if ((type == "market"))
         {
-            (bool?, object) requiresPriceAndParams = this.handleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (bool?, IDictionary<string, object>) requiresPriceAndParams = this.handleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             object paramsMarket = paramsCost;
             if (sideBuy)
             {

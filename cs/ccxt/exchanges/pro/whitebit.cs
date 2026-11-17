@@ -838,12 +838,12 @@ public partial class whitebit : ccxt.whitebit
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         var client = this.client(url);
         this.setBalanceCache(client, type, messageHash);
-        (bool?, object) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true);
+        (bool?, IDictionary<string, object>) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true);
         bool? fetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item1;
-        IDictionary<string, object> paramsFetchBalanceSnapshot = ((IDictionary<string, object>)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item2);
-        (bool?, object) awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", true);
+        IDictionary<string, object> paramsFetchBalanceSnapshot = (fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item2);
+        (bool?, IDictionary<string, object>) awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", true);
         bool? awaitBalanceSnapshot = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.Item1;
-        IDictionary<string, object> paramsAwaitBalanceSnapshot = ((IDictionary<string, object>)awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.Item2);
+        IDictionary<string, object> paramsAwaitBalanceSnapshot = (awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.Item2);
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future((type + ":fetchBalanceSnapshot"));

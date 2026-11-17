@@ -464,7 +464,7 @@ public partial class btcmarkets : Exchange
         return this.safeString(statuses, type, type);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         //    {

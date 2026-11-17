@@ -1904,9 +1904,9 @@ public partial class whitebit : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsMarketType, "fetchTickers", "method");
+        (string?, IDictionary<string, object>) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsMarketType, "fetchTickers", "method");
         string? methodOption = methodOptionparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodOptionparamsMethodVariable.Item2);
         string? method = methodOption;
         if ((method == null))
         {
@@ -2505,9 +2505,9 @@ public partial class whitebit : Exchange
         {
             throw new NotSupported ((this.id + " createOrder() timeInForce IOC is only supported for limit orders")) ;
         }
-        (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted);
+        (string?, IDictionary<string, object>) marginModequeryVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted);
         string? marginMode = marginModequeryVariable.Item1;
-        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
+        IDictionary<string, object> query = (marginModequeryVariable.Item2);
         if (postOnly)
         {
             request["postOnly"] = true;
@@ -2736,9 +2736,9 @@ public partial class whitebit : Exchange
         IDictionary<string, object> requestParams = paramsMarketType;
         if ((marketType == "spot"))
         {
-            (bool?, object) isMarginparamsIsMarginVariable = this.handleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false);
+            (bool?, IDictionary<string, object>) isMarginparamsIsMarginVariable = this.handleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false);
             bool? isMargin = isMarginparamsIsMarginVariable.Item1;
-            IDictionary<string, object> paramsIsMargin = ((IDictionary<string, object>)isMarginparamsIsMarginVariable.Item2);
+            IDictionary<string, object> paramsIsMargin = (isMarginparamsIsMarginVariable.Item2);
             requestParams = paramsIsMargin;
             if ((isMargin == true))
             {
@@ -3717,7 +3717,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToTransaction(this.extend(this.parseTransaction(response, currency), new Dictionary<string, object>() {             { "id", uniqueId },         }));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -4522,7 +4522,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, "fromCurrency", "toCurrency", since, limit));
     }
 
-    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -4841,9 +4841,9 @@ public partial class whitebit : Exchange
             throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         int maxLimit = 100;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, maxLimit));
@@ -4934,9 +4934,9 @@ public partial class whitebit : Exchange
             string nonce = ((object)this.incrementingNonce()).ToString();
             string? secret = this.encode(this.secret);
             string request = (((("/" + "api") + "/") + version) + pathWithParams);
-            (bool?, object) nonceWindowrequestParamsVariable = this.handleOptionBoolAndParams(parameters, "sign", "nonceWindow", false);
+            (bool?, IDictionary<string, object>) nonceWindowrequestParamsVariable = this.handleOptionBoolAndParams(parameters, "sign", "nonceWindow", false);
             bool? nonceWindow = nonceWindowrequestParamsVariable.Item1;
-            IDictionary<string, object> requestParams = ((IDictionary<string, object>)nonceWindowrequestParamsVariable.Item2);
+            IDictionary<string, object> requestParams = (nonceWindowrequestParamsVariable.Item2);
             privateBody = this.json(this.extend(new Dictionary<string, object>() {
                 { "request", request },
                 { "nonce", nonce },

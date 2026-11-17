@@ -2197,9 +2197,9 @@ public partial class bitrue : Exchange
                 request["type"] = "IOC";
             }
             request["contractName"] = (market.ContainsKey("id") ? market["id"] : null);
-            (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
-            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
+            IDictionary<string, object> paramsRequiresPrice = (createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
             bool isMarketBuyWithPrice = isMarket && ((side == "buy")) && (createMarketBuyOrderRequiresPrice == true);
             IDictionary<string, object> paramsNoCost = paramsRequiresPrice;
             if (isMarketBuyWithPrice)
@@ -2959,7 +2959,7 @@ public partial class bitrue : Exchange
         return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits

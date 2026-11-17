@@ -1865,9 +1865,9 @@ public partial class xt : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
@@ -2641,9 +2641,9 @@ public partial class xt : Exchange
             }
         } else
         {
-            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsSubType);
+            (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsSubType);
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+            IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
             string marginOrSpotRequest = "SPOT";
             if ((marginMode != null))
             {
@@ -3147,9 +3147,9 @@ public partial class xt : Exchange
             { "type", type.ToUpper() },
         };
         string? timeInForce = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         string marginOrSpotRequest = "SPOT";
         if ((marginMode != null))
         {
@@ -3300,9 +3300,9 @@ public partial class xt : Exchange
         {
             request["orderSide"] = side.ToUpper();
             request["triggerPriceType"] = this.safeString(paramsOmitted4, "triggerPriceType", "LATEST_PRICE");
-            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted4, "cross");
+            (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted4, "cross");
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+            IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
             request["positionType"] = ((marginMode == "isolated")) ? "ISOLATED" : "CROSSED";
             if ((trailingPercent != null))
             {
@@ -3690,9 +3690,9 @@ public partial class xt : Exchange
             response = await this.privateLinearGetFutureTradeV1OrderListHistory(this.extend(request, paramsSubType));
         } else
         {
-            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrders", paramsSubType);
+            (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrders", paramsSubType);
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+            IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
             string marginOrSpotRequest = "SPOT";
             if ((marginMode != null))
             {
@@ -3954,9 +3954,9 @@ public partial class xt : Exchange
             }
         } else
         {
-            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsSubType);
+            (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsSubType);
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+            IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
             string marginOrSpotRequest = "SPOT";
             if ((marginMode != null))
             {
@@ -4464,9 +4464,9 @@ public partial class xt : Exchange
             response = await this.privateLinearPostFutureTradeV1OrderCancelAll(this.extend(request, paramsSubType));
         } else
         {
-            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsSubType);
+            (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsSubType);
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+            IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
             string marginOrSpotRequest = "SPOT";
             if ((marginMode != null))
             {
@@ -4864,7 +4864,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(ledger, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -5169,7 +5169,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(result, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -5630,9 +5630,9 @@ public partial class xt : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "id", "id", 1, 200));

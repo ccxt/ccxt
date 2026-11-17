@@ -1088,9 +1088,9 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, paramsPaginate, 10000));
@@ -1191,9 +1191,9 @@ public partial class coinbaseinternational : Exchange
         IDictionary<string, object> paramsPaginate = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
-            (bool?, object) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchFundingRateHistory", "paginate", false);
+            (bool?, IDictionary<string, object>) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchFundingRateHistory", "paginate", false);
             bool? paginate = paginateparamsFinalVariable.Item1;
-            IDictionary<string, object> paramsFinal = ((IDictionary<string, object>)paginateparamsFinalVariable.Item2);
+            IDictionary<string, object> paramsFinal = (paginateparamsFinalVariable.Item2);
             if ((paginate == true))
             {
                 throw new NotSupported ((this.id + " fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until")) ;
@@ -2405,7 +2405,7 @@ public partial class coinbaseinternational : Exchange
         }));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3190,9 +3190,9 @@ public partial class coinbaseinternational : Exchange
         IDictionary<string, object> paramsPaginate = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
-            (bool?, object) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false);
+            (bool?, IDictionary<string, object>) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false);
             bool? paginate = paginateparamsFinalVariable.Item1;
-            IDictionary<string, object> paramsFinal = ((IDictionary<string, object>)paginateparamsFinalVariable.Item2);
+            IDictionary<string, object> paramsFinal = (paginateparamsFinalVariable.Item2);
             if ((paginate == true))
             {
                 throw new NotSupported ((this.id + " fetchOpenOrders() does not support pagination")) ;
@@ -3274,9 +3274,9 @@ public partial class coinbaseinternational : Exchange
         IDictionary<string, object> paramsPaginate = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
-            (bool?, object) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false);
+            (bool?, IDictionary<string, object>) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false);
             bool? paginate = paginateparamsFinalVariable.Item1;
-            IDictionary<string, object> paramsFinal = ((IDictionary<string, object>)paginateparamsFinalVariable.Item2);
+            IDictionary<string, object> paramsFinal = (paginateparamsFinalVariable.Item2);
             if ((paginate == true))
             {
                 throw new NotSupported ((this.id + " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters")) ;
@@ -3869,9 +3869,9 @@ public partial class coinbaseinternational : Exchange
     public virtual Dictionary<string, object> handleRouteAndParams(object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) routeparamsResolvedVariable = this.handleOptionStringAndParams(parameters, methodName, "route", "auto");
+        (string?, IDictionary<string, object>) routeparamsResolvedVariable = this.handleOptionStringAndParams(parameters, methodName, "route", "auto");
         string? route = routeparamsResolvedVariable.Item1;
-        IDictionary<string, object> paramsResolved = ((IDictionary<string, object>)routeparamsResolvedVariable.Item2);
+        IDictionary<string, object> paramsResolved = (routeparamsResolvedVariable.Item2);
         bool deribit = this.resolveRoute(route);
         bool? previousBackend = this.safeBool(this.options, "routeBackend");
         bool configuredBackend = this.isNativeDeribitCredentials();

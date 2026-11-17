@@ -1139,9 +1139,9 @@ public partial class bullish : Exchange
             await this.loadMarkets();
         }
         int maxLimit = 100;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchTrades", since, paramsPaginate);
@@ -1211,9 +1211,9 @@ public partial class bullish : Exchange
             response = await this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, parameters));
         } else
         {
-            (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+            (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
             bool? paginate = paginateparamsPaginateVariable.Item1;
-            IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+            IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
             if ((paginate == true))
             {
                 Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
@@ -1573,9 +1573,9 @@ public partial class bullish : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = 100;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -1658,9 +1658,9 @@ public partial class bullish : Exchange
             await this.loadMarkets();
         }
         int maxLimit = 100;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
@@ -1752,9 +1752,9 @@ public partial class bullish : Exchange
         {
             request["_pageSize"] = this.getClosestLimit(limit);
         }
-        (string?, object) methodResolvedparamsMethodVariable = this.handleOptionStringAndParams(paramsSinceAndUntil, "fetchOrders", "method", "privateGetV2HistoryOrders");
+        (string?, IDictionary<string, object>) methodResolvedparamsMethodVariable = this.handleOptionStringAndParams(paramsSinceAndUntil, "fetchOrders", "method", "privateGetV2HistoryOrders");
         string? methodResolved = methodResolvedparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodResolvedparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodResolvedparamsMethodVariable.Item2);
         List<object> response = new List<object>() {};
         if ((methodResolved == "privateGetV2Orders"))
         {
@@ -2065,9 +2065,9 @@ public partial class bullish : Exchange
         {
             orderType = "POST_ONLY";
         }
-        (string?, object) timeInForceparamsTimeInForceRawVariable = this.handleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC");
+        (string?, IDictionary<string, object>) timeInForceparamsTimeInForceRawVariable = this.handleOptionStringAndParams(paramsPostOnly, "createOrder", "timeInForce", "GTC");
         string? timeInForce = timeInForceparamsTimeInForceRawVariable.Item1;
-        IDictionary<string, object> paramsTimeInForceRaw = ((IDictionary<string, object>)timeInForceparamsTimeInForceRawVariable.Item2); // is mandatory
+        IDictionary<string, object> paramsTimeInForceRaw = (timeInForceparamsTimeInForceRawVariable.Item2); // is mandatory
         Dictionary<string, object> paramsTimeInForce = this.extend(paramsTimeInForceRaw, new Dictionary<string, object>() {
             { "timeInForce", timeInForce.ToUpper() },
         });
@@ -2486,7 +2486,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2586,9 +2586,9 @@ public partial class bullish : Exchange
     public async virtual Task<string?> loadAccount(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
+        (string?, IDictionary<string, object>) tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
         string? tradingAccountIdOption = tradingAccountIdOptionparamsTradingAccountIdVariable.Item1;
-        IDictionary<string, object> paramsTradingAccountId = ((IDictionary<string, object>)tradingAccountIdOptionparamsTradingAccountIdVariable.Item2);
+        IDictionary<string, object> paramsTradingAccountId = (tradingAccountIdOptionparamsTradingAccountIdVariable.Item2);
         string? tradingAccountId = tradingAccountIdOption;
         if ((tradingAccountId == null))
         {
@@ -3010,9 +3010,9 @@ public partial class bullish : Exchange
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.handleToken()});
         string? tradingAccountId = await this.loadAccount(parameters);
         int maxLimit = 100;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchTransfers", since, paramsPaginate);

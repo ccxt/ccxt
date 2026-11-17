@@ -2508,9 +2508,9 @@ public partial class phemex : Exchange
         }
         if ((type == "swap"))
         {
-            (string?, object) settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchBalance", "settle", "USDT");
+            (string?, IDictionary<string, object>) settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchBalance", "settle", "USDT");
             string? settle = settleparamsSettleVariable.Item1;
-            IDictionary<string, object> paramsSettle = ((IDictionary<string, object>)settleparamsSettleVariable.Item2);
+            IDictionary<string, object> paramsSettle = (settleparamsSettleVariable.Item2);
             if ((code != null) || (settle != null))
             {
                 string? coin = null;
@@ -4260,7 +4260,7 @@ public partial class phemex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // withdraw
@@ -4417,7 +4417,7 @@ public partial class phemex : Exchange
             code = this.safeString(market, "settle");
         } else
         {
-            (string?, object) settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchPositions", "settle", code);
+            (string?, IDictionary<string, object>) settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchPositions", "settle", code);
             settle = settleparamsSettleVariable.Item1;
             paramsSettle = settleparamsSettleVariable.Item2;
         }
@@ -4442,9 +4442,9 @@ public partial class phemex : Exchange
         Dictionary<string, object> response = null;
         if (isUSDTSettled)
         {
-            (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsSubType, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
+            (string?, IDictionary<string, object>) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsSubType, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
             string? method = methodparamsMethodVariable.Item1;
-            IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
+            IDictionary<string, object> paramsMethod = (methodparamsMethodVariable.Item2);
             if ((method == "privateGetGAccountsAccountPositions"))
             {
                 response = await this.privateGetGAccountsAccountPositions(this.extend(request, paramsMethod));
@@ -5724,9 +5724,9 @@ public partial class phemex : Exchange
         {
             throw new BadRequest ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 100));
@@ -6139,7 +6139,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, "fromCurrency", "toCurrency", since, limit));
     }
 
-    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -6250,7 +6250,7 @@ public partial class phemex : Exchange
             code = this.safeString(market, "settle");
         } else
         {
-            (string?, object) settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchPositionsADLRank", "settle", code);
+            (string?, IDictionary<string, object>) settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchPositionsADLRank", "settle", code);
             settle = settleparamsSettleVariable.Item1;
             paramsSettle = settleparamsSettleVariable.Item2;
         }
@@ -6275,9 +6275,9 @@ public partial class phemex : Exchange
         Dictionary<string, object> response = null;
         if (isUSDTSettled)
         {
-            (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsSubType, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
+            (string?, IDictionary<string, object>) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsSubType, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
             string? method = methodparamsMethodVariable.Item1;
-            IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
+            IDictionary<string, object> paramsMethod = (methodparamsMethodVariable.Item2);
             if ((method == "privateGetGAccountsAccountPositions"))
             {
                 response = await this.privateGetGAccountsAccountPositions(this.extend(request, paramsMethod));

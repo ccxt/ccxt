@@ -831,9 +831,9 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         string? price = this.safeString(paramsPaginate, "price");
         int maxLimit = 300;
         if ((this.safeBool(market, "swap", false) == true) && (price == null))
@@ -1226,9 +1226,9 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "code", null, 1, 50));
@@ -1283,9 +1283,9 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "code", null, 1, 50));
@@ -1320,7 +1320,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(items, currency, since, limit, transactionParams));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -1600,7 +1600,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -1671,9 +1671,9 @@ public partial class deepcoin : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) userIdOptionparamsUserIdVariable = this.handleOptionStringAndParams(parameters, "transfer", "userId");
+        (string?, IDictionary<string, object>) userIdOptionparamsUserIdVariable = this.handleOptionStringAndParams(parameters, "transfer", "userId");
         string? userIdOption = userIdOptionparamsUserIdVariable.Item1;
-        IDictionary<string, object> paramsUserId = ((IDictionary<string, object>)userIdOptionparamsUserIdVariable.Item2);
+        IDictionary<string, object> paramsUserId = (userIdOptionparamsUserIdVariable.Item2);
         string? userId = null;
         if ((userIdOption != null) && !(userIdOption == ""))
         {
@@ -1957,13 +1957,13 @@ public partial class deepcoin : Exchange
         {
             request["sz"] = this.amountToPrecision(symbol, amount);
             Dictionary<string, object> paramsOmitted = this.omit(paramsOrderType, keysToOmit);
-            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, "cross");
+            (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, "cross");
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+            IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
             request["tdMode"] = marginMode;
-            (string?, object) mrgPositionparamsMrgPositionVariable = this.handleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge");
+            (string?, IDictionary<string, object>) mrgPositionparamsMrgPositionVariable = this.handleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge");
             string? mrgPosition = mrgPositionparamsMrgPositionVariable.Item1;
-            IDictionary<string, object> paramsMrgPosition = ((IDictionary<string, object>)mrgPositionparamsMrgPositionVariable.Item2);
+            IDictionary<string, object> paramsMrgPosition = (mrgPositionparamsMrgPositionVariable.Item2);
             paramsRequest = paramsMrgPosition;
             request["mrgPosition"] = mrgPosition;
             string? posSide = null;
@@ -2046,9 +2046,9 @@ public partial class deepcoin : Exchange
             throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
         }
         string marginMode = "cross";
-        (string?, object) marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, marginMode);
+        (string?, IDictionary<string, object>) marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, marginMode);
         string? marginModeOption = marginModeOptionparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeOptionparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeOptionparamsMarginModeVariable.Item2);
         int isCrossMargin = 1;
         if ((marginModeOption == "isolated"))
         {
@@ -2081,9 +2081,9 @@ public partial class deepcoin : Exchange
             }
         }
         string mrgPosition = "merge";
-        (string?, object) mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "mrgPosition", mrgPosition);
+        (string?, IDictionary<string, object>) mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "mrgPosition", mrgPosition);
         string? mrgPositionOption = mrgPositionOptionparamsMrgPositionVariable.Item1;
-        IDictionary<string, object> paramsMrgPosition = ((IDictionary<string, object>)mrgPositionOptionparamsMrgPositionVariable.Item2);
+        IDictionary<string, object> paramsMrgPosition = (mrgPositionOptionparamsMrgPositionVariable.Item2);
         request["mrgPosition"] = mrgPositionOption;
         return this.extend(request, paramsMrgPosition);
     }
@@ -2300,9 +2300,9 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate));
@@ -2670,9 +2670,9 @@ public partial class deepcoin : Exchange
         string? marginMode = this.safeString(parameters, "marginMode");
         int encodedMarginMode = (marginMode == "isolated") ? 0 : 1;
         IDictionary<string, object> paramsOmitted = ((marginMode != null)) ? this.omit(parameters, "marginMode") : parameters;
-        (bool?, object) mergedparamsMergedVariable = this.handleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true);
+        (bool?, IDictionary<string, object>) mergedparamsMergedVariable = this.handleOptionBoolAndParams(paramsOmitted, "cancelAllOrders", "merged", true);
         bool? merged = mergedparamsMergedVariable.Item1;
-        IDictionary<string, object> paramsMerged = ((IDictionary<string, object>)mergedparamsMergedVariable.Item2);
+        IDictionary<string, object> paramsMerged = (mergedparamsMergedVariable.Item2);
         int isMergedMode = (merged == true) ? 1 : 0;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "InstrumentID", (market.ContainsKey("id") ? market["id"] : null) },
@@ -3143,17 +3143,17 @@ public partial class deepcoin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string marginMode = "cross";
-        (string?, object) marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, marginMode);
+        (string?, IDictionary<string, object>) marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, marginMode);
         string? marginModeOption = marginModeOptionparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeOptionparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeOptionparamsMarginModeVariable.Item2);
         if ((!(marginModeOption == "cross")) && (!(marginModeOption == "isolated")))
         {
             throw new BadRequest ((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         string mrgPosition = "merge";
-        (string?, object) mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams(paramsMarginMode, "setLeverage", "mrgPosition", mrgPosition);
+        (string?, IDictionary<string, object>) mrgPositionOptionparamsMrgPositionVariable = this.handleOptionStringAndParams(paramsMarginMode, "setLeverage", "mrgPosition", mrgPosition);
         string? mrgPositionOption = mrgPositionOptionparamsMrgPositionVariable.Item1;
-        IDictionary<string, object> paramsMrgPosition = ((IDictionary<string, object>)mrgPositionOptionparamsMrgPositionVariable.Item2);
+        IDictionary<string, object> paramsMrgPosition = (mrgPositionOptionparamsMrgPositionVariable.Item2);
         if (!(mrgPositionOption == "merge") && !(mrgPositionOption == "split"))
         {
             throw new BadRequest ((this.id + " setLeverage() mrgPosition parameter must be either merge or split")) ;
@@ -3425,9 +3425,9 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));

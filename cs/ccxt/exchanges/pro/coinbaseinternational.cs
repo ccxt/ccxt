@@ -271,9 +271,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchBalance", parameters);
-        (string?, object) currencyparamsCurrencyVariable = this.handleOptionStringAndParams(paramsResolved, "watchBalance", "currency", "any");
+        (string?, IDictionary<string, object>) currencyparamsCurrencyVariable = this.handleOptionStringAndParams(paramsResolved, "watchBalance", "currency", "any");
         string? currency = currencyparamsCurrencyVariable.Item1;
-        IDictionary<string, object> paramsCurrency = ((IDictionary<string, object>)currencyparamsCurrencyVariable.Item2);
+        IDictionary<string, object> paramsCurrency = (currencyparamsCurrencyVariable.Item2);
         string channel = ("user.portfolio." + currency);
         return ccxt.BaseExchange.ToBalances(await this.subscribe(new List<object>() {channel}, new List<object>() {"balance"}, true, paramsCurrency));
     }
@@ -309,9 +309,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         string channel = ("user.trades.any.any." + interval);
         object symbolResolved = null;
         if ((symbol != null))
@@ -339,9 +339,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchMyTrades", parameters);
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         string channel = ("user.trades.any.any." + interval);
         if ((symbol != null))
         {
@@ -395,9 +395,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         string channel = ("user.orders.any.any." + interval);
         object symbolResolved = null;
         if ((symbol != null))
@@ -437,9 +437,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         List<object> channels = new List<object>() {};
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
@@ -471,9 +471,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("unWatchOrders", parameters);
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         string channel = ("user.orders.any.any." + interval);
         if ((symbol != null))
         {
@@ -535,9 +535,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols));
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         List<object> channels = new List<object>() {};
         int symbolsLength = 0;
         if ((symbolsResolved != null))
@@ -582,9 +582,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         IList<object> symbolsResolved = this.marketSymbols(symbols);
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         List<object> channels = new List<object>() {};
         int symbolsLength = 0;
         if ((symbolsResolved != null))
@@ -744,9 +744,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTicker", "interval", "100ms");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTicker", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         bool isPrivate = (interval == "raw");
         string channel = ((("ticker." + this.safeString(market, "id", "")) + ".") + interval);
         return ccxt.BaseExchange.ToTicker(await this.subscribe(new List<object>() {channel}, new List<object>() {channel}, isPrivate, paramsInterval));
@@ -791,9 +791,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         bool isPrivate = (interval == "raw");
         List<object> channels = new List<object>() {};
         int symbolsLength = (symbolsResolved?.Count ?? 0);
@@ -836,9 +836,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         List<object> channels = new List<object>() {};
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
@@ -1230,9 +1230,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, false);
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         bool isPrivate = (interval == "raw");
         List<object> channels = new List<object>() {};
         int symbolsLength = (symbolsResolved?.Count ?? 0);
@@ -1290,9 +1290,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         List<object> channels = new List<object>() {};
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
@@ -1370,23 +1370,23 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         bool isPrivate = (interval == "raw");
-        (bool?, object) useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        (bool?, IDictionary<string, object>) useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
         bool? useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.Item1;
-        IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable.Item2);
+        IDictionary<string, object> paramsDepthEndpoint = (useDepthEndpointparamsDepthEndpointVariable.Item2);
         IDictionary<string, object> paramsChannel = paramsDepthEndpoint;
         string descriptor = ("." + interval);
         if ((useDepthEndpoint == true))
         {
-            (string?, object) depthparamsDepthVariable = this.handleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
+            (string?, IDictionary<string, object>) depthparamsDepthVariable = this.handleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             string? depth = depthparamsDepthVariable.Item1;
-            IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthparamsDepthVariable.Item2);
-            (string?, object) groupKeyparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
+            IDictionary<string, object> paramsDepth = (depthparamsDepthVariable.Item2);
+            (string?, IDictionary<string, object>) groupKeyparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
             string? groupKey = groupKeyparamsGroupVariable.Item1;
-            IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupKeyparamsGroupVariable.Item2);
+            IDictionary<string, object> paramsGroup = (groupKeyparamsGroupVariable.Item2);
             paramsChannel = paramsGroup;
             descriptor = ((((("." + groupKey) + ".") + depth) + ".") + interval);
         }
@@ -1438,22 +1438,22 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
-        (bool?, object) useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
+        (bool?, IDictionary<string, object>) useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
         bool? useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.Item1;
-        IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable.Item2);
+        IDictionary<string, object> paramsDepthEndpoint = (useDepthEndpointparamsDepthEndpointVariable.Item2);
         IDictionary<string, object> paramsChannel = paramsDepthEndpoint;
         string descriptor = ("." + interval);
         if ((useDepthEndpoint == true))
         {
-            (string?, object) depthparamsDepthVariable = this.handleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
+            (string?, IDictionary<string, object>) depthparamsDepthVariable = this.handleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             string? depth = depthparamsDepthVariable.Item1;
-            IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthparamsDepthVariable.Item2);
-            (string?, object) groupKeyparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
+            IDictionary<string, object> paramsDepth = (depthparamsDepthVariable.Item2);
+            (string?, IDictionary<string, object>) groupKeyparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
             string? groupKey = groupKeyparamsGroupVariable.Item1;
-            IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupKeyparamsGroupVariable.Item2);
+            IDictionary<string, object> paramsGroup = (groupKeyparamsGroupVariable.Item2);
             paramsChannel = paramsGroup;
             descriptor = ((((("." + groupKey) + ".") + depth) + ".") + interval);
         }

@@ -2039,7 +2039,7 @@ public partial class hibachi : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         string? transactionType = this.safeString(item, "transactionType");
         Int64? timestamp = null;
@@ -2241,7 +2241,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", "USDT" },             { "network", "ARBITRUM" },             { "address", this.safeString(response, "depositAddressEvm") },             { "tag", null },         });
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         Int64? timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
         string? address = this.safeString(transaction, "withdrawalAddress");

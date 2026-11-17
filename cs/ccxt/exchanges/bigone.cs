@@ -1782,9 +1782,9 @@ public partial class bigone : Exchange
             if (isBuy)
             {
                 bool? createMarketBuyOrderRequiresPrice = null;
-                (bool?, object) createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.Item1;
-                query = (IDictionary<string, object>)createMarketBuyOrderRequiresPricequeryVariable.Item2;
+                query = createMarketBuyOrderRequiresPricequeryVariable.Item2;
                 double? cost = this.safeNumber(query, "cost");
                 query = this.omit(query, "cost");
                 if ((createMarketBuyOrderRequiresPrice == true))
@@ -2271,7 +2271,7 @@ public partial class bigone : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits

@@ -86,19 +86,19 @@ public partial class BaseTest
                     } },
                 } },
             });
-            (string?, object) marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", new Dictionary<string, object>() {}, "cross");
+            (string?, IDictionary<string, object>) marginModeparams1Variable = exchange.handleMarginModeAndParams("fetchX", new Dictionary<string, object>() {}, "cross");
             object marginMode = marginModeparams1Variable.Item1;
             object params1 = marginModeparams1Variable.Item2;
             Assert(isEqual(marginMode, "isolated"));
-            (bool?, object) utaparams2Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "uta", false);
+            (bool?, IDictionary<string, object>) utaparams2Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "uta", false);
             object uta = utaparams2Variable.Item1;
             object params2 = utaparams2Variable.Item2;
             Assert(uta);
-            (string?, object) absentparams3Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {}, "fetchX", "absentKey", "fallback");
+            (string?, IDictionary<string, object>) absentparams3Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {}, "fetchX", "absentKey", "fallback");
             object absent = absentparams3Variable.Item1;
             object params3 = absentparams3Variable.Item2;
             Assert(isEqual(absent, "fallback"));
-            (string?, object) fromParamsparams4Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {
+            (string?, IDictionary<string, object>) fromParamsparams4Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {
             { "absentKey", "p" },
         }, "fetchX", "absentKey", "fallback");
             object fromParams = fromParamsparams4Variable.Item1;
@@ -106,11 +106,11 @@ public partial class BaseTest
             Assert(isEqual(fromParams, "p"));
             Assert(!(inOp(params4, "absentKey")));
             // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
-            (bool?, object) boolStringparams5Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "boolString", true);
+            (bool?, IDictionary<string, object>) boolStringparams5Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "boolString", true);
             object boolString = boolStringparams5Variable.Item1;
             object params5 = boolStringparams5Variable.Item2;
             Assert(isEqual(boolString, false));
-            (bool?, object) boolNumberparams6Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {
+            (bool?, IDictionary<string, object>) boolNumberparams6Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {
             { "boolNumber", 1 },
         }, "fetchX", "boolNumber", false);
             object boolNumber = boolNumberparams6Variable.Item1;

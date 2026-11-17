@@ -1621,7 +1621,7 @@ public partial class luno : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object entry, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object entry, IDictionary<string, object> currency = null)
     {
         // const details = this.safeValue (entry, 'details', {});
         string? id = this.safeString(entry, "row_index");

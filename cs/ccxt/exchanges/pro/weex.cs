@@ -694,7 +694,7 @@ public partial class weex : ccxt.weex
         object paramsPriceType = paramsOmitted;
         if ((isContract == true))
         {
-            (string?, object) priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
+            (string?, IDictionary<string, object>) priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
             priceType = priceTypeparamsPriceTypeVariable.Item1;
             paramsPriceType = priceTypeparamsPriceTypeVariable.Item2;
         }
@@ -779,7 +779,7 @@ public partial class weex : ccxt.weex
         object paramsPriceType = paramsOmitted;
         if ((isContract == true))
         {
-            (string?, object) priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
+            (string?, IDictionary<string, object>) priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
             priceType = priceTypeparamsPriceTypeVariable.Item1;
             paramsPriceType = priceTypeparamsPriceTypeVariable.Item2;
         }
@@ -941,9 +941,9 @@ public partial class weex : ccxt.weex
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "callerMethodName");
         string depth = "200";
-        (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
+        (string?, IDictionary<string, object>) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         string? depthOption = depthOptionparamsDepthVariable.Item1;
-        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable.Item2);
+        IDictionary<string, object> paramsDepth = (depthOptionparamsDepthVariable.Item2);
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -1005,9 +1005,9 @@ public partial class weex : ccxt.weex
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "callerMethodName");
         string depth = "200";
-        (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
+        (string?, IDictionary<string, object>) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         string? depthOption = depthOptionparamsDepthVariable.Item1;
-        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable.Item2);
+        IDictionary<string, object> paramsDepth = (depthOptionparamsDepthVariable.Item2);
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};

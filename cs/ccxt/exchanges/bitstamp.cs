@@ -2625,9 +2625,9 @@ public partial class bitstamp : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -2801,7 +2801,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, null, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDepositsWithdrawals
@@ -2853,8 +2853,8 @@ public partial class bitstamp : Exchange
             amount = this.safeString(transaction, "amount");
         } else if ((currency != null))
         {
-            amount = this.safeString(transaction, getValue(currency, "id"));
-            feeCurrency = getValue(currency, "code");
+            amount = this.safeString(transaction, (currency != null && currency.ContainsKey("id") ? currency["id"] : null));
+            feeCurrency = (currency != null && currency.ContainsKey("code") ? currency["code"] : null);
         } else if (((code != null)) && ((currencyId != null)))
         {
             amount = this.safeString(transaction, currencyId);
@@ -3069,7 +3069,7 @@ public partial class bitstamp : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         //     [
@@ -3142,7 +3142,7 @@ public partial class bitstamp : Exchange
             string? direction = null;
             string? transactionCurrency = this.safeString(parsedTransaction, "currency");
             bool hasTransactionCurrency = !((item != null && ((IDictionary<string, object>)item).ContainsKey("amount"))) && ((transactionCurrency != null));
-            object currencyResolved = currency;
+            IDictionary<string, object> currencyResolved = currency;
             if (hasTransactionCurrency)
             {
                 currencyResolved = this.currency(this.safeString(parsedTransaction, "currency"));

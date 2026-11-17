@@ -2360,7 +2360,7 @@ public partial class polymarket : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // deposit row
@@ -2702,7 +2702,7 @@ public partial class polymarket : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? marginMode = null;
         object paramsOmitted = parameters;
-        (string?, object) marginModeparamsOmittedVariable = this.handleMarginModeAndParams("setLeverage", paramsOmitted, "cross");
+        (string?, IDictionary<string, object>) marginModeparamsOmittedVariable = this.handleMarginModeAndParams("setLeverage", paramsOmitted, "cross");
         marginMode = marginModeparamsOmittedVariable.Item1;
         paramsOmitted = marginModeparamsOmittedVariable.Item2;
         bool isCross = (marginMode != "isolated");

@@ -1026,7 +1026,7 @@ public partial class kraken : Exchange
         });
     }
 
-    public override string? safeCurrencyCode(object currencyId, object currency = null)
+    public override string? safeCurrencyCode(object currencyId, IDictionary<string, object> currency = null)
     {
         if ((currencyId == null))
         {
@@ -1346,9 +1346,9 @@ public partial class kraken : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 720));
@@ -1406,7 +1406,7 @@ public partial class kraken : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2244,7 +2244,7 @@ public partial class kraken : Exchange
         IDictionary<string, object> orderDescriptionObj = this.safeDict(orderOmitted, "descr"); // can be null
         string? orderDescription = ((orderDescriptionObj != null)) ? this.safeString(orderDescriptionObj, "order") : this.safeString(orderOmitted, "descr");
         string? side = null;
-        object descriptionType = null;
+        string? descriptionType = null;
         string? marketId = null;
         string? price = this.safeString(description, "price");
         string? amount = null;
@@ -2271,11 +2271,11 @@ public partial class kraken : Exchange
             {
                 descriptionType = (part4 == null ? null : part4 + " " + part5); // eg. stop loss, take profit, trailing stop
             }
-            if ((descriptionType is "stop loss") || (descriptionType is "take profit"))
+            if (descriptionType == "stop loss" || descriptionType == "take profit")
             {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
-            } else if ((descriptionType is "limit"))
+            } else if (descriptionType == "limit")
             {
                 price = this.safeString(parts, 5);
             }
@@ -3339,7 +3339,7 @@ public partial class kraken : Exchange
         return this.safeString(withdrawMethods, network, network);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -3570,9 +3570,9 @@ public partial class kraken : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             paramsPaginate["cursor"] = true;

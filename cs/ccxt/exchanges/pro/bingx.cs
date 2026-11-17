@@ -1345,10 +1345,10 @@ public partial class bingx : ccxt.bingx
         string url = ((baseUrl + "?listenKey=") + userStreamKey);
         var client = this.client(url);
         this.setBalanceCache(client, type, subType, subscriptionHash, paramsSubType);
-        (bool?, object) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true);
+        (bool?, IDictionary<string, object>) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true);
         bool? fetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item1;
-        IDictionary<string, object> paramsFetchBalanceSnapshot = ((IDictionary<string, object>)fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item2);
-        (bool?, object) awaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false);
+        IDictionary<string, object> paramsFetchBalanceSnapshot = (fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.Item2);
+        (bool?, IDictionary<string, object>) awaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = awaitBalanceSnapshotVariable.Item1;
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
@@ -1367,7 +1367,7 @@ public partial class bingx : ccxt.bingx
         {
             return;
         }
-        (bool?, object) fetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        (bool?, IDictionary<string, object>) fetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
         bool? fetchBalanceSnapshot = fetchBalanceSnapshotVariable.Item1;
         if ((fetchBalanceSnapshot == true))
         {
@@ -1448,10 +1448,10 @@ public partial class bingx : ccxt.bingx
         string url = ((baseUrl + "?listenKey=") + userStreamKey);
         var client = this.client(url);
         this.setPositionsCache(client, type, symbolsNormalized);
-        (bool?, object) fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable = this.handleOptionBoolAndParams(paramsSubType, "watchPositions", "fetchPositionsSnapshot", true);
+        (bool?, IDictionary<string, object>) fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable = this.handleOptionBoolAndParams(paramsSubType, "watchPositions", "fetchPositionsSnapshot", true);
         bool? fetchPositionsSnapshot = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.Item1;
-        IDictionary<string, object> paramsFetchPositionsSnapshot = ((IDictionary<string, object>)fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.Item2);
-        (bool?, object) awaitPositionsSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false);
+        IDictionary<string, object> paramsFetchPositionsSnapshot = (fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.Item2);
+        (bool?, IDictionary<string, object>) awaitPositionsSnapshotVariable = this.handleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false);
         bool? awaitPositionsSnapshot = awaitPositionsSnapshotVariable.Item1;
         string uuid = this.uuid();
         Dictionary<string, object> subscription = new Dictionary<string, object>() {

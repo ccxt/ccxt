@@ -1647,9 +1647,9 @@ public partial class coinsph : Exchange
             } else if (orderSide == "BUY")
             {
                 string? quoteAmount = null;
-                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
-                IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
+                IDictionary<string, object> paramsRequiresPrice = (createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
                 double? cost = this.safeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty");
                 paramsQuote = this.omit(paramsRequiresPrice, "cost");
                 if ((cost != null))
@@ -2364,7 +2364,7 @@ public partial class coinsph : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -2544,7 +2544,7 @@ public partial class coinsph : Exchange
     {
         query ??= new Dictionary<string, object>();
         string encodedArrayParams = "";
-        object remainingQuery = query;
+        IDictionary<string, object> remainingQuery = query;
         List<object> keys = new List<object>(query.Keys);
         for (int i = 0; i < keys.Count; i++)
         {

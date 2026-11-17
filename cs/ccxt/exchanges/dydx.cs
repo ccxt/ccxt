@@ -997,12 +997,12 @@ public partial class dydx : Exchange
 
     public virtual List<object> handlePublicAddress(string? methodName, object parameters)
     {
-        (string?, object) userAuxparamsUserVariable = this.handleOptionStringAndParams(parameters, methodName, "user");
+        (string?, IDictionary<string, object>) userAuxparamsUserVariable = this.handleOptionStringAndParams(parameters, methodName, "user");
         string? userAux = userAuxparamsUserVariable.Item1;
-        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable.Item2);
-        (string?, object) userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
+        IDictionary<string, object> paramsUser = (userAuxparamsUserVariable.Item2);
+        (string?, IDictionary<string, object>) userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
         string? user = userparamsAddressVariable.Item1;
-        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable.Item2);
+        IDictionary<string, object> paramsAddress = (userparamsAddressVariable.Item2);
         if (((user != null)) && (!(user == "")))
         {
             return new List<object>() {user, paramsAddress};
@@ -1147,9 +1147,9 @@ public partial class dydx : Exchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOrders", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
-        (string?, object) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0");
+        (string?, IDictionary<string, object>) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0");
         string? subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.Item1;
-        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable.Item2);
+        IDictionary<string, object> paramsSubAccountNumber = (subAccountNumberparamsSubAccountNumberVariable.Item2);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1336,9 +1336,9 @@ public partial class dydx : Exchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchPositions", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
-        (string?, object) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0");
+        (string?, IDictionary<string, object>) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0");
         string? subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.Item1;
-        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable.Item2);
+        IDictionary<string, object> paramsSubAccountNumber = (subAccountNumberparamsSubAccountNumberVariable.Item2);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2022,7 +2022,7 @@ public partial class dydx : Exchange
         return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "size");
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         // {
@@ -2362,7 +2362,7 @@ public partial class dydx : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(rows, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // {
@@ -2588,9 +2588,9 @@ public partial class dydx : Exchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress(methodName, parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
-        (string?, object) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0");
+        (string?, IDictionary<string, object>) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0");
         string? subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.Item1;
-        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable.Item2);
+        IDictionary<string, object> paramsSubAccountNumber = (subAccountNumberparamsSubAccountNumberVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", userAddress },
             { "subaccountNumber", subAccountNumber },

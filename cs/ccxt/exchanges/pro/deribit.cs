@@ -432,9 +432,9 @@ public partial class deribit : ccxt.deribit
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         if ((interval == "raw"))
         {
             await this.authenticate();
@@ -622,23 +622,23 @@ public partial class deribit : ccxt.deribit
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) intervalparamsIntervalVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
+        (string?, IDictionary<string, object>) intervalparamsIntervalVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
         string? interval = intervalparamsIntervalVariable.Item1;
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
+        IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         if ((interval == "raw"))
         {
             await this.authenticate();
         }
         // for more info on useDepthEndpoint, see comment in .options
-        (bool?, object) useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        (bool?, IDictionary<string, object>) useDepthEndpointparamsUseDepthEndpointVariable = this.handleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
         bool? useDepthEndpoint = useDepthEndpointparamsUseDepthEndpointVariable.Item1;
-        IDictionary<string, object> paramsUseDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsUseDepthEndpointVariable.Item2);
-        (string?, object) depthparamsDepthVariable = this.handleOptionStringAndParams(paramsUseDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
+        IDictionary<string, object> paramsUseDepthEndpoint = (useDepthEndpointparamsUseDepthEndpointVariable.Item2);
+        (string?, IDictionary<string, object>) depthparamsDepthVariable = this.handleOptionStringAndParams(paramsUseDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
         string? depth = depthparamsDepthVariable.Item1;
-        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthparamsDepthVariable.Item2);
-        (string?, object) groupparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
+        IDictionary<string, object> paramsDepth = (depthparamsDepthVariable.Item2);
+        (string?, IDictionary<string, object>) groupparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
         string group = groupparamsGroupVariable.Item1;
-        IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupparamsGroupVariable.Item2);
+        IDictionary<string, object> paramsGroup = (groupparamsGroupVariable.Item2);
         string? descriptor = interval;
         if ((useDepthEndpoint == true))
         {

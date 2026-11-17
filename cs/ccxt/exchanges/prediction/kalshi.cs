@@ -580,17 +580,17 @@ public partial class kalshi : PredictionExchange
         int outcomeSymbolsLength = outcomeSymbols?.Count ?? 0;
         for (int i = 0; i < outcomeSymbolsLength; i++)
         {
-            object outcomeSymbol = (outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null);
-            if (getIndexOf(outcomeSymbol, ":") >= 0)
+            string? outcomeSymbol = ((string)(outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
+            if ((outcomeSymbol?.IndexOf(":", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 continue;
             }
-            object baseTicker = outcomeSymbol;
-            if (((string)outcomeSymbol).EndsWith("-NO"))
+            string? baseTicker = outcomeSymbol;
+            if (outcomeSymbol.EndsWith("-NO"))
             {
-                baseTicker = ((outcomeSymbol == null) ? null : ((string)outcomeSymbol).Substring(0, Math.Max(((string)outcomeSymbol).Length - 3, 0)));
+                baseTicker = ((outcomeSymbol == null) ? null : outcomeSymbol.Substring(0, Math.Max(outcomeSymbol.Length - 3, 0)));
             }
-            if (!((baseTicker is string inOpKey0 && seen.ContainsKey(inOpKey0))))
+            if (!(((baseTicker != null) && (seen?.ContainsKey(baseTicker) == true))))
             {
                 seen[(string)baseTicker] = true;
                 tickers.Add(baseTicker);
@@ -1216,7 +1216,7 @@ public partial class kalshi : PredictionExchange
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await this.loadOutcomes(this.toArray(outcomes));
         // group requested outcomes by their market ticker, yes and no outcomes share one market
-        Dictionary<string, object> outcomesByTicker = new Dictionary<string, object>() {};
+        Dictionary<string, List<object>> outcomesByTicker = new Dictionary<string, List<object>>() {};
         List<object> tickers = new List<object>() {};
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
@@ -1265,7 +1265,7 @@ public partial class kalshi : PredictionExchange
                 {
                     continue;
                 }
-                List<object> grouped = ((List<object>)((outcomesByTicker.ContainsKey(marketTicker) ? outcomesByTicker[marketTicker] : null)));
+                List<object> grouped = (marketTicker != null && outcomesByTicker.ContainsKey(marketTicker) ? outcomesByTicker[marketTicker] : null);
                 for (int j = 0; j < (grouped?.Count ?? 0); j++)
                 {
                     Dictionary<string, object> ticker = this.parsePredictionTicker(raw, grouped[j]);
@@ -2381,12 +2381,12 @@ public partial class kalshi : PredictionExchange
         {
             defaultTif = "good_till_canceled";
         }
-        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
+        (string?, IDictionary<string, object>) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
         string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
-        (string?, object) stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
+        IDictionary<string, object> paramsTimeInForce = (timeInForceparamsTimeInForceVariable.Item2);
+        (string?, IDictionary<string, object>) stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
         string? stp = stpparamsSelfTradePreventionTypeVariable.Item1;
-        IDictionary<string, object> paramsSelfTradePreventionType = ((IDictionary<string, object>)stpparamsSelfTradePreventionTypeVariable.Item2);
+        IDictionary<string, object> paramsSelfTradePreventionType = (stpparamsSelfTradePreventionTypeVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
             { "side", bookSide },

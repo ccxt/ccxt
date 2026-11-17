@@ -907,9 +907,9 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         int maxLimit = 300;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -1064,7 +1064,7 @@ public partial class btse : Exchange
         }
         string? period = null;
         object paramsPeriod = null;
-        (string?, object) periodparamsPeriodVariable = this.handleOptionStringAndParams(parameters, "fetchFundingRateHistory", "period");
+        (string?, IDictionary<string, object>) periodparamsPeriodVariable = this.handleOptionStringAndParams(parameters, "fetchFundingRateHistory", "period");
         period = periodparamsPeriodVariable.Item1;
         paramsPeriod = periodparamsPeriodVariable.Item2;
         if ((period == null))
@@ -1186,9 +1186,9 @@ public partial class btse : Exchange
             response = this.safeList(walletResponse, "data", new List<object>() {});
         } else
         {
-            (string?, object) walletparamsWalletVariable = this.handleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet", "CROSS@");
+            (string?, IDictionary<string, object>) walletparamsWalletVariable = this.handleOptionStringAndParams(paramsMarketType, "fetchBalance", "wallet", "CROSS@");
             string? wallet = walletparamsWalletVariable.Item1;
-            IDictionary<string, object> paramsWallet = ((IDictionary<string, object>)walletparamsWalletVariable.Item2);
+            IDictionary<string, object> paramsWallet = (walletparamsWalletVariable.Item2);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "wallet", wallet },
             };
@@ -2155,9 +2155,9 @@ public partial class btse : Exchange
         {
             string? quoteAmount = null;
             bool? createMarketBuyOrderRequiresPrice = true;
-            (bool?, object) createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.Item1;
-            query = (IDictionary<string, object>)createMarketBuyOrderRequiresPricequeryVariable.Item2;
+            query = createMarketBuyOrderRequiresPricequeryVariable.Item2;
             string? cost = this.safeString(query, "cost");
             query = this.omit(query, "cost");
             if ((cost != null))
@@ -2366,13 +2366,13 @@ public partial class btse : Exchange
         if ((positionMode == null))
         {
             bool? hedged = false;
-            (bool?, object) hedgedqueryVariable = this.handleOptionBoolAndParams(query, "createOrder", "hedged", hedged);
+            (bool?, IDictionary<string, object>) hedgedqueryVariable = this.handleOptionBoolAndParams(query, "createOrder", "hedged", hedged);
             hedged = hedgedqueryVariable.Item1;
-            query = (IDictionary<string, object>)hedgedqueryVariable.Item2;
+            query = hedgedqueryVariable.Item2;
             string? marginMode = "cross";
-            (string?, object) marginModequeryVariable = this.handleOptionStringAndParams(query, "createOrder", "marginMode", marginMode);
+            (string?, IDictionary<string, object>) marginModequeryVariable = this.handleOptionStringAndParams(query, "createOrder", "marginMode", marginMode);
             marginMode = marginModequeryVariable.Item1;
-            query = (IDictionary<string, object>)marginModequeryVariable.Item2;
+            query = marginModequeryVariable.Item2;
             if (marginMode == "isolated")
             {
                 if ((hedged == true))
@@ -3289,7 +3289,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToTransactionList(await this.requestWalletHistoryRows("fetchWithdrawals", new List<object>() {"WITHDRAW"},code, since, limit, parameters));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3439,7 +3439,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString2(item, "currency", "asset");
         string? code = this.safeCurrencyCode(currencyId, currency);
@@ -3928,9 +3928,9 @@ public partial class btse : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
         };
-        (string?, object) orderTypeparamsOrderTypeVariable = this.handleOptionStringAndParams(parameters, "closePosition", "type", "market");
+        (string?, IDictionary<string, object>) orderTypeparamsOrderTypeVariable = this.handleOptionStringAndParams(parameters, "closePosition", "type", "market");
         string? orderType = orderTypeparamsOrderTypeVariable.Item1;
-        IDictionary<string, object> paramsOrderType = ((IDictionary<string, object>)orderTypeparamsOrderTypeVariable.Item2);
+        IDictionary<string, object> paramsOrderType = (orderTypeparamsOrderTypeVariable.Item2);
         string typeUpper = orderType.ToUpper();
         request["orderType"] = typeUpper;
         if (typeUpper == "LIMIT")
@@ -4047,9 +4047,9 @@ public partial class btse : Exchange
         // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
         // verified live - a bare call on a cross account silently changes the
         // isolated leverage only, so the unified marginMode param is translated here
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         if ((marginMode != null))
         {
             request["marginMode"] = marginMode.ToUpper();

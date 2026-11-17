@@ -864,9 +864,9 @@ public partial class cex : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        (string?, object) dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType");
+        (string?, IDictionary<string, object>) dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType");
         string? dataType = dataTypeparamsDataTypeVariable.Item1;
-        IDictionary<string, object> paramsDataType = ((IDictionary<string, object>)dataTypeparamsDataTypeVariable.Item2);
+        IDictionary<string, object> paramsDataType = (dataTypeparamsDataTypeVariable.Item2);
         if ((dataType == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
@@ -1433,9 +1433,9 @@ public partial class cex : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+        (string?, IDictionary<string, object>) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
         string? accountId = accountIdparamsAccountIdVariable.Item1;
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
+        IDictionary<string, object> paramsAccountId = (accountIdparamsAccountIdVariable.Item2);
         if ((accountId == null))
         {
             throw new ArgumentsRequired ((this.id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
@@ -1456,9 +1456,9 @@ public partial class cex : Exchange
             { "timestamp", this.milliseconds() },
             { "amountCcy1", this.amountToPrecision(symbol, amount) },
         };
-        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC");
+        (string?, IDictionary<string, object>) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC");
         string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
+        IDictionary<string, object> paramsTimeInForce = (timeInForceparamsTimeInForceVariable.Item2);
         if ((type == "limit"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
@@ -1656,7 +1656,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         string? amount = this.safeString(item, "amount");
         string? direction = null;
@@ -1765,7 +1765,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString(transaction, "currency");
         string? direction = this.safeString(transaction, "direction");
@@ -1968,9 +1968,9 @@ public partial class cex : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+        (string?, IDictionary<string, object>) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
         string? accountId = accountIdparamsAccountIdVariable.Item1;
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
+        IDictionary<string, object> paramsAccountId = (accountIdparamsAccountIdVariable.Item2);
         if ((accountId == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;

@@ -987,9 +987,9 @@ public partial class alpaca : Exchange
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         bool? paginate = false;
         IDictionary<string, object> query = null;
-        (bool?, object) paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = paginatequeryVariable.Item1;
-        query = (IDictionary<string, object>)paginatequeryVariable.Item2;
+        query = paginatequeryVariable.Item2;
         (Int64?, object) paginationCallsqueryPaginationVariable = this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10);
         Int64? paginationCalls = paginationCallsqueryPaginationVariable.Item1;
         IDictionary<string, object> queryPagination = ((IDictionary<string, object>)paginationCallsqueryPaginationVariable.Item2);
@@ -1404,9 +1404,9 @@ public partial class alpaca : Exchange
             request["qty"] = this.amountToPrecision(symbol, amount);
         }
         IDictionary<string, object> paramsCost = ((cost != null)) ? this.omit(parameters, "cost") : parameters;
-        (string?, object) defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce");
+        (string?, IDictionary<string, object>) defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce");
         string? defaultTIF = defaultTIFparamsTimeInForceVariable.Item1;
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)defaultTIFparamsTimeInForceVariable.Item2);
+        IDictionary<string, object> paramsTimeInForce = (defaultTIFparamsTimeInForceVariable.Item2);
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request["time_in_force"] = ((defaultTIF != null)) ? defaultTIF.ToLower() : defaultTIF;
         Dictionary<string, object> paramsOmitted = this.omit(paramsTimeInForce, new List<object>() {"timeInForce", "triggerPrice"});
@@ -1712,9 +1712,9 @@ public partial class alpaca : Exchange
         {
             request["limit_price"] = this.priceToPrecision(symbol, price);
         }
-        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
+        (string?, IDictionary<string, object>) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
         string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
+        IDictionary<string, object> paramsTimeInForce = (timeInForceparamsTimeInForceVariable.Item2);
         if ((timeInForce != null))
         {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
@@ -2245,7 +2245,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847

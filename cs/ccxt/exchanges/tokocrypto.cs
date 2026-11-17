@@ -2093,9 +2093,9 @@ public partial class tokocrypto : Exchange
                 object precision = (marketPrecision != null && marketPrecision.ContainsKey("price") ? marketPrecision["price"] : null);
                 object quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item1;
-                paramsRequest = (IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
+                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
                 double? cost = this.safeNumber2(paramsRequest, "cost", "quoteOrderQty");
                 paramsRequest = this.omit(paramsRequest, new List<object>() {"cost", "quoteOrderQty"});
                 if ((cost != null))
@@ -2732,7 +2732,7 @@ public partial class tokocrypto : Exchange
         return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits

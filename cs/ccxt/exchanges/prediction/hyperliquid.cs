@@ -1676,9 +1676,9 @@ public partial class hyperliquid : PredictionExchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOpenOrders", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
-        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
+        (string?, IDictionary<string, object>) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
         string? method = methodparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodparamsMethodVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", method },
             { "user", userAddress },
@@ -2560,12 +2560,12 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual List<object> handlePublicAddress(string? methodName, object parameters)
     {
-        (string?, object) userAuxparamsUserVariable = this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
+        (string?, IDictionary<string, object>) userAuxparamsUserVariable = this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
         string? userAux = userAuxparamsUserVariable.Item1;
-        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable.Item2);
-        (string?, object) userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
+        IDictionary<string, object> paramsUser = (userAuxparamsUserVariable.Item2);
+        (string?, IDictionary<string, object>) userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
         string? user = userparamsAddressVariable.Item1;
-        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable.Item2);
+        IDictionary<string, object> paramsAddress = (userparamsAddressVariable.Item2);
         if ((user != null) && !(user == ""))
         {
             return new List<object>() {user, paramsAddress};

@@ -843,9 +843,9 @@ public partial class mexc : ccxt.mexc
         object orderbook = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
-            (string?, object) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+            (string?, IDictionary<string, object>) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             string? frequency = frequencyparamsFrequencyVariable.Item1;
-            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
+            IDictionary<string, object> paramsFrequency = (frequencyparamsFrequencyVariable.Item2);
             string spotChannel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
             orderbook = await this.watchSpotPublic(spotChannel, messageHash, paramsFrequency);
         } else
@@ -2092,9 +2092,9 @@ public partial class mexc : ccxt.mexc
         if ((this.safeBool(market, "spot", false) == true))
         {
             url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
-            (string?, object) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+            (string?, IDictionary<string, object>) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             string? frequency = frequencyparamsFrequencyVariable.Item1;
-            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
+            IDictionary<string, object> paramsFrequency = (frequencyparamsFrequencyVariable.Item2);
             string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
             paramsFrequency["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, paramsFrequency});

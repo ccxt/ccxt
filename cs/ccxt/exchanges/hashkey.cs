@@ -1508,9 +1508,9 @@ public partial class hashkey : Exchange
         {
             request["endTime"] = until;
         }
-        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
+        (string?, IDictionary<string, object>) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
         string? accountId = accountIdparamsAccountIdVariable.Item1;
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
+        IDictionary<string, object> paramsAccountId = (accountIdparamsAccountIdVariable.Item2);
         List<object> response = null;
         if ((marketType == "spot"))
         {
@@ -1683,9 +1683,9 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, methodName, "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, methodName, "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
@@ -2301,7 +2301,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         //  fetchDeposits
@@ -2606,16 +2606,16 @@ public partial class hashkey : Exchange
             request["limit"] = limit;
         }
         request["endTime"] = until;
-        (string?, object) flowTypeparamsFlowTypeVariable = this.handleOptionStringAndParams(paramsUntil, methodName, "flowType");
+        (string?, IDictionary<string, object>) flowTypeparamsFlowTypeVariable = this.handleOptionStringAndParams(paramsUntil, methodName, "flowType");
         string? flowType = flowTypeparamsFlowTypeVariable.Item1;
-        IDictionary<string, object> paramsFlowType = ((IDictionary<string, object>)flowTypeparamsFlowTypeVariable.Item2);
+        IDictionary<string, object> paramsFlowType = (flowTypeparamsFlowTypeVariable.Item2);
         if ((flowType != null))
         {
             request["flowType"] = this.encodeFlowType(flowType);
         }
-        (string?, object) accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams(paramsFlowType, methodName, "accountType");
+        (string?, IDictionary<string, object>) accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams(paramsFlowType, methodName, "accountType");
         string? accountType = accountTypeparamsAccountTypeVariable.Item1;
-        IDictionary<string, object> paramsAccountType = ((IDictionary<string, object>)accountTypeparamsAccountTypeVariable.Item2);
+        IDictionary<string, object> paramsAccountType = (accountTypeparamsAccountTypeVariable.Item2);
         if ((accountType != null))
         {
             request["accountType"] = this.encodeAccountType(accountType);
@@ -2654,7 +2654,7 @@ public partial class hashkey : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3162,9 +3162,9 @@ public partial class hashkey : Exchange
             response = await this.privateDeleteApiV1SpotOrder(this.extend(request, paramsMarketType));
         } else if ((marketType == "swap"))
         {
-            (bool?, object) isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
+            (bool?, IDictionary<string, object>) isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
             bool? isTrigger = isTriggerparamsTriggerVariable.Item1;
-            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable.Item2);
+            IDictionary<string, object> paramsTrigger = (isTriggerparamsTriggerVariable.Item2);
             if ((isTrigger == true))
             {
                 request["type"] = "STOP";
@@ -3332,9 +3332,9 @@ public partial class hashkey : Exchange
             response = await this.privateGetApiV1SpotOrder(this.extend(request, paramsMarketType));
         } else if ((marketType == "swap"))
         {
-            (bool?, object) isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
+            (bool?, IDictionary<string, object>) isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
             bool? isTrigger = isTriggerparamsTriggerVariable.Item1;
-            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable.Item2);
+            IDictionary<string, object> paramsTrigger = (isTriggerparamsTriggerVariable.Item2);
             if ((isTrigger == true))
             {
                 request["type"] = "STOP";
@@ -3426,13 +3426,13 @@ public partial class hashkey : Exchange
         }
         string methodName = "fetchOpenSpotOrders";
         string? methodNameOption = this.safeString(parameters, "methodName", methodName);
-        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)this.omit(parameters, "methodName"));
+        IDictionary<string, object> paramsMethodName = this.omit(parameters, "methodName");
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         List<object> response = null;
-        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId");
+        (string?, IDictionary<string, object>) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId");
         string? accountId = accountIdparamsAccountIdVariable.Item1;
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
+        IDictionary<string, object> paramsAccountId = (accountIdparamsAccountIdVariable.Item2);
         if ((accountId != null))
         {
             request["subAccountId"] = accountId;
@@ -3475,7 +3475,7 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         string methodName = "fetchOpenSwapOrders";
         string? methodNameOption = this.safeString(parameters, "methodName", methodName);
-        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)this.omit(parameters, "methodName"));
+        IDictionary<string, object> paramsMethodName = this.omit(parameters, "methodName");
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodNameOption) + "() requires a symbol argument for swap market orders")) ;
@@ -3485,9 +3485,9 @@ public partial class hashkey : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         bool isTrigger = false;
-        (bool?, object) isTriggerTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMethodName, methodNameOption, "stop", "trigger", isTrigger);
+        (bool?, IDictionary<string, object>) isTriggerTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMethodName, methodNameOption, "stop", "trigger", isTrigger);
         bool? isTriggerTrigger = isTriggerTriggerparamsTriggerVariable.Item1;
-        IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerTriggerparamsTriggerVariable.Item2);
+        IDictionary<string, object> paramsTrigger = (isTriggerTriggerparamsTriggerVariable.Item2);
         if ((isTriggerTrigger == true))
         {
             request["type"] = "STOP";
@@ -3500,9 +3500,9 @@ public partial class hashkey : Exchange
             request["limit"] = limit;
         }
         List<object> response = null;
-        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId");
+        (string?, IDictionary<string, object>) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId");
         string? accountId = accountIdparamsAccountIdVariable.Item1;
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
+        IDictionary<string, object> paramsAccountId = (accountIdparamsAccountIdVariable.Item2);
         if ((accountId != null))
         {
             request["subAccountId"] = accountId;
@@ -3560,9 +3560,9 @@ public partial class hashkey : Exchange
         {
             request["endTime"] = until;
         }
-        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
+        (string?, IDictionary<string, object>) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
         string? accountId = accountIdparamsAccountIdVariable.Item1;
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
+        IDictionary<string, object> paramsAccountId = (accountIdparamsAccountIdVariable.Item2);
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -3590,9 +3590,9 @@ public partial class hashkey : Exchange
                 throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a symbol argument for swap markets")) ;
             }
             request["symbol"] = this.safeString(market, "id");
-            (bool?, object) isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
+            (bool?, IDictionary<string, object>) isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
             bool? isTrigger = isTriggerparamsTriggerVariable.Item1;
-            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable.Item2);
+            IDictionary<string, object> paramsTrigger = (isTriggerparamsTriggerVariable.Item2);
             if ((isTrigger == true))
             {
                 request["type"] = "STOP";
@@ -3629,7 +3629,7 @@ public partial class hashkey : Exchange
 
     public virtual List<object> handleTriggerOptionAndParams(object parameters, string methodName, bool? defaultValue = null)
     {
-        (bool?, object) isTriggerStopparamsStopVariable = this.handleOptionBoolAndParams2(parameters, methodName, "stop", "trigger", defaultValue);
+        (bool?, IDictionary<string, object>) isTriggerStopparamsStopVariable = this.handleOptionBoolAndParams2(parameters, methodName, "stop", "trigger", defaultValue);
         bool? isTriggerStop = isTriggerStopparamsStopVariable.Item1;
         object paramsStop = isTriggerStopparamsStopVariable.Item2;
         return new List<object>() {isTriggerStop, paramsStop};

@@ -1260,7 +1260,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseTrade() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public virtual Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         throw new NotSupported ((this.id + " parseTransaction() is not supported yet")) ;
     }
@@ -1279,7 +1279,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseAccount() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public virtual Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         throw new NotSupported ((this.id + " parseLedgerEntry() is not supported yet")) ;
     }
@@ -1609,12 +1609,12 @@ public partial class BaseExchange
         for (int i = 0; i < targets.Count; i++)
         {
             string? target = ((string)targets[i]);
-            object source = (target != null && fallbacks.ContainsKey(target) ? fallbacks[target] : null);
-            bool sourceDefined = ((this.has != null && source is string inOpKey2 && this.has.ContainsKey(inOpKey2))) && (!((this.has != null && source != null && this.has.ContainsKey((string)source) ? this.has[(string)source] : null) == null));
+            string? source = ((string)((target != null && fallbacks.ContainsKey(target) ? fallbacks[target] : null)));
+            bool sourceDefined = ((this.has != null && source != null && this.has.ContainsKey(source))) && (!((this.has != null && source != null && this.has.ContainsKey(source) ? this.has[source] : null) == null));
             bool targetDefined = ((this.has != null && target != null && this.has.ContainsKey(target))) && (!((this.has != null && target != null && this.has.ContainsKey(target) ? this.has[target] : null) == null));
             if (sourceDefined && !targetDefined)
             {
-                this.has[(string)target] = (this.has != null && source != null && this.has.ContainsKey((string)source) ? this.has[(string)source] : null);
+                this.has[(string)target] = (this.has != null && source != null && this.has.ContainsKey(source) ? this.has[source] : null);
             }
         }
     }
@@ -2159,7 +2159,7 @@ public partial class BaseExchange
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
-            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey11 && marketsById.ContainsKey(inOpKey11)))
+            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey9 && marketsById.ContainsKey(inOpKey9)))
             {
                 IList<object> marketsByIdArray = ((IList<object>)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
                 marketsByIdArray.Add(value);
@@ -2901,28 +2901,28 @@ public partial class BaseExchange
     public virtual string? createCcxtTradeId(object timestamp = null, string? side = null, string? amount = null, string? price = null, string? takerOrMaker = null)
     {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        object id = null;
+        string? id = null;
         if ((timestamp != null))
         {
             id = this.numberToString(timestamp);
             if ((side != null))
             {
-                id = ((object)(id == null ? null : id + (string)(object)(("-" + side))));
+                id = (id == null ? null : id + (string)(object)(("-" + side)));
             }
             if ((amount != null))
             {
-                id = ((object)(id == null ? null : id + (string)(object)(("-" + amount))));
+                id = (id == null ? null : id + (string)(object)(("-" + amount)));
             }
             if ((price != null))
             {
-                id = ((object)(id == null ? null : id + (string)(object)(("-" + price))));
+                id = (id == null ? null : id + (string)(object)(("-" + price)));
             }
             if ((takerOrMaker != null))
             {
-                id = ((object)(id == null ? null : id + (string)(object)(("-" + takerOrMaker))));
+                id = (id == null ? null : id + (string)(object)(("-" + takerOrMaker)));
             }
         }
-        return ((string?)((object)(id)));
+        return id;
     }
 
     public virtual List<object> parsedFeeAndFees(object container)
@@ -4474,7 +4474,7 @@ public partial class BaseExchange
         return this.parseTradesHelper(true, trades, market, since, limit, parameters);
     }
 
-    public virtual IList<object> parseTransactions(object transactions, object currency = null, object since = null, object limit = null, object parameters = null)
+    public virtual IList<object> parseTransactions(object transactions, IDictionary<string, object> currency = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> transactionsArray = this.toArray(transactions);
@@ -4485,7 +4485,7 @@ public partial class BaseExchange
             result.Add(transaction);
         }
         result = this.sortBy(result, "timestamp");
-        object code = ((currency != null)) ? getValue(currency, "code") : null;
+        object code = ((currency != null)) ? (currency != null && currency.ContainsKey("code") ? currency["code"] : null) : null;
         return this.filterByCurrencySinceLimit(result,((string)code), since, limit);
     }
 
@@ -4504,7 +4504,7 @@ public partial class BaseExchange
         return this.filterByCurrencySinceLimit(result,((string)code), since, limit);
     }
 
-    public virtual IList<object> parseLedger(object data, object currency = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public virtual IList<object> parseLedger(object data, IDictionary<string, object> currency = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
@@ -4524,7 +4524,7 @@ public partial class BaseExchange
             }
         }
         result = this.sortBy(result, "timestamp");
-        object code = ((currency != null)) ? getValue(currency, "code") : null;
+        object code = ((currency != null)) ? (currency != null && currency.ContainsKey("code") ? currency["code"] : null) : null;
         return this.filterByCurrencySinceLimit(result,((string)code), since, limit);
     }
 
@@ -5057,7 +5057,7 @@ public partial class BaseExchange
     {
         if ((marketId != null))
         {
-            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey3 && this.markets_by_id.ContainsKey(inOpKey3))))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2))))
             {
                 List<object> markets = this.safeList(this.markets_by_id, marketId, new List<object>() {});
                 int numMarkets = (markets?.Count ?? 0);
@@ -5388,7 +5388,7 @@ public partial class BaseExchange
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual (string?, object) handleOptionStringAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
+    public virtual (string?, IDictionary<string, object>) handleOptionStringAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
     {
         // handleOptionAndParams read as a string; the statically typed ports throw on another type
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
@@ -5399,7 +5399,7 @@ public partial class BaseExchange
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual (string?, object) handleOptionStringAndParams2(object parameters, string? methodName, string? optionName1, string optionName2, string? defaultValue = null)
+    public virtual (string?, IDictionary<string, object>) handleOptionStringAndParams2(object parameters, string? methodName, string? optionName1, string optionName2, string? defaultValue = null)
     {
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = valuenewParamsVariable[0];
@@ -5409,7 +5409,7 @@ public partial class BaseExchange
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual (bool?, object) handleOptionBoolAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
+    public virtual (bool?, IDictionary<string, object>) handleOptionBoolAndParams(object parameters, object methodName, string optionName, object defaultValue = null)
     {
         // handleOptionAndParams read as a boolean (see checkOptionBool)
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, optionName, defaultValue);
@@ -5420,7 +5420,7 @@ public partial class BaseExchange
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public virtual (bool?, object) handleOptionBoolAndParams2(object parameters, object methodName, string optionName1, string optionName2, object defaultValue = null)
+    public virtual (bool?, IDictionary<string, object>) handleOptionBoolAndParams2(object parameters, object methodName, string optionName1, string optionName2, object defaultValue = null)
     {
         IList<object> valuenewParamsVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
         var value = valuenewParamsVariable[0];
@@ -5544,7 +5544,7 @@ public partial class BaseExchange
         return new List<object>() {subType, parameters};
     }
 
-    public virtual (string?, object) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
+    public virtual (string?, IDictionary<string, object>) handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)
     {
         /**
         * @ignore
@@ -6033,10 +6033,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((markets != null && symbol is string inOpKey4 && markets.ContainsKey(inOpKey4)))
+        if ((markets != null && symbol is string inOpKey3 && markets.ContainsKey(inOpKey3)))
         {
             return ccxt.BaseExchange.ToDict((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null));
-        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey5 && marketsById.ContainsKey(inOpKey5))))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey4 && marketsById.ContainsKey(inOpKey4))))
         {
             object marketsList = (marketsById != null && symbol != null && marketsById.ContainsKey((string)symbol) ? marketsById[(string)symbol] : null);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6317,7 +6317,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " createSubAccount() is not supported yet")) ;
     }
 
-    public virtual string? safeCurrencyCode(object currencyId, object currency = null)
+    public virtual string? safeCurrencyCode(object currencyId, IDictionary<string, object> currency = null)
     {
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
         return ((string?)((object)((currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null))));
@@ -6944,7 +6944,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = this.markets;
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && ((markets != null && account is string inOpKey6 && markets.ContainsKey(inOpKey6)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey7 && marketsById.ContainsKey(inOpKey7)))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey5 && markets.ContainsKey(inOpKey5)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey6 && marketsById.ContainsKey(inOpKey6)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -7234,9 +7234,9 @@ public partial class BaseExchange
         IList<object> removeRepeatedOptionparamsRemoveRepeatedVariable = (IList<object>)this.handleOptionAndParams(paramsMaxRetries, method, "removeRepeated", removeRepeated);
         bool removeRepeatedOption = (bool)removeRepeatedOptionparamsRemoveRepeatedVariable[0];
         IDictionary<string, object> paramsRemoveRepeated = ((IDictionary<string, object>)removeRepeatedOptionparamsRemoveRepeatedVariable[1]);
-        (string?, object) paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams(paramsRemoveRepeated, method, "paginationDirection", "backward");
+        (string?, IDictionary<string, object>) paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams(paramsRemoveRepeated, method, "paginationDirection", "backward");
         string? paginationDirection = paginationDirectionparamsPaginationDirectionVariable.Item1;
-        IDictionary<string, object> paramsPaginationDirection = ((IDictionary<string, object>)paginationDirectionparamsPaginationDirectionVariable.Item2);
+        IDictionary<string, object> paramsPaginationDirection = (paginationDirectionparamsPaginationDirectionVariable.Item2);
         object paginationTimestamp = null;
         List<object> result = new List<object>() {};
         Int64 errors = 0;
@@ -7697,7 +7697,7 @@ public partial class BaseExchange
         for (int i = 0; i < (input?.Count ?? 0); i++)
         {
             object entry = (input != null && i < input.Count ? input[i] : null);
-            object id = this.safeString(entry, "id");
+            string? id = this.safeString(entry, "id");
             if ((id == null))
             {
                 string price = this.safeString(entry, "price", "");
@@ -7711,9 +7711,9 @@ public partial class BaseExchange
                 }
                 // optional parts are empty when absent, separators keep positions distinct
                 id = (((("t_" + ((object)timestamp).ToString()) + "_") + side) + "_");
-                id = ((object)(id == null ? null : id + (((price + "_") + amount))));
+                id = (id == null ? null : id + (((price + "_") + amount)));
             }
-            if ((id != null) && !((id is string inOpKey8 && uniqueResult.ContainsKey(inOpKey8))))
+            if ((id != null) && !(((id != null) && (uniqueResult?.ContainsKey(id) == true))))
             {
                 uniqueResult[(string)id] = entry;
             }
@@ -7932,7 +7932,7 @@ public partial class BaseExchange
         return this.filterBySinceLimit(both, since, limit);
     }
 
-    public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    public virtual object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         if ((conversion == null))
         {
@@ -8133,7 +8133,7 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey7 && client.subscriptions.ContainsKey(inOpKey7))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
@@ -8141,7 +8141,7 @@ public partial class BaseExchange
         {
             if (subHashIsPrefix != true)
             {
-                if ((client.subscriptions != null && subHash is string inOpKey10 && client.subscriptions.ContainsKey(inOpKey10)))
+                if ((client.subscriptions != null && subHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
                 }

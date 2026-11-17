@@ -1898,9 +1898,9 @@ public partial class lbank : Exchange
                 request["type"] = ((side + "_") + "market");
                 string? quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item1;
-                paramsRequest = (IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
+                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
                 double? cost = this.safeNumber(paramsRequest, "cost");
                 paramsRequest = this.omit(paramsRequest, "cost");
                 if ((cost != null))
@@ -2736,7 +2736,7 @@ public partial class lbank : Exchange
         return this.safeString(this.safeDict(statuses, type, new Dictionary<string, object>() {}), status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits (private)

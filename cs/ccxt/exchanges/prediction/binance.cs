@@ -1036,9 +1036,9 @@ public partial class binance : PredictionExchange
     public async override Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) typeparamsTypeVariable = this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
+        (string?, IDictionary<string, object>) typeparamsTypeVariable = this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
         string? type = typeparamsTypeVariable.Item1;
-        IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeparamsTypeVariable.Item2);
+        IDictionary<string, object> paramsType = (typeparamsTypeVariable.Item2);
         Dictionary<string, object> response = await this.sapiPrivateGetBalancePaymentOptions(paramsType);
         //
         // {
@@ -1194,7 +1194,7 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
         object paramsPaginate = new Dictionary<string, object>() {};
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
         paramsPaginate = paginateparamsPaginateVariable.Item2;
         (Int64?, object) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100);
@@ -1287,7 +1287,7 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
         object paramsPaginate = new Dictionary<string, object>() {};
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
         paramsPaginate = paginateparamsPaginateVariable.Item2;
         (Int64?, object) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100);
@@ -1578,7 +1578,7 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
         object paramsPaginate = new Dictionary<string, object>() {};
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
         paramsPaginate = paginateparamsPaginateVariable.Item2;
         (Int64?, object) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100);

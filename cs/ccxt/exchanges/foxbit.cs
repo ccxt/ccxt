@@ -2113,7 +2113,7 @@ public partial class foxbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         IDictionary<string, object> cryptoDetails = this.safeDict(transaction, "details_crypto");
         string? address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
@@ -2179,7 +2179,7 @@ public partial class foxbit : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         // {
         //     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",

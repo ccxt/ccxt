@@ -289,9 +289,9 @@ public partial class poloniex : ccxt.poloniex
         if (isMarketBuy)
         {
             string? quoteAmount = null;
-            (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
-            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
+            IDictionary<string, object> paramsRequiresPrice = (createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
             double? cost = this.safeNumber(paramsRequiresPrice, "cost");
             paramsOmitted = this.omit(paramsRequiresPrice, "cost");
             if ((cost != null))
@@ -659,9 +659,9 @@ public partial class poloniex : ccxt.poloniex
         }
         IDictionary<string, object> watchOrderBookOptions = this.safeDict(this.options, "watchOrderBook");
         string? name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-        (string?, object) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
+        (string?, IDictionary<string, object>) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
         string? nameOption = nameOptionparamsNameVariable.Item1;
-        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable.Item2);
+        IDictionary<string, object> paramsName = (nameOptionparamsNameVariable.Item2);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(nameOption, nameOption, false, new List<object>() {symbol}, paramsName));
         return (orderbook as IOrderBook).limit().Copy();
     }

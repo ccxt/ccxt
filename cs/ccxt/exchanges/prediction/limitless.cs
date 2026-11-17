@@ -1353,7 +1353,7 @@ public partial class limitless : PredictionExchange
         // resolve the uncached outcomes first, then group by parent market to fetch each
         // market and book only once
         await this.loadOutcomes(this.toArray(outcomes));
-        Dictionary<string, object> outcomesBySlug = new Dictionary<string, object>() {};
+        Dictionary<string, List<object>> outcomesBySlug = new Dictionary<string, List<object>>() {};
         List<object> slugs = new List<object>() {};
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
@@ -1724,18 +1724,18 @@ public partial class limitless : PredictionExchange
                 bucketOrder.Add(key);
             } else
             {
-                object candle = (key != null && candles.ContainsKey(key) ? candles[key] : null);
+                List<object> candle = ((List<object>)((key != null && candles.ContainsKey(key) ? candles[key] : null)));
                 double? prevHigh = this.safeNumber(candle, 2);
                 if (((prevHigh == null)) || ((pPrice != null && (prevHigh == null || pPrice > prevHigh))))
                 {
-                    ((List<object>)candle)[Convert.ToInt32(2)] = pPrice;
+                    candle[Convert.ToInt32(2)] = pPrice;
                 }
                 double? prevLow = this.safeNumber(candle, 3);
                 if (((prevLow == null)) || ((prevLow != null && (pPrice == null || prevLow > pPrice))))
                 {
-                    ((List<object>)candle)[Convert.ToInt32(3)] = pPrice;
+                    candle[Convert.ToInt32(3)] = pPrice;
                 }
-                ((List<object>)candle)[Convert.ToInt32(4)] = pPrice;
+                candle[Convert.ToInt32(4)] = pPrice;
                 candles[(string)key] = candle; // php arrays are value types - write the mutation back
             }
         }
@@ -2460,9 +2460,9 @@ public partial class limitless : PredictionExchange
         if (isMarket && ((side == "buy")))
         {
             bool? createMarketBuyOrderRequiresPrice = true;
-            (bool?, object) createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.Item1;
-            paramsValue = (IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsValueVariable.Item2;
+            paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.Item2;
             double? cost = this.safeNumber(paramsValue, "cost");
             paramsValue = this.omit(paramsValue, "cost");
             if ((createMarketBuyOrderRequiresPrice == true))

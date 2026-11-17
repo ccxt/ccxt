@@ -5756,12 +5756,12 @@ public partial class binance : Exchange
         subType = (string)subTypeparamsSubTypeVariable[0];
         paramsSubType = (IDictionary<string, object>)subTypeparamsSubTypeVariable[1];
         bool? isPortfolioMargin = null;
-        (bool?, object) isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchBalance", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchBalance", "papi", "portfolioMargin", false);
         isPortfolioMargin = isPortfolioMarginparamsSubTypeVariable.Item1;
-        paramsSubType = (IDictionary<string, object>)isPortfolioMarginparamsSubTypeVariable.Item2;
+        paramsSubType = isPortfolioMarginparamsSubTypeVariable.Item2;
         string? marginMode = null;
         object query = null;
-        (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType);
+        (string?, IDictionary<string, object>) marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType);
         marginMode = marginModequeryVariable.Item1;
         query = marginModequeryVariable.Item2;
         query = this.omit(query, "type");
@@ -5782,9 +5782,9 @@ public partial class binance : Exchange
         {
             type = "linear";
             bool? useV2 = null;
-            (bool?, object) useV2paramsSubTypeVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchBalance", "useV2", false);
+            (bool?, IDictionary<string, object>) useV2paramsSubTypeVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchBalance", "useV2", false);
             useV2 = useV2paramsSubTypeVariable.Item1;
-            paramsSubType = (IDictionary<string, object>)useV2paramsSubTypeVariable.Item2;
+            paramsSubType = useV2paramsSubTypeVariable.Item2;
             paramsSubType = this.extend(request, query);
             if (useV2 != true)
             {
@@ -6861,9 +6861,9 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
@@ -7336,9 +7336,9 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate));
@@ -7802,9 +7802,9 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         Dictionary<string, object> request = this.editContractOrderRequest(id, symbol, type, side, amount, price, paramsPapi);
         Dictionary<string, object> response = null;
         if ((this.safeBool(market, "linear", false) == true))
@@ -7928,7 +7928,7 @@ public partial class binance : Exchange
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             bool? isPortfolioMargin = null;
-            (bool?, object) isPortfolioMarginorderParamsVariable = this.handleOptionBoolAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false);
+            (bool?, IDictionary<string, object>) isPortfolioMarginorderParamsVariable = this.handleOptionBoolAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginorderParamsVariable.Item1;
             orderParams = isPortfolioMarginorderParamsVariable.Item2;
             if ((isPortfolioMargin == true))
@@ -9253,12 +9253,12 @@ public partial class binance : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", upperCaseSide },
         };
-        (bool?, object) isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2(paramsAlgo, "createOrder", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2(paramsAlgo, "createOrder", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.Item1;
-        IDictionary<string, object> paramsPortfolioMargin = ((IDictionary<string, object>)isPortfolioMarginparamsPortfolioMarginVariable.Item2);
-        (string?, object) marginModeparamsPapiVariable = this.handleMarginModeAndParams("createOrder", paramsPortfolioMargin);
+        IDictionary<string, object> paramsPortfolioMargin = (isPortfolioMarginparamsPortfolioMarginVariable.Item2);
+        (string?, IDictionary<string, object>) marginModeparamsPapiVariable = this.handleMarginModeAndParams("createOrder", paramsPortfolioMargin);
         string? marginMode = marginModeparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)marginModeparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (marginModeparamsPapiVariable.Item2);
         // keys dropped from the request params, extended below as the order shape is resolved
         List<object> omitKeys = new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "activationPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "icebergAmount"};
         bool? reduceOnly = this.safeBool(paramsPapi, "reduceOnly", false);
@@ -9685,9 +9685,9 @@ public partial class binance : Exchange
             request["positionSide"] = ((positionSide == "buy")) ? "LONG" : "SHORT";
         }
         // unified stp
-        (string?, object) selfTradePreventionparamsStpVariable = this.handleOptionStringAndParams(paramsPapi, "createOrder", "selfTradePrevention");
+        (string?, IDictionary<string, object>) selfTradePreventionparamsStpVariable = this.handleOptionStringAndParams(paramsPapi, "createOrder", "selfTradePrevention");
         string? selfTradePrevention = selfTradePreventionparamsStpVariable.Item1;
-        IDictionary<string, object> paramsStp = ((IDictionary<string, object>)selfTradePreventionparamsStpVariable.Item2);
+        IDictionary<string, object> paramsStp = (selfTradePreventionparamsStpVariable.Item2);
         if ((selfTradePrevention != null))
         {
             object warnOnStpForInverse = this.handleOption("createOrder", "warnOnSTPForInverse");
@@ -9826,9 +9826,9 @@ public partial class binance : Exchange
         IDictionary<string, object> market = null;
         bool? stock = false;
         IDictionary<string, object> paramsStock = null;
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchOrder", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchOrder", "stock", false);
         stock = stockparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)stockparamsStockVariable.Item2;
+        paramsStock = stockparamsStockVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -9854,13 +9854,13 @@ public partial class binance : Exchange
         subType = (string)subTypeparamsStockVariable[0];
         paramsStock = (IDictionary<string, object>)subTypeparamsStockVariable[1];
         string? marginMode = null;
-        (string?, object) marginModeparamsStockVariable = this.handleMarginModeAndParams("fetchOrder", paramsStock);
+        (string?, IDictionary<string, object>) marginModeparamsStockVariable = this.handleMarginModeAndParams("fetchOrder", paramsStock);
         marginMode = marginModeparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)marginModeparamsStockVariable.Item2;
+        paramsStock = marginModeparamsStockVariable.Item2;
         bool? isPortfolioMargin = null;
-        (bool?, object) isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2(paramsStock, "fetchOrder", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2(paramsStock, "fetchOrder", "papi", "portfolioMargin", false);
         isPortfolioMargin = isPortfolioMarginparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)isPortfolioMarginparamsStockVariable.Item2;
+        paramsStock = isPortfolioMarginparamsStockVariable.Item2;
         bool? isConditional = this.safeBoolN(paramsStock, new List<object>() {"stop", "trigger", "conditional"});
         bool isOptionType = type == "option";
         bool isLinearType = this.isLinear(type, subType);
@@ -9984,9 +9984,9 @@ public partial class binance : Exchange
         }
         bool? paginate = false;
         IDictionary<string, object> paramsPaginate = null;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)paginateparamsPaginateVariable.Item2;
+        paramsPaginate = paginateparamsPaginateVariable.Item2;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate));
@@ -9994,9 +9994,9 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         bool? stock = false;
-        (bool?, object) stockparamsPaginateVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchOrders", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsPaginateVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchOrders", "stock", false);
         stock = stockparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)stockparamsPaginateVariable.Item2;
+        paramsPaginate = stockparamsPaginateVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -10016,13 +10016,13 @@ public partial class binance : Exchange
         subType = (string)subTypeparamsPaginateVariable[0];
         paramsPaginate = (IDictionary<string, object>)subTypeparamsPaginateVariable[1];
         string? marginMode = null;
-        (string?, object) marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchOrders", paramsPaginate);
+        (string?, IDictionary<string, object>) marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchOrders", paramsPaginate);
         marginMode = marginModeparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)marginModeparamsPaginateVariable.Item2;
+        paramsPaginate = marginModeparamsPaginateVariable.Item2;
         bool? isPortfolioMargin = null;
-        (bool?, object) isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2(paramsPaginate, "fetchOrders", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2(paramsPaginate, "fetchOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = isPortfolioMarginparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)isPortfolioMarginparamsPaginateVariable.Item2;
+        paramsPaginate = isPortfolioMarginparamsPaginateVariable.Item2;
         bool? isConditional = this.safeBoolN(paramsPaginate, new List<object>() {"stop", "trigger", "conditional"});
         bool isOptionType = type == "option";
         bool isLinearType = this.isLinear(type, subType);
@@ -10390,18 +10390,18 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? marginMode = null;
         IDictionary<string, object> paramsMarginMode = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
         marginMode = marginModeparamsMarginModeVariable.Item1;
-        paramsMarginMode = (IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2;
+        paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
         bool? isPortfolioMargin = null;
-        (bool?, object) isPortfolioMarginparamsMarginModeVariable = this.handleOptionBoolAndParams2(paramsMarginMode, "fetchOpenOrders", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsMarginModeVariable = this.handleOptionBoolAndParams2(paramsMarginMode, "fetchOpenOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = isPortfolioMarginparamsMarginModeVariable.Item1;
-        paramsMarginMode = (IDictionary<string, object>)isPortfolioMarginparamsMarginModeVariable.Item2;
+        paramsMarginMode = isPortfolioMarginparamsMarginModeVariable.Item2;
         bool? isConditional = this.safeBoolN(paramsMarginMode, new List<object>() {"stop", "trigger", "conditional"});
         bool? stock = false;
-        (bool?, object) stockparamsMarginModeVariable = this.handleOptionBoolAndParams(paramsMarginMode, "fetchOpenOrders", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsMarginModeVariable = this.handleOptionBoolAndParams(paramsMarginMode, "fetchOpenOrders", "stock", false);
         stock = stockparamsMarginModeVariable.Item1;
-        paramsMarginMode = (IDictionary<string, object>)stockparamsMarginModeVariable.Item2;
+        paramsMarginMode = stockparamsMarginModeVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -10544,9 +10544,9 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "fetchOpenOrder", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "fetchOpenOrder", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         bool? isConditional = this.safeBoolN(paramsPapi, new List<object>() {"stop", "trigger", "conditional"});
         Dictionary<string, object> paramsOmitted = this.omit(paramsPapi, new List<object>() {"stop", "trigger", "conditional"});
         bool isPortfolioMarginConditional = ((isPortfolioMargin == true) && (isConditional == true));
@@ -10786,9 +10786,9 @@ public partial class binance : Exchange
         IDictionary<string, object> market = null;
         bool? stock = false;
         IDictionary<string, object> paramsStock = null;
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "stock", false);
         stock = stockparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)stockparamsStockVariable.Item2;
+        paramsStock = stockparamsStockVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -10841,9 +10841,9 @@ public partial class binance : Exchange
         IDictionary<string, object> market = null;
         bool? stock = false;
         IDictionary<string, object> paramsStock = null;
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "stock", false);
         stock = stockparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)stockparamsStockVariable.Item2;
+        paramsStock = stockparamsStockVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -10896,9 +10896,9 @@ public partial class binance : Exchange
         IDictionary<string, object> market = null;
         bool? stock = false;
         IDictionary<string, object> paramsStock = null;
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "stock", false);
         stock = stockparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)stockparamsStockVariable.Item2;
+        paramsStock = stockparamsStockVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -10959,9 +10959,9 @@ public partial class binance : Exchange
         IDictionary<string, object> market = null;
         bool? stock = false;
         IDictionary<string, object> paramsStock = null;
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "cancelOrder", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "cancelOrder", "stock", false);
         stock = stockparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)stockparamsStockVariable.Item2;
+        paramsStock = stockparamsStockVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -10987,13 +10987,13 @@ public partial class binance : Exchange
         subType = (string)subTypeparamsStockVariable[0];
         paramsStock = (IDictionary<string, object>)subTypeparamsStockVariable[1];
         string? marginMode = null;
-        (string?, object) marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelOrder", paramsStock);
+        (string?, IDictionary<string, object>) marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelOrder", paramsStock);
         marginMode = marginModeparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)marginModeparamsStockVariable.Item2;
+        paramsStock = marginModeparamsStockVariable.Item2;
         bool? isPortfolioMargin = null;
-        (bool?, object) isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2(paramsStock, "cancelOrder", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2(paramsStock, "cancelOrder", "papi", "portfolioMargin", false);
         isPortfolioMargin = isPortfolioMarginparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)isPortfolioMarginparamsStockVariable.Item2;
+        paramsStock = isPortfolioMarginparamsStockVariable.Item2;
         bool? isConditional = this.safeBoolN(paramsStock, new List<object>() {"stop", "trigger", "conditional"});
         bool isOptionType = type == "option";
         bool isLinearType = this.isLinear(type, subType);
@@ -11145,9 +11145,9 @@ public partial class binance : Exchange
         IDictionary<string, object> market = null;
         bool? stock = false;
         IDictionary<string, object> paramsStock = null;
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "cancelAllOrders", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "cancelAllOrders", "stock", false);
         stock = stockparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)stockparamsStockVariable.Item2;
+        paramsStock = stockparamsStockVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -11165,9 +11165,9 @@ public partial class binance : Exchange
             throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         bool? isPortfolioMargin = null;
-        (bool?, object) isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2(paramsStock, "cancelAllOrders", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsStockVariable = this.handleOptionBoolAndParams2(paramsStock, "cancelAllOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = isPortfolioMarginparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)isPortfolioMarginparamsStockVariable.Item2;
+        paramsStock = isPortfolioMarginparamsStockVariable.Item2;
         bool? isConditional = this.safeBoolN(paramsStock, new List<object>() {"stop", "trigger", "conditional"});
         string? type = null;
         IList<object> typeparamsStockVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, paramsStock, "spot");
@@ -11182,9 +11182,9 @@ public partial class binance : Exchange
         bool isInverseType = this.isInverse(type, subType);
         paramsStock = this.omit(paramsStock, new List<object>() {"stop", "trigger", "conditional"});
         string? marginMode = null;
-        (string?, object) marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsStock);
+        (string?, IDictionary<string, object>) marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsStock);
         marginMode = marginModeparamsStockVariable.Item1;
-        paramsStock = (IDictionary<string, object>)marginModeparamsStockVariable.Item2;
+        paramsStock = marginModeparamsStockVariable.Item2;
         object response = null;
         if (isOptionType)
         {
@@ -11424,9 +11424,9 @@ public partial class binance : Exchange
         }
         bool? paginate = false;
         IDictionary<string, object> paramsPaginate = null;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)paginateparamsPaginateVariable.Item2;
+        paramsPaginate = paginateparamsPaginateVariable.Item2;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
@@ -11436,9 +11436,9 @@ public partial class binance : Exchange
         string? type = null;
         string? marginMode = null;
         bool? stock = false;
-        (bool?, object) stockparamsPaginateVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchMyTrades", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsPaginateVariable = this.handleOptionBoolAndParams(paramsPaginate, "fetchMyTrades", "stock", false);
         stock = stockparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)stockparamsPaginateVariable.Item2;
+        paramsPaginate = stockparamsPaginateVariable.Item2;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -11509,13 +11509,13 @@ public partial class binance : Exchange
             response = await this.eapiPrivateGetUserTrades(this.extend(request, paramsPaginate));
         } else
         {
-            (string?, object) marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsPaginate);
+            (string?, IDictionary<string, object>) marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsPaginate);
             marginMode = marginModeparamsPaginateVariable.Item1;
-            paramsPaginate = (IDictionary<string, object>)marginModeparamsPaginateVariable.Item2;
+            paramsPaginate = marginModeparamsPaginateVariable.Item2;
             bool? isPortfolioMargin = null;
-            (bool?, object) isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2(paramsPaginate, "fetchMyTrades", "papi", "portfolioMargin", false);
+            (bool?, IDictionary<string, object>) isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2(paramsPaginate, "fetchMyTrades", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsPaginateVariable.Item1;
-            paramsPaginate = (IDictionary<string, object>)isPortfolioMarginparamsPaginateVariable.Item2;
+            paramsPaginate = isPortfolioMarginparamsPaginateVariable.Item2;
             if ((stock == true))
             {
                 // request['endTime'] holds endTime whenever endTime is defined
@@ -11764,7 +11764,7 @@ public partial class binance : Exchange
             request["endTime"] = this.sum(since, 7776000000);
         }
         string? accountType = this.safeStringUpper(parameters, "type");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
+        IDictionary<string, object> paramsOmitted = this.omit(parameters, "type");
         if ((accountType != null))
         {
             request["accountType"] = accountType;
@@ -11915,9 +11915,9 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, paramsPaginate));
@@ -12011,9 +12011,9 @@ public partial class binance : Exchange
         }
         bool? paginate = false;
         IDictionary<string, object> paramsPaginate = null;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)paginateparamsPaginateVariable.Item2;
+        paramsPaginate = paginateparamsPaginateVariable.Item2;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, paramsPaginate));
@@ -12120,7 +12120,7 @@ public partial class binance : Exchange
         return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -12559,9 +12559,9 @@ public partial class binance : Exchange
         bool? intern = this.safeBool(parameters, "internal", false);
         IDictionary<string, object> paramsOmitted = this.omit(parameters, "internal");
         bool? paginate = false;
-        (bool?, object) paginateparamsOmittedVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchTransfers", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsOmittedVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchTransfers", "paginate", false);
         paginate = paginateparamsOmittedVariable.Item1;
-        paramsOmitted = (IDictionary<string, object>)paginateparamsOmittedVariable.Item2;
+        paramsOmitted = paginateparamsOmittedVariable.Item2;
         if ((paginate == true) && intern != true)
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsOmitted));
@@ -13079,9 +13079,9 @@ public partial class binance : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchTradingFee", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchTradingFee", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         bool isLinear = this.isLinear(type, subType);
         bool isInverse = this.isInverse(type, subType);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -13469,9 +13469,9 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000));
@@ -14251,9 +14251,9 @@ public partial class binance : Exchange
             subType = (string)subTypeparamsSubTypeVariable[0];
             paramsSubType = (IDictionary<string, object>)subTypeparamsSubTypeVariable[1];
             bool? isPortfolioMargin = null;
-            (bool?, object) isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2(paramsSubType, "loadLeverageBrackets", "papi", "portfolioMargin", false);
+            (bool?, IDictionary<string, object>) isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2(paramsSubType, "loadLeverageBrackets", "papi", "portfolioMargin", false);
             isPortfolioMargin = isPortfolioMarginparamsSubTypeVariable.Item1;
-            paramsSubType = (IDictionary<string, object>)isPortfolioMarginparamsSubTypeVariable.Item2;
+            paramsSubType = isPortfolioMarginparamsSubTypeVariable.Item2;
             List<object> response = null;
             if (this.isLinear(type, subType))
             {
@@ -14330,9 +14330,9 @@ public partial class binance : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchLeverageTiers", null, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchLeverageTiers", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchLeverageTiers", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         List<object> response = null;
         if (this.isLinear(type, subType))
         {
@@ -14644,9 +14644,9 @@ public partial class binance : Exchange
         parameters ??= new Dictionary<string, object>();
         string? defaultMethod = null;
         IDictionary<string, object> paramsMethod = null;
-        (string?, object) defaultMethodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
+        (string?, IDictionary<string, object>) defaultMethodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
         defaultMethod = defaultMethodparamsMethodVariable.Item1;
-        paramsMethod = (IDictionary<string, object>)defaultMethodparamsMethodVariable.Item2; // check if there is a key in options|params
+        paramsMethod = defaultMethodparamsMethodVariable.Item2; // check if there is a key in options|params
         if ((defaultMethod == null))
         {
             // check if .options['fetchPositions'] dict exist at all
@@ -14715,9 +14715,9 @@ public partial class binance : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchAccountPositions", null, paramsOmitted, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchAccountPositions", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchAccountPositions", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         Dictionary<string, object> response = null;
         if (this.isLinear(type, subType))
         {
@@ -14726,9 +14726,9 @@ public partial class binance : Exchange
                 response = await this.papiV2GetUmAccount(paramsPapi);
             } else
             {
-                (bool?, object) useV2paramsUseV2Variable = this.handleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "useV2", false);
+                (bool?, IDictionary<string, object>) useV2paramsUseV2Variable = this.handleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "useV2", false);
                 bool? useV2 = useV2paramsUseV2Variable.Item1;
-                IDictionary<string, object> paramsUseV2 = ((IDictionary<string, object>)useV2paramsUseV2Variable.Item2);
+                IDictionary<string, object> paramsUseV2 = (useV2paramsUseV2Variable.Item2);
                 if (!(useV2 == true))
                 {
                     response = await this.fapiPrivateV3GetAccount(paramsUseV2);
@@ -14798,9 +14798,9 @@ public partial class binance : Exchange
         subType = (string)subTypeparamsSubTypeVariable[0];
         paramsSubType = (IDictionary<string, object>)subTypeparamsSubTypeVariable[1];
         bool? isPortfolioMargin = null;
-        (bool?, object) isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchPositionsRisk", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsSubTypeVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchPositionsRisk", "papi", "portfolioMargin", false);
         isPortfolioMargin = isPortfolioMarginparamsSubTypeVariable.Item1;
-        paramsSubType = (IDictionary<string, object>)isPortfolioMarginparamsSubTypeVariable.Item2;
+        paramsSubType = isPortfolioMarginparamsSubTypeVariable.Item2;
         paramsSubType = this.omit(paramsSubType, "type");
         List<object> response = null;
         if (this.isLinear(type, subType))
@@ -14811,9 +14811,9 @@ public partial class binance : Exchange
             } else
             {
                 bool? useV2 = null;
-                (bool?, object) useV2paramsSubTypeVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchPositionsRisk", "useV2", false);
+                (bool?, IDictionary<string, object>) useV2paramsSubTypeVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchPositionsRisk", "useV2", false);
                 useV2 = useV2paramsSubTypeVariable.Item1;
-                paramsSubType = (IDictionary<string, object>)useV2paramsSubTypeVariable.Item2;
+                paramsSubType = useV2paramsSubTypeVariable.Item2;
                 paramsSubType = this.extend(request, paramsSubType);
                 if (useV2 != true)
                 {
@@ -14977,9 +14977,9 @@ public partial class binance : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchFundingHistory", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchFundingHistory", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, paramsPapi);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
@@ -15056,9 +15056,9 @@ public partial class binance : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "leverage", leverage },
         };
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "setLeverage", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "setLeverage", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         Dictionary<string, object> response = null;
         if ((this.safeBool(market, "linear", false) == true))
         {
@@ -15206,9 +15206,9 @@ public partial class binance : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("setPositionMode", market, paramsMarketType);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "setPositionMode", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "setPositionMode", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         string? dualSidePosition = null;
         if (hedged)
         {
@@ -15283,9 +15283,9 @@ public partial class binance : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchLeverages", null, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchLeverages", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchLeverages", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         object response = null;
         if (this.isLinear(type, subType))
         {
@@ -15639,9 +15639,9 @@ public partial class binance : Exchange
         }
         bool? paginate = false;
         IDictionary<string, object> paramsPaginate = null;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)paginateparamsPaginateVariable.Item2;
+        paramsPaginate = paginateparamsPaginateVariable.Item2;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, null, false));
@@ -15675,9 +15675,9 @@ public partial class binance : Exchange
             request["endTime"] = until;
         }
         bool? isPortfolioMargin = null;
-        (bool?, object) isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2(paramsPaginate, "fetchLedger", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPaginateVariable = this.handleOptionBoolAndParams2(paramsPaginate, "fetchLedger", "papi", "portfolioMargin", false);
         isPortfolioMargin = isPortfolioMarginparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)isPortfolioMarginparamsPaginateVariable.Item2;
+        paramsPaginate = isPortfolioMarginparamsPaginateVariable.Item2;
         List<object> response = null;
         if (type == "option")
         {
@@ -15741,7 +15741,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         // options (eapi)
@@ -16723,9 +16723,9 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "fetchBorrowInterest", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "fetchBorrowInterest", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         if ((code != null))
@@ -16850,15 +16850,15 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         bool? isPortfolioMargin = null;
         IDictionary<string, object> paramsPapi = null;
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "repayCrossMargin", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "repayCrossMargin", "papi", "portfolioMargin", false);
         isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        paramsPapi = (IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2;
+        paramsPapi = isPortfolioMarginparamsPapiVariable.Item2;
         if ((isPortfolioMargin == true))
         {
             string? method = null;
-            (string?, object) methodparamsPapiVariable = this.handleOptionStringAndParams2(paramsPapi, "repayCrossMargin", "repayCrossMarginMethod", "method");
+            (string?, IDictionary<string, object>) methodparamsPapiVariable = this.handleOptionStringAndParams2(paramsPapi, "repayCrossMargin", "repayCrossMarginMethod", "method");
             method = methodparamsPapiVariable.Item1;
-            paramsPapi = (IDictionary<string, object>)methodparamsPapiVariable.Item2;
+            paramsPapi = methodparamsPapiVariable.Item2;
             if (method == "papiPostMarginRepayDebt")
             {
                 response = await this.papiPostMarginRepayDebt(this.extend(request, paramsPapi));
@@ -16937,9 +16937,9 @@ public partial class binance : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
         };
         Dictionary<string, object> response = null;
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "borrowCrossMargin", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(parameters, "borrowCrossMargin", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         if ((isPortfolioMargin == true))
         {
             response = await this.papiPostMarginLoan(this.extend(request, paramsPapi));
@@ -17054,9 +17054,9 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit,timeframeVar, paramsPaginate, 500));
@@ -17275,9 +17275,9 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, paramsPaginate, "current", 100));
@@ -17293,9 +17293,9 @@ public partial class binance : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchMyLiquidations", market, paramsMarketType, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchMyLiquidations", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchMyLiquidations", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (!(type == "spot"))
         {
@@ -18311,7 +18311,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows,code, fromCurrencyKey, toCurrencyKey, since, limit));
     }
 
-    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -18609,9 +18609,9 @@ public partial class binance : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        (bool?, object) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
+        (bool?, IDictionary<string, object>) isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2(paramsSubType, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
         bool? isPortfolioMargin = isPortfolioMarginparamsPapiVariable.Item1;
-        IDictionary<string, object> paramsPapi = ((IDictionary<string, object>)isPortfolioMarginparamsPapiVariable.Item2);
+        IDictionary<string, object> paramsPapi = (isPortfolioMarginparamsPapiVariable.Item2);
         List<object> response = null;
         if ((subType == "linear"))
         {

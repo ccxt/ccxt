@@ -2845,7 +2845,7 @@ public partial class aster : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "clientOid"}));
+        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "clientOid"});
         if ((clientOrderId != null))
         {
             request["origClientOrderId"] = clientOrderId;
@@ -3388,9 +3388,9 @@ public partial class aster : Exchange
             }
             request["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
         }
-        (string?, object) tifOptionparamsTifOptionVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
+        (string?, IDictionary<string, object>) tifOptionparamsTifOptionVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
         string? tifOption = tifOptionparamsTifOptionVariable.Item1;
-        IDictionary<string, object> paramsTifOption = ((IDictionary<string, object>)tifOptionparamsTifOptionVariable.Item2);
+        IDictionary<string, object> paramsTifOption = (tifOptionparamsTifOptionVariable.Item2);
         bool tifIsMissing = timeInForceIsRequired && ((this.safeString(parameters, "timeInForce") == null)) && ((this.safeString(request, "timeInForce") == null));
         List<object> omitKeys = new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"};
         object requestParams = null;
@@ -3967,7 +3967,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(response, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -4349,9 +4349,9 @@ public partial class aster : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
+        (string?, IDictionary<string, object>) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
         string? methodOption = methodOptionparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodOptionparamsMethodVariable.Item2);
         string? defaultMethod = methodOption;
         if ((defaultMethod == null))
         {
@@ -4832,7 +4832,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         return new Dictionary<string, object>() {
             { "info", transaction },

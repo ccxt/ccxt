@@ -67,9 +67,9 @@ public partial class backpack : ccxt.backpack
      */
     public async virtual Task<IDictionary<string, object>> prepareWsStockParams(object methodName, object parameters)
     {
-        (bool?, object) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock");
+        (bool?, IDictionary<string, object>) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock");
         bool? stock = stockqueryVariable.Item1;
-        IDictionary<string, object> query = ((IDictionary<string, object>)stockqueryVariable.Item2);
+        IDictionary<string, object> query = (stockqueryVariable.Item2);
         if ((this.markets == null))
         {
             await this.loadMarkets();

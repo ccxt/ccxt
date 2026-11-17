@@ -176,9 +176,9 @@ public partial class grvt : ccxt.grvt
         {
             throw new ArgumentsRequired ((this.id + " watchTickers requires a symbols argument")) ;
         }
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         (Int64?, object) intervalOptionparamsIntervalVariable = this.handleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", 500);
         Int64? intervalOption = intervalOptionparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalOptionparamsIntervalVariable.Item2);
@@ -587,9 +587,9 @@ public partial class grvt : ccxt.grvt
         {
             await this.loadMarkets();
         }
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         bool isSnapshot = (channel == "v1.book.s");
         int symbolsLength = symbols?.Count ?? 0;
         if ((symbolsLength == 0))

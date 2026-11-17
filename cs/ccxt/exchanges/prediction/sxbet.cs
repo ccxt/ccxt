@@ -831,8 +831,8 @@ public partial class sxbet : PredictionExchange
         Int64? result = this.parseToInt(0);
         for (int i = 0; i < hexLength; i++)
         {
-            object ch = getValue(lowerHex, i);
-            Int64? digitValue = this.parseToInt(digits.IndexOf(((string)ch), StringComparison.Ordinal));
+            string? ch = ((string)getValue(lowerHex, i));
+            Int64? digitValue = this.parseToInt(digits.IndexOf(ch, StringComparison.Ordinal));
             Int64? shifted = (result * 16);
             result = this.parseToInt(this.sum(shifted, digitValue));
         }
@@ -903,9 +903,9 @@ public partial class sxbet : PredictionExchange
         {
             throw new BadRequest ((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
         }
-        (string?, object) spenderparamsSpenderVariable = this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
+        (string?, IDictionary<string, object>) spenderparamsSpenderVariable = this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
         string? spender = spenderparamsSpenderVariable.Item1;
-        IDictionary<string, object> paramsSpender = ((IDictionary<string, object>)spenderparamsSpenderVariable.Item2);
+        IDictionary<string, object> paramsSpender = (spenderparamsSpenderVariable.Item2);
         if ((spender == null))
         {
             throw new BadRequest ((this.id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender")) ;
@@ -1058,9 +1058,9 @@ public partial class sxbet : PredictionExchange
         {
             defaultTif = "GTC";
         }
-        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
+        (string?, IDictionary<string, object>) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
         string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
+        IDictionary<string, object> paramsTimeInForce = (timeInForceparamsTimeInForceVariable.Item2);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises

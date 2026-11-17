@@ -650,7 +650,7 @@ public partial class predictfun : PredictionExchange
             includeResolved = "true";
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"}));
+        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"});
         int queriesLength = queries?.Count ?? 0;
         List<object> result = new List<object>() {};
         // the venue answers every term separately and the same category comes back for each term
@@ -2093,9 +2093,9 @@ public partial class predictfun : PredictionExchange
         // read through the extractor rather than off the instance, so one call can opt in without
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
-        (bool?, object) warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
+        (bool?, IDictionary<string, object>) warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
         bool? warnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.Item1;
-        IDictionary<string, object> paramsWarnOnMarketOrderWithoutPrice = ((IDictionary<string, object>)warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.Item2);
+        IDictionary<string, object> paramsWarnOnMarketOrderWithoutPrice = (warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.Item2);
         if ((price == null))
         {
             // a priceless limit order already threw above, so this is a market order

@@ -802,9 +802,9 @@ public partial class cryptocom : Exchange
         {
             return new Dictionary<string, object>() {};
         }
-        (bool?, object) skipFetchCurrenciesparamsSkipFetchCurrenciesVariable = this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
+        (bool?, IDictionary<string, object>) skipFetchCurrenciesparamsSkipFetchCurrenciesVariable = this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
         bool? skipFetchCurrencies = skipFetchCurrenciesparamsSkipFetchCurrenciesVariable.Item1;
-        IDictionary<string, object> paramsSkipFetchCurrencies = ((IDictionary<string, object>)skipFetchCurrenciesparamsSkipFetchCurrenciesVariable.Item2);
+        IDictionary<string, object> paramsSkipFetchCurrencies = (skipFetchCurrenciesparamsSkipFetchCurrenciesVariable.Item2);
         if ((skipFetchCurrencies == true))
         {
             // sub-accounts can't access this endpoint
@@ -1239,9 +1239,9 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate));
@@ -1332,9 +1332,9 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate));
@@ -1406,9 +1406,9 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 300));
@@ -2068,9 +2068,9 @@ public partial class cryptocom : Exchange
         {
             // use createmarketBuy logic here
             string? quoteAmount = null;
-            (bool?, object) createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.Item1;
-            IDictionary<string, object> paramsCreateMarketBuy = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.Item2);
+            IDictionary<string, object> paramsCreateMarketBuy = (createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.Item2);
             double? cost = this.safeNumber2(paramsCreateMarketBuy, "cost", "notional");
             paramsMarketBuy = this.omit(paramsCreateMarketBuy, "cost");
             if ((cost != null))
@@ -2393,9 +2393,9 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate, 100));
@@ -3062,7 +3062,7 @@ public partial class cryptocom : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -3174,7 +3174,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "margin");
         string? marginMode = null;
         object paramsMarginMode = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams(methodName, paramsOmitted);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams(methodName, paramsOmitted);
         marginMode = marginModeparamsMarginModeVariable.Item1;
         paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
         if ((marginMode != null))
@@ -3354,7 +3354,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(ledger, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -3741,9 +3741,9 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000));

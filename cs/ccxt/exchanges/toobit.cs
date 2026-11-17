@@ -1461,9 +1461,9 @@ public partial class toobit : Exchange
         };
         Int64? until = this.safeInteger(parameters, "until");
         IDictionary<string, object> paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
-        (string?, object) endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price");
+        (string?, IDictionary<string, object>) endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price");
         string? endpoint = endpointparamsPriceVariable.Item1;
-        IDictionary<string, object> paramsPrice = ((IDictionary<string, object>)endpointparamsPriceVariable.Item2);
+        IDictionary<string, object> paramsPrice = (endpointparamsPriceVariable.Item2);
         bool isPriceKlines = ((endpoint == "index")) || ((endpoint == "mark"));
         string startKey = "startTime";
         string endKey = "endTime";
@@ -1854,9 +1854,9 @@ public partial class toobit : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -2843,7 +2843,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         string? currencyId = this.safeString(item, "coinId");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
@@ -3040,7 +3040,7 @@ public partial class toobit : Exchange
         return result;
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits & fetchWithdrawals

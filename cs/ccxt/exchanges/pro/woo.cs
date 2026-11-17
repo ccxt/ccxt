@@ -154,9 +154,9 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
+        (string?, IDictionary<string, object>) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
         string? method = methodparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodparamsMethodVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         string marketId = this.safeString(market, "id", "");
         string topic = ((marketId + "@") + method);
@@ -205,9 +205,9 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
+        (string?, IDictionary<string, object>) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
         string? method = methodparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodparamsMethodVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         string marketId = this.safeString(market, "id", "");
         string subHash = ((marketId + "@") + method);
@@ -440,9 +440,9 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "method", "ticker");
+        (string?, IDictionary<string, object>) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "method", "ticker");
         string? method = methodparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodparamsMethodVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         string marketId = this.safeString(market, "id", "");
         string subHash = ((marketId + "@") + method);

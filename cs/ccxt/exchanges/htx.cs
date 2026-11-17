@@ -3670,9 +3670,9 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
@@ -3994,9 +3994,9 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
@@ -4121,9 +4121,9 @@ public partial class htx : Exchange
         } else
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-            (bool?, object) useHistoricalparamsHistoricalVariable = this.handleOptionBoolAndParams(paramsUntil, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
+            (bool?, IDictionary<string, object>) useHistoricalparamsHistoricalVariable = this.handleOptionBoolAndParams(paramsUntil, "fetchOHLCV", "useHistoricalEndpointForSpot", true);
             bool? useHistorical = useHistoricalparamsHistoricalVariable.Item1;
-            IDictionary<string, object> paramsHistorical = ((IDictionary<string, object>)useHistoricalparamsHistoricalVariable.Item2);
+            IDictionary<string, object> paramsHistorical = (useHistoricalparamsHistoricalVariable.Item2);
             if (!(useHistorical == true))
             {
                 if ((limit != null))
@@ -4483,9 +4483,9 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) isUnifiedAccountparamsUnifiedVariable = this.handleOptionBoolAndParams2(parameters, "fetchBalance", "unified", "uta", false);
+        (bool?, IDictionary<string, object>) isUnifiedAccountparamsUnifiedVariable = this.handleOptionBoolAndParams2(parameters, "fetchBalance", "unified", "uta", false);
         bool? isUnifiedAccount = isUnifiedAccountparamsUnifiedVariable.Item1;
-        IDictionary<string, object> paramsUnified = ((IDictionary<string, object>)isUnifiedAccountparamsUnifiedVariable.Item2);
+        IDictionary<string, object> paramsUnified = (isUnifiedAccountparamsUnifiedVariable.Item2);
         if ((isUnifiedAccount == true))
         {
             throw new NotSupported ((this.id + " fetchBalance() unified account has been deprecated on htx")) ;
@@ -4493,21 +4493,21 @@ public partial class htx : Exchange
         IList<object> typeparamsTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, paramsUnified);
         string? type = (string)typeparamsTypeVariable[0];
         IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeparamsTypeVariable[1]);
-        (string?, object) subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams2(paramsType, "fetchBalance", "defaultSubType", "subType");
+        (string?, IDictionary<string, object>) subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams2(paramsType, "fetchBalance", "defaultSubType", "subType");
         string? subTypeOption = subTypeOptionparamsSubTypeVariable.Item1;
-        IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeOptionparamsSubTypeVariable.Item2);
-        (bool?, object) isMultiAssetModeparamsMultiAssetVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchBalance", "multiAssetMode", false);
+        IDictionary<string, object> paramsSubType = (subTypeOptionparamsSubTypeVariable.Item2);
+        (bool?, IDictionary<string, object>) isMultiAssetModeparamsMultiAssetVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchBalance", "multiAssetMode", false);
         bool? isMultiAssetMode = isMultiAssetModeparamsMultiAssetVariable.Item1;
-        IDictionary<string, object> paramsMultiAsset = ((IDictionary<string, object>)isMultiAssetModeparamsMultiAssetVariable.Item2);
+        IDictionary<string, object> paramsMultiAsset = (isMultiAssetModeparamsMultiAssetVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool spot = ((type == "spot"));
         bool future = ((type == "future"));
         bool swap = ((type == "swap"));
         bool linear = ((subTypeOption == null)) || ((subTypeOption == "linear"));
         bool inverse = (subTypeOption != null) && (subTypeOption == "inverse");
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMultiAsset);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMultiAsset);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         bool isolated = ((marginMode == "isolated"));
         bool cross = ((marginMode == "cross"));
         bool margin = ((type == "margin")) || (spot && (cross || isolated));
@@ -4876,9 +4876,9 @@ public partial class htx : Exchange
                         throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
                     }
                     request["contract_code"] = this.safeString(market, "id");
-                    (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsClientOrderId, "cross");
+                    (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsClientOrderId, "cross");
                     string? marginMode = marginModeparamsMarginModeVariable.Item1;
-                    IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+                    IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
                     request["margin_mode"] = marginMode;
                     response = await this.contractPrivateGetV5TradeOrder(this.extend(request, paramsMarginMode));
                 }
@@ -5151,9 +5151,9 @@ public partial class htx : Exchange
             {
                 request["limit"] = limit;
             }
-            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchContractOrders", paramsUntil, "cross");
+            (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchContractOrders", paramsUntil, "cross");
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+            IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
             request["margin_mode"] = marginMode;
             request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
             if (isAlgo)
@@ -5337,9 +5337,9 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, paramsPaginate, 100));
@@ -5410,9 +5410,9 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, paramsPaginate, 100));
@@ -6299,9 +6299,9 @@ public partial class htx : Exchange
         string? typeStr = type;
         object sideStr = side;
         Dictionary<string, object> market = this.market(symbol);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         string? accountId = await this.FetchAccountIdByType((market.ContainsKey("type") ? market["type"] : null), marginMode, symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account-id", accountId },
@@ -6373,7 +6373,7 @@ public partial class htx : Exchange
             request["source"] = "c2c-margin-api";
         }
         bool isMarketBuy = (orderType == "market") && ((sideStr is "buy"));
-        (bool?, object) requiresPriceAndParams = this.handleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+        (bool?, IDictionary<string, object>) requiresPriceAndParams = this.handleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true);
         double? cost = this.safeNumber(requiresPriceAndParams.Item2, "cost");
         object paramsCost = paramsPostOnly;
         if (isMarketBuy)
@@ -6476,9 +6476,9 @@ public partial class htx : Exchange
         string? timeInForce = this.safeStringLower2(query, "timeInForce", "time_in_force", "gtc");
         if (isLinear)
         {
-            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", query, "cross");
+            (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", query, "cross");
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+            IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
             query = paramsMarginMode;
             request["margin_mode"] = marginMode;
             request["side"] = side;
@@ -6927,7 +6927,7 @@ public partial class htx : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            (string?, object) marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
+            (string?, IDictionary<string, object>) marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
             string? currentMarginMode = marginResult.Item1;
             if ((currentMarginMode != null))
             {
@@ -7998,7 +7998,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limitValue));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -8591,9 +8591,9 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
@@ -8811,9 +8811,9 @@ public partial class htx : Exchange
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string defaultSubType = "linear";
-        (string?, object) subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
+        (string?, IDictionary<string, object>) subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
         string? subTypeOption = subTypeOptionparamsSubTypeVariable.Item1;
-        IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeOptionparamsSubTypeVariable.Item2);
+        IDictionary<string, object> paramsSubType = (subTypeOptionparamsSubTypeVariable.Item2);
         string? subType = subTypeOption;
         if ((symbolsNormalized != null))
         {
@@ -8876,9 +8876,9 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        (string?, object) marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
+        (string?, IDictionary<string, object>) marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
         string? marginModeOption = marginModeOptionparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeOptionparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeOptionparamsMarginModeVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((since != null))
         {
@@ -9304,9 +9304,9 @@ public partial class htx : Exchange
         {
             if ((this.safeBool(market, "linear", false) == true))
             {
-                (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, "cross");
+                (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, "cross");
                 string? marginMode = marginModeparamsMarginModeVariable.Item1;
-                IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+                IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
                 request["margin_mode"] = marginMode;
                 request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
                 if ((limit != null))
@@ -9389,7 +9389,7 @@ public partial class htx : Exchange
         Dictionary<string, object> response = null;
         if ((this.safeBool(market, "linear", false) == true))
         {
-            (string?, object) marginModeAndParams = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            (string?, IDictionary<string, object>) marginModeAndParams = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             string? marginMode = marginModeAndParams.Item1;
             request["margin_mode"] = marginMode;
             response = await this.contractPrivatePostV5PositionLever(this.extend(request, query));
@@ -9702,9 +9702,9 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        (string?, object) marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", parameters);
+        (string?, IDictionary<string, object>) marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", parameters);
         string? marginModeOption = marginModeOptionparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeOptionparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeOptionparamsMarginModeVariable.Item2);
         IList<object> marketTypequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPosition", market, paramsMarginMode);
         string? marketType = (string)marketTypequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)marketTypequeryVariable[1]);
@@ -9798,7 +9798,7 @@ public partial class htx : Exchange
         return this.safeString(types, type, type);
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -9859,9 +9859,9 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, paramsPaginate, 500));
@@ -11146,9 +11146,9 @@ public partial class htx : Exchange
         Dictionary<string, object> response = null;
         if ((this.safeBool(market, "linear", false) == true))
         {
-            (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", paramsOmitted, "cross");
+            (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("closePosition", paramsOmitted, "cross");
             string? marginMode = marginModeparamsMarginModeVariable.Item1;
-            IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+            IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
             request["margin_mode"] = marginMode;
             response = await this.contractPrivatePostV5TradePosition(this.extend(request, paramsMarginMode));
         } else

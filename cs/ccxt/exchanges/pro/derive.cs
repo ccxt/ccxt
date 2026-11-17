@@ -936,9 +936,9 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        (bool?, object) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        (bool?, IDictionary<string, object>) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
         bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
-        IDictionary<string, object> paramsSnapshot = ((IDictionary<string, object>)fetchSnapshotparamsSnapshotVariable.Item2);
+        IDictionary<string, object> paramsSnapshot = (fetchSnapshotparamsSnapshotVariable.Item2);
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchBalance", paramsSnapshot);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
         IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
@@ -1001,9 +1001,9 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         IList<object> symbolsResolved = this.marketSymbols(this.toArray(symbols), null, true);
-        (bool?, object) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
+        (bool?, IDictionary<string, object>) fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
         bool? fetchSnapshot = fetchSnapshotparamsSnapshotVariable.Item1;
-        IDictionary<string, object> paramsSnapshot = ((IDictionary<string, object>)fetchSnapshotparamsSnapshotVariable.Item2);
+        IDictionary<string, object> paramsSnapshot = (fetchSnapshotparamsSnapshotVariable.Item2);
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchPositions", paramsSnapshot);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
         IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);

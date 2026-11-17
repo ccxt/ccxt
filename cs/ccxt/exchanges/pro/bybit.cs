@@ -1478,9 +1478,9 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
-        (bool?, object) executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
+        (bool?, IDictionary<string, object>) executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         bool? executionFast = executionFastparamsExecutionFastVariable.Item1;
-        IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable.Item2);
+        IDictionary<string, object> paramsExecutionFast = (executionFastparamsExecutionFastVariable.Item2);
         if ((executionFast == true))
         {
             topic = "execution.fast";
@@ -1528,9 +1528,9 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
-        (bool?, object) executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
+        (bool?, IDictionary<string, object>) executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         bool? executionFast = executionFastparamsExecutionFastVariable.Item1;
-        IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable.Item2);
+        IDictionary<string, object> paramsExecutionFast = (executionFastparamsExecutionFastVariable.Item2);
         if ((executionFast == true))
         {
             topic = "execution.fast";
@@ -1936,9 +1936,9 @@ public partial class bybit : ccxt.bybit
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = await this.getUrlByMarketType(symbolValue, false, "watchLiquidations", parameters);
-        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(this.cleanParams(parameters), "watchLiquidations", "method", "allLiquidation");
+        (string?, IDictionary<string, object>) methodparamsMethodVariable = this.handleOptionStringAndParams(this.cleanParams(parameters), "watchLiquidations", "method", "allLiquidation");
         string method = methodparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodparamsMethodVariable.Item2);
         string messageHash = ("liquidations::" + symbolValue);
         string? marketId = this.safeString(market, "id", "");
         string topic = ((method + ".") + marketId);

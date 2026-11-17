@@ -92,11 +92,11 @@ public partial class polymarket : ccxt.polymarket
         // subscribed yet, so a pending entry is registered under the same
         // condition - otherwise no ack would ever arrive to consume it, the
         // private channels register a shared hash next to narrowed ones
-        object hashesToCheck = ((checkHashes == null)) ? messageHashes : checkHashes;
+        IList<object> hashesToCheck = ((checkHashes == null)) ? messageHashes : checkHashes;
         bool willSend = false;
-        for (int i = 0; i < getArrayLength(hashesToCheck); i++)
+        for (int i = 0; i < (hashesToCheck?.Count ?? 0); i++)
         {
-            if (!((client.subscriptions != null && getValue(hashesToCheck, i) is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
+            if (!((client.subscriptions != null && hashesToCheck[i] is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
             {
                 willSend = true;
             }
@@ -1237,10 +1237,10 @@ public partial class polymarket : ccxt.polymarket
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                object messageHash = messageHashes[i];
-                if ((client.subscriptions != null && messageHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+                string? messageHash = ((string)messageHashes[i]);
+                if (((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
-                    ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+                    ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }
                 if (action == "sub")
                 {

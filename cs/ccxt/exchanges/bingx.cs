@@ -1658,9 +1658,9 @@ public partial class bingx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = (this.safeBool(market, "inverse", false) == true) ? 1000 : 1440;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             // klines return up to 1440 candles only for 1m, 1000 for 5m and above
@@ -2383,9 +2383,9 @@ public partial class bingx : Exchange
         {
             throw new NotSupported ((this.id + " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -2475,9 +2475,9 @@ public partial class bingx : Exchange
         {
             throw new NotSupported ((this.id + " fetchFundingHistory() is not supported for inverse swap markets")) ;
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", paramsPaginate));
@@ -3121,9 +3121,9 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = null;
-        (bool?, object) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "standard", false);
+        (bool?, IDictionary<string, object>) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "standard", false);
         bool? standard = standardparamsStandardVariable.Item1;
-        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable.Item2);
+        IDictionary<string, object> paramsStandard = (standardparamsStandardVariable.Item2);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchBalance", null, paramsStandard);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
@@ -3375,9 +3375,9 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
-        (bool?, object) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
+        (bool?, IDictionary<string, object>) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
         bool? standard = standardparamsStandardVariable.Item1;
-        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable.Item2);
+        IDictionary<string, object> paramsStandard = (standardparamsStandardVariable.Item2);
         Dictionary<string, object> response = null;
         if ((standard == true))
         {
@@ -5576,9 +5576,9 @@ public partial class bingx : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, paramsMarketType);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        (bool?, object) standardparamsStandardVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false);
+        (bool?, IDictionary<string, object>) standardparamsStandardVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false);
         bool? standard = standardparamsStandardVariable.Item1;
-        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable.Item2);
+        IDictionary<string, object> paramsStandard = (standardparamsStandardVariable.Item2);
         if ((standard == true))
         {
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, paramsStandard));
@@ -5739,9 +5739,9 @@ public partial class bingx : Exchange
             request["toAccount"] = toId;
         }
         int maxLimit = 100;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, maxLimit));
@@ -6054,7 +6054,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -7328,14 +7328,14 @@ public partial class bingx : Exchange
         List<object> rawKeys = new List<object>(sortedParams.Keys);
         int rawKeysLength = rawKeys.Count;
         string? adjustedValue = null;
-        object result = null;
+        string? result = null;
         for (int i = 0; i < rawKeysLength; i++)
         {
             string key = ((string)(rawKeys != null && i < rawKeys.Count ? rawKeys[i] : null));
             object value = (sortedParams != null && key != null && sortedParams.ContainsKey(key) ? sortedParams[key] : null);
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                object arrStr = null;
+                string? arrStr = null;
                 for (int j = 0; j < getArrayLength(value); j++)
                 {
                     object arrayElement = getValue(value, j);
@@ -7344,7 +7344,7 @@ public partial class bingx : Exchange
                     {
                         if (j > 0)
                         {
-                            arrStr = ((object)(arrStr == null ? null : arrStr + ((("," + "\"") + arrayElement.ToString()) + "\"")));
+                            arrStr = (arrStr == null ? null : arrStr + ((("," + "\"") + arrayElement.ToString()) + "\""));
                         } else
                         {
                             arrStr = (("\"" + arrayElement.ToString()) + "\"");
@@ -7353,14 +7353,14 @@ public partial class bingx : Exchange
                     {
                         if (j > 0)
                         {
-                            arrStr = ((object)(arrStr == null ? null : arrStr + ("," + arrayElement.ToString())));
+                            arrStr = (arrStr == null ? null : arrStr + ("," + arrayElement.ToString()));
                         } else
                         {
                             arrStr = arrayElement.ToString();
                         }
                     }
                 }
-                adjustedValue = (("[" + (arrStr)) + "]");
+                adjustedValue = (("[" + arrStr) + "]");
                 value = adjustedValue;
             }
             if ((i == 0))
@@ -7368,10 +7368,10 @@ public partial class bingx : Exchange
                 result = ((key + "=") + (value));
             } else
             {
-                result = ((object)(result == null ? null : result + (string)(object)(((("&" + key) + "=") + (value)))));
+                result = (result == null ? null : result + (string)(object)(((("&" + key) + "=") + (value))));
             }
         }
-        return ((string?)((object)(result)));
+        return result;
     }
 
     /**

@@ -1717,9 +1717,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallIncremental("fetchTrades", symbol, since, limit, paramsPaginate, "page", 1000));
@@ -1908,9 +1908,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 5000));
@@ -1918,9 +1918,9 @@ public partial class derive : Exchange
         // todo: check active spot markets after launch of v3
         Dictionary<string, object> market = this.market(symbol);
         string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        (string?, object) priceTypeparamsPriceVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "price");
+        (string?, IDictionary<string, object>) priceTypeparamsPriceVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "price");
         string? priceType = priceTypeparamsPriceVariable.Item1;
-        IDictionary<string, object> paramsPrice = ((IDictionary<string, object>)priceTypeparamsPriceVariable.Item2);
+        IDictionary<string, object> paramsPrice = (priceTypeparamsPriceVariable.Item2);
         Int64? until = this.safeInteger(paramsPrice, "until");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPrice, new List<object>() {"until"});
         int duration = this.parseTimeframe(timeframeVar);
@@ -2814,9 +2814,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
@@ -3344,9 +3344,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, paramsPaginate, "page", 500));
@@ -3623,9 +3623,9 @@ public partial class derive : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, paramsPaginate, "page", 500));
@@ -4627,7 +4627,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(withdrawals, currency, since, limit, paramsDeriveSubaccountId));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -4742,9 +4742,9 @@ public partial class derive : Exchange
 
     public virtual List<object> handleDeriveWalletAddress(string methodName, object parameters)
     {
-        (string?, object) deriveWalletAddressparamsDeriveWalletAddressVariable = this.handleOptionStringAndParams(parameters, methodName, "deriveWalletAddress");
+        (string?, IDictionary<string, object>) deriveWalletAddressparamsDeriveWalletAddressVariable = this.handleOptionStringAndParams(parameters, methodName, "deriveWalletAddress");
         string? deriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable.Item1;
-        IDictionary<string, object> paramsDeriveWalletAddress = ((IDictionary<string, object>)deriveWalletAddressparamsDeriveWalletAddressVariable.Item2);
+        IDictionary<string, object> paramsDeriveWalletAddress = (deriveWalletAddressparamsDeriveWalletAddressVariable.Item2);
         if (((deriveWalletAddress != null)) && (!(deriveWalletAddress == "")))
         {
             this.options["deriveWalletAddress"] = deriveWalletAddress;

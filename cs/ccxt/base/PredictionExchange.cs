@@ -745,7 +745,7 @@ public partial class PredictionExchange : BaseExchange
         for (int j = 0; j < outcomesList.Count; j++)
         {
             IDictionary<string, object> oc = ((IDictionary<string, object>)outcomesList[j]);
-            object ocSymbol = this.safeString2(oc, "outcome", "symbol");
+            string? ocSymbol = this.safeString2(oc, "outcome", "symbol");
             string? ocId = this.safeString2(oc, "outcomeId", "id");
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a
@@ -770,7 +770,7 @@ public partial class PredictionExchange : BaseExchange
                         {
                             suffix = ((ocId == null) ? null : ocId.Substring(Math.Max(Math.Min(((idLen - 6) < 0 ? ocId.Length + ((idLen - 6)) : (idLen - 6)), ocId.Length), 0)));
                         }
-                        ocSymbol = ((object)(ocSymbol == null ? null : ocSymbol + "_" + suffix.ToUpper()));
+                        ocSymbol = (ocSymbol == null ? null : ocSymbol + "_" + suffix.ToUpper());
                     }
                 }
                 oc["outcome"] = ocSymbol;

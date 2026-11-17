@@ -1032,7 +1032,7 @@ public partial class blockchaincom : Exchange
         return this.safeString(states, state, state);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // deposit

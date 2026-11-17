@@ -948,7 +948,7 @@ public partial class mercado : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(withdrawal, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {

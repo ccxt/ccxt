@@ -795,9 +795,9 @@ public partial class deepcoin : ccxt.deepcoin
         string? symbol = this.safeString(market, "symbol", "");
         string? aggregation = null;
         IDictionary<string, object> paramsAggregation = null;
-        (string?, object) aggregationparamsAggregationVariable = this.handleOptionStringAndParams(parameters, methodName, "aggregation");
+        (string?, IDictionary<string, object>) aggregationparamsAggregationVariable = this.handleOptionStringAndParams(parameters, methodName, "aggregation");
         aggregation = aggregationparamsAggregationVariable.Item1;
-        paramsAggregation = (IDictionary<string, object>)aggregationparamsAggregationVariable.Item2;
+        paramsAggregation = aggregationparamsAggregationVariable.Item2;
         if ((aggregation == null))
         {
             IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});

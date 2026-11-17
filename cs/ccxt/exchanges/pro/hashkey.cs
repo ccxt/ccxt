@@ -818,9 +818,9 @@ public partial class hashkey : ccxt.hashkey
         string? url = this.getPrivateUrl(listenKey);
         var client = this.client(url);
         this.setBalanceCache(client, typeMarketType, messageHash);
-        (bool?, object) fetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
+        (bool?, IDictionary<string, object>) fetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
         bool? fetchBalanceSnapshot = fetchBalanceSnapshotVariable.Item1;
-        (bool?, object) awaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
+        (bool?, IDictionary<string, object>) awaitBalanceSnapshotVariable = this.handleOptionBoolAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = awaitBalanceSnapshotVariable.Item1;
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {

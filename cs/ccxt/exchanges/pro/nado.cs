@@ -659,9 +659,9 @@ public partial class nado : ccxt.nado
             }
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }
-        (string?, object) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "watchOrders", "subaccount", "default");
+        (string?, IDictionary<string, object>) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "watchOrders", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
-        IDictionary<string, object> paramsSubaccount = ((IDictionary<string, object>)subaccountparamsSubaccountVariable.Item2);
+        IDictionary<string, object> paramsSubaccount = (subaccountparamsSubaccountVariable.Item2);
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "order_update" },
@@ -706,9 +706,9 @@ public partial class nado : ccxt.nado
             }
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }
-        (string?, object) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "unWatchOrders", "subaccount", "default");
+        (string?, IDictionary<string, object>) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "unWatchOrders", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
-        IDictionary<string, object> paramsSubaccount = ((IDictionary<string, object>)subaccountparamsSubaccountVariable.Item2);
+        IDictionary<string, object> paramsSubaccount = (subaccountparamsSubaccountVariable.Item2);
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "order_update" },
@@ -752,9 +752,9 @@ public partial class nado : ccxt.nado
             }
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }
-        (string?, object) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "watchMyTrades", "subaccount", "default");
+        (string?, IDictionary<string, object>) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "watchMyTrades", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
-        IDictionary<string, object> paramsSubaccount = ((IDictionary<string, object>)subaccountparamsSubaccountVariable.Item2);
+        IDictionary<string, object> paramsSubaccount = (subaccountparamsSubaccountVariable.Item2);
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "fill" },
@@ -799,9 +799,9 @@ public partial class nado : ccxt.nado
             }
             productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
         }
-        (string?, object) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "unWatchMyTrades", "subaccount", "default");
+        (string?, IDictionary<string, object>) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "unWatchMyTrades", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
-        IDictionary<string, object> paramsSubaccount = ((IDictionary<string, object>)subaccountparamsSubaccountVariable.Item2);
+        IDictionary<string, object> paramsSubaccount = (subaccountparamsSubaccountVariable.Item2);
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "fill" },
@@ -847,9 +847,9 @@ public partial class nado : ccxt.nado
                 productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
             }
         }
-        (string?, object) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "watchPositions", "subaccount", "default");
+        (string?, IDictionary<string, object>) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "watchPositions", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
-        IDictionary<string, object> paramsSubaccount = ((IDictionary<string, object>)subaccountparamsSubaccountVariable.Item2);
+        IDictionary<string, object> paramsSubaccount = (subaccountparamsSubaccountVariable.Item2);
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "position_change" },
@@ -897,9 +897,9 @@ public partial class nado : ccxt.nado
                 productId = this.parseToInt((market.ContainsKey("id") ? market["id"] : null));
             }
         }
-        (string?, object) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "unWatchPositions", "subaccount", "default");
+        (string?, IDictionary<string, object>) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "unWatchPositions", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
-        IDictionary<string, object> paramsSubaccount = ((IDictionary<string, object>)subaccountparamsSubaccountVariable.Item2);
+        IDictionary<string, object> paramsSubaccount = (subaccountparamsSubaccountVariable.Item2);
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> stream = new Dictionary<string, object>() {
             { "type", "position_change" },
@@ -1269,9 +1269,9 @@ public partial class nado : ccxt.nado
         (Int64?, object) recvWindowparamsRecvWindowVariable = this.handleOptionIntegerAndParams(parameters, "authenticate", "recvWindow", 5000);
         Int64? recvWindow = recvWindowparamsRecvWindowVariable.Item1;
         IDictionary<string, object> paramsRecvWindow = ((IDictionary<string, object>)recvWindowparamsRecvWindowVariable.Item2);
-        (string?, object) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(paramsRecvWindow, "authenticate", "subaccount", "default");
+        (string?, IDictionary<string, object>) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(paramsRecvWindow, "authenticate", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
-        IDictionary<string, object> paramsSubaccount = ((IDictionary<string, object>)subaccountparamsSubaccountVariable.Item2);
+        IDictionary<string, object> paramsSubaccount = (subaccountparamsSubaccountVariable.Item2);
         Int64 id = this.requestId();
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         Int64 expiration = this.sum(this.milliseconds(), recvWindow);

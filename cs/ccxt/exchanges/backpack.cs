@@ -1189,12 +1189,12 @@ public partial class backpack : Exchange
      * @param {object} [market] resolved market
      * @returns {Array} stock flag and remaining parameters
      */
-    public virtual List<object> handleStockParams(object methodName, object parameters, object market = null)
+    public virtual List<object> handleStockParams(object methodName, object parameters, IDictionary<string, object> market = null)
     {
         bool? defaultStock = this.safeBool(market, "stock", false);
-        (bool?, object) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock", defaultStock);
+        (bool?, IDictionary<string, object>) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock", defaultStock);
         bool? stock = stockqueryVariable.Item1;
-        IDictionary<string, object> query = ((IDictionary<string, object>)stockqueryVariable.Item2);
+        IDictionary<string, object> query = (stockqueryVariable.Item2);
         if (((market != null)) && (stock == true) && !(this.safeBool(market, "stock", false) == true))
         {
             throw new BadSymbol ((((this.id + " ") + (methodName)) + "() requires a stock market")) ;
@@ -1303,7 +1303,7 @@ public partial class backpack : Exchange
      * @param {object} [toCurrency] destination currency
      * @returns {object} unified conversion structure
      */
-    public override object parseConversion(object order, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(object order, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         string? fromCode = this.safeString(fromCurrency, "code");
         string? toCode = this.safeString(toCurrency, "code");
@@ -1562,7 +1562,7 @@ public partial class backpack : Exchange
      * @param {object} [market] resolved market
      * @returns {object} market data parameters
      */
-    public virtual Dictionary<string, object> stockDataRequest(object methodName, object parameters, object market = null)
+    public virtual Dictionary<string, object> stockDataRequest(object methodName, object parameters, IDictionary<string, object> market = null)
     {
         List<object> selection = this.handleStockParams(methodName, parameters, market);
         bool? stock = this.safeBool(selection, 0, false);
@@ -2683,7 +2683,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -3243,9 +3243,9 @@ public partial class backpack : Exchange
             }
             bracketKeys.Add("stopLoss");
         }
-        (string?, object) selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams(this.omit(paramsPostOnly, bracketKeys), "createOrder", "selfTradePrevention");
+        (string?, IDictionary<string, object>) selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams(this.omit(paramsPostOnly, bracketKeys), "createOrder", "selfTradePrevention");
         string? selfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.Item1;
-        IDictionary<string, object> paramsSelfTradePrevention = ((IDictionary<string, object>)selfTradePreventionparamsSelfTradePreventionVariable.Item2);
+        IDictionary<string, object> paramsSelfTradePrevention = (selfTradePreventionparamsSelfTradePreventionVariable.Item2);
         if ((selfTradePrevention != null))
         {
             if ((selfTradePrevention == "EXPIRE_MAKER"))

@@ -1451,9 +1451,9 @@ public partial class grvt : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -1548,9 +1548,9 @@ public partial class grvt : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -1902,7 +1902,7 @@ public partial class grvt : Exchange
         return transfers;
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -2041,9 +2041,9 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> currency = this.currency(code);
         int maxLimit = 1000;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, paramsPaginate, maxLimit));
@@ -2143,12 +2143,12 @@ public partial class grvt : Exchange
         object paramsFundingAccountId = parameters;
         if (isInternal)
         {
-            (string?, object) tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId");
+            (string?, IDictionary<string, object>) tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId");
             string? tradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.Item1;
-            IDictionary<string, object> paramsTradingAccountId = ((IDictionary<string, object>)tradingAccountIdparamsTradingAccountIdVariable.Item2);
-            (string?, object) fundingAccountIdparamsFundingVariable = this.handleOptionStringAndParams(paramsTradingAccountId, "transfer", "fundingAccountId");
+            IDictionary<string, object> paramsTradingAccountId = (tradingAccountIdparamsTradingAccountIdVariable.Item2);
+            (string?, IDictionary<string, object>) fundingAccountIdparamsFundingVariable = this.handleOptionStringAndParams(paramsTradingAccountId, "transfer", "fundingAccountId");
             string? fundingAccountId = fundingAccountIdparamsFundingVariable.Item1;
-            IDictionary<string, object> paramsFunding = ((IDictionary<string, object>)fundingAccountIdparamsFundingVariable.Item2);
+            IDictionary<string, object> paramsFunding = (fundingAccountIdparamsFundingVariable.Item2);
             if ((tradingAccountId == null) || (fundingAccountId == null))
             {
                 throw new ArgumentsRequired ((this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
@@ -2681,9 +2681,9 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
@@ -3047,9 +3047,9 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, paramsPaginate, 1000));

@@ -3614,9 +3614,9 @@ public partial class bitget : Exchange
             if ((this.safeBool(market, "spot", false) == true))
             {
                 string? marginMode = null;
-                (string?, object) marginModeparamsSubTypeVariable = this.handleMarginModeAndParams("handleProductTypeAndParams", paramsSubType);
+                (string?, IDictionary<string, object>) marginModeparamsSubTypeVariable = this.handleMarginModeAndParams("handleProductTypeAndParams", paramsSubType);
                 marginMode = marginModeparamsSubTypeVariable.Item1;
-                paramsSubType = (IDictionary<string, object>)marginModeparamsSubTypeVariable.Item2;
+                paramsSubType = marginModeparamsSubTypeVariable.Item2;
                 if ((marginMode != null))
                 {
                     productType = "MARGIN";
@@ -3727,9 +3727,9 @@ public partial class bitget : Exchange
         {
             await this.loadTimeDifference();
         }
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "stock", false);
         bool? stock = stockparamsStockVariable.Item1;
-        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        IDictionary<string, object> paramsStock = (stockparamsStockVariable.Item2);
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchMarkets", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
@@ -4561,9 +4561,9 @@ public partial class bitget : Exchange
         string? productType = null;
         bool? uta = null;
         IDictionary<string, object> paramsMarginMode = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, "isolated");
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, "isolated");
         marginMode = marginModeparamsMarginModeVariable.Item1;
-        paramsMarginMode = (IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2;
+        paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
         IList<object> productTypeparamsMarginModeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsMarginMode);
         productType = (string)productTypeparamsMarginModeVariable[0];
         paramsMarginMode = (IDictionary<string, object>)productTypeparamsMarginModeVariable[1];
@@ -4788,9 +4788,9 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchDeposits", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchDeposits", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchDeposits", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             if ((uta is true))
@@ -5015,9 +5015,9 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchWithdrawals", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchWithdrawals", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchWithdrawals", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             if ((uta is true))
@@ -5139,7 +5139,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToTransaction(withdrawal);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // fetchDeposits
@@ -5849,9 +5849,9 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsMarketType);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchTickers", "stock", stockDefault);
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchTickers", "stock", stockDefault);
         bool? stock = stockparamsStockVariable.Item1;
-        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        IDictionary<string, object> paramsStock = (stockparamsStockVariable.Item2);
         // only if passedSubType && productType is undefined, then use spot
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchTickers", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
@@ -6207,9 +6207,9 @@ public partial class bitget : Exchange
         }
         bool? paginate = false;
         IDictionary<string, object> paramsPaginate = null;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)paginateparamsPaginateVariable.Item2;
+        paramsPaginate = paginateparamsPaginateVariable.Item2;
         Dictionary<string, object> market = this.market(symbol);
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
         bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
@@ -6266,9 +6266,9 @@ public partial class bitget : Exchange
             if (productType == "SPOT")
             {
                 string? marginMode = null;
-                (string?, object) marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchTrades", paramsPaginate);
+                (string?, IDictionary<string, object>) marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchTrades", paramsPaginate);
                 marginMode = marginModeparamsPaginateVariable.Item1;
-                paramsPaginate = (IDictionary<string, object>)marginModeparamsPaginateVariable.Item2;
+                paramsPaginate = marginModeparamsPaginateVariable.Item2;
                 if ((marginMode != null))
                 {
                     productType = "MARGIN";
@@ -6427,9 +6427,9 @@ public partial class bitget : Exchange
             return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(utaData, market));
         }
         string? marginMode = null;
-        (string?, object) marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchTradingFee", paramsUTA);
+        (string?, IDictionary<string, object>) marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchTradingFee", paramsUTA);
         marginMode = marginModeparamsUTAVariable.Item1;
-        paramsUTA = (IDictionary<string, object>)marginModeparamsUTAVariable.Item2;
+        paramsUTA = marginModeparamsUTAVariable.Item2;
         if ((this.safeBool(market, "spot", false) == true))
         {
             if ((marginMode != null))
@@ -6484,9 +6484,9 @@ public partial class bitget : Exchange
         string? marginMode = null;
         string? marketType = null;
         IDictionary<string, object> paramsMarginMode = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchTradingFees", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchTradingFees", parameters);
         marginMode = marginModeparamsMarginModeVariable.Item1;
-        paramsMarginMode = (IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2;
+        paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
         IList<object> marketTypeparamsMarginModeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTradingFees", null, paramsMarginMode);
         marketType = (string)marketTypeparamsMarginModeVariable[0];
         paramsMarginMode = (IDictionary<string, object>)marketTypeparamsMarginModeVariable[1];
@@ -6732,9 +6732,9 @@ public partial class bitget : Exchange
         int maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         bool? useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
         bool? useHistoryEndpointForPagination = this.safeBool(parameters, "useHistoryEndpointForPagination", true);
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsPaginate, "fetchOHLCV", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
@@ -6989,9 +6989,9 @@ public partial class bitget : Exchange
         string? marketType = null;
         string? marginMode = null;
         Dictionary<string, object> response = null;
-        (bool?, object) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "stock", false);
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "stock", false);
         bool? stock = stockparamsStockVariable.Item1;
-        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable.Item2);
+        IDictionary<string, object> paramsStock = (stockparamsStockVariable.Item2);
         bool? uta = null;
         IDictionary<string, object> paramsUTA = null;
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchBalance", false);
@@ -7002,9 +7002,9 @@ public partial class bitget : Exchange
         IList<object> marketTypeparamsUTAVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, paramsUTA);
         marketType = (string)marketTypeparamsUTAVariable[0];
         paramsUTA = (IDictionary<string, object>)marketTypeparamsUTAVariable[1];
-        (string?, object) marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchBalance", paramsUTA);
+        (string?, IDictionary<string, object>) marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchBalance", paramsUTA);
         marginMode = marginModeparamsUTAVariable.Item1;
-        paramsUTA = (IDictionary<string, object>)marginModeparamsUTAVariable.Item2;
+        paramsUTA = marginModeparamsUTAVariable.Item2;
         if (isStockOrUta)
         {
             List<object> assets = null;
@@ -7748,7 +7748,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        (string?, object) marginParams = this.handleMarginModeAndParams("createOrder", parameters);
+        (string?, IDictionary<string, object>) marginParams = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginParams.Item1;
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
         bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
@@ -7858,9 +7858,9 @@ public partial class bitget : Exchange
         if (productType == "SPOT")
         {
             string? marginMode = null;
-            (string?, object) marginModeparamsProductTypeVariable = this.handleMarginModeAndParams("createOrder", paramsProductType);
+            (string?, IDictionary<string, object>) marginModeparamsProductTypeVariable = this.handleMarginModeAndParams("createOrder", paramsProductType);
             marginMode = marginModeparamsProductTypeVariable.Item1;
-            paramsProductType = (IDictionary<string, object>)marginModeparamsProductTypeVariable.Item2;
+            paramsProductType = marginModeparamsProductTypeVariable.Item2;
             if ((marginMode != null))
             {
                 productType = "MARGIN";
@@ -7959,9 +7959,9 @@ public partial class bitget : Exchange
             postOnly = (bool?)postOnlyparamsProductTypeVariable[0];
             paramsProductType = (IDictionary<string, object>)postOnlyparamsProductTypeVariable[1];
             string? timeInForce = null;
-            (string?, object) timeInForceparamsProductTypeVariable = this.handleOptionStringAndParams(paramsProductType, "createOrder", "timeInForce");
+            (string?, IDictionary<string, object>) timeInForceparamsProductTypeVariable = this.handleOptionStringAndParams(paramsProductType, "createOrder", "timeInForce");
             timeInForce = timeInForceparamsProductTypeVariable.Item1;
-            paramsProductType = (IDictionary<string, object>)timeInForceparamsProductTypeVariable.Item2;
+            paramsProductType = timeInForceparamsProductTypeVariable.Item2;
             if ((timeInForce != null))
             {
                 timeInForce = timeInForce.ToUpper();
@@ -8033,9 +8033,9 @@ public partial class bitget : Exchange
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = (string)marketTypeparamsMarketTypeVariable[0];
         paramsMarketType = (IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1];
-        (string?, object) marginModeparamsMarketTypeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarketTypeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType);
         marginMode = marginModeparamsMarketTypeVariable.Item1;
-        paramsMarketType = (IDictionary<string, object>)marginModeparamsMarketTypeVariable.Item2;
+        paramsMarketType = marginModeparamsMarketTypeVariable.Item2;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderType", type },
@@ -8093,9 +8093,9 @@ public partial class bitget : Exchange
         postOnly = (bool?)postOnlyparamsMarketTypeVariable[0];
         paramsMarketType = (IDictionary<string, object>)postOnlyparamsMarketTypeVariable[1];
         string? timeInForce = null;
-        (string?, object) timeInForceparamsMarketTypeVariable = this.handleOptionStringAndParams(paramsMarketType, "createOrder", "timeInForce");
+        (string?, IDictionary<string, object>) timeInForceparamsMarketTypeVariable = this.handleOptionStringAndParams(paramsMarketType, "createOrder", "timeInForce");
         timeInForce = timeInForceparamsMarketTypeVariable.Item1;
-        paramsMarketType = (IDictionary<string, object>)timeInForceparamsMarketTypeVariable.Item2;
+        paramsMarketType = timeInForceparamsMarketTypeVariable.Item2;
         if ((timeInForce != null))
         {
             timeInForce = timeInForce.ToUpper();
@@ -8268,9 +8268,9 @@ public partial class bitget : Exchange
             string? quantity = null;
             string? planType = null;
             bool? createMarketBuyOrderRequiresPrice = true;
-            (bool?, object) createMarketBuyOrderRequiresPriceparamsMarketTypeVariable = this.handleOptionBoolAndParams(paramsMarketType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsMarketTypeVariable = this.handleOptionBoolAndParams(paramsMarketType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsMarketTypeVariable.Item1;
-            paramsMarketType = (IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsMarketTypeVariable.Item2;
+            paramsMarketType = createMarketBuyOrderRequiresPriceparamsMarketTypeVariable.Item2;
             if (isMarketOrder && ((side == "buy")))
             {
                 planType = "total";
@@ -8368,7 +8368,7 @@ public partial class bitget : Exchange
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            (string?, object) marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
+            (string?, IDictionary<string, object>) marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
             string? currentMarginMode = marginResult.Item1;
             if ((currentMarginMode != null))
             {
@@ -8458,7 +8458,7 @@ public partial class bitget : Exchange
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            (string?, object) marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
+            (string?, IDictionary<string, object>) marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
             string? currentMarginMode = marginResult.Item1;
             if ((currentMarginMode != null))
             {
@@ -8857,9 +8857,9 @@ public partial class bitget : Exchange
         string? marginMode = null;
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         IDictionary<string, object> paramsMarginMode = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
         marginMode = marginModeparamsMarginModeVariable.Item1;
-        paramsMarginMode = (IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2;
+        paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
         bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
         paramsMarginMode = this.omit(paramsMarginMode, "stock");
@@ -9116,9 +9116,9 @@ public partial class bitget : Exchange
             return await this.CancelUtaOrders(ids, symbol, paramsUTA);
         }
         string? marginMode = null;
-        (string?, object) marginModeparamsUTAVariable = this.handleMarginModeAndParams("cancelOrders", paramsUTA);
+        (string?, IDictionary<string, object>) marginModeparamsUTAVariable = this.handleMarginModeAndParams("cancelOrders", paramsUTA);
         marginMode = marginModeparamsUTAVariable.Item1;
-        paramsUTA = (IDictionary<string, object>)marginModeparamsUTAVariable.Item2;
+        paramsUTA = marginModeparamsUTAVariable.Item2;
         bool? trigger = this.safeBool2(paramsUTA, "stop", "trigger");
         paramsUTA = this.omit(paramsUTA, new List<object>() {"stop", "trigger"});
         List<object> orderIdList = new List<object>() {};
@@ -9222,9 +9222,9 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? marginMode = null;
         IDictionary<string, object> paramsMarginMode = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
         marginMode = marginModeparamsMarginModeVariable.Item1;
-        paramsMarginMode = (IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2;
+        paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
         string? productType = null;
         IList<object> productTypeparamsMarginModeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsMarginMode);
         productType = (string)productTypeparamsMarginModeVariable[0];
@@ -9540,9 +9540,9 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? marginMode = null;
         IDictionary<string, object> paramsMarginMode = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
         marginMode = marginModeparamsMarginModeVariable.Item1;
-        paramsMarginMode = (IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2;
+        paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
         bool? uta = null;
         var utaparamsMarginModeVariable = await this.handleUTAAndParams(paramsMarginMode, "fetchOpenOrders", false);
         uta = (bool?)((IList<object>)utaparamsMarginModeVariable)[0];
@@ -9565,9 +9565,9 @@ public partial class bitget : Exchange
             type = this.safeString(paramsMarginMode, "type", defaultType);
         }
         bool? paginate = false;
-        (bool?, object) paginateparamsMarginModeVariable = this.handleOptionBoolAndParams(paramsMarginMode, "fetchOpenOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsMarginModeVariable = this.handleOptionBoolAndParams(paramsMarginMode, "fetchOpenOrders", "paginate", false);
         paginate = paginateparamsMarginModeVariable.Item1;
-        paramsMarginMode = (IDictionary<string, object>)paginateparamsMarginModeVariable.Item2;
+        paramsMarginMode = paginateparamsMarginModeVariable.Item2;
         if ((paginate == true))
         {
             string? cursorReceived = null;
@@ -10087,13 +10087,13 @@ public partial class bitget : Exchange
         marketType = (string)marketTypeparamsUTAVariable[0];
         paramsUTA = (IDictionary<string, object>)marketTypeparamsUTAVariable[1];
         string? marginMode = null;
-        (string?, object) marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchCanceledAndClosedOrders", paramsUTA);
+        (string?, IDictionary<string, object>) marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchCanceledAndClosedOrders", paramsUTA);
         marginMode = marginModeparamsUTAVariable.Item1;
-        paramsUTA = (IDictionary<string, object>)marginModeparamsUTAVariable.Item2;
+        paramsUTA = marginModeparamsUTAVariable.Item2;
         bool? paginate = false;
-        (bool?, object) paginateparamsUTAVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchCanceledAndClosedOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsUTAVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchCanceledAndClosedOrders", "paginate", false);
         paginate = paginateparamsUTAVariable.Item1;
-        paramsUTA = (IDictionary<string, object>)paginateparamsUTAVariable.Item2;
+        paramsUTA = paginateparamsUTAVariable.Item2;
         if ((paginate == true))
         {
             string? cursorReceived = null;
@@ -10417,9 +10417,9 @@ public partial class bitget : Exchange
         if (productType == "SPOT")
         {
             string? marginMode = null;
-            (string?, object) marginModeparamsProductTypeVariable = this.handleMarginModeAndParams("fetchCanceledAndClosedOrders", paramsProductType);
+            (string?, IDictionary<string, object>) marginModeparamsProductTypeVariable = this.handleMarginModeAndParams("fetchCanceledAndClosedOrders", paramsProductType);
             marginMode = marginModeparamsProductTypeVariable.Item1;
-            paramsProductType = (IDictionary<string, object>)marginModeparamsProductTypeVariable.Item2;
+            paramsProductType = marginModeparamsProductTypeVariable.Item2;
             if ((marginMode != null))
             {
                 productType = "MARGIN";
@@ -10429,9 +10429,9 @@ public partial class bitget : Exchange
             { "category", productType },
         };
         bool? paginate = false;
-        (bool?, object) paginateparamsProductTypeVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchCanceledAndClosedOrders", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsProductTypeVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchCanceledAndClosedOrders", "paginate", false);
         paginate = paginateparamsProductTypeVariable.Item1;
-        paramsProductType = (IDictionary<string, object>)paginateparamsProductTypeVariable.Item2;
+        paramsProductType = paginateparamsProductTypeVariable.Item2;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, paramsProductType, "cursor", "cursor"));
@@ -10588,7 +10588,7 @@ public partial class bitget : Exchange
         uta = (bool?)((IList<object>)utaparamsOmittedVariable)[0];
         paramsOmitted = ((IList<object>)utaparamsOmittedVariable)[1];
         bool? paginate = false;
-        (bool?, object) paginateparamsOmittedVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchLedger", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsOmittedVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchLedger", "paginate", false);
         paginate = paginateparamsOmittedVariable.Item1;
         paramsOmitted = paginateparamsOmittedVariable.Item2;
         if ((paginate == true))
@@ -10651,7 +10651,7 @@ public partial class bitget : Exchange
             } else
             {
                 string? marginMode = null;
-                (string?, object) marginModeparamsOmittedVariable = this.handleMarginModeAndParams("fetchLedger", paramsOmitted);
+                (string?, IDictionary<string, object>) marginModeparamsOmittedVariable = this.handleMarginModeAndParams("fetchLedger", paramsOmitted);
                 marginMode = marginModeparamsOmittedVariable.Item1;
                 paramsOmitted = marginModeparamsOmittedVariable.Item2;
                 if (marketType == "spot")
@@ -10750,7 +10750,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         // spot
@@ -11094,12 +11094,12 @@ public partial class bitget : Exchange
         }
         bool? paginate = false;
         string? marginMode = null;
-        (bool?, object) paginateparamsUTAVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchMyTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsUTAVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchMyTrades", "paginate", false);
         paginate = paginateparamsUTAVariable.Item1;
-        paramsUTA = (IDictionary<string, object>)paginateparamsUTAVariable.Item2;
-        (string?, object) marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsUTA);
+        paramsUTA = paginateparamsUTAVariable.Item2;
+        (string?, IDictionary<string, object>) marginModeparamsUTAVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsUTA);
         marginMode = marginModeparamsUTAVariable.Item1;
-        paramsUTA = (IDictionary<string, object>)marginModeparamsUTAVariable.Item2;
+        paramsUTA = marginModeparamsUTAVariable.Item2;
         if ((paginate == true))
         {
             string? cursorReceived = null;
@@ -11447,9 +11447,9 @@ public partial class bitget : Exchange
         }
         bool? paginate = false;
         IDictionary<string, object> paramsPaginate = null;
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
-        paramsPaginate = (IDictionary<string, object>)paginateparamsPaginateVariable.Item2;
+        paramsPaginate = paginateparamsPaginateVariable.Item2;
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToPositionList(await this.fetchPaginatedCallCursor("fetchPositions", null, null, null, paramsPaginate, "endId", "idLessThan"));
@@ -11461,9 +11461,9 @@ public partial class bitget : Exchange
             method = "privateMixGetV2MixPositionHistoryPosition";
         } else
         {
-            (string?, object) methodparamsPaginateVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition");
+            (string?, IDictionary<string, object>) methodparamsPaginateVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition");
             method = methodparamsPaginateVariable.Item1;
-            paramsPaginate = (IDictionary<string, object>)methodparamsPaginateVariable.Item2;
+            paramsPaginate = methodparamsPaginateVariable.Item2;
         }
         IDictionary<string, object> market = null;
         if ((symbols != null))
@@ -11967,9 +11967,9 @@ public partial class bitget : Exchange
         } else
         {
             bool? paginate = false;
-            (bool?, object) paginateparamsProductTypeVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchFundingRateHistory", "paginate", false);
+            (bool?, IDictionary<string, object>) paginateparamsProductTypeVariable = this.handleOptionBoolAndParams(paramsProductType, "fetchFundingRateHistory", "paginate", false);
             paginate = paginateparamsProductTypeVariable.Item1;
-            paramsProductType = (IDictionary<string, object>)paginateparamsProductTypeVariable.Item2;
+            paramsProductType = paginateparamsProductTypeVariable.Item2;
             if ((paginate == true))
             {
                 return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, paramsProductType, "pageNo", 100));
@@ -12061,9 +12061,9 @@ public partial class bitget : Exchange
         {
             request["productType"] = productType;
             string? method = null;
-            (string?, object) methodparamsProductTypeVariable = this.handleOptionStringAndParams(paramsProductType, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
+            (string?, IDictionary<string, object>) methodparamsProductTypeVariable = this.handleOptionStringAndParams(paramsProductType, "fetchFundingRate", "method", "publicMixGetV2MixMarketCurrentFundRate");
             method = methodparamsProductTypeVariable.Item1;
-            paramsProductType = (IDictionary<string, object>)methodparamsProductTypeVariable.Item2;
+            paramsProductType = methodparamsProductTypeVariable.Item2;
             if (method == "publicMixGetV2MixMarketCurrentFundRate")
             {
                 response = await this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, paramsProductType));
@@ -12111,9 +12111,9 @@ public partial class bitget : Exchange
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
         string method = "publicMixGetV2MixMarketTickers";
-        (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsUTA, "fetchFundingRates", "method", method);
+        (string?, IDictionary<string, object>) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsUTA, "fetchFundingRates", "method", method);
         string? methodOption = methodOptionparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodOptionparamsMethodVariable.Item2);
         Dictionary<string, object> response = null;
         if ((uta is true))
         {
@@ -12332,9 +12332,9 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(parameters, "fetchFundingHistory", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             if ((uta is true))
@@ -12689,9 +12689,9 @@ public partial class bitget : Exchange
             if (productType == "SPOT")
             {
                 string? marginMode = null;
-                (string?, object) marginModeparamsProductTypeVariable = this.handleMarginModeAndParams("setLeverage", paramsProductType);
+                (string?, IDictionary<string, object>) marginModeparamsProductTypeVariable = this.handleMarginModeAndParams("setLeverage", paramsProductType);
                 marginMode = marginModeparamsProductTypeVariable.Item1;
-                paramsProductType = (IDictionary<string, object>)marginModeparamsProductTypeVariable.Item2;
+                paramsProductType = marginModeparamsProductTypeVariable.Item2;
                 if ((marginMode != null))
                 {
                     productType = "MARGIN";
@@ -13464,9 +13464,9 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, paramsPaginate, "minId", "idLessThan"));
@@ -13499,9 +13499,9 @@ public partial class bitget : Exchange
             requestUntil["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyLiquidations", paramsUntil, "cross");
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyLiquidations", paramsUntil, "cross");
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         if ((marginMode == "isolated"))
         {
             if ((symbol == null))
@@ -13888,9 +13888,9 @@ public partial class bitget : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchBorrowInterest", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchBorrowInterest", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToBorrowInterestList(await this.fetchPaginatedCallCursor("fetchBorrowInterest", symbol, since, limit, paramsPaginate, "minId", "idLessThan"));
@@ -13919,9 +13919,9 @@ public partial class bitget : Exchange
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", paramsPaginate, "cross");
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", paramsPaginate, "cross");
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         if ((marginMode == "isolated"))
         {
             if ((symbol == null))
@@ -14448,7 +14448,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(dataList,code, "fromCoin", "toCoin", since, limit));
     }
 
-    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(object conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
     {
         //
         // fetchConvertQuote

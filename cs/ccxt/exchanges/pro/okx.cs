@@ -514,9 +514,9 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "tickers");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "tickers");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         paramsChannel["channel"] = channel;
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -558,9 +558,9 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "tickers");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "tickers");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         object newTickers = await this.subscribeMultiple("public", channel, symbolsNormalized, paramsChannel);
         if (this.newUpdates)
         {
@@ -586,9 +586,9 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         paramsChannel["channel"] = channel;
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
@@ -614,9 +614,9 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrices", "channel", "mark-price");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrices", "channel", "mark-price");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         object newTickers = await this.subscribeMultiple("public", channel, symbolsNormalized, paramsChannel);
         if (this.newUpdates)
         {
@@ -737,9 +737,9 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         string? url = this.getUrl(channel, "public");
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
@@ -1521,9 +1521,9 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        object depth = null;
+        string? depth = null;
         object paramsDepth = null;
-        (string?, object) depthparamsDepthVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
+        (string?, IDictionary<string, object>) depthparamsDepthVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books");
         depth = depthparamsDepthVariable.Item1;
         paramsDepth = depthparamsDepthVariable.Item2;
         Int64? limit = this.safeInteger(paramsDepth, "limit");
@@ -1549,7 +1549,7 @@ public partial class okx : ccxt.okx
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            subMessageHashes.Add(((object)(depth == null ? null : depth + ":" + symbol)));
+            subMessageHashes.Add((depth == null ? null : depth + ":" + symbol));
             messageHashes.Add(("unsubscribe:orderbook:" + symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -2057,9 +2057,9 @@ public partial class okx : ccxt.okx
     {
         // By default, receive order updates from any instrument type
         parameters ??= new Dictionary<string, object>();
-        (string?, object) typeOptionparamsTypeVariable = this.handleOptionStringAndParams(parameters, "watchMyTrades", "type", "ANY");
+        (string?, IDictionary<string, object>) typeOptionparamsTypeVariable = this.handleOptionStringAndParams(parameters, "watchMyTrades", "type", "ANY");
         string? typeOption = typeOptionparamsTypeVariable.Item1;
-        IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeOptionparamsTypeVariable.Item2);
+        IDictionary<string, object> paramsType = (typeOptionparamsTypeVariable.Item2);
         bool? isTrigger = this.safeBool2(paramsType, "trigger", "stop", false);
         Dictionary<string, object> paramsOmitted = this.omit(paramsType, new List<object>() {"trigger", "stop"});
         if ((this.markets == null))
@@ -2099,9 +2099,9 @@ public partial class okx : ccxt.okx
             throw new ArgumentsRequired ((this.id + " watchMyTrades() type is required")) ;
         }
         string uppercaseType = type.ToUpper();
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchMyTrades", paramsOmitted);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchMyTrades", paramsOmitted);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         if (uppercaseType == "SPOT")
         {
             if ((marginMode != null))
@@ -2292,9 +2292,9 @@ public partial class okx : ccxt.okx
     {
         // By default, receive order updates from any instrument type
         parameters ??= new Dictionary<string, object>();
-        (string?, object) typeOptionparamsTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrders", "type", "ANY");
+        (string?, IDictionary<string, object>) typeOptionparamsTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrders", "type", "ANY");
         string? typeOption = typeOptionparamsTypeVariable.Item1;
-        IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeOptionparamsTypeVariable.Item2);
+        IDictionary<string, object> paramsType = (typeOptionparamsTypeVariable.Item2);
         bool? isTrigger = this.safeBool2(paramsType, "stop", "trigger", false);
         Dictionary<string, object> paramsOmitted = this.omit(paramsType, new List<object>() {"stop", "trigger"});
         if ((this.markets == null))
@@ -2327,9 +2327,9 @@ public partial class okx : ccxt.okx
             throw new ArgumentsRequired ((this.id + " watchOrders() type is required")) ;
         }
         string uppercaseType = type.ToUpper();
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsOmitted);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsOmitted);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         if (uppercaseType == "SPOT")
         {
             if ((marginMode != null))
@@ -2585,9 +2585,9 @@ public partial class okx : ccxt.okx
         await this.authenticate();
         string? url = this.getUrl("private", "private");
         string messageHash = this.requestId().ToString();
-        (string?, object) opparamsOpVariable = this.handleOptionStringAndParams(parameters, "createOrderWs", "op", "batch-orders");
+        (string?, IDictionary<string, object>) opparamsOpVariable = this.handleOptionStringAndParams(parameters, "createOrderWs", "op", "batch-orders");
         string? op = opparamsOpVariable.Item1;
-        IDictionary<string, object> paramsOp = ((IDictionary<string, object>)opparamsOpVariable.Item2);
+        IDictionary<string, object> paramsOp = (opparamsOpVariable.Item2);
         Dictionary<string, object> args = this.createOrderRequest(symbol, type, side, amount, price, paramsOp);
         Dictionary<string, object> market = this.market(symbol);
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
@@ -2674,9 +2674,9 @@ public partial class okx : ccxt.okx
         await this.authenticate();
         string? url = this.getUrl("private", "private");
         string messageHash = this.requestId().ToString();
-        (string?, object) opparamsOpVariable = this.handleOptionStringAndParams(parameters, "editOrderWs", "op", "amend-order");
+        (string?, IDictionary<string, object>) opparamsOpVariable = this.handleOptionStringAndParams(parameters, "editOrderWs", "op", "amend-order");
         string? op = opparamsOpVariable.Item1;
-        IDictionary<string, object> paramsOp = ((IDictionary<string, object>)opparamsOpVariable.Item2);
+        IDictionary<string, object> paramsOp = (opparamsOpVariable.Item2);
         Dictionary<string, object> args = this.editOrderRequest(id, symbol, type, side, amount, price, paramsOp);
         Dictionary<string, object> market = this.market(symbol);
         Int64? instIdCode = this.safeInteger(market, "instIdCode");

@@ -1059,7 +1059,7 @@ public partial class gemini : Exchange
         //         "contract_price_currency": "GUSD"
         //     }
         //
-        object marketId = null;
+        string? marketId = null;
         string? baseId = null;
         string? quoteId = null;
         string? settleId = null;
@@ -1088,7 +1088,7 @@ public partial class gemini : Exchange
             // if no detailed API was called, then parse either string or array
             if (isString)
             {
-                marketId = response;
+                marketId = ((string)response);
             } else
             {
                 marketId = this.safeStringLower(response, 0);
@@ -1096,7 +1096,7 @@ public partial class gemini : Exchange
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            string marketIdUpper = ((string)marketId).ToUpper();
+            string marketIdUpper = marketId.ToUpper();
             bool isPerp = (marketIdUpper.IndexOf("PERP", StringComparison.Ordinal) >= 0);
             string marketIdWithoutPerp = marketIdUpper.Replace("PERP", (string)"");
             IDictionary<string, object> conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
@@ -2258,7 +2258,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // withdraw

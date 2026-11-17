@@ -494,9 +494,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             await this.loadMarkets();
         }
-        (bool?, object) verboseparamsVerboseVariable = this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
+        (bool?, IDictionary<string, object>) verboseparamsVerboseVariable = this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
         bool? verbose = verboseparamsVerboseVariable.Item1;
-        IDictionary<string, object> paramsVerbose = ((IDictionary<string, object>)verboseparamsVerboseVariable.Item2);
+        IDictionary<string, object> paramsVerbose = (verboseparamsVerboseVariable.Item2);
         string? name = "open_orders";
         string messageHash = "orders";
         if ((verbose == true))
@@ -580,9 +580,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         string name = "balances";
         string messageHash = name;
-        (string?, object) accountparamsAccountVariable = this.handleOptionStringAndParams(parameters, "watchBalance", "account");
+        (string?, IDictionary<string, object>) accountparamsAccountVariable = this.handleOptionStringAndParams(parameters, "watchBalance", "account");
         string? account = accountparamsAccountVariable.Item1;
-        IDictionary<string, object> paramsAccount = ((IDictionary<string, object>)accountparamsAccountVariable.Item2);
+        IDictionary<string, object> paramsAccount = (accountparamsAccountVariable.Item2);
         if ((account != null))
         {
             if (!(account == "futures") && !(account == "flex_futures"))

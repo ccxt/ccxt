@@ -1051,7 +1051,7 @@ public partial class htx : ccxt.htx
         object channel = null;
         string? orderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
         orderType = this.safeString(parameters, "orderType", orderType);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "orderType"));
+        IDictionary<string, object> paramsOmitted = this.omit(parameters, "orderType");
         string? marketCode = null;
         if ((market != null))
         {
@@ -1814,15 +1814,15 @@ public partial class htx : ccxt.htx
             string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
             IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
             type = ((marketType == "spot")) ? "future" : marketType;
-            (string?, object) subTypeparamsSubTypeVariable = this.handleOptionStringAndParams(paramsMarketType, "watchPositions", "subType", subType);
+            (string?, IDictionary<string, object>) subTypeparamsSubTypeVariable = this.handleOptionStringAndParams(paramsMarketType, "watchPositions", "subType", subType);
             subType = subTypeparamsSubTypeVariable.Item1;
             paramsSubType = subTypeparamsSubTypeVariable.Item2;
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         object paramsPositions = ((market != null)) ? parameters : paramsSubType;
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
         string marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         IDictionary<string, object> paramsRequest = paramsMarginMode;
         bool linear = (subType == "linear");
         bool swap = (type == "swap");
