@@ -15415,7 +15415,7 @@ function goDerefArgMapReadSelfTest (ok: SelfTestOk): void {
 // ToString(..), string fields, base method returning `string`); any other leaf keeps Add.
 function goAddStringMethods (): Set<string> { return new Set ([ 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2' ]); }
 // the credential fields are declared `string` in go/v4/exchange.go, so they are non-nil leaves too
-function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname', 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey' ]); }
+function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname', 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey', 'Login', 'Twofa' ]); }
 
 
 // split `text` (masked twin `masked`) at top-level occurrences of `sep`
@@ -19250,7 +19250,7 @@ function goStdlibStringHelpersCheck (ok: SelfTestOk): void {
 // go/v4/exchange.go declares the credential fields `string`, so an absent key is "" and never a nil box: nil tests print
 // as empty-string tests, a nil/empty pair collapses to its empty half, and a defaulted SafeString write derefs.
 function gb09CredentialFields (): string[] {
-    return [ 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey' ];
+    return [ 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey', 'Login', 'Twofa' ];
 }
 
 // `this.<Field> = this.SafeString(..., "<literal>")`: the literal default makes the call non-nil
@@ -19318,8 +19318,8 @@ function gb09Check (ok: SelfTestOk): void {
     ok (f (nilTest).indexOf ('if this.ApiKey == "" {') >= 0, 'nil test prints as the empty-string test: ' + f (nilTest));
     const pair = '\tvar s bool = (this.PrivateKey != nil) && (this.PrivateKey != "")';
     ok (f (pair).indexOf ('var s bool = (this.PrivateKey != "")') >= 0, 'nil/empty pair collapses: ' + f (pair));
-    const boxed = '\tif this.Token == nil || this.Login == nil {';
-    ok (f (boxed) === boxed, 'Token/Login stay boxed: ' + f (boxed));
+    const boxed = '\tif this.Token == nil {';
+    ok (f (boxed) === boxed, 'Token stays boxed: ' + f (boxed));
     const write = '\tthis.ApiKey = this.SafeString(creds, "apiKey", "")';
     ok (f (write).indexOf ('this.ApiKey = *this.SafeString(creds, "apiKey", "")') >= 0, 'defaulted write derefs: ' + f (write));
     const nilable = '\tthis.ApiKey = this.SafeString(creds, "apiKey")';
