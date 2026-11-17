@@ -175,7 +175,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 		// }
 
 		//set default headers
-		defaultHeaders := this.Headers.(map[string]any)
+		defaultHeaders := this.Headers
 		for key, value := range defaultHeaders {
 			req.Header.Set(key, derefScalar(value).(string))
 		}

@@ -110,23 +110,23 @@ type BaseExchange struct {
 	Last_request_body     any
 	Last_request_url      any
 	LastRequestUrl        string
-	Headers               any
+	Headers               map[string]any
 	ReturnResponseHeaders bool
 
 	// type check this
 	Number any
 	// keys: plain strings, so `this.ApiKey + ":" + this.Secret` is a native Go concat and an
-	// absent key is "" rather than a nil box. Token/Login/Twofa stay boxed (SetToken writes raw).
+	// absent key is "" rather than a nil box. Token stays boxed (SetToken writes raw).
 	Secret        string
 	ApiKey        string
 	Password      string
 	Uid           string
 	AccountId     string
 	Token         interface{}
-	Login         interface{}
+	Login         string
 	PrivateKey    string
 	WalletAddress string
-	Twofa         interface{}
+	Twofa         string
 
 	httpClient   *http.Client
 	lastProxyURL string
