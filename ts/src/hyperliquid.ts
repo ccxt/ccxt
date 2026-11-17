@@ -3,7 +3,7 @@
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, BadSymbol, InsufficientFunds, RateLimitExceeded, InvalidProxySettings } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, BadSymbol, AuthenticationError, InsufficientFunds, RateLimitExceeded, InvalidProxySettings } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -228,6 +228,7 @@ export default class hyperliquid extends Exchange {
                 'defaultSlippage': 0.05,
                 'marketHelperProps': [ 'hip3TokensByName', 'cachedCurrenciesById' ],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'signatureChainId': 421614, // a browser wallet only signs when this equals the chain it is connected to
                 // below will be filled automatically
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
@@ -1748,66 +1749,199 @@ export default class hyperliquid extends Exchange {
         return this.hash (this.base16ToBinary (data), keccak, 'binary');
     }
 
-    signL1Action (action: any, nonce: any, vaultAdress: Str = undefined, expiresAfter: Int = undefined): Dict {
-        const hash = this.actionHash (action, vaultAdress, nonce, expiresAfter);
+    eip712DomainType (): List {
+        return [
+            { 'name': 'name', 'type': 'string' },
+            { 'name': 'version', 'type': 'string' },
+            { 'name': 'chainId', 'type': 'uint256' },
+            { 'name': 'verifyingContract', 'type': 'address' },
+        ];
+    }
+
+    signatureChainIdHex (): string {
+        const chainIdOption = this.safeInteger (this.options, 'signatureChainId', 421614);
+        const chainId = this.parseToInt (chainIdOption);
+        const chainIdHex = this.intToBase16 (chainId);
+        const chainIdHexLower = chainIdHex.toLowerCase ();
+        return '0x' + chainIdHexLower;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#l1ActionTypedData
+     * @description builds the EIP-712 typed data (eth_signTypedData_v4 format) that has to be signed for an L1 action
+     * @param {object} action the action to sign
+     * @param {int} nonce the nonce of the request
+     * @param {string} [vaultAddress] the vault or subaccount address, without the 0x prefix
+     * @param {int} [expiresAfter] the expiration timestamp of the action
+     * @returns {object} a JSON-serialisable dictionary with domain, types, primaryType and message
+     */
+    l1ActionTypedData (action: any, nonce: any, vaultAddress: Str = undefined, expiresAfter: Int = undefined): Dict {
+        const hash = this.actionHash (action, vaultAddress, nonce, expiresAfter);
         const isTestnet = this.safeBool (this.options, 'sandboxMode', false);
-        const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
-        // const data: Dict = {
-        //     'domain': {
-        //         'chainId': 1337,
-        //         'name': 'Exchange',
-        //         'verifyingContract': '0x0000000000000000000000000000000000000000',
-        //         'version': '1',
-        //     },
-        //     'types': {
-        //         'Agent': [
-        //             { 'name': 'source', 'type': 'string' },
-        //             { 'name': 'connectionId', 'type': 'bytes32' },
-        //         ],
-        //         'EIP712Domain': [
-        //             { 'name': 'name', 'type': 'string' },
-        //             { 'name': 'version', 'type': 'string' },
-        //             { 'name': 'chainId', 'type': 'uint256' },
-        //             { 'name': 'verifyingContract', 'type': 'address' },
-        //         ],
-        //     },
-        //     'primaryType': 'Agent',
-        //     'message': phantomAgent,
-        // };
+        const phantomAgent = this.constructPhantomAgent ('0x' + this.binaryToBase16 (hash), isTestnet);
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        const chainId = 1337; // check this out
-        const domain: Dict = {
-            'chainId': chainId,
-            'name': 'Exchange',
-            'verifyingContract': zeroAddress,
-            'version': '1',
+        return {
+            'domain': {
+                'chainId': 1337,
+                'name': 'Exchange',
+                'verifyingContract': zeroAddress,
+                'version': '1',
+            },
+            'types': {
+                'Agent': [
+                    { 'name': 'source', 'type': 'string' },
+                    { 'name': 'connectionId', 'type': 'bytes32' },
+                ],
+                'EIP712Domain': this.eip712DomainType (),
+            },
+            'primaryType': 'Agent',
+            'message': phantomAgent,
         };
-        const messageTypes: Dict = {
-            'Agent': [
-                { 'name': 'source', 'type': 'string' },
-                { 'name': 'connectionId', 'type': 'bytes32' },
-            ],
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#userSignedActionTypedData
+     * @description builds the EIP-712 typed data (eth_signTypedData_v4 format) that has to be signed for a user-signed action
+     * @param {object} messageTypes a dictionary with the single primary type and its fields
+     * @param {object} message the action fields to sign
+     * @returns {object} a JSON-serialisable dictionary with domain, types, primaryType and message
+     */
+    userSignedActionTypedData (messageTypes: Dict, message: Dict): Dict {
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        const chainId = this.safeInteger (this.options, 'signatureChainId', 421614);
+        const typeNames = Object.keys (messageTypes);
+        const primaryType = typeNames[0];
+        return {
+            'domain': {
+                'chainId': chainId,
+                'name': 'HyperliquidSignTransaction',
+                'verifyingContract': zeroAddress,
+                'version': '1',
+            },
+            'types': this.extend (messageTypes, { 'EIP712Domain': this.eip712DomainType () }),
+            'primaryType': primaryType,
+            'message': message,
         };
-        const msg = this.ethEncodeStructuredData (domain, messageTypes, phantomAgent);
-        const signature = this.signMessage (msg, this.privateKey);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#signTypedDataWithPrivateKey
+     * @description signs EIP-712 typed data locally with the privateKey credential
+     * @param {object} typedData the typed data as returned by l1ActionTypedData or userSignedActionTypedData
+     * @returns {object} the signature as { r, s, v }
+     */
+    signTypedDataWithPrivateKey (typedData: Dict): Dict {
+        if ((this.privateKey === undefined) || (this.privateKey === '')) {
+            throw new AuthenticationError (this.id + ' signing requires the "privateKey" credential, or override signTypedData() to sign externally');
+        }
+        const domain = this.safeDict (typedData, 'domain');
+        const allTypes = this.safeDict (typedData, 'types');
+        const messageTypes = this.omit (allTypes, 'EIP712Domain');
+        const primaryType = this.safeString (typedData, 'primaryType');
+        const message = this.extend ({}, this.safeDict (typedData, 'message'));
+        const fields = this.safeList (messageTypes, primaryType, []);
+        const fieldsLength = fields.length;
+        for (let i = 0; i < fieldsLength; i++) {
+            const field = fields[i];
+            if (field['type'] === 'bytes32') {
+                const fieldName = field['name'];
+                const fieldValue = this.safeString (message, fieldName);
+                message[fieldName] = this.base16ToBinary (this.remove0xPrefix (fieldValue));
+            }
+        }
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
+        return this.signMessage (msg, this.privateKey);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#signTypedData
+     * @description produces every signature ccxt sends to hyperliquid; override this method to sign outside of ccxt (browser wallet, hardware wallet, remote signer)
+     * @param {object} typedData { domain, types, primaryType, message } as accepted by eth_signTypedData_v4
+     * @returns {object} the signature as { 'r': '0x..', 's': '0x..', 'v': 27|28 }, see parseEthSignature for wallet hex output; without a local key set exchange.requiredCredentials['privateKey'] = false
+     */
+    async signTypedData (typedData: Dict): Promise<Dict> {
+        await this.sleep (0); // keeps the default an awaitable coroutine in every port
+        const signature = this.signTypedDataWithPrivateKey (typedData);
         return signature;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#parseEthSignature
+     * @description converts a 65-byte hex signature returned by eth_signTypedData_v4 into { r, s, v }
+     * @param {string} signature 0x-prefixed hex string of r (32 bytes), s (32 bytes) and v (1 byte)
+     * @returns {object} the signature as { r, s, v } with v normalised to 27 or 28
+     */
+    parseEthSignature (signature: string): Dict {
+        const sigHex = this.remove0xPrefix (signature);
+        const sigLength = sigHex.length;
+        if (sigLength !== 130) {
+            throw new BadRequest (this.id + ' parseEthSignature() expects a 65-byte hex signature');
+        }
+        const rHex = sigHex.slice (0, 64);
+        const sHex = sigHex.slice (64, 128);
+        const vHex = sigHex.slice (128, 130);
+        const vLower = vHex.toLowerCase ();
+        const vValues: Dict = {
+            '00': 27,
+            '01': 28,
+            '1b': 27,
+            '1c': 28,
+        };
+        const v = this.safeInteger (vValues, vLower);
+        if (v === undefined) {
+            throw new BadRequest (this.id + ' parseEthSignature() got an invalid recovery id ' + vHex);
+        }
+        return {
+            'r': '0x' + rHex,
+            's': '0x' + sHex,
+            'v': v,
+        };
+    }
+
+    async l1ActionSignature (action: any, nonce: any, vaultAddress: Str = undefined, expiresAfter: Int = undefined): Promise<Dict> {
+        const typedData = this.l1ActionTypedData (action, nonce, vaultAddress, expiresAfter);
+        const signature = await this.signTypedData (typedData);
+        return signature;
+    }
+
+    async userSignedActionSignature (messageTypes: Dict, message: Dict): Promise<Dict> {
+        const typedData = this.userSignedActionTypedData (messageTypes, message);
+        const signature = await this.signTypedData (typedData);
+        return signature;
+    }
+
+    async signL1Request (request: Dict): Promise<Dict> {
+        const vaultAddress = this.safeString (request, 'vaultAddress');
+        const signature = await this.l1ActionSignature (request['action'], request['nonce'], vaultAddress);
+        const signedRequest = this.attachL1Signature (request, signature);
+        return signedRequest;
+    }
+
+    attachL1Signature (request: Dict, signature: Dict): Dict {
+        const vaultAddress = this.safeString (request, 'vaultAddress');
+        const signedRequest = this.extend (this.omit (request, 'vaultAddress'), { 'signature': signature });
+        if (vaultAddress !== undefined) {
+            signedRequest['vaultAddress'] = vaultAddress;
+        }
+        return signedRequest;
+    }
+
+    signL1Action (action: any, nonce: any, vaultAdress: Str = undefined, expiresAfter: Int = undefined): Dict {
+        const typedData = this.l1ActionTypedData (action, nonce, vaultAdress, expiresAfter);
+        return this.signTypedDataWithPrivateKey (typedData);
     }
 
     signUserSignedAction (messageTypes: Dict, message: Dict): Dict {
-        const zeroAddress = this.safeString (this.options, 'zeroAddress');
-        const chainId = 421614; // check this out
-        const domain: Dict = {
-            'chainId': chainId,
-            'name': 'HyperliquidSignTransaction',
-            'verifyingContract': zeroAddress,
-            'version': '1',
-        };
-        const msg = this.ethEncodeStructuredData (domain, messageTypes, message);
-        const signature = this.signMessage (msg, this.privateKey);
-        return signature;
+        const typedData = this.userSignedActionTypedData (messageTypes, message);
+        return this.signTypedDataWithPrivateKey (typedData);
     }
 
-    buildUsdSendSig (message: Dict): Dict {
+    async buildUsdSendSig (message: Dict): Promise<Dict> {
         const messageTypes: Dict = {
             'HyperliquidTransaction:UsdSend': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1816,10 +1950,11 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'time', 'type': 'uint64' },
             ],
         };
-        return this.signUserSignedAction (messageTypes, message);
+        const signature = await this.userSignedActionSignature (messageTypes, message);
+        return signature;
     }
 
-    buildUsdClassSendSig (message: Dict): Dict {
+    async buildUsdClassSendSig (message: Dict): Promise<Dict> {
         const messageTypes: Dict = {
             'HyperliquidTransaction:UsdClassTransfer': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1828,10 +1963,11 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
-        return this.signUserSignedAction (messageTypes, message);
+        const signature = await this.userSignedActionSignature (messageTypes, message);
+        return signature;
     }
 
-    buildSendAssetSig (message: Dict): Dict {
+    async buildSendAssetSig (message: Dict): Promise<Dict> {
         const messageTypes: Dict = {
             'HyperliquidTransaction:SendAsset': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1844,10 +1980,11 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
-        return this.signUserSignedAction (messageTypes, message);
+        const signature = await this.userSignedActionSignature (messageTypes, message);
+        return signature;
     }
 
-    buildWithdrawSig (message: Dict): Dict {
+    async buildWithdrawSig (message: Dict): Promise<Dict> {
         const messageTypes: Dict = {
             'HyperliquidTransaction:Withdraw': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1856,10 +1993,11 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'time', 'type': 'uint64' },
             ],
         };
-        return this.signUserSignedAction (messageTypes, message);
+        const signature = await this.userSignedActionSignature (messageTypes, message);
+        return signature;
     }
 
-    buildUserDexAbstractionSig (message: Dict): Dict {
+    async buildUserDexAbstractionSig (message: Dict): Promise<Dict> {
         const messageTypes: Dict = {
             'HyperliquidTransaction:UserDexAbstraction': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1868,10 +2006,11 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
-        return this.signUserSignedAction (messageTypes, message);
+        const signature = await this.userSignedActionSignature (messageTypes, message);
+        return signature;
     }
 
-    buildUserAbstractionSig (message: Dict): Dict {
+    async buildUserAbstractionSig (message: Dict): Promise<Dict> {
         const messageTypes: Dict = {
             'HyperliquidTransaction:UserSetAbstraction': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1880,10 +2019,11 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
-        return this.signUserSignedAction (messageTypes, message);
+        const signature = await this.userSignedActionSignature (messageTypes, message);
+        return signature;
     }
 
-    buildApproveBuilderFeeSig (message: Dict): Dict {
+    async buildApproveBuilderFeeSig (message: Dict): Promise<Dict> {
         const messageTypes: Dict = {
             'HyperliquidTransaction:ApproveBuilderFee': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1892,7 +2032,8 @@ export default class hyperliquid extends Exchange {
                 { 'name': 'nonce', 'type': 'uint64' },
             ],
         };
-        return this.signUserSignedAction (messageTypes, message);
+        const signature = await this.userSignedActionSignature (messageTypes, message);
+        return signature;
     }
 
     async setRef () {
@@ -1905,7 +2046,7 @@ export default class hyperliquid extends Exchange {
             'code': this.safeString (this.options, 'ref', 'CCXT1'),
         };
         const nonce = this.incrementingNonce ();
-        const signature = this.signL1Action (action, nonce);
+        const signature = await this.l1ActionSignature (action, nonce);
         const request: Dict = {
             'action': action,
             'nonce': nonce,
@@ -1930,10 +2071,10 @@ export default class hyperliquid extends Exchange {
             'builder': builder,
             'nonce': nonce,
         };
-        const sig = this.buildApproveBuilderFeeSig (payload);
+        const sig = await this.buildApproveBuilderFeeSig (payload);
         const action = {
             'hyperliquidChain': payload['hyperliquidChain'],
-            'signatureChainId': '0x66eee',
+            'signatureChainId': this.signatureChainIdHex (),
             'maxFeeRate': payload['maxFeeRate'],
             'builder': payload['builder'],
             'nonce': nonce,
@@ -2063,10 +2204,10 @@ export default class hyperliquid extends Exchange {
             'abstraction': abstraction,
             'nonce': nonce,
         };
-        const sig = this.buildUserAbstractionSig (payload);
+        const sig = await this.buildUserAbstractionSig (payload);
         const action = {
             'hyperliquidChain': payload['hyperliquidChain'],
-            'signatureChainId': '0x66eee',
+            'signatureChainId': this.signatureChainIdHex (),
             'abstraction': payload['abstraction'],
             'user': payload['user'],
             'nonce': nonce,
@@ -2109,10 +2250,10 @@ export default class hyperliquid extends Exchange {
             'enabled': enabled,
             'nonce': nonce,
         };
-        const sig = this.buildUserDexAbstractionSig (payload);
+        const sig = await this.buildUserDexAbstractionSig (payload);
         const action = {
             'hyperliquidChain': payload['hyperliquidChain'],
-            'signatureChainId': '0x66eee',
+            'signatureChainId': this.signatureChainIdHex (),
             'enabled': payload['enabled'],
             'user': payload['user'],
             'nonce': nonce,
@@ -2152,7 +2293,7 @@ export default class hyperliquid extends Exchange {
             'type': 'agentSetAbstraction',
             'abstraction': abstraction,
         };
-        const signature = this.signL1Action (action, nonce);
+        const signature = await this.l1ActionSignature (action, nonce);
         request['action'] = action;
         request['signature'] = signature;
         const response = await this.privatePostExchange (this.extend (request, params));
@@ -2230,7 +2371,7 @@ export default class hyperliquid extends Exchange {
             'type': 'twapOrder',
             'twap': orderObj,
         };
-        const signature = this.signL1Action (orderAction, nonce, vaultAddress);
+        const signature = await this.l1ActionSignature (orderAction, nonce, vaultAddress);
         const request: Dict = {
             'action': orderAction,
             'nonce': nonce,
@@ -2280,7 +2421,8 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         await this.initializeClient ();
-        const request = this.createOrdersRequest (orders, params);
+        const unsignedRequest = this.ordersActionRequest (orders, params);
+        const request = await this.signL1Request (unsignedRequest);
         const response = await this.privatePostExchange (request);
         //
         //     {
@@ -2392,11 +2534,11 @@ export default class hyperliquid extends Exchange {
         return orderObj;
     }
 
-    createOrdersRequest (orders: List, params: Dict = {}): Dict {
+    ordersActionRequest (orders: List, params: Dict = {}): Dict {
         /**
          * @method
-         * @name hyperliquid#createOrdersRequest
-         * @description create a list of trade orders
+         * @name hyperliquid#ordersActionRequest
+         * @description build the unsigned request payload for creating a list of trade orders
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2507,11 +2649,9 @@ export default class hyperliquid extends Exchange {
             }
             orderAction['builder'] = { 'b': wallet, 'f': feeInt };
         }
-        const signature = this.signL1Action (orderAction, nonce, vaultAddress);
         const request: Dict = {
             'action': orderAction,
             'nonce': nonce,
-            'signature': signature,
             // 'vaultAddress': vaultAddress,
         };
         if (vaultAddress !== undefined) {
@@ -2519,6 +2659,18 @@ export default class hyperliquid extends Exchange {
             request['vaultAddress'] = vaultAddress;
         }
         return request;
+    }
+
+    createOrdersRequest (orders: List, params: Dict = {}): Dict {
+        /**
+         * @method
+         * @name hyperliquid#createOrdersRequest
+         * @description build the request payload signed locally with the privateKey, see ordersActionRequest for the unsigned payload
+         * @returns {object} the raw request object to be sent to the exchange
+         */
+        const request = this.ordersActionRequest (orders, params);
+        const signature = this.signL1Action (request['action'], request['nonce'], this.safeString (request, 'vaultAddress'));
+        return this.attachL1Signature (request, signature);
     }
 
     /**
@@ -2570,7 +2722,8 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         await this.initializeClient ();
-        const request = this.cancelOrdersRequest (ids, symbol, params);
+        const unsignedRequest = this.cancelActionRequest (ids, symbol, params);
+        const request = await this.signL1Request (unsignedRequest);
         const response = await this.privatePostExchange (request);
         //
         //     {
@@ -2628,7 +2781,7 @@ export default class hyperliquid extends Exchange {
             't': this.parseToNumeric (id),
         };
         const nonce = this.incrementingNonce ();
-        const signature = this.signL1Action (action, nonce, vaultAddress);
+        const signature = await this.l1ActionSignature (action, nonce, vaultAddress);
         const request: Dict = {
             'action': action,
             'nonce': nonce,
@@ -2662,11 +2815,11 @@ export default class hyperliquid extends Exchange {
         return this.parseOrder ({ 'status': status, 'oid': id }, market);
     }
 
-    cancelOrdersRequest (ids: string[], symbol: Str = undefined, params: Dict = {}): Dict {
+    cancelActionRequest (ids: string[], symbol: Str = undefined, params: Dict = {}): Dict {
         /**
          * @method
-         * @name hyperliquid#cancelOrdersRequest
-         * @description build the request payload for cancelling multiple orders
+         * @name hyperliquid#cancelActionRequest
+         * @description build the unsigned request payload for cancelling multiple orders
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
          * @param {string[]} ids order ids
@@ -2719,14 +2872,24 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams2 (params2, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
-        request['signature'] = signature;
         if (vaultAddress !== undefined) {
             params2 = this.omit (params2, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
         return request;
+    }
+
+    cancelOrdersRequest (ids: string[], symbol: Str = undefined, params: Dict = {}): Dict {
+        /**
+         * @method
+         * @name hyperliquid#cancelOrdersRequest
+         * @description build the request payload signed locally with the privateKey, see cancelActionRequest for the unsigned payload
+         * @returns {object} the raw request object to be sent to the exchange
+         */
+        const request = this.cancelActionRequest (ids, symbol, params);
+        const signature = this.signL1Action (request['action'], request['nonce'], this.safeString (request, 'vaultAddress'));
+        return this.attachL1Signature (request, signature);
     }
 
     /**
@@ -2790,7 +2953,7 @@ export default class hyperliquid extends Exchange {
         }
         const vaultAddressOption = this.handleOptionStringAndParams2 (params, 'cancelOrdersForSymbols', 'vaultAddress', 'subAccountAddress')[0];
         const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
-        const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
+        const signature = await this.l1ActionSignature (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
         if (vaultAddress !== undefined) {
@@ -2842,7 +3005,7 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams2 (params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
+        const signature = await this.l1ActionSignature (cancelAction, nonce, vaultAddress);
         request['action'] = cancelAction;
         request['signature'] = signature;
         if (vaultAddress !== undefined) {
@@ -2859,7 +3022,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    editOrdersRequest (orders: List, params: Dict = {}): Dict {
+    modifyActionRequest (orders: List, params: Dict = {}): Dict {
         this.checkRequiredCredentials ();
         let hasClientOrderId = false;
         const ordersLength = orders.length;
@@ -2975,17 +3138,27 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams (params2, 'editOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        const signature = this.signL1Action (modifyAction, nonce, vaultAddress);
         const request: Dict = {
             'action': modifyAction,
             'nonce': nonce,
-            'signature': signature,
             // 'vaultAddress': vaultAddress,
         };
         if (vaultAddress !== undefined) {
             request['vaultAddress'] = vaultAddress;
         }
         return request;
+    }
+
+    editOrdersRequest (orders: List, params: Dict = {}): Dict {
+        /**
+         * @method
+         * @name hyperliquid#editOrdersRequest
+         * @description build the request payload signed locally with the privateKey, see modifyActionRequest for the unsigned payload
+         * @returns {object} the raw request object to be sent to the exchange
+         */
+        const request = this.modifyActionRequest (orders, params);
+        const signature = this.signL1Action (request['action'], request['nonce'], this.safeString (request, 'vaultAddress'));
+        return this.attachL1Signature (request, signature);
     }
 
     /**
@@ -3036,7 +3209,8 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         await this.initializeClient ();
-        const request = this.editOrdersRequest (orders, params);
+        const unsignedRequest = this.modifyActionRequest (orders, params);
+        const request = await this.signL1Request (unsignedRequest);
         const response = await this.privatePostExchange (request);
         //
         //     {
@@ -3106,7 +3280,7 @@ export default class hyperliquid extends Exchange {
             'initialUsd': usd,
             'nonce': nonce,
         };
-        const signature = this.signL1Action (action, nonce);
+        const signature = await this.l1ActionSignature (action, nonce);
         request['action'] = action;
         request['signature'] = signature;
         const response = await this.privatePostExchange (this.extend (request, params));
@@ -4161,7 +4335,7 @@ export default class hyperliquid extends Exchange {
                 vaultAddress = vaultAddress.replace ('0x', '');
             }
         }
-        const signature = this.signL1Action (updateAction, nonce, vaultAddress);
+        const signature = await this.l1ActionSignature (updateAction, nonce, vaultAddress);
         const request: Dict = {
             'action': updateAction,
             'nonce': nonce,
@@ -4215,7 +4389,7 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams2 (params2, 'setLeverage', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        const signature = this.signL1Action (updateAction, nonce, vaultAddress);
+        const signature = await this.l1ActionSignature (updateAction, nonce, vaultAddress);
         const request: Dict = {
             'action': updateAction,
             'nonce': nonce,
@@ -4287,7 +4461,7 @@ export default class hyperliquid extends Exchange {
         };
         const vaultAddressOption = this.handleOptionStringAndParams2 (params, 'modifyMargin', 'vaultAddress', 'subAccountAddress')[0];
         const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
-        const signature = this.signL1Action (updateAction, nonce, vaultAddress);
+        const signature = await this.l1ActionSignature (updateAction, nonce, vaultAddress);
         const request: Dict = {
             'action': updateAction,
             'nonce': nonce,
@@ -4377,11 +4551,11 @@ export default class hyperliquid extends Exchange {
                 'toPerp': toPerp,
                 'nonce': nonce,
             };
-            const transferSig = this.buildUsdClassSendSig (transferPayload);
+            const transferSig = await this.buildUsdClassSendSig (transferPayload);
             const transferRequest: Dict = {
                 'action': {
                     'hyperliquidChain': transferPayload['hyperliquidChain'],
-                    'signatureChainId': '0x66eee',
+                    'signatureChainId': this.signatureChainIdHex (),
                     'type': 'usdClassTransfer',
                     'amount': strAmountFinal,
                     'toPerp': toPerp,
@@ -4446,11 +4620,11 @@ export default class hyperliquid extends Exchange {
                 'fromSubAccount': (isDeposit) ? '' : subAccountAddress,
                 'nonce': nonce,
             };
-            const sendAssetSig = this.buildSendAssetSig (sendAssetPayload);
+            const sendAssetSig = await this.buildSendAssetSig (sendAssetPayload);
             const sendAssetRequest: Dict = {
                 'action': {
                     'hyperliquidChain': sendAssetPayload['hyperliquidChain'],
-                    'signatureChainId': '0x66eee',
+                    'signatureChainId': this.signatureChainIdHex (),
                     'type': 'sendAsset',
                     'destination': sendAssetPayload['destination'],
                     'sourceDex': sourceDex,
@@ -4482,7 +4656,7 @@ export default class hyperliquid extends Exchange {
                 'isDeposit': isDeposit,
                 'usd': usd,
             };
-            const sig = this.signL1Action (action, nonce);
+            const sig = await this.l1ActionSignature (action, nonce);
             const request: Dict = {
                 'action': action,
                 'nonce': nonce,
@@ -4508,7 +4682,7 @@ export default class hyperliquid extends Exchange {
                 'token': this.safeString (currencyInfo, 'name', '') + ':' + this.safeString (currencyInfo, 'tokenId', ''),
                 'amount': this.numberToString (amount),
             };
-            const sig = this.signL1Action (action, nonce);
+            const sig = await this.l1ActionSignature (action, nonce);
             const request: Dict = {
                 'action': action,
                 'nonce': nonce,
@@ -4572,7 +4746,7 @@ export default class hyperliquid extends Exchange {
                 // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
                 'usd': this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000')),
             };
-            sig = this.signL1Action (action, nonce);
+            sig = await this.l1ActionSignature (action, nonce);
         } else {
             const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             const payload: Dict = {
@@ -4581,10 +4755,10 @@ export default class hyperliquid extends Exchange {
                 'amount': this.numberToString (amount),
                 'time': nonce,
             };
-            sig = this.buildWithdrawSig (payload);
+            sig = await this.buildWithdrawSig (payload);
             action = {
                 'hyperliquidChain': payload['hyperliquidChain'],
-                'signatureChainId': '0x66eee', // check this out
+                'signatureChainId': this.signatureChainIdHex (),
                 'destination': address,
                 'amount': this.numberToString (amount),
                 'time': nonce,
@@ -5197,7 +5371,7 @@ export default class hyperliquid extends Exchange {
             'type': 'reserveRequestWeight',
             'weight': weight,
         };
-        const signature = this.signL1Action (action, nonce);
+        const signature = await this.l1ActionSignature (action, nonce);
         request['action'] = action;
         request['signature'] = signature;
         const response = await this.privatePostExchange (this.extend (request, params));
@@ -5226,7 +5400,7 @@ export default class hyperliquid extends Exchange {
         if (expiresAfter !== undefined) {
             request['expiresAfter'] = expiresAfter;
         }
-        const signature = this.signL1Action (action, nonce, undefined, expiresAfter);
+        const signature = await this.l1ActionSignature (action, nonce, undefined, expiresAfter);
         request['action'] = action;
         request['signature'] = signature;
         const response = await this.privatePostExchange (this.extend (request, this.omit (params, 'expiresAfter')));
