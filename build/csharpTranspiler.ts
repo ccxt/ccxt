@@ -1577,7 +1577,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:apex': { 'authenticate': [ 0 ] },
     'pro:aster': { 'parseWsTicker': [ 1 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:backpack': { 'parseWsOrderSide': [ 0 ], 'parseWsOrderStatus': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
-    'pro:binance': { 'ensureUserDataStreamWsSubscribeListenToken': [ 0 ], 'ensureUserDataStreamWsSubscribeSignature': [ 0 ], 'setBalanceCache': [ 1 ], 'setPositionsCache': [ 1 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:binance': { 'ensureUserDataStreamWsSubscribeListenToken': [ 0 ], 'ensureUserDataStreamWsSubscribeSignature': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:bingx': { 'getOrderBookLimitByMarketType': [ 0 ], 'setPositionsCache': [ 1 ], 'unWatchTrades': [ 0 ] },
     'pro:bitfinex': { 'parseWsOrderStatus': [ 0 ], 'subscribe': [ 1 ], 'unWatchTrades': [ 0 ] },
     'pro:bitget': { 'parseWsOrderStatus': [ 0 ], 'parseWsTicker': [ 1 ], 'unWatchTrades': [ 0 ] },
