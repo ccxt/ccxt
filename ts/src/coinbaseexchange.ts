@@ -662,74 +662,74 @@ export default class coinbaseexchange extends Exchange {
         //         }
         //     ]
         //
-        const result: Market[] = [];
         const rawMarkets = this.toArray (response);
-        for (let i = 0; i < rawMarkets.length; i++) {
-            const market = rawMarkets[i];
-            const id = this.safeString (market, 'id');
-            const parts: string[] = (id as string).split ('-');
-            const baseId = parts[0];
-            const quoteId = parts[1];
-            // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
-            // const baseId = this.safeString (market, 'base_currency');
-            // const quoteId = this.safeString (market, 'quote_currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            const status = this.safeString (market, 'status');
-            result.push (this.extend (this.fees['trading'], {
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': this.safeBool (market, 'margin_enabled'),
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'online'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'base_increment'),
-                    'price': this.safeNumber (market, 'quote_increment'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'min_market_funds'),
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            }));
+        return this.parseMarkets (rawMarkets);
+    }
+
+    override parseMarket (market: Dict): Market {
+        const id = this.safeString (market, 'id');
+        const parts: string[] = (id as string).split ('-');
+        const baseId = parts[0];
+        const quoteId = parts[1];
+        // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
+        // const baseId = this.safeString (market, 'base_currency');
+        // const quoteId = this.safeString (market, 'quote_currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return {} as Market;
         }
-        return result;
+        const status = this.safeString (market, 'status');
+        // not wrapped in safeMarketStructure to keep the previous output shape (no index/marginModes/subType keys)
+        return this.extend (this.fees['trading'], {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': this.safeBool (market, 'margin_enabled'),
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'online'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'base_increment'),
+                'price': this.safeNumber (market, 'quote_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_market_funds'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        });
     }
 
     /**
