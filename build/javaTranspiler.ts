@@ -6361,6 +6361,76 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(r92j7d, { force: true });
     }
+    // bitfinex parseOrderFlags prints List<Object> (safeList with a list default): its result is read natively
+    const r93j7a = path.join(process.cwd(), 'ts', 'src', `zz93j7aselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7a, [
+            "import Exchange from './bitfinex.js';",
+            'export default class zz93j7aselftest extends Exchange {',
+            "    zzFlags (raw: string) { const flags = this.parseOrderFlags (raw); let n = 0; for (let i = 0; i < flags.length; i++) { n += 1; } return n; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7a).content as string;
+        if (!/List<Object> flags = this\.parseOrderFlags\(/.test(out) || !/i < flags\.size\(\)/.test(out)) problems.push("ral-93j7: a parseOrderFlags result must print List<Object> with a native size()");
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7a, { force: true });
+    }
+    // parseSettlements is List<Object> on every declaration: its result local takes no declaration cast
+    const r93j7b = path.join(process.cwd(), 'ts', 'src', `zz93j7bselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7b, [
+            "import Exchange from './binance.js';",
+            "import type { Dict, Market } from './base/types.js';",
+            'export default class zz93j7bselftest extends Exchange {',
+            "    zzSettle (response: Dict[], market: Market) { const settlements = this.parseSettlements (response, market); return settlements.length; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7b).content as string;
+        if (!/List<Object> settlements = this\.parseSettlements\(/.test(out) || !/= settlements\.size\(\)|return settlements\.size\(\)/.test(out)) problems.push("ral-93j7: a parseSettlements result must print List<Object> without a cast and a native size()\n" + out.split('\n').filter((l) => l.includes('settlements')).join('\n'));
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7b, { force: true });
+    }
+    // an awaited List<Object> venue fetch rewritten by a List<Object> venue filter stays List: its length is native
+    const r93j7c = path.join(process.cwd(), 'ts', 'src', 'prediction', `zz93j7cselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7c, [
+            "import Exchange from './sxbet.js';",
+            "import type { Dict } from '../base/types.js';",
+            'export default class zz93j7cselftest extends Exchange {',
+            "    zzFixture (raw: Dict[], id: string): Dict[] { const result: Dict[] = []; for (let i = 0; i < raw.length; i++) { if (this.safeString (raw[i], 'sportXeventId') === id) { result.push (raw[i]); } } return result; }",
+            "    async zzRaw (id: string, params: Dict = {}) { let rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': id }, params), undefined); rawMarkets = this.zzFixture (rawMarkets, id); const rawMarketsLength = rawMarkets.length; return rawMarketsLength; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7c).content as string;
+        if (!/List<Object> rawMarkets = \(this\.fetchRawMarketsPaged\(/.test(out) || !/= rawMarkets\.size\(\);/.test(out)) problems.push("ral-93j7: a venue List fetch rewritten by a venue List filter must print List<Object> with a native size()\n" + out.split('\n').filter((l) => /rawMarkets|zzFixture/.test(l)).join('\n'));
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7c, { force: true });
+    }
+    // prediction parseEvent (returns this.extend (..)) prints Map: its result is read and written natively
+    const r93j7d = path.join(process.cwd(), 'ts', 'src', 'prediction', `zz93j7dselftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r93j7d, [
+            "import Exchange from './myriad.js';",
+            "import type { Dict, PredictionEvent } from '../base/types.js';",
+            'export default class zz93j7dselftest extends Exchange {',
+            "    zzEv (raw: Dict) { const ev = this.parseEvent (raw); ev['markets'] = []; return ev; }",
+            "    parseEvent (rawEvent: Dict): PredictionEvent { if (rawEvent === undefined) { return this.extend ({ 'id': undefined }) as PredictionEvent; } return this.extend ({ 'id': this.safeString (rawEvent, 'id'), 'info': rawEvent }); }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7d).content as string;
+        if (!/Map<String, ?Object> ev = this\.parseEvent\(/.test(out) || !/\bev\.put\("markets"/.test(out)) problems.push("ral-93j7: a parseEvent result must print Map<String, Object> with a native put\n" + out.split('\n').filter((l) => /\bev\b/.test(l)).join('\n'));
+        if ((out.match(/return \(\((java\.util\.)?Map<String, ?Object>\) this\.extend\(/g) ?? []).length !== 2) problems.push("ral-93j7: a parseEvent `return this.extend ({..})` must print the ((Map) call) form the literal hoist accepts\n" + out.split('\n').filter((l) => /return|mapLiteral/.test(l)).join('\n'));
+    } catch (e) {
+        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r93j7d, { force: true });
+    }
     return problems;
 }
 
