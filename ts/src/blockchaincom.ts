@@ -327,102 +327,113 @@ export default class blockchaincom extends Exchange {
         //
         const markets = await this.publicGetSymbols (params);
         const marketIds = Object.keys (markets);
-        const result: List = [];
+        const rawMarkets: List = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeDict (markets, marketId);
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'counter_currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            const numericId = this.safeNumber (market, 'id');
-            let active: Bool = undefined;
-            const marketState = this.safeString (market, 'status');
-            if (marketState === 'open') {
-                active = true;
-            } else {
-                active = false;
-            }
-            // price precision
-            const minPriceIncrementString = this.safeString (market, 'min_price_increment');
-            const minPriceIncrementScaleString = this.safeString (market, 'min_price_increment_scale');
-            const minPriceScalePrecisionString = this.parsePrecision (minPriceIncrementScaleString);
-            const pricePrecisionString = Precise.stringMul (minPriceIncrementString, minPriceScalePrecisionString);
-            // amount precision
-            const lotSizeString = this.safeString (market, 'lot_size');
-            const lotSizeScaleString = this.safeString (market, 'lot_size_scale');
-            const lotSizeScalePrecisionString = this.parsePrecision (lotSizeScaleString);
-            const amountPrecisionString = Precise.stringMul (lotSizeString, lotSizeScalePrecisionString);
-            // minimum order size
-            const minOrderSizeString = this.safeString (market, 'min_order_size');
-            const minOrderSizeScaleString = this.safeString (market, 'min_order_size_scale');
-            const minOrderSizeScalePrecisionString = this.parsePrecision (minOrderSizeScaleString);
-            const minOrderSizePreciseString = Precise.stringMul (minOrderSizeString, minOrderSizeScalePrecisionString);
-            const minOrderSize = this.parseNumber (minOrderSizePreciseString);
-            // maximum order size
-            let maxOrderSize: Num = undefined;
-            const maxOrderSizeRaw = this.safeString (market, 'max_order_size');
-            if (maxOrderSizeRaw !== '0') {
-                const maxOrderSizeScaleString = this.safeString (market, 'max_order_size_scale');
-                const maxOrderSizeScalePrecisionString = this.parsePrecision (maxOrderSizeScaleString);
-                const maxOrderSizeValueString = Precise.stringMul (maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
-                maxOrderSize = this.parseNumber (maxOrderSizeValueString);
-            }
-            result.push ({
+            rawMarkets.push ({
                 'info': market,
-                'id': marketId,
-                'numericId': numericId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (amountPrecisionString),
-                    'price': this.parseNumber (pricePrecisionString),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': minOrderSize,
-                        'max': maxOrderSize,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
+                'marketId': marketId,
             });
         }
-        return result;
+        return this.parseMarkets (rawMarkets);
+    }
+
+    override parseMarket (entry: Dict): Market {
+        // the market id is the key of the symbols response, so fetchMarkets wraps each raw market as { 'info': market, 'marketId': marketId }
+        const market = this.safeDict (entry, 'info', entry);
+        const marketId = this.safeString (entry, 'marketId');
+        const baseId = this.safeString (market, 'base_currency');
+        const quoteId = this.safeString (market, 'counter_currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return {} as Market;
+        }
+        const numericId = this.safeNumber (market, 'id');
+        let active: Bool = undefined;
+        const marketState = this.safeString (market, 'status');
+        if (marketState === 'open') {
+            active = true;
+        } else {
+            active = false;
+        }
+        // price precision
+        const minPriceIncrementString = this.safeString (market, 'min_price_increment');
+        const minPriceIncrementScaleString = this.safeString (market, 'min_price_increment_scale');
+        const minPriceScalePrecisionString = this.parsePrecision (minPriceIncrementScaleString);
+        const pricePrecisionString = Precise.stringMul (minPriceIncrementString, minPriceScalePrecisionString);
+        // amount precision
+        const lotSizeString = this.safeString (market, 'lot_size');
+        const lotSizeScaleString = this.safeString (market, 'lot_size_scale');
+        const lotSizeScalePrecisionString = this.parsePrecision (lotSizeScaleString);
+        const amountPrecisionString = Precise.stringMul (lotSizeString, lotSizeScalePrecisionString);
+        // minimum order size
+        const minOrderSizeString = this.safeString (market, 'min_order_size');
+        const minOrderSizeScaleString = this.safeString (market, 'min_order_size_scale');
+        const minOrderSizeScalePrecisionString = this.parsePrecision (minOrderSizeScaleString);
+        const minOrderSizePreciseString = Precise.stringMul (minOrderSizeString, minOrderSizeScalePrecisionString);
+        const minOrderSize = this.parseNumber (minOrderSizePreciseString);
+        // maximum order size
+        let maxOrderSize: Num = undefined;
+        const maxOrderSizeRaw = this.safeString (market, 'max_order_size');
+        if (maxOrderSizeRaw !== '0') {
+            const maxOrderSizeScaleString = this.safeString (market, 'max_order_size_scale');
+            const maxOrderSizeScalePrecisionString = this.parsePrecision (maxOrderSizeScaleString);
+            const maxOrderSizeValueString = Precise.stringMul (maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
+            maxOrderSize = this.parseNumber (maxOrderSizeValueString);
+        }
+        // not wrapped in safeMarketStructure to keep the previous output shape (no index/marginModes/subType keys)
+        return {
+            'info': market,
+            'id': marketId,
+            'numericId': numericId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (amountPrecisionString),
+                'price': this.parseNumber (pricePrecisionString),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': minOrderSize,
+                    'max': maxOrderSize,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+        };
     }
 
     /**
