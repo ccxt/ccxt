@@ -446,7 +446,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    override handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any[]) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],

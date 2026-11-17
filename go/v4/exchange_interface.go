@@ -440,11 +440,11 @@ type IDerivedExchange interface {
 	Nonce() int64
 	SignInAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	HandleDelta(bookside any, delta any)
-	GetCacheIndex(orderbook any, deltas any) any
+	GetCacheIndex(orderbook any, deltas []any) any
 	Ping(client any) any
 	HandleDeltas(bookside any, deltas any)
 	HandleBookDelta(orderbook OrderBookInterface, delta any)
-	HandleBookDeltas(orderbook OrderBookInterface, deltas any)
+	HandleBookDeltas(orderbook OrderBookInterface, deltas []any)
 	ParseLeverage(leverage any, optionalArgs ...any) Leverage
 	ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV
 	ParseTrade(trade any, optionalArgs ...any) Trade

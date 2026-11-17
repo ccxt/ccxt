@@ -6619,6 +6619,12 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     // createOrders (orders: OrderRequest[]) prints `orders []any` on the base, every venue and
     // ICreateOrders: every caller already hands over a `[]any`
     'createOrders': { 0: '[]any' },
+    // base list params every caller hands a `[]any` (typed locals, SortBy/ToArray results, literals);
+    // IDerivedExchange declares GetCacheIndex/HandleBookDeltas with the same slice
+    'getCacheIndex': { 1: '[]any' }, 'handleBookDeltas': { 1: '[]any' }, 'handleDeltasWithKeys': { 1: '[]any' },
+    'arraysConcat': { 0: '[]any' }, 'removeRepeatedElementsFromArray': { 0: '[]any' },
+    'removeRepeatedTradesFromArray': { 0: '[]any' }, 'parseOptionChain': { 0: '[]any' }, 'findNearestCeiling': { 0: '[]any' },
+    'parseWsOHLCVs': { 0: '[]any' },
 };
 
 // exchange-local methods no ts/src file calls whose required `string` params are Go strings
