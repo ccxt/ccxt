@@ -18073,8 +18073,8 @@ const JAVA_LIST_PARAM_SLOTS = {
     'parseTransactionsByType': [ 1 ],
 };
 // dictionary slots: every caller hands a checker-proven string-indexed object
+// (calculateRateLimiterCost params stays boxed: fetch2 forwards implicit-endpoint list bodies)
 const JAVA_MAP_PARAM_SLOTS = {
-    'calculateRateLimiterCost': [ 3 ],
     'addKeyInArrayItems': [ 0 ],
 };
 const JAVA_LIST_PARAM_SLOT_TYPE = 'java.util.List<Object>';
