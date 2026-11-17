@@ -1913,10 +1913,10 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var uppercaseType string = strings.ToUpper(typeVar)
 	var isLimit bool = (uppercaseType == "LIMIT")
 	var exchangeSpecificParam *bool = this.SafeBool(params, "post_only", false)
-	var postOnly any = nil
+	var postOnly bool
 	var query any = nil
 	var postOnlyqueryVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), exchangeSpecificParam, params)
-	postOnly = postOnlyqueryVariable[0]
+	postOnly = postOnlyqueryVariable[0].(bool)
 	query = postOnlyqueryVariable[1]
 	var triggerPrice *string = this.SafeStringN(query, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var request map[string]any = map[string]any{
@@ -1931,7 +1931,7 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			if timeInForce != nil && *timeInForce == "IOC" {
 				request["immediate_or_cancel"] = true
 			}
-			if postOnly == true {
+			if postOnly {
 				request["post_only"] = true
 			}
 		}

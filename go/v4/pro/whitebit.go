@@ -1032,8 +1032,8 @@ func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	this.Balance = this.Extend(response, this.Balance)
 	// don't remove the future from the .futures cache
 	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve()
+		var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
+		future.Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.Balance, subscriptionHash)
 	}
 	return nil

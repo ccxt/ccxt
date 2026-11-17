@@ -2218,13 +2218,13 @@ func (this *Sxbet) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	_ = params
 	this.CheckRequiredCredentials()
 	// copy to a plain list so the transpilers and the strict null checks see one shape
-	var outcomesList any = func() any {
-		if outcomes == nil {
-			return []any{}
-		}
-		return outcomes
-	}()
-	var outcomesLength int = ccxt.GetArrayLength(outcomesList)
+	var outcomesList []string
+	if outcomes == nil {
+		outcomesList = []string{}
+	} else {
+		outcomesList = outcomes
+	}
+	var outcomesLength int = len(outcomesList)
 	var wantedMarkets map[string]any = map[string]any{}
 	if outcomesLength > 0 {
 
@@ -2233,7 +2233,7 @@ func (this *Sxbet) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 			panic(r.Err)
 		}
 		for i := 0; i < outcomesLength; i++ {
-			var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
+			var outcomeObj map[string]any = this.Outcome(outcomesList[i])
 			var hash string = *this.SafeString(outcomeObj["info"], "marketHash", "")
 			wantedMarkets[hash] = true
 		}

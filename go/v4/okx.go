@@ -5214,19 +5214,19 @@ func (this *Okx) EditOrderRequest(id *string, symbol any, typeVar any, side any,
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
-	var isAlgoOrder any = nil
+	var isAlgoOrder bool
 	if (IsEqual(typeVar, "trigger")) || (IsEqual(typeVar, "conditional")) || (IsEqual(typeVar, "move_order_stop")) || (IsEqual(typeVar, "oco")) || (IsEqual(typeVar, "iceberg")) || (IsEqual(typeVar, "twap")) {
 		isAlgoOrder = true
 	}
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
 	if clientOrderId != nil {
-		if isAlgoOrder == true {
+		if isAlgoOrder {
 			request["algoClOrdId"] = clientOrderId
 		} else {
 			request["clOrdId"] = clientOrderId
 		}
 	} else {
-		if isAlgoOrder == true {
+		if isAlgoOrder {
 			request["algoId"] = id
 		} else {
 			request["ordId"] = id
@@ -5242,7 +5242,7 @@ func (this *Okx) EditOrderRequest(id *string, symbol any, typeVar any, side any,
 	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
-	if isAlgoOrder == true {
+	if isAlgoOrder {
 		var triggerPrice *float64 = this.SafeNumber2(params, "triggerPrice", "newTriggerPx")
 		if triggerPrice != nil {
 			request["newTriggerPx"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -5340,7 +5340,7 @@ func (this *Okx) EditOrderRequest(id *string, symbol any, typeVar any, side any,
 	if amount != nil {
 		request["newSz"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !(isAlgoOrder == true) {
+	if !isAlgoOrder {
 		if price != nil {
 			request["newPx"] = this.PriceToPrecision(symbol, price)
 		}
@@ -5403,12 +5403,12 @@ func (this *Okx) editOrderBody(ch chan AsyncResult[Order], id string, symbol any
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, params)
-	var isAlgoOrder any = nil
+	var isAlgoOrder bool
 	if (IsEqual(typeVar, "trigger")) || (IsEqual(typeVar, "conditional")) || (IsEqual(typeVar, "move_order_stop")) || (IsEqual(typeVar, "oco")) || (IsEqual(typeVar, "iceberg")) || (IsEqual(typeVar, "twap")) {
 		isAlgoOrder = true
 	}
 	var response map[string]any = nil
-	if isAlgoOrder == true {
+	if isAlgoOrder {
 
 		r1 := <-this.PrivatePostTradeAmendAlgos(this.Extend(request, params))
 		if r1.Err != nil {

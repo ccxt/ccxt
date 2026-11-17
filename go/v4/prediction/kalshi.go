@@ -1267,12 +1267,13 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) map[stri
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(market, "outcome"), market)
-	var outcomeLabel *string = func() *string {
-		if market != nil {
-			return this.SafeStringUpper(market, "label", this.SafeStringUpper(market["info"], "outcomeLabel", "YES"))
-		}
-		return ccxt.SafeStringPtr("YES")
-	}()
+	var outcomeLabel *string
+	if market != nil {
+		outcomeLabel = this.SafeStringUpper(market, "label", this.SafeStringUpper(market["info"], "outcomeLabel", "YES"))
+	} else {
+		outcomeLabelValue := "YES"
+		outcomeLabel = &outcomeLabelValue
+	}
 	var isNo bool = (outcomeLabel != nil && *outcomeLabel == "NO")
 	var timestamp *int64 = this.Parse8601(this.SafeString(raw, "updated_time"))
 	var outcome *string = this.SafeString(outcomeObj, "outcome")

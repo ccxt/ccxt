@@ -843,8 +843,8 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan AsyncResult[[]Account], option
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "next_starting_after")
-	var accounts any = this.SafeList(response, "data", []any{})
-	var length int = GetArrayLength(accounts)
+	var accounts []any = SafeListTyped(response, "data")
+	var length int = len(accounts)
 	var lastIndex int64 = int64(length) - 1
 	if (cursor != nil) && (cursor == nil || *cursor != "") {
 		AddElementToObject(accounts, lastIndex, this.Extend(this.SafeDict(accounts, lastIndex, map[string]any{}), map[string]any{
@@ -926,8 +926,8 @@ func (this *Coinbase) fetchAccountsV3Body(ch chan AsyncResult[[]Account], option
 	//         "size": 9
 	//     }
 	//
-	var accounts any = this.SafeList(response, "accounts", []any{})
-	var accountsLength int = GetArrayLength(accounts)
+	var accounts []any = SafeListTyped(response, "accounts")
+	var accountsLength int = len(accounts)
 	var cursor *string = this.SafeString(response, "cursor")
 	if (accountsLength > 0) && (cursor != nil) && (cursor == nil || *cursor != "") {
 		var lastIndex int64 = int64(accountsLength) - 1

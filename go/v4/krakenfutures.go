@@ -1497,27 +1497,19 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var order *string = this.SafeString(trade, "order_id")
 	var marketId *string = this.SafeString(trade, "symbol")
 	var side *string = this.SafeString(trade, "side")
-	var rawType any = nil
+	var rawType *string = nil
 	var priorEdit map[string]any = SafeMapTyped(trade, "orderPriorEdit")
 	var priorExecution map[string]any = SafeMapTyped(trade, "orderPriorExecution")
 	if priorExecution != nil {
 		order = this.SafeString(priorExecution, "orderId")
 		marketId = this.SafeString(priorExecution, "symbol")
 		side = this.SafeString(priorExecution, "side")
-		if derefPtr := this.SafeString(priorExecution, "type"); derefPtr != nil {
-			rawType = *derefPtr
-		} else {
-			rawType = nil
-		}
+		rawType = this.SafeString(priorExecution, "type")
 	} else if priorEdit != nil {
 		order = this.SafeString(priorEdit, "orderId")
 		marketId = this.SafeString(priorEdit, "symbol")
 		side = this.SafeString(priorEdit, "type")
-		if derefPtr := this.SafeString(priorEdit, "type"); derefPtr != nil {
-			rawType = *derefPtr
-		} else {
-			rawType = nil
-		}
+		rawType = this.SafeString(priorEdit, "type")
 	}
 	var typeVar *string = this.ParseOrderType(rawType) // undefined stays undefined
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
@@ -2956,7 +2948,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	var details any = nil
 	var isPrior bool = false
 	var fixed bool = false
-	var statusId any = nil
+	var statusId *string = nil
 	var price any = nil
 	var trades []any = []any{}
 	if orderEventsLength > 0 {
@@ -2993,21 +2985,13 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 			}
 		}
 		trades = this.ParseTrades(executions)
-		if derefPtr := this.SafeString(order, "status"); derefPtr != nil {
-			statusId = *derefPtr
-		} else {
-			statusId = nil
-		}
+		statusId = this.SafeString(order, "status")
 	}
 	if IsEqual(details, nil) {
 		details = order
 	}
 	if statusId == nil {
-		if derefPtr := this.SafeString(details, "status"); derefPtr != nil {
-			statusId = *derefPtr
-		} else {
-			statusId = nil
-		}
+		statusId = this.SafeString(details, "status")
 	}
 	// This may be incorrectly marked as "open" if only execution report is given,
 	// but will be fixed below

@@ -491,12 +491,12 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	_ = subscription
 	var channel *string = this.SafeString(message, "topic")
 	var dataDict map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawOrders any = this.SafeList(message, "data", []any{})
+	var rawOrders []any = ccxt.SafeListTyped(message, "data")
 	if dataDict != nil {
 		rawOrders = []any{dataDict}
 	}
 	// usually the first message is an empty array
-	if ccxt.GetArrayLength(rawOrders) == 0 {
+	if len(rawOrders) == 0 {
 		return
 	}
 	if this.Orders == nil {
@@ -505,7 +505,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	}
 	var stored ccxt.WsArrayCache = this.Orders
 	var marketIds map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
+	for i := 0; i < len(rawOrders); i++ {
 		var order map[string]any = this.SafeDictMap(rawOrders, i, map[string]any{})
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(order))
 		stored.Append(parsed)

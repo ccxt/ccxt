@@ -5120,16 +5120,17 @@ func (this *Bybit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
 		typeVar = subType
 	}
-	var lowercaseRawType any = func() any {
-		if !IsEqual(typeVar, nil) {
-			return ToLower(typeVar)
-		}
-		return nil
-	}()
+	var lowercaseRawType *string
+	if !IsEqual(typeVar, nil) {
+		lowercaseRawTypeValue := ToLower(typeVar)
+		lowercaseRawType = &lowercaseRawTypeValue
+	} else {
+		lowercaseRawType = nil
+	}
 	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var isLinear bool = (IsEqual(typeVar, "linear"))
 	var isInverse bool = (IsEqual(typeVar, "inverse"))
-	var isFunding bool = (IsEqual(lowercaseRawType, "fund")) || (IsEqual(lowercaseRawType, "funding"))
+	var isFunding bool = (lowercaseRawType != nil && *lowercaseRawType == "fund") || (lowercaseRawType != nil && *lowercaseRawType == "funding")
 	if isUnifiedAccount {
 		var unifiedMarginStatus int64 = *this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
 		if unifiedMarginStatus < 5 {
@@ -5888,11 +5889,11 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 		request["side"] = this.Capitalize(side)
 		request["orderType"] = this.Capitalize(lowerCaseType)
 		var timeInForce *string = this.SafeStringLower(query, "timeInForce") // this is same as exchange specific param
-		var postOnly any = nil
+		var postOnly bool
 		var postOnlyqueryVariable []any = this.HandlePostOnly(isMarket, (timeInForce != nil && *timeInForce == "postonly"), query)
-		postOnly = postOnlyqueryVariable[0]
+		postOnly = postOnlyqueryVariable[0].(bool)
 		query = postOnlyqueryVariable[1]
-		if postOnly == true {
+		if postOnly {
 			request["timeInForce"] = "PostOnly"
 		} else if timeInForce != nil && *timeInForce == "gtc" {
 			request["timeInForce"] = "GTC"

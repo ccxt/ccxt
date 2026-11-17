@@ -3111,7 +3111,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 			}
 		}
 	}
-	var params2 any = this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
+	var params2 map[string]any = this.OmitDict(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
 	var nonce int64 = this.IncrementingNonce()
 	var orderReq []any = []any{}
 	var grouping string = "na"
@@ -3208,7 +3208,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 		"signature": signature,
 	}
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 	return request
@@ -3449,7 +3449,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
 	var fast *bool = this.SafeBool(params, "fast", false)
-	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id", "fast"})
+	var params2 map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id", "fast"})
 	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
@@ -3497,7 +3497,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 	request["action"] = cancelAction
 	request["signature"] = signature
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 	return request
@@ -3665,7 +3665,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id"})
+	var params2 map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
@@ -3685,7 +3685,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 	request["action"] = cancelAction
 	request["signature"] = signature
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 
@@ -5498,7 +5498,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 	var isCross bool = (marginMode == "cross")
 	var asset int64 = this.ParseToInt(market["baseId"])
 	var nonce int64 = this.IncrementingNonce()
-	var params2 any = this.Omit(params, "marginMode")
+	var params2 map[string]any = this.OmitDict(params, "marginMode")
 	var updateAction map[string]any = map[string]any{
 		"type":     "updateLeverage",
 		"asset":    asset,
@@ -5519,7 +5519,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 		"signature": signature,
 	}
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 

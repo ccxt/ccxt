@@ -366,9 +366,9 @@ func (this *Coinbase) CreateWSAuth(name string, productIds any) map[string]any {
 	var timestamp *string = this.NumberToString(this.Seconds())
 	this.CheckRequiredCredentials()
 	var isCloudAPiKey bool = (strings.Index(this.ApiKey, "organizations/") >= 0) || (strings.HasPrefix(this.Secret, "-----BEGIN"))
-	var isV2CloudAPiKey any = this.IsEddsaApiKey()
+	var isV2CloudAPiKey bool = this.IsEddsaApiKey()
 	var auth string = *timestamp + name + ccxt.Join(productIds, ",")
-	if !isCloudAPiKey && !(isV2CloudAPiKey == true) {
+	if !isCloudAPiKey && !isV2CloudAPiKey {
 		subscribe["api_key"] = this.ApiKey
 		subscribe["timestamp"] = timestamp
 		subscribe["signature"] = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)

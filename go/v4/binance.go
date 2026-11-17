@@ -9931,7 +9931,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 				}
 			}
 		} else if *this.SafeBool(market, "spot", false) {
-			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
+			var quoteOrderQty bool = this.HandleOption("createOrder", "quoteOrderQty", true) == true
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(paramsPapi, "quoteOrderQty", "cost")
 				var precision *float64 = this.SafeNumber(market["precision"], "price")
@@ -13428,7 +13428,7 @@ func (this *Binance) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		}
 	}
 	var internal *bool = this.SafeBool(params, "internal", false)
-	var paramsOmitted any = this.Omit(params, "internal")
+	var paramsOmitted map[string]any = this.OmitDict(params, "internal")
 	var paginate bool = false
 	paginate, paramsOmitted = this.HandleOptionBoolAndParams(paramsOmitted, "fetchTransfers", "paginate", false)
 	if paginate && !(internal != nil && *internal) {
@@ -13497,7 +13497,7 @@ func (this *Binance) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	}
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["endTime"] = until
 	}
 	var response map[string]any = nil
@@ -14275,11 +14275,17 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		//         ...
 		//     }
 		//
-		var markets any = this.Markets
-		if IsEqual(markets, nil) {
+		var markets map[string]any = this.Markets
+		if markets == nil {
 			panic(ExchangeError(this.Id + " markets not loaded"))
 		}
-		var symbols []string = ObjectKeys(markets)
+		var symbols []string = nil
+		if markets != nil {
+			symbols = make([]string, 0, len(markets))
+			for objectKey := range markets {
+				symbols = append(symbols, objectKey)
+			}
+		}
 		var linearFees map[string]any = map[string]any{}
 		var feeTier *int64 = this.SafeInteger(response, "feeTier")
 		var feeTiers any = this.SafeValue(this.SafeValue(this.SafeValue(this.Fees, "linear"), "trading"), "tiers")
@@ -14287,7 +14293,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		var taker *float64 = this.SafeNumber(this.SafeValue(this.SafeValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = symbols[i]
-			var market any = GetValue(markets, symbol)
+			var market any = markets[symbol]
 			if *this.SafeBool(market, "linear", false) {
 				linearFees[symbol] = map[string]any{
 					"info": map[string]any{
@@ -14312,11 +14318,17 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		//         "updateTime": 0
 		//     }
 		//
-		var markets any = this.Markets
-		if IsEqual(markets, nil) {
+		var markets map[string]any = this.Markets
+		if markets == nil {
 			panic(ExchangeError(this.Id + " markets not loaded"))
 		}
-		var symbols []string = ObjectKeys(markets)
+		var symbols []string = nil
+		if markets != nil {
+			symbols = make([]string, 0, len(markets))
+			for objectKey := range markets {
+				symbols = append(symbols, objectKey)
+			}
+		}
 		var inverseFees map[string]any = map[string]any{}
 		var feeTier *int64 = this.SafeInteger(response, "feeTier")
 		var feeTiers any = this.SafeValue(this.SafeValue(this.SafeValue(this.Fees, "inverse"), "trading"), "tiers")
@@ -14324,7 +14336,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		var taker *float64 = this.SafeNumber(this.SafeValue(this.SafeValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = symbols[i]
-			var market any = GetValue(markets, symbol)
+			var market any = markets[symbol]
 			if *this.SafeBool(market, "inverse", false) {
 				inverseFees[symbol] = map[string]any{
 					"info": map[string]any{

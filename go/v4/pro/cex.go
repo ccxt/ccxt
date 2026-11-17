@@ -1964,7 +1964,7 @@ func (this *Cex) HandleErrorMessage(client any, message map[string]any) any {
 					ret_ = func(this *Cex) any {
 						// catch block:
 						var messageHash *string = this.SafeString(message, "oid")
-						var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
+						var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
 						if future != nil {
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 							return true

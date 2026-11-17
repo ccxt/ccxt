@@ -8012,7 +8012,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 	paginationDirection, paramsPaginationDirection := this.HandleOptionStringAndParams(paramsRemoveRepeated, method, "paginationDirection", "backward")
 	var paginationTimestamp any = nil
 	var result []any = []any{}
-	var errors any = 0
+	var errors int = 0
 	var until *int64 = this.SafeIntegerN(paramsPaginationDirection, []any{"until", "untill", "till"}) // do not omit it from params here
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
@@ -8035,8 +8035,8 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 						}
 						ret_ = func(this *BaseExchange) any {
 							// catch block:
-							errors = Add(errors, 1)
-							if int64(errors.(int)) > maxRetriesOption {
+							errors += 1
+							if int64(errors) > maxRetriesOption {
 								panic(e)
 							}
 							return nil
@@ -8165,8 +8165,8 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan AsyncResult[any], me
 		maxRetriesOption = p
 	}
 	paramsMaxRetries := maxRetriesOptionparamsMaxRetriesVariable[1]
-	var errors any = 0
-	for maxRetriesOption != nil && int64(errors.(int)) <= *maxRetriesOption {
+	var errors int = 0
+	for maxRetriesOption != nil && int64(errors) <= *maxRetriesOption {
 
 		{
 			func(this *BaseExchange) (ret_ any) {
@@ -8180,8 +8180,8 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan AsyncResult[any], me
 							if IsInstance(e, RateLimitExceeded) {
 								panic(e)
 							}
-							errors = Add(errors, 1)
-							if maxRetriesOption == nil || int64(errors.(int)) > *maxRetriesOption {
+							errors += 1
+							if maxRetriesOption == nil || int64(errors) > *maxRetriesOption {
 								panic(e)
 							}
 							return nil
@@ -8361,7 +8361,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
 	var cursorValue any = nil
-	var errors any = 0
+	var errors int = 0
 	var result []any = []any{}
 	var timeframe *string = this.SafeString(paramsMaxEntriesPerRequest, "timeframe")
 	var paramsOmitted any = this.Omit(paramsMaxEntriesPerRequest, "timeframe") // reading the timeframe from the method arguments to avoid changing the signature
@@ -8377,8 +8377,8 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 						}
 						ret_ = func(this *BaseExchange) any {
 							// catch block:
-							errors = Add(errors, 1)
-							if maxRetriesOption == nil || int64(errors.(int)) > *maxRetriesOption {
+							errors += 1
+							if maxRetriesOption == nil || int64(errors) > *maxRetriesOption {
 								panic(e)
 							}
 							return nil
@@ -8529,7 +8529,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
-	var errors any = 0
+	var errors int = 0
 	var result []any = []any{}
 	var shouldBreak bool = false
 	for i := 0; int64(i) < maxCallsLimit; i++ {
@@ -8543,8 +8543,8 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 						}
 						ret_ = func(this *BaseExchange) any {
 							// catch block:
-							errors = Add(errors, 1)
-							if maxRetriesOption == nil || int64(errors.(int)) > *maxRetriesOption {
+							errors += 1
+							if maxRetriesOption == nil || int64(errors) > *maxRetriesOption {
 								panic(e)
 							}
 							return nil

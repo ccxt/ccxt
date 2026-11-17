@@ -2791,18 +2791,18 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 	var sequential bool = GetArgBool(optionalArgs, 0, false)
 	_ = sequential
 	for i := 0; i < GetArrayLength(messages); i++ {
-		var waited any = 0
-		for !EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (waited.(int) < 5000) {
+		var waited int = 0
+		for !EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (waited < 5000) {
 
 			<-exchange.Sleep(50)
-			waited = Add(waited, 50)
+			waited = waited + 50
 		}
 		var frameId any = ccxt.DerefScalar(exchange.SafeString(GetValue(messages, i), "id"))
-		var waitedSent any = 0
-		for (!IsEqual(frameId, nil)) && !EvalTruthy(this.WsRequestWasSent(exchange, url, frameId)) && (waitedSent.(int) < 5000) {
+		var waitedSent int = 0
+		for (!IsEqual(frameId, nil)) && !EvalTruthy(this.WsRequestWasSent(exchange, url, frameId)) && (waitedSent < 5000) {
 
 			<-exchange.Sleep(50)
-			waitedSent = Add(waitedSent, 50)
+			waitedSent = waitedSent + 50
 		}
 		var frame any = GetValue(messages, i)
 		var binaryFrame any = ccxt.DerefScalar(exchange.SafeString(frame, "binary"))
@@ -2810,11 +2810,11 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 			frame = exchange.Base16ToBinary(binaryFrame)
 		}
 		InjectWsMessage(exchange, url, frame)
-		var settled any = 0
-		for EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (settled.(int) < 500) {
+		var settled int = 0
+		for EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (settled < 500) {
 
 			<-exchange.Sleep(20)
-			settled = Add(settled, 20)
+			settled = settled + 20
 		}
 	}
 
@@ -2827,12 +2827,12 @@ func (this *testMainClass) injectWsMessagesBody(ch chan ccxt.AsyncResult[any], e
 		// executed inline on a stack that blocks the watch side (forkjoin
 		// work stealing): give up eventually so the stack unwinds instead
 		// of deadlocking
-		var waitedDone any = 0
-		for !EvalTruthy(IsWsTestCompleted(exchange, url)) && (waitedDone.(int) < 30000) {
+		var waitedDone int = 0
+		for !EvalTruthy(IsWsTestCompleted(exchange, url)) && (waitedDone < 30000) {
 			RejectPendingWsFutures(exchange, url)
 
 			<-exchange.Sleep(50)
-			waitedDone = Add(waitedDone, 50)
+			waitedDone = waitedDone + 50
 		}
 	}
 	// reject anything still pending so a wrong fixture fails fast

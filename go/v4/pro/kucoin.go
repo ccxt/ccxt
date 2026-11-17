@@ -4127,8 +4127,8 @@ func (this *Kucoin) loadPositionSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	cache.Append(position)
 	// don't remove the future from the .futures cache
 	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(cache)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(position, ccxt.Add("position:", symbol))
 	}
 	return nil

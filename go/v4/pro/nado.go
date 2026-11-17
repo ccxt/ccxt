@@ -1945,10 +1945,10 @@ func (this *Nado) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalAr
 	var messageHash string = "authenticated"
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated != nil {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 		if future != nil {
 
-			r := <-future.(*ccxt.Future).Await()
+			r := <-future.Await()
 			if r.Err != nil {
 				panic(r.Err)
 			}

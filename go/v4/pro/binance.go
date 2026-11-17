@@ -1478,7 +1478,7 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 								client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 							}
 						} else {
-							var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
+							var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 							if checksum == true {
 								panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
 							}
@@ -1497,7 +1497,7 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 								client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 							}
 						} else {
-							var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
+							var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 							if checksum == true {
 								panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
 							}
@@ -4574,8 +4574,8 @@ func (this *Binance) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
 	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve()
+		var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
+		future.Resolve()
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
 	}
 	return nil
@@ -5201,11 +5201,11 @@ func (this *Binance) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	var sor *bool = this.SafeBool2(params, "sor", "SOR", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "sor", "SOR")
-	var isConditional any = this.IsConditionalOrder(paramsOmitted)
-	if (*this.SafeBool(market, "inverse", false)) && (isConditional == true) {
+	var isConditional bool = this.IsConditionalOrder(paramsOmitted)
+	if (*this.SafeBool(market, "inverse", false)) && isConditional {
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead"))
 	}
-	var isAlgoOrder bool = (market["linear"] == true) && ((market["swap"] == true) || (market["future"] == true)) && (isConditional == true)
+	var isAlgoOrder bool = (market["linear"] == true) && ((market["swap"] == true) || (market["future"] == true)) && isConditional
 	var payload map[string]any = this.CreateOrderRequest(symbol, typeVar, &side, amount, price, this.Extend(paramsOmitted, map[string]any{
 		"isAlgoOrder": isAlgoOrder,
 	}))
@@ -6901,8 +6901,8 @@ func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], c
 	}
 	// don't remove the future from the .futures cache
 	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(cache)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).FutureTyped(messageHash)
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":position"))
 	}
 	return nil

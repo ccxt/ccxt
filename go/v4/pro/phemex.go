@@ -1143,8 +1143,8 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 	var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 	if typeVar != nil && *typeVar == "snapshot" {
 		var book map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p", map[string]any{})
-		var snapshot any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
-		ccxt.AddElementToObject(snapshot, "nonce", nonce)
+		var snapshot map[string]any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
+		snapshot["nonce"] = nonce
 		// reset the existing orderbook instead of replacing it: a consumer
 		// holds a reference to the old object and would never see updates
 		// after a re-subscription snapshot
@@ -1845,9 +1845,9 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	if lastTradeTimestamp != nil && *lastTradeTimestamp == 0 {
 		lastTradeTimestamp = nil
 	}
-	var timeInForce any = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
+	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
 	var stopPrice *string = this.SafeString(order, "stopPx")
-	var postOnly bool = (ccxt.IsEqual(timeInForce, "PO"))
+	var postOnly bool = (timeInForce != nil && *timeInForce == "PO")
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,

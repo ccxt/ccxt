@@ -2183,9 +2183,9 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	var initialUppercaseType string = strings.ToUpper(typeResolved)
 	var uppercaseType string = initialUppercaseType
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
-	var paramsRequest any = this.Omit(paramsPostOnly, []any{"clientId", "clientOrderId", "timeInForce"})
+	var paramsRequest map[string]any = this.OmitDict(paramsPostOnly, []any{"clientId", "clientOrderId", "timeInForce"})
 	if triggerPrice != nil {
-		paramsRequest = this.Omit(paramsRequest, []any{"triggerPrice", "stopPrice"})
+		paramsRequest = this.OmitDict(paramsRequest, []any{"triggerPrice", "stopPrice"})
 		if postOnly {
 			panic(InvalidOrder(this.Id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type"))
 		}
@@ -2258,7 +2258,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, paramsRequest = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber2(paramsRequest, "cost", "quoteOrderQty")
-			paramsRequest = this.Omit(paramsRequest, []any{"cost", "quoteOrderQty"})
+			paramsRequest = this.OmitDict(paramsRequest, []any{"cost", "quoteOrderQty"})
 			if cost != nil {
 				quoteAmount = cost
 			} else if createMarketBuyOrderRequiresPrice {

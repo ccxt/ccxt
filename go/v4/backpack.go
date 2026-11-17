@@ -904,7 +904,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		}
 		var baseId *string = this.SafeString(rawMarket, "baseSymbol")
 		var security map[string]any = SafeMapTyped(securityById, baseId)
-		var market any = this.ParseMarket(func() any {
+		var market map[string]any = this.ParseMarket(func() any {
 			if security == nil {
 				return rawMarket
 			}
@@ -912,7 +912,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 				"security": security,
 			})
 		}())
-		if !IsEqual(market, nil) {
+		if market != nil {
 			var marketId *string = this.SafeString(market, "id")
 			if (marketId == nil) || (func() bool {
 				if marketId == nil {
@@ -938,7 +938,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			}
 			var marketId string = *assetId + "_USDC_RFQ"
 			if _, ok := marketIds[marketId]; !ok {
-				var market any = this.ParseMarket(map[string]any{
+				var market map[string]any = this.ParseMarket(map[string]any{
 					"symbol":        marketId,
 					"baseSymbol":    assetId,
 					"quoteSymbol":   "USDC",
@@ -946,7 +946,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 					"rwaMarketType": "STOCK",
 					"security":      security,
 				})
-				if !IsEqual(market, nil) {
+				if market != nil {
 					marketIds[marketId] = true
 					markets = append(markets, market)
 				}

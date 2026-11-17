@@ -3813,12 +3813,12 @@ func (this *Bitget) HandleUnSubscriptionStatus(client any, message map[string]an
 	//  or
 	// {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
 	//
-	var argsList any = this.SafeList(message, "args")
+	var argsList []any = ccxt.SafeListTyped(message, "args")
 	if argsList == nil {
 		var arg map[string]any = this.SafeDictMap(message, "arg", map[string]any{})
 		argsList = []any{arg}
 	}
-	for i := 0; i < ccxt.GetArrayLength(argsList); i++ {
+	for i := 0; i < len(argsList); i++ {
 		var arg map[string]any = ccxt.SafeMapTyped(argsList, i)
 		var channel *string = this.SafeString2(arg, "channel", "topic", "")
 		if strings.Index(*channel, "books") >= 0 {

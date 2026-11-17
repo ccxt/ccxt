@@ -2170,7 +2170,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	var clientOrderId *string = this.SafeString2(params, "custom_id", "clientOrderId")
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	var paramsRequest any = this.Omit(params, []any{"custom_id", "clientOrderId", "timeInForce", "postOnly"})
+	var paramsRequest map[string]any = this.OmitDict(params, []any{"custom_id", "clientOrderId", "timeInForce", "postOnly"})
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2201,7 +2201,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, paramsRequest = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(paramsRequest, "cost")
-			paramsRequest = this.Omit(paramsRequest, "cost")
+			paramsRequest = this.OmitDict(paramsRequest, "cost")
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {
@@ -2226,7 +2226,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
 	var defaultMethod *string = this.SafeString(options, "method", "spotPrivatePostSupplementCreateOrder")
 	var method *string = this.SafeString(paramsRequest, "method", defaultMethod)
-	var paramsOmitted any = this.Omit(paramsRequest, "method")
+	var paramsOmitted map[string]any = this.OmitDict(paramsRequest, "method")
 	var response map[string]any = nil
 	if method != nil && *method == "spotPrivatePostCreateOrder" {
 

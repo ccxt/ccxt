@@ -8617,16 +8617,16 @@ func (this *Bitget) CreateUtaOrderRequest(symbol *string, typeVar *string, side 
 		}
 		request["orderType"] = typeVar
 		var exchangeSpecificTifParam *string = this.SafeString(paramsProductType, "timeInForce")
-		var postOnly any = nil
+		var postOnly bool
 		var postOnlyparamsProductTypeVariable []any = this.HandlePostOnly(isMarketOrder, (exchangeSpecificTifParam != nil && *exchangeSpecificTifParam == "post_only"), paramsProductType)
-		postOnly = postOnlyparamsProductTypeVariable[0]
+		postOnly = postOnlyparamsProductTypeVariable[0].(bool)
 		paramsProductType = postOnlyparamsProductTypeVariable[1]
 		var timeInForce *string = nil
 		timeInForce, paramsProductType = this.HandleOptionStringAndParams(paramsProductType, "createOrder", "timeInForce")
 		if timeInForce != nil {
 			timeInForce = SafeStringPtr(strings.ToUpper(*timeInForce))
 		}
-		if postOnly == true {
+		if postOnly {
 			request["timeInForce"] = "post_only"
 		} else if timeInForce != nil && *timeInForce == "GTC" {
 			request["timeInForce"] = "gtc"
@@ -8727,16 +8727,16 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	var reduceOnly *bool = this.SafeBool(paramsMarketType, "reduceOnly", false)
 	var clientOrderId *string = this.SafeString2(paramsMarketType, "clientOid", "clientOrderId")
 	var exchangeSpecificTifParam *string = this.SafeString2(paramsMarketType, "force", "timeInForce")
-	var postOnly any = nil
+	var postOnly bool
 	var postOnlyparamsMarketTypeVariable []any = this.HandlePostOnly(isMarketOrder, (exchangeSpecificTifParam != nil && *exchangeSpecificTifParam == "post_only"), paramsMarketType)
-	postOnly = postOnlyparamsMarketTypeVariable[0]
+	postOnly = postOnlyparamsMarketTypeVariable[0].(bool)
 	paramsMarketType = postOnlyparamsMarketTypeVariable[1]
 	var timeInForce *string = nil
 	timeInForce, paramsMarketType = this.HandleOptionStringAndParams(paramsMarketType, "createOrder", "timeInForce")
 	if timeInForce != nil {
 		timeInForce = SafeStringPtr(strings.ToUpper(*timeInForce))
 	}
-	if postOnly == true {
+	if postOnly {
 		request["force"] = "post_only"
 	} else if timeInForce != nil && *timeInForce == "GTC" {
 		request["force"] = "GTC"

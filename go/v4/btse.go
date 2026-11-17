@@ -2759,15 +2759,8 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	var positionMode *string = this.SafeString(query, "positionMode")
 	// if positionMode is provided, we will get it from params and send it as is
 	if positionMode == nil {
-		var hedged any = false
-		var hedgedqueryVariable []any = this.HandleOptionBoolAndParamsNullable(query, "createOrder", "hedged", hedged)
-		hedged = func() any {
-			if p, _ := hedgedqueryVariable[0].(*bool); p != nil {
-				return *p
-			}
-			return nil
-		}()
-		query = hedgedqueryVariable[1]
+		var hedged bool = false
+		hedged, query = this.HandleOptionBoolAndParams(query, "createOrder", "hedged", hedged)
 		var marginMode any = "cross"
 		var marginModePtr *string = nil
 		marginModePtr, query = this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode)
@@ -2776,11 +2769,11 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 			marginMode = *marginModePtr
 		}
 		if marginMode == "isolated" {
-			if hedged == true {
+			if hedged {
 				panic(BadRequest(this.Id + " createOrder() cannot use isolated margin with hedged positions"))
 			}
 			request["positionMode"] = "ISOLATED"
-		} else if hedged == true {
+		} else if hedged {
 			request["positionMode"] = "HEDGE"
 		}
 	}

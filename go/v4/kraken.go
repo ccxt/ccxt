@@ -2944,11 +2944,11 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		request = this.OmitDict(request, "txid")
 	}
 	var isMarket bool = (IsEqual(typeVar, "market"))
-	var postOnly any = nil
+	var postOnly bool
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted)
-	postOnly = postOnlyparamsOmittedVariable[0]
+	postOnly = postOnlyparamsOmittedVariable[0].(bool)
 	paramsOmitted = postOnlyparamsOmittedVariable[1]
-	if postOnly == true {
+	if postOnly {
 		request["post_only"] = "true" // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
 	if amount != nil {

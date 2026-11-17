@@ -456,7 +456,7 @@ func (this *Bybit) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrderWs() requires a symbol argument"))
 	}
-	var orderRequest any = this.CancelOrderRequest(&id, symbol, params)
+	var orderRequest map[string]any = this.CancelOrderRequest(&id, symbol, params)
 	var url string = this.ImplodeHostname(this.SafeString(this.UrlsApiSections["ws"]["private"], "trade", ""))
 
 	r1 := <-this.AuthenticateAsync(url)
@@ -464,8 +464,8 @@ func (this *Bybit) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 		panic(r1.Err)
 	}
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
-	if ccxt.InOp(orderRequest, "orderFilter") {
-		ccxt.Remove(orderRequest, "orderFilter")
+	if _, ok := orderRequest["orderFilter"]; ok {
+		delete(orderRequest, "orderFilter")
 	}
 	var request map[string]any = map[string]any{
 		"op":    "order.cancel",

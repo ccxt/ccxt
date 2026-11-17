@@ -2136,14 +2136,14 @@ func (this *Opinion) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var parsed []any = ccxt.ArrayTyped(this.ParsePredictionPositions(positions))
 	var wantedTokenIds map[string]any = map[string]any{}
 	// copy to a plain list so the strict null checks see one shape
-	var outcomesList any = func() any {
-		if outcomes == nil {
-			return []any{}
-		}
-		return outcomes
-	}()
-	for i := 0; i < ccxt.GetArrayLength(outcomesList); i++ {
-		var outcomeObj map[string]any = this.Outcome(ccxt.GetValue(outcomesList, i))
+	var outcomesList []string
+	if outcomes == nil {
+		outcomesList = []string{}
+	} else {
+		outcomesList = outcomes
+	}
+	for i := 0; i < len(outcomesList); i++ {
+		var outcomeObj map[string]any = this.Outcome(outcomesList[i])
 		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 		if tokenId != nil {
 			wantedTokenIds[*tokenId] = true
@@ -2447,19 +2447,20 @@ func (this *Opinion) SetApiCredentials(response map[string]any) map[string]any {
  * @description builds the websocket url - the venue authenticates the whole connection with the apiKey passed as a query parameter, for public and private channels alike
  * @returns {string} the websocket url
  */
-func (this *Opinion) OpinionWsUrl() any {
+func (this *Opinion) OpinionWsUrl() string {
 	var hasDirectApiKey bool = !this.IsEmptyString(this.ApiKey)
-	var apiKey any = func() any {
-		if hasDirectApiKey {
-			return this.ApiKey
-		}
-		return this.SafeString(this.Options, "apiKey")
-	}()
-	if ccxt.IsEqual(apiKey, nil) {
+	var apiKey *string
+	if hasDirectApiKey {
+		apiKeyValue := this.ApiKey
+		apiKey = &apiKeyValue
+	} else {
+		apiKey = this.SafeString(this.Options, "apiKey")
+	}
+	if apiKey == nil {
 		panic(ccxt.AuthenticationError(this.Id + " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first"))
 	}
 	var wsUrl string = *this.SafeString(this.Urls["api"], "ws", "")
-	return ccxt.Add(wsUrl+"?apikey=", apiKey)
+	return wsUrl + "?apikey=" + *apiKey
 }
 func (this *Opinion) Ping(client any) any {
 	// the venue keeps the socket open only while application-level heartbeats arrive
@@ -2491,7 +2492,7 @@ func (this *Opinion) subscribeOpinionChannelBody(ch chan ccxt.AsyncResult[any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var url any = this.OpinionWsUrl()
+	var url string = this.OpinionWsUrl()
 	var subscribeMsg map[string]any = map[string]any{
 		"action":   "SUBSCRIBE",
 		"channel":  channel,
@@ -2605,7 +2606,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var url any = this.OpinionWsUrl()
+	var url string = this.OpinionWsUrl()
 	var client any = this.Client(url)
 	var subscribeMsg map[string]any = map[string]any{
 		"action":   "SUBSCRIBE",

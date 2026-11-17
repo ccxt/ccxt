@@ -390,7 +390,7 @@ func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var refused any = 0
+	var refused int = 0
 	for i := 0; i < ccxt.GetArrayLength(channels); i++ {
 		if ccxt.IsGreaterThanOrEqual(i, start) {
 
@@ -403,7 +403,7 @@ func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], 
 							}
 							ret_ = func(this *Paradex) any {
 								// catch block:
-								refused = ccxt.Add(refused, 1)
+								refused = refused + 1
 								return nil
 							}(this)
 						}
@@ -1728,14 +1728,14 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 		return nil
 	}
 	// the markets left in the scoped subscription once these are removed
-	var remaining any = 0
+	var remaining int = 0
 	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		if (strings.Index(keys[i], channel+".") == 0) && !this.InArray(keys[i], subscribeHashes) {
-			remaining = ccxt.Add(remaining, 1)
+			remaining = remaining + 1
 		}
 	}
-	if (symbolsLength == 0) || ((client.(ccxt.ClientInterface).SubscriptionHas(scopedHash)) && (ccxt.IsEqual(remaining, 0))) {
+	if (symbolsLength == 0) || ((client.(ccxt.ClientInterface).SubscriptionHas(scopedHash)) && (remaining == 0)) {
 		// a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
 		var channelSubscription map[string]any = map[string]any{
 			"topic":            "ticker",

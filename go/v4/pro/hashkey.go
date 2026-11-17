@@ -403,10 +403,10 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
-	var data any = this.SafeList(message, "data")
+	var data []any = ccxt.SafeListTyped(message, "data")
 	if data != nil {
 		data = this.SortBy(data, "t")
-		for i := 0; i < ccxt.GetArrayLength(data); i++ {
+		for i := 0; i < len(data); i++ {
 			var trade map[string]any = ccxt.SafeMapTyped(data, i)
 			var parsed map[string]any = this.ParseWsTrade(trade, market)
 			stored.Append(parsed)

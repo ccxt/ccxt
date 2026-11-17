@@ -3280,12 +3280,12 @@ func (this *Okx) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string
 	var url string = this.GetUrl("private", "private")
 	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	op, paramsOp := this.HandleOptionStringAndParams(params, "editOrderWs", "op", "amend-order")
-	var args any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, paramsOp)
+	var args map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, paramsOp)
 	var market map[string]any = this.Market(symbol)
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	if instIdCode != nil {
-		ccxt.Remove(args, "instId")
-		ccxt.AddElementToObject(args, "instIdCode", instIdCode)
+		delete(args, "instId")
+		args["instIdCode"] = instIdCode
 	}
 	var request map[string]any = map[string]any{
 		"id":   messageHash,

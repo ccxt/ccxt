@@ -1313,12 +1313,12 @@ func (this *Hitbtc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	var typeVar *string = this.SafeStringLower(params, "type", "spot")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"type"})
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	var account *string = func() *string {
-		if typeVar == nil {
-			return nil
-		}
-		return this.SafeString(accountsByType, typeVar, typeVar)
-	}()
+	var account *string
+	if typeVar == nil {
+		account = nil
+	} else {
+		account = this.SafeString(accountsByType, typeVar, typeVar)
+	}
 	var response []any = nil
 	if account != nil && *account == "wallet" {
 

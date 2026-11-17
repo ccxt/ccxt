@@ -933,12 +933,12 @@ func (this *Grvt) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var subAccountId any = this.GetSubAccountId(params)
+	var subAccountId string = this.GetSubAccountId(params)
 	var messageHashes []any = []any{}
 	var rawHashes []any = []any{}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), market["id"]))
+		rawHashes = append(rawHashes, ccxt.Add(subAccountId+"-", market["id"]))
 		messageHashes = append(messageHashes, "myTrades::"+market["symbol"].(string))
 	} else {
 		messageHashes = append(messageHashes, "myTrades")
@@ -1053,7 +1053,7 @@ func (this *Grvt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 			panic(r1.Err)
 		}
 	}
-	var subAccountId any = this.GetSubAccountId(params)
+	var subAccountId string = this.GetSubAccountId(params)
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
@@ -1061,7 +1061,7 @@ func (this *Grvt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
-			rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), market["id"]))
+			rawHashes = append(rawHashes, ccxt.Add(subAccountId+"-", market["id"]))
 			messageHashes = append(messageHashes, "positions::"+market["symbol"].(string))
 		}
 	} else {
@@ -1183,7 +1183,7 @@ func (this *Grvt) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var subAccountId any = this.GetSubAccountId(params)
+	var subAccountId string = this.GetSubAccountId(params)
 	var messageHashes []any = []any{}
 	var rawHashes []any = []any{}
 	if symbol == nil {
@@ -1192,7 +1192,7 @@ func (this *Grvt) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	} else {
 		var market map[string]any = this.Market(symbol)
 		messageHashes = append(messageHashes, "order::"+market["symbol"].(string))
-		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), market["id"]))
+		rawHashes = append(rawHashes, ccxt.Add(subAccountId+"-", market["id"]))
 	}
 	var request map[string]any = map[string]any{
 		"stream":    "v1.order",

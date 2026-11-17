@@ -4345,25 +4345,27 @@ func (this *Polymarket) loadApiCredentialsBody(ch chan ccxt.AsyncResult[bool]) a
 
 		return nil
 	}
-	var apiKey any = func() any {
-		if this.ApiKey != "" {
-			return this.ApiKey
-		}
-		return this.SafeString(this.Options, "l2ApiKey")
-	}()
+	var apiKey *string
+	if this.ApiKey != "" {
+		apiKeyValue := this.ApiKey
+		apiKey = &apiKeyValue
+	} else {
+		apiKey = this.SafeString(this.Options, "l2ApiKey")
+	}
 	var secret any = nil
 	if this.Secret != "" {
 		secret = this.Secret
 	} else {
 		secret = this.SafeString(this.Options, "l2Secret")
 	}
-	var passphrase any = func() any {
-		if this.Password != "" {
-			return this.Password
-		}
-		return this.SafeString(this.Options, "l2Passphrase")
-	}()
-	var hasL2 bool = (!ccxt.IsEqual(apiKey, nil)) && (!ccxt.IsEqual(secret, nil)) && (!ccxt.IsEqual(passphrase, nil))
+	var passphrase *string
+	if this.Password != "" {
+		passphraseValue := this.Password
+		passphrase = &passphraseValue
+	} else {
+		passphrase = this.SafeString(this.Options, "l2Passphrase")
+	}
+	var hasL2 bool = (apiKey != nil) && (!ccxt.IsEqual(secret, nil)) && (passphrase != nil)
 	if hasL2 {
 
 		return nil

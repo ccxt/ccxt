@@ -1078,8 +1078,8 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 		}
 		var responses []any = ListTyped(r1.Value)
 		for i := 0; i < len(responses); i++ {
-			var parsed any = this.ParseMarket(responses[i])
-			if !IsEqual(parsed, nil) {
+			var parsed map[string]any = this.ParseMarket(responses[i])
+			if parsed != nil {
 				result = append(result, parsed)
 			}
 		}
@@ -1092,8 +1092,8 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 				var marketId *string = SafeStringPtr(marketIds[i])
 				var pairInfo []any = SafeListTyped(indexedTradingPairs, strings.ToUpper(*marketId))
 				if (pairInfo != nil) && !this.InArray(marketId, brokenPairs) {
-					var parsed any = this.ParseMarket(pairInfo)
-					if !IsEqual(parsed, nil) {
+					var parsed map[string]any = this.ParseMarket(pairInfo)
+					if parsed != nil {
 						result = append(result, parsed)
 					}
 				}
@@ -1101,8 +1101,8 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 		} else {
 			for i := 0; i < len(marketIds); i++ {
 				if !this.InArray(marketIds[i], brokenPairs) {
-					var parsed any = this.ParseMarket(marketIds[i])
-					if !IsEqual(parsed, nil) {
+					var parsed map[string]any = this.ParseMarket(marketIds[i])
+					if parsed != nil {
 						result = append(result, parsed)
 					}
 				}

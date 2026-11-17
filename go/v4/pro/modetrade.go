@@ -1250,12 +1250,12 @@ func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
 		for i := 0; i < dataListLength; i++ {
 			var order any = dataList[i]
 			var tradeIdStr *string = this.SafeString(data, "tradeId")
-			var tradeId *string = func() *string {
-				if tradeIdStr == nil {
-					return nil
-				}
-				return this.OmitZero(tradeIdStr)
-			}()
+			var tradeId *string
+			if tradeIdStr == nil {
+				tradeId = nil
+			} else {
+				tradeId = this.OmitZero(tradeIdStr)
+			}
 			if tradeId != nil {
 				this.HandleMyTrade(client, order)
 			}
@@ -1264,12 +1264,12 @@ func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
 	} else {
 		// executionreport
 		var tradeIdStr *string = this.SafeString(data, "tradeId")
-		var tradeId *string = func() *string {
-			if tradeIdStr == nil {
-				return nil
-			}
-			return this.OmitZero(tradeIdStr)
-		}()
+		var tradeId *string
+		if tradeIdStr == nil {
+			tradeId = nil
+		} else {
+			tradeId = this.OmitZero(tradeIdStr)
+		}
 		if tradeId != nil {
 			this.HandleMyTrade(client, data)
 		}
