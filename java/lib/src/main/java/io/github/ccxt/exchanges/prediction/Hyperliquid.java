@@ -2285,8 +2285,8 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> lowerQueries = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < queries.size(); i++)
             {
-                Object queryString = ((String)(queries == null || i < 0 || i >= queries.size() ? null : queries.get(i)));
-                ((List<Object>)lowerQueries).add(((String)queryString).toLowerCase());
+                String queryString = ((String)(queries == null || i < 0 || i >= queries.size() ? null : queries.get(i)));
+                ((List<Object>)lowerQueries).add(queryString.toLowerCase());
             }
             Integer lowerQueriesLength = lowerQueries.size();
             for (var i = 0; i < marketValues.size(); i++)

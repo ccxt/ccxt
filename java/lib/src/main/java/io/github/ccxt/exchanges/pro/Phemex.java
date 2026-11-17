@@ -84,7 +84,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return String.valueOf(precise);
     }
 
-    public Object fromEp(Object ep, Map<String, Object> market)
+    public Object fromEp(String ep, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(ep, null)) || (java.util.Objects.equals(market, null)))
         {
@@ -93,7 +93,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return this.fromEn((String) (ep), this.safeInteger(market, "priceScale"));
     }
 
-    public Object fromEv(Object ev, Map<String, Object> market)
+    public Object fromEv(String ev, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(ev, null)) || (java.util.Objects.equals(market, null)))
         {
@@ -102,7 +102,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return this.fromEn((String) (ev), this.safeInteger(market, "valueScale"));
     }
 
-    public Object fromEr(Object er, Map<String, Object> market)
+    public Object fromEr(String er, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(er, null)) || (java.util.Objects.equals(market, null)))
         {

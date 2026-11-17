@@ -4333,7 +4333,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //     }
             //
             List<Object> leveragePreferences = (List<Object>) this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(leveragePreferences, symbols, "symbol", (Object) null);
+            return this.parseLeverages(leveragePreferences, symbols, "symbol", null);
         }).thenApply(Leverages::new);
 
     }

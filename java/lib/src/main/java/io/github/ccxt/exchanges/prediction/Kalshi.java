@@ -2740,7 +2740,7 @@ public class Kalshi extends KalshiApi
                 this.markets = this.createSafeDictionary();
             }
             String eventId = this.safeString2(paramsOmitted, "eventId", "slug");
-            Object rawEvents = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
             if ((queriesLength != null && queriesLength > 0))
             {
                 // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
@@ -2761,11 +2761,11 @@ public class Kalshi extends KalshiApi
                 }
                 rawEvents = (this.fetchSeriesEvents(seriesTickers, status, fetchCap, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })))).join();
             }
-            Integer rawEventsLength = ((List<?>)rawEvents).size();
+            Integer rawEventsLength = rawEvents.size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var di = 0; (rawEventsLength != null && di < rawEventsLength); di++)
             {
-                Map<String, Object> parsedEvent = (Map<String, Object>) this.parseEvent((Map<String, Object>) ((rawEvents == null || di < 0 || di >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(di))));
+                Map<String, Object> parsedEvent = (Map<String, Object>) this.parseEvent((Map<String, Object>) ((rawEvents == null || di < 0 || di >= rawEvents.size() ? null : rawEvents.get(di))));
                 ((List<Object>)result).add(parsedEvent);
                 // register the parsed markets so populateOutcomes can index their outcomes
                 Object parsedMarkets = parsedEvent.get("markets");
@@ -2796,7 +2796,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchEventsByQuery(Object queries, Object limit, Map<String, Object> rest)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2980,7 +2980,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public CompletableFuture<Object> fetchSeriesEvents(Object seriesTickers, String status, Object limit, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchSeriesEvents(Object seriesTickers, String status, Object limit, Map<String, Object> rest)
     {
 
         return BaseExchange.supplyAsync(() -> {

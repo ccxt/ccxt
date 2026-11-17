@@ -1116,7 +1116,7 @@ public class Gemini extends GeminiApi
         //     }
         //
         Object marketId = null;
-        Object baseId = null;
+        String baseId = null;
         String quoteId = null;
         String settleId = null;
         Double tickSize = null;
@@ -1186,7 +1186,7 @@ public class Gemini extends GeminiApi
                 }
             }
         }
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
@@ -1544,9 +1544,9 @@ public class Gemini extends GeminiApi
             //         },
             //     ]
             //
-            Object result = this.parseTickers(response, symbols, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.parseTickers(response, symbols, new HashMap<String, Object>() {{}});
             List<Object> brokenPairs = (List<Object>) this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
-            return this.removeKeysFromDict((Map<String, Object>) (result), brokenPairs);
+            return this.removeKeysFromDict(result, brokenPairs);
         }).thenApply(Tickers::new);
 
     }

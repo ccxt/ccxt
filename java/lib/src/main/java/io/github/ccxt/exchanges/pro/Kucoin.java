@@ -3096,7 +3096,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 subscriptionHash = "/contractAccount/wallet";
             }
-            Object url = null;
+            String url = null;
             if (Boolean.TRUE.equals(utaOption))
             {
                 url = (this.getUtaUrl()).join();
@@ -3135,7 +3135,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 {
                     client.subscriptions.put(requestId, subscriptionHash);
                 }
-                return (this.watch(((String)url), messageHash, message, uniformType, null)).join();
+                return (this.watch(url, messageHash, message, uniformType, null)).join();
             }
         }).thenApply(Balances::new);
 
@@ -3711,14 +3711,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Object currentPosition = this.getCurrentPosition((String) (symbol));
-        Object newPosition = this.parseWsUtaPosition(data, (Map<String, Object>) null);
-        List<String> keys = new ArrayList<String>(((Map<String, Object>)newPosition).keySet());
+        Map<String, Object> newPosition = this.parseWsUtaPosition(data, (Map<String, Object>) null);
+        List<String> keys = new ArrayList<String>(newPosition.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if (java.util.Objects.equals(Helpers.GetValue(newPosition, key), null))
+            if (java.util.Objects.equals((newPosition == null || key == null ? null : newPosition.get(key)), null))
             {
-                ((Map<String,Object>)newPosition).remove(key);
+                newPosition.remove(key);
             }
         }
         Map<String, Object> position = this.extend(currentPosition, newPosition);
@@ -3729,7 +3729,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         client.resolve(this.positions, symbolMessageHash);
     }
 
-    public Object parseWsUtaPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parseWsUtaPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {

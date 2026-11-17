@@ -566,7 +566,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            Object market = null;
+            Map<String, Object> market = null;
             String messageHash = "ticker";
             String streamType = "all_bbo";
             if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -580,7 +580,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            Object ticker = (this.watchPublic(streamType, (Map<String, Object>) (market), messageHash, parameters)).join();
+            Object ticker = (this.watchPublic(streamType, market, messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 if (java.util.Objects.equals(messageHash, "ticker"))
@@ -616,7 +616,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            Object market = null;
+            Map<String, Object> market = null;
             String messageHash = "ticker";
             String streamType = "all_bbo";
             if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -630,7 +630,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            return (this.unWatchPublic(streamType, (Map<String, Object>) (market), messageHash, parameters)).join();
+            return (this.unWatchPublic(streamType, market, messageHash, parameters)).join();
         });
 
     }
@@ -651,7 +651,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            Object market = null;
+            Map<String, Object> market = null;
             String messageHash = "bidask";
             String streamType = "all_bbo";
             if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -665,7 +665,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            Object ticker = (this.watchPublic(streamType, (Map<String, Object>) (market), messageHash, parameters)).join();
+            Object ticker = (this.watchPublic(streamType, market, messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 if (java.util.Objects.equals(messageHash, "bidask"))
@@ -701,7 +701,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            Object market = null;
+            Map<String, Object> market = null;
             String messageHash = "bidask";
             String streamType = "all_bbo";
             if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -715,7 +715,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            return (this.unWatchPublic(streamType, (Map<String, Object>) (market), messageHash, parameters)).join();
+            return (this.unWatchPublic(streamType, market, messageHash, parameters)).join();
         });
 
     }

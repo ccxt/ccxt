@@ -3540,7 +3540,7 @@ public class Nado extends NadoApi
 
     public String orderVerifyingContract(Object productId)
     {
-        return ("0x" + this.padHex((String) (this.intToBase16(productId)), 40, true));
+        return ("0x" + this.padHex(this.intToBase16(productId), 40, true));
     }
 
     public String padHex(String value, Object length, Boolean left)

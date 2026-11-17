@@ -485,8 +485,8 @@ public class Limitless extends LimitlessApi
             for (var i = 0; i < eventKeys.size(); i++)
             {
                 String eventKey = (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i));
-                Object g = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
-                eventsDict.put(eventKey, this.parseEvent((Map<String, Object>) (g)));
+                Map<String, Object> g = (Map<String, Object>) ((eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey)));
+                eventsDict.put(eventKey, this.parseEvent(g));
             }
             this.events = eventsDict;
             Integer marketsLength = markets.size();
@@ -2698,7 +2698,7 @@ public class Limitless extends LimitlessApi
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "to")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "data", "0x")))), accessList));
+        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
@@ -2766,7 +2766,7 @@ public class Limitless extends LimitlessApi
             // approve(spender, amount) -> selector 0x095ea7b3
             String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
             String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-            return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000)).join();
+            return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000L)).join();
         });
 
     }

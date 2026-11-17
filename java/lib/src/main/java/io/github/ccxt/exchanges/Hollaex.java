@@ -823,7 +823,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
+    public Map<String, Object> parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<Object> keys = ((List<Object>) switch ((Object)(tickers)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });

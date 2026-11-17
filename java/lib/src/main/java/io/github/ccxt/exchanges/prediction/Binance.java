@@ -378,7 +378,7 @@ public class Binance extends BinanceApi
      * @param {object[]} rawTopics raw market topic objects
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public CompletableFuture<Object> completeRawTopics(Object rawTopics)
+    public CompletableFuture<List<Object>> completeRawTopics(Object rawTopics)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -476,7 +476,7 @@ public class Binance extends BinanceApi
             {
                 this.markets = this.createSafeDictionary();
             }
-            Object rawTopics = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawTopics = new ArrayList<Object>(Arrays.asList());
             if ((allQueriesLength != null && allQueriesLength > 0))
             {
                 rawTopics = (this.fetchEventsByQuery(allQueries, fetchCap, ((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
@@ -519,11 +519,11 @@ public class Binance extends BinanceApi
                 List<Object> listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
                 rawTopics = (this.completeRawTopics(listed)).join();
             }
-            Integer rawTopicsLength = ((List<?>)rawTopics).size();
+            Integer rawTopicsLength = rawTopics.size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
             {
-                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
+                Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
                 ((List<Object>)result).add(parsedEvent);
                 List<Object> parsedMarkets = (List<Object>) this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer parsedMarketsLength = parsedMarkets.size();
@@ -559,7 +559,7 @@ public class Binance extends BinanceApi
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public CompletableFuture<Object> fetchEventsByQuery(Object queries, Object limit, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchEventsByQuery(Object queries, Object limit, Map<String, Object> rest)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1285,7 +1285,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Long page = (Long) (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
+            Long page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((page == null || maxEntriesPerRequest == null) ? null : (page * maxEntriesPerRequest)));
             if ((offSet != null && offSet > 0))
@@ -1382,7 +1382,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Long page = (Long) (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
+            Long page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", ((page == null || maxEntriesPerRequest == null) ? null : (page * maxEntriesPerRequest)));
             if ((offSet != null && offSet > 0))
@@ -1685,7 +1685,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Long page = (Long) (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
+            Long page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};

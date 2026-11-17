@@ -341,7 +341,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    public CompletableFuture<Object> unsubscribeChannelsFrom(String url, String topic, Object channels, Object subMessageHashes, Object symbols, Object start, Map<String, Object> parameters)
+    public CompletableFuture<Object> unsubscribeChannelsFrom(String url, String topic, Object channels, Object subMessageHashes, Object symbols, Long start, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -349,7 +349,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Long refused = 0L;
             for (var i = 0; i < ((List<?>)channels).size(); i++)
             {
-                if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return j38g || j38e; }).test(i, start))
+                if ((start == null || i >= start))
                 {
                     try
                     {
@@ -2703,7 +2703,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Long entryLength = this.parseToInt(this.sbeReadUint((String) (frameHex), position, 2));
             Long numInGroup = this.parseToInt(this.sbeReadUint((String) (frameHex), (position + 2L), 2));
             position = this.parseToInt((position + 4L));
-            if ((((entryLength == null || entryLength < 16))) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(this.parseToInt(this.sum(position, (numInGroup * entryLength))), frameEnd)))
+            if ((((entryLength == null || entryLength < 16))) || (((frameEnd == null || this.parseToInt(this.sum(position, (numInGroup * entryLength))) > frameEnd))))
             {
                 return null;
             }
@@ -2904,17 +2904,17 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         return order;
     }
 
-    public Object sbeReadFlags(String frameHex, Object offset, Object names)
+    public Object sbeReadFlags(String frameHex, Object offset, List<Object> names)
     {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         List<Object> flags = new ArrayList<Object>(Arrays.asList());
         Long bits = this.parseToInt(this.sbeReadUint((String) (frameHex), offset, 1));
-        for (var i = 0; i < ((List<?>)names).size(); i++)
+        for (var i = 0; i < names.size(); i++)
         {
             Long bit = this.parseToInt((((double) bits) % ((double) 2)));
-            if (((bit != null && bit == 1)) && (!java.util.Objects.equals((names == null || i < 0 || i >= ((List<?>)names).size() ? null : ((List<?>)names).get(i)), "")))
+            if (((bit != null && bit == 1)) && (!java.util.Objects.equals((names == null || i < 0 || i >= names.size() ? null : names.get(i)), "")))
             {
-                ((List<Object>)flags).add((names == null || i < 0 || i >= ((List<?>)names).size() ? null : ((List<?>)names).get(i)));
+                ((List<Object>)flags).add((names == null || i < 0 || i >= names.size() ? null : names.get(i)));
             }
             bits = this.parseToInt((((double) bits) / ((double) 2)));
         }

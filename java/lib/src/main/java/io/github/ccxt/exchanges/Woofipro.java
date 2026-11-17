@@ -3814,7 +3814,7 @@ public class Woofipro extends WoofiproApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseMarginModes(rows, symbolsNormalized, "symbol", (Object) null);
+            return this.parseMarginModes(rows, symbolsNormalized, "symbol", null);
         }).thenApply(MarginModes::new);
 
     }

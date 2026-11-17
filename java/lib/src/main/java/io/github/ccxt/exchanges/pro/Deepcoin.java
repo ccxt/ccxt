@@ -110,8 +110,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     public Object ping(Client client)
     {
-        Object url = client.url;
-        if (((String)url).indexOf("private") >= 0)
+        String url = client.url;
+        if (url.indexOf("private") >= 0)
         {
             client.lastPong = ((Number)this.milliseconds()).longValue();
         }
@@ -958,8 +958,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         List<Object> cachedMessages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
         for (var j = 0; j < cachedMessages.size(); j++)
         {
-            Object cachedMessage = (cachedMessages == null || j < 0 || j >= cachedMessages.size() ? null : cachedMessages.get(j));
-            this.handleOrderBookMessage(client, (Map<String, Object>) (cachedMessage), (io.github.ccxt.ws.WsOrderBook) (orderbook));
+            Map<String, Object> cachedMessage = (Map<String, Object>) ((cachedMessages == null || j < 0 || j >= cachedMessages.size() ? null : cachedMessages.get(j)));
+            this.handleOrderBookMessage(client, cachedMessage, (io.github.ccxt.ws.WsOrderBook) (orderbook));
         }
         orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
         String messageHash = (("orderbook" + "::") + symbol);

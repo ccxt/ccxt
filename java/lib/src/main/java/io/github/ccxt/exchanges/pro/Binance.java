@@ -273,9 +273,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 this.options.put("numSubscriptionsByStream", this.createSafeDictionary());
             }
             Long subscriptionsByStream = this.safeInteger(this.options.get("numSubscriptionsByStream"), stream, 0);
-            Object newNumSubscriptions = ((java.util.function.BinaryOperator<Object>) (hx4J40v12A, hx4J40v12B) -> { Object hx4J40v12P = hx4J40v12A instanceof Integer hx4J40v12i ? (Object) Long.valueOf(hx4J40v12i.longValue()) : hx4J40v12A; Object hx4J40v12Q = hx4J40v12B instanceof Integer hx4J40v12i ? (Object) Long.valueOf(hx4J40v12i.longValue()) : hx4J40v12B; if (hx4J40v12P instanceof Long hx4J40v12l && hx4J40v12Q instanceof Long hx4J40v12r) { return hx4J40v12l + hx4J40v12r; } if (hx4J40v12P instanceof Double || hx4J40v12Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v12D = hx4J40v12o -> { if (hx4J40v12o instanceof Double || hx4J40v12o instanceof Float || hx4J40v12o instanceof Long || hx4J40v12o instanceof Integer || hx4J40v12o instanceof java.math.BigDecimal) { return ((Number) hx4J40v12o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v12o)); } catch (NumberFormatException hx4J40v12e) { return 0.0; } }; return hx4J40v12D.applyAsDouble(hx4J40v12P) + hx4J40v12D.applyAsDouble(hx4J40v12Q); } if (hx4J40v12P instanceof String || hx4J40v12Q instanceof String) { return String.valueOf(hx4J40v12P) + String.valueOf(hx4J40v12Q); } return null; }).apply(subscriptionsByStream, java.util.Objects.requireNonNullElse(numSubscriptions, 1L));
+            Long newNumSubscriptions = (subscriptionsByStream + java.util.Objects.requireNonNullElse(numSubscriptions, 1L));
             Long subscriptionLimitByStream = this.safeInteger(this.options.get("subscriptionLimitByStream"), type, 200);
-            if ((newNumSubscriptions != null && (subscriptionLimitByStream == null || ((Number) newNumSubscriptions).doubleValue() > subscriptionLimitByStream)))
+            if ((newNumSubscriptions != null && (subscriptionLimitByStream == null || newNumSubscriptions > subscriptionLimitByStream)))
             {
                 throw new BadRequest((this.id + " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")) ;
             }

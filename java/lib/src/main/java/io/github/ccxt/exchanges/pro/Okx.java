@@ -1359,9 +1359,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                String sym = (String) (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
-                Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
+                List<?> symbolAndTimeframe = (List<?>) (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                String sym = (String) (symbolAndTimeframe == null || 0 >= symbolAndTimeframe.size() ? null : symbolAndTimeframe.get(0));
+                Object tf = (symbolAndTimeframe == null || 1 >= symbolAndTimeframe.size() ? null : symbolAndTimeframe.get(1));
                 String marketId = this.marketId(sym);
                 String interval = this.safeString(this.timeframes, tf, tf);
                 String channel = ("candle" + interval);
@@ -1419,9 +1419,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                String sym = (String) (symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0));
-                Object tf = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
+                List<?> symbolAndTimeframe = (List<?>) (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                String sym = (String) (symbolAndTimeframe == null || 0 >= symbolAndTimeframe.size() ? null : symbolAndTimeframe.get(0));
+                Object tf = (symbolAndTimeframe == null || 1 >= symbolAndTimeframe.size() ? null : symbolAndTimeframe.get(1));
                 String marketId = this.marketId(sym);
                 String interval = this.safeString(this.timeframes, tf, tf);
                 String channel = ("candle" + interval);
@@ -2120,13 +2120,13 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        Object balance = this.parseTradingBalance(message);
+        Map<String, Object> balance = this.parseTradingBalance(message);
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};
         }
         List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
-        List<String> keys = new ArrayList<String>(((Map<String, Object>)balance).keySet());
+        List<String> keys = new ArrayList<String>(balance.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

@@ -1509,7 +1509,7 @@ public class Phemex extends PhemexApi
         Object amount = this.safeString(bidask, java.util.Objects.requireNonNullElse(amountKey, 1));
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            amount = this.fromEv(amount, market);
+            amount = this.fromEv((String) (amount), market);
         }
         return new ArrayList<Object>(Arrays.asList(this.parseNumber(this.fromEp(this.safeString(bidask, java.util.Objects.requireNonNullElse(priceKey, 0)), market)), this.parseNumber(amount)));
     }
@@ -1658,7 +1658,7 @@ public class Phemex extends PhemexApi
         return String.valueOf(precise);
     }
 
-    public Object fromEp(Object ep, Map<String, Object> market)
+    public Object fromEp(String ep, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(ep, null)) || (java.util.Objects.equals(market, null)))
         {
@@ -1667,7 +1667,7 @@ public class Phemex extends PhemexApi
         return this.fromEn((String) (ep), this.safeInteger(market, "priceScale"));
     }
 
-    public Object fromEv(Object ev, Map<String, Object> market)
+    public Object fromEv(String ev, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(ev, null)) || (java.util.Objects.equals(market, null)))
         {
@@ -1676,7 +1676,7 @@ public class Phemex extends PhemexApi
         return this.fromEn((String) (ev), this.safeInteger(market, "valueScale"));
     }
 
-    public Object fromEr(Object er, Map<String, Object> market)
+    public Object fromEr(String er, Map<String, Object> market)
     {
         if ((java.util.Objects.equals(er, null)) || (java.util.Objects.equals(market, null)))
         {
@@ -2315,8 +2315,8 @@ public class Phemex extends PhemexApi
             Object priceAmount = Helpers.GetValue(trade, (((long) tradeLength) - 2L));
             if ((priceAmount instanceof Long || priceAmount instanceof Integer || priceAmount instanceof Float || priceAmount instanceof Double))
             {
-                priceString = this.fromEp(priceString, marketResolved);
-                amountString = this.fromEv(amountString, marketResolved);
+                priceString = this.fromEp((String) (priceString), marketResolved);
+                amountString = this.fromEv((String) (amountString), marketResolved);
             }
         } else
         {
@@ -2376,7 +2376,7 @@ public class Phemex extends PhemexApi
                 amountString = this.fromEv(this.safeString(trade, "execBaseQtyEv"), marketResolved);
                 amountString = this.safeString(trade, "execQty", amountString);
                 costString = this.fromEr(this.safeString2(trade, "execQuoteQtyEv", "execValueEv"), marketResolved);
-                feeCostString = this.fromEr(this.omitZero(this.safeString(trade, "execFeeEv")), marketResolved);
+                feeCostString = this.fromEr((String) (this.omitZero(this.safeString(trade, "execFeeEv"))), marketResolved);
                 if (!java.util.Objects.equals(feeCostString, null))
                 {
                     feeRateString = this.fromEr(this.safeString(trade, "feeRateEr"), marketResolved);
@@ -5151,16 +5151,16 @@ public class Phemex extends PhemexApi
         return new HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
-            put( "markPrice", Phemex.this.safeNumber(contract, "markPriceRp", markEp) );
-            put( "indexPrice", Phemex.this.safeNumber(contract, "indexPriceRp", indexEp) );
+            put( "markPrice", Phemex.this.safeNumber(contract, "markPriceRp", Phemex.this.parseNumber(markEp)) );
+            put( "indexPrice", Phemex.this.safeNumber(contract, "indexPriceRp", Phemex.this.parseNumber(indexEp)) );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", timestamp );
             put( "datetime", Phemex.this.iso8601(timestamp) );
-            put( "fundingRate", Phemex.this.safeNumber(contract, "fundingRateRr", fundingRateEr) );
+            put( "fundingRate", Phemex.this.safeNumber(contract, "fundingRateRr", Phemex.this.parseNumber(fundingRateEr)) );
             put( "fundingTimestamp", null );
             put( "fundingDatetime", null );
-            put( "nextFundingRate", Phemex.this.safeNumber(contract, "predFundingRateRr", nextFundingRateEr) );
+            put( "nextFundingRate", Phemex.this.safeNumber(contract, "predFundingRateRr", Phemex.this.parseNumber(nextFundingRateEr)) );
             put( "nextFundingTimestamp", null );
             put( "nextFundingDatetime", null );
             put( "previousFundingRate", null );
@@ -5852,7 +5852,7 @@ public class Phemex extends PhemexApi
             h2kMap2.put("timestamp", timestamp);
             h2kMap2.put("datetime", this.iso8601(timestamp));
             h2kMap2.put("currency", code);
-            h2kMap2.put("amount", amountTransfered);
+            h2kMap2.put("amount", this.parseNumber(amountTransfered));
             h2kMap2.put("fromAccount", fromId);
             h2kMap2.put("toAccount", toId);
             h2kMap2.put("status", this.parseTransferStatus(status));

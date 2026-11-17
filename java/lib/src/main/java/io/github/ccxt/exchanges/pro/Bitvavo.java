@@ -1046,8 +1046,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
         for (var i = 0; i < (messages == null ? 0 : messages.size()); i++)
         {
-            Object messageItem = (messages == null || i < 0 || i >= messages.size() ? null : messages.get(i));
-            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
+            Map<String, Object> messageItem = (Map<String, Object>) ((messages == null || i < 0 || i >= messages.size() ? null : messages.get(i)));
+            this.handleOrderBookMessage(client, messageItem, orderbook);
         }
         this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);

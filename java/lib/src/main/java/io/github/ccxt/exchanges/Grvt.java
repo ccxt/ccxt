@@ -3033,7 +3033,7 @@ public class Grvt extends GrvtApi
             //            },
             //
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(results, symbols, (String) null, (Object) null);
+            return this.parseLeverages(results, symbols, (String) null, null);
         }).thenApply(Leverages::new);
 
     }
@@ -3137,7 +3137,7 @@ public class Grvt extends GrvtApi
             //            },
             //
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(results, symbols, (String) null, (Object) null);
+            return this.parseLeverages(results, symbols, (String) null, null);
         }).thenApply(MarginModes::new);
 
     }

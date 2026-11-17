@@ -2099,8 +2099,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = null;
-            Object channel = null;
+            String messageHash = null;
+            String channel = null;
             String marginMode = null;
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
@@ -2211,7 +2211,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // because huobi returns a different topic than the topic sent. Example: we send
             // "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
             // messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
-            return (this.subscribePrivate((String) (channel), (String) (messageHash), (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
+            return (this.subscribePrivate(channel, messageHash, (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
         }).thenApply(Balances::new);
 
     }

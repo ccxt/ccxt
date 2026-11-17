@@ -3834,7 +3834,7 @@ public class Blofin extends BlofinApi
             //     }
             //
             List<Object> leverages = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(leverages, symbolsNormalized, "instId", (Object) null);
+            return this.parseLeverages(leverages, symbolsNormalized, "instId", null);
         }).thenApply(Leverages::new);
 
     }

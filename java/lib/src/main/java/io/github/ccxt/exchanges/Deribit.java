@@ -840,7 +840,7 @@ public class Deribit extends DeribitApi
         Boolean hasSlash = ((String)symbol).indexOf("/") > -1;
         Boolean hasUsdc = ((String)symbol).indexOf("USDC") > -1;
         Object base = null;
-        Object expiry = null;
+        String expiry = null;
         if (Boolean.TRUE.equals(hasSlash))
         {
             base = this.safeString(symbolBase, 0, "");
@@ -874,9 +874,9 @@ public class Deribit extends DeribitApi
         String splitBase = this.safeString(new ArrayList<Object>(Arrays.asList(((String)baseResolved).split(java.util.regex.Pattern.quote("_")))), 0, "");
         String strike = this.safeString(optionParts, 2, "");
         String optionType = this.safeString(optionParts, 3, "");
-        String datetime = (String) this.convertExpireDate((String) (expiry));
+        String datetime = (String) this.convertExpireDate(expiry);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("id", (((baseResolved + "-") + this.convertExpireDateToMarketIdDate((String) (expiry))) + (((("-" + strike) + "-") + optionType))));
+        mapLiteral1.put("id", (((baseResolved + "-") + this.convertExpireDateToMarketIdDate(expiry)) + (((("-" + strike) + "-") + optionType))));
         mapLiteral1.put("symbol", (((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + (((("-" + strike) + "-") + optionType))));
         mapLiteral1.put("base", baseResolved);
         mapLiteral1.put("quote", quote);

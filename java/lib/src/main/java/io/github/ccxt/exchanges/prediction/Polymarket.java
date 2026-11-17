@@ -1531,7 +1531,7 @@ public class Polymarket extends PolymarketApi
                         }});
                     tickerInput.put("book", book);
                     tickerInput.put("lastTrade", this.safeDict(lastTradesByTokenId, tokenId, new HashMap<String, Object>() {{}}));
-                    Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })));
+                    Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
                     String symbolKey = this.safeString(ticker, "outcome", tokenId);
                     result.put(symbolKey, ticker);
                 }
@@ -2552,7 +2552,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> response = (this.clobPrivatePostOrder(this.safeDict(built, "body", (Object) null))).join();
             // request echo first so the response's real orderID/status/success win on overlap
             Map<String, Object> enriched = this.extend(this.safeDict(built, "request", (Object) null), response);
-            Object order = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(built, "outcome", (Object) null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })));
+            Object order = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(built, "outcome", (Object) null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
             Helpers.addElementToObject(order, "info", response); // keep info the raw exchange response, not the request echo
             return order;
         }).thenApply(PredictionOrder::new);
@@ -2616,7 +2616,7 @@ public class Polymarket extends PolymarketApi
                     // request echo first so the response's real orderID/status win on overlap
                     Object rawItem = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                     Map<String, Object> enriched = this.extend((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)), rawItem);
-                    Object parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+                    Object parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
                     Helpers.addElementToObject(parsedItem, "info", rawItem); // keep info the raw exchange response
                     ((List<Object>)result).add(parsedItem);
                 }
@@ -3004,7 +3004,7 @@ public class Polymarket extends PolymarketApi
             put( "Order", orderStruct );
         }}, innerValue);
         Map<String, Object> innerSigObj = this.signMessage(innerEncoded, (String) (this.privateKey));
-        Object innerSig = ((java.util.function.BinaryOperator<Object>) (hx4J40v6A, hx4J40v6B) -> { Object hx4J40v6P = hx4J40v6A instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6A; Object hx4J40v6Q = hx4J40v6B instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6B; if (hx4J40v6P instanceof Long hx4J40v6l && hx4J40v6Q instanceof Long hx4J40v6r) { return hx4J40v6l + hx4J40v6r; } if (hx4J40v6P instanceof Double || hx4J40v6Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v6D = hx4J40v6o -> { if (hx4J40v6o instanceof Double || hx4J40v6o instanceof Float || hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof java.math.BigDecimal) { return ((Number) hx4J40v6o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v6o)); } catch (NumberFormatException hx4J40v6e) { return 0.0; } }; return hx4J40v6D.applyAsDouble(hx4J40v6P) + hx4J40v6D.applyAsDouble(hx4J40v6Q); } if (hx4J40v6P instanceof String || hx4J40v6Q instanceof String) { return String.valueOf(hx4J40v6P) + String.valueOf(hx4J40v6Q); } return null; }).apply(((java.util.function.BinaryOperator<Object>) (hx4J40v5A, hx4J40v5B) -> { Object hx4J40v5P = hx4J40v5A instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5A; Object hx4J40v5Q = hx4J40v5B instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5B; if (hx4J40v5P instanceof Long hx4J40v5l && hx4J40v5Q instanceof Long hx4J40v5r) { return hx4J40v5l + hx4J40v5r; } if (hx4J40v5P instanceof Double || hx4J40v5Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v5D = hx4J40v5o -> { if (hx4J40v5o instanceof Double || hx4J40v5o instanceof Float || hx4J40v5o instanceof Long || hx4J40v5o instanceof Integer || hx4J40v5o instanceof java.math.BigDecimal) { return ((Number) hx4J40v5o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v5o)); } catch (NumberFormatException hx4J40v5e) { return 0.0; } }; return hx4J40v5D.applyAsDouble(hx4J40v5P) + hx4J40v5D.applyAsDouble(hx4J40v5Q); } if (hx4J40v5P instanceof String || hx4J40v5Q instanceof String) { return String.valueOf(hx4J40v5P) + String.valueOf(hx4J40v5Q); } return null; }).apply(this.remove0xPrefix(this.safeString(innerSigObj, "r")), this.remove0xPrefix(this.safeString(innerSigObj, "s"))), this.intToBase16(innerSigObj.get("v")));
+        String innerSig = ((this.remove0xPrefix(this.safeString(innerSigObj, "r")) + this.remove0xPrefix(this.safeString(innerSigObj, "s"))) + this.intToBase16(innerSigObj.get("v")));
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -3429,8 +3429,8 @@ public class Polymarket extends PolymarketApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawEvents).size(); i++)
         {
-            Object rawEvent = (rawEvents == null || i < 0 || i >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(i));
-            ((List<Object>)result).add(this.parseEvent((Map<String, Object>) (rawEvent)));
+            Map<String, Object> rawEvent = (Map<String, Object>) ((rawEvents == null || i < 0 || i >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(i)));
+            ((List<Object>)result).add(this.parseEvent(rawEvent));
         }
         return result;
     }

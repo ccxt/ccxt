@@ -8104,11 +8104,11 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object allAddresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{}});
+            List<Object> allAddresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{}});
             List<Object> addresses = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)allAddresses).size(); i++)
+            for (var i = 0; i < allAddresses.size(); i++)
             {
-                Object address = (allAddresses == null || i < 0 || i >= ((List<?>)allAddresses).size() ? null : ((List<?>)allAddresses).get(i));
+                Object address = (allAddresses == null || i < 0 || i >= allAddresses.size() ? null : allAddresses.get(i));
                 Boolean noteMatch = (java.util.Objects.equals(note, null)) || (java.util.Objects.equals(this.safeString(address, "note"), note));
                 Boolean networkMatch = (java.util.Objects.equals(networkCode, null)) || (java.util.Objects.equals(this.safeString(address, "network"), networkCode));
                 if (Boolean.TRUE.equals(noteMatch) && Boolean.TRUE.equals(networkMatch))

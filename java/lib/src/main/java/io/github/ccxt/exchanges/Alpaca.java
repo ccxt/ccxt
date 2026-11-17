@@ -2654,7 +2654,7 @@ public class Alpaca extends AlpacaApi
             {
                 continue;
             }
-            Object baseId = null;
+            String baseId = null;
             if (((String)positionSymbol).indexOf("/") >= 0)
             {
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)positionSymbol).split(java.util.regex.Pattern.quote("/"))));
@@ -2672,7 +2672,7 @@ public class Alpaca extends AlpacaApi
             {
                 continue;
             }
-            String positionCode = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+            String positionCode = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
             if ((!java.util.Objects.equals(positionCode, null)) && !(result.containsKey(positionCode)))
             {
                 Map<String, Object> positionAccount = this.account();

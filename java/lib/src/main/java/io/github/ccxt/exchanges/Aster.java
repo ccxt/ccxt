@@ -3784,7 +3784,7 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            return this.parseLeverages(this.toArray(response), symbols, "symbol", (Object) null);
+            return this.parseLeverages(this.toArray(response), symbols, "symbol", null);
         }).thenApply(Leverages::new);
 
     }
@@ -3970,7 +3970,7 @@ public class Aster extends AsterApi
             //         }
             //     ]
             //
-            List<Object> modifications = this.parseMarginModifications(this.toArray(response), (List<String>) null, (String) null, (Object) null);
+            List<Object> modifications = this.parseMarginModifications(this.toArray(response), (List<String>) null, (String) null, null);
             return this.filterBySymbolSinceLimit(modifications, symbol, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v3 -> hx4J40v3; case Number hx4J40v3 -> Long.valueOf(hx4J40v3.longValue()); case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v3.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v2 -> hx4J40v2; case Number hx4J40v2 -> Long.valueOf(hx4J40v2.longValue()); case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v2.getClass().getName()); })), false);
         }).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
 

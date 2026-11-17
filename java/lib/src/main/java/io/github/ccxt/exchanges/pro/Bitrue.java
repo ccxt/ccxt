@@ -526,7 +526,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             if (java.util.Objects.equals((baseId + quoteId), wsBaseQuote))
             {
-                return candidate;
+                return this.market(symbolId);
             }
         }
         return null;

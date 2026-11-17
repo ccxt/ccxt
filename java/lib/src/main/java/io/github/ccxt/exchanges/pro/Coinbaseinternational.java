@@ -681,11 +681,11 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String channel = this.safeString(parameters, "channel");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
-        Object positions = this.parsePositions(rawPositions, (List<String>) null, new HashMap<String, Object>() {{}});
-        Integer positionsLength = ((List<?>)positions).size();
+        List<Object> positions = this.parsePositions(rawPositions, (List<String>) null, new HashMap<String, Object>() {{}});
+        Integer positionsLength = positions.size();
         for (var i = 0; (positionsLength != null && i < positionsLength); i++)
         {
-            Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
+            Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             if (java.util.Objects.equals(((Map<String, Object>)position).get("side"), null))
             {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides

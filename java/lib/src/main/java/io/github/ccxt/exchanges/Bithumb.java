@@ -1319,8 +1319,8 @@ public class Bithumb extends BithumbApi
                     Object response = this.safeDict(responses, i, (Object) null);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
-                    Object tickers = this.omit(data, "date");
-                    List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)tickers).keySet());
+                    Map<String, Object> tickers = this.omit(data, "date");
+                    List<String> currencyIds = new ArrayList<String>(tickers.keySet());
                     for (var j = 0; j < currencyIds.size(); j++)
                     {
                         String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));

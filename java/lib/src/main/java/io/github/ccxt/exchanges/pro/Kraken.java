@@ -1150,9 +1150,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     public Object ping(Client client)
     {
-        Object url = client.url;
+        String url = client.url;
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        if (((String)url).indexOf("v2") >= 0)
+        if (url.indexOf("v2") >= 0)
         {
             request.put("method", "ping");
         } else
@@ -1292,7 +1292,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 // rebuild only on the first snapshot or when the depth changes,
                 // e.g. a re-subscription with a different limit
                 this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, depth));
-                depths.put((String)symbol, depth);
+                depths.put(symbol, depth);
                 this.options.put("wsOrderBookDepths", depths);
             }
             // reset in place so that references held by users keep receiving
@@ -1352,9 +1352,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Long localChecksum = this.crc32(payload, false);
             if (!java.util.Objects.equals(localChecksum, c))
             {
-                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
+                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
                 client.subscriptions.remove((String)messageHash);
-                ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                ((Map<String,Object>)this.orderbooks).remove(symbol);
                 client.reject(error, messageHash);
                 return;
             }
@@ -1605,8 +1605,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(allTrades, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> parsed = this.parseWsTrade(trade, (Map<String, Object>) null);
                 stored.append(parsed);
-                Object symbol = ((String)parsed.get("symbol"));
-                symbols.put((String)symbol, true);
+                String symbol = ((String)parsed.get("symbol"));
+                symbols.put(symbol, true);
             }
             String name = "myTrades";
             client.resolve(this.myTrades, name);

@@ -4592,8 +4592,8 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
-                Object url = ((String)exchange.last_request_url);
-                List<Object> urlParts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("?"))));
+                String url = ((String)exchange.last_request_url);
+                List<Object> urlParts = new ArrayList<Object>(Arrays.asList(url.split(java.util.regex.Pattern.quote("?"))));
                 Assert(urlParts.size() > 1, ("last_request_url has no query string: " + url));
                 Object query = this.urlencodedToDict((String) (Helpers.GetValue(urlParts, 1)));
                 clientOrderId = ((Map<String, Object>)query).get("label");

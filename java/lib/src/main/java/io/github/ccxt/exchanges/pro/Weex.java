@@ -2074,9 +2074,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        Object url = client.url;
+        String url = client.url;
         String accountType = "spot";
-        if (((String)url).indexOf("contract") >= 0)
+        if (url.indexOf("contract") >= 0)
         {
             accountType = "swap";
         }
@@ -2308,9 +2308,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
     public Map<String, Object> getMarketFromClientAndMessage(Client client, Map<String, Object> message)
     {
-        Object url = client.url;
+        String url = client.url;
         String marketType = "spot";
-        if (((String)url).indexOf("contract") >= 0)
+        if (url.indexOf("contract") >= 0)
         {
             marketType = "swap";
         }

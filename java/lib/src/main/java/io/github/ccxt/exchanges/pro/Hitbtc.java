@@ -1234,8 +1234,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object order = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
-                this.handleOrderHelper(client, message, (Map<String, Object>) (order));
+                Map<String, Object> order = (Map<String, Object>) ((data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i)));
+                this.handleOrderHelper(client, message, order);
             }
         } else
         {

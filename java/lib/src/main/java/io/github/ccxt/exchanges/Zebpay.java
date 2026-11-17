@@ -1789,7 +1789,7 @@ public class Zebpay extends ZebpayApi
             //     }
             //
             List<Object> leveragePreferences = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(leveragePreferences, symbols, "symbol", (Object) null);
+            return this.parseLeverages(leveragePreferences, symbols, "symbol", null);
         }).thenApply(Leverages::new);
 
     }

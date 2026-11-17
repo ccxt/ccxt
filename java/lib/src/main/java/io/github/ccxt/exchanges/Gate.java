@@ -3779,7 +3779,7 @@ public class Gate extends GateApi
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null;
+            String symbolResolved = (String) ((((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null);
             Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (String) null);
             String type = typequeryVariable.first();
             Map<String, Object> query = typequeryVariable.second();
@@ -3819,7 +3819,7 @@ public class Gate extends GateApi
             //        ...
             //    ]
             //
-            return this.parseFundingHistories(response, (String) (symbolResolved), since, limit);
+            return this.parseFundingHistories(response, symbolResolved, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }

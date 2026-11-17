@@ -5760,7 +5760,7 @@ public Map<String, Object> describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v33 -> (List<String>) hx4J40v33; case Object hx4J40v33 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v33.getClass().getName()); })), parameters)).join();
+            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v25 -> (List<String>) hx4J40v25; case Object hx4J40v25 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v25.getClass().getName()); })), parameters)).join();
         }).thenApply(FundingRates::new);
 
     }
@@ -6917,7 +6917,7 @@ public Map<String, Object> describe()
         }
         if (Boolean.TRUE.equals(shouldParseFees))
         {
-            Object reducedFees = fees;
+            List<Object> reducedFees = fees;
             if (this.reduceFees)
             {
                 reducedFees = this.reduceFeesByCurrency(fees);
@@ -6926,13 +6926,13 @@ public Map<String, Object> describe()
             {
                 reducedFees = new ArrayList<Object>(Arrays.asList());
             }
-            Integer reducedLength = ((List<?>)reducedFees).size();
+            Integer reducedLength = reducedFees.size();
             for (var i = 0; (reducedLength != null && i < reducedLength); i++)
             {
-                Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "cost", this.safeNumber((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)), "cost", (Object) null));
-                if ((switch ((Object)((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)))) { case List<?> j39v12 -> j39v12.contains("rate"); case Map<?, ?> j39v11 -> j39v11.containsKey("rate"); case null, default -> false; }))
+                Helpers.addElementToObject((reducedFees == null || i < 0 || i >= reducedFees.size() ? null : reducedFees.get(i)), "cost", this.safeNumber((reducedFees == null || i < 0 || i >= reducedFees.size() ? null : reducedFees.get(i)), "cost", (Object) null));
+                if ((switch ((Object)((reducedFees == null || i < 0 || i >= reducedFees.size() ? null : reducedFees.get(i)))) { case List<?> j39v12 -> j39v12.contains("rate"); case Map<?, ?> j39v11 -> j39v11.containsKey("rate"); case null, default -> false; }))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "rate", this.safeNumber((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)), "rate", (Object) null));
+                    Helpers.addElementToObject((reducedFees == null || i < 0 || i >= reducedFees.size() ? null : reducedFees.get(i)), "rate", this.safeNumber((reducedFees == null || i < 0 || i >= reducedFees.size() ? null : reducedFees.get(i)), "rate", (Object) null));
                 }
             }
             if (!Boolean.TRUE.equals(parseFee) && (java.util.Objects.equals(reducedLength, 0)))
@@ -7442,7 +7442,7 @@ public Map<String, Object> describe()
         return ("0x" + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
     }
 
-    public Object reduceFeesByCurrency(Object fees)
+    public List<Object> reduceFeesByCurrency(Object fees)
     {
         //
         // this function takes a list of fee structures having the following format
@@ -8352,7 +8352,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object safePosition(Map<String, Object> position)
+    public Map<String, Object> safePosition(Map<String, Object> position)
     {
         // simplified version of: /pull/12765/
         // if contractSize is undefined get from market
@@ -8763,7 +8763,7 @@ public Map<String, Object> describe()
         return position;
     }
 
-    public Object parsePositions(Object positions, List<String> symbols, Map<String, Object> parameters)
+    public List<Object> parsePositions(Object positions, List<String> symbols, Map<String, Object> parameters)
     {
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         List<Object> positionsArray = this.toArray(positions);
@@ -8852,8 +8852,8 @@ public Map<String, Object> describe()
             ((List<Object>)result).add(transaction);
         }
         result = this.sortBy(result, "timestamp");
-        Object code = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
-        return this.filterByCurrencySinceLimit(result, java.util.Objects.toString(code, null), since, limit, false);
+        String code = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
+        return this.filterByCurrencySinceLimit(result, code, since, limit, false);
     }
 
     public Object parseTransfers(Object transfers, Map<String, Object> currency, Long since, Long limit, Map<String, Object> parameters)
@@ -8866,8 +8866,8 @@ public Map<String, Object> describe()
             ((List<Object>)result).add(transfer);
         }
         result = this.sortBy(result, "timestamp");
-        Object code = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
-        return this.filterByCurrencySinceLimit(result, java.util.Objects.toString(code, null), since, limit, false);
+        String code = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
+        return this.filterByCurrencySinceLimit(result, code, since, limit, false);
     }
 
     public List<Object> parseLedger(Object data, Map<String, Object> currency, Long since, Long limit, Map<String, Object> parameters)
@@ -8889,8 +8889,8 @@ public Map<String, Object> describe()
             }
         }
         result = this.sortBy(result, "timestamp");
-        Object code = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
-        return this.filterByCurrencySinceLimit(result, java.util.Objects.toString(code, null), since, limit, false);
+        String code = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
+        return this.filterByCurrencySinceLimit(result, code, since, limit, false);
     }
 
     public Long nonce()
@@ -9252,7 +9252,7 @@ public Map<String, Object> describe()
 
     }
 
-    public List<Object> buildOHLCVC(Object trades, String timeframe, Object since, Object limit)
+    public List<Object> buildOHLCVC(Object trades, String timeframe, Long since, Long limit)
     {
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value
@@ -9266,10 +9266,10 @@ public Map<String, Object> describe()
         Integer i_volume = 5;
         Integer i_count = 6;
         Integer tradesLength = ((List<?>)trades).size();
-        Object oldest = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(tradesLength, java.util.Objects.requireNonNullElse(limit, 2147483647));
+        long oldest = Math.min(tradesLength, java.util.Objects.requireNonNullElse(limit, 2147483647L));
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "buildOHLCVC", new HashMap<String, Object>() {{}});
         Boolean skipZeroPrices = (Boolean) this.safeBool(options, "skipZeroPrices", true);
-        for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, oldest); i++)
+        for (var i = 0; (i < oldest); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i, new HashMap<String, Object>() {{}});
             Long ts = this.safeInteger(trade, "timestamp");
@@ -9278,7 +9278,7 @@ public Map<String, Object> describe()
             {
                 continue;
             }
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(ts, java.util.Objects.requireNonNullElse(since, 0)))
+            if (((ts == null || ts < java.util.Objects.requireNonNullElse(since, 0L))))
             {
                 continue;
             }
@@ -9287,7 +9287,7 @@ public Map<String, Object> describe()
                 throw new ExchangeError((this.id + " buildOHLCVC() missing ts")) ;
             }
             Object openingTime = Helpers.multiply((Math.floor(Double.parseDouble(String.valueOf((((double) ts) / ((double) ms)))))), ms); // shift to the edge of m/h/d (but not M)
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(openingTime, java.util.Objects.requireNonNullElse(since, 0)))
+            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(openingTime, java.util.Objects.requireNonNullElse(since, 0L)))
             {
                 continue;
             }
@@ -10688,7 +10688,7 @@ public Map<String, Object> describe()
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false), false), "symbol");
     }
 
-    public Object parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
+    public Map<String, Object> parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
     {
         //
         // the value of tickers is either a dict or a list
@@ -10732,7 +10732,7 @@ public Map<String, Object> describe()
         return this.filterByArrayTickers(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false));
     }
 
-    public Object parseDepositAddresses(Object addresses, Object codes, Boolean indexed, Map<String, Object> parameters)
+    public List<Object> parseDepositAddresses(Object addresses, Object codes, Boolean indexed, Map<String, Object> parameters)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)addresses).size(); i++)
@@ -10777,7 +10777,7 @@ public Map<String, Object> describe()
             ((List<Object>)result).add(borrowRate);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v15 -> hx4J40v15; case Number hx4J40v15 -> Long.valueOf(hx4J40v15.longValue()); case Object hx4J40v15 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v15.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v14 -> hx4J40v14; case Number hx4J40v14 -> Long.valueOf(hx4J40v14.longValue()); case Object hx4J40v14 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v14.getClass().getName()); })), false);
+        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v10 -> hx4J40v10; case Number hx4J40v10 -> Long.valueOf(hx4J40v10.longValue()); case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v10.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v9 -> hx4J40v9; case Number hx4J40v9 -> Long.valueOf(hx4J40v9.longValue()); case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v9.getClass().getName()); })), false);
     }
 
     public Object parseIsolatedBorrowRates(Object info)
@@ -10802,8 +10802,8 @@ public Map<String, Object> describe()
             ((List<Object>)rates).add(this.parseFundingRateHistory(entry, market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : market.get("symbol");
-        return this.filterBySymbolSinceLimit(sorted, java.util.Objects.toString(symbol, null), since, limit, false);
+        String symbol = java.util.Objects.toString((((java.util.Objects.equals(market, null)))) ? null : market.get("symbol"), null);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
     }
 
     public String safeSymbol(Object marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -10842,12 +10842,12 @@ public Map<String, Object> describe()
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object entry = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
-            ((List<Object>)rates).add(this.parseLongShortRatio((Map<String, Object>) (entry), market));
+            Map<String, Object> entry = (Map<String, Object>) ((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)));
+            ((List<Object>)rates).add(this.parseLongShortRatio(entry, market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : market.get("symbol");
-        return this.filterBySymbolSinceLimit(sorted, java.util.Objects.toString(symbol, null), since, limit, false);
+        String symbol = java.util.Objects.toString((((java.util.Objects.equals(market, null)))) ? null : market.get("symbol"), null);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
     }
 
     public Object handleTriggerPricesAndParams(Object symbol, Map<String, Object> parameters, Boolean omitParams)
@@ -11418,8 +11418,8 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(incomes)) { case null -> 0; case List<?> j39v50 -> j39v50.size(); case String j39v51 -> j39v51.length(); case Object j39v52 -> j39v52.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v52) : 0; }); i++)
         {
-            Object entry = Helpers.GetValue(incomes, i);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseIncome((Map<String, Object>) (entry), market);
+            Map<String, Object> entry = (Map<String, Object>) (Helpers.GetValue(incomes, i));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseIncome(entry, market);
             ((List<Object>)result).add(parsed);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
@@ -11486,7 +11486,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object filterByArrayPositions(Object objects, Object key, Object values)
+    public List<Object> filterByArrayPositions(Object objects, Object key, Object values)
     {
         /**
          * @ignore
@@ -11496,7 +11496,7 @@ public Map<String, Object> describe()
         return this.toArray(this.filterByArray(objects, key, values, false));
     }
 
-    public Object filterByArrayTickers(Object objects, Object key, Object values)
+    public Map<String, Object> filterByArrayTickers(Object objects, Object key, Object values)
     {
         /**
          * @ignore
@@ -11772,7 +11772,7 @@ public Map<String, Object> describe()
                 {
                     break;
                 }
-                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, ((Long) (switch ((Object) (currentSince)) { case null -> (Long) null; case Long hx4J40v9 -> hx4J40v9; case Number hx4J40v9 -> Long.valueOf(hx4J40v9.longValue()); case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v9.getClass().getName()); })), ((Long) (switch ((Object) (maxEntriesPerRequestValue)) { case null -> (Long) null; case Long hx4J40v8 -> hx4J40v8; case Number hx4J40v8 -> Long.valueOf(hx4J40v8.longValue()); case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v8.getClass().getName()); })), timeframe, paramsOmitted));
+                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, ((Long) (switch ((Object) (currentSince)) { case null -> (Long) null; case Long hx4J40v6 -> hx4J40v6; case Number hx4J40v6 -> Long.valueOf(hx4J40v6.longValue()); case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v6.getClass().getName()); })), ((Long) (switch ((Object) (maxEntriesPerRequestValue)) { case null -> (Long) null; case Long hx4J40v5 -> hx4J40v5; case Number hx4J40v5 -> Long.valueOf(hx4J40v5.longValue()); case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v5.getClass().getName()); })), timeframe, paramsOmitted));
                 // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
                 currentSince = Helpers.subtract(this.sum(currentSince, step), 1);
             }
@@ -12167,15 +12167,15 @@ public Map<String, Object> describe()
         return optionStructures;
     }
 
-    public Object parseMarginModes(Object response, List<String> symbols, String symbolKey, Object marketType)
+    public Object parseMarginModes(Object response, List<String> symbols, String symbolKey, String marketType)
     {
         Map<String, Object> marginModeStructures = new HashMap<String, Object>() {{}};
-        Object marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? "swap" : marketType; // default to swap
+        String marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? "swap" : marketType; // default to swap
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Object info = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, java.util.Objects.toString(marketTypeResolved, null));
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketTypeResolved);
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(market.get("symbol"), symbols))
             {
                 marginModeStructures.put((String)market.get("symbol"), this.parseMarginMode((Map<String, Object>) (info), market));
@@ -12189,15 +12189,15 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parseMarginMode () is not supported yet")) ;
     }
 
-    public Object parseLeverages(Object response, List<String> symbols, String symbolKey, Object marketType)
+    public Object parseLeverages(Object response, List<String> symbols, String symbolKey, String marketType)
     {
         Map<String, Object> leverageStructures = new HashMap<String, Object>() {{}};
-        Object marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? "swap" : marketType; // default to swap
+        String marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? "swap" : marketType; // default to swap
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Object info = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, java.util.Objects.toString(marketTypeResolved, null));
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketTypeResolved);
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(market.get("symbol"), symbols))
             {
                 leverageStructures.put((String)market.get("symbol"), this.parseLeverage((Map<String, Object>) (info), market));
@@ -12331,7 +12331,7 @@ public Map<String, Object> describe()
         return reconstructedDate;
     }
 
-    public Object convertMarketIdExpireDate(String date)
+    public String convertMarketIdExpireDate(String date)
     {
         if (java.util.Objects.equals(date, null))
         {
@@ -12390,7 +12390,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parseMarginModification() is not supported yet")) ;
     }
 
-    public List<Object> parseMarginModifications(Object response, List<String> symbols, String symbolKey, Object marketType)
+    public List<Object> parseMarginModifications(Object response, List<String> symbols, String symbolKey, String marketType)
     {
         List<Object> marginModifications = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(response, null))
@@ -12401,7 +12401,7 @@ public Map<String, Object> describe()
         {
             Object info = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String marketId = (((java.util.Objects.equals(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, java.util.Objects.toString(marketType, null));
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(market.get("symbol"), symbols))
             {
                 ((List<Object>)marginModifications).add(this.parseMarginModification((Map<String, Object>) (info), market));

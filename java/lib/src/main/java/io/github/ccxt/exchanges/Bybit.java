@@ -2526,7 +2526,7 @@ public class Bybit extends BybitApi
         String quote = null;
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
-        Object expiry = null;
+        String expiry = null;
         Boolean hasSlash = ((String)symbol).indexOf("/") > -1;
         String baseName = this.safeString(optionParts, 0, "");
         if (Boolean.TRUE.equals(hasSlash))
@@ -2554,7 +2554,7 @@ public class Bybit extends BybitApi
         }
         String strike = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
-        String datetime = (String) this.convertExpireDate((String) (expiry));
+        String datetime = (String) this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
         Double amountPrecision = null;
         Double pricePrecision = null;
@@ -2572,7 +2572,7 @@ public class Bybit extends BybitApi
             amountPrecision = this.parseNumber("1");
             pricePrecision = this.parseNumber("0.01");
         }
-        Object convertedExpireDate = this.convertExpireDateToMarketIdDate((String) (expiry));
+        Object convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", ((((((baseName + "-") + convertedExpireDate) + "-") + strike) + "-") + optionType));
         mapLiteral1.put("symbol", ((((((((((baseName + "/") + quote) + ":") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType));

@@ -2222,7 +2222,7 @@ public class Delta extends DeltaApi
         }
         String marketId = this.safeString(order, "product_id");
         Map<String, Object> marketsByNumericId = (Map<String, Object>) this.safeDict(this.options, "marketsByNumericId", new HashMap<String, Object>() {{}});
-        Object marketValue = this.safeValue(marketsByNumericId, marketId, market);
+        Object marketValue = this.safeDict(marketsByNumericId, marketId, market);
         String symbol = null;
         if (java.util.Objects.equals(marketValue, null))
         {

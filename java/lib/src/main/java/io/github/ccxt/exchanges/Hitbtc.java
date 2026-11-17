@@ -3167,7 +3167,7 @@ public class Hitbtc extends HitbtcApi
                 throw new BadSymbol((this.id + " fetchMarginModes () supports swap contracts and margin only")) ;
             }
             List<Object> config = (List<Object>) this.safeList(response, "config", new ArrayList<Object>(Arrays.asList()));
-            return this.parseMarginModes(config, symbolsNormalized, "symbol", (Object) null);
+            return this.parseMarginModes(config, symbolsNormalized, "symbol", null);
         }).thenApply(MarginModes::new);
 
     }

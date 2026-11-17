@@ -845,10 +845,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                Map<String, Object> market = this.market((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)));
+                List<?> data = (List<?>) (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                Map<String, Object> market = this.market((data == null || 0 >= data.size() ? null : data.get(0)));
                 String symbolString = (String) market.get("symbol");
-                Object unfiedTimeframe = (data == null || 1 >= ((List<?>)data).size() ? null : ((List<?>)data).get(1));
+                Object unfiedTimeframe = (data == null || 1 >= data.size() ? null : data.get(1));
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 String marketId = this.safeString(market, "id", "");
                 rawHashes.add(((("kline." + timeframeId) + ".") + marketId));
@@ -897,10 +897,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                Map<String, Object> market = this.market((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)));
+                List<?> data = (List<?>) (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                Map<String, Object> market = this.market((data == null || 0 >= data.size() ? null : data.get(0)));
                 String symbolString = (String) market.get("symbol");
-                Object unfiedTimeframe = (data == null || 1 >= ((List<?>)data).size() ? null : ((List<?>)data).get(1));
+                Object unfiedTimeframe = (data == null || 1 >= data.size() ? null : data.get(1));
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
                 String marketId = this.safeString(market, "id", "");
                 rawHashes.add(((("kline." + timeframeId) + ".") + marketId));

@@ -677,7 +677,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
-    public CompletableFuture<Object> fetchRawTopicsByQueries(Object queries, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawTopicsByQueries(Object queries, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3105,7 +3105,7 @@ public class Predictfun extends PredictfunApi
     public Object signEvmTransaction(Map<String, Object> tx, Object privateKey)
     {
         String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "to")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "data", "0x")))), accessList));
+        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
@@ -3214,7 +3214,7 @@ public class Predictfun extends PredictfunApi
                     // each receipt is awaited before the next transaction goes out, so the nonce the
                     // second one looks up already counts the first
                     String approvalHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (ctfToken), "0x0", approvalData, (String) (gasLimit))).join();
-                    Object receipt = (this.waitForTransactionReceipt((String) (rpcUrl), approvalHash, 60000)).join();
+                    Object receipt = (this.waitForTransactionReceipt((String) (rpcUrl), approvalHash, 60000L)).join();
                     ((List<Object>)receipts).add(receipt);
                 }
                 return receipts;
@@ -3248,7 +3248,7 @@ public class Predictfun extends PredictfunApi
             // approve(spender, amount) -> selector 0x095ea7b3
             String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
             String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-            return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000)).join();
+            return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000L)).join();
         });
 
     }

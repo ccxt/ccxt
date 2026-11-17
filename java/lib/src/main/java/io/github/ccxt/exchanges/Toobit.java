@@ -3180,8 +3180,8 @@ public class Toobit extends ToobitApi
                 ((List<Object>)results).add(this.extend(this.parseTransactionWithType((Map<String, Object>) ((response == null || i < 0 || i >= response.size() ? null : response.get(i))), currency, transactType), paramsUntil));
             }
             List<Object> sorted = this.sortBy(results, "timestamp");
-            Object currencyCode = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
-            return this.filterByCurrencySinceLimit(sorted, java.util.Objects.toString(currencyCode, null), since, limit, false);
+            String currencyCode = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
+            return this.filterByCurrencySinceLimit(sorted, currencyCode, since, limit, false);
         });
 
     }

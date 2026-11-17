@@ -312,7 +312,7 @@ public class Myriad extends MyriadApi
             List<Object> queries = this.parseSearchQueries(parameters);
             Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Integer queriesLength = queries.size();
-            Object rawMarkets = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
             if ((queriesLength != null && queriesLength > 0))
             {
                 rawMarkets = (this.fetchRawMarketsBySearch(queries, rest)).join();
@@ -322,9 +322,9 @@ public class Myriad extends MyriadApi
             }
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+            for (var i = 0; i < rawMarkets.size(); i++)
             {
-                Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
+                Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                 Map<String, Object> m = this.parseMyriadMarket(raw, (String) null);
                 ((List<Object>)flatMarkets).add(m);
                 Map<String, Object> ev = this.parseMarketToEvent(raw, m);
@@ -352,7 +352,7 @@ public class Myriad extends MyriadApi
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    public CompletableFuture<Object> fetchRawMarketsBySearch(Object queries, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawMarketsBySearch(Object queries, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -400,7 +400,7 @@ public class Myriad extends MyriadApi
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    public CompletableFuture<Object> fetchRawMarketsList(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawMarketsList(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -919,7 +919,7 @@ public class Myriad extends MyriadApi
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
         // byte-identical to ethers' serialization
         String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "to")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "data", "0x")))), accessList));
+        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
@@ -1003,7 +1003,7 @@ public class Myriad extends MyriadApi
             String maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
             String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + maxUint);
             String approveHash = (this.sendEvmTransaction((String) (rpcUrl), this.parseToInt(networkId), (String) (owner), (String) (token), "0x0", approveData, "0x186a0")).join();
-            (this.waitForTransactionReceipt((String) (rpcUrl), approveHash, 60000)).join();
+            (this.waitForTransactionReceipt((String) (rpcUrl), approveHash, 60000L)).join();
             return null;
         });
 
@@ -1357,7 +1357,7 @@ public class Myriad extends MyriadApi
             }
             if (!Boolean.TRUE.equals(skipWaitForReceipt))
             {
-                (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000)).join();
+                (this.waitForTransactionReceipt((String) (rpcUrl), (String) (txHash), 60000L)).join();
             }
             return this.parseTradeTx((String) (txHash), quote, outcomeObj, sideStr);
         });
@@ -4304,7 +4304,7 @@ public class Myriad extends MyriadApi
 
             // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
             Object trades = (this.watchTrades(outcome, since, limit, parameters)).join();
-            List<Object> ohlcvc = this.buildOHLCVC(((Object)trades), java.util.Objects.requireNonNullElse(timeframe, "1m"), 0, 2147483647);
+            List<Object> ohlcvc = this.buildOHLCVC(((Object)trades), java.util.Objects.requireNonNullElse(timeframe, "1m"), 0L, 2147483647L);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer ohlcvcLength = ohlcvc.size();
             for (var i = 0; (ohlcvcLength != null && i < ohlcvcLength); i++)

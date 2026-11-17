@@ -1184,7 +1184,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             // the position is freshly opened by the current fill, so the local clock approximates the open time
             Long timestamp = this.milliseconds();
-            position = (Map<String, Object>) this.safePosition(new HashMap<String, Object>() {{
+            position = this.safePosition(new HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "side", side );
                 put( "timestamp", timestamp );

@@ -2148,7 +2148,7 @@ public class Kraken extends KrakenApi
         Map<String, Object> marketsByAltname = (Map<String, Object>) this.safeDict(this.options, "marketsByAltname", new HashMap<String, Object>() {{}});
         if ((id != null && marketsByAltname.containsKey(id)))
         {
-            return (marketsByAltname == null || !(id instanceof String) ? null : marketsByAltname.get(id));
+            return this.safeDict(marketsByAltname, id, (Object) null);
         } else
         {
             return this.safeMarket(java.util.Objects.toString(id, null), (Map<String, Object>) null, (String) null, (String) null);
@@ -2170,11 +2170,11 @@ public class Kraken extends KrakenApi
         return market;
     }
 
-    public Object getDelistedMarketById(String id)
+    public Map<String, Object> getDelistedMarketById(String id)
     {
         if (java.util.Objects.equals(id, null))
         {
-            return id;
+            return null;
         }
         Map<String, Object> market = (Map<String, Object>) this.safeDict(this.options.get("delistedMarketsById"), id, (Object) null);
         if (!java.util.Objects.equals(market, null))

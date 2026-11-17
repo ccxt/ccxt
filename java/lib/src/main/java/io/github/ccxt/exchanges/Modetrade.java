@@ -4099,7 +4099,7 @@ public class Modetrade extends ModetradeApi
                     }
                 }
             }
-            Object paramsSigned = paramsSorted;
+            Map<String, Object> paramsSigned = paramsSorted;
             if (Boolean.TRUE.equals(isPostOrPut) && Boolean.TRUE.equals(isOrder))
             {
                 paramsSigned = this.keysort(paramsSorted);
@@ -4124,7 +4124,7 @@ public class Modetrade extends ModetradeApi
                 signedHeaders.put("content-type", "application/json");
             } else
             {
-                if (((Map<String, Object>)paramsSigned).size() > 0)
+                if (paramsSigned.size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(paramsSigned)));
                     auth = (auth + ("?" + this.rawencode(paramsSigned)));

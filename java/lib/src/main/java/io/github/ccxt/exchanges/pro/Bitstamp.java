@@ -1010,7 +1010,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {string[]} symbols the symbols to remove from the cache
      * @returns {object} the new cache holding the remaining entries
      */
-    public Object pruneCachedBySymbols(Object newCache, Object cache, Object symbols)
+    public Object pruneCachedBySymbols(Object newCache, Object cache, List<Object> symbols)
     {
         List<Object> entries = this.toArray(cache);
         for (var i = 0; i < entries.size(); i++)
