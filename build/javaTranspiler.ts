@@ -43,6 +43,7 @@ import { installJavaR87j2UrlLocals } from './java-local-types.js';
 import { installJavaR87j3SumCounterLocals } from './java-local-types.js';
 import { installJavaR87j4SplitLists } from './java-local-types.js';
 import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
+import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2510,6 +2511,7 @@ class NewTranspiler {
         installJavaR87j3SumCounterLocals(this.transpiler);
         installJavaR87j4SplitLists(this.transpiler);
         installJavaR87j5CalleeStringArgs(this.transpiler);
+        installJavaR87j8CopyStringResolver(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5837,7 +5839,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10253,6 +10255,42 @@ function javaR87j4SplitSeedSelfTest (): string[] {
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`r87-j4 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 87j8: String accumulators whose pushed String locals are declared after the list
+function javaR87j8LocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzr87j8selftest extends Exchange {',
+        "    acc (rows: Dict[]) { const out = []; for (let i = 0; i < rows.length; i++) { const a = this.safeString (rows[i], 'a', ''); const b = this.safeString (rows[i], 'b', ''); out.push (a + ': ' + b); } return out.join (', '); }",
+        "    twice (rows: Dict[], a: string, b: string) { let k: string = a.toLowerCase (); k = k + b; const keys = []; for (let i = 0; i < rows.length; i++) { let k: string = a.toLowerCase (); k = k + b; keys.push (k); } return keys.join (','); }",
+        "    sliced (order: Dict) { const code = this.safeString (order, 'b'); let base = code; if ((base !== undefined) && base.startsWith ('EQ_')) { base = base.slice (3); } return this.safeCurrencyCode (base); }",
+        "    chunks (rows: Dict[]) { const ids: string[] = []; for (let i = 0; i < rows.length; i++) { ids.push (this.safeString (rows[i], 'id', '')); } let chunk: string[] = []; const out = []; for (let i = 0; i < ids.length; i++) { chunk.push (ids[i]); const chunkLength = chunk.length; if (chunkLength >= 10) { out.push (chunk.join (',')); chunk = []; } } return out; }",
+        "    gen2Id (market: Dict): string { return this.safeString (market, 'baseId', '') + '-' + this.safeString (market, 'quoteId', ''); }",
+        "    viaInternal (rows: Dict[]) { const ids = []; for (let i = 0; i < rows.length; i++) { ids.push (this.gen2Id (rows[i])); } return ids.join (','); }",
+        "    accAny (rows: Dict[]) { const bad = []; for (let i = 0; i < rows.length; i++) { const v = rows[i]['v']; bad.push (v); } return bad.join (','); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<String> out = new java\.util\.ArrayList<String>\(/.test(out) || !/\bout\.add\(/.test(out)) problems.push("'out' (pushes of a String concat of later String locals) must print List<String> with a bare add");
+        if (!/\bObject bad = /.test(out)) problems.push("'bad' (push of an Object element read) must stay Object");
+        if (!/\bString base = code;/.test(out)) problems.push("'base' (String copy written from a native literal slice of itself) must print String");
+        if (/\(String\) \(base\)/.test(out)) problems.push("'base' must reach the String core argument without a checkcast");
+        if (!/List<String> chunk = new java\.util\.ArrayList<String>\(/.test(out) || !/\bchunk\.add\(/.test(out)) problems.push("'chunk' (reassigned list fed by reads of a List<String> local) must print List<String> with a bare add");
+        if (!/public String gen2Id\(/.test(out) || !/List<String> ids = new java\.util\.ArrayList<String>\(java\.util\.Arrays\.asList\(\)\);\s*for[^]*?ids\.add\(this\.gen2Id\(/.test(out)) problems.push("'ids' (pushes of an internal method the printer declares String) must print List<String> with a bare add");
+        if (!/\bObject keys = /.test(out)) problems.push("'keys' (push of a local with a same-named sibling binding) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }

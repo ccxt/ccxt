@@ -13223,7 +13223,7 @@ function stringAccumulatorListLocal (printer, declaration) {
         if (push !== undefined) {
             const arg = unwrapParens (push.arguments[0]);
             if (push.arguments.length !== 1
-                || !(isStaticallyStringExpression (printer, arg, undefined) || stringProducerLocal (printer, arg))) {
+                || !(isStaticallyStringExpression (printer, arg, undefined) || stringProducerLocal (printer, arg) || r87j8StringElement (printer, arg))) {
                 return false;
             }
             pushes++;
@@ -13637,7 +13637,7 @@ function stringListElementOk (printer, element) {
     if (e !== undefined && ts.isAsExpression (e) && e.type.kind === ts.SyntaxKind.StringKeyword) {
         return true; // prints ((String) x)
     }
-    return e !== undefined && (isStaticallyStringExpression (printer, e, undefined) || stringProducerLocal (printer, e));
+    return e !== undefined && (isStaticallyStringExpression (printer, e, undefined) || stringProducerLocal (printer, e) || r87j8StringElement (printer, e, 0, false));
 }
 
 function stringListLocalDeclaration (printer, node) {
@@ -21418,6 +21418,9 @@ function j8ScalarWrite (printer, right, declaration, type, depth = 0) {
     if (ts.isIdentifier (value)) {
         return value.text === declaration.name.text || j8ScalarSourceType (printer, value) === type ? { cast: '', suffix: false } : undefined;
     }
+    if (type === 'String' && r87j8NativeStringSlice (printer, value, declaration)) {
+        return { cast: '', suffix: false }; // 87j8: prints `(r == null ? null : ((String)r).substring(..))`, a String
+    }
     if (type === 'Long' && javaIntLiteral (value) && ts.isNumericLiteral (value)) {
         return { cast: '', suffix: true };
     }
@@ -23806,4 +23809,154 @@ export function installJavaR87j5CalleeStringArgs (transpiler) {
             return undefined;
         }
     };
+}
+
+// ===== 87j8. String accumulators fed by String locals declared after the list =====
+// Sections 26 / 31 prove a pushed identifier String only from its PRINTED declaration
+// (javaDeclaredTypeOf), which does not exist yet when the list (declared before the loop) prints.
+// Decide the element from the AST instead: a single-binding local whose own family decision is
+// String (section 1 with a statically-String initializer, 84j1 string element reads, section 36
+// non-null String locals), a `<String> + ..` chain whose left spine is such a value, or the
+// existing static-String proof.
+function r87j8StringElement (printer, node, depth = 0, internalCalls = true) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 4) {
+        return false;
+    }
+    if (isStaticallyStringExpression (printer, value, undefined) || stringProducerLocal (printer, value)) {
+        return true;
+    }
+    if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return r87j8StringElement (printer, value.left, depth + 1, internalCalls);
+    }
+    if (r87j8StringListRead (printer, value)) {
+        return true;
+    }
+    // a `this.m (..)` whose declaration the printer itself prints `public String` (javaNativeReturnType);
+    // section 26 accumulators only (in section 31 lists it freed only declaration-only locals)
+    if (internalCalls && isThisCall (value) && internalReturnLocalType (printer, value)?.type === 'String') {
+        return true;
+    }
+    if (!ts.isIdentifier (value)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)
+        || declaration.initializer === undefined || printer.printNode (value, 0) !== value.text) {
+        return false;
+    }
+    // a same-named sibling binding makes the printing families refuse by name (mudrex assetId)
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    if (index === undefined || (index.bindingCounts.get (value.text) ?? 0) !== 1 || index.blockedNames.has (value.text)) {
+        return false;
+    }
+    // section 1 also gates on the printed value shape, so only its statically-String initializers are certain
+    if (isStaticallyStringExpression (printer, unwrapParens (declaration.initializer), undefined)
+        && javaLocalTypeOf (printer, declaration, new WeakMap ())?.type === 'String') {
+        return true;
+    }
+    return r84j1StringElementLocal (printer, declaration) === true || javaNonNullStringLocal (printer, declaration, new WeakMap ()) === true;
+}
+
+// 87j8 (b): `x = r.slice (<literal>[, <literal>])` where r is the local itself or a String source: the printer's
+// nativeSliceCallIfProvable decides from the checker (string receiver, literal bounds) and prints
+// `(r == null ? null : ((String)r).substring(..))`, statically a String, so a String copy local (section 77j8)
+// can take the write without a cast and its `((String)x).m()` uses go native.
+function r87j8NativeStringSlice (printer, value, declaration) {
+    if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression) || value.expression.name.text !== 'slice'
+        || typeof printer.nativeSliceCallIfProvable !== 'function') {
+        return false;
+    }
+    const receiver = unwrapParens (value.expression.expression);
+    if (receiver === undefined || !ts.isIdentifier (receiver)
+        || !(receiver.text === declaration.name.text || j8ScalarSourceType (printer, receiver) === 'String')) {
+        return false;
+    }
+    let printed;
+    try {
+        printed = printer.nativeSliceCallIfProvable (value, receiver.text);
+    } catch (e) {
+        return false;
+    }
+    return typeof printed === 'string' && printed.includes ('.substring(');
+}
+
+// 87j8 (c): a String local section 77j8 declared (its printed head is `String x = `) answers the printer's
+// javaExpressionTypeResolver, as section 36 does for its own locals, so `(String) (x)` core-argument
+// checkcasts on it drop. The decision is the section's own (j8ScalarCopyLocal), recorded when the
+// declaration prints, so the answer never runs ahead of the printed head.
+export function installJavaR87j8CopyStringResolver (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR87j8CopyStringPatched) {
+        return;
+    }
+    printer._javaR87j8CopyStringPatched = true;
+    const strings = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const head = `${printer.getIden (identation)}String ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (head)) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = j8ScalarCopyLocal (printer, declaration) === 'String';
+        } catch (e) {
+            ok = false;
+        }
+        if (ok) {
+            strings.add (declaration);
+        }
+        return printed;
+    };
+    const upstreamResolver = printer.javaExpressionTypeResolver;
+    printer.javaExpressionTypeResolver = function (node) {
+        const target = unwrapParens (node);
+        if (target !== undefined && ts.isIdentifier (target)) {
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (target)?.valueDeclaration?.resolve ();
+            } catch (e) {
+                declaration = undefined;
+            }
+            if (declaration !== undefined && strings.has (declaration) && printer.printNode (target, 0) === target.text) {
+                return 'String';
+            }
+        }
+        return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
+    };
+}
+
+// 87j8 (d): `xs[i]` with a number key on a bare identifier the printer already declared List<String>
+// (published type): the printed read is the guarded `xs.get(i)` of that list, statically a String
+function r87j8StringListRead (printer, value) {
+    if (!ts.isElementAccessExpression (value) || !ts.isIdentifier (value.expression)
+        || printer.printNode (value.expression, 0) !== value.expression.text) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    let numeric = false;
+    try {
+        numeric = (checker.getTypeAtLocation (value.argumentExpression).flags & ts.TypeFlags.NumberLike) !== 0;
+    } catch (e) {
+        return false;
+    }
+    let declared;
+    try {
+        declared = String (printer.javaDeclaredTypeOf (value.expression) ?? '');
+    } catch (e) {
+        return false;
+    }
+    return numeric && /^(java\.util\.)?List<String>$/.test (declared.trim ());
 }
