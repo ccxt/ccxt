@@ -62,7 +62,7 @@ func (this *BaseExchange) EnsureWhitelistedFile(filePath any) {
 			return
 		}
 	}
-	panic("invalid file path: " + derefScalar(filePath).(string) + ", allowed are .ccxtfile (inside the temp dir) and read-only .pem")
+	panic("invalid file path: " + derefScalar(filePath).(string) + ", allowed extensions are only .ccxtfile and .pem")
 }
 
 // GetTempDir returns the temporary directory

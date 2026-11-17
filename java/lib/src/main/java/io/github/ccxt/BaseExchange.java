@@ -936,7 +936,7 @@ public class BaseExchange {
         } else if (resolved.endsWith(".pem")) {
             return resolved;
         }
-        throw new IllegalArgumentException("invalid file path: " + filePath + ", allowed are .ccxtfile (inside the temp dir) and read-only .pem");
+        throw new IllegalArgumentException("invalid file path: " + filePath + ", allowed extensions are only .ccxtfile and .pem");
     }
 
     // file io is synchronous in java, nothing to load before the first readFile call

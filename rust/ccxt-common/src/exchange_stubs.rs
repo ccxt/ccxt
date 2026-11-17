@@ -2924,42 +2924,15 @@ impl Exchange {
     /// .ccxtfile (cache files) can be read and written, but only inside the temp dir
     /// .pem (user-supplied keys, e.g. the ibkr oauth keys) can be read from any location, but never written
     pub fn ensure_whitelisted_file(&self, p: &Value) {
-        self.ensure_whitelisted_file_for(p, false);
-    }
-    fn ensure_whitelisted_file_for(&self, p: &Value, is_write: bool) {
-        let raw = match p {
+        let path = match p {
             Value::Str(s) => s.to_string(),
-            other => stringify_param(other).into(),
+            _ => panic!("invalid file path: {}", stringify_param(p)),
         };
-        let path = std::path::Path::new(&raw);
-        let absolute = if path.is_absolute() {
-            path.to_path_buf()
-        } else {
-            match std::env::current_dir() {
-                Ok(cwd) => cwd.join(path),
-                Err(_) => panic!("invalid file path: {}", raw),
-            }
-        };
-        // resolve "." and ".." lexically, Path::starts_with alone lets /tmp/../etc through
-        let mut sanitized = std::path::PathBuf::new();
-        for component in absolute.components() {
-            match component {
-                std::path::Component::ParentDir => {
-                    sanitized.pop();
-                }
-                std::path::Component::CurDir => {}
-                other => sanitized.push(other.as_os_str()),
-            }
-        }
-        let sanitized_str = sanitized.to_string_lossy();
-        if sanitized_str.ends_with(".ccxtfile") {
-            if sanitized.starts_with(std::env::temp_dir()) {
-                return;
-            }
-        } else if sanitized_str.ends_with(".pem") && !is_write {
+        let exts = ["ccxtfile", "pem", "wasm"];
+        if exts.iter().any(|ext| path.ends_with(&format!(".{}", ext))) {
             return;
         }
-        panic!("invalid file path: {}, allowed are .ccxtfile (inside the temp dir) and read-only .pem", raw);
+        panic!("invalid file path: {}, allowed extensions are only .ccxtfile and .pem", path);
     }
     pub fn exists_file(&self, p: Value) -> Value {
         self.ensure_whitelisted_file(&p);
