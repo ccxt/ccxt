@@ -15347,7 +15347,7 @@ function javaNonNullStringCall87 (printer, node, name, declaration, retyped, dep
             return false;
         }
         return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName)
-            && node.arguments.length === 1 && new RegExp (`^this\\.${name}\\(`).test (printer.printNode (node, 0));
+            && node.arguments.length === 1 && !r87j6UnderPropertyAssignment (node); // stack-87j: AST rule of 87j6, not the printed call
     }
     if (JAVA_NON_NULL_STRING_CASE_METHODS.has (name)) {
         return node.arguments.length === 0 && javaStringLikeReceiver (printer, receiver);
@@ -23669,12 +23669,17 @@ export function installJavaR87j3SumCounterLocals (transpiler) {
         if (printed.slice (at + marker.length).trim () !== literal) {
             return printed;
         }
-        if (!/^\d+$/.test (literal)) {
+        // stack-87j: decided from the AST (a bare unsigned integer literal initializer prints as its own text)
+        const init = declaration.initializer;
+        const intLiteral = init !== undefined && ts.isNumericLiteral (init) && /^\d+$/.test (init.text);
+        if (!intLiteral) {
             // a native long initializer (R3) autoboxes as printed; a base sum takes the Long checkcast
             if (r87j3LongValue (printer, declaration.initializer)) {
                 return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + literal;
             }
-            if (r87j3SumWrite (printer, declaration, declaration.initializer) && /^this\.sum\(/.test (literal)) {
+            // stack-87j: an unparenthesized base `this.sum (..)` prints `this.sum(` unless printThisKeyword
+            // qualifies the receiver (only under a PropertyAssignment ancestor, r87j6UnderPropertyAssignment)
+            if (r87j3SumWrite (printer, declaration, init) && ts.isCallExpression (init) && !r87j6UnderPropertyAssignment (init)) {
                 return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, 'Long ') + '(Long) ' + literal;
             }
             return printed;
