@@ -10140,7 +10140,7 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j1selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
-        "import type { Dict, Ticker, Trade } from './base/types.js';", "import { ArrayCache } from './base/ws/Cache.js';", "import Client from './base/ws/Client.js';",
+        "import type { Dict, OrderRequest, OrderType, Ticker, Trade } from './base/types.js';", "import { ArrayCache } from './base/ws/Cache.js';", "import Client from './base/ws/Client.js';",
         'export default class zzr84j1selftest extends Exchange {',
         "    tick (t: Ticker, m: Dict) { const symbol = t['symbol']; m[(symbol as string)] = t; return m; }",
         "    keys (m: any) { const ks = Object.keys (m); const out: Dict = {}; for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k.startsWith ('x')) { delete m[k]; } out[k] = this.currency (k); } return out; }",
@@ -10157,6 +10157,10 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         "    zzFlags92 (bits: number, zzNames92: string[]) { const out = []; for (let i = 0; i < zzNames92.length; i++) { out.push (zzNames92[i]); } return out; }",
         "    zzFlagsCaller92 () { return this.zzFlags92 (1, [ 'a', 'b' ]); }",
         "    rows92 (sts: string[][]) { const out = []; for (let i = 0; i < sts.length; i++) { const row = sts[i]; out.push (this.market (row[0])); out.push (row[1]); } return out; }",
+        "    hex93 (hex: string) { const digits = '0123456789abcdef'; const lower93 = hex.toLowerCase (); const out = []; for (let i = 0; i < lower93.length; i++) { const ch93 = lower93[i]; out.push (digits.indexOf (ch93)); } return out; }",
+        "    pclone93 (ps: Dict[], cache: ArrayCache) { for (let i = 0; i < ps.length; i++) { const pc93 = ps[i]; if (pc93['side'] === undefined) { pc93['side'] = 'long'; const sh93 = this.clone (pc93); cache.append (sh93); } cache.append (pc93); } }",
+        "    ord93 (orders: OrderRequest[]) { const out = []; for (let i = 0; i < orders.length; i++) { const raw93 = orders[i]; const ot93: OrderType = raw93['type']; out.push (this.amountToPrecision (ot93, 1)); out.push (ot93.toUpperCase ()); } return out; }",
+        "    async pos93 () { const fs = [ this.fetchPositions (undefined, {}), this.fetchPositions (undefined, {}) ]; const ps = await Promise.all (fs); const out = []; for (let i = 0; i < ps.length; i++) { const pp93 = ps[i]; for (let ii = 0; ii < pp93.length; ii++) { out.push (pp93[ii]); } } return out; }",
         '}',
     ].join('\n');
     try {
@@ -10177,6 +10181,10 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if (!/zzFlags92\(Object bits, (java\.util\.)?List<Object> zzNames92\)/.test(out) || !/\bi < zzNames92\.size\(\)/.test(out)) problems.push("92j1 r1: venue-only `string[]` parameter 'zzNames92' (element / length uses, literal callers) must print List<Object> with a native size");
         if (!/String url = client\.url;/.test(out) || !/\burl\.indexOf\("v2"\)/.test(out)) problems.push("92j1 r3: 'url' (ws Client url field) must print String with a native indexOf");
         if (!/List<\?> row = \(java\.util\.List<\?>\) \(sts == null/.test(out) || !/\(row == null \|\| 0 >= row\.size\(\) \? null : row\.get\(0\)\)/.test(out)) problems.push("92j1 r4: 'row' (counter row of an unwritten `string[][]` parameter) must print List<?> with native literal reads");
+        if (!/String ch93 = \(String\) (\(lower93 == null|Helpers\.GetValue\(lower93, i\))/.test(out) || !/\.indexOf\(ch93\)/.test(out)) problems.push("93j1 r2: 'ch93' (counter read of a plain string local) must print String with a native indexOf argument");
+        if (!/Map<String, Object> pc93 = \(java\.util\.Map<String, Object>\) /.test(out) || !/\bpc93\.put\("side", "long"\)/.test(out)) problems.push("93j1 r5: 'pc93' (Dict[] element also handed to base clone) must print Map<String, Object> with a native put");
+        if (!/String ot93 = /.test(out) || !/\bot93\.toUpperCase\(/.test(out)) problems.push("93j1 r6: 'ot93' (OrderRequest type field) must print String with a native toUpperCase");
+        if (!/List<\?> pp93 = \(java\.util\.List<\?>\) /.test(out) || !/\bii < pp93\.size\(\)/.test(out) || /\(\(List<\?>\)pp93\)/.test(out)) problems.push("93j1 r3: 'pp93' (array row of an awaited Promise.all list) must print List<?> with native size / get");
         if (!/String b = \(String\) \(xs == null/.test(out) || !/\bb\.toUpperCase\(/.test(out)) problems.push("90j1 r1: 'b' (element of an unwritten `string[]` parameter) must print String with a native toUpperCase");
         for (const name of [ 'a', 'ro' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);

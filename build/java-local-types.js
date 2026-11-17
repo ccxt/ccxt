@@ -22446,6 +22446,34 @@ function r87j1SiblingConstBindings (index, name) {
         && ts.isVariableDeclarationList (d.parent) && (d.parent.flags & ts.NodeFlags.Const) !== 0);
 }
 
+// (93j1) `o['type']` / `o['side']` of an OrderRequest (ts/src/base/types.ts, `OrderType` / `OrderSide`):
+// the unified createOrders input field is a String or null, as the symbol field structureStringFieldRead takes
+const R93J1_ORDER_REQUEST_KEYS = new Set ([ 'type', 'side' ]);
+
+function r93j1OrderRequestStringField (printer, node) {
+    const key = node.argumentExpression;
+    if (key === undefined || !ts.isStringLiteral (key) || !R93J1_ORDER_REQUEST_KEYS.has (key.text)) {
+        return false;
+    }
+    try {
+        const checker = printer.getChecker ();
+        const property = checker.getTypeAtLocation (node.expression).getProperty (key.text);
+        const declaration = property?.valueDeclaration?.resolve () ?? property?.declarations?.map ((handle) => handle.resolve ())?.[0];
+        return declaration !== undefined && ts.isPropertySignatureDeclaration (declaration) && declaration.type !== undefined
+            && ts.isInterfaceDeclaration (declaration.parent) && declaration.parent.name.text === 'OrderRequest'
+            && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName) && typeNodeIsString (checker, declaration.type);
+    } catch (e) {
+        return false;
+    }
+}
+
+// (93j1) `s[i]` of a plain-`string` String-declared identifier reads one character (a String) or null
+function r93j1PlainStringReceiver (printer, receiver) {
+    const type = printer.getChecker ().getTypeAtLocation (receiver);
+    return type !== undefined && type.flags === ts.TypeFlags.String && type.getAliasSymbol?.() === undefined
+        && printer.printNode (receiver, 0) === receiver.text && printer.javaDeclaredTypeOf (receiver) === 'String';
+}
+
 function r84j1StringElementLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement) {
@@ -22466,7 +22494,7 @@ function r84j1StringElementLocal (printer, declaration) {
         // the box holds a String or null, so a String declaration (nullable) is exact
         const nullableString = (type.flags & ts.TypeFlags.Union) !== 0
             && ts.typeParts (type).every ((t) => t.flags === ts.TypeFlags.String || (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0);
-        if (!nullableString || !structureStringFieldRead (printer, read)) {
+        if (!nullableString || !(structureStringFieldRead (printer, read) || r93j1OrderRequestStringField (printer, read))) {
             return false;
         }
     } else {
@@ -22475,8 +22503,9 @@ function r84j1StringElementLocal (printer, declaration) {
             && /^[0-9]+$/.test (read.argumentExpression.text);
         const counterRead = ts.isIdentifier (read.expression)
             && (literalIndex || (typeof printer.javaPrimitiveCounterIndex === 'function' && printer.javaPrimitiveCounterIndex (read.argumentExpression)))
-            && r84j1StringOnlyList (printer, read.expression, scope);
-        if (!counterRead && !r84j1EcdsaSlot (printer, read, scope) && !structureStringFieldRead (printer, read)) {
+            && (r84j1StringOnlyList (printer, read.expression, scope) || r93j1PlainStringReceiver (printer, read.expression));
+        if (!counterRead && !r84j1EcdsaSlot (printer, read, scope) && !structureStringFieldRead (printer, read)
+            && !r93j1OrderRequestStringField (printer, read)) {
             return false;
         }
     }
@@ -22620,6 +22649,17 @@ const R84J1_OBJECT_ARG_READERS = new Set ([
     'safeDictN', 'safeList', 'safeList2', 'safeListN', 'safeValue', 'safeValue2', 'safeValueN',
 ]);
 
+// the `clone` member resolves to the base field alias `clone = clone` (ts/src/base/Exchange.ts)
+function r93j1BaseCloneCall (printer, call) {
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
+        return declaration !== undefined && ts.isPropertyDeclaration (declaration)
+            && /[\\/]ts[\\/]src[\\/]base[\\/]Exchange\.ts$/.test (declaration.getSourceFile ().fileName);
+    } catch (e) {
+        return false;
+    }
+}
+
 // 'native' | 'same' | undefined (= refuse)
 function r84j1BoxUse (printer, n) {
     let child = n;
@@ -22661,6 +22701,10 @@ function r84j1BoxUse (printer, n) {
                 return 'same';
             }
             if (isThisCall (parent) && R84J1_OBJECT_ARG_READERS.has (method) && resolvesToBaseOrStrippedAccessor (printer, parent, method)) {
+                return 'same';
+            }
+            // (93j1) base `clone` (hand-written `clone(Object)`, never overridden in ts/src) takes the box as is
+            if (isThisCall (parent) && method === 'clone' && parent.arguments.length === 1 && r93j1BaseCloneCall (printer, parent)) {
                 return 'same';
             }
         }
@@ -26663,6 +26707,63 @@ function r92j1StringRowLocal (printer, declaration) {
     return native > 0;
 }
 
+// (93j1) `const xs = rows[i]` where the checker types the element an array (`Position[]` of an awaited
+// Promise.all): every use is `.length` or a counter-index read, the first in the next statement, so the
+// one `(java.util.List<?>)` checkcast moves to the declaration and each use prints the plain List call
+function r93j1ArrayRowLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || (declaration.parent.flags & ts.NodeFlags.Const) === 0
+        || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement || declaration.type !== undefined
+        || typeof printer.javaPrimitiveCounterIndex !== 'function') {
+        return false;
+    }
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || !printer.javaPrimitiveCounterIndex (read.argumentExpression)) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const type = checker.getTypeAtLocation (declaration.name);
+    const declared = printer.javaDeclaredTypeOf (read.expression);
+    if (type === undefined || !checker.isArrayType (type) || declared === undefined || !/^(java\.util\.)?List<[^;=]+>$/.test (declared)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)
+        || ((index.bindingCounts.get (name) ?? 0) !== 1 && !r87j1SiblingConstBindings (index, name))) {
+        return false;
+    }
+    const statement = declaration.parent.parent;
+    const block = statement?.parent;
+    const next = block?.statements?.[block.statements.indexOf (statement) + 1];
+    if (next === undefined) {
+        return false;
+    }
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let early = false;
+    let uses = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const parent = n.parent;
+        const length = ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.name.text === 'length';
+        const element = ts.isElementAccessExpression (parent) && parent.expression === n && printer.javaPrimitiveCounterIndex (parent.argumentExpression)
+            && parent.parent?.kind !== ts.SyntaxKind.DeleteExpression && !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent)
+            && !(ts.isCallExpression (parent.parent) && parent.parent.expression === parent);
+        if (!length && !element) {
+            return false;
+        }
+        uses++;
+        if (n.pos >= next.pos && n.end <= next.end) {
+            early = true;
+        }
+    }
+    return uses > 0 && early;
+}
+
 export function installJavaR92j1StringRowLocals (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR92j1StringRowPatched) {
@@ -26681,7 +26782,7 @@ export function installJavaR92j1StringRowLocals (transpiler) {
         let ok = typed.has (declaration);
         if (!ok) {
             try {
-                ok = r92j1StringRowLocal (printer, declaration) && r87j6HeadIsObject (printer, declaration, upto);
+                ok = (r92j1StringRowLocal (printer, declaration) || r93j1ArrayRowLocal (printer, declaration)) && r87j6HeadIsObject (printer, declaration, upto);
             } catch (e) {
                 ok = false;
             }
