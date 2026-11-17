@@ -30,6 +30,7 @@ import { installJavaCounterTypes } from './java-local-types.js';
 import { installJavaMapLocalTypes } from './java-local-types.js';
 import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
+import { installJavaTypedBaseFields } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
@@ -1854,6 +1855,7 @@ class NewTranspiler {
             installJavaParamTypesPreScan,
             installJavaStringReturns,
             installJavaPredictionMapLocals,
+            installJavaTypedBaseFields,
         ];
         for (const install of installers) {
             install(this.transpiler);
