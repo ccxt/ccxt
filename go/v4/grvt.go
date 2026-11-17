@@ -2723,7 +2723,7 @@ func (this *Grvt) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	var defaultFromAccountId *string = this.SafeString(this.Options, "userMainAccountId")
 	var currency map[string]any = this.Currency(code)
 	networkCode, query := this.HandleNetworkCodeAndParams(params)
-	var networkId any = this.NetworkCodeToId(networkCode, code)
+	var networkId *string = this.NetworkCodeToId(networkCode, code)
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
 	}

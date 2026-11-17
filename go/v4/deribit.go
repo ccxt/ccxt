@@ -2054,7 +2054,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if since == nil {
 			return nil
 		}
-		return mathMax(*since-1, 0)
+		return max(*since-1, 0)
 	}()
 	if since == nil {
 		request["start_timestamp"] = (now - (((windowLimit - 1) * duration) * 1000))

@@ -1494,7 +1494,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				}
 				client.(ccxt.ClientInterface).SubscriptionSet("authenticated", map[string]any{
 					"key":     this.SafeString(response, "data"),
-					"expires": this.Sum(now, 3300000),
+					"expires": now + 3300000,
 				})
 			} else {
 				var expires int64 = *this.SafeInteger(authenticated, "expires", 0)
@@ -1515,7 +1515,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 					if result == nil || *result != "true" {
 						panic(ccxt.ExchangeError(this.Id + " failed to refresh the SubscribeKey"))
 					}
-					ccxt.AddElementToObject(client.(ccxt.ClientInterface).SubscriptionGet("authenticated"), "expires", this.Sum(now, 3300000)) // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+					ccxt.AddElementToObject(client.(ccxt.ClientInterface).SubscriptionGet("authenticated"), "expires", now+3300000) // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
 				}
 			}
 			// settle the flight through the client so that every write to the

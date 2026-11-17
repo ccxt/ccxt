@@ -5168,7 +5168,7 @@ func (this *Bitget) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	var currency map[string]any = this.Currency(code)
-	var networkId any = this.NetworkCodeToId(networkCode, code)
+	var networkId *string = this.NetworkCodeToId(networkCode, code)
 	var request map[string]any = map[string]any{
 		"coin":         currency["id"],
 		"address":      address,

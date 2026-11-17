@@ -2107,7 +2107,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 				if until != nil {
 					var endByUntil int64 = this.ParseToInt(float64(*until) / 1000)
 					if limit != nil {
-						var endByLimit int64 = this.ParseToInt(this.Sum(startTime, *limit*duration))
+						var endByLimit int64 = this.ParseToInt(startTime + *limit*duration)
 						request["end_time"] = func() int64 {
 							if endByLimit < endByUntil {
 								return endByLimit
@@ -2121,7 +2121,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 					if limit == nil {
 						panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a limit argument"))
 					}
-					request["end_time"] = this.Sum(startTime, *limit*duration)
+					request["end_time"] = startTime + *limit*duration
 				}
 			}
 		}
@@ -4311,7 +4311,7 @@ func (this *Digifinex) transferBody(ch chan AsyncResult[TransferEntry], code str
 	var fromSwap bool = (fromAccount == "swap")
 	var toSwap bool = (toAccount == "swap")
 	var response map[string]any = nil
-	var amountString any = this.CurrencyToPrecision(code, amount)
+	var amountString *string = this.CurrencyToPrecision(code, amount)
 	if fromSwap || toSwap {
 		if (fromId == nil || *fromId != "1") && (toId == nil || *toId != "1") {
 			panic(ExchangeError(this.Id + " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only"))

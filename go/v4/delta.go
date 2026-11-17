@@ -2358,7 +2358,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 	//         "product_symbol": "BTCUSD"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "id")
 	var clientOrderId *string = this.SafeString(order, "client_order_id")
@@ -2373,7 +2373,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var marketId *string = this.SafeString(order, "product_id")
 	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
-	var marketValue any = this.SafeValue(marketsByNumericId, marketId, market)
+	var marketValue any = this.SafeDict(marketsByNumericId, marketId, market)
 	var symbol *string = nil
 	if IsEqual(marketValue, nil) {
 		symbol = marketId

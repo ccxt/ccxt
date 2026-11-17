@@ -676,7 +676,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 		// builder-deployed perp dexs start at 110000
 		var dex map[string]any = SafeMapTyped(fetchDexes, i)
 		var secondPart int64 = (int64(i) * 10000) - 10000
-		var offset int64 = this.Sum(110000, secondPart).(int64)
+		var offset int64 = 110000 + secondPart
 		AddElementToObject(perpDexesOffset, this.SafeString(dex, "name", ""), offset)
 	}
 	var fetchDexesList any = []any{}
@@ -895,7 +895,7 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 	if Precise.StringEq(priceStr, "0") {
 		// Significant digits is always 5 in this case
 		// and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-		pricePrecision = mathMin(decimalsLeft, 5)
+		pricePrecision = min(decimalsLeft, 5)
 	} else if Precise.StringGt(priceStr, "0") && Precise.StringLt(priceStr, "1") {
 		// Significant digits, always 5 in this case
 		var significantDigits int = 5
@@ -2000,7 +2000,7 @@ func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) *string {
 	if Precise.StringEq(result, "0") && Precise.StringGt(this.NumberToString(amount), "0") {
 		panic(InvalidOrder(Add(this.Id+" amount of "+market["symbol"].(string)+" must be greater than minimum amount precision of ", this.NumberToString(this.SafeNumber(market["precision"], "amount")))))
 	}
-	return SafeStringPtr(result)
+	return &result
 }
 func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	var market map[string]any = this.Market(symbol)

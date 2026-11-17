@@ -2732,16 +2732,16 @@ func (this *Okx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 			panic(r.Err)
 		}
 	}
-	var types any = []any{"spot", "future", "swap", "option"}
+	var types []any = []any{"spot", "future", "swap", "option"}
 	var fetchMarketsOption map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	if fetchMarketsOption != nil {
-		types = this.SafeList(fetchMarketsOption, "types", types)
+		types = SafeListTypedDefault(fetchMarketsOption, "types", types)
 	} else {
-		types = this.SafeList(this.Options, "fetchMarkets", types) // backward-support
+		types = SafeListTypedDefault(this.Options, "fetchMarkets", types) // backward-support
 	}
 	var promises []any = []any{}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(types); i++ {
+	for i := 0; i < len(types); i++ {
 		promises = append(promises, this.FetchMarketsByTypeAsync(*this.SafeString(types, i, ""), params))
 	}
 
@@ -4188,7 +4188,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		"instId": market["id"],
 	}
 	if since != nil {
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -7851,7 +7851,7 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalA
 		request["ccy"] = currency["id"]
 	}
 	if since != nil {
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -8015,7 +8015,7 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 		request["ccy"] = currency["id"]
 	}
 	if since != nil {
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -11191,7 +11191,7 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period an
 			// all entries in it are requested and the caller keeps the earliest limit of them
 			var months int64 = this.ParseToInt(Slice(unitPeriod, 0, int64(-1)))
 			var day int = 86400000
-			windowDuration = mathMin((effectiveLimit*months)*31*int64(day), (int64(maxLimit)*months)*28*int64(day))
+			windowDuration = min((effectiveLimit*months)*31*int64(day), (int64(maxLimit)*months)*28*int64(day))
 			request["limit"] = maxLimit
 		} else {
 			windowDuration = effectiveLimit * this.ParseTimeframe(ToLower(unitPeriod)) * 1000

@@ -1796,7 +1796,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		requestLimit = min(*limit, int64(maxLimit))
 	}
 	if since != nil {
-		request["startTime"] = mathMax(*since-1, 0)
+		request["startTime"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = requestLimit
@@ -7244,15 +7244,11 @@ func (this *Bingx) setMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if (market["inverse"] == true) && (positionSide == nil) {
 		panic(ArgumentsRequired(this.Id + " setMargin() requires a positionSide parameter for Coin-M markets"))
 	}
-	var amountString any = nil
+	var amountString *string = nil
 	if market["inverse"] == true {
 		amountString = this.CurrencyToPrecision(market["settle"], amount)
 	} else {
-		if derefPtr := this.AmountToPrecision(market["symbol"], amount); derefPtr != nil {
-			amountString = *derefPtr
-		} else {
-			amountString = nil
-		}
+		amountString = this.AmountToPrecision(market["symbol"], amount)
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],

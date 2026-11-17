@@ -1554,7 +1554,7 @@ func (this *Lbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		sinceResolved = since
 		parsedSince = this.ParseToInt(float64(*since) / 1000)
 	}
-	var parsedLimit any = mathMin(limitResolved+1, 2000) // max 2000;
+	var parsedLimit any = min(limitResolved+1, 2000) // max 2000;
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -4182,7 +4182,7 @@ func (this *Lbank) ConvertSecretToPem(secret string) string {
 	var pem string = "-----BEGIN PRIVATE KEY-----\n" // eslint-disable-line
 	for i := 0; int64(i) <= fullLines; i++ {
 		var start int64 = int64(i) * 64
-		var end int64 = this.Sum(start, 64).(int64)
+		var end int64 = start + 64
 		pem += Slice(this.Secret, start, end) + "\n" // eslint-disable-line
 	}
 	return pem + "-----END PRIVATE KEY-----"

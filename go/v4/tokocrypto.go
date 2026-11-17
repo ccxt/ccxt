@@ -3231,9 +3231,9 @@ func (this *Tokocrypto) withdrawBody(ch chan AsyncResult[Transaction], code stri
 		request["addressTag"] = *tagWithdrawTag
 	}
 	networkCode, query := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkId any = this.NetworkCodeToId(networkCode, code)
+	var networkId *string = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
-		request["network"] = ToUpper(networkId)
+		request["network"] = strings.ToUpper(*networkId)
 	}
 
 	r1 := <-this.PrivatePostOpenV1Withdraws(this.Extend(request, query))

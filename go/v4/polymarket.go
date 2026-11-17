@@ -3997,7 +3997,7 @@ func (this *Polymarket) CompactSignable(row []any) any {
 }
 func (this *Polymarket) PriceToPrecision(symbol any, price any) *string {
 	if IsEqual(price, nil) {
-		return SafeStringPtr(nil)
+		return nil
 	}
 	// the venue caps prices at five significant figures on top of the
 	// per-instrument decimals, deliberately for any magnitude - a six
@@ -4009,11 +4009,11 @@ func (this *Polymarket) PriceToPrecision(symbol any, price any) *string {
 	if result == "0" {
 		panic(InvalidOrder(Add(this.Id+" price of "+market["symbol"].(string)+" must be greater than minimum price precision of ", this.NumberToString(precision["price"]))))
 	}
-	return SafeStringPtr(result)
+	return &result
 }
 func (this *Polymarket) AmountToPrecision(symbol any, amount any) *string {
 	if IsEqual(amount, nil) {
-		return SafeStringPtr(nil)
+		return nil
 	}
 	// quantities carry the same five significant figures cap
 	var market map[string]any = this.Market(symbol)
@@ -4023,7 +4023,7 @@ func (this *Polymarket) AmountToPrecision(symbol any, amount any) *string {
 	if result == "0" {
 		panic(InvalidOrder(Add(this.Id+" amount of "+market["symbol"].(string)+" must be greater than minimum amount precision of ", this.NumberToString(precision["amount"]))))
 	}
-	return SafeStringPtr(result)
+	return &result
 }
 func (this *Polymarket) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4047,7 +4047,7 @@ func (this *Polymarket) CalculateRateLimiterCost(api any, method string, path st
 	if (path == "trade/orders") || (path == "trade/orders-coid") {
 		var op map[string]any = SafeMapTyped(params, "op")
 		var args []any = SafeListTyped(op, "args")
-		return this.Sum(1, this.ParseToInt(float64(len(args))/20))
+		return 1 + this.ParseToInt(float64(len(args))/20)
 	}
 	if path == "info/book" {
 		var depth int64 = *this.SafeInteger(params, "depth", 100)

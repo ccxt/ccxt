@@ -2865,7 +2865,7 @@ func (this *Cryptocom) withdrawBody(ch chan AsyncResult[Transaction], code strin
 		request["address_tag"] = *tagWithdrawTag
 	}
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkId any = this.NetworkCodeToId(networkCode, code)
+	var networkId *string = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
 		request["network_id"] = networkId
 	}

@@ -556,16 +556,16 @@ func (this *Deepcoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var types any = []any{"spot", "swap"}
+	var types []any = []any{"spot", "swap"}
 	var fetchMarketsOption map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	if fetchMarketsOption != nil {
-		types = this.SafeList(fetchMarketsOption, "types", types)
+		types = SafeListTypedDefault(fetchMarketsOption, "types", types)
 	} else {
-		types = this.SafeList(this.Options, "fetchMarkets", types) // backward-support
+		types = SafeListTypedDefault(this.Options, "fetchMarkets", types) // backward-support
 	}
 	var promises []any = []any{}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(types); i++ {
+	for i := 0; i < len(types); i++ {
 		promises = append(promises, this.FetchMarketsByTypeAsync(this.SafeString(types, i), params))
 	}
 
@@ -2330,9 +2330,9 @@ func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params an
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (typeVar == "post_only"), params)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
-	var timeInForce any = this.HandleTimeInForce(paramsPostOnly)
+	var timeInForce *string = this.HandleTimeInForce(paramsPostOnly)
 	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, "timeInForce")
-	if IsEqual(timeInForce, "IOC") {
+	if timeInForce != nil && *timeInForce == "IOC" {
 		return []any{"ioc", paramsOmitted}
 	}
 	if postOnly {

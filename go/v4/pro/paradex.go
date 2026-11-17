@@ -3053,7 +3053,7 @@ func (this *Paradex) SbeReadString(frameHex string, offset int64, length int64) 
 	var first int64 = this.ParseToInt(offset)
 	var size int64 = this.ParseToInt(length)
 	var start int64 = first * 2
-	var end any = this.Sum(start, size*2)
+	var end any = start + size*2
 	return this.BinaryToString(this.Base16ToBinary(ccxt.Slice(frameHex, start, end)))
 }
 func (this *Paradex) SbeReadAddress(frameHex string, offset any) string {
@@ -3106,7 +3106,7 @@ func (this *Paradex) ParseSbeTrade(frameHex string, blockLength int64, frameLeng
 	if blockSize < 50 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 2, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 2, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3144,7 +3144,7 @@ func (this *Paradex) ParseSbeBbo(frameHex string, blockLength int64, frameLength
 	if blockSize < 48 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 1, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3178,7 +3178,7 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 	var levels []any = []any{}
 	var sides []string = []string{"BUY", "SELL"}
 	var frameEnd int64 = this.ParseToInt(frameLength)
-	var position int64 = this.ParseToInt(this.Sum(blockLength, 8))
+	var position int64 = this.ParseToInt(blockLength + 8)
 	for i := 0; i < len(sides); i++ {
 		if (position + 4) > frameEnd {
 			return nil
@@ -3186,7 +3186,7 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 		var entryLength int64 = this.ParseToInt(this.SbeReadUint(frameHex, position, 2))
 		var numInGroup int64 = this.ParseToInt(this.SbeReadUint(frameHex, position+2, 2))
 		position = this.ParseToInt(position + 4)
-		if (entryLength < 16) || (this.ParseToInt(this.Sum(position, numInGroup*entryLength)) > frameEnd) {
+		if (entryLength < 16) || (this.ParseToInt(position+numInGroup*entryLength) > frameEnd) {
 			return nil
 		}
 		for j := 0; int64(j) < numInGroup; j++ {
@@ -3195,7 +3195,7 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 				"price": this.SbeReadDecimal(frameHex, position),
 				"size":  this.SbeReadDecimal(frameHex, position+8),
 			})
-			position = this.ParseToInt(this.Sum(position, entryLength))
+			position = this.ParseToInt(position + entryLength)
 		}
 	}
 	var strings []any = this.SbeReadVarStrings(frameHex, position, 1, frameLength)
@@ -3242,7 +3242,7 @@ func (this *Paradex) ParseSbeMarketSummary(client any, frameHex string, blockLen
 	if blockSize < 96 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 1, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3285,7 +3285,7 @@ func (this *Paradex) ParseSbeFundingData(frameHex string, blockLength int64, fra
 	if blockSize < 58 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 1, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3313,7 +3313,7 @@ func (this *Paradex) ParseSbeOrder(frameHex string, blockLength int64, frameLeng
 	if blockSize < 126 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 4, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 4, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 4 {
 		return nil
@@ -3407,7 +3407,7 @@ func (this *Paradex) ParseSbeFill(frameHex string, blockLength int64, frameLengt
 	if blockSize < 107 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 6, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 6, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 5 {
 		return nil
@@ -3467,7 +3467,7 @@ func (this *Paradex) ParseSbePosition(frameHex string, blockLength int64, frameL
 	if blockSize < 154 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 2, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 2, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil
@@ -3522,7 +3522,7 @@ func (this *Paradex) ParseSbeAccount(frameHex string, blockLength int64, frameLe
 	if blockSize < 113 {
 		return nil
 	}
-	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var strings []any = this.SbeReadVarStrings(frameHex, blockLength+8, 1, frameLength)
 	var stringsLength int = len(strings)
 	if stringsLength < 1 {
 		return nil

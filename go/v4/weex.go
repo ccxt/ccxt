@@ -2730,8 +2730,8 @@ func (this *Weex) ParseBalanceList(response any) map[string]any {
 		"info": response,
 	}
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var balances any = this.SafeList(response, "balances", response)
-	for i := 0; i < GetArrayLength(balances); i++ {
+	var balances []any = this.SafeListSlice(response, "balances", response)
+	for i := 0; i < len(balances); i++ {
 		var entry map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(entry, "asset")
 		if (sandboxMode != nil && *sandboxMode) && (currencyId != nil && *currencyId == "SUSDT") {

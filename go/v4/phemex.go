@@ -1676,10 +1676,10 @@ func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 	}
 	return this.FromEn(ev, this.SafeInteger(market, "valueScale"))
 }
-func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
+func (this *Phemex) FromEr(er *string, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	if (IsEqual(er, nil)) || (market == nil) {
+	if (er == nil) || (market == nil) {
 		return er
 	}
 	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))
@@ -2979,7 +2979,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) map[string]an
 	var timestamp *int64 = this.SafeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001)
 	var fee map[string]any = nil
 	var feeCost any = this.FromEv(this.SafeString(order, "cumFeeEv"), marketResolved)
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": this.SafeCurrencyCode(this.SafeString(order, "feeCurrency")),
@@ -5525,16 +5525,16 @@ func (this *Phemex) ParseFundingRate(contract any, optionalArgs ...any) FundingR
 	return FundingRateFromMap(map[string]any{
 		"info":                     contract,
 		"symbol":                   symbol,
-		"markPrice":                this.SafeNumber(contract, "markPriceRp", markEp),
-		"indexPrice":               this.SafeNumber(contract, "indexPriceRp", indexEp),
+		"markPrice":                this.SafeNumber(contract, "markPriceRp", this.ParseNumber(markEp)),
+		"indexPrice":               this.SafeNumber(contract, "indexPriceRp", this.ParseNumber(indexEp)),
 		"interestRate":             nil,
 		"estimatedSettlePrice":     nil,
 		"timestamp":                timestamp,
 		"datetime":                 this.Iso8601(timestamp),
-		"fundingRate":              this.SafeNumber(contract, "fundingRateRr", fundingRateEr),
+		"fundingRate":              this.SafeNumber(contract, "fundingRateRr", this.ParseNumber(fundingRateEr)),
 		"fundingTimestamp":         nil,
 		"fundingDatetime":          nil,
-		"nextFundingRate":          this.SafeNumber(contract, "predFundingRateRr", nextFundingRateEr),
+		"nextFundingRate":          this.SafeNumber(contract, "predFundingRateRr", this.ParseNumber(nextFundingRateEr)),
 		"nextFundingTimestamp":     nil,
 		"nextFundingDatetime":      nil,
 		"previousFundingRate":      nil,
@@ -6337,7 +6337,7 @@ func (this *Phemex) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"currency":    code,
-		"amount":      amountTransfered,
+		"amount":      this.ParseNumber(amountTransfered),
 		"fromAccount": fromId,
 		"toAccount":   toId,
 		"status":      this.ParseTransferStatus(status),
@@ -6517,7 +6517,11 @@ func (this *Phemex) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
 	var networkId any = nil
 	if networkCode != nil {
-		networkId = this.NetworkCodeToId(networkCode, code)
+		if derefPtr := this.NetworkCodeToId(networkCode, code); derefPtr != nil {
+			networkId = *derefPtr
+		} else {
+			networkId = nil
+		}
 	}
 	var stableCoins any = this.SafeList(this.Options, "stableCoins", []any{})
 	if networkId == nil {

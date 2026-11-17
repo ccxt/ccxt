@@ -962,7 +962,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[[]map[st
 	ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(allRawEvents)}
 	return nil
 }
-func (this *Polymarket) ParseEventToMarkets(event any) any {
+func (this *Polymarket) ParseEventToMarkets(event any) []any {
 	var eventSlug *string = this.SafeString(event, "slug", this.SafeString(event, "id"))
 	var rawMarkets []any = ccxt.SafeListTyped(event, "markets")
 	var result []any = []any{}
@@ -3685,8 +3685,8 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	for rei := 0; rei < ccxt.GetArrayLength(rawEvents); rei++ {
 		var rawEvent any = ccxt.GetValue(rawEvents, rei)
 		var eventForParsing any = rawEvent
-		var ccxtMarkets any = this.ParseEventToMarkets(eventForParsing)
-		var ccxtMarketsLength int = ccxt.GetArrayLength(ccxtMarkets)
+		var ccxtMarkets []any = this.ParseEventToMarkets(eventForParsing)
+		var ccxtMarketsLength int = len(ccxtMarkets)
 		if ccxtMarketsLength == 0 {
 			// search results may omit the nested markets, fall back to the detail endpoint
 			var eventId *string = this.SafeString(rawEvent, "id")
@@ -3716,9 +3716,9 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 				ccxtMarkets = this.ParseEventToMarkets(eventForParsing)
 			}
 		}
-		for mi := 0; mi < ccxt.GetArrayLength(ccxtMarkets); mi++ {
-			var m any = ccxt.GetValue(ccxtMarkets, mi)
-			if m == nil {
+		for mi := 0; mi < len(ccxtMarkets); mi++ {
+			var m any = ccxtMarkets[mi]
+			if ccxt.IsEqual(m, nil) {
 				panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing m"))
 			}
 			this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)

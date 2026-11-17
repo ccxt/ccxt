@@ -656,7 +656,7 @@ func (this *Hollaex) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	if expires != nil && *expires == "" {
 		var timeoutMs int64 = this.ParseToInt(this.Timeout)
 		var timeout int64 = this.ParseToInt(float64(timeoutMs) / 1000)
-		expires = this.NumberToString(this.ParseToInt(this.Sum(this.Seconds(), timeout)))
+		expires = this.NumberToString(this.ParseToInt(this.Seconds() + timeout))
 		// we need to memoize these values to avoid generating a new url on each method execution
 		// that would trigger a new connection on each received message
 		this.Options["ws-expires"] = ccxt.DerefScalar(expires)

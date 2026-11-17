@@ -425,8 +425,8 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 				if ccxt.IsArray(response) {
 					responseRows = ccxt.ArrayTyped(response)
 				}
-				var page_markets any = this.SafeList(response, "data", responseRows)
-				var pageMarketsLength int = ccxt.GetArrayLength(page_markets)
+				var page_markets []any = this.SafeListSlice(response, "data", responseRows)
+				var pageMarketsLength int = len(page_markets)
 				if pageMarketsLength == 0 {
 					break
 				}
@@ -1477,7 +1477,7 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 		var slug any = ccxt.DerefScalar(slugs[i])
 		var detailIndex int64 = int64(i) * 2
 		var detail any = this.SafeDict(responses, detailIndex)
-		var book any = this.SafeDict(responses, this.Sum(detailIndex, 1))
+		var book any = this.SafeDict(responses, detailIndex+1)
 		var tickerInput map[string]any = map[string]any{
 			"market": detail,
 			"book":   book,

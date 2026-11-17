@@ -2296,9 +2296,9 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[
 			return "maker"
 		}())
 	}
-	var feeCost any = this.ParseX18(this.SafeString(trade, "fee"))
+	var feeCost *float64 = this.ParseX18(this.SafeString(trade, "fee"))
 	var fee map[string]any = nil
-	if !ccxt.IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": marketResolved["quote"],
@@ -2410,7 +2410,7 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	if amountString != nil {
 		remaining = this.ParseX18(amountString)
 	}
-	var filled any = this.ParseX18(this.SafeString(order, "filled_qty"))
+	var filled *float64 = this.ParseX18(this.SafeString(order, "filled_qty"))
 	var average any = this.ParseX18(this.SafeString(order, "filled_price"))
 	var reason *string = this.SafeString(order, "reason")
 	var status *string = nil
@@ -2431,7 +2431,7 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"lastTradeTimestamp": func() any {
-			if ccxt.IsEqual(filled, nil) {
+			if filled == nil {
 				return nil
 			}
 			return timestamp

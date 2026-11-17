@@ -6281,7 +6281,7 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 		"coin": currency["id"],
 	}
 	var networkCode *string = this.SafeString(params, "network")
-	var networkId any = nil
+	var networkId *string = nil
 	if networkCode != nil {
 		// createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
 		var networkUnified *string = this.NetworkIdToCode(networkCode, code)
@@ -6300,16 +6300,12 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 				return this.SafeDict(networks, networkUnified, map[string]any{})
 			}()
 			var networkInfo map[string]any = SafeMapTyped(network, "info")
-			if derefPtr := this.SafeString(networkInfo, "network"); derefPtr != nil {
-				networkId = *derefPtr
-			} else {
-				networkId = nil
-			}
+			networkId = this.SafeString(networkInfo, "network")
 		} else {
 			networkId = this.NetworkCodeToId(networkCode, code)
 		}
 	}
-	if !IsEqual(networkId, nil) {
+	if networkId != nil {
 		request["network"] = networkId
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
@@ -6373,7 +6369,7 @@ func (this *Mexc) createDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 		panic(ArgumentsRequired(this.Id + " createDepositAddress requires a `network` parameter"))
 	}
 	// createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-	var networkId any = nil
+	var networkId *string = nil
 	var networkUnified *string = this.NetworkIdToCode(networkCode, code)
 	var networks map[string]any = SafeMapTyped(currency, "networks")
 	if (networkUnified != nil) && (func() bool {
@@ -6390,15 +6386,11 @@ func (this *Mexc) createDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 			return this.SafeDict(networks, networkUnified, map[string]any{})
 		}()
 		var networkInfo map[string]any = SafeMapTyped(network, "info")
-		if derefPtr := this.SafeString(networkInfo, "network"); derefPtr != nil {
-			networkId = *derefPtr
-		} else {
-			networkId = nil
-		}
+		networkId = this.SafeString(networkInfo, "network")
 	} else {
 		networkId = this.NetworkCodeToId(networkCode, code)
 	}
-	if !IsEqual(networkId, nil) {
+	if networkId != nil {
 		request["network"] = networkId
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
@@ -7528,8 +7520,8 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 		return nil
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	var networkRaw *string = this.SafeString2(paramsWithdrawTag, "network", "netWork")                                           // this line allows the user to specify either ERC20 or ETH
-	var network any = this.NetworkCodeToId(this.SafeString(networks, networkRaw, networkRaw), this.SafeString(currency, "code")) // handle ETH > ERC-20 alias
+	var networkRaw *string = this.SafeString2(paramsWithdrawTag, "network", "netWork")                                               // this line allows the user to specify either ERC20 or ETH
+	var network *string = this.NetworkCodeToId(this.SafeString(networks, networkRaw, networkRaw), this.SafeString(currency, "code")) // handle ETH > ERC-20 alias
 	this.CheckAddress(address, code, tagResolved)
 	var request map[string]any = map[string]any{
 		"coin":    currency["id"],

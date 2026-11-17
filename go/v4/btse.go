@@ -2529,7 +2529,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	if postOnly == true {
 		request["postOnly"] = true
 	}
-	var timeInForce any = this.HandleTimeInForce(query)
+	var timeInForce *string = this.HandleTimeInForce(query)
 	if timeInForce != nil {
 		request["timeInForce"] = timeInForce
 	}
@@ -2787,7 +2787,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	if postOnly == true {
 		request["postOnly"] = true
 	}
-	var timeInForce any = this.HandleTimeInForce(query)
+	var timeInForce *string = this.HandleTimeInForce(query)
 	if timeInForce != nil {
 		request["timeInForce"] = timeInForce
 	}
@@ -3743,7 +3743,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 	//         "success": true
 	//     }
 	//
-	var rawRows any = this.SafeList(response, "data", response)
+	var rawRows []any = this.SafeListSlice(response, "data", response)
 	// the requested types are also filtered client side over both the legacy
 	// and the unified enum vocabularies as the legacy endpoint ignored the
 	// filter and returned the whole mixed ledger
@@ -3754,7 +3754,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 		AddElementToObject(allowed, this.Capitalize(strings.ToLower(historyType)), true)
 	}
 	var rows []any = []any{}
-	for i := 0; i < GetArrayLength(rawRows); i++ {
+	for i := 0; i < len(rawRows); i++ {
 		var entry map[string]any = this.SafeDictMap(rawRows, i, map[string]any{})
 		var typeVar string = *this.SafeString(entry, "type", "")
 		if _, ok := allowed[typeVar]; ok {

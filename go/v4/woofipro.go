@@ -3075,12 +3075,12 @@ func (this *Woofipro) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 			panic(r.Err)
 		}
 	}
-	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
+	var clientOrderIds []string = this.SafeListNStrings(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if clientOrderIds != nil {
-		request["client_order_ids"] = Join(clientOrderIds, ",")
+		request["client_order_ids"] = strings.Join(clientOrderIds, ",")
 
 		r1 := <-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {

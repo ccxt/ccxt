@@ -475,8 +475,8 @@ func (this *Zebpay) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var promisesUnresolved []any = []any{}
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var defaultMarkets []any = []any{"spot", "swap"}
-	var types any = this.SafeList(fetchMarketsOptions, "types", defaultMarkets)
-	for i := 0; i < GetArrayLength(types); i++ {
+	var types []any = this.SafeListSlice(fetchMarketsOptions, "types", defaultMarkets)
+	for i := 0; i < len(types); i++ {
 		var typeVar string = *this.SafeString(types, i, "")
 		if typeVar == "spot" {
 			promisesUnresolved = append(promisesUnresolved, this.FetchSpotMarketsAsync(params))

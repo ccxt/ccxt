@@ -3268,14 +3268,14 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var feeString *string = this.SafeString(trade, "fee")
-	var feeCost any = nil
+	var feeCost *float64 = nil
 	if isArchiveMatch {
 		feeCost = this.ParseX18(feeString)
 	} else {
 		feeCost = this.ParseNumber(feeString)
 	}
 	var fee map[string]any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": marketResolved["quote"],
@@ -3754,7 +3754,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 	var side *string = nil
 	var price any = nil
 	var amount any = nil
-	var filled any = nil
+	var filled *float64 = nil
 	var remaining any = nil
 	var cost any = nil
 	var average *string = nil
@@ -3787,7 +3787,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 			}
 			return this.ParseX18(Precise.StringAbs(costString))
 		}()
-		if (!IsEqual(filled, nil)) && (!IsEqual(cost, nil)) {
+		if (filled != nil) && (!IsEqual(cost, nil)) {
 			average = Precise.StringDiv(this.NumberToString(cost), this.NumberToString(filled))
 		}
 		if (amountString != nil) && (archiveFilled != nil) {
@@ -3802,8 +3802,8 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 				status = SafeStringPtr("closed")
 			}
 		}
-		var feeCost any = this.ParseX18(this.SafeString(order, "fee"))
-		if !IsEqual(feeCost, nil) {
+		var feeCost *float64 = this.ParseX18(this.SafeString(order, "fee"))
+		if feeCost != nil {
 			fee = map[string]any{
 				"cost":     feeCost,
 				"currency": this.SafeString(marketResolved, "quote"),
@@ -3913,7 +3913,7 @@ func (this *Nado) ConvertToX18(value *string) *string {
 	}
 	return Precise.StringDiv(Precise.StringMul(value, "1000000000000000000"), "1", 0)
 }
-func (this *Nado) ParseX18(value any) any {
+func (this *Nado) ParseX18(value any) *float64 {
 	if IsEqual(value, nil) {
 		return nil
 	}

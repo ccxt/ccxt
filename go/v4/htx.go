@@ -4796,7 +4796,7 @@ func (this *Htx) NetworkIdToCode(optionalArgs ...any) *string {
 	var currencyCode *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyCode
 	if networkId == nil {
-		return SafeStringPtr(nil)
+		return nil
 	}
 	var keys []string = ObjectKeys(this.Options["networkNamesByChainIds"])
 	var keysLength int = len(keys)
@@ -4804,9 +4804,9 @@ func (this *Htx) NetworkIdToCode(optionalArgs ...any) *string {
 		panic(ExchangeError(this.Id + " networkIdToCode() - markets need to be loaded at first"))
 	}
 	var networkTitle *string = this.SafeString(this.Options["networkNamesByChainIds"], networkId, networkId)
-	return SafeStringPtr(this.Exchange.NetworkIdToCode(networkTitle, currencyCode))
+	return this.Exchange.NetworkIdToCode(networkTitle, currencyCode)
 }
-func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
+func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) *string {
 	var currencyCode *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = currencyCode
 	if IsEqual(networkCode, nil) {
@@ -4822,7 +4822,7 @@ func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	}
 	var uniqueNetworkIds map[string]any = SafeMapTyped(this.Options["networkChainIdsByNames"], currencyCode)
 	if InOp(uniqueNetworkIds, networkCode) {
-		return GetValue(uniqueNetworkIds, networkCode)
+		return SafeStringPtr(GetValue(uniqueNetworkIds, networkCode))
 	} else {
 		var networkTitle any = this.Exchange.NetworkCodeToId(networkCode, currencyCode)
 		return this.SafeString(uniqueNetworkIds, networkTitle, networkTitle)
@@ -9164,9 +9164,10 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	if networkCode != nil {
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
 	}
-	var amountPrecision any = this.CurrencyToPrecision(code, amount, networkCode)
+	var amountPrecision *string = this.CurrencyToPrecision(code, amount, networkCode)
 	if amountPrecision == nil {
-		amountPrecision = "0"
+		amountPrecisionValue := "0"
+		amountPrecision = &amountPrecisionValue
 	}
 	var amountValue *float64 = this.ParseNumber(amountPrecision)
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
@@ -9195,21 +9196,23 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 			}
 		}
 		// fee needs to be deducted from whole amount
-		var feeString any = this.CurrencyToPrecision(code, fee, networkCode)
+		var feeString *string = this.CurrencyToPrecision(code, fee, networkCode)
 		var amountString *string = this.NumberToString(amountValue)
 		var amountSubtractedString *string = Precise.StringSub(amountString, feeString)
 		var amountSubtractedParsed *string = amountSubtractedString
 		if amountSubtractedParsed == nil {
 			amountSubtractedParsed = SafeStringPtr("0")
 		}
-		var feeParsed any = feeString
+		var feeParsed *string = feeString
 		if feeParsed == nil {
-			feeParsed = "0"
+			feeParsedValue := "0"
+			feeParsed = &feeParsedValue
 		}
 		request["fee"] = this.ParseNumber(feeParsed)
-		var amountAfterFee any = this.CurrencyToPrecision(code, this.ParseNumber(amountSubtractedParsed), networkCode)
+		var amountAfterFee *string = this.CurrencyToPrecision(code, this.ParseNumber(amountSubtractedParsed), networkCode)
 		if amountAfterFee == nil {
-			amountAfterFee = "0"
+			amountAfterFeeValue := "0"
+			amountAfterFee = &amountAfterFeeValue
 		}
 		amountValue = this.ParseNumber(amountAfterFee)
 	}
@@ -9326,9 +9329,10 @@ func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var transferAmount any = this.CurrencyToPrecision(code, amount)
+	var transferAmount *string = this.CurrencyToPrecision(code, amount)
 	if transferAmount == nil {
-		transferAmount = "0"
+		transferAmountValue := "0"
+		transferAmount = &transferAmountValue
 	}
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],

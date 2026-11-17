@@ -1195,7 +1195,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 		var duration int64 = this.ParseTimeframe(timeframe)
 		var fromTimestamp int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = fromTimestamp
-		var toTimestamp int64 = this.ParseToInt(this.Sum(fromTimestamp, (windowSize*duration)-1))
+		var toTimestamp int64 = this.ParseToInt(fromTimestamp + (windowSize * duration) - 1)
 		var currentTimestamp int64 = this.Seconds()
 		request["to"] = func() int64 {
 			if toTimestamp < currentTimestamp {

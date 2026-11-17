@@ -5571,7 +5571,7 @@ func (this *Xt) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], cod
 	}
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
 	var currency map[string]any = this.Currency(code)
-	var networkId any = this.NetworkCodeToId(networkCode, code)
+	var networkId *string = this.NetworkCodeToId(networkCode, code)
 	this.CheckRequiredArgument("fetchDepositAddress", networkId, "network")
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
@@ -7514,7 +7514,7 @@ func (this *Xt) transferBody(ch chan AsyncResult[TransferEntry], code string, am
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsById")
 	var fromAccountId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toAccountId *string = this.SafeString(accountsByType, toAccount, toAccount)
-	var amountString any = this.CurrencyToPrecision(code, amount)
+	var amountString *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"bizId":    this.Uuid(),
 		"currency": currency["id"],

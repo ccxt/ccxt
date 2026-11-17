@@ -1674,17 +1674,17 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if cursor != nil {
 		request["cursor"] = cursor
 	}
-	var orderStates any = this.SafeList2(params, "orderStates", "order_states")
+	var orderStates []string = this.SafeList2Strings(params, "orderStates", "order_states")
 	if orderStates != nil {
-		request["order_states"] = Join(orderStates, ",")
+		request["order_states"] = strings.Join(orderStates, ",")
 	}
 	var trigger *bool = this.SafeBool(params, "trigger", false)
-	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
+	var orderTypes []string = this.SafeList2Strings(params, "orderTypes", "order_types")
 	if (orderTypes == nil) && (trigger != nil && *trigger) {
-		orderTypes = []any{"conditional", "tpsl"}
+		orderTypes = []string{"conditional", "tpsl"}
 	}
 	if orderTypes != nil {
-		request["order_types"] = Join(orderTypes, ",")
+		request["order_types"] = strings.Join(orderTypes, ",")
 	}
 	var side *string = this.SafeString(params, "side")
 	if side != nil {
@@ -1783,17 +1783,17 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if cursor != nil {
 		request["cursor"] = cursor
 	}
-	var orderStates any = this.SafeList2(params, "orderStates", "order_states")
+	var orderStates []string = this.SafeList2Strings(params, "orderStates", "order_states")
 	if orderStates != nil {
-		request["order_states"] = Join(orderStates, ",")
+		request["order_states"] = strings.Join(orderStates, ",")
 	}
 	var trigger *bool = this.SafeBool(params, "trigger", false)
-	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
+	var orderTypes []string = this.SafeList2Strings(params, "orderTypes", "order_types")
 	if (orderTypes == nil) && (trigger != nil && *trigger) {
-		orderTypes = []any{"conditional", "tpsl"}
+		orderTypes = []string{"conditional", "tpsl"}
 	}
 	if orderTypes != nil {
-		request["order_types"] = Join(orderTypes, ",")
+		request["order_types"] = strings.Join(orderTypes, ",")
 	}
 
 	r1 := <-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger"})))

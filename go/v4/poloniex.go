@@ -926,8 +926,8 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		// so end the window at the start of the limit-th candle from the first one at or after since
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		var firstCandle int64 = this.ParseToInt(math.Ceil(float64(*since)/float64(duration))) * duration
-		var endTimeByLimit any = this.Sum(firstCandle, duration*(*limit-1))
-		AddElementToObject(requestUntil, keyEnd, mathMin(endTimeByLimit, this.Milliseconds()))
+		var endTimeByLimit int64 = firstCandle + duration*(*limit-1)
+		AddElementToObject(requestUntil, keyEnd, min(endTimeByLimit, this.Milliseconds()))
 	}
 	if *this.SafeBool(market, "contract", false) {
 
@@ -3899,7 +3899,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires a network parameter for " + code + "."))
 	}
-	var exchangeNetworkId any = nil
+	var exchangeNetworkId *string = nil
 	networkCode = DerefScalar(this.NetworkIdToCode(networkCode, code))
 	var networkEntry any = func() any {
 		if networkCode == nil {
@@ -3908,11 +3908,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 		return this.SafeDict(currency["networks"], networkCode)
 	}()
 	if networkEntry != nil {
-		if derefPtr := this.SafeString(networkEntry, "id"); derefPtr != nil {
-			exchangeNetworkId = *derefPtr
-		} else {
-			exchangeNetworkId = nil
-		}
+		exchangeNetworkId = this.SafeString(networkEntry, "id")
 	} else {
 		exchangeNetworkId = this.NetworkCodeToId(networkCode, code)
 	}
@@ -3975,7 +3971,7 @@ func (this *Poloniex) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
-	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
+	var amountToPrecision *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"amount":      amountToPrecision,
 		"currency":    currency["id"],

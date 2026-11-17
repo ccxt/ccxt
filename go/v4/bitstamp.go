@@ -2075,10 +2075,10 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 					if (untilSeconds - start) < ((duration * *limit) - 1) {
 						return untilSeconds
 					}
-					return this.Sum(start, (duration**limit)-1)
+					return (start + (duration * *limit) - 1)
 				}()
 			} else {
-				request["end"] = this.Sum(start, (duration**limit)-1)
+				request["end"] = start + (duration * *limit) - 1
 			}
 		} else if untilIsDefined {
 			var untilEnd int64 = this.ParseToInt(float64(*until) / 1000)
@@ -2100,7 +2100,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			if untilIsDefined {
 				request["end"] = this.ParseToInt(float64(*until) / 1000)
 			} else {
-				request["end"] = this.Sum(startDefault, (duration*1000)-1)
+				request["end"] = startDefault + (duration * 1000) - 1
 			}
 			request["limit"] = 1000
 		}

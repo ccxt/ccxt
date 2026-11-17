@@ -1456,7 +1456,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	if since != nil {
 		var durationInMilliseconds int64 = this.ParseTimeframe(timeframe) * 1000
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 		request["after"] = this.Sum(since, (durationInMilliseconds * limitResolved))
 	}
 	var until *int64 = this.SafeInteger(query, "until")
@@ -1537,7 +1537,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		"instId": market["id"],
 	}
 	if since != nil {
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2722,7 +2722,7 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -2798,7 +2798,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -2815,7 +2815,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit, paramsUntil))}
 	return nil
 }
-func (this *Blofin) NetworkCodeToChainId(networkCode any, optionalArgs ...any) any {
+func (this *Blofin) NetworkCodeToChainId(networkCode string, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var aliasedCode *string = this.SafeString(this.Options["networkCodeAliases"], networkCode, networkCode)
@@ -3061,7 +3061,7 @@ func (this *Blofin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a params[\"network\"] or params[\"chain\"] for " + code))
 		}
 		// the same display-name chain ids that withdrawal-apply and the currencies registry use
-		request["chain"] = this.NetworkCodeToChainId(networkCode, currency)
+		request["chain"] = this.NetworkCodeToChainId(*networkCode, currency)
 	}
 
 	r1 := <-this.PrivateGetAssetDepositAddress(this.Extend(request, query))
@@ -3392,16 +3392,12 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	// consume the unified network key unconditionally so it never leaks
 	// onto the wire; an explicit raw params['chain'] takes precedence
-	var networkCode any = nil
-	var networkCodePtr *string = nil
-	networkCodePtr, query = this.HandleNetworkCodeAndParams(query)
-	if networkCodePtr != nil {
-		networkCode = *networkCodePtr
-	}
+	var networkCode *string = nil
+	networkCode, query = this.HandleNetworkCodeAndParams(query)
 	var chain *string = this.SafeString(query, "chain")
 	if chain == nil {
 		if networkCode != nil {
-			request["chain"] = this.NetworkCodeToChainId(networkCode, currency)
+			request["chain"] = this.NetworkCodeToChainId(*networkCode, currency)
 		} else if dest != nil && *dest == "onchain" {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals"))
 		}

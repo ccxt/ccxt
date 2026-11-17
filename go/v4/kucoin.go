@@ -3164,9 +3164,9 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan AsyncResult[map[string]any],
 	}
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
 	if networkCode != nil {
-		var _netIdTmp any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
+		var _netIdTmp *string = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 		if _netIdTmp != nil {
-			request["chain"] = ToLower(_netIdTmp)
+			request["chain"] = strings.ToLower(*_netIdTmp)
 		}
 	}
 
@@ -3220,9 +3220,9 @@ func (this *Kucoin) fetchDepositWithdrawFeeBody(ch chan AsyncResult[DepositWithd
 	}
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
 	if networkCode != nil {
-		var _netIdTmp any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
+		var _netIdTmp *string = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 		if _netIdTmp != nil {
-			request["chain"] = ToLower(_netIdTmp)
+			request["chain"] = strings.ToLower(*_netIdTmp)
 		}
 	}
 
@@ -4686,9 +4686,9 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	var networkCode *string = nil
 	networkCode, paramsRequest = this.HandleNetworkCodeAndParams(paramsRequest)
 	if networkCode != nil {
-		var _netIdTmp any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
+		var _netIdTmp *string = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 		if _netIdTmp != nil {
-			request["chain"] = ToLower(_netIdTmp)
+			request["chain"] = strings.ToLower(*_netIdTmp)
 		}
 	}
 	var version any = this.GetDepositAddressesVersion()
@@ -4844,9 +4844,9 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[s
 		var networkCode *string = nil
 		networkCode, paramsRequest = this.HandleNetworkCodeAndParams(paramsRequest)
 		if networkCode != nil {
-			var _netIdTmp any = this.NetworkCodeToId(networkCode, code)
+			var _netIdTmp *string = this.NetworkCodeToId(networkCode, code)
 			if _netIdTmp != nil {
-				request["chain"] = ToLower(_netIdTmp)
+				request["chain"] = strings.ToLower(*_netIdTmp)
 			}
 		}
 		//
@@ -5877,7 +5877,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 	var postOnlyparamsRequestVariable []any = this.HandlePostOnly(isMarketOrder, false, paramsRequest)
 	postOnly = postOnlyparamsRequestVariable[0].(bool)
 	paramsRequest = postOnlyparamsRequestVariable[1]
-	var timeInForce any = this.HandleTimeInForce(paramsRequest)
+	var timeInForce *string = this.HandleTimeInForce(paramsRequest)
 	var paramsOmitted any = func() any {
 		if timeInForce != nil {
 			return this.Omit(paramsRequest, "timeInForce")
@@ -9249,12 +9249,8 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 	hfparamsRequestVariable := this.HandleHfAndParams(paramsRequest)
 	hf = hfparamsRequestVariable[0] == true
 	paramsRequest = hfparamsRequestVariable[1]
-	var marginMode any = nil
-	var marginModePtr *string = nil
-	marginModePtr, paramsRequest = this.HandleMarginModeAndParams("fetchMyTrades", paramsRequest)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
+	var marginMode *string = nil
+	marginMode, paramsRequest = this.HandleMarginModeAndParams("fetchMyTrades", paramsRequest)
 	var isMargin bool = (marginMode != nil)
 	if isMargin {
 		hf = true
@@ -10309,12 +10305,12 @@ func (this *Kucoin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		return nil
 	}()
 	if networkCode != nil {
-		var _netIdTmp any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
+		var _netIdTmp *string = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 		if _netIdTmp != nil {
-			request["chain"] = ToLower(_netIdTmp)
+			request["chain"] = strings.ToLower(*_netIdTmp)
 		}
 	}
-	var amountString any = this.CurrencyToPrecision(code, amount, networkCode)
+	var amountString *string = this.CurrencyToPrecision(code, amount, networkCode)
 	if amountString != nil {
 		request["amount"] = ParseFloat(amountString)
 	}
@@ -11608,7 +11604,7 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var requestedAmount any = this.CurrencyToPrecision(code, amount)
+	var requestedAmount *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   requestedAmount,
@@ -11721,7 +11717,7 @@ func (this *Kucoin) transferClassicBody(ch chan AsyncResult[TransferEntry], code
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var requestedAmount any = this.CurrencyToPrecision(code, amount)
+	var requestedAmount *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   requestedAmount,

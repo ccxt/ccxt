@@ -3676,7 +3676,7 @@ func (this *Hitbtc) transferBody(ch chan AsyncResult[TransferEntry], code string
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var requestAmount any = this.CurrencyToPrecision(code, amount)
+	var requestAmount *string = this.CurrencyToPrecision(code, amount)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromAccountValue string = strings.ToLower(fromAccount)
 	var toAccountValue string = strings.ToLower(toAccount)

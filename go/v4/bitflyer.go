@@ -298,7 +298,7 @@ func (this *Bitflyer) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bitflyer) ParseExpiryDate(expiry string) any {
+func (this *Bitflyer) ParseExpiryDate(expiry string) *int64 {
 	var day string = expiry[0:min(2, len(expiry))]
 	var monthName string = expiry[2:min(5, len(expiry))]
 	var expiryYear string = expiry[5:min(9, len(expiry))]
@@ -416,7 +416,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var settle *string = nil
 		var baseId any = nil
 		var quoteId any = nil
-		var expiry any = nil
+		var expiry *int64 = nil
 		if spot {
 			if derefPtr := this.SafeString(currencies, 0); derefPtr != nil {
 				baseId = *derefPtr
@@ -493,7 +493,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 				}
 				expiry = this.ParseExpiryDate(*expiryDate)
 			}
-			if IsEqual(expiry, nil) {
+			if expiry == nil {
 				continue
 			}
 			typeVar = "future"

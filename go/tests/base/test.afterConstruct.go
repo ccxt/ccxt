@@ -65,7 +65,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 			var networkCode string = networkCodes[i]
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			// check networkCodeToId
-			var networkIdConverted any = exchange.NetworkCodeToId(networkCode)
+			var networkIdConverted *string = exchange.NetworkCodeToId(networkCode)
 			Assert(IsEqual(networkId, networkIdConverted), Add(Add(Add(Add(Add(Add("exchange.GetnetworkCodeToId() (\""+networkCode+"\")=\"", networkIdConverted), "\" does not match exchange.options[\"networks\"][\""), networkCode), "\"]=\""), networkId), "\""))
 			// ensure it exists in networksById
 			Assert(InOp(GetValue(exchange.GetOptions(), "networksById"), networkId), Add(Add("exchange.options[\"networksById\"] does not contain networkId \"", networkId), "\""))

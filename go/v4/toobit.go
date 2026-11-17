@@ -2183,8 +2183,8 @@ func (this *Toobit) ParseBalanceList(response any) map[string]any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var balances any = this.SafeList(response, "balances", response)
-	for i := 0; i < GetArrayLength(balances); i++ {
+	var balances []any = this.SafeListSlice(response, "balances", response)
+	for i := 0; i < len(balances); i++ {
 		var balance map[string]any = SafeMapTyped(balances, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
 		var account map[string]any = this.Account()

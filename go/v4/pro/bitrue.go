@@ -538,7 +538,7 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 			panic(ccxt.ExchangeError(this.Id + " findSwapMarketByWsBaseQuote() market " + symbolId + " has no baseId or quoteId"))
 		}
 		if ccxt.IsEqual(*baseId+*quoteId, wsBaseQuote) {
-			return candidate
+			return this.Market(symbolId)
 		}
 	}
 	return nil

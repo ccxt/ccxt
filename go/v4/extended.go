@@ -2559,7 +2559,7 @@ func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string
 	if r1.Value != nil {
 		account = r1.Value
 	}
-	var amountString any = this.CurrencyToPrecision(code, amount)
+	var amountString *string = this.CurrencyToPrecision(code, amount)
 	var accountId *string = this.SafeString(account, "accountId")
 	var settlement map[string]any = this.CreateWithdrawalSettlementData(address, amountString, currency, account, paramsWithdrawTag)
 	var request map[string]any = map[string]any{
@@ -2742,7 +2742,7 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	if (toVault == nil) || (toL2Key == nil) {
 		panic(ArgumentsRequired(this.Id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]"))
 	}
-	var amountString any = this.CurrencyToPrecision(code, amount)
+	var amountString *string = this.CurrencyToPrecision(code, amount)
 	var settlement map[string]any = this.CreateTransferSettlementData(amountString, currency, account, *toVault, *toL2Key, params)
 	var request map[string]any = map[string]any{
 		"fromAccount":      currentAccountId,

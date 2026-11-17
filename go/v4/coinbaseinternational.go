@@ -1201,12 +1201,12 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], 
 		request["start_timestamp"] = this.Sum(now, ((this.ParseToInt(limitResolved) * duration) * int64(-1000)))
 		request["end_timestamp"] = now
 	} else {
-		var sinceResolved any = mathMax(*since-1, 0)
+		var sinceResolved int64 = max(*since-1, 0)
 		request["start_timestamp"] = sinceResolved
 		if limitResolved == nil {
 			request["end_timestamp"] = now
 		} else {
-			request["end_timestamp"] = this.Sum(sinceResolved, (this.ParseToInt(limitResolved)*duration)*1000)
+			request["end_timestamp"] = sinceResolved + (this.ParseToInt(limitResolved)*duration)*1000
 		}
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
@@ -4235,7 +4235,7 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
 	var tokenRefreshInMilliseconds int64 = this.ParseToInt(float64((*expiresIn * 1000)) * refreshRatio)
 	this.Token = accessToken
 	this.Options["v2AccessToken"] = DerefScalar(accessToken)
-	this.Options["v2TokenExpires"] = this.Sum(now, tokenRefreshInMilliseconds)
+	this.Options["v2TokenExpires"] = now + tokenRefreshInMilliseconds
 
 	ch <- AsyncResult[any]{Value: accessToken}
 	return nil

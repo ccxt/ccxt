@@ -3108,7 +3108,7 @@ func (this *Backpack) withdrawBody(ch chan AsyncResult[Transaction], code string
 		request["clientId"] = tag // memo or tag
 	}
 	networkCode, query := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkId any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
+	var networkId *string = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
 	}

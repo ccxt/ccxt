@@ -5012,7 +5012,7 @@ func (this *Bybit) ParseBalance(response any) map[string]any {
 		"datetime":  this.Iso8601(timestamp),
 	}
 	var responseResult map[string]any = SafeMapTyped(response, "result")
-	var currencyList any = this.SafeListN(responseResult, []any{"loanAccountList", "list", "balance"})
+	var currencyList []any = this.SafeListNSlice(responseResult, []any{"loanAccountList", "list", "balance"})
 	if currencyList == nil {
 		// usdc wallet
 		var code string = "USDC"
@@ -5021,7 +5021,7 @@ func (this *Bybit) ParseBalance(response any) map[string]any {
 		account["total"] = this.SafeString(responseResult, "walletBalance")
 		result[code] = account
 	} else {
-		for i := 0; i < GetArrayLength(currencyList); i++ {
+		for i := 0; i < len(currencyList); i++ {
 			var entry map[string]any = SafeMapTyped(currencyList, i)
 			var accountType *string = this.SafeString(entry, "accountType")
 			if (accountType != nil && *accountType == "UNIFIED") || (accountType != nil && *accountType == "CONTRACT") || (accountType != nil && *accountType == "SPOT") {
@@ -8954,9 +8954,9 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		request["tag"] = *tagWithdrawTag
 	}
 	networkCode, query := this.HandleNetworkCodeAndParams(paramsAccountType)
-	var networkId any = this.NetworkCodeToId(networkCode, code)
+	var networkId *string = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
-		request["chain"] = ToUpper(networkId)
+		request["chain"] = strings.ToUpper(*networkId)
 	}
 
 	r2 := <-this.PrivatePostV5AssetWithdrawCreate(this.Extend(request, query))
@@ -10486,7 +10486,7 @@ func (this *Bybit) transferBody(ch chan AsyncResult[TransferEntry], code string,
 	var fromId *string = this.SafeString(accountTypes, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountTypes, toAccount, toAccount)
 	var currency map[string]any = this.Currency(code)
-	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
+	var amountToPrecision *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"transferId":      transferId,
 		"fromAccountType": fromId,

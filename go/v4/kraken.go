@@ -2361,7 +2361,7 @@ func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 func (this *Kraken) FindMarketByAltnameOrId(id any) any {
 	var marketsByAltname map[string]any = SafeMapTyped(this.Options, "marketsByAltname")
 	if InOp(marketsByAltname, id) {
-		return GetValue(marketsByAltname, id)
+		return this.SafeDict(marketsByAltname, id)
 	} else {
 		return this.SafeMarket(id)
 	}
@@ -2381,7 +2381,7 @@ func (this *Kraken) ResolveMarketByAltnameOrId(marketId any, optionalArgs ...any
 }
 func (this *Kraken) GetDelistedMarketById(id any) any {
 	if IsEqual(id, nil) {
-		return id
+		return nil
 	}
 	var market any = this.SafeDict(this.Options["delistedMarketsById"], id)
 	if market != nil {

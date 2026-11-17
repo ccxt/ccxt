@@ -571,10 +571,10 @@ func (this *BaseExchange) FindTimeframe(timeframe any, optionalArgs ...any) *str
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		if IsEqual(GetValue(timeframesResolved, key), timeframe) {
-			return SafeStringPtr(key)
+			return &key
 		}
 	}
-	return SafeStringPtr(nil)
+	return nil
 }
 func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 	url := GetArg(optionalArgs, 0, nil)
@@ -3977,7 +3977,7 @@ func (this *BaseExchange) SafeNetwork(network any) any {
 		},
 	}
 }
-func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
+func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) *string {
 	/**
 	 * @ignore
 	 * @method
@@ -4004,7 +4004,7 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	for i := 0; i < len(aliasKeys); i++ {
 		var alias string = aliasKeys[i]
 		if _, ok := networkIdsByCodes[alias]; (IsEqual(GetValue(aliases, alias), unifiedCode)) && ok {
-			return networkIdsByCodes[alias]
+			return SafeStringPtr(networkIdsByCodes[alias])
 		}
 	}
 	// fall back to scanning loaded currencies
@@ -4031,7 +4031,7 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 			}(), "id")
 		}
 	}
-	return networkCode
+	return SafeStringPtr(networkCode)
 }
 func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) *string {
 	/**
@@ -4048,7 +4048,7 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) *string {
 	var currencyCode *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyCode
 	if networkId == nil {
-		return SafeStringPtr(nil)
+		return nil
 	}
 	var networkCodesByIds map[string]any = SafeMapTyped(this.Options, "networksById")
 	var mappedCode *string = this.SafeString(networkCodesByIds, networkId)
@@ -4058,7 +4058,7 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) *string {
 	} else {
 		networkCode = mappedCode
 	}
-	return SafeStringPtr(this.SafeString(this.NetworkAliases, networkCode, networkCode))
+	return this.SafeString(this.NetworkAliases, networkCode, networkCode)
 }
 func (this *BaseExchange) HandleNetworkCodeAndParams(params any) (*string, map[string]any) {
 	var networkCodeInParams *string = this.SafeString2(params, "networkCode", "network")
@@ -4104,13 +4104,13 @@ func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, network
 		} else {
 			// if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
 			var defaultNetworkCode *string = this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), currencyCode, this.SafeString(this.Options, "defaultNetwork"))
-			var defaultNetworkId any = func() any {
-				if isIndexedByUnifiedNetworkCode == true {
-					return defaultNetworkCode
-				}
-				return this.NetworkCodeToId(defaultNetworkCode, currencyCode)
-			}()
-			if IsEqual(defaultNetworkId, nil) {
+			var defaultNetworkId *string
+			if isIndexedByUnifiedNetworkCode == true {
+				defaultNetworkId = defaultNetworkCode
+			} else {
+				defaultNetworkId = this.NetworkCodeToId(defaultNetworkCode, currencyCode)
+			}
+			if defaultNetworkId == nil {
 				panic(ExchangeError(this.Id + " selectNetworkKeyFromNetworks() missing defaultNetworkId"))
 			}
 			if InOp(indexedNetworkEntries, defaultNetworkId) {
@@ -6742,7 +6742,7 @@ func (this *BaseExchange) CostToPrecision(symbol any, cost any) any {
 }
 func (this *BaseExchange) PriceToPrecision(symbol any, price any) *string {
 	if IsEqual(price, nil) {
-		return SafeStringPtr(nil)
+		return nil
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
@@ -6754,11 +6754,11 @@ func (this *BaseExchange) PriceToPrecision(symbol any, price any) *string {
 		}
 		panic(InvalidOrder(Add(Add(Add(this.Id+" price of ", market["symbol"]), " must be greater than minimum price precision of "), pricePrecision)))
 	}
-	return SafeStringPtr(result)
+	return &result
 }
 func (this *BaseExchange) AmountToPrecision(symbol any, amount any) *string {
 	if IsEqual(amount, nil) {
-		return SafeStringPtr(nil)
+		return nil
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
@@ -6770,7 +6770,7 @@ func (this *BaseExchange) AmountToPrecision(symbol any, amount any) *string {
 		}
 		panic(InvalidOrder(Add(Add(Add(this.Id+" amount of ", market["symbol"]), " must be greater than minimum amount precision of "), amountPrecision)))
 	}
-	return SafeStringPtr(result)
+	return &result
 }
 func (this *BaseExchange) FeeToPrecision(symbol any, fee any) any {
 	if IsEqual(fee, nil) {
@@ -6780,7 +6780,7 @@ func (this *BaseExchange) FeeToPrecision(symbol any, fee any) any {
 	var market map[string]any = this.DerivedExchange.Market(symbol)
 	return this.DecimalToPrecision(fee, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
 }
-func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ...any) any {
+func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ...any) *string {
 	var networkCode *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = networkCode
 	if IsEqual(code, nil) {
@@ -6794,10 +6794,10 @@ func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ..
 		precision = this.SafeValue(networkItem, "precision", precision)
 	}
 	if IsEqual(precision, nil) {
-		return this.ForceString(fee)
+		return SafeStringPtr(this.ForceString(fee))
 	} else {
 		var roundingMode *int64 = this.SafeInteger(this.Options, "currencyToPrecisionRoundingMode", ROUND)
-		return this.DecimalToPrecision(fee, roundingMode, precision, this.PrecisionMode, this.PaddingMode)
+		return SafeStringPtr(this.DecimalToPrecision(fee, roundingMode, precision, this.PrecisionMode, this.PaddingMode))
 	}
 }
 func (this *BaseExchange) ForceString(value any) any {
@@ -7643,7 +7643,7 @@ func (this *BaseExchange) fetchPremiumIndexOHLCVBody(ch chan AsyncResult[[]OHLCV
 		panic(NotSupported(this.Id + " fetchPremiumIndexOHLCV () is not supported yet"))
 	}
 }
-func (this *BaseExchange) HandleTimeInForce(optionalArgs ...any) any {
+func (this *BaseExchange) HandleTimeInForce(optionalArgs ...any) *string {
 	/**
 	 * @ignore
 	 * @method

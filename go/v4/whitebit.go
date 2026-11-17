@@ -4332,7 +4332,7 @@ func (this *Whitebit) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	var currency map[string]any = this.Currency(code)
 	var fromAccountId *string = this.SafeString(this.Options["accountsByType"], fromAccount, fromAccount)
 	var toAccountId *string = this.SafeString(this.Options["accountsByType"], toAccount, toAccount)
-	var amountString any = this.CurrencyToPrecision(code, amount)
+	var amountString *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"ticker": currency["id"],
 		"amount": amountString,

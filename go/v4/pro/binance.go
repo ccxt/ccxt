@@ -7428,9 +7428,10 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							var orderFee map[string]any = ccxt.MapTyped(fees[i])
 							if this.SafeString(orderFee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(orderFee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(orderFee, "currency") == *this.SafeString(tradeFee, "currency")) {
 								var feeCost any = this.Sum(tradeFee["cost"], orderFee["cost"])
-								var feeCostString any = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
+								var feeCostString *string = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
 								if feeCostString == nil {
-									feeCostString = "0"
+									feeCostStringValue := "0"
+									feeCostString = &feeCostStringValue
 								}
 								ccxt.AddElementToObject(ccxt.GetValue(order["fees"], i), "cost", ccxt.ParseFloat(feeCostString))
 								insertNewFeeCurrency = false
@@ -7445,9 +7446,10 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
 							var feeCost any = this.Sum(ccxt.GetValue(fee, "cost"), tradeFee["cost"])
-							var feeCostString any = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
+							var feeCostString *string = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
 							if feeCostString == nil {
-								feeCostString = "0"
+								feeCostStringValue := "0"
+								feeCostString = &feeCostStringValue
 							}
 							ccxt.AddElementToObject(ccxt.GetValue(order, "fee"), "cost", ccxt.ParseFloat(feeCostString))
 						} else if ccxt.IsEqual(fee["currency"], nil) {

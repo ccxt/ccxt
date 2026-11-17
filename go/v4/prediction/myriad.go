@@ -4394,7 +4394,7 @@ func (this *Myriad) RequestId(url any) int64 {
 	}
 	return newValue
 }
-func (this *Myriad) FromWei(wei *string) any {
+func (this *Myriad) FromWei(wei *string) *float64 {
 	if wei == nil {
 		return nil
 	}

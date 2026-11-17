@@ -2793,7 +2793,7 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[s
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses() requires a network parameter"))
 	}
-	var networkId any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
+	var networkId *string = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	var request map[string]any = map[string]any{
 		"network": networkId,
 	}

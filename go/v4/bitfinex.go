@@ -1418,7 +1418,7 @@ func (this *Bitfinex) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	var currency map[string]any = this.Currency(code)
 	var fromCurrencyId any = this.ConvertDerivativesId(currency, fromAccount)
 	var toCurrencyId any = this.ConvertDerivativesId(currency, toAccount)
-	var requestedAmount any = this.CurrencyToPrecision(code, amount)
+	var requestedAmount *string = this.CurrencyToPrecision(code, amount)
 	// this request is slightly different from v1 fromAccount -> from
 	var request map[string]any = map[string]any{
 		"amount":      requestedAmount,
@@ -2195,14 +2195,14 @@ func (this *Bitfinex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, state, status)
 }
-func (this *Bitfinex) ParseOrderFlags(flags *string) any {
+func (this *Bitfinex) ParseOrderFlags(flags *string) []any {
 	// flags can be added to each other...
 	var flagValues map[string]any = map[string]any{
 		"1024": []any{"reduceOnly"},
 		"4096": []any{"postOnly"},
 		"5120": []any{"reduceOnly", "postOnly"},
 	}
-	return this.SafeList(flagValues, flags, []any{})
+	return SafeListTypedDefault(flagValues, flags, []any{})
 }
 func (this *Bitfinex) ParseTimeInForce(orderType *string) *string {
 	var orderTypes map[string]any = map[string]any{
@@ -2234,9 +2234,9 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) Order {
 	var typeVar *string = this.SafeString(this.SafeDict(this.Options, "exchangeTypes"), orderType)
 	var timeInForce *string = this.ParseTimeInForce(orderType)
 	var rawFlags *string = this.SafeString(orderList, 12)
-	var flags any = this.ParseOrderFlags(rawFlags)
+	var flags []any = this.ParseOrderFlags(rawFlags)
 	var postOnly bool = false
-	for i := 0; i < GetArrayLength(flags); i++ {
+	for i := 0; i < len(flags); i++ {
 		if this.SafeString(flags, i) != nil && *this.SafeString(flags, i) == "postOnly" {
 			postOnly = true
 		}

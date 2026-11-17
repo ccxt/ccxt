@@ -4208,7 +4208,7 @@ func (this *Bullish) signInBody(ch chan AsyncResult[any], optionalArgs ...any) a
 	var token *string = this.SafeString(response, "token")
 	this.Options["authorizer"] = DerefScalar(this.SafeString(response, "authorizer"))
 	this.Token = token
-	this.Options["tokenExpires"] = this.Sum(this.Milliseconds(), (1000*60)*60*24) // token expires in 24 hours
+	this.Options["tokenExpires"] = this.Milliseconds() + (1000*60)*60*24 // token expires in 24 hours
 
 	ch <- AsyncResult[any]{Value: token}
 	return nil

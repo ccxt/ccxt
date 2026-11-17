@@ -5012,9 +5012,9 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		var fromTimestamp int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = fromTimestamp
 		var distance int64 = (limitValue - 1) * duration
-		var toTimestamp int64 = this.Sum(fromTimestamp, distance).(int64)
+		var toTimestamp int64 = fromTimestamp + distance
 		var currentTimestamp int64 = this.Seconds()
-		var to any = mathMin(toTimestamp, currentTimestamp)
+		var to any = min(toTimestamp, currentTimestamp)
 		if until != nil {
 			AddElementToObject(request, "to", mathMin(to, until))
 		} else {
@@ -5931,7 +5931,7 @@ func (this *Gate) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	if since != nil {
 		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = start
-		request["to"] = this.Sum(start, (30*24)*60*60)
+		request["to"] = start + (30*24)*60*60
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsPaginate, 0.001)
 
@@ -6008,7 +6008,7 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	if since != nil {
 		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["from"] = start
-		request["to"] = this.Sum(start, (30*24)*60*60)
+		request["to"] = start + (30*24)*60*60
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsPaginate, 0.001)
 
@@ -6559,9 +6559,10 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((IsEqual(typeVar, "market")), (exchangeSpecificTimeInForce != nil && *exchangeSpecificTimeInForce == "poc"), params)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
-	var timeInForce any = this.HandleTimeInForce(paramsPostOnly)
+	var timeInForce *string = this.HandleTimeInForce(paramsPostOnly)
 	if postOnly {
-		timeInForce = "poc"
+		timeInForceValue := "poc"
+		timeInForce = &timeInForceValue
 	}
 	// we only omit the unified params here
 	// this is because the other params will get extended into the request
@@ -6574,10 +6575,10 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder () requires a price argument for ", typeVar), " orders")))
 	}
 	if isMarketOrder {
-		if (IsEqual(timeInForce, "poc")) || (IsEqual(timeInForce, "gtc")) {
+		if (timeInForce != nil && *timeInForce == "poc") || (timeInForce != nil && *timeInForce == "gtc") {
 			panic(ExchangeError(this.Id + " createOrder () timeInForce for market order can only be \"FOK\" or \"IOC\""))
 		} else {
-			if IsEqual(timeInForce, nil) {
+			if timeInForce == nil {
 				var defaultTif string = *this.SafeString(this.Options, "defaultTimeInForce", "IOC")
 				var exchangeSpecificTif *string = this.SafeString(this.Options["timeInForce"], defaultTif, "ioc")
 				timeInForce = exchangeSpecificTif
@@ -6636,7 +6637,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			if reduceOnly != nil {
 				request["reduce_only"] = reduceOnly
 			}
-			if !IsEqual(timeInForce, nil) {
+			if timeInForce != nil {
 				request["tif"] = timeInForce
 			}
 		} else {
@@ -6678,7 +6679,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			if isLimitOrder {
 				request["price"] = this.PriceToPrecision(symbol, priceResolved)
 			}
-			if !IsEqual(timeInForce, nil) {
+			if timeInForce != nil {
 				request["time_in_force"] = timeInForce
 			}
 		}
@@ -6729,7 +6730,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			if reduceOnly != nil {
 				initial["reduce_only"] = reduceOnly
 			}
-			if !IsEqual(timeInForce, nil) {
+			if timeInForce != nil {
 				initial["tif"] = timeInForce
 			}
 			if clientOrderId != nil {
@@ -6779,8 +6780,9 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			marginModequeryVariable := this.GetMarginMode(true, query)
 			marginMode = GetValue(marginModequeryVariable, 0)
 			query = GetValue(marginModequeryVariable, 1)
-			if IsEqual(timeInForce, nil) {
-				timeInForce = "gtc"
+			if timeInForce == nil {
+				timeInForceValue := "gtc"
+				timeInForce = &timeInForceValue
 			}
 			request = map[string]any{
 				"put": map[string]any{
@@ -8619,7 +8621,7 @@ func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var currency map[string]any = this.Currency(code)
 	var fromId any = this.ConvertTypeToAccount(fromAccount)
 	var toId any = this.ConvertTypeToAccount(toAccount)
-	var truncated any = this.CurrencyToPrecision(code, amount)
+	var truncated *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   truncated,

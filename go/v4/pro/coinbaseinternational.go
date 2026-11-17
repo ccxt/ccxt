@@ -132,7 +132,7 @@ func (this *Coinbaseinternational) Ping(client any) any {
 	if isPrivateClient && (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) {
 		// re-authenticate in-band before the session expires, also while no watch call is pending
 		// retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
-		this.Options["wsAuthRefreshAt"] = this.Sum(this.Milliseconds(), 60000)
+		this.Options["wsAuthRefreshAt"] = this.Milliseconds() + 60000
 		var requestId int64 = this.RequestId()
 		this.Options["wsAuthRequestId"] = requestId
 		var params map[string]any = map[string]any{
@@ -2278,7 +2278,7 @@ func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, messa
 		refreshRatio = *ratio
 	}
 	var now int64 = this.Milliseconds()
-	this.Options["wsAuthRefreshAt"] = this.Sum(now, this.ParseToInt(float64((expiresIn*1000))*refreshRatio))
+	this.Options["wsAuthRefreshAt"] = now + this.ParseToInt(float64((expiresIn*1000))*refreshRatio)
 	client.(ccxt.ClientInterface).SetLastPong(now)
 	client.(ccxt.ClientInterface).Resolve(result, "authenticated")
 }

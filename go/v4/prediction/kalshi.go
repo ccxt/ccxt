@@ -1633,9 +1633,9 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 		var sinceS int64 = this.ParseToInt(float64(*since) / 1000)
 		request["start_ts"] = sinceS
 		if limit != nil {
-			var end any = this.Sum(sinceS, *limit*tf)
-			request["end_ts"] = func() any {
-				if end.(int64) < now {
+			var end int64 = sinceS + *limit*tf
+			request["end_ts"] = func() int64 {
+				if end < now {
 					return end
 				}
 				return now

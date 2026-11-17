@@ -959,7 +959,7 @@ func (this *Opinion) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 		var outcomeObj map[string]any = this.Outcome(outcomes[i])
 		var priceIndex int64 = int64(i) * 2
 		var priceResponse any = this.SafeDict(responses, priceIndex)
-		var bookResponse any = this.SafeDict(responses, this.Sum(priceIndex, 1))
+		var bookResponse any = this.SafeDict(responses, priceIndex+1)
 		var response map[string]any = map[string]any{
 			"price": priceResponse,
 			"book":  bookResponse,
