@@ -42,6 +42,7 @@ import { installJavaR87j2WsLocals } from './java-local-types.js';
 import { installJavaR87j2UrlLocals } from './java-local-types.js';
 import { installJavaR87j3SumCounterLocals } from './java-local-types.js';
 import { installJavaR87j4SplitLists } from './java-local-types.js';
+import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2508,6 +2509,7 @@ class NewTranspiler {
         installJavaR87j2UrlLocals(this.transpiler);
         installJavaR87j3SumCounterLocals(this.transpiler);
         installJavaR87j4SplitLists(this.transpiler);
+        installJavaR87j5CalleeStringArgs(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5835,7 +5837,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -5901,6 +5903,43 @@ function javaR84j5CalleeReturnsSelfTest (): string[] {
         if (!/Object bu2 = /.test(out)) problems.push("ral-84j5: 'bu2' (no element read) must stay Object");
     } catch (e: any) {
         problems.push(`ral-84j5 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-87j5: venue / base callees whose every return proves the type print it, so their result locals use it natively
+function javaR87j5CalleeReturnsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zz87j5selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from '../binance.js';",
+        "import type { Str, Dict, Int } from '../base/types.js';",
+        `export default class zz87j5selftest${process.pid} extends Exchange {`,
+        "    getSettlementCurrencies (type: string, method: string): string[] { return this.safeList (this.options, type, [ 'usdt' ]) as string[]; }",
+        "    useSc () { const sc = this.getSettlementCurrencies ('swap', 'fetchMarkets'); let n = 0; for (let c = 0; c < sc.length; c++) { n += 1; } return n; }",
+        "    useMh (client: any) { const mh = this.findMessageHashes (client, 'positions::'); for (let j = 0; j < mh.length; j++) { client.resolve ([], mh[j]); } }",
+        "    getStockWsUrl (streamType: Str = 'market'): string { const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}); const baseUrl = wsUrls['stock']; if (streamType === 'combined') { return baseUrl.replace ('/ws', '/stream'); } return baseUrl; }",
+        "    requestId (url: string): Int { return this.sum (url.length, 1); }",
+        "    useSu () { const su = this.getStockWsUrl ('user'); return this.requestId (su); }",
+        "    useOh (trades: any[]) { const oh = this.buildOHLCVC (trades, '1m', 0, 10); return oh.length; }",
+        "    findOutcomeInMarket (market: Dict, hint: Str = undefined): Dict { return this.safeDict (this.safeList (market, 'outcomes', []), 0, {}); }",
+        "    useFo (market: Dict) { const fo = this.findOutcomeInMarket (market); return Object.keys (fo).length > 0; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/(java\.util\.)?List<Object> getSettlementCurrencies\(/.test(out)) problems.push("ral-87j5: venue getSettlementCurrencies (: string[]) must print List<Object>");
+        if (!/(java\.util\.)?List<Object> sc = this\.getSettlementCurrencies\(/.test(out) || !/c < sc\.size\(\)/.test(out)) problems.push("ral-87j5: 'sc' must print List<Object> with a native .size()");
+        if (!/(java\.util\.)?List<Object> mh = this\.findMessageHashes\(/.test(out) || /\(List<\?>\)mh/.test(out)) problems.push("ral-87j5: 'mh' (base findMessageHashes) must print List<Object> with native list reads");
+        // a const String result of a venue-typed callee passes a String parameter bare (no `(String) (su)` checkcast)
+        if (!/String su = this\.getStockWsUrl\(/.test(out) || !/this\.requestId\(su\)/.test(out)) problems.push("ral-87j5: 'su' (String venue callee result) must be passed to a String parameter with no checkcast");
+        if (!/(java\.util\.)?List<Object> oh = this\.buildOHLCVC\(/.test(out)) problems.push("ral-87j5: 'oh' (base buildOHLCVC: OHLCVC[]) must print List<Object>");
+        if (!/(java\.util\.)?Map<String, Object> fo = this\.findOutcomeInMarket\(/.test(out) || /\(\(Map<String, Object>\)fo\)/.test(out)) problems.push("ral-87j5: 'fo' (venue findOutcomeInMarket: Dict) must print Map<String, Object> with a native use");
+    } catch (e: any) {
+        problems.push(`ral-87j5 self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }

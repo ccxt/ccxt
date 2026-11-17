@@ -2127,6 +2127,16 @@ const VENUE_RETURN_KINDS = {
     'getMarketFromClientAndMessage': [ JAVA_ARRAY_TYPE_MAP () ],
     // `: Dict` returning this.omit (map, keys), which binds the Map overload
     'handleRouteAndParams': [ JAVA_ARRAY_TYPE_MAP () ],
+    // ral-87j5: annotated `: string` / `: string[]` with no other declaration in ts/src; every return is a
+    // string read / replace / string literal (pro binance) or a safeList read / own string[] accumulator
+    'getStockWsUrl': [ 'String' ], 'getAccountTypeFromSubscriptions': [ 'String' ],
+    'getSettlementCurrencies': [ 'java.util.List<Object>' ], 'findMessageHashes': [ 'java.util.List<Object>' ],
+    // base `buildOHLCVC (..): OHLCVC[]` returns its own `ohlcvs` accumulator (no override)
+    'buildOHLCVC': [ 'java.util.List<Object>' ],
+    // ral-87j5 R4b, one declaration each in ts/src: derive hashOrderMessage (returns this.hash (.., 'hex'), a hex
+    // String), hyperliquid findOutcomeInMarket (`: Dict`, returns safeDict (.., {}) reads). selectNetworkKeyFromNetworks
+    // and normalizeTagKey prove String too, but 5 of their 6 result locals only feed Object slots: left out
+    'hashOrderMessage': [ 'String' ], 'findOutcomeInMarket': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2235,7 +2245,26 @@ function venueReturnCast (printer, node, method, javaType) {
     if (javaType === JAVA_ARRAY_TYPE_MAP () && constMapCallLocal (printer, expression)) {
         return undefined;
     }
+    // ral-87j5: a local the printer / layer already declares with the method's own type needs no checkcast
+    if (ts.isIdentifier (expression) && venueReturnLocalDeclaredAs (printer, expression, javaType)) {
+        return undefined;
+    }
     return '(' + javaType + ')';
+}
+
+function venueReturnLocalDeclaredAs (printer, expression, javaType) {
+    let declared;
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (expression)?.valueDeclaration?.resolve ();
+        if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.name?.text !== expression.text) {
+            return false;
+        }
+        declared = printer.javaDeclaredTypeOfDeclaration?.(declaration);
+    } catch (e) {
+        return false;
+    }
+    const norm = (t) => String (t ?? '').replace (/^final\s+/, '').replace (/\s+/g, '').replace (/java\.util\./g, '');
+    return declared !== undefined && norm (declared) === norm (javaType);
 }
 
 function constMapCallLocal (printer, expression) {
@@ -23480,4 +23509,42 @@ function r87j4FeedsNullSeed (printer, declaration) {
         }
     }
     return false;
+}
+
+// ===== ral-87j5. String results of venue-typed callees as call arguments =====
+// A local initialised from a `this.<m>(..)` whose venueReturnJavaType is String (section VENUE_RETURN_KINDS)
+// and that the layer declared `String` already holds the static type a String core parameter takes: the
+// printer's javaNativeArgumentAlreadyTyped then prints it bare instead of `(String) (x)`. Only call-argument
+// positions answer, so no `+` / comparison proof changes (a null box stays a null String argument).
+export function installJavaR87j5CalleeStringArgs (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || printer._javaR87j5CalleeStringArgsPatched) {
+        return;
+    }
+    printer._javaR87j5CalleeStringArgsPatched = true;
+    const upstreamResolver = printer.javaExpressionTypeResolver;
+    printer.javaExpressionTypeResolver = function (node) {
+        const upstream = typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
+        if (upstream !== undefined || node === undefined || !ts.isIdentifier (node)) {
+            return upstream;
+        }
+        try {
+            const call = node.parent;
+            if (call === undefined || !ts.isCallExpression (call) || !call.arguments.includes (node)) {
+                return undefined;
+            }
+            const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+            if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.name?.text !== node.text
+                || (ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const) === 0) {
+                return undefined;
+            }
+            const init = unwrapParens (declaration.initializer);
+            if (init === undefined || !ts.isCallExpression (init) || venueCallJavaType (printer, init) !== 'String') {
+                return undefined;
+            }
+            return String (printer.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').replace (/^final\s+/, '') === 'String' ? 'String' : undefined;
+        } catch (e) {
+            return undefined;
+        }
+    };
 }
