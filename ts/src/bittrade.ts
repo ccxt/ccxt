@@ -574,7 +574,7 @@ export default class bittrade extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         if ((base === undefined) || (quote === undefined)) {
-            return undefined;
+            return {} as Market;
         }
         const state = this.safeString (market, 'state');
         const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
