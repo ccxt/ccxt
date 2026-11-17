@@ -128,6 +128,6 @@ For "where should I buy 1 BTC?" or "what's the best way to turn 5,000 USDT into 
 
 - **"Trading is not enabled for account …"** — enable the tier in the config file; it can't be enabled from the conversation.
 - **AUTH_FAILED on a sandbox account** — you need testnet keys from the exchange's testnet portal, not live keys.
-- **A private tool doesn't exist** — the config sets `"hideDisabledTools": true` and no account enables that tier; enable it in the config file (or drop the setting) and restart the server.
+- **A private tool doesn't exist** — the config sets `"hideDisabledTools": true` and no account is configured or enables that tier (with no accounts at all, even the private read tools like `get_balance` are hidden); run `get_safety_status` to see what's active, then edit the config file (or drop the setting) and restart the server.
 - **Slow first call** — the initial `loadMarkets()` takes a few seconds, then is cached 24h.
 - Inspect interactively: `npx @modelcontextprotocol/inspector npx -y ccxt-mcp`.
