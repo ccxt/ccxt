@@ -289057,7 +289057,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
         if (method !== 'fetchOHLCV' && method !== 'fetchFundingRateHistory' && method !== 'fetchTrades') {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
-        let errors = this.parseToInt(0);
+        let errors = 0;
         const paramsOmitted = this.omit(paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
@@ -289074,7 +289074,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
                 if (e instanceof _base_errors_js__rspack_import_2.RateLimitExceeded) {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
-                errors = this.parseToInt(errors + 1);
+                errors = errors + 1;
                 if (errors > maxRetries) {
                     throw e;
                 }
@@ -342689,10 +342689,10 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
             limitResolved = this.parseToInt(limit);
         }
         if (limitResolved > 5000) {
-            limitResolved = this.parseToInt(5000);
+            limitResolved = 5000;
         }
         const span = this.parseToInt(limitResolved * duration);
-        const windowStart = this.parseToInt(untilSeconds - span);
+        const windowStart = untilSeconds - span;
         let start = windowStart;
         let end = untilSeconds;
         if (since !== undefined) {
@@ -400489,9 +400489,9 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             // Get the part after the decimal separator
             const decimalPart = this.safeString(priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            let leadingZeros = this.parseToInt(0);
+            let leadingZeros = 0;
             while(leadingZeros <= decimalPart.length && decimalPart[leadingZeros] === '0'){
-                leadingZeros = this.parseToInt(leadingZeros + 1);
+                leadingZeros = leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
@@ -444295,13 +444295,13 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 2, params);
-        let orderType = this.parseToInt(0); // typed seed, every branch below assigns it
+        let orderType = 0; // typed seed, every branch below assigns it
         if (postOnly) {
-            orderType = this.parseToInt(2);
+            orderType = 2;
         } else if (type === 'limit') {
-            orderType = this.parseToInt(1);
+            orderType = 1;
         } else if (type === 'market') {
-            orderType = this.parseToInt(6);
+            orderType = 6;
         } else {
             orderType = this.parseToInt(type);
         }
@@ -453243,8 +453243,8 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         const pageSize = limit === undefined ? 0 : limit * 2;
         const allRows = [];
-        let transactionsCount = this.parseToInt(0);
-        let calls = this.parseToInt(0);
+        let transactionsCount = 0;
+        let calls = 0;
         let offset = 0;
         let paging = true;
         while(paging){
@@ -453262,11 +453262,11 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
                 if (this.safeString(entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (market === undefined || this.safeString(entry, 'symbol') === market['id']) {
-                        transactionsCount = this.parseToInt(transactionsCount + 1);
+                        transactionsCount = transactionsCount + 1;
                     }
                 }
             }
-            calls = this.parseToInt(calls + 1);
+            calls = calls + 1;
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (limit !== undefined && dataLength === pageSize) {
@@ -469029,7 +469029,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
      * @returns {object[]} the request and the remaining params
      */ handleTradingStatisticsWindow(request, period, since = undefined, limit = undefined, params = {}) {
         const maxLimit = 100;
-        let effectiveLimit = this.parseToInt(100);
+        let effectiveLimit = 100;
         if (limit !== undefined && 100 > limit) {
             effectiveLimit = this.parseToInt(limit);
         }
@@ -473892,8 +473892,8 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
         }
         const untilParam = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
-        let until = this.parseToInt(0);
-        let sinceResolved = this.parseToInt(0);
+        let until = 0;
+        let sinceResolved = 0;
         if (untilParam !== undefined) {
             until = this.parseToInt(untilParam);
             if (since !== undefined) {
@@ -473902,7 +473902,7 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
                 }
                 sinceResolved = this.parseToInt(since);
             } else {
-                sinceResolved = this.parseToInt(untilParam - 86400000);
+                sinceResolved = untilParam - 86400000;
             }
         } else if (since !== undefined) {
             until = this.parseToInt(since + 86400000);
@@ -473910,7 +473910,7 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
         } else {
             const now = this.milliseconds();
             until = this.parseToInt(now);
-            sinceResolved = this.parseToInt(now - 86400000);
+            sinceResolved = now - 86400000;
         }
         const market = this.market(symbol);
         const sinceSec = this.parseToInt(sinceResolved / 1000);
@@ -473978,8 +473978,8 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        let until = this.parseToInt(0);
-        let sinceResolved = this.parseToInt(0);
+        let until = 0;
+        let sinceResolved = 0;
         if (untilParam !== undefined) {
             until = this.parseToInt(untilParam);
             if (since !== undefined) {
@@ -473988,7 +473988,7 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
                 }
                 sinceResolved = this.parseToInt(since);
             } else {
-                sinceResolved = this.parseToInt(untilParam - 86400000);
+                sinceResolved = untilParam - 86400000;
             }
         } else if (since !== undefined) {
             until = this.parseToInt(since + 86400000);
@@ -473996,7 +473996,7 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
         } else {
             const now = this.milliseconds();
             until = this.parseToInt(now);
-            sinceResolved = this.parseToInt(now - 86400000);
+            sinceResolved = now - 86400000;
         }
         const sinceSec = this.parseToInt(sinceResolved / 1000);
         const untilSec = this.parseToInt(until / 1000);
@@ -496598,7 +496598,7 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
             maxTopicsResolved = this.parseToInt(maxTopics);
         }
         const pageLimitOption = this.safeInteger(this.options, 'marketsPageLimit', 100);
-        let pageLimit = this.parseToInt(100);
+        let pageLimit = 100;
         if (pageLimitOption < 100) {
             pageLimit = this.parseToInt(pageLimitOption);
         }
@@ -496848,13 +496848,13 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
         const seen = {};
         const collected = [];
         const queriesLength = queries.length;
-        let limitValue = this.parseToInt(20);
+        let limitValue = 20;
         if (limit !== undefined) {
             limitValue = this.parseToInt(limit);
         }
         let limitResolved = limitValue;
         if (limitValue > 50) {
-            limitResolved = this.parseToInt(50);
+            limitResolved = 50;
         }
         for(let qi = 0; qi < queriesLength; qi++){
             const request = {
@@ -521778,7 +521778,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
             'limit': userLimit
         }, 'limit');
         let paginationKey = undefined;
-        let page = this.parseToInt(0);
+        let page = 0;
         while(true){
             const request = {
                 'pageSize': pageSize
@@ -521794,7 +521794,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
                 rawMarkets.push(pageMarkets[i]);
             }
             paginationKey = this.safeString(result, 'nextKey');
-            page = this.parseToInt(page + 1);
+            page = page + 1;
             const collectedLength = this.parseToInt(rawMarkets.length);
             if (pageMarketsLength < pageSize || page >= maxPages || paginationKey === undefined || collectCap !== undefined && collectedLength >= collectCap) {
                 break;
@@ -522304,7 +522304,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         const digits = '0123456789abcdef';
         const lowerHex = hex.toLowerCase();
         const hexLength = lowerHex.length;
-        let result = this.parseToInt(0);
+        let result = 0;
         for(let i = 0; i < hexLength; i++){
             const ch = lowerHex[i];
             const digitValue = this.parseToInt(digits.indexOf(ch));
@@ -569547,13 +569547,13 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         const storedOrderBook = this.safeValue(this.orderbooks, symbol, this.orderBook({}));
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            let cacheLength = this.parseToInt(0);
+            let cacheLength = 0;
             if (storedOrderBook !== undefined) {
                 const storedCacheLength = storedOrderBook.cache.length;
                 cacheLength = this.parseToInt(storedCacheLength);
             }
             const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 10));
-            let waitAmount = this.parseToInt(0);
+            let waitAmount = 0;
             if (isSpot) {
                 waitAmount = snapshotDelay;
             }
@@ -607757,7 +607757,7 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
             }
             const entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             const numInGroup = this.parseToInt(this.sbeReadUint(frameHex, position + 2, 2));
-            position = this.parseToInt(position + 4);
+            position = position + 4;
             if (entryLength < 16 || this.parseToInt(this.sum(position, numInGroup * entryLength)) > frameEnd) {
                 return undefined;
             }
@@ -639543,7 +639543,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
                 if (limit !== undefined && limit !== null && limit !== 0) {
                     historyLimit = this.parseToInt(Math.min(limit, maxHistoricalLimit));
                 }
-                const timeDelta = this.parseToInt(historyLimit * duration);
+                const timeDelta = historyLimit * duration;
                 if (since === undefined && until === undefined) {
                     endTime = now;
                     startTime = now - timeDelta;

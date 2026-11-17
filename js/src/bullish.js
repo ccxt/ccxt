@@ -1312,7 +1312,7 @@ export default class bullish extends Exchange {
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new NotSupported(this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
-        let errors = this.parseToInt(0);
+        let errors = 0;
         const paramsOmitted = this.omit(paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
@@ -1332,7 +1332,7 @@ export default class bullish extends Exchange {
                 if (e instanceof RateLimitExceeded) {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
-                errors = this.parseToInt(errors + 1);
+                errors = errors + 1;
                 if (errors > maxRetries) {
                     throw e;
                 }

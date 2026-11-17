@@ -2584,15 +2584,15 @@ export default class mexc extends Exchange {
             throw new InvalidOrder(this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 2, params);
-        let orderType = this.parseToInt(0); // typed seed, every branch below assigns it
+        let orderType = 0; // typed seed, every branch below assigns it
         if (postOnly) {
-            orderType = this.parseToInt(2);
+            orderType = 2;
         }
         else if (type === 'limit') {
-            orderType = this.parseToInt(1);
+            orderType = 1;
         }
         else if (type === 'market') {
-            orderType = this.parseToInt(6);
+            orderType = 6;
         }
         else {
             orderType = this.parseToInt(type);

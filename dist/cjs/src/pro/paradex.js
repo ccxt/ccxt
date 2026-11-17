@@ -2194,7 +2194,7 @@ class paradex extends paradex$1["default"] {
             }
             const entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             const numInGroup = this.parseToInt(this.sbeReadUint(frameHex, position + 2, 2));
-            position = this.parseToInt(position + 4);
+            position = position + 4;
             if ((entryLength < 16) || (this.parseToInt(this.sum(position, numInGroup * entryLength)) > frameEnd)) {
                 return undefined;
             }

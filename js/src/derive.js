@@ -1586,10 +1586,10 @@ export default class derive extends Exchange {
             limitResolved = this.parseToInt(limit);
         }
         if (limitResolved > 5000) {
-            limitResolved = this.parseToInt(5000);
+            limitResolved = 5000;
         }
         const span = this.parseToInt(limitResolved * duration);
-        const windowStart = this.parseToInt(untilSeconds - span);
+        const windowStart = untilSeconds - span;
         let start = windowStart;
         let end = untilSeconds;
         if (since !== undefined) {

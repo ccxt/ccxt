@@ -1631,7 +1631,7 @@ class weex extends weex$1["default"] {
                 if (limit !== undefined && limit !== null && limit !== 0) {
                     historyLimit = this.parseToInt(Math.min(limit, maxHistoricalLimit));
                 }
-                const timeDelta = this.parseToInt(historyLimit * duration);
+                const timeDelta = historyLimit * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;

@@ -245,7 +245,7 @@ class sxbet extends sxbet$1["default"] {
         const rawMarkets = [];
         const collectCap = this.safeInteger({ 'limit': userLimit }, 'limit');
         let paginationKey = undefined;
-        let page = this.parseToInt(0);
+        let page = 0;
         while (true) {
             const request = { 'pageSize': pageSize };
             if (paginationKey !== undefined) {
@@ -259,7 +259,7 @@ class sxbet extends sxbet$1["default"] {
                 rawMarkets.push(pageMarkets[i]);
             }
             paginationKey = this.safeString(result, 'nextKey');
-            page = this.parseToInt(page + 1);
+            page = page + 1;
             const collectedLength = this.parseToInt(rawMarkets.length);
             if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((collectCap !== undefined) && (collectedLength >= collectCap))) {
                 break;
@@ -731,7 +731,7 @@ class sxbet extends sxbet$1["default"] {
         const digits = '0123456789abcdef';
         const lowerHex = hex.toLowerCase();
         const hexLength = lowerHex.length;
-        let result = this.parseToInt(0);
+        let result = 0;
         for (let i = 0; i < hexLength; i++) {
             const ch = lowerHex[i];
             const digitValue = this.parseToInt(digits.indexOf(ch));

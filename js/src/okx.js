@@ -8345,7 +8345,7 @@ export default class okx extends Exchange {
      */
     handleTradingStatisticsWindow(request, period, since = undefined, limit = undefined, params = {}) {
         const maxLimit = 100;
-        let effectiveLimit = this.parseToInt(100);
+        let effectiveLimit = 100;
         if ((limit !== undefined) && (100 > limit)) {
             effectiveLimit = this.parseToInt(limit);
         }

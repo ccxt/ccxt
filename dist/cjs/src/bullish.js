@@ -1311,7 +1311,7 @@ class bullish extends bullish$1["default"] {
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new errors.NotSupported(this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
-        let errors$1 = this.parseToInt(0);
+        let errors$1 = 0;
         const paramsOmitted = this.omit(paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
@@ -1331,7 +1331,7 @@ class bullish extends bullish$1["default"] {
                 if (e instanceof errors.RateLimitExceeded) {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
-                errors$1 = this.parseToInt(errors$1 + 1);
+                errors$1 = errors$1 + 1;
                 if (errors$1 > maxRetries) {
                     throw e;
                 }
