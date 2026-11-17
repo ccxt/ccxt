@@ -61,21 +61,21 @@ export default class phemex extends phemexRest {
         return precise.toString ();
     }
 
-    override fromEp (ep: any, market: Market = undefined): Str {
+    override fromEp (ep: Str, market: Market = undefined): Str {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
         return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
-    override fromEv (ev: any, market: Market = undefined): Str {
+    override fromEv (ev: Str, market: Market = undefined): Str {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
         return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
-    override fromEr (er: any, market: Market = undefined): Str {
+    override fromEr (er: Str, market: Market = undefined): Str {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
