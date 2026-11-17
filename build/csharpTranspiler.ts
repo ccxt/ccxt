@@ -8672,6 +8672,14 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
         [ 'IList<object> row = ((IList<object>)', 'row.Add(v);' ], [ 'object row', '((IList<object>)row)' ]);
     check ('conditional write does not prove the box', 't (rows: any[], v, f) { const row = rows[0]; if (f) { row["a"] = v; } return rows; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     check ('statement before the write does not prove the box', 'u (rows: any[], v) { const row = rows[0]; this.safeString (v, "a"); row["a"] = v; return rows; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('87c3 sibling-bound string list element', 'p (f, a: Dict, b: Dict) { if (f) { const ks = Object.keys (a); for (let i = 0; i < ks.length; i++) { const k = ks[i]; delete a[k]; } } else { const ks = Object.keys (b); for (let i = 0; i < ks.length; i++) { const k2 = ks[i]; delete b[k2]; } } }',
+        [ 'string? k = ((string)', 'string? k2 = ((string)' ], [ 'object k ', 'object k2' ]);
+    check ('87c3 sibling-bound pushed list keeps object', 'q (f, a: Dict) { if (f) { const ks = Object.keys (a); ks.push (1); const k = ks[0]; return k; } else { const ks = Object.keys (a); return ks; } }',
+        [ 'object k = ' ], [ 'string? k = ' ]);
+    check ('87c3 length-alias bounded keys element', 'v (a: Dict) { const ks = Object.keys (a); const n = ks.length; let r = 0; for (let i = 0; i < n; i++) { const k = ks[i]; r = k + "=" + a[k]; } return r; }',
+        [ 'string k = ((string)' ], [ 'object k = ' ]);
+    check ('87c3 length alias with a moved index keeps object', 'w (a: Dict) { const ks = Object.keys (a); const n = ks.length; let r = 0; for (let i = 0; i < n; i++) { i = i + 1; const k = ks[i]; r = k + "=" + a[k]; } return r; }',
+        [ 'object k = ' ], [ 'string k = ' ]);
     check ('keyed read into a local keeps object', 'n (data: Dict[]) { const row = data[0]; row["a"] = 1; const s = row["b"]; return s; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
     return problems;
 }

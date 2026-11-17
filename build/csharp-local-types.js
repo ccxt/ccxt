@@ -8805,6 +8805,43 @@ function elementAccessElementType (csharp, initializer, context) {
     return producer.elementType;
 }
 
+// ral-87c3 rule 1 (84c3 rule 2 re-measured): `const k = keys[i]` where the receiver name has several sibling bindings in the
+// function (two `const symbols = Object.keys (..)` in different branches). elementAccessElementType
+// counts bindings by name and refuses; here the checker resolves the read's own declaration, and that
+// one declaration must be a string-elements producer declared before the read and never written
+// (assigned, pushed, element-written) in the function. Same `string?` local behind the `(string)`
+// cast as the upstream arm; the use-site `(string)` casts go.
+function siblingBoundStringListElementType (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression || initializer.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const receiver = initializer.expression;
+    const declaration = csharpIdentifierDeclaration (csharp, receiver);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || declaration.getStart () > initializer.getStart () || !stringElementsProducer (declaration.initializer)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (initializer) : enclosingFunction (initializer);
+    if (scope === undefined || enclosingFunction (declaration) !== enclosingFunction (initializer)) {
+        return undefined;
+    }
+    for (const n of indexScope (csharp, scope).identifiers.get (receiver.text) ?? []) {
+        if (n === receiver || n === declaration.name) {
+            continue;
+        }
+        if (n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && n.parent.name === n) {
+            continue; // a member name, not the local
+        }
+        if (csharpIdentifierDeclaration (csharp, n) !== declaration) {
+            continue; // a sibling binding's own use
+        }
+        if (receiverUseIsWrite (n)) {
+            return undefined;
+        }
+    }
+    return 'string';
+}
+
 // `market['symbol']` — a MARKET ROW read by a literal key. getValue hands back the raw box, so
 // naming the value `string?` needs the `(string)` cast back (see the MARKET_ROW_* header).
 // Keys outside the set (booleans / numerics / dicts) keep the local `object`.
@@ -11358,7 +11395,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `const x = recv[key]`: the runtime element is a proven box, but the call's C# type
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
-        const elementType = (integerBox === undefined) ? elementAccessElementType (csharp, declaration.initializer, ctx) : undefined;
+        const elementType = (integerBox === undefined) ? (elementAccessElementType (csharp, declaration.initializer, ctx) ?? siblingBoundStringListElementType (csharp, declaration.initializer)) : undefined;
         // `const key = keys[i]` over a receiver whose PRINTED declaration head is a scalar list
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back
@@ -14127,7 +14164,78 @@ function boundedKeysElementInitializer (csharp, node) {
     if (!objectKeys && callee.name?.text !== 'split') {
         return false;
     }
-    return csharp.csharpIndexIsLoopBounded (node, node.expression, node.argumentExpression) === true;
+    return csharp.csharpIndexIsLoopBounded (node, node.expression, node.argumentExpression) === true
+        || lengthAliasLoopBounded (csharp, scope, node, declaration);
+}
+
+// ral-87c3 rule 2: `const n = keys.length; for (let i = 0; i < n; i++) { const k = keys[i]; .. }` —
+// the bound is a const alias of the receiver's length. The alias is a const declared once, before
+// the loop, from `<receiver>.length` of the same once-bound receiver (whose every write was refused
+// above), and the loop body never writes the index: the read is in range exactly as with `i < keys.length`.
+function lengthAliasLoopBounded (csharp, scope, read, receiverDeclaration) {
+    const index = read.argumentExpression;
+    let node = read;
+    while (node.parent !== undefined && node.parent !== scope) {
+        const parent = node.parent;
+        if (parent.kind === ts.SyntaxKind.FunctionExpression || parent.kind === ts.SyntaxKind.ArrowFunction || parent.kind === ts.SyntaxKind.FunctionDeclaration) {
+            return false; // a read under a nested function is not dominated by the condition
+        }
+        if (parent.kind === ts.SyntaxKind.ForStatement && parent.statement === node) {
+            const condition = parent.condition;
+            if (condition?.kind === ts.SyntaxKind.BinaryExpression && condition.operatorToken.kind === ts.SyntaxKind.LessThanToken
+                    && condition.left?.kind === ts.SyntaxKind.Identifier && condition.left.text === index.text
+                    && condition.right?.kind === ts.SyntaxKind.Identifier
+                    && lengthAliasOf (csharp, scope, condition.right, receiverDeclaration, parent)
+                    && !identifierWrittenUnder (parent.statement, index.text)) {
+                return true;
+            }
+        }
+        node = parent;
+    }
+    return false;
+}
+
+function lengthAliasOf (csharp, scope, bound, receiverDeclaration, forStatement) {
+    let declaration;
+    let bindings = 0;
+    for (const n of indexScope (csharp, scope).identifiers.get (bound.text) ?? []) {
+        if ((n.parent?.kind === ts.SyntaxKind.VariableDeclaration || n.parent?.kind === ts.SyntaxKind.Parameter) && n.parent.name === n) {
+            bindings++;
+            declaration = n.parent;
+        } else if (receiverUseIsWrite (n) || (n.parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || n.parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)) {
+            return false;
+        }
+    }
+    if (bindings !== 1 || declaration.kind !== ts.SyntaxKind.VariableDeclaration || declaration.getStart () > forStatement.getStart ()
+            || !(declaration.parent?.flags & ts.NodeFlags.Const)) {
+        return false;
+    }
+    const init = declaration.initializer;
+    return init?.kind === ts.SyntaxKind.PropertyAccessExpression && init.name?.text === 'length'
+        && init.expression?.kind === ts.SyntaxKind.Identifier && init.expression.text === receiverDeclaration.name?.text
+        && receiverDeclaration.getStart () < declaration.getStart ();
+}
+
+function identifierWrittenUnder (body, name) {
+    let written = false;
+    const visit = (n) => {
+        if (written) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name) {
+            const parent = n.parent;
+            if ((parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+                    || ((parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)
+                        && (parent.operator === ts.SyntaxKind.PlusPlusToken || parent.operator === ts.SyntaxKind.MinusMinusToken))
+                    || (parent?.kind === ts.SyntaxKind.VariableDeclaration && parent.name === n)) {
+                written = true;
+                return;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    visit (body);
+    return written;
 }
 
 function signApiElementInitializer (csharp, node) {
