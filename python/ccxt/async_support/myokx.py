@@ -9,7 +9,7 @@ from ccxt.abstract.myokx import ImplicitAPI
 
 class myokx(okx, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(myokx, self).describe(), {
             'id': 'myokx',
             'name': 'MyOKX (EEA)',

@@ -364,6 +364,9 @@ class bithumb extends bithumb$1["default"] {
                 '30m': 30,
                 '1h': 60,
                 '4h': 240,
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months',
             },
             'options': {
                 'generation': 2, // either API generation 1 or 2
@@ -404,15 +407,15 @@ class bithumb extends bithumb$1["default"] {
     }
     amountToPrecision(symbol, amount) {
         const market = this.market(symbol);
-        return this.decimalToPrecision(amount, number.TRUNCATE, market['precision']['amount'], number.DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, number.TRUNCATE, this.safeValue(market['precision'], 'amount'), number.DECIMAL_PLACES);
     }
     getGen2MarketId(market) {
         const marketId = this.safeString(market, 'id');
         if ((marketId !== undefined) && (marketId.indexOf('-') >= 0)) {
             return marketId;
         }
-        const quoteId = this.safeString2(market, 'quoteId', 'quote');
-        const baseId = this.safeString2(market, 'baseId', 'base');
+        const quoteId = this.safeString2(market, 'quoteId', 'quote', '');
+        const baseId = this.safeString2(market, 'baseId', 'base', '');
         return quoteId + '-' + baseId;
     }
     /**
@@ -631,7 +634,7 @@ class bithumb extends bithumb$1["default"] {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         // generation 1
         //
@@ -665,7 +668,7 @@ class bithumb extends bithumb$1["default"] {
                 const code = codes[i];
                 const account = this.account();
                 const currency = this.currency(code);
-                const lowerCurrencyId = this.safeStringLower(currency, 'id');
+                const lowerCurrencyId = this.safeStringLower(currency, 'id', '');
                 account['total'] = this.safeString(balances, 'total_' + lowerCurrencyId);
                 account['used'] = this.safeString(balances, 'in_use_' + lowerCurrencyId);
                 account['free'] = this.safeString(balances, 'available_' + lowerCurrencyId);
@@ -735,7 +738,7 @@ class bithumb extends bithumb$1["default"] {
             //     }
             //
         }
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method
@@ -981,7 +984,10 @@ class bithumb extends bithumb$1["default"] {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             const marketIds = [];
-            const symbolsForMarketIds = (symbols === undefined) ? this.symbols : symbols;
+            let symbolsForMarketIds = this.symbols;
+            if (symbols !== undefined) {
+                symbolsForMarketIds = symbols;
+            }
             const symbolsForMarketIdsLength = symbolsForMarketIds.length;
             for (let i = 0; i < symbolsForMarketIdsLength; i++) {
                 const market = this.market(symbolsForMarketIds[i]);
@@ -1043,9 +1049,9 @@ class bithumb extends bithumb$1["default"] {
             const responses = await Promise.all(promises);
             const responsesLength = responses.length;
             for (let i = 0; i < responsesLength; i++) {
-                let response = responses[i];
-                if (this.isDictionary(response) && ('data' in response) && (response['data'] !== undefined)) {
-                    response = response['data'];
+                let response = this.safeValue(responses, i);
+                if (this.isDictionary(response) && (this.safeValue(response, 'data') !== undefined)) {
+                    response = this.safeValue(response, 'data');
                 }
                 let expectedMarketId = undefined;
                 const requestedMarketIds = this.safeList(marketIdsChunks, i, []);
@@ -1301,6 +1307,8 @@ class bithumb extends bithumb$1["default"] {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1313,18 +1321,45 @@ class bithumb extends bithumb$1["default"] {
         let response = undefined;
         let data = [];
         if (generation === 2) {
+            const [paginate, paramsPaginate] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+            if (paginate) {
+                return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
+            }
+            const until = this.safeInteger(paramsGeneration, 'until');
+            const requestParams = this.omit(paramsGeneration, ['until', 'paginate']);
             request['market'] = this.getGen2MarketId(market);
+            // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            let count = 200;
             if (limit !== undefined) {
-                request['count'] = limit;
+                count = Math.min(limit, 200);
+            }
+            if ((limit !== undefined) || (since !== undefined) || (until !== undefined)) {
+                request['count'] = count;
+            }
+            // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            let to = undefined;
+            if (until !== undefined) {
+                to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
+            }
+            if (since !== undefined) {
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                const sinceEnd = this.sum(since, duration * count);
+                if ((to === undefined) || (sinceEnd < to)) {
+                    to = sinceEnd;
+                }
+            }
+            if (to !== undefined) {
+                request['to'] = this.ymdhms(this.sum(to, 32400000), ' ');
             }
             if (timeframe === '1d') {
-                response = await this.publicGetV1CandlesDays(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesDays(this.extend(request, requestParams));
             }
             else if (timeframe === '1w') {
-                response = await this.publicGetV1CandlesWeeks(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesWeeks(this.extend(request, requestParams));
             }
             else if (timeframe === '1M') {
-                response = await this.publicGetV1CandlesMonths(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMonths(this.extend(request, requestParams));
             }
             else {
                 const timeframeInteger = this.safeInteger(this.timeframes, timeframe);
@@ -1332,7 +1367,7 @@ class bithumb extends bithumb$1["default"] {
                     throw new errors.BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe);
                 }
                 request['unit'] = timeframeInteger;
-                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, requestParams));
             }
             //
             //     [
@@ -1854,8 +1889,7 @@ class bithumb extends bithumb$1["default"] {
         if (generation !== 2) {
             throw new errors.BadRequest(this.id + ' createMarketBuyOrderWithCost() is only supported for the generation 2 API');
         }
-        paramsGeneration['createMarketBuyOrderRequiresPrice'] = false;
-        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, paramsGeneration);
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, this.extend(paramsGeneration, { 'createMarketBuyOrderRequiresPrice': false }));
     }
     /**
      * @method
@@ -2320,13 +2354,7 @@ class bithumb extends bithumb$1["default"] {
         let response = undefined;
         if (generation === 2) {
             const twap = this.safeBool(paramsGeneration, 'twap', false);
-            if (twap) {
-                paramsGeneration['state'] = 'progress';
-            }
-            else {
-                paramsGeneration['state'] = 'wait';
-            }
-            const orders = await this.fetchOrders(symbol, since, limit, paramsGeneration);
+            const orders = await this.fetchOrders(symbol, since, limit, this.extend(paramsGeneration, { 'state': twap ? 'progress' : 'wait' }));
             return this.filterBySinceLimit(orders, since, limit);
         }
         else {
@@ -2660,9 +2688,9 @@ class bithumb extends bithumb$1["default"] {
     }
     async cancelUnifiedOrder(order, params = {}) {
         const request = {
-            'side': order['side'],
+            'side': this.safeString(order, 'side'),
         };
-        return await this.cancelOrder(order['id'], order['symbol'], this.extend(request, params));
+        return await this.cancelOrder(this.safeString(order, 'id', ''), this.safeString(order, 'symbol'), this.extend(request, params));
     }
     /**
      * @method
@@ -2695,7 +2723,8 @@ class bithumb extends bithumb$1["default"] {
             await this.loadMarkets();
         }
         const [generation, paramsGeneration] = this.handleOptionIntegerAndParams(params, 'withdraw', 'generation', 2);
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(paramsGeneration, 'tag');
+        const tagWithdrawTag = this.safeString(paramsGeneration, 'tag');
+        const paramsWithdrawTag = this.omit(paramsGeneration, 'tag');
         this.checkAddress(address, code, tagWithdrawTag);
         const network = this.safeString2(paramsWithdrawTag, 'network', 'net_type');
         const paramsNetwork = this.omit(paramsWithdrawTag, 'network');
@@ -3291,7 +3320,7 @@ class bithumb extends bithumb$1["default"] {
         let result = '';
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = query[key];
+            const value = this.safeValue(query, key);
             if (Array.isArray(value)) {
                 const encodedKey = this.encodeURIComponent(key) + '[]';
                 for (let j = 0; j < value.length; j++) {
@@ -3320,7 +3349,7 @@ class bithumb extends bithumb$1["default"] {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        let requestHeaders = undefined;
+        let requestHeaders = {};
         let requestBody = undefined;
         const endpoint = '/' + this.implodeParams(path, params);
         const apiUrl = this.safeString(this.urls['api'], apiName);
@@ -3337,7 +3366,7 @@ class bithumb extends bithumb$1["default"] {
                 'OPEN-API-PARTNER': 'CCXT',
             };
             if (hasQuery) {
-                url += '?' + this.urlencode(query);
+                url = this.implodeHostname(apiUrl) + endpoint + '?' + this.urlencode(query);
             }
         }
         else {
@@ -3353,7 +3382,7 @@ class bithumb extends bithumb$1["default"] {
                     'nonce': this.uuid(),
                     'timestamp': this.milliseconds(),
                 };
-                let auth = undefined;
+                let auth = '';
                 if ((method !== 'GET') && (method !== 'DELETE')) {
                     requestHeaders['Content-Type'] = 'application/json';
                     if (hasQuery) {
@@ -3363,11 +3392,10 @@ class bithumb extends bithumb$1["default"] {
                 }
                 else if (hasQuery) {
                     auth = this.urlencodeWithArrayBrackets(query);
-                    url += '?' + auth;
+                    url = this.implodeHostname(apiUrl) + endpoint + '?' + auth;
                 }
                 if (hasQuery) {
-                    const authString = (auth === undefined) ? '' : auth;
-                    request['query_hash'] = this.hash(this.encode(authString), sha2_js.sha512);
+                    request['query_hash'] = this.hash(this.encode(auth), sha2_js.sha512);
                     request['query_hash_alg'] = 'SHA512';
                 }
                 const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
@@ -3380,9 +3408,9 @@ class bithumb extends bithumb$1["default"] {
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 const bodyParts = encodedBody.split('%20');
                 requestBody = bodyParts.join('+');
-                const nonce = this.nonce().toString();
-                const auth = endpoint + "\0" + requestBody + "\0" + nonce; // eslint-disable-line quotes
-                const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512);
+                const nonce = this.numberToString(this.nonce());
+                const authPayload = endpoint + "\0" + requestBody + "\0" + nonce; // eslint-disable-line quotes
+                const signature = this.hmac(this.encode(authPayload), this.encode(this.secret), sha2_js.sha512);
                 const signature64 = this.stringToBase64(signature);
                 requestHeaders = {
                     'Accept': 'application/json',
@@ -3398,7 +3426,7 @@ class bithumb extends bithumb$1["default"] {
         const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3419,26 +3447,24 @@ class bithumb extends bithumb$1["default"] {
             }
             throw new errors.ExchangeError(feedback);
         }
-        if ('status' in response) {
-            // generation 1:
-            //
-            //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
-            //
-            const status = this.safeString(response, 'status');
+        // generation 1:
+        //
+        //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+        //
+        const status = this.safeString(response, 'status');
+        if (status !== undefined) {
             const message = this.safeString(response, 'message');
-            if (status !== undefined) {
-                if (status === '0000') {
-                    return undefined; // no error
-                }
-                else if (message === '거래 진행중인 내역이 존재하지 않습니다.') {
-                    // https://github.com/ccxt/ccxt/issues/9017
-                    return undefined; // no error
-                }
-                const feedback = this.id + ' ' + message;
-                this.throwExactlyMatchedException(this.exceptions, status, feedback);
-                this.throwExactlyMatchedException(this.exceptions, message, feedback);
-                throw new errors.ExchangeError(feedback);
+            if (status === '0000') {
+                return undefined; // no error
             }
+            else if (message === '거래 진행중인 내역이 존재하지 않습니다.') {
+                // https://github.com/ccxt/ccxt/issues/9017
+                return undefined; // no error
+            }
+            const feedback = this.id + ' ' + message;
+            this.throwExactlyMatchedException(this.exceptions, status, feedback);
+            this.throwExactlyMatchedException(this.exceptions, message, feedback);
+            throw new errors.ExchangeError(feedback);
         }
         return undefined;
     }

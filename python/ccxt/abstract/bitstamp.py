@@ -29,7 +29,7 @@ class ImplicitAPI:
     private_get_earn_transactions = privateGetEarnTransactions = Entry[_List]('earn/transactions/', ['private'], 'GET', {'cost': 1})
     private_get_trade_history = privateGetTradeHistory = Entry[_List]('trade_history/', ['private'], 'GET', {'cost': 1})
     private_get_trade_history_pair = privateGetTradeHistoryPair = Entry[_List]('trade_history/{pair}', ['private'], 'GET', {'cost': 1})
-    private_post_account_balances = privatePostAccountBalances = Entry[_Dict]('account_balances/', ['private'], 'POST', {'cost': 1})
+    private_post_account_balances = privatePostAccountBalances = Entry[_List]('account_balances/', ['private'], 'POST', {'cost': 1})
     private_post_account_balances_currency = privatePostAccountBalancesCurrency = Entry[_Dict]('account_balances/{currency}/', ['private'], 'POST', {'cost': 1})
     private_post_balance = privatePostBalance = Entry[_Dict]('balance/', ['private'], 'POST', {'cost': 1})
     private_post_balance_pair = privatePostBalancePair = Entry[_Dict]('balance/{pair}/', ['private'], 'POST', {'cost': 1})

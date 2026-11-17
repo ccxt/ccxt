@@ -3,11 +3,12 @@
 
 import hitbtc from '../abstract/pro/bequant.js';
 import bequantRest from '../bequant.js';
+import type { Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class bequant extends hitbtc {
-    override describe (): any {
+    override describe (): Dict {
         // eslint-disable-next-line new-cap
         const restInstance = new bequantRest ();
         const restDescribe = restInstance.describe ();

@@ -55,16 +55,18 @@ public partial class independentreserve : ccxt.independentreserve
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? symbolValue = this.safeString(market, "symbol", "");
+        string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchTrades() has no websocket url")) ;
         }
-        string url = ((((wsUrl + "?subscribe=ticker-") + ((market.ContainsKey("base") ? market["base"] : null))) + "-") + ((market.ContainsKey("quote") ? market["quote"] : null)));
+        string? baseId = this.safeString(market, "base", "");
+        string? quoteId = this.safeString(market, "quote", "");
+        string url = ((((wsUrl + "?subscribe=ticker-") + baseId) + "-") + quoteId);
         string messageHash = ("trades:" + symbolValue);
         object trades = await this.watch(url, messageHash, null, messageHash);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -101,7 +103,7 @@ public partial class independentreserve : ccxt.independentreserve
         ccxt.Trade trade = this.parseWsTrade(data);
         stored.append(ccxt.BaseExchange.FromTrade(trade));
         this.trades[(string)symbol] = stored;
-        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
+        client.resolve(stored, messageHash);
     }
 
     public override ccxt.Trade parseWsTrade(object trade, object market = null)
@@ -154,21 +156,23 @@ public partial class independentreserve : ccxt.independentreserve
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         Int64? limitResolved = ((limit == null)) ? 100 : limit;
         string? limitString = this.numberToString(limitResolved);
-        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchOrderBook() has no websocket url")) ;
         }
-        string url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + ((market.ContainsKey("base") ? market["base"] : null))) + "-") + ((market.ContainsKey("quote") ? market["quote"] : null)));
+        string? baseId = this.safeString(market, "base", "");
+        string? quoteId = this.safeString(market, "quote", "");
+        string url = ((((((wsUrl + "/orderbook/") + limitString) + "?subscribe=") + baseId) + "-") + quoteId);
         string messageHash = ((("orderbook:" + symbolValue) + ":") + limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, null, messageHash, subscription));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -202,7 +206,7 @@ public partial class independentreserve : ccxt.independentreserve
             return;
         }
         List<object> parts = channel.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        string? depth = this.safeString(parts, 1);
+        string? depth = this.safeString(parts, 1, "");
         string? baseId = this.safeString(parts, 2);
         string? quoteId = this.safeString(parts, 3);
         string? bs = this.safeCurrencyCode(baseId);
@@ -218,7 +222,7 @@ public partial class independentreserve : ccxt.independentreserve
         bool? receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Int64? timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (!((this.orderbooks != null && this.orderbooks.ContainsKey(symbol))))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
@@ -248,19 +252,19 @@ public partial class independentreserve : ccxt.independentreserve
             ccxt.pro.IBids storedBids = orderbook?.bids;
             int asksLength = (storedAsks?.Count ?? 0);
             int bidsLength = (storedBids?.Count ?? 0);
-            object payload = "";
+            string payload = "";
             for (int i = 0; i < 10; i++)
             {
                 if (i < bidsLength)
                 {
-                    payload = add(add(payload, this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 0))), this.valueToChecksum(getValue((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 1)));
+                    payload = ((payload + (this.valueToChecksum(this.safeNumber((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 0)))) + (this.valueToChecksum(this.safeNumber((storedBids != null && i < storedBids.Count ? storedBids[i] : null), 1))));
                 }
             }
             for (int i = 0; i < 10; i++)
             {
                 if (i < asksLength)
                 {
-                    payload = add(add(payload, this.valueToChecksum(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 0))), this.valueToChecksum(getValue((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 1)));
+                    payload = ((payload + (this.valueToChecksum(this.safeNumber((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 0)))) + (this.valueToChecksum(this.safeNumber((storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null), 1))));
                 }
             }
             Int64 calculatedChecksum = this.crc32(payload, false);
@@ -280,7 +284,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
     }
 
-    public virtual object valueToChecksum(object value)
+    public virtual string? valueToChecksum(object value)
     {
         // toFixed returns a zero-padded *string* in js but a *number* in
         // go/c#/java, dropping trailing zeros. decimalToPrecision with
@@ -290,7 +294,7 @@ public partial class independentreserve : ccxt.independentreserve
         // remove leading zeros
         result = this.parseNumber(result);
         result = this.numberToString(result);
-        return result;
+        return ((string?)((object)(result)));
     }
 
     public override void handleDelta(object bookside, object delta)
@@ -340,7 +344,7 @@ public partial class independentreserve : ccxt.independentreserve
             { "OrderBookSnapshot", this.handleOrderBook },
             { "OrderBookChange", this.handleOrderBook },
         };
-        object handler = ((eventVar == null)) ? null : this.safeValue(handlers, eventVar);
+        Delegate handler = ((Delegate)this.safeValue(handlers, eventVar));
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

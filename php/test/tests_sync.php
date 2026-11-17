@@ -1226,7 +1226,7 @@ class testMainClass {
                 $tests['fetchPositions'] = [$symbol]; // this test fetches all positions for 1 symbol
                 $tests['fetchPosition'] = [$symbol];
                 $tests['fetchPositionRisk'] = [$symbol];
-                $tests['setPositionMode'] = [$symbol];
+                $tests['setPositionMode'] = [false, $symbol];
                 $tests['setMarginMode'] = [$symbol];
                 $tests['fetchOpenInterestHistory'] = [$symbol];
                 $tests['fetchFundingRateHistory'] = [$symbol];
@@ -2308,7 +2308,8 @@ class testMainClass {
         }
         $accounts = $exchange->safe_list($exchange_data, 'accounts');
         if ($accounts !== null && $accounts !== null) {
-            $exchange->accounts = $accounts;
+            // the field is a List<object>: assign the call, not the untyped local
+            $exchange->accounts = $exchange->safe_list($exchange_data, 'accounts');
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         $exchange->extend_exchange_options($global_options);
@@ -2586,11 +2587,39 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb(), $this->test_extended()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb(), $this->test_extended(), $this->test_bit2me()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
         exit_script(0);
+        return true;
+    }
+
+    public function test_bit2me() {
+        $exchange = $this->init_offline_exchange('bit2me');
+        $id = 'CCXT';
+        $exchange->load_markets();
+        assert($exchange->options['brokerId'] === $id, 'bit2me - brokerId not in options');
+        $request = array();
+        try {
+            $exchange->create_order('BTC/USDC', 'limit', 'buy', 0.0001, 36000);
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $client_order_id = $request['clientOrderId'];
+        assert(str_starts_with($client_order_id, $id . '-'), 'bit2me - clientOrderId: ' . $client_order_id . ' does not start with the broker id ' . $id);
+        try {
+            $exchange->create_order('BTC/USDC', 'limit', 'buy', 0.0001, 36000, array(
+                'clientOrderId' => 'my-order',
+            ));
+        } catch(\Throwable $e) {
+            $request = json_parse($exchange->last_request_body);
+        }
+        $custom_client_order_id = $request['clientOrderId'];
+        assert($custom_client_order_id === 'my-order', 'bit2me - custom clientOrderId: ' . $custom_client_order_id . ' should be sent as given, the broker id is only added when none is provided');
+        if (!is_sync()) {
+            close($exchange);
+        }
         return true;
     }
 
@@ -3626,7 +3655,7 @@ class testMainClass {
         $token_expires = $exchange->milliseconds() + 100000;
         $exchange->options['v2TokenExpires'] = $token_expires;
         $exchange->options['portfolio'] = 'random';
-        $id = 'nfqkvdjp';
+        $id = 'ccxt';
         assert($exchange->options['brokerId'] === $id, 'id not in options');
         $client_order_id = null;
         try {
@@ -3639,7 +3668,8 @@ class testMainClass {
             $query = $this->urlencoded_to_dict($url_parts[1]);
             $client_order_id = $query['label'];
         }
-        assert($client_order_id !== null && str_starts_with($client_order_id, ((string) $id)) === true, 'clientOrderId does not start with id');
+        // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert($client_order_id !== null && str_starts_with($client_order_id, $id . '-') === true, 'clientOrderId ' . $client_order_id . ' does not start with the brokerId prefix ' . $id . '-');
         if (!is_sync()) {
             close($exchange);
         }

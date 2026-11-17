@@ -2,7 +2,7 @@ import apexRest from '../apex.js';
 import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class apex extends apexRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name apex#watchTrades
@@ -149,7 +149,7 @@ export default class apex extends apexRest {
     handlePositions(client: Client, lists: any[]): void;
     authenticate(url: string, params?: Dict): Promise<any>;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     ping(client: Client): {
         args: string[];
         op: string;

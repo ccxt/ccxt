@@ -19,7 +19,7 @@ use React\Promise;
 use React\Promise\PromiseInterface;
 
 class limitless extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'limitless',
             'name' => 'Limitless',
@@ -280,8 +280,8 @@ class limitless extends Exchange {
                     if ($pageMarketsLength === 0) {
                         break;
                     }
-                    for ($i = 0; $i < count($page_markets); $i++) {
-                        $raw = $page_markets[$i];
+                    for ($i = 0; $i < $pageMarketsLength; $i++) {
+                        $raw = $this->safe_value($page_markets, $i);
                         $allRaw[] = $raw;
                     }
                     $allRawCount = count($allRaw);
@@ -1202,8 +1202,8 @@ class limitless extends Exchange {
         for ($i = 0; $i < count($slugs); $i++) {
             $slug = $slugs[$i];
             $detailIndex = $i * 2;
-            $detail = $responses[$detailIndex];
-            $book = $responses[$this->sum($detailIndex, 1)];
+            $detail = $this->safe_value($responses, $detailIndex);
+            $book = $this->safe_value($responses, $this->sum($detailIndex, 1));
             $tickerInput = array( 'market' => $detail, 'book' => $book );
             $grouped = $this->safe_list($outcomesBySlug, $slug, array());
             for ($j = 0; $j < count($grouped); $j++) {
@@ -1340,22 +1340,22 @@ class limitless extends Exchange {
         $bids = array();
         $asks = array();
         for ($bi = 0; $bi < count($bidsSource); $bi++) {
-            $priceStr = $this->safe_string($bidsSource[$bi], 'price');
+            $priceStr = $this->safe_string($this->safe_value($bidsSource, $bi), 'price');
             if (!$isYes && ($priceStr !== null)) {
                 $priceStr = Precise::string_sub('1', $priceStr);
             }
-            $sizeStr = $this->safe_string($bidsSource[$bi], 'size');
+            $sizeStr = $this->safe_string($this->safe_value($bidsSource, $bi), 'size');
             if ($sizeStr !== null) {
                 $sizeStr = Precise::string_div($sizeStr, $scaleStr);
             }
             $bids[] = array( $this->parse_number($priceStr), $this->parse_number($sizeStr) );
         }
         for ($ai = 0; $ai < count($asksSource); $ai++) {
-            $priceStr = $this->safe_string($asksSource[$ai], 'price');
+            $priceStr = $this->safe_string($this->safe_value($asksSource, $ai), 'price');
             if (!$isYes && ($priceStr !== null)) {
                 $priceStr = Precise::string_sub('1', $priceStr);
             }
-            $sizeStr = $this->safe_string($asksSource[$ai], 'size');
+            $sizeStr = $this->safe_string($this->safe_value($asksSource, $ai), 'size');
             if ($sizeStr !== null) {
                 $sizeStr = Precise::string_div($sizeStr, $scaleStr);
             }
@@ -1442,7 +1442,7 @@ class limitless extends Exchange {
             $firstPrices = $this->safe_list($first, 'prices');
             if ($firstPrices !== null) {
                 $selectedSeries = $first;
-                for ($i = 0; $i < count($rawHistory); $i++) {
+                for ($i = 0; $i < $rawHistoryLength; $i++) {
                     $series = $this->safe_dict($rawHistory, $i, array());
                     $title = $this->safe_string_upper($series, 'title', '');
                     if ($title === null) {
@@ -1515,7 +1515,7 @@ class limitless extends Exchange {
         }
         $result = array();
         for ($i = 0; $i < count($bucketOrder); $i++) {
-            $result[] = $candles[$bucketOrder[$i]];
+            $result[] = $this->safe_value($candles, $bucketOrder[$i]);
         }
         return $this->filter_by_since_limit($result, $since, $limit, 0);
     }
@@ -3097,8 +3097,7 @@ class limitless extends Exchange {
         $eventKeys = is_array($eventGroups) ? array_keys($eventGroups) : array();
         $eventKeysLength = count($eventKeys);
         for ($i = 0; $i < $eventKeysLength; $i++) {
-            $g = $eventGroups[$eventKeys[$i]];
-            $ev = $this->parse_event($g);
+            $ev = $this->parse_event($this->safe_dict($eventGroups, $eventKeys[$i], array()));
             $result[] = $ev;
         }
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
@@ -3225,7 +3224,7 @@ class limitless extends Exchange {
         return $allRaw;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two orders are signed within the same millisecond
         return $this->milliseconds();
@@ -3236,13 +3235,12 @@ class limitless extends Exchange {
          * @ignore
          * builds the request URL and attaches the lmts authentication headers for private endpoints
          * @param {string} $path the endpoint $path
-         * @param {string[]} [$api] the $api group and $access level
+         * @param {string[]} [$api] the $api group and access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
          * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
-        $access = $this->safe_string($api, 1, 'public');
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['limitless']);
         $url = '/' . $this->implode_params($path, $params);
@@ -3253,7 +3251,7 @@ class limitless extends Exchange {
         }
         $headersValue = null;
         $bodyValue = null;
-        if ($access === 'private') {
+        if ($api[1] === 'private') {
             $bodyString = '';
             $headersValue = array();
             if ($method === 'POST' && ($querystring !== '')) {
@@ -3282,7 +3280,7 @@ class limitless extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 
-    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         /**
          * @ignore
          * maps limitless error responses to ccxt exceptions
@@ -3290,17 +3288,17 @@ class limitless extends Exchange {
         if ($response === null) {
             return null;
         }
-        $statusCodeInt = $this->parse_to_int($statusCode);
+        $statusCodeInt = $this->parse_to_int($code);
         if (($statusCodeInt >= 200) && ($statusCodeInt < 300)) {
             return null;
         }
-        $feedback = $this->id . ' ' . $responseBody;
+        $feedback = $this->id . ' ' . $body;
         // the API returns either a string message or an array of field-validation errors
         $message = $this->safe_string($response, 'message');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         }
-        $this->throw_broadly_matched_exception($this->exceptions['broad'], $responseBody, $feedback);
+        $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error

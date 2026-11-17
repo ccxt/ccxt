@@ -4,19 +4,24 @@
 // failures with a `kind` string so that exchange code and the generated
 // exchange_errors.rs can construct typed errors without a huge enum.
 
-use thiserror::Error;
-
 /// A runtime exchange error. `kind` is the class name from the TS hierarchy
 /// (e.g. "AuthenticationError", "InsufficientFunds"). `message` is the
 /// human-readable description.
-#[derive(Debug, Clone, Error)]
-#[error("[{kind}] {message}")]
+#[derive(Debug, Clone)]
 pub struct ExchangeError {
     /// Error class name, e.g. "NetworkError", "AuthenticationError"
     pub kind: String,
     /// Human-readable message
     pub message: String,
 }
+
+impl std::fmt::Display for ExchangeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{}] {}", self.kind, self.message)
+    }
+}
+
+impl std::error::Error for ExchangeError {}
 
 impl ExchangeError {
     /// Create a new error with the given kind and message.

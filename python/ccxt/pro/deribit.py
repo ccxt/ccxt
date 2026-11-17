@@ -15,7 +15,7 @@ from ccxt.base.errors import NotSupported
 
 class deribit(ccxt.async_support.deribit):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(deribit, self).describe(), {
             'has': {
                 'ws': True,
@@ -95,7 +95,7 @@ class deribit(ccxt.async_support.deribit):
         currencies = self.safe_list(self.options, 'currencies', [])
         channels = []
         for i in range(0, len(currencies)):
-            currencyCode = self.safe_string(currencies, i)
+            currencyCode = self.safe_string(currencies, i, '')
             channels.append('user.portfolio.' + currencyCode)
         subscribe = {
             'jsonrpc': '2.0',
@@ -184,12 +184,13 @@ class deribit(ccxt.async_support.deribit):
             await self.load_markets()
         if interval == 'raw':
             await self.authenticate()
-        channel = 'ticker.' + market['id'] + '.' + interval
+        marketId = self.safe_string(market, 'id', '')
+        channel = 'ticker.' + marketId + '.' + interval
         message = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
-                'channels': ['ticker.' + market['id'] + '.' + interval],
+                'channels': ['ticker.' + marketId + '.' + interval],
             },
             'id': self.request_id(),
         }
@@ -220,7 +221,7 @@ class deribit(ccxt.async_support.deribit):
         channels = []
         for i in range(0, len((symbolsNormalized))):
             market = self.market((symbolsNormalized)[i])
-            channels.append('ticker.' + market['id'] + '.' + interval)
+            channels.append('ticker.' + self.safe_string(market, 'id', '') + '.' + interval)
         message = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
@@ -295,7 +296,7 @@ class deribit(ccxt.async_support.deribit):
         channels = []
         for i in range(0, len((symbolsNormalized))):
             market = self.market((symbolsNormalized)[i])
-            channels.append('quote.' + market['id'])
+            channels.append('quote.' + self.safe_string(market, 'id', ''))
         message = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
@@ -335,7 +336,7 @@ class deribit(ccxt.async_support.deribit):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         ticker = self.parse_ws_bid_ask(data)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         self.bidsasks[symbol] = ticker
         messageHash = self.safe_string(params, 'channel')
         client.resolve(ticker, messageHash)
@@ -421,7 +422,6 @@ class deribit(ccxt.async_support.deribit):
         channel = self.safe_string(params, 'channel', '')
         parts = channel.split('.')
         marketId = self.safe_string(parts, 1)
-        interval = self.safe_string(parts, 2)
         symbol = self.safe_symbol(marketId)
         market = self.safe_market(marketId)
         trades = self.safe_list(params, 'data', [])
@@ -434,6 +434,7 @@ class deribit(ccxt.async_support.deribit):
             parsed = self.parse_trade(trade, market)
             stored.append(parsed)
         self.trades[symbol] = stored
+        interval = self.safe_string(parts, 2, '')
         messageHash = 'trades|' + symbol + '|' + interval
         client.resolve(self.trades[symbol], messageHash)
 
@@ -515,7 +516,7 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(parsed)):
             trade = parsed[i]
             cachedTrades.append(trade)
-            symbol = trade['symbol']
+            symbol = self.safe_string(trade, 'symbol')
             marketIds[symbol] = True
         client.resolve(cachedTrades, channel)
 
@@ -615,13 +616,10 @@ class deribit(ccxt.async_support.deribit):
         partsLength = len(parts)
         isDetailed = partsLength == 5
         if isDetailed:
-            group = self.safe_string(parts, 2)
-            depth = self.safe_string(parts, 3)
-            interval = self.safe_string(parts, 4)
-            descriptor = group + '.' + depth + '.' + interval
+            interval = self.safe_string(parts, 4, '')
+            descriptor = self.safe_string(parts, 2, '') + '.' + self.safe_string(parts, 3, '') + '.' + interval
         else:
-            interval = self.safe_string(parts, 2)
-            descriptor = interval
+            descriptor = self.safe_string(parts, 2, '')
         marketId = self.safe_string(data, 'instrument_name')
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(data, 'timestamp')
@@ -645,17 +643,19 @@ class deribit(ccxt.async_support.deribit):
         asks = self.safe_list(data, 'asks', [])
         cleanedBids = []
         for i in range(0, len(bids)):
-            cleanedBids.append([bids[i][1], bids[i][2]])
+            bid = self.safe_list(bids, i, [])
+            cleanedBids.append([bid[1], bid[2]])
         cleanedAsks = []
         for i in range(0, len(asks)):
-            cleanedAsks.append([asks[i][1], asks[i][2]])
+            ask = self.safe_list(asks, i, [])
+            cleanedAsks.append([ask[1], ask[2]])
         data['bids'] = cleanedBids
         data['asks'] = cleanedAsks
         return data
 
     def handle_delta(self, bookside: object, delta: object):
-        price = delta[1]
-        amount = delta[2]
+        price = self.safe_value(delta, 1)
+        amount = self.safe_value(delta, 2)
         action = self.safe_string(delta, 0)
         if action == 'new' or action == 'change':
             bookside.storeArray([price, amount, 1])
@@ -836,7 +836,7 @@ class deribit(ccxt.async_support.deribit):
         stored.append(parsed)
         self.ohlcvs[symbol][unifiedTimeframe] = stored
         resolveData = [symbol, unifiedTimeframe, stored]
-        messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe
+        messageHash = 'chart.trades|' + symbol + '|' + self.safe_string(parts, 3, '')
         client.resolve(resolveData, messageHash)
 
     def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
@@ -874,19 +874,19 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(symbolsArray)):
             if symbolsArray is None:
                 raise ArgumentsRequired(self.id + ' watchMultipleWrapper() symbolsArray is required')
-            current = symbolsArray[i]
             market = None
             currentDescriptor = None
             if isOHLCV:
-                market = self.market(current[0])
-                unifiedTf = current[1]
+                currentPair = self.safe_list(symbolsArray, i, [])
+                market = self.market(self.safe_string(currentPair, 0))
+                unifiedTf = self.safe_string(currentPair, 1)
                 currentDescriptor = self.safe_string(self.timeframes, unifiedTf, unifiedTf)
             else:
-                market = self.market(current)
+                market = self.market(self.safe_string(symbolsArray, i))
                 currentDescriptor = channelDescriptor
-            message = channelName + '.' + market['id'] + '.' + currentDescriptor
+            message = channelName + '.' + self.safe_string(market, 'id', '') + '.' + currentDescriptor
             rawSubscriptions.append(message)
-            messageHashes.append(channelName + '|' + market['symbol'] + '|' + currentDescriptor)
+            messageHashes.append(channelName + '|' + self.safe_string(market, 'symbol', '') + '|' + currentDescriptor)
         request = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',

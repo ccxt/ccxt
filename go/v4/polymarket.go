@@ -16,7 +16,7 @@ func newPolymarket() *Polymarket {
 	return p
 }
 
-func (this *Polymarket) Describe() any {
+func (this *Polymarket) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "polymarket",
 		"name":      "Polymarket",
@@ -528,22 +528,21 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 		panic(r.Err)
 	}
 	var responses []any = ListTyped(r.Value)
-	var instruments []any = ArrayTyped(GetValue(responses, 0))
-	var assets []any = ArrayTyped(GetValue(responses, 1))
+	var instruments []any = SafeListTyped(responses, 0)
+	var assets []any = SafeListTyped(responses, 1)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(instruments); i++ {
-		var instrument any = func() any {
-			if i >= 0 && i < len(instruments) {
-				return DerefScalar(instruments[i])
-			}
-			return nil
-		}()
+		var instrument any = DerefScalar(instruments[i])
 		var baseId *string = this.SafeString(instrument, "base_asset")
 		if baseId == nil {
 			continue
 		}
 		var code *string = this.SafeCurrencyCode(baseId)
-		if !(InOp(result, code)) {
+		var codeKnown bool
+		if code != nil {
+			_, codeKnown = result[*code]
+		}
+		if !codeKnown {
 			// the venue tags each underlying with a category - only the
 			// crypto ones are unified as crypto, equities, commodities and
 			// indices map onto the other currency type
@@ -554,19 +553,21 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 				}
 				return "other"
 			}()
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        baseId,
-				"code":      code,
-				"name":      baseId,
-				"info":      instrument,
-				"active":    true,
-				"deposit":   false,
-				"withdraw":  false,
-				"fee":       nil,
-				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(instrument, "quantity_decimals"))),
-				"type":      currencyType,
-				"networks":  map[string]any{},
-			}))
+			if code != nil {
+				result[*code] = this.SafeCurrencyStructure(map[string]any{
+					"id":        baseId,
+					"code":      code,
+					"name":      baseId,
+					"info":      instrument,
+					"active":    true,
+					"deposit":   false,
+					"withdraw":  false,
+					"fee":       nil,
+					"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(instrument, "quantity_decimals"))),
+					"type":      currencyType,
+					"networks":  map[string]any{},
+				})
+			}
 		}
 	}
 	// every instrument quotes using usd
@@ -584,30 +585,27 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 		"networks":  map[string]any{},
 	})
 	for i := 0; i < len(assets); i++ {
-		var asset any = func() any {
-			if i >= 0 && i < len(assets) {
-				return DerefScalar(assets[i])
-			}
-			return nil
-		}()
+		var asset any = DerefScalar(assets[i])
 		var currencyId *string = this.SafeString(asset, "asset")
 		if currencyId == nil {
 			continue
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
-		AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-			"id":        currencyId,
-			"code":      code,
-			"name":      currencyId,
-			"info":      asset,
-			"active":    true,
-			"deposit":   true,
-			"withdraw":  true,
-			"fee":       this.SafeNumber(asset, "withdrawal_fee"),
-			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(asset, "decimals"))),
-			"type":      "crypto",
-			"networks":  map[string]any{},
-		}))
+		if code != nil {
+			result[*code] = this.SafeCurrencyStructure(map[string]any{
+				"id":        currencyId,
+				"code":      code,
+				"name":      currencyId,
+				"info":      asset,
+				"active":    true,
+				"deposit":   true,
+				"withdraw":  true,
+				"fee":       this.SafeNumber(asset, "withdrawal_fee"),
+				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(asset, "decimals"))),
+				"type":      "crypto",
+				"networks":  map[string]any{},
+			})
+		}
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: result}
@@ -633,11 +631,11 @@ func (this *Polymarket) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp624 := <-this.PublicGetInfoInstruments(params)
-	if listEp624.Err != nil {
-		panic(listEp624.Err)
+	responseRecv := <-this.PublicGetInfoInstruments(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp624.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -667,13 +665,13 @@ func (this *Polymarket) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(response))}
 	return nil
 }
-func (this *Polymarket) ParseMarket(market any) any {
+func (this *Polymarket) ParseMarket(market any) map[string]any {
 	var numericId *string = this.SafeString(market, "instrument_id")
 	var venueSymbol *string = this.SafeString(market, "symbol")
 	var baseId *string = this.SafeString(market, "base_asset")
 	// prices are denominated using USD while pUSD is the 1:1 collateral and settlement token
 	var settleId *string = this.SafeString(market, "quote_asset")
-	var parts []string = Split(venueSymbol, "-")
+	var parts []string = strings.Split(*venueSymbol, "-")
 	var quoteId *string = this.SafeString(parts, 1, "USD")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
@@ -858,40 +856,27 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	//     ]
 	//
 	var merged map[string]any = map[string]any{}
-	var statistics []any = ArrayTyped(GetValue(responses, 1))
+	var statistics []any = SafeListTyped(responses, 1)
 	for i := 0; i < len(statistics); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(statistics) {
-				return DerefScalar(statistics[i])
-			}
-			return nil
-		}()
+		var entry any = DerefScalar(statistics[i])
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		// the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
 		AddElementToObject(merged, instrumentId, this.Omit(entry, "klines"))
 	}
-	var bbos []any = ArrayTyped(GetValue(responses, 2))
+	var bbos []any = SafeListTyped(responses, 2)
 	for i := 0; i < len(bbos); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(bbos) {
-				return DerefScalar(bbos[i])
-			}
-			return nil
-		}()
+		var entry any = DerefScalar(bbos[i])
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		var previous map[string]any = this.SafeDictMap(merged, instrumentId, map[string]any{})
 		// the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
-		AddElementToObject(merged, instrumentId, this.Extend(previous, entry))
+		if instrumentId != nil {
+			merged[*instrumentId] = this.Extend(previous, entry)
+		}
 	}
-	var tickers []any = ArrayTyped(GetValue(responses, 0))
+	var tickers []any = SafeListTyped(responses, 0)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(tickers) {
-				return DerefScalar(tickers[i])
-			}
-			return nil
-		}()
+		var entry any = DerefScalar(tickers[i])
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		var previous map[string]any = this.SafeDictMap(merged, instrumentId, map[string]any{})
 		result = append(result, this.Extend(previous, entry))
@@ -982,11 +967,11 @@ func (this *Polymarket) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker]
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp952 := <-this.PublicGetInfoBbo(params)
-	if listEp952.Err != nil {
-		panic(listEp952.Err)
+	responseRecv := <-this.PublicGetInfoBbo(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp952.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -1378,12 +1363,12 @@ func (this *Polymarket) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fun
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp1309 := <-this.PublicGetInfoTickers(params)
-	if listEp1309.Err != nil {
-		panic(listEp1309.Err)
+	responseRecv := <-this.PublicGetInfoTickers(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1309.Value
-	var result any = this.ParseFundingRates(response)
+	var response []any = responseRecv.Value
+	var result map[string]any = this.ParseFundingRates(response)
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
 	return nil
@@ -1517,12 +1502,7 @@ func (this *Polymarket) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundin
 	var data []any = SafeListTyped(response, "data")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var entry any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -1613,12 +1593,12 @@ func (this *Polymarket) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Op
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp1517 := <-this.PublicGetInfoTickers(params)
-	if listEp1517.Err != nil {
-		panic(listEp1517.Err)
+	responseRecv := <-this.PublicGetInfoTickers(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1517.Value
-	var result any = this.ParseOpenInterests(response)
+	var response []any = responseRecv.Value
+	var result map[string]any = this.ParseOpenInterests(response)
 
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
 	return nil
@@ -1698,30 +1678,29 @@ func (this *Polymarket) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
 	var schedule []any = SafeListTyped(response, "fee_schedule")
 	var byCategory map[string]any = map[string]any{}
 	for i := 0; i < len(schedule); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(schedule) {
-				return DerefScalar(schedule[i])
-			}
-			return nil
-		}()
+		var entry any = DerefScalar(schedule[i])
 		var category *string = this.SafeString(entry, "category")
-		AddElementToObject(byCategory, category, entry)
+		if category != nil {
+			byCategory[*category] = entry
+		}
 	}
 	var fallback map[string]any = this.SafeDictMap(schedule, 0, map[string]any{})
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
-		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
+		var symbol *string = this.SafeString(this.Symbols, i, "")
 		var market map[string]any = this.Market(symbol)
 		var category *string = this.SafeString(market["info"], "category")
 		var entry any = this.SafeDict(byCategory, category, fallback)
-		AddElementToObject(result, symbol, map[string]any{
-			"info":       entry,
-			"symbol":     symbol,
-			"maker":      this.SafeNumber(entry, "maker_fee_rate"),
-			"taker":      this.SafeNumber(entry, "taker_fee_rate"),
-			"percentage": true,
-			"tierBased":  true,
-		})
+		if symbol != nil {
+			result[*symbol] = map[string]any{
+				"info":       entry,
+				"symbol":     symbol,
+				"maker":      this.SafeNumber(entry, "maker_fee_rate"),
+				"taker":      this.SafeNumber(entry, "taker_fee_rate"),
+				"percentage": true,
+				"tierBased":  true,
+			}
+		}
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -1868,12 +1847,14 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1762, _ := OrdersToList(r1.Value), r1.Value != nil
-	var orders []any = listRecv1762
-	var first any = GetValue(orders, 0)
-	if IsEqual(GetValue(first, "status"), "rejected") {
-		var errorId *string = this.SafeString(GetValue(first, "info"), "error")
-		var feedback string = this.Id + " createOrder() rejected: " + this.Json(GetValue(first, "info"))
+	ordersRecv, _ := OrdersToList(r1.Value), r1.Value != nil
+	var orders []any = ordersRecv
+	var first map[string]any = SafeMapTyped(orders, 0)
+	var firstStatus *string = this.SafeString(first, "status")
+	if firstStatus != nil && *firstStatus == "rejected" {
+		var firstInfo map[string]any = this.SafeDictMap(first, "info", map[string]any{})
+		var errorId *string = this.SafeString(firstInfo, "error")
+		var feedback string = this.Id + " createOrder() rejected: " + this.Json(firstInfo)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorId, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorId, feedback)
 		panic(InvalidOrder(feedback))
@@ -1894,12 +1875,12 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
  * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Polymarket) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Polymarket) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
+func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1913,8 +1894,8 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders an
 	var entries []any = []any{}
 	var ordersMarkets []any = []any{}
 	var ordersEntries []any = []any{}
-	for i := 0; i < GetArrayLength(orders); i++ {
-		var rawOrder map[string]any = MapTyped(GetValue(orders, i))
+	for i := 0; i < len(orders); i++ {
+		var rawOrder map[string]any = MapTyped(orders[i])
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = this.Market(symbol)
 		var typeVar *string = this.SafeStringLower(rawOrder, "type")
@@ -1940,11 +1921,11 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders an
 	}
 	signed := r1.Value
 
-	listEp1819 := <-this.TradePostTradeOrders(signed)
-	if listEp1819.Err != nil {
-		panic(listEp1819.Err)
+	responseRecv := <-this.TradePostTradeOrders(signed)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1819.Value
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         { "status": "ok", "oid": 1234567890, "coid": "aabbccdd..." }
@@ -1952,19 +1933,14 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders an
 	//
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var ack any = GetValue(response, i)
+		var ack map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var marketInner any = func() any {
 			if i >= 0 && i < len(ordersMarkets) {
 				return DerefScalar(ordersMarkets[i])
 			}
 			return nil
 		}()
-		var echo any = func() any {
-			if i >= 0 && i < len(ordersEntries) {
-				return DerefScalar(ordersEntries[i])
-			}
-			return nil
-		}()
+		var echo map[string]any = this.SafeDictMap(ordersEntries, i, map[string]any{})
 		var status *string = this.SafeString(ack, "status")
 		var merged map[string]any = this.Extend(echo, map[string]any{
 			"oid":  this.SafeInteger(ack, "oid"),
@@ -2012,8 +1988,8 @@ func (this *Polymarket) cancelOrderBody(ch chan AsyncResult[Order], id any, opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv1893, _ := OrdersToList(r.Value), r.Value != nil
-	var orders []any = listRecv1893
+	ordersRecv, _ := OrdersToList(r.Value), r.Value != nil
+	var orders []any = ordersRecv
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
@@ -2072,15 +2048,15 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 		}
 		signed := r1.Value
 
-		listEp1936 := <-this.TradeDeleteTradeOrdersCoid(signed)
-		if listEp1936.Err != nil {
-			panic(listEp1936.Err)
+		responseRecv := <-this.TradeDeleteTradeOrdersCoid(signed)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = listEp1936.Value
+		response = responseRecv.Value
 	} else {
 		var numericIds []any = []any{}
 		for i := 0; i < GetArrayLength(ids); i++ {
-			numericIds = append(numericIds, this.ParseToInt(GetValue(ids, i)))
+			numericIds = append(numericIds, this.ParseToInt(this.SafeString(ids, i)))
 		}
 		signable = []any{"cancelOrders", numericIds}
 		bodyOp = map[string]any{
@@ -2094,11 +2070,11 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 		}
 		signed := r2.Value
 
-		listEp1951 := <-this.TradeDeleteTradeOrders(signed)
-		if listEp1951.Err != nil {
-			panic(listEp1951.Err)
+		responseRecv := <-this.TradeDeleteTradeOrders(signed)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = listEp1951.Value
+		response = responseRecv.Value
 	}
 	//
 	//     [
@@ -2107,7 +2083,7 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 	//
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var ack any = GetValue(response, i)
+		var ack map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var status *string = this.SafeString(ack, "status")
 		var unified string = func() string {
 			if status != nil && *status == "err" {
@@ -2302,11 +2278,11 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 	}
 	signed := r1.Value
 
-	listEp2131 := <-this.TradePatchTradeOrders(signed)
-	if listEp2131.Err != nil {
-		panic(listEp2131.Err)
+	responseRecv := <-this.TradePatchTradeOrders(signed)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2131.Value
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -2315,7 +2291,7 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 	//         }
 	//     ]
 	//
-	var first any = this.SafeDict(response, 0, map[string]any{})
+	var first map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 	var status *string = this.SafeString(first, "status")
 	if status != nil && *status == "err" {
 		var merged map[string]any = map[string]any{
@@ -2581,12 +2557,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan AsyncResult[[]Position], opti
 	var positions []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		// the wrapper timestamp flows into the parser through the merged input
-		var extended map[string]any = this.Extend(func() any {
-			if i >= 0 && i < len(rows) {
-				return DerefScalar(rows[i])
-			}
-			return nil
-		}(), map[string]any{
+		var extended map[string]any = this.Extend(DerefScalar(rows[i]), map[string]any{
 			"timestamp": timestamp,
 		})
 		positions = append(positions, PositionToMap(this.ParsePosition(extended)))
@@ -2674,11 +2645,7 @@ func (this *Polymarket) ParsePosition(position any, optionalArgs ...any) Positio
 	var roe *string = this.SafeString(position, "return_on_equity")
 	var percentage *float64 = nil
 	if roe != nil {
-		if derefNum, isNum := this.ParseNumber(Precise.StringMul(roe, "100")).(float64); isNum {
-			percentage = &derefNum
-		} else {
-			percentage = nil
-		}
+		percentage = this.ParseNumber(Precise.StringMul(roe, "100"))
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -2756,11 +2723,11 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 		request["instrument_id"] = market["id"]
 	}
 
-	listEp2548 := <-this.PrivateGetAccountOpenOrders(this.Extend(request, params))
-	if listEp2548.Err != nil {
-		panic(listEp2548.Err)
+	responseRecv := <-this.PrivateGetAccountOpenOrders(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2548.Value
+	var response []any = responseRecv.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2826,11 +2793,11 @@ func (this *Polymarket) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["client_order_id"] = clientOrderId
 	}
 
-	listEp2608 := <-this.PrivateGetAccountOrders(this.Extend(request, paramsOmitted))
-	if listEp2608.Err != nil {
-		panic(listEp2608.Err)
+	responseRecv := <-this.PrivateGetAccountOrders(this.Extend(request, paramsOmitted))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2608.Value
+	var response []any = responseRecv.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2846,12 +2813,12 @@ func (this *Polymarket) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Polymarket) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Polymarket) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Polymarket) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2876,23 +2843,23 @@ func (this *Polymarket) fetchOrderBody(ch chan AsyncResult[Order], id any, optio
 		"order_id": id,
 	}
 
-	listEp2648 := <-this.PrivateGetAccountOrders(this.Extend(request, params))
-	if listEp2648.Err != nil {
-		panic(listEp2648.Err)
+	responseRecv := <-this.PrivateGetAccountOrders(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2648.Value
+	var response []any = responseRecv.Value
 	// select the requested row explicitly in case the documented
 	// order_id filter is ever ignored the way the tickers one is
 	for i := 0; i < len(response); i++ {
-		var row any = GetValue(response, i)
+		var row map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var rowId *string = this.SafeString(row, "order_id")
-		if IsEqual(rowId, id) {
+		if rowId != nil && *rowId == id {
 
 			ch <- AsyncResult[Order]{Value: this.ParseOrder(row, market)}
 			return nil
 		}
 	}
-	panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find the order ", id)))
+	panic(OrderNotFound(this.Id + " fetchOrder() could not find the order " + id))
 }
 
 /**
@@ -3027,8 +2994,9 @@ func (this *Polymarket) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHis
 	var market any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		market = this.Market(symbol)
-		request["instrument_id"] = GetValue(market, "id")
+		var symbolMarket map[string]any = this.Market(symbol)
+		market = symbolMarket
+		request["instrument_id"] = symbolMarket["id"]
 	}
 	if since != nil {
 		request["start_timestamp"] = since
@@ -3064,12 +3032,7 @@ func (this *Polymarket) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHis
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(data) {
-				return DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var entry any = data[i]
 		var marketId *string = this.SafeString(entry, "instrument_id")
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		result = append(result, map[string]any{
@@ -3386,7 +3349,7 @@ func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code stri
 		"salt":    salt,
 		"ts":      ts,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var signature any = this.SignMessage(encoded, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"op": map[string]any{
@@ -3455,18 +3418,18 @@ func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol 
 		"instrument_id": market["id"],
 	}
 
-	listEp3171 := <-this.PrivateGetAccountConfig(this.Extend(request, params))
-	if listEp3171.Err != nil {
-		panic(listEp3171.Err)
+	responseRecv := <-this.PrivateGetAccountConfig(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp3171.Value
+	var response []any = responseRecv.Value
 	//
 	//     [ { "instrument_id": 1, "leverage": 10, "cross": true } ]
 	//
 	// select the requested row explicitly in case the documented
 	// instrument_id filter is ever ignored the way the tickers one is
 	for i := 0; i < len(response); i++ {
-		var row any = GetValue(response, i)
+		var row map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var rowId *string = this.SafeString(row, "instrument_id")
 		if IsEqual(rowId, market["id"]) {
 
@@ -3528,9 +3491,9 @@ func (this *Polymarket) fetchMarginModeBody(ch chan AsyncResult[MarginMode], sym
 	var leverage map[string]any = StructResultMap(r.Value, LeverageToMap)
 
 	ch <- AsyncResult[MarginMode]{Value: MarginModeFromMap(map[string]any{
-		"info":       GetValue(leverage, "info"),
-		"symbol":     GetValue(leverage, "symbol"),
-		"marginMode": GetValue(leverage, "marginMode"),
+		"info":       this.SafeDict(leverage, "info"),
+		"symbol":     this.SafeString(leverage, "symbol"),
+		"marginMode": this.SafeString(leverage, "marginMode"),
 	})}
 	return nil
 }
@@ -3642,11 +3605,11 @@ func (this *Polymarket) setMarginModeBody(ch chan AsyncResult[map[string]any], m
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes251515 map[string]any = r.Value
-	if retRes251515 == nil {
+	var retRes251815 map[string]any = r.Value
+	if retRes251815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes251515}
+		ch <- AsyncResult[map[string]any]{Value: retRes251815}
 	}
 	return nil
 }
@@ -3750,11 +3713,11 @@ func (this *Polymarket) addMarginBody(ch chan AsyncResult[map[string]any], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes257815 map[string]any = r.Value
-	if retRes257815 == nil {
+	var retRes258115 map[string]any = r.Value
+	if retRes258115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes257815}
+		ch <- AsyncResult[map[string]any]{Value: retRes258115}
 	}
 	return nil
 }
@@ -3784,11 +3747,11 @@ func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes259215 map[string]any = r.Value
-	if retRes259215 == nil {
+	var retRes259515 map[string]any = r.Value
+	if retRes259515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes259215}
+		ch <- AsyncResult[map[string]any]{Value: retRes259515}
 	}
 	return nil
 }
@@ -3864,7 +3827,7 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 		"salt": salt,
 		"ts":   ts,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var signature any = this.SignMessage(encoded, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"op": map[string]any{
@@ -3894,7 +3857,7 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 		"secret":     this.SafeString(response, "secret"),
 		"expires":    expiry,
 	}
-	this.Options.Store("proxyCredentials", credentials)
+	this.Options["proxyCredentials"] = credentials
 
 	ch <- AsyncResult[any]{Value: credentials}
 	return nil
@@ -3918,7 +3881,7 @@ func (this *Polymarket) loadProxyCredentialsBody(ch chan AsyncResult[any], optio
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var credentials any = this.SafeDict(this.Options, "proxyCredentials")
+	var credentials map[string]any = this.SafeDictMap(this.Options, "proxyCredentials")
 	if credentials != nil {
 		var expires *int64 = this.SafeInteger(credentials, "expires")
 		var margin int64 = *this.SafeInteger(this.Options, "proxyRefreshMargin", 3600000)
@@ -3952,12 +3915,12 @@ func (this *Polymarket) loadProxyCredentialsBody(ch chan AsyncResult[any], optio
  * @param {object} bodyOp the structured operation object transmitted to the venue
  * @returns {object} the signed request body with the op, sig, salt and ts fields
  */
-func (this *Polymarket) SignPerpsOpAsync(signable any, bodyOp any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Polymarket) SignPerpsOpAsync(signable []any, bodyOp any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.signPerpsOpBody(ch, signable, bodyOp, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable any, bodyOp any, optionalArgs ...any) any {
+func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable []any, bodyOp any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3995,7 +3958,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable any, 
 		"salt": salt,
 		"ts":   ts,
 	}
-	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, message)
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var proxyPrivateKey *string = this.SafeString(credentials, "privateKey")
 	var signature any = this.SignMessage(encoded, proxyPrivateKey)
 	var envelope map[string]any = map[string]any{
@@ -4026,18 +3989,8 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable any, 
 func (this *Polymarket) CompactSignable(row []any) any {
 	var result []any = []any{}
 	for i := 0; i < len(row); i++ {
-		if !IsEqual(func() any {
-			if i >= 0 && i < len(row) {
-				return DerefScalar(row[i])
-			}
-			return nil
-		}(), nil) {
-			result = append(result, func() any {
-				if i >= 0 && i < len(row) {
-					return DerefScalar(row[i])
-				}
-				return nil
-			}())
+		if !IsEqual(DerefScalar(row[i]), nil) {
+			result = append(result, DerefScalar(row[i]))
 		}
 	}
 	return result
@@ -4050,10 +4003,11 @@ func (this *Polymarket) PriceToPrecision(symbol any, price any) *string {
 	// per-instrument decimals, deliberately for any magnitude - a six
 	// digit integer price coarsens to an effective step of ten
 	var market map[string]any = this.Market(symbol)
+	var precision map[string]any = SafeMapTyped(market, "precision")
 	var significant string = this.DecimalToPrecision(price, ROUND, 5, SIGNIFICANT_DIGITS)
-	var result string = this.DecimalToPrecision(significant, ROUND, GetValue(market["precision"], "price"), TICK_SIZE)
+	var result string = this.DecimalToPrecision(significant, ROUND, precision["price"], TICK_SIZE)
 	if result == "0" {
-		panic(InvalidOrder(Add(this.Id+" price of "+market["symbol"].(string)+" must be greater than minimum price precision of ", this.NumberToString(GetValue(market["precision"], "price")))))
+		panic(InvalidOrder(Add(this.Id+" price of "+market["symbol"].(string)+" must be greater than minimum price precision of ", this.NumberToString(precision["price"]))))
 	}
 	return SafeStringPtr(result)
 }
@@ -4063,17 +4017,18 @@ func (this *Polymarket) AmountToPrecision(symbol any, amount any) *string {
 	}
 	// quantities carry the same five significant figures cap
 	var market map[string]any = this.Market(symbol)
+	var precision map[string]any = SafeMapTyped(market, "precision")
 	var significant string = this.DecimalToPrecision(amount, TRUNCATE, 5, SIGNIFICANT_DIGITS)
-	var result string = this.DecimalToPrecision(significant, TRUNCATE, GetValue(market["precision"], "amount"), TICK_SIZE)
+	var result string = this.DecimalToPrecision(significant, TRUNCATE, precision["amount"], TICK_SIZE)
 	if result == "0" {
-		panic(InvalidOrder(Add(this.Id+" amount of "+market["symbol"].(string)+" must be greater than minimum amount precision of ", this.NumberToString(GetValue(market["precision"], "amount")))))
+		panic(InvalidOrder(Add(this.Id+" amount of "+market["symbol"].(string)+" must be greater than minimum amount precision of ", this.NumberToString(precision["amount"]))))
 	}
 	return SafeStringPtr(result)
 }
-func (this *Polymarket) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
+func (this *Polymarket) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if IsEqual(path, "account/orders") {
+	if path == "account/orders" {
 		return func() int {
 			if InOp(params, "order_id") {
 				return 1
@@ -4081,7 +4036,7 @@ func (this *Polymarket) CalculateRateLimiterCost(api any, method any, path any, 
 			return 10
 		}()
 	}
-	if IsEqual(path, "account/open-orders") {
+	if path == "account/open-orders" {
 		return func() int {
 			if InOp(params, "instrument_id") {
 				return 1
@@ -4089,13 +4044,12 @@ func (this *Polymarket) CalculateRateLimiterCost(api any, method any, path any, 
 			return 20
 		}()
 	}
-	if (IsEqual(path, "trade/orders")) || (IsEqual(path, "trade/orders-coid")) {
+	if (path == "trade/orders") || (path == "trade/orders-coid") {
 		var op map[string]any = SafeMapTyped(params, "op")
 		var args []any = SafeListTyped(op, "args")
-		var argsLength int = len(args)
-		return this.Sum(1, this.ParseToInt(float64(argsLength)/20))
+		return this.Sum(1, this.ParseToInt(float64(len(args))/20))
 	}
-	if IsEqual(path, "info/book") {
+	if path == "info/book" {
 		var depth int64 = *this.SafeInteger(params, "depth", 100)
 		if depth <= 10 {
 			return 2
@@ -4108,34 +4062,37 @@ func (this *Polymarket) CalculateRateLimiterCost(api any, method any, path any, 
 	}
 	return this.SafeValue(config, "cost", 1)
 }
-func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiType *string = SafeStringPtr(GetValue(api, 0))
-	var url any = Add(Add(GetValue(this.Urls["api"], apiType), "/"), this.ImplodeParams(path, params))
+	var apiType string = api[0]
+	var baseUrl string = *this.SafeString(this.Urls["api"], apiType, "")
+	var implodedPath string = this.ImplodeParams(path, params)
+	var url string = baseUrl + "/" + implodedPath
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersResolved map[string]any = map[string]any{
 		"Accept": "application/json",
 	}
 	var bodyResolved *string = nil
-	if apiType != nil && *apiType == "trade" {
+	if apiType == "trade" {
 		// the params hold the signed operation envelope assembled by the
 		// calling method, the signature authenticates so no headers apply
-		bodyResolved = SafeStringPtr(this.Json(query))
+		jsonText := this.Json(query)
+		bodyResolved = &jsonText
 		headersResolved["Content-Type"] = "application/json"
 	} else {
 		if method == "GET" {
 			var keys []string = ObjectKeys(query)
 			var keysLength int = len(keys)
 			if keysLength > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url = baseUrl + "/" + implodedPath + "?" + this.Urlencode(query)
 			}
 		}
-		if apiType != nil && *apiType == "private" {
+		if apiType == "private" {
 			var credentials map[string]any = SafeMapTyped(this.Options, "proxyCredentials")
 			headersResolved["POLYMARKET-PROXY"] = this.SafeString(credentials, "proxy")
 			headersResolved["POLYMARKET-SECRET"] = this.SafeString(credentials, "secret")
@@ -4148,7 +4105,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Polymarket) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -4162,7 +4119,7 @@ func (this *Polymarket) HandleErrors(code any, reason any, url any, method any, 
 	//     }
 	//
 	var source any = response
-	if IsArray(response) && (IsGreaterThanOrEqual(code, 400)) {
+	if IsArray(response) && (code >= 400) {
 		// request-level failures of the batch trade endpoints arrive
 		// wrapped into a single-element array of the same error shape
 		source = this.SafeDict(response, 0, map[string]any{})
@@ -4173,14 +4130,14 @@ func (this *Polymarket) HandleErrors(code any, reason any, url any, method any, 
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
-		if IsEqual(code, 400) {
+		if code == 400 {
 			panic(BadRequest(feedback))
 		}
 		// an unmapped error on a 4xx or 5xx response falls through so the
 		// http status fallback can apply a retryable classification, while
 		// covering statuses the base table does not know
-		var codeAsString string = ToString(code)
-		if _, ok := this.HttpExceptions[codeAsString]; (IsLessThan(code, 400)) || !ok {
+		var codeAsString string = strconv.FormatInt(code, 10)
+		if _, ok := this.HttpExceptions[codeAsString]; (code < 400) || !ok {
 			panic(ExchangeError(feedback))
 		}
 	}
@@ -4196,7 +4153,7 @@ func NewPolymarket(userConfig map[string]any) *Polymarket {
 func (this *Polymarket) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -4214,7 +4171,10 @@ func (this *Polymarket) FetchTime(params ...any) (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
 	}
-	var res int64 = ParseInt(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

@@ -1350,7 +1350,7 @@ class testMainClass {
                 tests['fetchPositions'] = [ symbol ]; // this test fetches all positions for 1 symbol
                 tests['fetchPosition'] = [ symbol ];
                 tests['fetchPositionRisk'] = [ symbol ];
-                tests['setPositionMode'] = [ symbol ];
+                tests['setPositionMode'] = [ false, symbol ];
                 tests['setMarginMode'] = [ symbol ];
                 tests['fetchOpenInterestHistory'] = [ symbol ];
                 tests['fetchFundingRateHistory'] = [ symbol ];
@@ -2472,7 +2472,8 @@ class testMainClass {
         }
         const accounts = exchange.safeList (exchangeData, 'accounts');
         if (accounts !== undefined && accounts !== null) {
-            exchange.accounts = accounts;
+            // the field is a List<object>: assign the call, not the untyped local
+            exchange.accounts = exchange.safeList (exchangeData, 'accounts') as List;
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions (globalOptions);
@@ -2786,12 +2787,39 @@ class testMainClass {
             this.testWeex (),
             this.testFoxbit (),
             this.testBithumb (),
-            this.testExtended ()
+            this.testExtended (),
+            this.testBit2me (),
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
         dump ('[INFO]' + successMessage);
         exitScript (0);
+        return true;
+    }
+
+    async testBit2me () {
+        const exchange = this.initOfflineExchange ('bit2me');
+        const id = 'CCXT';
+        await exchange.loadMarkets ();
+        assert (exchange.options['brokerId'] === id, 'bit2me - brokerId not in options');
+        let request: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USDC', 'limit', 'buy', 0.0001, 36000);
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const clientOrderId = request['clientOrderId'];
+        assert (clientOrderId.startsWith (id + '-'), 'bit2me - clientOrderId: ' + clientOrderId + ' does not start with the broker id ' + id);
+        try {
+            await exchange.createOrder ('BTC/USDC', 'limit', 'buy', 0.0001, 36000, { 'clientOrderId': 'my-order' });
+        } catch (e) {
+            request = jsonParse (exchange.last_request_body);
+        }
+        const customClientOrderId = request['clientOrderId'];
+        assert (customClientOrderId === 'my-order', 'bit2me - custom clientOrderId: ' + customClientOrderId + ' should be sent as given, the broker id is only added when none is provided');
+        if (!isSync ()) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -3626,7 +3654,7 @@ class testMainClass {
         const tokenExpires = exchange.milliseconds () + 100000;
         exchange.options['v2TokenExpires'] = tokenExpires;
         exchange.options['portfolio'] = 'random';
-        const id = 'nfqkvdjp';
+        const id = 'ccxt';
         assert (exchange.options['brokerId'] === id, 'id not in options');
         let clientOrderId: Str = undefined;
         try {
@@ -3639,7 +3667,8 @@ class testMainClass {
             const query = this.urlencodedToDict (urlParts[1]);
             clientOrderId = query['label'];
         }
-        assert (clientOrderId !== undefined && clientOrderId.startsWith (id.toString ()) === true, 'clientOrderId does not start with id');
+        // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert (clientOrderId !== undefined && clientOrderId.startsWith (id + '-') === true, 'clientOrderId ' + clientOrderId + ' does not start with the brokerId prefix ' + id + '-');
         if (!isSync ()) {
             await close (exchange);
         }

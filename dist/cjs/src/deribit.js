@@ -524,50 +524,50 @@ class deribit extends deribit$1["default"] {
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
         let quote = 'USD';
-        let settle = undefined;
+        let settle = '';
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
+        const hasSlash = symbol.indexOf('/') > -1;
+        const hasUsdc = symbol.indexOf('USDC') > -1;
         let base = undefined;
         let expiry = undefined;
-        if (symbol.indexOf('/') > -1) {
-            base = this.safeString(symbolBase, 0);
+        if (hasSlash) {
+            base = this.safeString(symbolBase, 0, '');
             expiry = this.safeString(optionParts, 1);
-            if (symbol.indexOf('USDC') > -1) {
-                base = base + '_USDC';
-            }
         }
         else {
-            base = this.safeString(optionParts, 0);
+            base = this.safeString(optionParts, 0, '');
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (symbol.indexOf('USDC') > -1) {
+        if (base === undefined) {
+            throw new errors.ExchangeError(this.id + ' createExpiredOptionMarket() missing base');
+        }
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        let baseSuffix = '';
+        if (hasSlash && hasUsdc) {
+            baseSuffix = '_USDC';
+        }
+        const baseResolved = base + baseSuffix;
+        if (hasUsdc) {
             quote = 'USDC';
             settle = 'USDC';
         }
         else {
-            settle = base;
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            settle = baseResolved;
         }
-        let splitBase = base;
-        if (base === undefined) {
-            throw new errors.ExchangeError(this.id + ' createExpiredOptionMarket() missing base');
-        }
-        if (base.indexOf('_') > -1) {
-            const splitSymbol = base.split('_');
-            splitBase = this.safeString(splitSymbol, 0);
-        }
-        const strike = this.safeString(optionParts, 2);
-        const optionType = this.safeString(optionParts, 3);
+        // the part of the base before the first underscore, or the whole base when it has none
+        const splitBase = this.safeString(baseResolved.split('_'), 0, '');
+        const strike = this.safeString(optionParts, 2, '');
+        const optionType = this.safeString(optionParts, 3, '');
         const datetime = this.convertExpireDate(expiry);
-        const timestamp = this.parse8601(datetime);
-        const id = base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType;
-        const symbolExpired = splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType;
         return {
-            'id': id,
-            'symbol': symbolExpired,
-            'base': base,
+            'id': baseResolved + '-' + this.convertExpireDateToMarketIdDate(expiry) + ('-' + strike + '-' + optionType),
+            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + ('-' + strike + '-' + optionType),
+            'base': baseResolved,
             'quote': quote,
             'settle': settle,
-            'baseId': base,
+            'baseId': baseResolved,
             'quoteId': quote,
             'settleId': settle,
             'active': false,
@@ -581,7 +581,7 @@ class deribit extends deribit$1["default"] {
             'margin': false,
             'contract': true,
             'contractSize': undefined,
-            'expiry': timestamp,
+            'expiry': this.parse8601(datetime),
             'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': this.parseNumber(strike),
@@ -1418,18 +1418,14 @@ class deribit extends deribit$1["default"] {
             'currency': currency['id'],
         };
         if (type !== undefined) {
-            let requestType = undefined;
             if (type === 'spot') {
-                requestType = 'spot';
+                request['kind'] = 'spot';
             }
             else if (type === 'future' || (type === 'contract')) {
-                requestType = 'future';
+                request['kind'] = 'future';
             }
             else if (type === 'option') {
-                requestType = 'option';
-            }
-            if (requestType !== undefined) {
-                request['kind'] = requestType;
+                request['kind'] = 'option';
             }
         }
         const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, paramsOmitted));
@@ -1604,7 +1600,7 @@ class deribit extends deribit$1["default"] {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString(trade, 'amount');
         let cost = Precise["default"].stringMul(amount, priceString);
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             cost = Precise["default"].stringDiv(amount, priceString);
         }
         const liquidity = this.safeString(trade, 'liquidity');
@@ -1819,13 +1815,13 @@ class deribit extends deribit$1["default"] {
                 'maker': market['maker'],
                 'taker': market['taker'],
             };
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 fee = this.extend(fee, perpetualFee);
             }
-            else if (market['future'] === true) {
+            else if (this.safeBool(market, 'future', false)) {
                 fee = this.extend(fee, futureFee);
             }
-            else if (market['option'] === true) {
+            else if (this.safeBool(market, 'option', false)) {
                 fee = this.extend(fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -2133,7 +2129,7 @@ class deribit extends deribit$1["default"] {
         const isStopOrder = isStopLossOrder || isTakeProfitOrder;
         const isLimitOrder = (type === 'limit') || isStopLimit || isTakeLimit;
         const isMarketOrder = (type === 'market') || isStopMarket || isTakeMarket;
-        const exchangeSpecificPostOnly = this.safeValue(params, 'post_only');
+        const exchangeSpecificPostOnly = this.safeBool(params, 'post_only');
         const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, params);
         if (isLimitOrder) {
             request['type'] = 'limit';
@@ -2251,9 +2247,7 @@ class deribit extends deribit$1["default"] {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const order = this.safeValue(result, 'order');
-        const trades = this.safeList(result, 'trades', []);
-        order['trades'] = trades;
+        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order, market);
     }
     /**
@@ -2301,9 +2295,7 @@ class deribit extends deribit$1["default"] {
         }
         const response = await this.privateGetEdit(this.extend(request, paramsOmitted));
         const result = this.safeDict(response, 'result', {});
-        const order = this.safeValue(result, 'order');
-        const trades = this.safeList(result, 'trades', []);
-        order['trades'] = trades;
+        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order);
     }
     /**
@@ -2790,8 +2782,7 @@ class deribit extends deribit$1["default"] {
         //
         const contract = this.safeString(position, 'instrument_name');
         const marketResolved = this.safeMarket(contract, market);
-        let side = this.safeString(position, 'direction');
-        side = (side === 'buy') ? 'long' : 'short';
+        const side = (this.safeString(position, 'direction') === 'buy') ? 'long' : 'short';
         const unrealizedPnl = this.safeString(position, 'floating_profit_loss');
         const initialMarginString = this.safeString(position, 'initial_margin');
         const notionalString = this.safeString(position, 'size_currency');
@@ -3316,16 +3307,22 @@ class deribit extends deribit$1["default"] {
         const month = 30 * 24 * 60 * 60 * 1000;
         const defaultSince = now - month;
         const sinceResolved = (since === undefined) ? defaultSince : since;
-        const time = (since === undefined) ? now : since + month;
+        let time = now;
+        if (since !== undefined) {
+            time = this.parseToInt(since + month);
+        }
         const request = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,
         };
         const until = this.safeInteger2(paramsPaginate, 'until', 'end_timestamp');
         const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
-        const endTimestamp = (until !== undefined) ? until : time;
+        let endTimestamp = time;
+        if (until !== undefined) {
+            endTimestamp = this.parseToInt(until);
+        }
         request['end_timestamp'] = endTimestamp;
-        const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
+        const isPaginationCall = this.safeBool(paramsUntil, 'isDeribitPaginationCall', false);
         let paramsOmitted = paramsUntil;
         if (isPaginationCall) {
             paramsOmitted = this.omit(paramsUntil, 'isDeribitPaginationCall');
@@ -3426,8 +3423,8 @@ class deribit extends deribit$1["default"] {
             return await this.fetchPaginatedCallCursor('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', undefined);
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
-            throw new errors.NotSupported(this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
+        if (this.safeBool(market, 'spot', false)) {
+            throw new errors.NotSupported(this.id + ' fetchLiquidations() does not support ' + this.safeString(market, 'type', '') + ' markets');
         }
         const request = {
             'instrument_name': market['id'],
@@ -3474,8 +3471,8 @@ class deribit extends deribit$1["default"] {
         if (cursor !== undefined) {
             const dataLength = data.length;
             if (dataLength > 0) {
-                const first = data[0];
-                const last = data[dataLength - 1];
+                const first = this.safeDict(data, 0, {});
+                const last = this.safeDict(data, dataLength - 1, {});
                 first['continuation'] = cursor;
                 last['continuation'] = cursor;
                 data[0] = first;
@@ -3503,8 +3500,8 @@ class deribit extends deribit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
-            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
+        if (this.safeBool(market, 'spot', false)) {
+            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + this.safeString(market, 'type', '') + ' markets');
         }
         const request = {
             'instrument_name': market['id'],
@@ -3875,7 +3872,7 @@ class deribit extends deribit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -3948,7 +3945,7 @@ class deribit extends deribit$1["default"] {
         const openInterest = this.safeNumber(interest, 'open_interest');
         let openInterestAmount = undefined;
         let openInterestValue = undefined;
-        if ((marketResolved['option'] === true) || ((marketResolved['future'] === true) && (marketResolved['linear'] === true))) {
+        if ((this.safeBool(marketResolved, 'option', false)) || ((this.safeBool(marketResolved, 'future', false)) && (this.safeBool(marketResolved, 'linear', false)))) {
             openInterestAmount = openInterest;
         }
         else {
@@ -4002,7 +3999,7 @@ class deribit extends deribit$1["default"] {
         const url = apiUrl + request;
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

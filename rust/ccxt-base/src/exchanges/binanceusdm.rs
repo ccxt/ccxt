@@ -242,9 +242,9 @@ impl BinanceusdmCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("-5021".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-5022".to_string(), Value::Str("InvalidOrder".into()).clone());
-        m.insert("-5028".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("-5021".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("-5022".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("-5028".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

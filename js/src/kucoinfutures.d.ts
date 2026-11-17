@@ -5,7 +5,7 @@ import type { Dict, Str, Strings, TransferEntry, Tickers } from './base/types.js
  * @augments kucoin
  */
 export default class kucoinfutures extends kucoin {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name kucoinfutures#fetchBidsAsks

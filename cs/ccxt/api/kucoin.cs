@@ -2293,6 +2293,13 @@ public partial class kucoin : Exchange
         return await this.callAsync<Dictionary<string, object>> ("utaV2GetMarketFundingRate",parameters);
     }
 
+    /// <summary>Calls the utaV2GetMarketOrderbook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> utaV2GetMarketOrderbook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("utaV2GetMarketOrderbook",parameters);
+    }
+
     /// <summary>Calls the utaPrivateGetMarketOrderbook endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> utaPrivateGetMarketOrderbook (object parameters = null)

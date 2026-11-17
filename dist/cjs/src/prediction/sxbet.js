@@ -588,7 +588,7 @@ class sxbet extends sxbet$1["default"] {
                 throw new errors.ExchangeError(this.id + ' parseEvent() could not resolve parsed market');
             }
             marketsList.push(parsed);
-            if (parsed['active'] === true) {
+            if (this.safeBool(parsed, 'active', false)) {
                 anyActive = true;
             }
             if (teamOneName === undefined) {
@@ -1763,7 +1763,7 @@ class sxbet extends sxbet$1["default"] {
         const timestamp = this.parse8601(this.safeString(settlement, 'settleDate'));
         let settlePrice = undefined;
         if (won !== undefined) {
-            settlePrice = (won === true) ? 1 : 0;
+            settlePrice = won ? 1 : 0;
         }
         return {
             'info': trade,
@@ -2100,6 +2100,11 @@ class sxbet extends sxbet$1["default"] {
             'asks': this.sortBy(asks, 0),
         };
     }
+    setWsOption(group, key, value) {
+        const entry = {};
+        entry[key] = value;
+        this.options[group] = this.extend(this.safeDict(this.options, group, {}), entry);
+    }
     requestId(url) {
         const existing = this.safeValue(this.options, 'requestId');
         if (existing === undefined) {
@@ -2123,12 +2128,8 @@ class sxbet extends sxbet$1["default"] {
      * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
      */
     registerSxbetWsRequest(requestId, messageHash, subscription) {
-        const existing = this.safeDict(this.options, 'wsPendingRequests');
-        if (existing === undefined) {
-            this.options['wsPendingRequests'] = this.createSafeDictionary();
-        }
         const requestIdString = this.numberToString(requestId);
-        this.options['wsPendingRequests'][requestIdString] = { 'messageHash': messageHash, 'subscription': subscription };
+        this.setWsOption('wsPendingRequests', requestIdString, { 'messageHash': messageHash, 'subscription': subscription });
     }
     /**
      * @ignore
@@ -2180,21 +2181,20 @@ class sxbet extends sxbet$1["default"] {
         const subscribeMsg = { 'subscribe': { 'channel': channel }, 'id': requestId };
         return await this.watch(url, messageHash, subscribeMsg, channel);
     }
+    handleTextMessage(client, message) {
+        const lines = message.split('\n');
+        const linesLength = lines.length;
+        for (let i = 0; i < linesLength; i++) {
+            const line = lines[i];
+            if (line.length > 0) {
+                const parsed = JSON.parse(line);
+                this.handleCentrifugoFrame(client, parsed);
+            }
+        }
+    }
     handleMessage(client, message) {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        if (typeof message === 'string') {
-            const lines = message.split('\n');
-            const linesLength = lines.length;
-            for (let i = 0; i < linesLength; i++) {
-                const line = lines[i];
-                if (line.length > 0) {
-                    const parsed = JSON.parse(line);
-                    this.handleCentrifugoFrame(client, parsed);
-                }
-            }
-            return;
-        }
         this.handleCentrifugoFrame(client, message);
     }
     handleCentrifugoFrame(client, msg) {
@@ -2298,8 +2298,8 @@ class sxbet extends sxbet$1["default"] {
     async watchOrderBook(outcome, limit = undefined, params = {}) {
         await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
-        const sym = this.safeString(outcomeObj, 'outcome');
-        const marketHash = this.safeString(outcomeObj['info'], 'marketHash');
+        const sym = this.safeString(outcomeObj, 'outcome', '');
+        const marketHash = this.safeString(outcomeObj['info'], 'marketHash', '');
         const channel = 'orderbook_v3:' + marketHash;
         const messageHash = 'orderbook::' + sym;
         const url = this.safeString(this.urls['api'], 'ws');
@@ -2308,11 +2308,7 @@ class sxbet extends sxbet$1["default"] {
         const isNewSubscription = this.safeValue(client.subscriptions, channel) === undefined;
         if (this.safeValue(this.orderbooks, sym) === undefined) {
             // seed from the REST snapshot so the book is served before the first publication
-            const watchedBooks = this.safeDict(this.options, 'wsWatchedBooks');
-            if (watchedBooks === undefined) {
-                this.options['wsWatchedBooks'] = this.createSafeDictionary();
-            }
-            this.options['wsWatchedBooks'][sym] = marketHash;
+            this.setWsOption('wsWatchedBooks', sym, marketHash);
             const snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             this.applySxbetWsSnapshot(snapshot);
             if (this.safeValue(this.orderbooks, sym) === undefined) {
@@ -2346,16 +2342,12 @@ class sxbet extends sxbet$1["default"] {
         if (marketHash === undefined) {
             return refreshed;
         }
-        const versionsAll = this.safeDict(this.options, 'wsBookVersions');
-        if (versionsAll === undefined) {
-            this.options['wsBookVersions'] = this.createSafeDictionary();
-        }
-        const held = this.safeString(this.options['wsBookVersions'], marketHash, '');
+        const held = this.safeString(this.safeDict(this.options, 'wsBookVersions', {}), marketHash, '');
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
         if ((held !== '') && (version <= held)) {
             return refreshed;
         }
-        this.options['wsBookVersions'][marketHash] = version;
+        this.setWsOption('wsBookVersions', marketHash, version);
         const watchedBooks = this.safeDict(this.options, 'wsWatchedBooks', {});
         const watchedSyms = Object.keys(watchedBooks);
         const timestamp = this.milliseconds();
@@ -2417,27 +2409,23 @@ class sxbet extends sxbet$1["default"] {
     async watchTicker(outcome, params = {}) {
         await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
-        const sym = this.safeString(outcomeObj, 'outcome');
+        const sym = this.safeString(outcomeObj, 'outcome', '');
         const marketHash = this.safeString(outcomeObj['info'], 'marketHash');
         const messageHash = 'ticker::' + sym;
-        const watchedTickers = this.safeDict(this.options, 'wsWatchedTickers');
-        if (watchedTickers === undefined) {
-            this.options['wsWatchedTickers'] = this.createSafeDictionary();
-        }
-        this.options['wsWatchedTickers'][sym] = marketHash;
+        this.setWsOption('wsWatchedTickers', sym, marketHash);
         const url = this.safeString(this.urls['api'], 'ws');
         await this.connectSxbetCentrifugo(url);
         const client = this.client(url);
         const channel = 'best_odds_v3:global';
         let hydrated = false;
-        if (this.safeValue(this.tickers, sym) === undefined) {
+        if (this.safeDict(this.safeDict(this.options, 'wsTickers', {}), sym) === undefined) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             const snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             const raw = this.parseSxbetSnapshotBestOdds(snapshot);
             const ticker = this.parsePredictionTicker(raw, outcomeObj);
-            this.tickers[sym] = ticker;
+            this.setWsOption('wsTickers', sym, ticker);
             hydrated = true;
         }
         const requestId = this.requestId(url);
@@ -2445,7 +2433,7 @@ class sxbet extends sxbet$1["default"] {
         const subscribeMsg = { 'subscribe': { 'channel': channel }, 'id': requestId };
         const future = this.watch(url, messageHash, subscribeMsg, channel);
         if (hydrated) {
-            client.resolve(this.safeValue(this.tickers, sym), messageHash);
+            client.resolve(this.safeDict(this.safeDict(this.options, 'wsTickers', {}), sym), messageHash);
         }
         const tickerResult = await future;
         return tickerResult;
@@ -2484,7 +2472,7 @@ class sxbet extends sxbet$1["default"] {
                 }
                 const outcomeObj = this.outcome(sym);
                 const ticker = this.parsePredictionTicker(raw, outcomeObj);
-                this.tickers[sym] = ticker;
+                this.setWsOption('wsTickers', sym, ticker);
                 client.resolve(ticker, 'ticker::' + sym);
             }
         }
@@ -2503,7 +2491,7 @@ class sxbet extends sxbet$1["default"] {
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         await this.loadOutcome(outcome);
         const outcomeObj = this.outcome(outcome);
-        const sym = this.safeString(outcomeObj, 'outcome');
+        const sym = this.safeString(outcomeObj, 'outcome', '');
         const messageHash = 'trades::' + sym;
         const trades = await this.subscribeSxbetChannel(messageHash, 'recent_trades_v3:global');
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
@@ -2600,7 +2588,7 @@ class sxbet extends sxbet$1["default"] {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             const outcomeObj = this.outcome(outcome);
-            const sym = this.safeString(outcomeObj, 'outcome');
+            const sym = this.safeString(outcomeObj, 'outcome', '');
             messageHash = 'myTrades::' + sym;
         }
         const channel = 'account:fills_v3_#' + this.walletAddress;
@@ -2649,7 +2637,7 @@ class sxbet extends sxbet$1["default"] {
         if (outcome !== undefined) {
             await this.loadOutcome(outcome);
             const outcomeObj = this.outcome(outcome);
-            const sym = this.safeString(outcomeObj, 'outcome');
+            const sym = this.safeString(outcomeObj, 'outcome', '');
             messageHash = 'orders::' + sym;
         }
         const channel = 'account:orders_v3_#' + this.walletAddress;
@@ -2721,7 +2709,7 @@ class sxbet extends sxbet$1["default"] {
      */
     sign(path, api = ['sxbet'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const accessLevel = this.safeString(api, 1, 'public');
+        const accessLevel = api[1];
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
             throw new errors.AuthenticationError(this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
@@ -2741,8 +2729,7 @@ class sxbet extends sxbet$1["default"] {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let sendAsQuery = (method === 'GET');
         if (method === 'DELETE') {
-            const hasOrdersList = ('orders' in query);
-            sendAsQuery = !hasOrdersList;
+            sendAsQuery = !('orders' in query);
         }
         let bodyValue = undefined;
         if (sendAsQuery) {
@@ -2752,9 +2739,7 @@ class sxbet extends sxbet$1["default"] {
             }
         }
         else {
-            const queryKeys = Object.keys(query);
-            const queryKeysLength = queryKeys.length;
-            if (queryKeysLength > 0) {
+            if (Object.keys(query).length > 0) {
                 bodyValue = this.json(query);
             }
         }

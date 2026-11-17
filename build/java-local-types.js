@@ -42,19 +42,12 @@
 //     own narrowing — e.g. `String suffix = "-spot";`, `String r = Precise.stringMul(...)`,
 //     or any other signature this table has already retyped).
 //
-// SS-01 closed the gap for the four names that also carried a small number of
+// The four names that also carried a small number of
 // `this.safeStringUpper/Lower (...)` return sites (parseOrderStatus, parseOrderType,
 // parseTimeInForce, parseTransferType): the hand-written Java producers
 // (SafeMethods.safeStringUpper/Lower*, BaseExchange.safeStringUpper/Lower*) are declared
-// `String` now and drop a non-String default through `optString` — the same rule
-// SafeStringTyped already applies — so those return sites are plain String-declared
-// calls. All four names moved into JAVA_STRING_RETURN_METHODS and the per-name
-// `(String)` checkcast table (JAVA_STRING_RETURN_METHODS_CASE_CAST) is gone. The C#
-// campaign's equivalent retype (csharp-local-types.js CSHARP_STRING_RETURN_METHODS) had
-// declared the family `string?` from the start; this slice brings Java to the same
-// shape. The value on the default-taken path is the caller's String argument, or null
-// when the caller passed none/non-String; the generated callers are censused in the
-// SS-01 report (every one passes a string-ish value).
+// `String` and drop a non-String default through `optString`, so those return sites are
+// plain String-declared calls (same shape as csharp-local-types.js CSHARP_STRING_RETURN_METHODS).
 //
 // Three names (JAVA_STRING_RETURN_METHODS_CAST — safeSymbol / safeCurrencyCode /
 // getExtendedCurrencyCodeById) retype the same way but keep their element-read return
@@ -67,8 +60,7 @@
 // found any other return shape — a local identifier still printed Object, `Helpers.add(...)`
 // with a non-String left operand, a `Helpers.GetValue(...)` read whose field is not a
 // string, a `this.<name>` that is not in the table, a `super.<name>` that is not in the
-// table, a `Precise.string*` outside the String set — stay Object; the census scripts are
-// build/ss11-census.py (SS-11) and the JAVA-15 report.
+// table, a `Precise.string*` outside the String set — stay Object.
 //
 // ===== 2. list-returning parse families -> java.util.List<Object> =====
 //
@@ -194,7 +186,7 @@ import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { ts, urlsDescribeStringProducer } from './csharp-local-types.js';
 
-// ===== SS-15 rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
+// ===== safeString rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
 //
 // Records, for every local whose initializer is a whole `this.safeString*` family call,
 // the FIRST pipeline rule that rejected a `String` declaration. One JSONL line per event,
@@ -316,6 +308,10 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     'prepareMessage', 'priceToPrecision', 'scaleNumber', 'shortenSlug', 'signCancelAll', 'signClobOrder',
     'signL1AndPrepareTxInfo', 'signOrderbookTypedData', 'symbol', 'toOrderbookWei',
     'tokenIdToSymbol', 'typeToTradeType', 'walletAddressFromKeys', 'walletAddressOrUndefined',
+    // extended/gate/lighter/nado string producers
+    'getExtendedStarkAmount',
+    'getExtendedOrderMsgHash', 'getExtendedWithdrawalMsgHash', 'getExtendedTransferMsgHash',
+    'createAuth', 'removeMarketSuffix', 'lighterCreateAuthToken',
 ]);
 
 // ===== 1b. string-returning names whose retype keeps a (String) checkcast =====
@@ -363,11 +359,12 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'filterBySymbolsSinceLimit', 'marketCodes', 'getListFromObjectValues', 'parseAccounts',
     'parseBorrowInterests', 'parseMarginModifications', 'parseConversions', 'parseIncomes',
     'parseLiquidations', 'parseFundingRateHistories', 'parseLongShortRatioHistory', 'parseOpenInterestsHistory',
+    'arraySlice',
 ]);
 
 // base methods whose every return is the own `symbols` parameter (checkcast) or a String
 // accumulator list (section 26) print `java.util.List<String>`; locals take it in section 31
-export const JAVA_STRING_LIST_RETURN_METHODS = new Set ([ 'marketIds', 'marketSymbols' ]);
+export const JAVA_STRING_LIST_RETURN_METHODS = new Set ([ 'marketIds', 'marketSymbols', 'stringToCharsArray' ]);
 const JAVA_STRING_LIST_TYPE = 'java.util.List<String>';
 
 // one name in both tables is a hard bug: the fixed per-name return type would differ
@@ -385,7 +382,7 @@ for (const name of JAVA_STRING_RETURN_METHODS_CAST) {
     }
 }
 
-// ===== 4. string/crypto/url helper locals (JAVA-RE-6) =====
+// ===== 4. string/crypto/url helper locals =====
 //
 // `Object <name> = this.<helper>(...)` for the base string/crypto/url helpers the
 // generated sign()/url-building bodies lean on. Every entry was audited return-path by
@@ -423,8 +420,8 @@ for (const name of JAVA_STRING_RETURN_METHODS_CAST) {
 // venue file and never classify — no ts/src file outside base/ declares any of them).
 export const JAVA_STRING_HELPER_PLAIN = new Set ([
     'json', 'urlencode', 'urlencodeNested', 'urlencodeWithArrayRepeat', 'urlencodeBase64',
-    'rawencode', 'stringToBase64', 'binaryToBase64', 'binaryToBase16', 'intToBase16',
-    'jwt', 'rsa', 'totp', 'decode', 'uuid', 'uuidv1', 'uuid16', 'uuid22', 'uuid5',
+    'rawencode', 'stringToBase64', 'binaryToBase64', 'binaryToBase58', 'binaryToBase16', 'intToBase16',
+    'jwt', 'rsa', 'totp', 'remove0xPrefix', 'decode', 'uuid', 'uuidv1', 'uuid16', 'uuid22', 'uuid5',
     'capitalize', 'numberToString', 'decimalToPrecision',
 ]);
 
@@ -454,18 +451,108 @@ export function isGuardedStringHelper (name) {
     return JAVA_STRING_HELPER_PLAIN.has (name) || JAVA_STRING_HELPER_CAST.has (name);
 }
 
+// base helpers declared `byte[]` in the hand-written Java base (BaseExchange.base64ToBinary
+// returns Encode.base64ToBinary's byte[] on every path). Declaration-only retype of the local.
+export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'base64ToBinary', 'base58ToBinary', 'base16ToBinary', 'binaryConcat', 'binaryConcatArray' ]);
+
+// the only consumers a byte[] local may feed: this.<m>(..) whose Java parameters are all Object,
+// so the static type change binds the same overload
+const JAVA_BYTES_CONSUMERS = new Set ([
+    'hmac', 'hash', 'eddsa', 'arraySlice', 'binaryToBase16', 'binaryToBase64', 'binaryToBase58', 'binaryConcat',
+]);
+
+function javaBytesLocalIsSafe (declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        const parent = n.parent;
+        if (n === declaration.name || parent === undefined || (ts.isVariableDeclaration (parent) && parent.name === n)
+            || (ts.isPropertyAccessExpression (parent) && parent.name === n)) {
+            continue; // declaration, sibling-scope declaration or `obj.<name>` member read
+        }
+        if (!(ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)
+            && JAVA_BYTES_CONSUMERS.has (String (parent.expression.name.text)))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function javaBytesHelperCall (printer, node) {
+    if (node === undefined || !isThisCall (node) || node.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const name = String (node.expression.name.text);
+    if (!JAVA_BYTES_HELPER_PLAIN.has (name) || LOCAL_THIS_RETURN_TYPES[name]?.type !== 'byte[]') {
+        return false;
+    }
+    // the helper is a field alias (`base64ToBinary = base64ToBinary`), so its call signature resolves into
+    // @scure/base: gate on the callee property's own declaration in ts/src/base/ instead
+    const declaration = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration?.resolve ();
+    const file = declaration?.getSourceFile?.().fileName;
+    helperDebug ('bytes ' + name + ' <- ' + file, node);
+    return file !== undefined && HELPER_SOURCE_FILE.test (file);
+}
+
+export function patchJavaBytesHelperLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBytesHelperLocalsPatched) {
+        return;
+    }
+    printer._javaBytesHelperLocalsPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = javaBytesHelperCall (printer, declaration.initializer) && javaBytesLocalIsSafe (declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${name} = this.${String (declaration.initializer.expression.name.text)}(`;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        return printed.slice (0, at) + marker.replace (printer.VAR_TOKEN, 'byte[]') + printed.slice (at + marker.length);
+    };
+}
+
 // this.<name>(...) -> Java type the call sites print for the LOCALS. Declared return
 // types of the hand-written Java base (`cast` entries are declared Object but hand back
 // the named box on every path).
 const LOCAL_THIS_RETURN_TYPES = {
     'parse8601': { type: 'Long' },
+    // BaseExchange.crc32 is declared Long (unsigned or signed 32-bit value on every path)
+    'crc32': { type: 'Long' },
+    // BaseExchange.parseDate is declared Long (epoch millis or null on every path)
+    'parseDate': { type: 'Long' },
     // BaseExchange.parseNumber is declared Double and returns a Double or null on every path
     'parseNumber': { type: 'Double' },
+    // BaseExchange.encodeDydxTxForSimulation is declared String (ts/src/base declares `: string`)
+    'encodeDydxTxForSimulation': { type: 'String' },
     'iso8601': { type: 'String' },
+    'base64ToBinary': { type: 'byte[]' },
+    'base58ToBinary': { type: 'byte[]' },
+    'base16ToBinary': { type: 'byte[]' },
+    'binaryConcat': { type: 'byte[]' },
+    'binaryConcatArray': { type: 'byte[]' },
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
-    // hx2 java-03: `Object x = this.safeBool (a, k[, default])` -> `Boolean x = (Boolean) ...`.
+    // `Object x = this.safeBool (a, k[, default])` -> `Boolean x = (Boolean) ...`.
     // `defaultArg: 2` marks the entry whose box is Boolean|null ONLY when the call's own
     // default argument is absent or a boolean literal — see the section-7 header.
     'safeBool': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
@@ -486,6 +573,7 @@ const LOCAL_THIS_RETURN_TYPES = {
     'rawencode': { type: 'String' },
     'stringToBase64': { type: 'String' },
     'binaryToBase64': { type: 'String' },
+    'binaryToBase58': { type: 'String' },
     'binaryToBase16': { type: 'String' },
     'intToBase16': { type: 'String' },
     'jwt': { type: 'String' },
@@ -500,6 +588,7 @@ const LOCAL_THIS_RETURN_TYPES = {
     'capitalize': { type: 'String' },
     'numberToString': { type: 'String' },
     'decimalToPrecision': { type: 'String' },
+    'remove0xPrefix': { type: 'String' },
     'implodeParams': { type: 'String', cast: '(String)' },
     'implodeHostname': { type: 'String', cast: '(String)' },
     'hmac': { type: 'String', cast: '(String)' },
@@ -583,6 +672,7 @@ const JAVA_STRUCT_RETURN_METHODS = {
     'parseTradingOrder': 'io.github.ccxt.types.Order',
     'safeBalance': 'io.github.ccxt.types.Balances',
     'parseBalance': 'io.github.ccxt.types.Balances',
+    'parseBalanceList': 'io.github.ccxt.types.Balances',
     'parseOrderBook': 'io.github.ccxt.types.OrderBook',
     // build-once producers only; market()/currency()/safeMarket()/safeCurrency() stay Map (hot
     // lookups: the view ctor snapshots ~45 keys and copies info, per call)
@@ -595,7 +685,7 @@ const JAVA_STRUCT_RETURN_METHODS = {
     'parseCurrency': 'io.github.ccxt.types.CurrencyInterface',
 };
 
-// ===== safeDict locals (JAVA-01) =====
+// ===== safeDict locals =====
 //
 // `const x = this.safeDict (container, key [, {}])` — the TS annotation is `Dict | undefined`,
 // the printer declares `Object x = this.safeDict (…)`, and the hand-written
@@ -652,7 +742,7 @@ function safeDictLocalType (printer, initializer, name) {
     return { type: JAVA_SAFE_DICT_TYPE, cast: '(' + JAVA_SAFE_DICT_TYPE + ')', noCastAssertions: true, writeOk };
 }
 
-// ===== parse* structure locals (B-10) =====
+// ===== parse* structure locals =====
 //
 // `const x = this.parseOrder (order, market)` prints `Object x = this.parseOrder (...)`
 // because the parse* Java signature is erased (every non-boolean return annotation prints
@@ -687,7 +777,7 @@ const JAVA_PARSE_LIST_TYPE = 'java.util.List<Object>';
 const PARSE_MAP_LOCAL_NAMES = new Set ([
     'parseOrder', 'parseOrderBook', 'parseTicker', 'parseTrade', 'parsePosition',
     'parseTradingFee', 'parseFundingRate', 'parseMarginLoan', 'parseTransaction',
-    'parseBorrowRate', 'parseMarket', 'parseCurrency', 'parseBalance',
+    'parseBorrowRate', 'parseMarket', 'parseCurrency', 'parseBalance', 'parseBalanceList', 'parseBalanceList',
     'parseWsOrder', 'parseWsTicker', 'parseWsPosition',
 ]);
 
@@ -743,7 +833,7 @@ function isParseStructureReturnType (printer, type) {
     return (symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.TypeLiteral | ts.SymbolFlags.TypeAlias | ts.SymbolFlags.ObjectLiteral)) !== 0;
 }
 
-// D-09: a local whose initializer is a whole call to an internal (non-override) method the
+// a local whose initializer is a whole call to an internal (non-override) method the
 // PRINTER itself retyped (javaTranspiler.javaNativeReturnType -> Map / String / Boolean).
 // The printed signature carries the native type, so the declaration is emitted with it and
 // needs no checkcast; the printer's printVariableDeclarationList prefix guard falls back to
@@ -808,7 +898,7 @@ const ACCESSOR_SOURCE_FILES = [
 // time functions are assigned as instance fields (`iso8601 = iso8601;`), so the checker
 // resolves no declaration for the call; they are hand-written Java methods with no
 // generated override (census), accepted by name
-const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'iso8601' ]);
+const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'parseDate', 'iso8601' ]);
 
 // ===== string-element access locals =====
 //
@@ -1189,6 +1279,14 @@ function thisPropName (node) {
 // `this.safeValue(this.<map>, key)` (prints itself), or undefined
 function wsMapReadType (node) {
     node = unwrapParens (node);
+    // `this.orderbooks[k] as WsOrderBook` — the assertion prints no cast of its own
+    // (the declaration/write hooks add the WsOrderBook checkcast), so it reads like the bare map read
+    if (node !== undefined && ts.isAsExpression (node) && ts.isTypeReferenceNode (node.type)
+        && ts.isIdentifier (node.type.typeName) && node.type.typeName.text === 'WsOrderBook'
+        && ts.isElementAccessExpression (unwrapParens (node.expression))
+        && thisPropName (unwrapParens (node.expression).expression) === 'orderbooks') {
+        return ORDERBOOK_TYPE;
+    }
     if (node !== undefined && ts.isElementAccessExpression (node)) {
         if (isOhlcvsSymbolRead (node.expression)) {
             return ARRAYCACHE_TYPE;
@@ -1603,6 +1701,12 @@ function syncCoreCallType (printer, node) {
     if (methodName === undefined || JAVA_CORE_SYNC_DECLINED.has (methodName)) {
         return undefined;
     }
+    // a generated venue callee's own printed signature decides here (printer rule), not the
+    // previous on-disk generation of the file this build rewrites
+    const emitted = printer.javaVenueCalleeReturnType?.(node);
+    if (emitted !== undefined) {
+        return emitted;
+    }
     const entry = javaCoreDeclarationTable (node)?.get (methodName);
     if (entry === undefined || entry.future || entry.types.size !== 1) {
         return undefined;
@@ -1714,13 +1818,14 @@ const RECEIVER_METHOD_LOCAL_ENTRIES = {
     'toLowerCase': { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
     'trim':        { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
     'search':      { type: 'Integer', prefixes: [ '((String)' ], args: [ 1 ] },
-    'startsWith':  { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
+    'startsWith':  { type: 'Boolean', prefixes: [ '((String)' ], match: /^\w+\.startsWith\(\(\(String\)/, args: [ 1 ] },
     'endsWith':    { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
     'split':       { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, prefixes: [ 'Helpers.split(' ], args: [ 1, 2 ] },
     'join':        { type: 'String', prefixes: [ 'String.join(' ], args: [ 1 ], nonNull: true },
     'replace':     { type: 'String', prefixes: [ 'Helpers.replace(' ], match: /^(\(\(String\)\w+\)|\w+)\.replaceFirst\("/, args: [ 1, 2 ], nonNull: false },
     'replaceAll':  { type: 'String', prefixes: [ 'Helpers.replaceAll(' ], match: /^(\(\(String\)\w+\)|\w+)\.replace\("/, args: [ 1, 2 ], nonNull: false },
-    'slice':       { type: 'String', prefixes: [ 'Helpers.slice(' ], args: [ 1, 2 ], nonNull: false },
+    // the printer's native slice (`(x == null ? null : ((String)x).substring(..))`) is a String too
+    'slice':       { type: 'String', prefixes: [ 'Helpers.slice(' ], match: /^\w+(?:\.\w+)* == null \? null : \(\(String\)/, args: [ 1, 2 ], nonNull: false },
     'padEnd':      { type: 'String', prefixes: [ 'Helpers.padEnd(' ], args: [ 2 ], nonNull: true },
     'padStart':    { type: 'String', prefixes: [ 'Helpers.padStart(' ], args: [ 2 ], nonNull: true },
     'indexOf':     { type: 'Integer', prefixes: [ 'Helpers.getIndexOf(' ], args: [ 1, 2 ] },
@@ -1734,7 +1839,7 @@ const MATH_LOCAL_ENTRIES = {
     // primitive double, so the helper's Double branch runs and Math.abs returns a double
     // box. The helper is declared Object -> the declaration carries the checkcast.
     'abs':   { type: 'Double', cast: '(Double)', prefixes: [ 'Helpers.mathAbs(' ], args: [ 1 ] },
-    'pow':   { type: 'Double', prefixes: [ 'Helpers.mathPow(' ], args: [ 2 ] },
+    'pow':   { type: 'Double', prefixes: [ 'Helpers.mathPow(', 'Math.pow(', '(Math.pow(' ], args: [ 2 ] },
     'floor': { type: 'Double', prefixes: [ '(Math.floor(' ], args: [ 1 ] },
     'ceil':  { type: 'Double', prefixes: [ 'Math.ceil(' ], args: [ 1 ] },
     'round': { type: 'Long', prefixes: [ 'Math.round(' ], args: [ 1 ] },
@@ -1782,7 +1887,7 @@ function isThisOrSuperCall (node) {
             || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
 }
 
-// hx3 B-15: strip an `as T` / `<T>x` assertion whose printed Java is the bare operand.
+// strip an `as T` / `<T>x` assertion whose printed Java is the bare operand.
 // javaTranspiler.printAsExpression prints a cast only for `any` ((Object) x), `string`
 // ((String) x) and an array type ((java.util.List<...>)(x)); every other asserted type
 // (Dict, Market, a union, a class) falls through to the operand, so the safeDict /
@@ -1859,7 +1964,7 @@ function resolvesToBaseAccessor (printer, node, name) {
     return ACCESSOR_SOURCE_FILES.some ((re) => re.test (file));
 }
 
-// ===== string/crypto/url helper classification (JAVA-RE-6) =====
+// ===== string/crypto/url helper classification =====
 //
 // the resolved TS declaration of an admitted helper call must live under ts/src/base/ —
 // a venue override (its own file) transpiles with its own `Object` signature and must
@@ -1932,7 +2037,7 @@ function classifyStringHelperCall (printer, node) {
 
 // a `this.<name>(...)` call that resolves to a real method declaration of that name
 // (the signature hook retypes those); fields holding functions do not
-// hx3 B-15: the base stage transpiles a stripped copy of ts/src/base/Exchange.ts
+// the base stage transpiles a stripped copy of ts/src/base/Exchange.ts
 // (build/stripOverloads.ts -> `ts/src/base/Exchange.nooverloads.<pid>.ts`, a RELATIVE file
 // name), so an accessor call inside the base body resolves to that copy, not to
 // `ts/src/base/Exchange.ts`. Same class, same hand-written Java accessor, so the safeList
@@ -1984,7 +2089,7 @@ function isAsyncMethodCall (printer, callNode) {
         && ts.isIdentifier (returnType.typeName) && returnType.typeName.text === 'Promise';
 }
 
-// ===== venue producers typed from their TS return annotation (J4-R11) =====
+// ===== venue producers typed from their TS return annotation =====
 // Closed name -> admitted Java types. The declaration's own annotation picks the type; every
 // ancestor declaration must pick the same one (override invariance). Signature, return casts
 // and local admission all go through venueReturnJavaType.
@@ -1999,8 +2104,18 @@ const VENUE_RETURN_KINDS = {
     'getBybitType': [ 'java.util.List<Object>' ], 'getInstType': [ 'java.util.List<Object>' ],
     'getMarginMode': [ 'java.util.List<Object>' ], 'resolveAuthType': [ 'java.util.List<Object>' ],
     'networkIdToCode': [ 'String' ], 'findTimeframe': [ 'String' ],
+    // pro url builders annotated `: string` / `: Str` (no base declaration)
+    'getWsUrl': [ 'String' ], 'getUrlByMarket': [ 'String' ], 'getUrlByMarketType': [ 'String' ],
     'outcome': [ JAVA_ARRAY_TYPE_MAP () ], 'safeOutcome': [ JAVA_ARRAY_TYPE_MAP () ],
     'parseSearchQueries': [ 'java.util.List<Object>' ], 'parsePredictionTicker': [ JAVA_ARRAY_TYPE_MAP () ],
+    // `parseWsBalance (…): Balances` is a dict view — the field it feeds (this.balance)
+    // prints Map<String, Object>, so the venue declarations and their callers must say so too
+    'parseWsBalance': [ JAVA_ARRAY_TYPE_MAP () ],
+    // nado `parseWsTimestamp (…): Int` returns parseToInt/safeInteger only
+    'parseWsTimestamp': [ 'Long' ],
+    'getMarketFromClientAndMessage': [ JAVA_ARRAY_TYPE_MAP () ],
+    // `: Dict` returning this.omit (map, keys), which binds the Map overload
+    'handleRouteAndParams': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -2095,10 +2210,36 @@ function venueReturnCast (printer, node, method, javaType) {
         || (javaType === JAVA_ARRAY_TYPE_MAP () && ts.isObjectLiteralExpression (expression))) {
         return undefined;
     }
+    // this.omit (<Map local>, keys) already prints the Map-returning overload
+    if (method.name?.text === 'handleRouteAndParams' && isThisOrSuperCall (expression) && expression.expression.name?.text === 'omit') {
+        return undefined;
+    }
     if (enclosingFunction (node) !== method) {
         return undefined;
     }
+    if (javaType === 'Long' && numericFamilyCallType (printer, expression) === 'Long') {
+        return undefined; // already a declared Long (safeInteger/parseToInt): no conversion
+    }
+    // a const local fed by this.market/safeMarket is already declared Map<String, Object>: no cast
+    if (javaType === JAVA_ARRAY_TYPE_MAP () && constMapCallLocal (printer, expression)) {
+        return undefined;
+    }
     return '(' + javaType + ')';
+}
+
+function constMapCallLocal (printer, expression) {
+    if (!ts.isIdentifier (expression)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    const init = declaration !== undefined && ts.isVariableDeclaration (declaration) ? unwrapParens (declaration.initializer) : undefined;
+    return init !== undefined && isThisCall (init) && JAVA_MAP_RETURN_METHODS.has (init.expression.name.text)
+        && resolvesToMethodNamed (printer, init, init.expression.name.text);
 }
 
 // `this.omitZero (<String>)` binds the hand-written `String omitZero (String)` overload
@@ -2472,7 +2613,7 @@ const STRUCTURE_PRODUCER_DTO = {
     'parseTicker': 'Ticker', 'parseOrder': 'Order', 'parseTrade': 'Trade',
     'parseOrderBook': 'OrderBook', 'parsePosition': 'Position',
     'parseFundingRate': 'FundingRate', 'parseTransaction': 'Transaction',
-    'parseBalance': 'Balance', 'parseDepositAddress': 'DepositAddress',
+    'parseBalance': 'Balance', 'parseBalanceList': 'Balance', 'parseDepositAddress': 'DepositAddress',
     'parseMarginMode': 'MarginMode', 'parseLeverage': 'Leverage',
 };
 // a key field is only used when its Java box is a reference check: the DTO classes
@@ -2493,8 +2634,10 @@ function structureKeyTable (dtoName) {
         const text = fs.readFileSync (path.join (JAVA_TYPES_FOLDER, dtoName + '.java'), 'utf8');
         for (const line of text.split ('\n')) {
             const field = line.match (/^\s*public\s+([\w.<>, ]+?)\s+(\w+)\s*;\s*$/);
-            if (field !== null && STRUCTURE_KEY_CAST_TYPES.has (field[1])) {
-                table[field[2]] = field[1];
+            // a primitive `boolean` DTO field holds a Boolean in the raw row
+            const box = (field !== null && field[1] === 'boolean') ? 'Boolean' : field?.[1];
+            if (field !== null && STRUCTURE_KEY_CAST_TYPES.has (box)) {
+                table[field[2]] = box;
             }
         }
     } catch (e) {
@@ -2814,9 +2957,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         if (readType !== undefined) {
             // `this.<map>[key]` prints Helpers.GetValue(this.<map>, key), or the native
             // `((java.util.Map<?, ?>)this.<map>).get(key)` shape when the field is one of
-            // javaTranspiler's JAVA_FIELD_TYPES; `this.safeValue*(this.<map>, key)` prints itself
+            // javaTranspiler's JAVA_FIELD_TYPES or the guarded plain-cache get `(this.<map> == null || k == null ? null : ..)`;
+            // `this.safeValue*(this.<map>, key)` prints itself
             const prefixes = ts.isElementAccessExpression (initializer)
-                ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.' ] : [ 'this.' ];
+                ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.', '(this.' ] : [ 'this.' ];
             return { type: readType, cast: '(' + readType + ')', valuePrefixes: prefixes, skipInheritedAsyncGuard: true };
         }
         const checkerType = wsCheckerLocalType (printer, initializer);
@@ -2851,7 +2995,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             return { type: memberType };
         }
     }
-    // hx3 B-15: `this.safeDict (...) as Dict` — an assertion the printer drops (bare
+    // `this.safeDict (...) as Dict` — an assertion the printer drops (bare
     // operand for every asserted type outside any/string/T[]). The safeDict / market
     // families prove the inner call; every other family keeps the un-asserted shape.
     // the receiver-method / Math / `x.length` table: the printer lowers these calls and
@@ -2887,15 +3031,20 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     }
     const venue = asserted ? undefined : venueCallJavaType (printer, initializer);
     if (venue !== undefined) {
-        return { type: venue };
+        // `x as string` on a String-declared local prints the identity checkcast `((String)x)`
+        if (venue === JAVA_ARRAY_TYPE_MAP () && name === 'handleRouteAndParams') {
+            // async callees take the Dict parameter, so the argument already prints as a Map
+            return { type: venue, skipInheritedAsyncGuard: true };
+        }
+        return venue === 'String' ? { type: venue, stringAsCast: true } : { type: venue };
     }
     const omitZero = asserted ? undefined : omitZeroStringLocalType (printer, initializer, name);
     if (omitZero !== undefined) {
         return omitZero;
     }
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
-    if (!asserted && accessor !== undefined && accessorResolvesToBase (printer, initializer, name, accessor)) {
-        // hx2 java-03: entries with `defaultArg` are only the named box when the call's own
+    if (!asserted && accessor !== undefined && accessor.type !== 'byte[]' && accessorResolvesToBase (printer, initializer, name, accessor)) {
+        // entries with `defaultArg` are only the named box when the call's own
         // default argument is absent or a boolean literal — the accessor hands the caller's
         // default back untouched on the not-found / wrong-type path (section-7 header)
         if (accessor.defaultArg !== undefined
@@ -2907,7 +3056,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     }
     const structure = STRUCTURE_THIS_RETURN_TYPES[name];
     if (structure !== undefined && resolvesToMethodNamed (printer, assertedCall, name)) {
-        // hx3 B-15: Map/List locals tolerate the `as Dict` / `as any` / `as any[]` assertions
+        // Map/List locals tolerate the `as Dict` / `as any` / `as any[]` assertions
         // (no cast or an upcast is printed — see assertedPrintsNoUnsatisfiableCast)
         return { type: structure, cast: JAVA_MAP_RETURN_METHODS.has (name) ? undefined : '(' + structure + ')', noCastAssertions: true };
     }
@@ -2915,7 +3064,7 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     if (dict !== undefined) {
         return dict;
     }
-    // D-09: a call to an internal (non-override) method the PRINTER itself retyped
+    // a call to an internal (non-override) method the PRINTER itself retyped
     // (javaTranspiler.javaNativeReturnType) — the call already prints the native type, so
     // the local carries it with NO checkcast. Placed before the name-list families so an
     // admitted parse* name takes the cast-free declaration.
@@ -2949,7 +3098,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
             return true;
         case ts.SyntaxKind.TrueKeyword:
         case ts.SyntaxKind.FalseKeyword:
-            // hx2 java-03: a boolean literal autoboxes into a `Boolean` local; for every
+            // a boolean literal autoboxes into a `Boolean` local; for every
             // other family the write is a different box
             return javaType === 'Boolean';
         case ts.SyntaxKind.PrefixUnaryExpression:
@@ -3034,7 +3183,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 return false;
             }
             if (javaType === 'Long') {
-                if (name === 'parse8601') {
+                if (name === 'parse8601' || name === 'parseDate') {
                     return resolvesToBaseAccessor (printer, node, name);
                 }
                 // safeTimestamp* are deliberately absent: SafeMethods.safeTimestampN hands
@@ -3056,7 +3205,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 return false;
             }
             if (javaType === 'Boolean') {
-                // hx2 java-03: a later `x = this.safeBool (...)` write takes the same
+                // a later `x = this.safeBool (...)` write takes the same
                 // gate the declaration has (the reassignment hook injects the same
                 // (Boolean) checkcast the declaration got)
                 const accessor = LOCAL_THIS_RETURN_TYPES[name];
@@ -3084,7 +3233,7 @@ function isProvablyOfType (printer, node, javaType, selfName) {
     }
 }
 
-// ===== guarded-string provability (JAVA-RE-6) =====
+// ===== guarded-string provability =====
 //
 // The `+` rule: `x + y` prints `Helpers.add (x, y)` and the LEFT operand's static type
 // selects the overload family (add(Object,Object) vs add(String,String) / add(String,Object)).
@@ -3094,11 +3243,32 @@ function isProvablyOfType (printer, node, javaType, selfName) {
 // `+` is accepted only when the direct right operand is a provably non-null String and no
 // deeper add of the same left spine has a possibly-numeric right operand.
 
+// an identifier whose printed Java declaration is already `String` (a `String amount` local)
+function printedStringDeclaredIdentifier (printer, node) {
+    try {
+        return printer.printNode (node, 0) === node.text && printer.javaDeclaredTypeOf (node) === 'String';
+    } catch (e) {
+        return false;
+    }
+}
+
 // true when the printed Java for `node` is statically a String (or null): literals, the
 // `undefined`/self identifiers, parenthesized/conditional combos, a `+` chain with a
 // statically-String left operand (add(String, ..) -> String), a plain helper call and the
 // base-declared safeString accessors. Cast-family helpers are NOT statically String (they
 // print an Object-typed call; only the reassignment hook's explicit cast names the box).
+// a bare identifier already declared `String` in the printed Java: writing it needs no cast
+function isDeclaredStringIdentifier (printer, node) {
+    if (node === undefined || !ts.isIdentifier (node) || node.text === 'undefined') {
+        return false;
+    }
+    try {
+        return printer.printNode (node, 0) === node.text && printer.javaDeclaredTypeOf (node) === 'String';
+    } catch (e) {
+        return false;
+    }
+}
+
 function isStaticallyStringExpression (printer, node, selfName) {
     if (node === undefined) {
         return false;
@@ -3109,12 +3279,19 @@ function isStaticallyStringExpression (printer, node, selfName) {
         case ts.SyntaxKind.NullKeyword:
             return true;
         case ts.SyntaxKind.Identifier:
-            return node.text === 'undefined' || node.text === selfName;
+            return node.text === 'undefined' || node.text === selfName || printedStringDeclaredIdentifier (printer, node);
         case ts.SyntaxKind.ParenthesizedExpression:
             return isStaticallyStringExpression (printer, node.expression, selfName);
         case ts.SyntaxKind.ConditionalExpression:
             return isStaticallyStringExpression (printer, node.whenTrue, selfName)
                 && isStaticallyStringExpression (printer, node.whenFalse, selfName);
+        case ts.SyntaxKind.AsExpression:
+            // `Precise.stringNeg (x) as string` prints a String-typed call under a (String) cast
+            return node.type?.kind === ts.SyntaxKind.StringKeyword && ts.isCallExpression (node.expression)
+                && ts.isPropertyAccessExpression (node.expression.expression)
+                && ts.isIdentifier (node.expression.expression.expression)
+                && node.expression.expression.expression.text === 'Precise'
+                && HANDLE_PRECISE_STRING_STATICS.has (String (node.expression.expression.name.text));
         case ts.SyntaxKind.BinaryExpression:
             // `'lit' + r` prints Helpers.add(String, ..) -> String on every path
             return node.operatorToken.kind === ts.SyntaxKind.PlusToken
@@ -3131,6 +3308,11 @@ function isStaticallyStringExpression (printer, node, selfName) {
                     || node.expression.name.text === 'safeStringN')
                 && isPlainSafeStringBaseCall (printer, node)) {
                 return true; // declared String in BaseExchange
+            }
+            // `Precise.stringXxx (..)` is `public static String`; `this.omitZero (<String>)` binds `String omitZero (String)`
+            if (isPreciseStringStaticCall (node)
+                || (isThisCall (node) && omitZeroStringLocalType (printer, node, String (node.expression.name.text)) !== undefined)) {
+                return true;
             }
             const helper = classifyStringHelperCall (printer, node);
             return helper !== undefined && helper.cast === undefined;
@@ -3293,6 +3475,13 @@ function receiverSafeStringLocalInfo (printer, node) {
 // local this module already narrowed to String (`(apiKey as string).toString ()`).
 // Both are redundant; print the operand alone (the printer's own AsExpression fallback
 // shape) so the safeString family has no `(String)` checkcast left in the test tier.
+// `Precise.stringXxx (..)` is declared `public static String` in Precise.java: `as string` is redundant
+function isPreciseStringStaticCall (node) {
+    return ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
+        && ts.isIdentifier (node.expression.expression) && node.expression.expression.text === 'Precise'
+        && HANDLE_PRECISE_STRING_STATICS.has (String (node.expression.name.text));
+}
+
 function patchJavaReceiverAccessorTypes (printer, narrowed) {
     if (printer._javaReceiverAccessorTypesPatched) {
         return;
@@ -3300,7 +3489,7 @@ function patchJavaReceiverAccessorTypes (printer, narrowed) {
     const upstreamAs = printer.printAsExpression.bind (printer);
     printer.printAsExpression = function (node, identation) {
         if (node?.type?.kind === ts.SyntaxKind.StringKeyword && node.expression !== undefined) {
-            if (isBaseReceiverSafeStringCall (printer, node.expression)) {
+            if (isBaseReceiverSafeStringCall (printer, node.expression) || isPreciseStringStaticCall (node.expression)) {
                 return printer.printNode (node.expression, identation);
             }
             if (narrowed !== undefined && ts.isIdentifier (node.expression)) {
@@ -3586,7 +3775,7 @@ function feedsInheritedAsyncCall (printer, n, scope) {
 
 // reject the refinement when a later use needs the local to stay `Object`
 
-// hx3 B-15: which asserted types may sit on a narrowed Map/List local? ast-transpiler's
+// which asserted types may sit on a narrowed Map/List local? ast-transpiler's
 // javaTranspiler.printAsExpression prints, per asserted type node:
 //   `any`      -> ((Object) x)                      an upcast, legal on every reference box
 //   `string`   -> ((String) x)                      legal on a String local only (not here)
@@ -3735,10 +3924,10 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isAsExpression (parent) || ts.isTypeAssertion (parent)) {
             // a TS cast on the local prints a Java cast of the asserted type; for the
             // narrowed type the spelled cast can be inconvertible (String -> Double is a
-            // compile error) — keep Object (the C# campaign's reject family, reused here).
+            // compile error) — keep Object (same reject family as the C# port).
             // `x as string` is the identity checkcast `((String)x)` on a String local and
             // is admitted for the opted-in families only.
-            // hx3 B-15: the Map/List families (`noCastAssertions`) additionally admit every
+            // the Map/List families (`noCastAssertions`) additionally admit every
             // assertion whose printed Java cannot fail on the narrowed box.
             const admitted = (info?.stringAsCast === true && parent.type?.kind === ts.SyntaxKind.StringKeyword)
                 || (info?.noCastAssertions === true && assertedPrintsNoUnsatisfiableCast (parent.type, javaType));
@@ -3758,6 +3947,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
                     // statically String (isStaticallyStringExpression) or a same-family
                     // helper call the reassignment hook casts
                     ok = isStaticallyStringExpression (printer, unwrapParens (parent.right), sourceName)
+                        || isDeclaredStringIdentifier (printer, unwrapParens (parent.right))
                         || isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
                 } else {
                     ok = isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
@@ -3787,11 +3977,28 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         }
         // a venue-own async callee that overrides nothing has no typed wrapper overload to capture the argument
         if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)
-            && !literalFeedsVenueOwnAsyncCall (printer, n, scope)) {
+            && !literalFeedsVenueOwnAsyncCall (printer, n, scope)
+            && !(info?.stringListElement === true && feedsFetchOrderBookSymbol (printer, n))) {
             return false;
         }
     }
     return true;
+}
+
+// `fetchOrderBook (symbol, limit)` always prints the 3-arg `(Object, Long, Map)` call and the only
+// 3-arg overload takes Object, so a String symbol argument cannot move onto a typed wrapper overload.
+function feedsFetchOrderBookSymbol (printer, n) {
+    const call = n.parent;
+    if (call === undefined || !ts.isCallExpression (call) || call.arguments.indexOf (n) !== 0
+        || !isThisCall (call) || String (call.expression.name.text) !== 'fetchOrderBook') {
+        return false;
+    }
+    try {
+        const declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        return declaration !== undefined && ts.isMethodDeclaration (declaration) && declaration.parameters.length === 3;
+    } catch (e) {
+        return false;
+    }
 }
 
 function javaLocalTypeOf (printer, declaration, narrowed) {
@@ -4550,7 +4757,7 @@ function handleTupleIsSafeToNarrow (printer, scope, skipNode, sourceName, expect
                 return false;
             }
         }
-        if (isProFile && feedsInheritedAsyncCall (printer, use, scope) && !h2kJ04FeedsMapCoreSlot (printer, use, expected)) {
+        if (isProFile && feedsInheritedAsyncCall (printer, use, scope) && !javaFeedsMapCoreSlot (printer, use, expected)) {
             return false;
         }
     }
@@ -4750,7 +4957,7 @@ function handleTupleTargetType (printer, tupleTypes, element) {
     if (tupleTypes.has (declaration.parent)) {
         return tupleTypes.get (declaration.parent);
     }
-    return undefined;
+    return OMIT_TUPLE_TARGETS.has (declaration) ? HANDLE_ELEMENT_1_TYPE : undefined;
 }
 
 // the element type of a write to a parameter the printer declares natively: a `Dict` parameter
@@ -4800,7 +5007,7 @@ function handleUntilOptionEchoType (printer, assignment, index, element) {
         return undefined;
     }
     const printed = (declaration === undefined || typeof printer.javaDeclaredLocalTypeResolver !== 'function')
-        ? undefined : printer.javaDeclaredLocalTypeResolver (declaration);
+        ? undefined : printer.javaDeclaredLocalType (declaration);
     return (printed === JAVA_STRUCTURE_TYPE || printed === 'Map<String, Object>') ? JAVA_STRUCTURE_TYPE : undefined;
 }
 
@@ -5280,7 +5487,7 @@ export function patchJavaHandleTupleCoercionTypes (printer) {
 //       privatePostTradeBatchOrders, binance/mexc batch orders) hand a list of orders
 //       down fetch2 -> handleOptionAndParams -> omit; a Map-typed local (or a `(Map)`
 //       checkcast at the declaration) throws ClassCastException on a LIVE path. Same
-//       conclusion as the C# campaign (PR #30356) and the java-loc-collections slice.
+//       conclusion as the C# port.
 //       The `Object x = this.omit(...)` locals stay exactly as the printer emitted them;
 //       the enclosing `keysort(this.omit(...))` / `extend(request, query)` call shapes
 //       are fine to narrow and are covered by the tables above.
@@ -5997,7 +6204,7 @@ export function installJavaLocalTypes (transpiler) {
     // Java statements print in source order, so by the time a reassignment is printed
     // its declaration has already been classified.
     const narrowed = new WeakMap ();
-    // hx2 java-03: declarations this slice narrowed to `Boolean` from a proven safeBool
+    // declarations this slice narrowed to `Boolean` from a proven safeBool
     // call — the isTrue consumer hook (section 7) turns their truthiness positions into
     // `Boolean.TRUE.equals (x)`. Print-order local, filled by the hook below.
     const safeBoolLocals = new WeakSet ();
@@ -6041,7 +6248,7 @@ export function installJavaLocalTypes (transpiler) {
         }
         narrowed.set (declaration, info.type);
         if (info.safeBool === true) {
-            safeBoolLocals.add (declaration); // hx2 java-03, read by the isTrue consumer hook
+            safeBoolLocals.add (declaration); // read by the isTrue consumer hook
         }
         // a ternary value must be wrapped before the cast: `(String) c ? a : b` binds the
         // cast to the condition, not to the conditional expression (javac then rejects it)
@@ -6057,7 +6264,7 @@ export function installJavaLocalTypes (transpiler) {
     };
     // `x = this.safeSymbol(...)` etc. on a narrowed local: an Object-declared accessor
     // needs the same cast the declaration got; a call to a retyped signature needs none.
-    // JAVA-RE-6: the same for the cast-family helpers, whose bare form (`x = eddsa(...)`)
+    // the same for the cast-family helpers, whose bare form (`x = eddsa(...)`)
     // prints without a `this.` prefix.
     const originalBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node, identation) {
@@ -6116,7 +6323,7 @@ export function installJavaLocalTypes (transpiler) {
             || (javaType === JAVA_STRUCTURE_TYPE && ((STRUCTURE_THIS_RETURN_TYPES[call] !== undefined
                 && !JAVA_MAP_RETURN_METHODS.has (call)) || SAFE_DICT_ACCESSORS.has (call)))
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'));
-        // SS-01: the safeStringUpper/Lower family dropped out of this list — those calls
+        // the safeStringUpper/Lower family dropped out of this list — those calls
         // are declared `String` in the hand-written base now, so a write to a String local
         // needs no checkcast (same as the safeString family, which was never listed here).
         const cast = !needsCast ? ''
@@ -6145,14 +6352,14 @@ export function installJavaLocalTypes (transpiler) {
     // nullable Boolean box and the same truthiness function on its element-0 write
     patchJavaHandleTupleCoercionTypes (printer);
 
-    // (5) collection/dict helper locals (JAVA-RE-5, additive slice): a second,
+    // (5) collection/dict helper locals: a second,
     // independent patch of the same printer hooks — it keeps its own candidate table
     // and its own WeakMap of narrowed declarations, and declines every declaration the
     // hooks above already retyped (their marker lookup no-ops once the Object token is
     // gone). Installed here so both the main-thread Transpiler and the piscina worker
     // (which both call installJavaLocalTypes) get it.
     patchJavaCollectionLocalTypes (transpiler);
-    // (7) boolean locals from the hand-written boolean-returning methods (java-04):
+    // (7) boolean locals from the hand-written boolean-returning methods:
     // `Object x = this.isLinear(...)` -> `boolean x = Helpers.isTrue(...)` with the falsy
     // wrapper dropped from every later condition reading x. Additive slice like (5) — its
     // marker lookup no-ops on every declaration the hooks above already retyped.
@@ -6160,7 +6367,7 @@ export function installJavaLocalTypes (transpiler) {
     // (6) test-tier receiver accessors (section 9): the `<recv>.safeString*` locals and
     // the redundant `x as string` checkcasts on their call sites / narrowed locals
     patchJavaReceiverAccessorTypes (printer, narrowed);
-    // (7) hx2 java-03: the truthiness consumer for the safeBool locals typed above —
+    // (7) the truthiness consumer for the safeBool locals typed above —
     // `Helpers.isTrue (x)` -> `Boolean.TRUE.equals (x)`
     patchJavaSafeBoolLocals (printer, safeBoolLocals);
     printer._javaLocalTypesPatched = true;
@@ -6170,14 +6377,14 @@ export function installJavaLocalTypes (transpiler) {
     // Chained last so it sees no interference from the declaration hooks above it — it
     // touches only method signatures, never locals.
     patchJavaParamTypes (transpiler);
-    // (6) redundant `(String)` cast removal (SS-04, additive slice): records the FINAL
+    // (6) redundant `(String)` cast removal: records the FINAL
     // printed type of every single-declarator local and stops the printer from emitting
     // a `(String)` checkcast whose operand is already Java-`String`. Installed LAST so
     // its declaration recorder sees the output of every wrapper above; the literal and
     // numeric patchers are installed after this installer, so a declaration only THEY
     // retype is not recorded here (a missed removal, never a wrong one).
     patchJavaRedundantStringCasts (transpiler);
-    // (7) hx2 java-02: safeList* locals -> java.util.List<Object> (additive section at the
+    // (7) safeList* locals -> java.util.List<Object> (additive section at the
     // bottom of this file; the wrapper only moves declarations still printing `Object x = `)
     patchJavaSafeListLocalTypes (transpiler);
     // (8) null-initialised locals whose every write awaits one typed api endpoint
@@ -6207,6 +6414,8 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaStringListReturnLocals (transpiler);
     // (20) awaited ws list-stream locals read only as a cache (section 40)
     patchJavaWsListStreamLocals (transpiler);
+    // (21) byte[] helper locals
+    patchJavaBytesHelperLocals (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -6250,7 +6459,7 @@ export function installJavaLocalTypes (transpiler) {
 //     family) and `delete x[k]` prints a Map receiver cast: both rejected.
 //   - WS/prediction files used to run build/javaTranspiler.ts#postProcessWsJava, whose
 //     "String type fixes" pass rewrote `String x = this.<m>(...)` / `Helpers.<...>(...)`
-//     back to `Object`. That pass is gone (SS-07), so ws declarations now keep every
+//     back to `Object`. That pass is gone, so ws declarations now keep every
 //     type this engine proves — no ws-file special case here.
 //   - pro files: a local that feeds an inherited async call stays Object (the typed REST
 //     wrapper overloads would win Java overload resolution once an argument is a String).
@@ -6447,7 +6656,7 @@ function dataflowTypeTokenCollides (index, javaType) {
 // a `this.<name>(...)` call whose Java return type is already the named type on every
 // path, so a local fed by it needs NO cast: the retyped signature families of section 1
 // (proved by resolvesToMethodNamed, i.e. a real method declaration of that name), the
-// hand-written String-returning base methods, and (SS-10) the hand-written safeString
+// hand-written String-returning base methods, and the hand-written safeString
 // accessors.
 function dataflowThisCallType (printer, node) {
     const name = node.expression.name.text;
@@ -6457,7 +6666,7 @@ function dataflowThisCallType (printer, node) {
     if (JAVA_LIST_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, node, name) ? JAVA_ARRAY_TYPE : undefined;
     }
-    // ===== SS-10: safeString results as a proven String value =====
+    // ===== safeString results as a proven String value =====
     //
     // `this.safeString / safeString2 / safeStringN (...)` are hand-written in
     // BaseExchange.java and DECLARED `String` — SafeMethods coerces the found value to
@@ -6482,7 +6691,7 @@ function dataflowThisCallType (printer, node) {
     //
     // Every other value position follows the same rule the section header states: a
     // local may become String only when EVERY value that can reach it is statically a
-    // String or null (campaign rule 4) — so a plain `x = this.safeString (...)` write
+    // String or null — so a plain `x = this.safeString (...)` write
     // and a `let x = null;` accumulator fed only by such values (and reads resolving
     // through them) are proven the same way. Guarded like the safeString local-typing
     // hook itself (isPlainSafeStringBaseCall: `this.` receiver + resolved declaration
@@ -6588,7 +6797,9 @@ function dataflowValueType (printer, node, context) {
                 return undefined;
             }
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
-                return dataflowThisCallType (printer, node) ?? joinBaseProducerType (printer, node);
+                // a venue method the printer retyped to `public String` (kucoin marketOrderAmountToPrecision)
+                return dataflowThisCallType (printer, node) ?? joinBaseProducerType (printer, node)
+                    ?? (internalReturnLocalType (printer, node)?.type === JAVA_DATAFLOW_STRING ? JAVA_DATAFLOW_STRING : undefined);
             }
             if (ts.isIdentifier (callee.expression) && callee.expression.text === 'Precise') {
                 return PRECISE_STRING_STATICS.has (callee.name.text) ? JAVA_DATAFLOW_STRING : undefined;
@@ -6684,7 +6895,7 @@ function dataflowEmittedType (printer, declaration, context) {
         return undefined; // the printer emits `var x = ...` for a NewExpression initializer
     }
     const type = dataflowEmittedTypeUnchecked (printer, declaration, context);
-    // SS-07: the old `dataflowWsReverts` decline is gone — it existed only because
+    // the old `dataflowWsReverts` decline is gone — it existed only because
     // postProcessWsJava's "String type fixes" regex would have re-declared these locals
     // `Object` again; ws/prediction files now keep the proven String declaration.
     return type;
@@ -7117,12 +7328,12 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
         return printed; // already retyped upstream / unexpected shape — leave it alone
     }
     const value = printed.slice (at + marker.length);
-    // SS-07: ws/prediction declarations keep the proven type — the postProcessWsJava
+    // ws/prediction declarations keep the proven type — the postProcessWsJava
     // "String type fixes" revert that used to re-declare this spelling Object is gone.
     return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${value}`;
 }
 
-// ===== JAVA-RE-4 slice: literal / boolean-expression locals =====
+// ===== literal / boolean-expression locals =====
 //
 // Additive extension of this module (see the header above): a SECOND, independent
 // patcher installed next to installJavaLocalTypes. Same monkey-patch shape, same
@@ -7997,7 +8208,7 @@ function literalFamilyOf (declaration) {
     }
 }
 
-// census of retyped locals per family (exported for the campaign bookkeeping; also
+// count of retyped locals per family (exported for reporting; also
 // printed at process exit when CCXT_JAVA_LOCAL_CENSUS is set — note piscina worker
 // realms do NOT fire the exit hook, so tree-wide numbers come from the diff census)
 export const javaLiteralTypeCensus = {};
@@ -8075,9 +8286,9 @@ export function patchJavaLiteralLocalTypes (transpiler) {
     printer._localTypesLiteralPatched = true;
 }
 
-// ===== 4. numeric helpers -> boxed Long/Double/Integer locals (JAVA-RE-7) =====
+// ===== 4. numeric helpers -> boxed Long/Double/Integer locals =====
 //
-// The numeric half of the local-typing campaign. Every helper below ALREADY hands
+// The numeric half of local typing. Every helper below ALREADY hands
 // back one concrete box at runtime; this section names it on the generated locals
 // (`Object ts = this.safeInteger (...)` -> `Long ts = this.safeInteger (...)`), and
 // retypes the few Java declarations that still erase that box to `Object`.
@@ -8141,7 +8352,7 @@ export function patchJavaLiteralLocalTypes (transpiler) {
 //     Core file found 0 raw comparisons outside comments). The guard is nonetheless the
 //     usual one: an arm/use that would print an unboxing operator (++/--/compound
 //     assignment/spread/typeof/`x as T`/array destructuring) rejects the local.
-//   * INTEGER DIVISION differs from JS number division, and the C#-campaign
+//   * INTEGER DIVISION differs from JS number division, and the C#
 //     "subtract-on-int" overload trap was CHECKED for Java: Helpers has two real
 //     overload families — `add(Object,Object)` + the String-typed convenience overloads
 //     (a numeric-typed operand never binds them; only a String first argument could)
@@ -8167,9 +8378,12 @@ export function patchJavaLiteralLocalTypes (transpiler) {
 // `(Long)` cast predates the upstream retype and is a harmless no-op checkcast now).
 export const JAVA_NUMERIC_LOCAL_TYPES = {
     'safeInteger': 'Long',
+    'incrementingNonce': 'Long',  // nextCounterAbove (): Long
     'safeInteger2': 'Long',
     'safeIntegerN': 'Long',
     'safeIntegerProduct': 'Long',
+    'safeIntegerProduct2': 'Long',
+    'safeIntegerProductN': 'Long',
     'safeFloat': 'Double',
     'safeFloat2': 'Double',
     'safeFloatN': 'Double',
@@ -8194,7 +8408,7 @@ export const JAVA_NUMERIC_LOCAL_TYPES = {
 // milliseconds / seconds / parse8601 / parseTimeframe were already concrete in the
 // hand-written Java, so their arms keep exactly the baseline behaviour.
 const JAVA_NUMERIC_RETYPED_CALLS = new Set ([
-    'safeInteger', 'safeInteger2', 'safeIntegerN', 'safeIntegerProduct',
+    'safeInteger', 'safeInteger2', 'safeIntegerN', 'safeIntegerProduct', 'safeIntegerProduct2', 'safeIntegerProductN',
     'safeNumber', 'safeNumber2', 'safeNumberN', 'parseToInt',
     'safeTimestamp', 'safeTimestamp2', 'safeTimestampN',
 ]);
@@ -8204,6 +8418,7 @@ const JAVA_NUMERIC_RETYPED_CALLS = new Set ([
 // statically the named type (parseNumber -> Double, Helpers.parseInt -> Long).
 const JAVA_NUMERIC_METHOD_RETURN_TYPES = {
     'parseToInt': 'Long',
+    'incrementingNonce': 'Long',  // nextCounterAbove (): Long, nonce (): Long
     'safeNumber': 'Double',
     'safeNumber2': 'Double',
     'safeNumberN': 'Double',
@@ -8618,7 +8833,7 @@ export function installJavaNumericLocalTypes (transpiler) {
         const m = tail.match (/^(\(?)(-?\d+)(\)?)$/);
         return m === null || m[2] !== literal ? printed : printed.slice (0, at + marker.length) + m[1] + m[2] + 'L' + m[3];
     };
-    // SS-15: the outermost census wrapper (env-gated, inert unless CCXT_SS15_CENSUS=1) —
+    // the outermost census wrapper (env-gated, inert unless CCXT_SS15_CENSUS=1) —
     // installed after every family wrapper so it reads the token the whole chain produced
     if (SS15_CENSUS) {
         patchJavaSs15CensusWrapper (printer);
@@ -8626,7 +8841,7 @@ export function installJavaNumericLocalTypes (transpiler) {
     printer._javaNumericTypesPatched = true;
 }
 
-// ===== SS-12 slice: string-method RECEIVERS on String-declared locals =====
+// ===== string-method RECEIVERS on String-declared locals =====
 //
 // The Java print methods hard-cast the receiver of the whole TS string-method family:
 //
@@ -8811,9 +9026,8 @@ function observeJavaStringDeclaration (printer, node, identation, printed) {
 // when the node is not a String-declared local worth touching. `node` is the receiver
 // expression itself (identifier, `x as string`, or a parenthesised form of either).
 function javaEmittedStringReceiverText (printer, node, printedName) {
-    // a statement that prints a ternary stays byte-identical to the baseline: the
-    // campaign's diff audit greps every ADDED java line for ' ? ', and a rewritten
-    // line that carries a pre-existing `cond ? a : b` reads as an added ternary. The
+    // a statement that prints a ternary stays byte-identical: a rewritten line carrying a
+    // pre-existing `cond ? a : b` would read as an added ternary in diff audits. The
     // receiver of such a statement keeps the printer's cast (the cast is redundant but
     // correct) — census: 5 sites, all of them receivers inside a conditional.
     if (javaStatementPrintsTernary (node)) {
@@ -8896,7 +9110,7 @@ function patchJavaStringReceiverCall (printer, method, rebuild) {
     };
 }
 
-// ===== SS-09: map put/get channel String casts (JAVA-SS9) =====
+// ===== map put/get channel String casts =====
 //
 // A safeString value that is STORED into a map field / object literal and READ BACK
 // travels through exactly three hand-written emitters:
@@ -9060,8 +9274,7 @@ export function patchJavaMapChannelStringCasts (transpiler) {
     const upstreamAsExpression = printer.printAsExpression.bind (printer);
     printer.printAsExpression = function (node, identation) {
         const type = node.type;
-        // no `? :` here on purpose: the campaign's diff audit greps every added
-        // generator line for a ternary token
+        // no `? :` here on purpose: diff audits grep added generator lines for a ternary token
         let channel;
         if (type !== undefined && type.kind === ts.SyntaxKind.StringKeyword) {
             channel = ss09PrintedMapChannel (node);
@@ -9091,9 +9304,9 @@ export function patchJavaMapChannelStringCasts (transpiler) {
     printer._javaSs09Patched = true;
 }
 
-// ===== SS-06: consumer-argument String casts (JAVA-SS6) =====
+// ===== consumer-argument String casts =====
 //
-// The four consumer calls the safestring campaign calls out — `Helpers.isEqual`,
+// The four consumer calls — `Helpers.isEqual`,
 // `Helpers.isTrue`, `Helpers.inOp` and `this.safeValue` / `safeValue2` / `safeValueN` —
 // are DECLARED with `Object` parameters in the hand-written base (Helpers.java,
 // BaseExchange.java). Java's widening conversion passes a `String` argument to an
@@ -9140,10 +9353,10 @@ export function patchJavaMapChannelStringCasts (transpiler) {
 //     tier, SS-08 prediction tier, SS-10 ternary arms). REJECTED here.
 //   * `((String)x).<method>()` receivers inside the arguments (`((String)id).endsWith`):
 //     the cast is load-bearing for the receiver's own type, a different print path
-//     (SS-12). REJECTED here.
+//. REJECTED here.
 //   * casts under any other callee (isGreaterThan family, GetValue, add, split, …) —
 //     out of this slice's consumer set (the same String-declared-operand proof would
-//     apply, but the slice boundary is the four consumers the campaign named).
+//     apply, but this section covers only the four consumers).
 //   * operands that are not plain identifiers (call results, element reads): the
 //     print-order proof resolves an identifier through the checker; anything else would
 //     need the dataflow module's proof (SS-09/SS-11 territory). REJECTED here.
@@ -9270,7 +9483,7 @@ export function patchJavaConsumerStringCasts (transpiler) {
     printer._javaSs06Patched = true;
 }
 
-// ===== 5. redundant `(String)` cast removal (SS-04) =====
+// ===== 5. redundant `(String)` cast removal =====
 //
 // The printer wraps string-typed operands in `(String)` checkcasts it cannot prove:
 // `x as string` -> `((String)x)`, `x.toUpperCase()` -> `((String)x).toUpperCase()`,
@@ -9434,6 +9647,10 @@ function redundantCastsOperandIsString (printer, node, stringDecls) {
                 if (name === 'numberToString' || name === 'iso8601') {
                     return true; // BaseExchange `public String` (zero venue overrides)
                 }
+                if (name === 'remove0xPrefix') {
+                    const file = resolvedSignatureFile (printer, node);
+                    return file !== undefined && HELPER_SOURCE_FILE.test (file); // base `public String`
+                }
                 if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
                     // the signature hook retypes these declarations to String; async
                     // declarations are skipped by the hook, so a call to one is not proven
@@ -9483,8 +9700,8 @@ function redundantCastsIsFinalVarRename (printer, node) {
 }
 
 // true when the statement enclosing `node` contains a conditional (`cond ? a : b`)
-// anywhere: such a line already carries a ternary, and the campaign's ternary audit
-// greps every ADDED generated line for ` ? ` — a cast removal on the same line would
+// anywhere: such a line already carries a ternary, and diff audits grep added
+// generated lines for ` ? ` — a cast removal on the same line would
 // trip it even though no ternary was added. Skip the removal (cast kept, harmless).
 function redundantCastsStatementHasConditional (node) {
     let current = node;
@@ -9785,7 +10002,7 @@ export function patchJavaRedundantStringCasts (transpiler) {
 }
 
 
-// ===== SS-05: symbol / id / code / currency PARAMETER typing =====
+// ===== symbol / id / code / currency PARAMETER typing =====
 //
 // The Java printer declares EVERY method parameter `Object` (printParameterType falls back
 // to DEFAULT_PARAMETER_TYPE).  JAVA_STRING_PARAM_POSITIONS below retypes a CLOSED set of
@@ -10145,7 +10362,7 @@ export function patchJavaParamTypes (transpiler) {
     printer._javaParamTypesPatched = true;
 }
 
-// ===== hx7 java-03: row-builder PARAMETER positions the pin boxes to `Object` =====
+// ===== row-builder PARAMETER positions the pin boxes to `Object` =====
 //
 // The pinned printer types a fixed parameter `Map<String, Object>` when its TS annotation names a
 // native-carriable alias (Dict / Market / Currency — JAVA_NATIVE_PARAMETER_TYPES) and then wraps
@@ -10212,7 +10429,7 @@ export function installJavaObjectParamPositions (transpiler) {
     printer._javaObjectParamPositionsPatched = true;
 }
 
-// ===== 10. safeList* locals (hx2 java-02): `Object x = this.safeList(..)` -> java.util.List<Object>
+// ===== 10. safeList* locals : `Object x = this.safeList(..)` -> java.util.List<Object>
 // The accessor hands back the found element only when Helpers.isArray(value) (a List<?> or a java
 // array) and otherwise the caller's default, so the default argument is proven list-shaped first.
 // Everything else (later writes, receivers, argument casts) is the shared isSafeToNarrow scan.
@@ -10354,7 +10571,7 @@ export function patchJavaSafeListLocalTypes (transpiler) {
     };
 }
 
-// ===== 7. hx2 java-03: safeBool locals -> Boolean (nullable), isTrue -> Boolean.TRUE.equals =====
+// ===== 7. safeBool locals -> Boolean (nullable), isTrue -> Boolean.TRUE.equals =====
 //
 //     Object x = this.safeBool (a, "k");            ->  Boolean x = (Boolean) this.safeBool (a, "k");
 //     Object x = this.safeBool (a, "k", false);     ->  Boolean x = (Boolean) this.safeBool (a, "k", false);
@@ -10385,9 +10602,8 @@ export function patchJavaSafeListLocalTypes (transpiler) {
 // assignment, typeof, casts, spread, printer-cast argument positions, String/List/map receiver
 // methods). A Boolean write in a conditional arm needs no restoring cast: Java types
 // `cond ? Boolean : boolean` as Boolean, without unboxing.
-// OUT OF THIS UNIT: safeBool2 / safeBoolN carry the same box and the same gate but are not in
-// this unit's line; `Helpers.isTrue (y)` for Boolean locals of OTHER families (literal
-// initialisers, handleParamBool elements) is java-06's unit.
+// Not covered here: safeBool2 / safeBoolN (same box and gate), and `Helpers.isTrue (y)` for
+// Boolean locals of other families (literal initialisers, handleParamBool elements).
 
 const JAVA_BOOL_TRUE_EQUALS = 'Boolean.TRUE.equals(';
 
@@ -10495,7 +10711,7 @@ function accessorResolvesToBase (printer, call, name, accessor) {
     return resolvesToBaseAccessor (printer, call, name);
 }
 
-// ===== java-09: declared local types for the printer's element reads =====
+// ===== declared local types for the printer's element reads =====
 //
 // `x["lit"]` prints Helpers.GetValue(x, "lit") unless a proof types the receiver. The
 // checker proves dict-shaped values (phase-1 java-d3), the local-typing slices above
@@ -10533,7 +10749,7 @@ export function installJavaDeclaredLocalTypes (transpiler) {
     // sections installed after this observer retype the declaration after it records: they answer first
     const earlier = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     printer.javaDeclaredLocalTypeResolver = (declaration) => javaPublishedLocalType (printer, declaration, earlier)
-        ?? declaredTypes.get (declaration);
+        ?? declaredTypes.get (declaration) ?? (AWAITED_LIST_ACCUMULATORS.has (declaration) ? JAVA_ARRAY_TYPE : undefined);
     // a typed destructuring element passed to a core parameter of its own type needs no conversion
     const upstreamDeclaredAs = printer.javaLocalDeclaredAs?.bind (printer);
     if (upstreamDeclaredAs !== undefined) {
@@ -10564,7 +10780,7 @@ function javaBindingDeclaredAs (printer, node, printed, type) {
         return false;
     }
     const erase = (t) => String (t ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
-    const declared = HANDLE_TYPED_BINDINGS.get (declaration) ?? h2kJ04PairBoundType (declaration);
+    const declared = HANDLE_TYPED_BINDINGS.get (declaration) ?? javaPairBoundType (declaration);
     return declared !== undefined && erase (declared) === erase (type);
 }
 
@@ -10610,7 +10826,10 @@ const JAVA_EMITTED_TYPE_TEXT = /^[A-Za-z_$][\w$.]*(?:\s*<[^\n;=]*>)?(?:\s*\[\s*\
 // ===== 11. awaited null accumulators: `Object x = null;` whose every non-null write is
 // `x = await this.<endpoint>(...)` with one Map/List CompletableFuture<T> in the generated api file.
 // Returns, ternary arms and nested-function reads keep Object (they move javac's inferred types).
-const AWAITED_ACCUMULATOR_TYPES = new Set ([ JAVA_STRUCTURE_TYPE, JAVA_ARRAY_TYPE ]);
+const AWAITED_ACCUMULATOR_TYPES = new Set ([ JAVA_STRUCTURE_TYPE, JAVA_ARRAY_TYPE, ORDERBOOK_TYPE ]);
+// the List accumulators section 11 printed: the declared-local resolver answers them, so the
+// printer's declared-List `.length` arm prints `(x == null ? 0 : x.size())`
+const AWAITED_LIST_ACCUMULATORS = new WeakSet ();
 
 function isNullishInitializer (initializer) {
     const value = unwrapParens (initializer);
@@ -10715,6 +10934,7 @@ export function patchJavaAwaitedAccumulatorTypes (transpiler) {
         if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== '') {
             return printed;
         }
+        if (type === JAVA_ARRAY_TYPE) AWAITED_LIST_ACCUMULATORS.add (declarations[0]);
         return printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
     };
 }
@@ -10824,6 +11044,10 @@ function accumulatorWriteInfo (printer, node) {
     const literal = collectionLiteralInfo (value);
     if (literal !== undefined) {
         return { type: literal.type, cast: '' };
+    }
+    // `ob = this.orderbooks[k] as WsOrderBook` prints the bare map read (Object)
+    if (wsMapReadType (value) === ORDERBOOK_TYPE && ts.isAsExpression (value)) {
+        return { type: ORDERBOOK_TYPE, cast: '(' + ORDERBOOK_TYPE + ')' };
     }
     if (!isThisCall (value)) {
         return undefined;
@@ -11027,6 +11251,16 @@ function ternaryArmType (printer, node, depth = 0) {
         && printedJavaIsString (printer, arm.left)) {
         return { type: LITERAL_STRING_TYPE, cast: false };
     }
+    if (ts.isIdentifier (arm) && arm.text !== 'undefined') {
+        try {
+            if (printer.printNode (arm, 0) === arm.text && printer.javaDeclaredTypeOf (arm) === LITERAL_STRING_TYPE) {
+                return { type: LITERAL_STRING_TYPE, cast: false };
+            }
+        } catch (e) {
+            return undefined;
+        }
+        return undefined;
+    }
     if (ts.isCallExpression (arm) && ts.isPropertyAccessExpression (arm.expression)) {
         const callee = arm.expression;
         const name = String (callee.name.text);
@@ -11045,6 +11279,10 @@ function ternaryArmType (printer, node, depth = 0) {
         }
         // String-declared base calls only; safeCurrencyCode is Object-declared in Java
         if (name !== 'safeCurrencyCode' && dataflowThisCallType (printer, arm) === LITERAL_STRING_TYPE) {
+            return { type: LITERAL_STRING_TYPE, cast: false };
+        }
+        // a venue method the printer itself retyped to String (bybit getAmount/getPrice/getCost)
+        if (internalReturnLocalType (printer, arm)?.type === LITERAL_STRING_TYPE) {
             return { type: LITERAL_STRING_TYPE, cast: false };
         }
     }
@@ -11267,7 +11505,7 @@ function concreteDeclaredType (printer, node) {
         || typeof printer.javaDeclaredLocalTypeResolver !== 'function') {
         return undefined;
     }
-    const printed = String (printer.javaDeclaredLocalTypeResolver (declaration) ?? '').replace (/^java\.util\./, '');
+    const printed = String (printer.javaDeclaredLocalType (declaration) ?? '').replace (/^java\.util\./, '');
     if (printed === 'Map<String, Object>') {
         return JAVA_STRUCTURE_TYPE;
     }
@@ -11624,7 +11862,7 @@ export function patchJavaObjectKeysStringLists (transpiler) {
     };
 }
 
-// ===== 18. ws receive locals (J10-R15) =====
+// ===== 18. ws receive locals =====
 // `const x = await this.watch|watchMultiple (...)` takes the class the handlers resolve, proven by
 // the local's own receiver calls: `.getLimit (...)` marks a list stream (an ArrayCache or a plain
 // resolved list, so List<Object>), `.limit ()` a WsOrderBook. Both print through callDynamically,
@@ -11740,7 +11978,7 @@ export function patchJavaUrlsDescribeStringLocals (transpiler) {
         const iden = printer.getIden (identation);
         const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
         const at = printed.lastIndexOf (marker);
-        if (at === -1 || !printed.startsWith ('Helpers.GetValue(', at + marker.length)) {
+        if (at === -1 || !/^(?:Helpers\.GetValue\(|\(\((?:java\.util\.)?Map<String, Object>\))/.test (printed.slice (at + marker.length))) {
             return printed;
         }
         let ok = false;
@@ -11961,6 +12199,31 @@ function javaDtoElementUsesAreMapOnly (declaration) {
     return scope !== undefined;
 }
 
+// `const apiName = api[0]` in sign/fetch2/request, where `api: string[]` prints as an Object list. Every
+// element is a path string, so the guarded read takes the String cast and the local stays a String.
+function javaSignApiElementLocalType (printer, declaration) {
+    const read = unwrapParens (declaration.initializer);
+    if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
+        || !ts.isNumericLiteral (read.argumentExpression)) {
+        return undefined;
+    }
+    const param = printer.getChecker ().getSymbolAtLocation (read.expression)?.valueDeclaration?.resolve ();
+    const method = param?.parent;
+    if (param?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || ![ 'sign', 'fetch2', 'request' ].includes (String (method.name?.text)) || method.parameters.indexOf (param) !== 1
+        || String (param.type?.getText () ?? '').replace (/\s+/g, '') !== 'string[]') {
+        return undefined;
+    }
+    // `api: string[]` types the element as string, so a `+` on it is the String overload
+    const info = { type: 'String', nonNull: true };
+    if (!isSafeToNarrow (printer, declaration, declaration.name.text, info.type, false, info)) {
+        return undefined;
+    }
+    const list = printer.printNode (read.expression, 0);
+    const k = printer.printNode (read.argumentExpression, 0);
+    return { type: 'String', cast: '(String) ', rhs: `(${list} == null || ${k} >= ((java.util.List<?>)${list}).size() ? null : ((java.util.List<?>)${list}).get(${k}))` };
+}
+
 function javaTypedListElementLocalType (printer, declaration) {
     const read = unwrapParens (declaration.initializer);
     if (read === undefined || !ts.isElementAccessExpression (read) || !ts.isIdentifier (read.expression)
@@ -11978,7 +12241,7 @@ function javaTypedListElementLocalType (printer, declaration) {
     if (element !== 'String' && !javaDtoElementUsesAreMapOnly (declaration)) {
         return undefined;
     }
-    const info = element === 'String' ? { type: 'String', nonNull: false, strictPlus: true } : { type: element };
+    const info = element === 'String' ? { type: 'String', nonNull: false, strictPlus: true, stringListElement: true } : { type: element };
     if (!isSafeToNarrow (printer, declaration, declaration.name.text, info.type, /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName), info)) {
         return undefined;
     }
@@ -12004,7 +12267,7 @@ export function patchJavaTypedListElementLocals (transpiler) {
         }
         let found;
         try {
-            found = javaTypedListElementLocalType (printer, declaration);
+            found = javaTypedListElementLocalType (printer, declaration) ?? javaSignApiElementLocalType (printer, declaration);
         } catch (e) {
             return printed;
         }
@@ -12019,7 +12282,7 @@ export function patchJavaTypedListElementLocals (transpiler) {
             return printed;
         }
         retyped.set (declaration, found.type);
-        return printed.slice (0, at) + `${iden}${found.type} ${name} = ` + printed.slice (at + marker.length);
+        return printed.slice (0, at) + `${iden}${found.type} ${name} = ${found.cast ?? ''}` + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));
 }
@@ -12028,6 +12291,28 @@ export function patchJavaTypedListElementLocals (transpiler) {
 // `Object x = null;` whose every non-null write already prints one scalar box (String / Long /
 // Double / Boolean) with no cast. Uses resolve by symbol, so a same-named sibling block local
 // is its own candidate; the one-box families' use scans gate the retype.
+function omitZeroConstStringLocal (printer, identifier) {
+    try {
+        const declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+        const init = declaration !== undefined && ts.isVariableDeclaration (declaration) && ts.isIdentifier (declaration.name)
+            && (declaration.parent.flags & ts.NodeFlags.Const) !== 0 ? unwrapParens (declaration.initializer) : undefined;
+        const arg = init !== undefined && isThisCall (init) && init.expression.name.text === 'omitZero' && init.arguments.length === 1
+            ? unwrapParens (init.arguments[0]) : undefined;
+        const argDeclaration = arg !== undefined && ts.isIdentifier (arg)
+            ? printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve () : undefined;
+        // the argument is a const String local (base safeString*), so the String overload binds
+        if (argDeclaration === undefined || !ts.isVariableDeclaration (argDeclaration)
+            || !isStaticallyStringExpression (printer, unwrapParens (argDeclaration.initializer), undefined)
+            || !HELPER_SOURCE_FILE.test (resolvedSignatureFile (printer, init) ?? '')) {
+            return false;
+        }
+        const isProFile = /[\\\\/]pro[\\\\/]/.test (declaration.getSourceFile ().fileName);
+        return isSafeToNarrow (printer, declaration, String (declaration.name.text), 'String', isProFile, { type: 'String', nonNull: false, strictPlus: true });
+    } catch (e) {
+        return false;
+    }
+}
+
 function nullScalarWriteType (printer, node) {
     const value = unwrapParens (node);
     if (value === undefined) {
@@ -12037,7 +12322,16 @@ function nullScalarWriteType (printer, node) {
         return 'null';
     }
     if (ts.isIdentifier (value)) {
-        return handleTypedBindingReadType (printer, value); // an element binding section 4/28 typed
+        // an element binding section 4/28 typed, a String-printed local/param, or a later-printed
+        // `const x = this.omitZero (<String>)` local that the declaration scan proves String
+        return handleTypedBindingReadType (printer, value) ?? (isDeclaredStringIdentifier (printer, value) || omitZeroConstStringLocal (printer, value)
+            ? JAVA_DATAFLOW_STRING : undefined);
+    }
+    if (ts.isConditionalExpression (value)) {
+        // arms that are each String (or null) keep the Java conditional String
+        const arms = [ value.whenTrue, value.whenFalse ].map ((arm) => nullScalarWriteType (printer, arm));
+        return arms.every ((t) => t === JAVA_DATAFLOW_STRING || t === 'null') && arms.includes (JAVA_DATAFLOW_STRING)
+            ? JAVA_DATAFLOW_STRING : undefined;
     }
     const numeric = numericFamilyCallType (printer, value);
     if (numeric === 'Long' || numeric === 'Double') {
@@ -12215,7 +12509,8 @@ function javaOmitSourceIsMap (printer, source, depth) {
             ? printer.javaOptionalParameterType?.(declaration) : printer.javaNativeParameterType?.(declaration);
     } else {
         // a tuple binding / write target typed by the handle* section publishes in HANDLE_TYPED_BINDINGS
-        type = printer.javaDeclaredLocalTypeResolver?.(declaration) ?? HANDLE_TYPED_BINDINGS.get (declaration);
+        type = printer.javaDeclaredLocalType?.(declaration) ?? HANDLE_TYPED_BINDINGS.get (declaration)
+            ?? javaPairBoundType (declaration);
     }
     if (String (type ?? '').replace (/^java\.util\./, '') !== 'Map<String, Object>') {
         return false;
@@ -12264,6 +12559,9 @@ function javaOmitSelfCall (printer, node, declaration) {
     }
 }
 
+// omit-of-Map locals: a handle* params slot write takes the Map checkcast (see handleTupleTargetType)
+const OMIT_TUPLE_TARGETS = new WeakSet ();
+
 function javaOmitLocalType (printer, declaration) {
     if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1) {
         return undefined;
@@ -12276,7 +12574,8 @@ function javaOmitLocalType (printer, declaration) {
     const writeOk = (right) => javaOmitMapCall (printer, right) !== undefined || javaOmitMapTernary (printer, right) !== undefined
         || javaOmitSelfCall (printer, right, declaration) || accumulatorWriteInfo (printer, right)?.type === JAVA_STRUCTURE_TYPE;
     return isSafeToNarrow (printer, declaration, String (declaration.name.text), JAVA_STRUCTURE_TYPE, isProFile,
-        { noCastAssertions: true, writeOk }) ? info : undefined;
+        { noCastAssertions: true, writeOk, destructureOk: (assignment, at) => at === 1 && handleElement1Type (printer, unwrapParens (assignment.right)) !== undefined })
+        ? info : undefined;
 }
 
 export function patchJavaOmitLocalTypes (transpiler) {
@@ -12311,6 +12610,7 @@ export function patchJavaOmitLocalTypes (transpiler) {
             return printed;
         }
         typed.set (declaration, info.type);
+        OMIT_TUPLE_TARGETS.add (declaration);
         const cast = info.cast === '' ? '' : info.cast + ' ';
         return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${cast}` + printed.slice (at + marker.length);
     };
@@ -13276,10 +13576,8 @@ function longLimitLongArm (lines, from, to, arm) {
 }
 
 // the printed initializer with `L` literals, or undefined; `boxChanges` = the old box was Integer
+// (a bare int literal local fed to Long slots is typed by the printer: javaLongLimitLiteralLocal)
 function longLimitInitializer (lines, from, to, type, value) {
-    if (LONG_LIMIT_INT.test (value)) {
-        return (type === 'Integer' || type === 'Object') ? { text: value + 'L', boxChanges: true } : undefined;
-    }
     // a copy of a Long name (or Math.min/max over one) already holds a Long box
     if (type === 'Object' && longLimitLongArm (lines, from, to, value)) {
         return { text: value, boxChanges: false };
@@ -13339,7 +13637,7 @@ function longLimitUseOk (line, name, boxChanges) {
     while ((m = re.exec (code)) !== null) {
         const before = code.slice (0, m.index);
         const after = code.slice (m.index + name.length);
-        if (/Helpers\.toLongOrNull\($/.test (before) && /^\)/.test (after)) continue;
+        if (/(?:Helpers\.toLongOrNull|Long\.valueOf)\($/.test (before) && /^\)/.test (after)) continue;
         if (/java\.util\.Objects\.equals\($/.test (before) && /^, null\)/.test (after)) continue;
         if (/\(long\) $/.test (before) && /^\)/.test (after)) continue;
         // a map value: request.put("k", x) / put( "k", x ); / newMap(..., "k", x
@@ -13394,7 +13692,7 @@ function longLimitRetypeMember (lines, from, to) {
                 why = lines[j].trim ();
                 break;
             }
-            if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`)) { ok = false; break; }
+            if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`) && !code.includes (`Long.valueOf(${name})`)) { ok = false; break; }
             if (!longLimitUseOk (lines[j], name, boxChanges)) { ok = false; why = lines[j].trim (); break; }
             if (longLimitFeeds (code, name)) fed = true;
         }
@@ -13409,9 +13707,9 @@ function longLimitRetypeMember (lines, from, to) {
     if (longLimitRetypeGroups (lines, from, to)) changed = true;
     // a Long-declared name needs no toLongOrNull conversion
     for (let j = from; j < to; j++) {
-        if (!lines[j].includes ('Helpers.toLongOrNull(')) continue;
+        if (!lines[j].includes ('Helpers.toLongOrNull(') && !lines[j].includes ('Long.valueOf(')) continue;
         // BaseExchange declares `Long milliseconds()` / `Long seconds()`
-        const next = lines[j].replace (/Helpers\.toLongOrNull\(([A-Za-z_]\w*)\)/g, (whole, n) =>
+        const next = lines[j].replace (/(?:Helpers\.toLongOrNull|Long\.valueOf)\(([A-Za-z_]\w*)\)/g, (whole, n) =>
             (longLimitIsLong (lines, from, to, n) ? n : whole))
             .replace (/Helpers\.toLongOrNull\((this\.(?:milliseconds|seconds)\(\))\)/g, '$1');
         if (next !== lines[j]) { lines[j] = next; changed = true; }
@@ -13539,7 +13837,7 @@ function longLimitPromotes (a, b) {
 }
 
 function longLimitRetypeGroups (lines, from, to) {
-    if (!lines.slice (from, to).some ((l) => l.includes ('Helpers.toLongOrNull(') || l.includes ('Helpers.multiply('))) return false;
+    if (!lines.slice (from, to).some ((l) => l.includes ('Helpers.toLongOrNull(') || l.includes ('Long.valueOf(') || l.includes ('Helpers.multiply('))) return false;
     const declRe = /^(\s*)(Integer|Object) ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
     const typeCache = new Map ();
     const ctx = {
@@ -13643,7 +13941,7 @@ function longLimitRetypeGroups (lines, from, to) {
                     if (rhsCount === 0) continue;
                 }
                 let ok = false;
-                if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`)) ok = false;
+                if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`) && !code.includes (`Long.valueOf(${name})`)) ok = false;
                 else if (w !== undefined && w.name !== name) {
                     const atoms = w.n.atoms.filter ((a) => a === name).length;
                     const condUses = w.n.conds.map ((c) => (longLimitCodeOnly (c).match (mention (name)) ?? []).length).reduce ((x, y) => x + y, 0);
@@ -13682,7 +13980,7 @@ function longLimitRetypeGroups (lines, from, to) {
 
 // a Long slot: a toLongOrNull argument or a bare Helpers.multiply operand (section 56)
 function longLimitFeeds (code, name) {
-    if (code.includes (`Helpers.toLongOrNull(${name})`)) return true;
+    if (code.includes (`Helpers.toLongOrNull(${name})`) || code.includes (`Long.valueOf(${name})`)) return true;
     // section 57: an operand of a native Math.min must print long
     if (new RegExp (`Math\\.min\\((?:${name}, [^()]*|[^()]*, ${name})\\)`).test (code)) return true;
     const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
@@ -13696,7 +13994,7 @@ function longLimitFeeds (code, name) {
 }
 
 export function nativeJavaLongLimitLocals (content) {
-    if (!content.includes ('Helpers.toLongOrNull(') && !content.includes ('Helpers.multiply(') && !content.includes ('Helpers.mathMin(')) {
+    if (!content.includes ('Helpers.toLongOrNull(') && !content.includes ('Long.valueOf(') && !content.includes ('Helpers.multiply(') && !content.includes ('Helpers.mathMin(')) {
         return content;
     }
     const lines = content.split ('\n');
@@ -14753,6 +15051,16 @@ export function installJavaBooleanParams (transpiler) {
         const bare = unwrapParens (node);
         if (bare === undefined || bare.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (bare) && bare.text === 'undefined')) {
             return upstreamConvert (type, printed, node);
+        }
+        // a definite TS `boolean` (e.g. a MarketInterface flag) holds a Boolean even when its local prints Object
+        let checked;
+        try {
+            checked = printer.getChecker ().getTypeAtLocation (bare);
+        } catch (e) {
+            checked = undefined;
+        }
+        if (checked !== undefined && (checked.flags & ts.TypeFlags.BooleanLike) !== 0) {
+            return printed.startsWith ('(Boolean) ') ? printed : `(Boolean) ${printed}`;
         }
         throw new Error (`java boolean param: argument ${printed} is not a boolean literal or Boolean slot`);
     };
@@ -16114,10 +16422,10 @@ function mathMinRetypeLiterals (lines, from, to, names) {
     return true;
 }
 
-// ===== H2K-J02: element writes on Object-declared locals that only ever hold a fresh map =====
+// ===== element writes on Object-declared locals that only ever hold a fresh map =====
 // Section 33 needs a Map-declared receiver; a local printed `Object` whose initializer and every
 // write is a fresh HashMap/LinkedHashMap (never null, never concurrent) takes the cast put instead.
-function javaH2kJ02Published (checker, home, symbol) {
+function javaSymbolPublished (checker, home, symbol) {
     let published = false;
     const walk = (node) => {
         if (published || node === undefined) {
@@ -16141,7 +16449,7 @@ function javaH2kJ02Published (checker, home, symbol) {
     return published;
 }
 
-function javaH2kJ02FreshLocal (printer, receiver) {
+function javaFreshMapLocal (printer, receiver) {
     const checker = printer.getChecker ();
     const symbol = checker.getSymbolAtLocation (receiver);
     const declaration = printer.javaDeclarationOfIdentifier (receiver);
@@ -16150,13 +16458,13 @@ function javaH2kJ02FreshLocal (printer, receiver) {
         return false;
     }
     const init = javaFreshMapUnwrap (declaration.initializer);
-    return init !== undefined && javaFreshMapValue (init, new Set ()) && javaH2kJ02Stable (printer, symbol, declaration)
-        && !javaH2kJ02Published (checker, enclosingFunction (declaration), symbol);
+    return init !== undefined && javaFreshMapValue (init, new Set ()) && javaFreshMapSymbolStable (printer, symbol, declaration)
+        && !javaSymbolPublished (checker, enclosingFunction (declaration), symbol);
 }
 
 // every write is a fresh map, or `x = this.m (.., x, ..)` where every dispatchable m hands x back
 // (mergeBalanceAccount); a destructuring write that binds x rejects
-function javaH2kJ02Stable (printer, symbol, declaration) {
+function javaFreshMapSymbolStable (printer, symbol, declaration) {
     const checker = printer.getChecker ();
     const home = enclosingFunction (declaration);
     let ok = home !== undefined;
@@ -16197,13 +16505,13 @@ function javaH2kJ02Stable (printer, symbol, declaration) {
     return ok;
 }
 
-export function installJavaH2kJ02FreshObjectMapWrites (transpiler) {
+export function installJavaFreshObjectMapWrites (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printCustomBinaryExpressionIfAny !== 'function'
-        || typeof printer.javaDeclarationOfIdentifier !== 'function' || printer._javaH2kJ02Patched) {
+        || typeof printer.javaDeclarationOfIdentifier !== 'function' || printer._javaFreshMapWritesPatched) {
         return;
     }
-    printer._javaH2kJ02Patched = true;
+    printer._javaFreshMapWritesPatched = true;
     const upstream = printer.printCustomBinaryExpressionIfAny.bind (printer);
     printer.printCustomBinaryExpressionIfAny = function (node, identation) {
         const printed = upstream (node, identation);
@@ -16235,7 +16543,7 @@ export function installJavaH2kJ02FreshObjectMapWrites (transpiler) {
         } else if (ts.isIdentifier (key) && rest.startsWith (`((String)${key.text}), `)) {
             keyText = printedKey = `((String)${key.text})`;
         }
-        if (keyText === undefined || !javaH2kJ02FreshLocal (printer, receiver)) {
+        if (keyText === undefined || !javaFreshMapLocal (printer, receiver)) {
             return printed;
         }
         const tail = rest.slice (printedKey.length + 2);
@@ -16245,10 +16553,10 @@ export function installJavaH2kJ02FreshObjectMapWrites (transpiler) {
     };
 }
 
-// ===== H2K-j04: Map tuple locals feeding a Map core slot of an inherited async call =====
+// ===== Map tuple locals feeding a Map core slot of an inherited async call =====
 // The slot already prints `Helpers.toMapArg(x)` (static Map<String, Object>), so a Map-typed x
 // keeps every argument's static type and hence Java overload resolution unchanged.
-export function h2kJ04FeedsMapCoreSlot (printer, use, expected) {
+export function javaFeedsMapCoreSlot (printer, use, expected) {
     if (expected !== JAVA_MAP_TYPE || use === undefined || !ts.isIdentifier (use)) {
         return false;
     }
@@ -16277,20 +16585,20 @@ export function h2kJ04FeedsMapCoreSlot (printer, use, expected) {
 }
 
 // a destructuring element section 46 printed as a typed Pair read (`Map<String, Object> x = h.second()`)
-export function h2kJ04PairBoundType (declaration) {
+export function javaPairBoundType (declaration) {
     const type = PAIR_BOUND_TYPES.get (declaration);
     return type !== undefined && pairSameType (type, PAIR_MAP) ? type : undefined;
 }
 
-// ===== H2K-j08: native Helpers.isEqual / Helpers.isTrue on proven Java types =====
+// ===== native Helpers.isEqual / Helpers.isTrue on proven Java types =====
 // Text pass over one generated class (runs last). isEqual goes native only when both operands have
 // the same boxed family (Long/long, int/Integer, String, Boolean); isTrue only on Boolean/boolean.
-const J08_LONG_CALL = /^this\.(safeInteger|safeInteger2|safeIntegerN|safeTimestamp|parseToInt)\(/;
-const J08_INT_CALL = /^this\.(precisionFromString)\(/;
-const J08_BOOL_FIELD = /^(?:(?:[A-Z]\w*\.)?this)\.(isSandboxModeEnabled|newUpdates)$/;
-const J08_NOT_TYPES = new Set ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'final' ]);
+const JAVA_EQUAL_LONG_CALL = /^this\.(safeInteger|safeInteger2|safeIntegerN|safeTimestamp|parseToInt)\(/;
+const JAVA_EQUAL_INT_CALL = /^this\.(precisionFromString)\(/;
+const JAVA_EQUAL_BOOL_FIELD = /^(?:(?:[A-Z]\w*\.)?this)\.(isSandboxModeEnabled|newUpdates)$/;
+const JAVA_EQUAL_NOT_TYPES = new Set ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'final' ]);
 
-function j08BalancedEnd (s, open) {
+function javaBalancedEnd (s, open) {
     let depth = 0;
     for (let k = open; k < s.length; k++) {
         const ch = s[k];
@@ -16302,15 +16610,15 @@ function j08BalancedEnd (s, open) {
 }
 
 // one whole call `<prefix>(...)` spanning the text
-function j08WholeCall (t, prefix) {
+function javaWholeCall (t, prefix) {
     const m = prefix.exec (t);
     if (m === null) return false;
     const open = t.indexOf ('(', m.index + m[0].length - 1);
-    return j08BalancedEnd (t, open) === t.length - 1;
+    return javaBalancedEnd (t, open) === t.length - 1;
 }
 
 // top-level split on a two-char operator (&&, ||)
-function j08Split (t, op) {
+function javaSplitTopLevel (t, op) {
     const out = [];
     let depth = 0;
     let last = 0;
@@ -16326,7 +16634,7 @@ function j08Split (t, op) {
 }
 
 // the single Java type every declaration of `name` in the member carries (undefined when unsure)
-function j08DeclaredType (lines, from, to, name, cache) {
+function javaEqualDeclaredType (lines, from, to, name, cache) {
     if (cache.has (name)) return cache.get (name);
     const decl = new RegExp (`(?<![\\w.$])([A-Za-z_][\\w.]*(?:<[^()=;]*?>)?)\\s+${name}\\b(?!\\s*\\()`, 'g');
     const lambda = new RegExp (`(?:\\(\\s*${name}\\s*\\)|(?<![\\w.$])${name})\\s*->`);
@@ -16335,7 +16643,7 @@ function j08DeclaredType (lines, from, to, name, cache) {
         const line = longMultiplyMask (lines[i]);
         if (lambda.test (line)) { types.add ('?'); break; }
         for (const m of line.matchAll (decl)) {
-            if (J08_NOT_TYPES.has (m[1])) continue;
+            if (JAVA_EQUAL_NOT_TYPES.has (m[1])) continue;
             types.add (m[1]);
         }
     }
@@ -16344,27 +16652,27 @@ function j08DeclaredType (lines, from, to, name, cache) {
     return type;
 }
 
-function j08NumKind (t, ctx) {
+function javaEqualNumKind (t, ctx) {
     t = longLimitStrip (t);
     if (/^-?\d+$/.test (t)) return 'lit';
     if (/^-?\d+L$/.test (t)) return 'long';
     if (/^"(?:[^"\\]|\\.)*"$/.test (t)) return 'str';
     if (/^[A-Za-z_]\w*$/.test (t)) {
-        const type = j08DeclaredType (ctx.lines, ctx.from, ctx.to, t, ctx.cache);
+        const type = javaEqualDeclaredType (ctx.lines, ctx.from, ctx.to, t, ctx.cache);
         return { Long: 'Long', long: 'long', Integer: 'Integer', int: 'int', String: 'String', Boolean: 'Boolean' }[type];
     }
-    if (!ctx.overrides && j08WholeCall (t, J08_LONG_CALL)) return 'Long';
-    if (!ctx.overrides && j08WholeCall (t, J08_INT_CALL)) return 'int';
+    if (!ctx.overrides && javaWholeCall (t, JAVA_EQUAL_LONG_CALL)) return 'Long';
+    if (!ctx.overrides && javaWholeCall (t, JAVA_EQUAL_INT_CALL)) return 'int';
     if (/^\(\(List<\?>\)[A-Za-z_][\w.]*\)\.size\(\)$/.test (t)) return 'int';
     const a = /^([A-Za-z_]\w*) [+-] \d+L$/.exec (t);
-    if (a !== null && [ 'Long', 'long' ].includes (j08NumKind (a[1], ctx))) return 'long';
+    if (a !== null && [ 'Long', 'long' ].includes (javaEqualNumKind (a[1], ctx))) return 'long';
     return undefined;
 }
 
 // native text for Helpers.isEqual(a, b), or undefined to keep the helper
-function j08Equal (a, b, ctx) {
-    const ka = j08NumKind (a, ctx);
-    const kb = j08NumKind (b, ctx);
+function javaNativeEqual (a, b, ctx) {
+    const ka = javaEqualNumKind (a, ctx);
+    const kb = javaEqualNumKind (b, ctx);
     if (ka === undefined || kb === undefined) return undefined;
     const kinds = new Set ([ ka, kb ]);
     const only = (...allowed) => [ ...kinds ].every ((k) => allowed.includes (k));
@@ -16379,24 +16687,24 @@ function j08Equal (a, b, ctx) {
 }
 
 // 'prim' (prints a Java boolean), 'box' (non-primitive Boolean), or undefined
-function j08BoolKind (t, ctx) {
+function javaEqualBoolKind (t, ctx) {
     t = longLimitStrip (t);
     for (const op of [ '||', '&&' ]) {
-        const parts = j08Split (t, op);
-        if (parts.length > 1) return parts.every ((p) => j08BoolKind (p, ctx) === 'prim') ? 'prim' : undefined;
+        const parts = javaSplitTopLevel (t, op);
+        if (parts.length > 1) return parts.every ((p) => javaEqualBoolKind (p, ctx) === 'prim') ? 'prim' : undefined;
     }
-    if (t.startsWith ('!')) return j08BoolKind (t.slice (1), ctx) === 'prim' ? 'prim' : undefined;
-    if (!ctx.fields && J08_BOOL_FIELD.test (t)) return 'prim';
-    if (j08WholeCall (t, /^(?:Boolean\.TRUE\.equals|java\.util\.Objects\.equals)\(/)) return 'prim';
-    if (j08WholeCall (t, /^[A-Za-z_][\w.]*\.(?:startsWith|endsWith)\(/)) return 'prim';
+    if (t.startsWith ('!')) return javaEqualBoolKind (t.slice (1), ctx) === 'prim' ? 'prim' : undefined;
+    if (!ctx.fields && JAVA_EQUAL_BOOL_FIELD.test (t)) return 'prim';
+    if (javaWholeCall (t, /^(?:Boolean\.TRUE\.equals|java\.util\.Objects\.equals)\(/)) return 'prim';
+    if (javaWholeCall (t, /^[A-Za-z_][\w.]*\.(?:startsWith|endsWith)\(/)) return 'prim';
     if (/^[A-Za-z_]\w*$/.test (t)) {
-        const type = j08DeclaredType (ctx.lines, ctx.from, ctx.to, t, ctx.cache);
+        const type = javaEqualDeclaredType (ctx.lines, ctx.from, ctx.to, t, ctx.cache);
         return type === 'boolean' ? 'prim' : type === 'Boolean' ? 'box' : undefined;
     }
     return undefined;
 }
 
-function j08Member (lines, from, to, ctx0) {
+function javaEqualMember (lines, from, to, ctx0) {
     const ctx = { ...ctx0, lines, from, to, cache: new Map () };
     let changed = false;
     for (let j = from; j < to; j++) {
@@ -16412,9 +16720,9 @@ function j08Member (lines, from, to, ctx0) {
             const args = call.spans.map (([ x, y ]) => line.slice (x, y));
             let out;
             if (which === 'Equal' && args.length === 2) {
-                out = j08Equal (args[0], args[1], ctx);
+                out = javaNativeEqual (args[0], args[1], ctx);
             } else if (which === 'True' && args.length === 1) {
-                const kind = j08BoolKind (args[0], ctx);
+                const kind = javaEqualBoolKind (args[0], ctx);
                 out = kind === 'prim' ? `(${args[0].trim ()})` : kind === 'box' ? `Boolean.TRUE.equals(${args[0].trim ()})` : undefined;
             }
             if (out !== undefined) line = line.slice (0, start) + out + line.slice (call.close + 1);
@@ -16436,131 +16744,24 @@ export function nativeJavaEqualTruthy (content) {
     for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
     let changed = false;
     for (let s = 0; s < starts.length; s++) {
-        if (j08Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length, ctx)) changed = true;
+        if (javaEqualMember (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length, ctx)) changed = true;
     }
     return changed ? lines.join ('\n') : content;
 }
 
-// ===== H2K-j09: Helpers.subtract/divide/mod on non-null integral operands print native =====
-// After Integer->Long widening the helpers compute a long difference, a double quotient and a
-// double remainder; over proven non-null int/long operands the native operators give the same value and box.
-function h2kJ09Operand (state, text, op, guarded) {
-    const e0 = longLimitStrip (text);
-    const kind = guarded.has (e0) ? 'long' : longMultiplyKind (state.ctx, text, state.nonNull);
-    if (kind === undefined) return undefined;
-    const e = longLimitStrip (text);
-    if (op !== '-') return `((double) ${/^[\w.]+(\(\))?$/.test (e) ? e : '(' + e + ')'})`;
-    if (kind === 'intlit') return e + 'L';
-    return { kind, e };
-}
-
-function h2kJ09Member (lines, from, to) {
-    let state;
-    let changed = false;
-    const helpers = [ [ 'Helpers.subtract(', '-' ], [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ] ];
-    for (let j = from + 1; j < to; j++) {
-        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
-        state = state ?? longMultiplyMemberCtx (lines, from, to);
-        const guarded = h2kJ09Guarded (lines, from, j, state);
-        let line = lines[j];
-        const mask0 = longMultiplyMask (line);
-        const starts = [];
-        for (const [ h, op ] of helpers) {
-            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
-                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
-            }
-        }
-        // innermost (rightmost) first, so an outer call sees the native inner value
-        starts.sort ((a, b) => b[0] - a[0]);
-        for (const [ start, h, op ] of starts) {
-            const mask = longMultiplyMask (line);
-            const call = longMultiplyArgSpans (mask, start + h.length - 1);
-            if (call === undefined || call.spans.length !== 2) continue;
-            // a ternary arm would change the other arm's unboxing
-            if (/[?:][\s(]*$/.test (mask.slice (0, start)) || /^[\s)]*[?:]/.test (mask.slice (call.close + 1))) continue;
-            const args = call.spans.map (([ x, y ]) => line.slice (x, y).trim ());
-            const printed = args.map ((a) => h2kJ09Operand (state, a, op, guarded));
-            if (printed.includes (undefined)) continue;
-            let text;
-            if (op === '-') {
-                const [ a, b ] = printed;
-                const isLong = (p) => typeof p === 'string' || p.kind === 'long';
-                const show = (p) => (typeof p === 'string' ? p : (/^[\w.]+(\(\))?$/.test (p.e) ? p.e : `(${p.e})`));
-                if (!isLong (a) && !isLong (b)) {
-                    // an all-int difference is computed in long, as the helper does
-                    if (!/^[A-Za-z_]\w*$/.test (a.e)) continue;
-                    text = `(((long) ${a.e}) - ${show (b)})`;
-                } else {
-                    text = `(${show (a)} - ${show (b)})`;
-                }
-            } else {
-                text = `(${printed[0]} ${op} ${printed[1]})`;
-            }
-            line = line.slice (0, start) + text + line.slice (call.close + 1);
-        }
-        if (line !== lines[j]) { lines[j] = line; changed = true; }
-    }
-    return changed;
-}
-
-// Long locals a dominating `if (!Objects.equals(x, null) [&& ..]) {` block proves non-null at line j
-function h2kJ09Guarded (lines, from, j, state) {
-    const out = new Set ();
-    const ind = (l) => /^\s*/.exec (l)[0].length;
-    for (let g = j - 1; g > from; g--) {
-        const m = /^(\s*)(?:} else )?if \((.*)\)( \{)?$/.exec (lines[g]);
-        if (m === null || ind (lines[g]) >= ind (lines[j])) continue;
-        if (m[3] === undefined && lines[g + 1]?.trim () !== '{') continue;
-        // the block must still be open at j
-        let open = true;
-        for (let k = g + 1; k < j; k++) if (!/^\s*\{?$/.test (lines[k]) && ind (lines[k]) <= m[1].length) { open = false; break; }
-        if (!open) continue;
-        const cond = longLimitStrip (m[2]);
-        if (/\|\||\?/.test (cond)) continue;
-        for (const c of cond.split (' && ')) {
-            const x = /^!java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (c));
-            if (x === null || state.ctx.declType (x[1]) !== 'Long') continue;
-            // no write of the name between the guard and the use, and not inside a lambda
-            const w = new RegExp (`(?<![\\w$.])${x[1]}\\s*(?:=(?!=)|\\+\\+|--)`);
-            if (lines.slice (g + 1, j + 1).some ((l) => w.test (l) || /->/.test (l))) continue;
-            out.add (x[1]);
-        }
-    }
-    return out;
-}
-
-export function h2kJ09NativeSubtractDivideMod (content) {
-    if (!/Helpers\.(?:subtract|divide|mod)\(/.test (content)) return content;
-    const lines = content.split ('\n');
-    const starts = [];
-    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
-    let changed = false;
-    for (let s = 0; s < starts.length; s++) {
-        const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
-        // a native difference can prove an outer product and vice versa
-        for (let round = 0; round < 4; round++) {
-            const a = h2kJ09Member (lines, starts[s], to);
-            const b = a && nativeJavaLongMultiplyMember (lines, starts[s], to);
-            if (a || b) changed = true;
-            if (!b) break;
-        }
-    }
-    return changed ? lines.join ('\n') : content;
-}
-
-// ===== H2K-j11: String core arguments that already print a Java String =====
+// ===== String core arguments that already print a Java String =====
 // Helpers.toStringArg is the identity on a String (and on null): drop it when the argument
 // provably prints a Java String. `const x: Str = undefined` locals print `String x = null`.
-const H2K_J11_NULL_STRING_LOCALS = new WeakSet (); // declarations this section printed `String x = null`
-const H2K_J11_STRING_METHODS = new Set ([ 'toUpperCase', 'toLowerCase', 'trim' ]);
+const JAVA_NULL_STRING_LOCALS = new WeakSet (); // declarations this section printed `String x = null`
+const JAVA_STRING_RETURNING_METHODS = new Set ([ 'toUpperCase', 'toLowerCase', 'trim' ]);
 
-function h2kJ11StringAnnotated (declaration) {
+function javaStringAnnotated (declaration) {
     const type = declaration?.type;
     return type !== undefined && (type.kind === ts.SyntaxKind.StringKeyword
         || (ts.isTypeReferenceNode (type) && ts.isIdentifier (type.typeName) && type.typeName.text === 'Str'));
 }
 
-function h2kJ11BaseDeclared (printer, node) {
+function javaBaseDeclaredString (printer, node) {
     try {
         const symbol = printer.getChecker ().getSymbolAtLocation (node);
         const decls = symbol?.declarations?.map ((d) => d.resolve ()) ?? [];
@@ -16571,7 +16772,7 @@ function h2kJ11BaseDeclared (printer, node) {
 }
 
 // does this argument print as a Java String (or the null literal)?
-function h2kJ11PrintsString (printer, node, depth = 0) {
+function javaPrintsString (printer, node, depth = 0) {
     const value = unwrapParens (node);
     if (value === undefined || depth > 4) {
         return false;
@@ -16580,7 +16781,7 @@ function h2kJ11PrintsString (printer, node, depth = 0) {
         return true;
     }
     if (ts.isConditionalExpression (value)) {
-        return h2kJ11PrintsString (printer, value.whenTrue, depth + 1) && h2kJ11PrintsString (printer, value.whenFalse, depth + 1);
+        return javaPrintsString (printer, value.whenTrue, depth + 1) && javaPrintsString (printer, value.whenFalse, depth + 1);
     }
     if (ts.isIdentifier (value)) {
         if (printer.printNode (value, 0) !== value.text) {
@@ -16592,7 +16793,7 @@ function h2kJ11PrintsString (printer, node, depth = 0) {
         } catch (e) {
             return false;
         }
-        if (declaration !== undefined && H2K_J11_NULL_STRING_LOCALS.has (declaration)) {
+        if (declaration !== undefined && JAVA_NULL_STRING_LOCALS.has (declaration)) {
             return true;
         }
         if (declaration !== undefined && ts.isBindingElement (declaration)) {
@@ -16606,13 +16807,13 @@ function h2kJ11PrintsString (printer, node, depth = 0) {
     }
     if (ts.isPropertyAccessExpression (value) && value.expression.kind === ts.SyntaxKind.ThisKeyword) {
         // hand-written BaseExchange `public String walletAddress`
-        return value.name.text === 'walletAddress' && h2kJ11BaseDeclared (printer, value.name);
+        return value.name.text === 'walletAddress' && javaBaseDeclaredString (printer, value.name);
     }
     if (ts.isElementAccessExpression (value)) {
         return joinListElementType (printer, value) === JAVA_DATAFLOW_STRING;
     }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression) && value.arguments.length === 0
-        && H2K_J11_STRING_METHODS.has (value.expression.name.text)) {
+        && JAVA_STRING_RETURNING_METHODS.has (value.expression.name.text)) {
         // String.toUpperCase() & co. on a checker-proven plain string receiver
         const type = printer.getChecker ().getTypeAtLocation (value.expression.expression);
         return type !== undefined && type.aliasSymbol === undefined && (type.flags & ts.TypeFlags.String) !== 0;
@@ -16625,8 +16826,8 @@ function h2kJ11PrintsString (printer, node, depth = 0) {
 }
 
 // a never-written `const x: Str = undefined` / `: string` local: always null, so String is exact
-function h2kJ11NullStringLocal (printer, declaration) {
-    if (!ts.isIdentifier (declaration.name) || !isNullishInitializer (declaration.initializer) || !h2kJ11StringAnnotated (declaration)
+function javaNullStringLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || !isNullishInitializer (declaration.initializer) || !javaStringAnnotated (declaration)
         || !(declaration.parent?.flags & ts.NodeFlags.Const) || declaration.parent?.declarations?.length !== 1) {
         return false;
     }
@@ -16634,12 +16835,12 @@ function h2kJ11NullStringLocal (printer, declaration) {
     return isSafeToNarrow (printer, declaration, String (declaration.name.text), 'String', isProFile, { nonNull: false });
 }
 
-export function installH2kJ11StringArgs (transpiler) {
+export function installJavaStringCoreArgs (transpiler) {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.javaConvertToCoreType !== 'function' || printer._h2kJ11StringArgsPatched) {
+    if (!printer || typeof printer.javaConvertToCoreType !== 'function' || printer._javaStringCoreArgsPatched) {
         return;
     }
-    printer._h2kJ11StringArgsPatched = true;
+    printer._javaStringCoreArgsPatched = true;
     const typed = new WeakMap ();
     const upstreamDeclarations = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -16659,7 +16860,7 @@ export function installH2kJ11StringArgs (transpiler) {
         }
         let ok = false;
         try {
-            ok = h2kJ11NullStringLocal (printer, declaration);
+            ok = javaNullStringLocal (printer, declaration);
         } catch (e) {
             ok = false;
         }
@@ -16667,7 +16868,7 @@ export function installH2kJ11StringArgs (transpiler) {
             return printed;
         }
         typed.set (declaration, 'String');
-        H2K_J11_NULL_STRING_LOCALS.add (declaration);
+        JAVA_NULL_STRING_LOCALS.add (declaration);
         return printed.slice (0, at) + `${iden}String ${name} = null` + printed.slice (at + marker.length);
     };
     // answer before every table: section 31 may have published the same local as List<String>
@@ -16683,7 +16884,7 @@ export function installH2kJ11StringArgs (transpiler) {
         }
         let ok = false;
         try {
-            ok = h2kJ11PrintsString (printer, node);
+            ok = javaPrintsString (printer, node);
         } catch (e) {
             ok = false;
         }
@@ -16691,152 +16892,7 @@ export function installH2kJ11StringArgs (transpiler) {
     };
 }
 
-// ===== H2K-j12: native Helpers.inOp on receivers the member declares Map/List (or WsClient fields) =====
-// Helpers.inOp: null receiver/key -> false; List -> contains(key); Map -> containsKey for a String key.
-// Receiver and key are replayed, so both must be plain names (or a string-literal key) and both get a null test.
-const H2K_J12_INOP = /Helpers\.inOp\(((?:client\.(?:futures|subscriptions))|[A-Za-z_]\w*), ("[\w.:-]*"|[A-Za-z_]\w*)\)/g;
-const H2K_J12_MEMBER_START = /^    (?:public|private|protected)\b/;
-const H2K_J12_RESERVED = new Set ([ 'null', 'true', 'false', 'this' ]);
-
-function h2kJ12DeclaredTypes (body, name) {
-    const types = [];
-    const re = new RegExp (`(?:^|[\\s(,])((?:java\\.util\\.)?(?:Map|List|ArrayList|HashMap)<[^;=()]*?>|[A-Z][\\w.]*|int|long|double|boolean|var)\\s+${name}\\s*(?=[=,);])`, 'g');
-    for (const m of body.matchAll (re)) {
-        types.push (m[1].replace (/^java\.util\./, ''));
-    }
-    return types;
-}
-
-function h2kJ12Only (body, name) {
-    const types = h2kJ12DeclaredTypes (body, name);
-    return types.length === 1 ? types[0] : undefined;
-}
-
-function h2kJ12Native (body, recv, key) {
-    const literal = key.startsWith ('"');
-    const keyTypes = literal ? [ 'String' ] : h2kJ12DeclaredTypes (body, key);
-    // the key is null-tested, so every declaration of it in the member must be a box
-    if (keyTypes.length === 0 || keyTypes.some ((t) => /^(?:int|long|double|boolean|var)$/.test (t)) || H2K_J12_RESERVED.has (key)) {
-        return undefined;
-    }
-    const keyType = keyTypes.every ((t) => t === 'String') ? 'String' : 'Object';
-    // any non-null key: a String key is the helper's own branch, the fields hold String keys only
-    const keyGuard = literal ? '' : `${key} != null && `;
-    if (recv.startsWith ('client.')) {
-        // WsClient.futures/subscriptions: final-in-practice ConcurrentHashMaps (never reassigned)
-        return h2kJ12Only (body, 'client') === 'Client'
-            ? `(${keyGuard}((java.util.Map<?, ?>)${recv}).containsKey(${key}))` : undefined;
-    }
-    if (H2K_J12_RESERVED.has (recv)) {
-        return undefined;
-    }
-    const type = h2kJ12Only (body, recv);
-    if (type === undefined) {
-        return undefined;
-    }
-    if (/^(?:List|ArrayList)<[^<>]*>$/.test (type)) {
-        return `(${recv} != null && ${keyGuard}${recv}.contains(${key}))`;
-    }
-    if (/^(?:Map|HashMap)<String, Object>$/.test (type) && keyType === 'String') {
-        return `(${recv} != null && ${keyGuard}${recv}.containsKey(${key}))`;
-    }
-    return undefined;
-}
-
-export function nativeJavaInOp (content) {
-    if (!content.includes ('Helpers.inOp(')) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const starts = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (H2K_J12_MEMBER_START.test (lines[i])) starts.push (i);
-    }
-    for (let s = 0; s < starts.length; s++) {
-        const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
-        const body = lines.slice (starts[s], to).join ('\n');
-        if (!body.includes ('Helpers.inOp(')) continue;
-        for (let i = starts[s]; i < to; i++) {
-            lines[i] = lines[i].replace (H2K_J12_INOP, (all, recv, key) => h2kJ12Native (body, recv, key) ?? all);
-        }
-    }
-    return lines.join ('\n');
-}
-
-// ===== H2K-j13: Helpers.toLongOrNull over proven non-null integral values =====
-// toLongOrNull(Long) is identity and toLongOrNull(Integer/long) is Long.valueOf; only
-// provably non-null operands go native (the helper returns null for null).
-const J13_MEMBER_START = /^    (?:public|private|protected)\b/;
-
-function j13Escape (s) {
-    return s.replace (/[$]/g, '\\$');
-}
-
-// kind of a local: 'Long' | 'Integer' when declared once with a non-null integral
-// initializer and never written again, else undefined
-function j13LocalKind (lines, from, to, name) {
-    const n = j13Escape (name);
-    const decl = new RegExp (`^\\s*(?:final\\s+)?(Long|Integer|Object) ${n} = (.*?);(\\s*//.*)?$`);
-    const write = new RegExp (`(?<![\\w$.])${n}\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${n}\\b`);
-    let kind;
-    let count = 0;
-    for (let i = from; i < to; i++) {
-        const line = lines[i];
-        const m = decl.exec (line);
-        if (m !== null) {
-            count++;
-            const init = m[2].trim ();
-            if (/^-?\d+L$/.test (init) && m[1] === 'Long') kind = 'Long';
-            else if (/^-?\d+$/.test (init) && m[1] === 'Integer') kind = 'Integer';
-            else if (/^\(\(List<\?>\)\w+\)\.size\(\)$/.test (init) && m[1] === 'Integer') kind = 'Integer';
-            else return undefined;
-            continue;
-        }
-        // any other write (incl. a shadowing declaration) or a lambda touching the name
-        if (write.test (line)) return undefined;
-        if (line.includes ('->') && new RegExp (`(?<![\\w$.])${n}(?![\\w$])`).test (line)) return undefined;
-    }
-    return count === 1 ? kind : undefined;
-}
-
-function j13Member (lines, from, to) {
-    let changed = false;
-    for (let i = from; i < to; i++) {
-        if (!lines[i].includes ('Helpers.toLongOrNull(')) continue;
-        let line = lines[i];
-        // toLongOrNull(Helpers.parseInt(<no nested parens>)): parseInt already returns Long or null
-        line = line.replace (/Helpers\.toLongOrNull\((Helpers\.parseInt\(\([^()]*\)\))\)/g, '$1');
-        // a primitive long difference/sum over a cast local and a long literal
-        line = line.replace (/Helpers\.toLongOrNull\((\(\(\(long\) \w+\) [-+] \d+L\))\)/g, 'Long.valueOf$1');
-        line = line.replace (/Helpers\.toLongOrNull\(([A-Za-z_]\w*)\)/g, (all, name) => {
-            const kind = j13LocalKind (lines, from, to, name);
-            if (kind === 'Long') return name;
-            if (kind === 'Integer') return `Long.valueOf(${name})`;
-            return all;
-        });
-        if (line !== lines[i]) {
-            lines[i] = line;
-            changed = true;
-        }
-    }
-    return changed;
-}
-
-export function nativeJavaToLongOrNullH2kJ13 (content) {
-    if (!content.includes ('Helpers.toLongOrNull(')) return content;
-    const lines = content.split ('\n');
-    const starts = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (J13_MEMBER_START.test (lines[i])) starts.push (i);
-    }
-    let changed = false;
-    for (let s = 0; s < starts.length; s++) {
-        if (j13Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
-    }
-    return changed ? lines.join ('\n') : content;
-}
-
-// ===== H2K-j14: native padStart ahead of the SS-12 receiver rebuild =====
+// ===== native padStart ahead of the SS-12 receiver rebuild =====
 // SS-12 rebuilds `Helpers.padStart(recv, ..)` for String-declared receivers without asking the
 // printer's own native form; prefer printNativePadStart (literal length + one-char pad) when it proves.
 export function installJavaNativePadStartFirst (transpiler) {
@@ -16859,17 +16915,16 @@ export function installJavaNativePadStartFirst (transpiler) {
     };
 }
 
-// hx4 J04
-// ===== hx4 J04: Helpers.add/subtract/multiply/divide/mod/opNeg on proven typed operands print native =====
+// ===== Helpers.add/subtract/multiply/divide/mod/opNeg on proven typed operands print native =====
 // The helpers widen Integer to Long and return null for a null operand: over non-null int/long operands
 // `+ - *` is the same long box, `/ %` the same double; opNeg negates the exact box; a static String left
 // operand already binds Helpers.add(String, ..) = `a + b`. Proofs: literals, declared types, non-null writes, null guards.
-function j04Ind (l) {
+function javaLineIndent (l) {
     return /^\s*/.exec (l)[0].length;
 }
 
 // top-level ` + ` / ` - ` / ` * ` operands of a printed expression, strings masked; undefined when not a chain
-function j04Operands (e) {
+function javaArithOperands (e) {
     const mask = longMultiplyMask (e);
     const out = [];
     let depth = 0;
@@ -16889,7 +16944,7 @@ function j04Operands (e) {
 }
 
 // 'intlit' | 'int' | 'long' | 'double' for a printed operand that is never null; undefined when unproven
-function j04Kind (ctx, text, nn) {
+function javaArithKind (ctx, text, nn) {
     const e = longLimitStrip (text);
     if (LONG_LIMIT_INT.test (e)) return 'intlit';
     if (/^-?\d+L$/.test (e)) return 'long';
@@ -16900,7 +16955,7 @@ function j04Kind (ctx, text, nn) {
     if (/^Helpers\.getArrayLength\([A-Za-z_]\w*\)$/.test (e)) return 'int';
     const cast = /^\(long\) (.*)$/.exec (e);
     if (cast !== null) {
-        const k = j04Kind (ctx, cast[1], nn);
+        const k = javaArithKind (ctx, cast[1], nn);
         return (k !== undefined && k !== 'double') ? 'long' : undefined;
     }
     if (/^[A-Za-z_]\w*$/.test (e)) {
@@ -16909,9 +16964,9 @@ function j04Kind (ctx, text, nn) {
         if (t === 'Long' || t === 'Integer' || t === 'Double') return nn (e) ? { Long: 'long', Integer: 'int', Double: 'double' }[t] : undefined;
         return undefined;
     }
-    const ops = j04Operands (e);
+    const ops = javaArithOperands (e);
     if (ops !== undefined) {
-        const ks = ops.map ((o) => j04Kind (ctx, o, nn));
+        const ks = ops.map ((o) => javaArithKind (ctx, o, nn));
         if (ks.includes (undefined) || ks.includes ('double')) return undefined;
         return ks.includes ('long') ? 'long' : 'int';
     }
@@ -16919,9 +16974,9 @@ function j04Kind (ctx, text, nn) {
 }
 
 // a printed value that is never null (the local it initialises can be read unguarded)
-function j04NonNullValue (ctx, value, nn) {
+function javaArithNonNullValue (ctx, value, nn) {
     const e = longLimitStrip (value);
-    const k = j04Kind (ctx, e, nn);
+    const k = javaArithKind (ctx, e, nn);
     if (k !== undefined && k !== 'double') return true;
     // Math.min/max return a primitive (a null box throws before the write)
     for (const callee of [ 'Math.min', 'Math.max' ]) {
@@ -16938,14 +16993,14 @@ function j04NonNullValue (ctx, value, nn) {
     if (t !== undefined) {
         const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
         const arm = (a, isTrue) => (g !== null && longLimitStrip (a) === g[2] && (g[1] === '!') === isTrue
-            && [ 'Long', 'Integer' ].includes (ctx.declType (g[2]))) || j04NonNullValue (ctx, a, nn);
+            && [ 'Long', 'Integer' ].includes (ctx.declType (g[2]))) || javaArithNonNullValue (ctx, a, nn);
         return arm (t.whenTrue, true) && arm (t.whenFalse, false);
     }
     return false;
 }
 
 // names a `!Objects.equals(x, null)` conjunction (positive) or `Objects.equals(x, null)` disjunction (negated) proves
-function j04GuardNames (cond, negated) {
+function javaGuardNames (cond, negated) {
     const c = longLimitStrip (cond);
     if (/[?:]/.test (longMultiplyMask (c)) || (negated ? / && /.test (c) : / \|\| /.test (c))) return [];
     const re = negated ? /^java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/ : /^!java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/;
@@ -16957,7 +17012,7 @@ function j04GuardNames (cond, negated) {
     return out;
 }
 
-function j04MemberCtx (lines, from, to) {
+function javaArithMemberCtx (lines, from, to) {
     const declCache = new Map ();
     const ctx = {
         declType: (name) => {
@@ -16995,9 +17050,9 @@ function j04MemberCtx (lines, from, to) {
         if (ws === undefined || ws.some ((w) => w.line >= g) || lines.slice (g, j + 1).some ((l) => /->/.test (l))) return false;
         if (ws.length > 1) {
             for (let k = g - 1; k > from; k--) {
-                if (!/^\s*(?:for|while|do)\b/.test (lines[k]) || j04Ind (lines[k]) >= j04Ind (lines[g])) continue;
+                if (!/^\s*(?:for|while|do)\b/.test (lines[k]) || javaLineIndent (lines[k]) >= javaLineIndent (lines[g])) continue;
                 let open = true;
-                for (let x = k + 2; x < g; x++) if (lines[x].trim () !== '' && j04Ind (lines[x]) <= j04Ind (lines[k])) { open = false; break; }
+                for (let x = k + 2; x < g; x++) if (lines[x].trim () !== '' && javaLineIndent (lines[x]) <= javaLineIndent (lines[k])) { open = false; break; }
                 if (open) return false;
             }
         }
@@ -17007,24 +17062,24 @@ function j04MemberCtx (lines, from, to) {
     const guardedAt = (j) => {
         if (guardCache.has (j)) return guardCache.get (j);
         const out = new Set ();
-        const ij = j04Ind (lines[j]);
+        const ij = javaLineIndent (lines[j]);
         for (let g = j - 1; g > from; g--) {
             const m = /^(\s*)(?:} else )?if \((.*)\)$/.exec (lines[g]);
-            if (m === null || lines[g + 1]?.trim () !== '{' || j04Ind (lines[g + 1]) !== m[1].length) continue;
+            if (m === null || lines[g + 1]?.trim () !== '{' || javaLineIndent (lines[g + 1]) !== m[1].length) continue;
             const ig = m[1].length;
             if (ig < ij) {
                 // `if (!Objects.equals(x, null) && ..)` whose then-block is still open at j
                 let open = true;
-                for (let k = g + 2; k < j; k++) if (lines[k].trim () !== '' && j04Ind (lines[k]) <= ig) { open = false; break; }
-                if (open) for (const x of j04GuardNames (m[2], false)) if (guardHolds (x, g, j)) out.add (x);
+                for (let k = g + 2; k < j; k++) if (lines[k].trim () !== '' && javaLineIndent (lines[k]) <= ig) { open = false; break; }
+                if (open) for (const x of javaGuardNames (m[2], false)) if (guardHolds (x, g, j)) out.add (x);
             }
             // `if (Objects.equals(x, null) || ..) { return|throw ..; }` earlier in an enclosing block
             const body = lines[g + 2]?.trim () ?? '';
-            if (ig > ij || g + 3 >= j || !/^(?:return|throw)\b.*;$/.test (body) || lines[g + 3]?.trim () !== '}' || j04Ind (lines[g + 3]) !== ig) continue;
+            if (ig > ij || g + 3 >= j || !/^(?:return|throw)\b.*;$/.test (body) || lines[g + 3]?.trim () !== '}' || javaLineIndent (lines[g + 3]) !== ig) continue;
             if (/^\s*else\b/.test (lines[g + 4] ?? '')) continue;
             let scoped = true;
-            for (let k = g + 4; k < j; k++) if (lines[k].trim () !== '' && j04Ind (lines[k]) < ig) { scoped = false; break; }
-            if (scoped) for (const x of j04GuardNames (m[2], true)) if (guardHolds (x, g, j)) out.add (x);
+            for (let k = g + 4; k < j; k++) if (lines[k].trim () !== '' && javaLineIndent (lines[k]) < ig) { scoped = false; break; }
+            if (scoped) for (const x of javaGuardNames (m[2], true)) if (guardHolds (x, g, j)) out.add (x);
         }
         guardCache.set (j, out);
         return out;
@@ -17038,7 +17093,7 @@ function j04MemberCtx (lines, from, to) {
         const ws = writes (name);
         const ok = ws !== undefined && ws.length > 0 && [ 'Long', 'Integer' ].includes (ctx.declType (name))
             && new RegExp (`^\\s*(?:final\\s+)?(?:Long|Integer) ${name} = `).test (lines[ws[0].line])
-            && ws.every ((w) => j04NonNullValue (ctx, w.value, (n) => guardedAt (w.line).has (n) || writesNonNull (n, seen)));
+            && ws.every ((w) => javaArithNonNullValue (ctx, w.value, (n) => guardedAt (w.line).has (n) || writesNonNull (n, seen)));
         seen.delete (name);
         memo.set (name, ok);
         return ok;
@@ -17048,7 +17103,7 @@ function j04MemberCtx (lines, from, to) {
 }
 
 // names the true arm of an enclosing `(!Objects.equals(x, null) && ..) ? <arm> : ..` proves at `start`
-function j04TernaryGuarded (mask, line, start) {
+function javaTernaryGuarded (mask, line, start) {
     const out = new Set ();
     for (let q = start - 1; q > 1; q--) {
         if (mask[q] !== '?' || mask[q - 1] !== ' ' || mask[q + 1] !== ' ') continue;
@@ -17068,14 +17123,14 @@ function j04TernaryGuarded (mask, line, start) {
         // the parenthesised group must be the whole condition
         const head = mask.slice (0, k).trimEnd ();
         if (k < 0 || !(/[(,]$/.test (head) || /(?<![=!<>])=$/.test (head) || /\breturn$/.test (head))) continue;
-        for (const x of j04GuardNames (line.slice (k, q - 1), false)) out.add (x);
+        for (const x of javaGuardNames (line.slice (k, q - 1), false)) out.add (x);
     }
     return out;
 }
 
 // a position where the primitive reads exactly like the helper's box: a call argument, assignment or return value
 // (not a statement, cast, ternary arm, reference compare, receiver)
-function j04PlainValuePosition (mask, start, close) {
+function javaPlainValuePosition (mask, start, close) {
     const before = mask.slice (0, start).trimEnd ();
     const after = mask.slice (close + 1);
     if (before === '' || /[;{})]$/.test (before) || /[?:][\s(]*$/.test (before) || /^[\s)]*[?:]/.test (after)) return false;
@@ -17083,7 +17138,7 @@ function j04PlainValuePosition (mask, start, close) {
     return true;
 }
 
-function j04Member (lines, from, to) {
+function javaArithMember (lines, from, to) {
     let state;
     let changed = false;
     const helpers = [ [ 'Helpers.add(', '+' ], [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ],
@@ -17091,7 +17146,7 @@ function j04Member (lines, from, to) {
     const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) || /^"(?:[^"\\]|\\.)*"$/.test (e) ? e : `(${e})`);
     for (let j = from + 1; j < to; j++) {
         if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
-        state = state ?? j04MemberCtx (lines, from, to);
+        state = state ?? javaArithMemberCtx (lines, from, to);
         let line = lines[j];
         const mask0 = longMultiplyMask (line);
         const starts = [];
@@ -17114,10 +17169,10 @@ function j04Member (lines, from, to) {
                 if (before === '' || /[;{}]$/.test (before)) continue;
                 text = `(${atom (args[0])} + ${atom (args[1])})`;
             } else {
-                if (!j04PlainValuePosition (mask, start, call.close)) continue;
-                const ternary = j04TernaryGuarded (mask, line, start);
+                if (!javaPlainValuePosition (mask, start, call.close)) continue;
+                const ternary = javaTernaryGuarded (mask, line, start);
                 const nn = (n) => ternary.has (n) || state.nonNullAt (n, j);
-                const kinds = args.map ((a) => j04Kind (state.ctx, a, nn));
+                const kinds = args.map ((a) => javaArithKind (state.ctx, a, nn));
                 if (kinds.includes (undefined)) continue;
                 if (op === 'neg') {
                     // opNeg negates the exact box: no widening, a literal keeps its own type
@@ -17140,22 +17195,22 @@ function j04Member (lines, from, to) {
     return changed;
 }
 
-export function nativeJavaJ04Arithmetic (content) {
+export function nativeJavaTypedArithmetic (content) {
     if (!/Helpers\.(?:add|subtract|multiply|divide|mod|opNeg)\(/.test (content)) return content;
     const lines = content.split ('\n');
     const starts = [];
     for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
     let changed = false;
     for (let s = 0; s < starts.length; s++) {
-        if (j04Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+        if (javaArithMember (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
     }
     return changed ? lines.join ('\n') : content;
 }
 
-// hx4 J08: Helpers.replace(r, "a", "b") with literal args on a string-typed identifier / this.x
+// Helpers.replace(r, "a", "b") with literal args on a string-typed identifier / this.x
 // receiver -> (r == null ? null : ((String)r).replaceFirst(...)); Pattern.quote / quoteReplacement
 // keep literal first-occurrence semantics when the literal holds regex or `$`/`\` characters.
-function j08ReplaceReceiverNode (node) {
+function javaReplaceReceiverNode (node) {
     let receiver = node?.expression?.expression;
     while (receiver !== undefined && (ts.isParenthesizedExpression (receiver)
         || ((ts.isAsExpression (receiver) || ts.isTypeAssertion (receiver)) && receiver.type?.kind === ts.SyntaxKind.StringKeyword))) {
@@ -17164,7 +17219,7 @@ function j08ReplaceReceiverNode (node) {
     return receiver;
 }
 
-function j08ReplaceReceiverIsPlain (node) {
+function javaReplaceReceiverIsPlain (node) {
     if (node === undefined) {
         return false;
     }
@@ -17172,11 +17227,11 @@ function j08ReplaceReceiverIsPlain (node) {
         return true;
     }
     return ts.isPropertyAccessExpression (node) && ts.isIdentifier (node.name)
-        && (node.expression.kind === ts.SyntaxKind.ThisKeyword || j08ReplaceReceiverIsPlain (node.expression))
+        && (node.expression.kind === ts.SyntaxKind.ThisKeyword || javaReplaceReceiverIsPlain (node.expression))
         && node.expression.kind !== ts.SyntaxKind.Identifier;
 }
 
-function j08ReplaceStringTyped (printer, node) {
+function javaReplaceStringTyped (printer, node) {
     const type = printer.getChecker ().getTypeAtLocation (node);
     if (type === undefined) {
         return false;
@@ -17193,7 +17248,7 @@ function j08ReplaceStringTyped (printer, node) {
     return sawString;
 }
 
-function j08NativeReplaceText (printer, node, out) {
+function javaReceiverReplaceText (printer, node, out) {
     const args = node?.arguments;
     if (typeof out !== 'string' || args === undefined || args.length !== 2
         || !ts.isStringLiteral (args[0]) || !ts.isStringLiteral (args[1]) || args[0].text === '') {
@@ -17204,8 +17259,8 @@ function j08NativeReplaceText (printer, node, out) {
     if (m === null) {
         return out;
     }
-    const receiver = j08ReplaceReceiverNode (node);
-    if (!j08ReplaceReceiverIsPlain (receiver) || !j08ReplaceStringTyped (printer, receiver)) {
+    const receiver = javaReplaceReceiverNode (node);
+    if (!javaReplaceReceiverIsPlain (receiver) || !javaReplaceStringTyped (printer, receiver)) {
         return out;
     }
     const recv = m[1] ?? m[2] ?? m[3];
@@ -17218,12 +17273,12 @@ function j08NativeReplaceText (printer, node, out) {
     return `(${recv} == null ? null : ((String)${recv}).replaceFirst(${pattern}, ${replacement}))`;
 }
 
-export function installJ08NativeReplace (transpiler) {
+export function installJavaLiteralReplace (transpiler) {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.printReplaceCall !== 'function' || printer._j08NativeReplacePatched) {
+    if (!printer || typeof printer.printReplaceCall !== 'function' || printer._javaReceiverReplaceNativePatched) {
         return;
     }
-    printer._j08NativeReplacePatched = true;
+    printer._javaReceiverReplaceNativePatched = true;
     // the guarded native print is a String too: keep `String x = ` local typing on it
     const entry = RECEIVER_METHOD_LOCAL_ENTRIES.replace;
     const previous = entry.match;
@@ -17233,19 +17288,18 @@ export function installJ08NativeReplace (transpiler) {
     printer.printReplaceCall = function (node, identation, name, parsedArg, parsedArg2) {
         const out = upstream (node, identation, name, parsedArg, parsedArg2);
         try {
-            return j08NativeReplaceText (this, node, out);
+            return javaReceiverReplaceText (this, node, out);
         } catch (e) {
             return out;
         }
     };
 }
 
-// hx4 J10
-// ===== hx4 J10 (A): venue defaulted boolean parameters print `Boolean` =====
+// ===== venue defaulted boolean parameters print `Boolean` =====
 // Per venue file (method -> positions): every declaration defaults to a boolean literal, is never written,
 // and every call passes a literal, nothing, null or a Boolean/boolean-declared value. Same proof as section 43,
 // scoped to one file so a same-named method in another venue keeps its own signature.
-function j10BooleanParamTable () {
+function javaBooleanParamTable () {
     return {
         'extended.ts': { getExtendedStarkAmount: [ 2 ] },
         'hyperliquid.ts': { constructPhantomAgent: [ 1 ], isUnifiedEnabled: [ 2 ] },
@@ -17264,66 +17318,66 @@ function j10BooleanParamTable () {
     };
 }
 
-function j10BooleanParamType (printer, node) {
+function javaDefaultedBooleanParamType (printer, node) {
     const method = node?.parent;
     if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration || !ts.isIdentifier (method.name ?? {})) {
         return undefined;
     }
     const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
     const m = /\/ts\/src\/((?:pro\/|prediction\/)?[a-z0-9]+\.ts)$/.exec (fileName);
-    const positions = m === null ? undefined : j10BooleanParamTable ()[m[1]]?.[method.name.text];
+    const positions = m === null ? undefined : javaBooleanParamTable ()[m[1]]?.[method.name.text];
     if (!Array.isArray (positions) || !positions.includes (method.parameters.indexOf (node)) || !printer.javaIsPrintedMethod (method)) {
         return undefined;
     }
     const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
     if (!isBooleanLiteralNode (node.initializer) || ![ '', 'boolean', 'Bool' ].includes (annotation)
         || !ts.isIdentifier (node.name) || printer.javaParameterIsWritten (node)) {
-        throw new Error (`hx4 J10: ${method.name.text} (${m[1]}) param ${node.name.getText ()} is not a read-only boolean-literal default`);
+        throw new Error (`java defaulted boolean param type: ${method.name.text} (${m[1]}) param ${node.name.getText ()} is not a read-only boolean-literal default`);
     }
     return 'Boolean';
 }
 
-// ===== hx4 J10 (B): integer-literal counters print `long` =====
+// ===== integer-literal counters print `long` =====
 // `let x = <int>` whose every write is `<int>`, `x ± <int>`, `x ±= <int>` or `x++`/`x--`, and whose every read is an
 // ordering comparison, an arithmetic operand, an element index or a this.sum argument: each of those reads goes
 // through a helper that normalises Integer to Long, or through the printer's native long rule, so the value is unchanged.
-function j10IntLiteral (node) {
+function javaIntLiteral (node) {
     const n = unwrapParens (node);
     const lit = n !== undefined && ts.isPrefixUnaryExpression (n) && n.operator === ts.SyntaxKind.MinusToken ? n.operand : n;
     return lit !== undefined && ts.isNumericLiteral (lit) && /^\d{1,9}$/.test (lit.text);
 }
 
-function j10SameSymbol (checker, symbol, node) {
+function javaSameSymbol (checker, symbol, node) {
     const n = unwrapParens (node);
     return n !== undefined && ts.isIdentifier (n) && checker.getSymbolAtLocation (n) === symbol;
 }
 
-const J10_ORDER_OPS = new Set ([ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
+const JAVA_COUNTER_ORDER_OPS = new Set ([ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
     ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ]);
-const J10_ARITH_OPS = new Set ([ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken, ts.SyntaxKind.PercentToken ]);
+const JAVA_COUNTER_ARITH_OPS = new Set ([ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken, ts.SyntaxKind.PercentToken ]);
 
 // the write shape of an assignment to the counter: 'lit' | '+' | '-' (with its int literal), or undefined
-function j10CounterWrite (checker, symbol, binary) {
+function javaCounterWrite (checker, symbol, binary) {
     const op = binary.operatorToken.kind;
     if (op === ts.SyntaxKind.PlusEqualsToken || op === ts.SyntaxKind.MinusEqualsToken) {
-        return j10IntLiteral (binary.right) ? { op: op === ts.SyntaxKind.PlusEqualsToken ? '+' : '-', literal: unwrapParens (binary.right) } : undefined;
+        return javaIntLiteral (binary.right) ? { op: op === ts.SyntaxKind.PlusEqualsToken ? '+' : '-', literal: unwrapParens (binary.right) } : undefined;
     }
     if (op !== ts.SyntaxKind.EqualsToken) {
         return undefined;
     }
-    if (j10IntLiteral (binary.right)) {
+    if (javaIntLiteral (binary.right)) {
         return { op: 'lit', literal: unwrapParens (binary.right) };
     }
     const r = unwrapParens (binary.right);
     if (r !== undefined && ts.isBinaryExpression (r) && (r.operatorToken.kind === ts.SyntaxKind.PlusToken || r.operatorToken.kind === ts.SyntaxKind.MinusToken)
-        && j10SameSymbol (checker, symbol, r.left) && j10IntLiteral (r.right)) {
+        && javaSameSymbol (checker, symbol, r.left) && javaIntLiteral (r.right)) {
         return { op: r.operatorToken.kind === ts.SyntaxKind.PlusToken ? '+' : '-', literal: unwrapParens (r.right) };
     }
     return undefined;
 }
 
-function j10CounterAdmitted (printer, declaration) {
-    if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || !j10IntLiteral (declaration.initializer)) {
+function javaCounterAdmitted (printer, declaration) {
+    if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || !javaIntLiteral (declaration.initializer)) {
         return false;
     }
     const list = declaration.parent;
@@ -17365,13 +17419,13 @@ function j10CounterAdmitted (printer, declaration) {
         if (ts.isBinaryExpression (parent)) {
             const op = parent.operatorToken.kind;
             if (parent.left === child && op >= ts.SyntaxKind.FirstAssignment && op <= ts.SyntaxKind.LastAssignment) {
-                if (child !== n || j10CounterWrite (checker, symbol, parent) === undefined || !ts.isExpressionStatement (parent.parent)) {
+                if (child !== n || javaCounterWrite (checker, symbol, parent) === undefined || !ts.isExpressionStatement (parent.parent)) {
                     return false;
                 }
                 writes++;
                 continue;
             }
-            if (J10_ORDER_OPS.has (op) || J10_ARITH_OPS.has (op)) {
+            if (JAVA_COUNTER_ORDER_OPS.has (op) || JAVA_COUNTER_ARITH_OPS.has (op)) {
                 continue;
             }
             return false;
@@ -17387,7 +17441,7 @@ function j10CounterAdmitted (printer, declaration) {
     return writes > 0;
 }
 
-function j10CounterDeclaration (printer, node, memo) {
+function javaCounterDeclaration (printer, node, memo) {
     if (node === undefined || !ts.isIdentifier (node)) {
         return undefined;
     }
@@ -17403,7 +17457,7 @@ function j10CounterDeclaration (printer, node, memo) {
     if (!memo.has (declaration)) {
         let ok = false;
         try {
-            ok = j10CounterAdmitted (printer, declaration);
+            ok = javaCounterAdmitted (printer, declaration);
         } catch (e) {
             ok = false;
         }
@@ -17412,16 +17466,16 @@ function j10CounterDeclaration (printer, node, memo) {
     return memo.get (declaration) ? declaration : undefined;
 }
 
-export function installJ10Types (transpiler) {
+export function installJavaCounterTypes (transpiler) {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.javaOptionalParameterTypeOf !== 'function' || printer._j10TypesPatched) {
+    if (!printer || typeof printer.javaOptionalParameterTypeOf !== 'function' || printer._javaBooleanCounterTypesPatched) {
         return;
     }
-    printer._j10TypesPatched = true;
+    printer._javaBooleanCounterTypesPatched = true;
     // (A) defaulted boolean params
     const upstreamType = printer.javaOptionalParameterTypeOf.bind (printer);
     printer.javaOptionalParameterTypeOf = function (node) {
-        return j10BooleanParamType (printer, node) ?? upstreamType (node);
+        return javaDefaultedBooleanParamType (printer, node) ?? upstreamType (node);
     };
     const upstreamConvert = printer.javaConvertToCoreType.bind (printer);
     printer.javaConvertToCoreType = function (type, printed, node) {
@@ -17437,7 +17491,7 @@ export function installJ10Types (transpiler) {
         if (bare?.kind === ts.SyntaxKind.Identifier) {
             const declaration = printer.javaDeclarationOfIdentifier (bare);
             const printed = printer.printNode (bare, 0);
-            if (declaration?.kind === ts.SyntaxKind.Parameter && j10BooleanParamType (printer, declaration) === 'Boolean'
+            if (declaration?.kind === ts.SyntaxKind.Parameter && javaDefaultedBooleanParamType (printer, declaration) === 'Boolean'
                 && printed.startsWith ('java.util.Objects.requireNonNullElse(')) {
                 return printer.getIden (identation) + printed;
             }
@@ -17447,17 +17501,17 @@ export function installJ10Types (transpiler) {
     // (B) counters
     const memo = new WeakMap ();
     publishJavaDeclaredLocalTypes (printer, (declaration) => (declaration !== undefined && ts.isVariableDeclaration (declaration)
-        && j10CounterDeclaration (printer, declaration.name, memo) === declaration ? 'long' : undefined));
+        && javaCounterDeclaration (printer, declaration.name, memo) === declaration ? 'long' : undefined));
     const upstreamList = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = upstreamList (node, identation);
         const declaration = node.declarations?.length === 1 ? node.declarations[0] : undefined;
-        if (declaration === undefined || j10CounterDeclaration (printer, declaration.name, memo) !== declaration) {
+        if (declaration === undefined || javaCounterDeclaration (printer, declaration.name, memo) !== declaration) {
             return printed;
         }
         const m = new RegExp (`(?:${printer.VAR_TOKEN}|Integer|Long|int|long) ${declaration.name.text} = `).exec (printed);
         if (m === null) {
-            throw new Error (`hx4 J10: counter ${declaration.name.text} printed without a numeric declaration`);
+            throw new Error (`counter ${declaration.name.text} printed without a numeric declaration`);
         }
         return printed.slice (0, m.index) + `long ${declaration.name.text} = ` + printed.slice (m.index + m[0].length);
     };
@@ -17465,9 +17519,9 @@ export function installJ10Types (transpiler) {
     printer.printBinaryExpression = function (node, identation) {
         const op = node.operatorToken.kind;
         if (op >= ts.SyntaxKind.FirstAssignment && op <= ts.SyntaxKind.LastAssignment && ts.isIdentifier (node.left)) {
-            const declaration = j10CounterDeclaration (printer, node.left, memo);
+            const declaration = javaCounterDeclaration (printer, node.left, memo);
             if (declaration !== undefined) {
-                const write = j10CounterWrite (printer.getChecker (), printer.getChecker ().getSymbolAtLocation (node.left), node);
+                const write = javaCounterWrite (printer.getChecker (), printer.getChecker ().getSymbolAtLocation (node.left), node);
                 const name = node.left.text;
                 const lit = printer.printNode (write.literal, 0).replace (/^\((.*)\)$/, '$1');
                 return write.op === 'lit' ? `${name} = ${lit}` : `${name} = (${name} ${write.op} ${lit}L)`;
@@ -17477,13 +17531,13 @@ export function installJ10Types (transpiler) {
     };
 }
 
-// ===== hx4 J11: Object locals that only ever hold a Map print java.util.Map<String, Object> =====
+// ===== Object locals that only ever hold a Map print java.util.Map<String, Object> =====
 // Joins what sections 13/16/50 keep apart: a casted Map producer (base safeDict*, a fresh-map method)
-// with omit-of-self / Map-copy writes. The J01 put and J02 get rules then see a declared Map receiver.
-const J11_MAP_CAST = '(java.util.Map<String, Object>)';
+// with omit-of-self / Map-copy writes. The Map put/get rules then see a declared Map receiver.
+const JAVA_MAP_LOCAL_CAST = '(java.util.Map<String, Object>)';
 
 // { cast } when the printed value is a Map (or null) on every path, else undefined
-function j11MapValue (printer, node, declaration, depth = 0) {
+function javaMapLocalValue (printer, node, declaration, depth = 0) {
     const value = unwrapParens (node);
     if (value === undefined || depth > 3) {
         return undefined;
@@ -17511,7 +17565,7 @@ function j11MapValue (printer, node, declaration, depth = 0) {
             return undefined;
         }
         const fallback = value.arguments[defaultAt];
-        return fallback === undefined || j11MapValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
+        return fallback === undefined || javaMapLocalValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
     }
     const collection = collectionCallInfo (printer, value);
     if (collection !== undefined) {
@@ -17532,13 +17586,13 @@ function j11MapValue (printer, node, declaration, depth = 0) {
     return undefined;
 }
 
-function j11MapLocal (printer, declaration) {
+function javaMapLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
         || declaration.initializer === undefined) {
         return undefined;
     }
-    const init = j11MapValue (printer, declaration.initializer, declaration);
+    const init = javaMapLocalValue (printer, declaration.initializer, declaration);
     if (init === undefined) {
         return undefined;
     }
@@ -17554,18 +17608,18 @@ function j11MapLocal (printer, declaration) {
     const ok = isSafeToNarrow (printer, declaration, name, JAVA_MAP_TYPE, isProFile, {
         noCastAssertions: true,
         writeOnly: true,
-        writeOk: (right) => j11MapValue (printer, right, declaration) !== undefined,
+        writeOk: (right) => javaMapLocalValue (printer, right, declaration) !== undefined,
         destructureOk: (assignment, at) => mapLocalDestructureOk (printer, assignment, at),
     });
     return ok ? { cast: init.cast } : undefined;
 }
 
-export function installJ11MapLocals (transpiler) {
+export function installJavaMapLocalTypes (transpiler) {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaJ11MapLocalsPatched) {
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaObjectMapLocalsPatched) {
         return;
     }
-    printer._javaJ11MapLocalsPatched = true;
+    printer._javaObjectMapLocalsPatched = true;
     const typed = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -17581,7 +17635,7 @@ export function installJ11MapLocals (transpiler) {
         }
         let info;
         try {
-            info = j11MapLocal (printer, declaration);
+            info = javaMapLocal (printer, declaration);
         } catch (e) {
             info = undefined;
         }
@@ -17589,7 +17643,7 @@ export function installJ11MapLocals (transpiler) {
             return printed;
         }
         typed.set (declaration, JAVA_MAP_TYPE);
-        const head = marker.replace (/Object (\S+) = $/, `${JAVA_MAP_TYPE} $1 = `) + (info.cast ? J11_MAP_CAST + ' ' : '');
+        const head = marker.replace (/Object (\S+) = $/, `${JAVA_MAP_TYPE} $1 = `) + (info.cast ? JAVA_MAP_LOCAL_CAST + ' ' : '');
         return printed.slice (0, at) + head + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
@@ -17604,36 +17658,36 @@ export function installJ11MapLocals (transpiler) {
         let info;
         try {
             declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
-            info = declaration !== undefined && typed.has (declaration) ? j11MapValue (printer, node.right, declaration) : undefined;
+            info = declaration !== undefined && typed.has (declaration) ? javaMapLocalValue (printer, node.right, declaration) : undefined;
         } catch (e) {
             info = undefined;
         }
         if (info === undefined || !info.cast) {
             return printed;
         }
-        return accumulatorCastWrite (printer, node, printed, { cast: J11_MAP_CAST });
+        return accumulatorCastWrite (printer, node, printed, { cast: JAVA_MAP_LOCAL_CAST });
     };
 }
 
-// hx4 J12: fixed parameters of venue-only methods print their TS type instead of `Object`
+// fixed parameters of venue-only methods print their TS type instead of `Object`
 // (`string` -> String, `boolean` -> Boolean, `any[]`/`List`/`Dict[]` -> List<Object>) when the name is
 // declared once in ts/src, only ever called as `this.name (..)` in its own file with typed arguments,
 // never referenced otherwise (no dispatch tables / string names) and never written in the body.
-const J12_PARAM_TYPES = {
+const JAVA_VENUE_PARAM_TYPES = {
     'string': 'String',
     'boolean': 'Boolean',
     'any[]': 'java.util.List<Object>',
     'List': 'java.util.List<Object>',
     'Dict[]': 'java.util.List<Object>',
 };
-const J12_VENUE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/])?[a-z0-9_]+\.ts$/;
-const J12_JAVA_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
-let j12Index;
+const JAVA_VENUE_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/])?[a-z0-9_]+\.ts$/;
+const JAVA_LIB_SOURCE_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
+let javaVenueNameIndexCache;
 
 // every method/property name declared in ts/src, every non-call `.name` reference and every string literal
-function j12NameIndex () {
-    if (j12Index !== undefined) {
-        return j12Index;
+function javaVenueNameIndex () {
+    if (javaVenueNameIndexCache !== undefined) {
+        return javaVenueNameIndexCache;
     }
     const declared = new Map ();
     const referenced = new Set ();
@@ -17655,33 +17709,33 @@ function j12NameIndex () {
                 continue;
             }
             files.add (path.resolve (full));
-            j12IndexSource (ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, true), declared, referenced, literals);
+            javaVenueIndexSource (ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, true), declared, referenced, literals);
         }
     };
     visitDir (JAVA_FRESH_MAP_TS_ROOT);
     let java = '';
     try {
-        java = fs.readdirSync (J12_JAVA_DIR).filter ((f) => f.endsWith ('.java'))
-            .map ((f) => fs.readFileSync (path.join (J12_JAVA_DIR, f), 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0]).join ('\n');
+        java = fs.readdirSync (JAVA_LIB_SOURCE_DIR).filter ((f) => f.endsWith ('.java'))
+            .map ((f) => fs.readFileSync (path.join (JAVA_LIB_SOURCE_DIR, f), 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0]).join ('\n');
     } catch (e) {
         java = undefined;
     }
-    j12Index = { declared, referenced, literals, java, files };
-    return j12Index;
+    javaVenueNameIndexCache = { declared, referenced, literals, java, files };
+    return javaVenueNameIndexCache;
 }
 
 // a file written after the index was built (a probe) is folded in on first sight
-function j12IndexFile (file) {
-    const index = j12NameIndex ();
+function javaVenueIndexFile (file) {
+    const index = javaVenueNameIndex ();
     const key = path.resolve (file.fileName);
     if (!index.files.has (key)) {
         index.files.add (key);
-        j12IndexSource (file, index.declared, index.referenced, index.literals);
+        javaVenueIndexSource (file, index.declared, index.referenced, index.literals);
     }
     return index;
 }
 
-function j12IndexSource (sf, declared, referenced, literals) {
+function javaVenueIndexSource (sf, declared, referenced, literals) {
     const visit = (n) => {
         if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
             declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
@@ -17703,7 +17757,7 @@ function j12IndexSource (sf, declared, referenced, literals) {
 // the argument already prints the target Java type (no checkcast, so no new ClassCastException):
 // null, a literal of the family, a local/parameter declared that type, a primitive boolean
 // expression, an array literal, or safeList* with a list default (the section-10 checkcast proof)
-function j12ArgumentTypeAgrees (printer, arg, target) {
+function javaArgumentTypeAgrees (printer, arg, target) {
     const bare = unwrapParens (arg);
     if (bare === undefined || ts.isSpreadElement (bare)) {
         return false;
@@ -17733,7 +17787,7 @@ function j12ArgumentTypeAgrees (printer, arg, target) {
 
 // a String parameter must not be the left operand of `+` against a non-literal: Helpers.add(String, Object)
 // prints "null.." where add(Object, Object) answers null for a null left and non-String right
-function j12StringPlusHazard (method, name) {
+function javaStringPlusHazard (method, name) {
     let hazard = false;
     const visit = (n) => {
         if (hazard) {
@@ -17753,7 +17807,7 @@ function j12StringPlusHazard (method, name) {
     return hazard;
 }
 
-function j12ParamType (printer, node) {
+function javaVenueParamType (printer, node) {
     const method = node?.parent;
     if (node?.kind !== ts.SyntaxKind.Parameter || node.initializer !== undefined || node.questionToken !== undefined
         || node.dotDotDotToken !== undefined || !ts.isIdentifier (node.name) || node.type === undefined
@@ -17761,12 +17815,12 @@ function j12ParamType (printer, node) {
         || !ts.isIdentifier (method.name ?? {}) || !ts.isClassDeclaration (method.parent)) {
         return undefined;
     }
-    const target = J12_PARAM_TYPES[node.type.getText ().replace (/\s/g, '')];
+    const target = JAVA_VENUE_PARAM_TYPES[node.type.getText ().replace (/\s/g, '')];
     const file = node.getSourceFile ();
-    if (target === undefined || !J12_VENUE_FILE.test (file.fileName)) {
+    if (target === undefined || !JAVA_VENUE_SOURCE_FILE.test (file.fileName)) {
         return undefined;
     }
-    const cache = printer._j12ParamTypes ?? (printer._j12ParamTypes = new WeakMap ());
+    const cache = printer._javaVenueParamTypes ?? (printer._javaVenueParamTypes = new WeakMap ());
     if (cache.has (node)) {
         return cache.get (node);
     }
@@ -17775,13 +17829,13 @@ function j12ParamType (printer, node) {
     try {
         const name = method.name.text;
         const index = method.parameters.indexOf (node);
-        const { declared, referenced, literals, java } = j12IndexFile (file);
+        const { declared, referenced, literals, java } = javaVenueIndexFile (file);
         const unique = declared.get (name) === 1 && !referenced.has (name) && !literals.has (name)
             && java !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (java);
         const venueOnly = unique && printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name)
             && printer.javaIsPrintedMethod (method);
         const readOnly = venueOnly && !printer.javaParameterIsWritten (node) && !printer.javaParameterIsCompoundAssigned (node)
-            && !(target === 'String' && j12StringPlusHazard (method, node.name.text));
+            && !(target === 'String' && javaStringPlusHazard (method, node.name.text));
         if (readOnly) {
             let ok = true;
             const visit = (n) => {
@@ -17791,7 +17845,7 @@ function j12ParamType (printer, node) {
                 if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && n.expression.name.text === name) {
                     const arg = n.arguments[index];
                     ok = n.expression.expression.kind === ts.SyntaxKind.ThisKeyword && arg !== undefined
-                        && !n.arguments.some ((a) => ts.isSpreadElement (a)) && j12ArgumentTypeAgrees (printer, arg, target);
+                        && !n.arguments.some ((a) => ts.isSpreadElement (a)) && javaArgumentTypeAgrees (printer, arg, target);
                 }
                 n.forEachChild (visit);
             };
@@ -17805,24 +17859,24 @@ function j12ParamType (printer, node) {
     return result;
 }
 
-export function installJ12ParamTypes (transpiler) {
+export function installJavaParamTypes (transpiler) {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._j12ParamTypesPatched) {
+    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._javaVenueParamTypesPatched) {
         return;
     }
-    printer._j12ParamTypesPatched = true;
+    printer._javaVenueParamTypesPatched = true;
     const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
     printer.javaNativeParameterTypeOf = function (node) {
-        return upstreamType (node) ?? j12ParamType (printer, node);
+        return upstreamType (node) ?? javaVenueParamType (printer, node);
     };
-    // an identifier already declared the slot's type passes bare into a J12-typed slot
+    // an identifier already declared the slot's type passes bare into a venue-typed parameter slot
     const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
     printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
-        return upstreamTyped (arg, type) || j12SlotArgumentDeclared (printer, arg, type);
+        return upstreamTyped (arg, type) || javaSlotArgumentDeclared (printer, arg, type);
     };
 }
 
-function j12SlotArgumentDeclared (printer, arg, type) {
+function javaSlotArgumentDeclared (printer, arg, type) {
     const call = arg?.parent;
     if (!ts.isIdentifier (arg ?? {}) || call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)
         || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword || printer.printNode (arg, 0) !== arg.text) {
@@ -17835,20 +17889,50 @@ function j12SlotArgumentDeclared (printer, arg, type) {
     try {
         const method = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.();
         const param = method?.parameters?.[call.arguments.indexOf (arg)];
-        return param !== undefined && j12ParamType (printer, param) === type;
+        return param !== undefined && javaVenueParamType (printer, param) === type;
     } catch (e) {
         return false;
     }
 }
 
-// ===== hx4 J13: Object locals that only ever hold a List print java.util.List<Object> =====
+// ===== an identifier already declared `Map<String, Object>` passes bare into a Map slot =====
+// The call-argument checkcast `(Map<String, Object>) (request)` exists because generated locals are
+// Object; once the local prints its own Map declaration (base-setlastrequest-request-dict retyped
+// setLastRequest to Dict) the cast is a no-op. Identifier arguments only, exact declared-type match.
+const MAP_SLOT_TYPE = 'Map<String,Object>';
+
+export function installJavaMapArgAlreadyTyped (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeArgumentAlreadyTyped !== 'function' || printer._javaMapArgTypedPatched) {
+        return;
+    }
+    printer._javaMapArgTypedPatched = true;
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        if (upstreamTyped (arg, type)) {
+            return true;
+        }
+        if (String (type).replace (/java\.util\./g, '').replace (/\s/g, '') !== MAP_SLOT_TYPE
+            || arg === undefined || !ts.isIdentifier (arg) || printer.printNode (arg, 0) !== arg.text) {
+            return false;
+        }
+        try {
+            const declared = String (printer.javaDeclaredTypeOf (arg) ?? '').replace (/^final\s+/, '').replace (/java\.util\./g, '').replace (/\s/g, '');
+            return declared === MAP_SLOT_TYPE;
+        } catch (e) {
+            return false;
+        }
+    };
+}
+
+// ===== Object locals that only ever hold a List print java.util.List<Object> =====
 // Init and every write are proven lists (literal, base safeList* with a list default, Object.keys, collection
 // helpers, sync List<Object> cores, fresh-list methods); published so length/element reads see a declared List.
-const J13_LIST_TYPE = 'java.util.List<Object>';
-const J13_LIST_CAST = '(java.util.List<Object>)';
-const J13_SAFE_LIST_DEFAULT_AT = new Map ([ [ 'safeList', 2 ], [ 'safeList2', 3 ], [ 'safeListN', 2 ] ]);
+const JAVA_LIST_LOCAL_TYPE = 'java.util.List<Object>';
+const JAVA_LIST_LOCAL_CAST = '(java.util.List<Object>)';
+const JAVA_SAFE_LIST_DEFAULT_AT = new Map ([ [ 'safeList', 2 ], [ 'safeList2', 3 ], [ 'safeListN', 2 ] ]);
 
-function j13DeclaredListLocal (printer, identifier) {
+function javaDeclaredListLocal (printer, identifier) {
     let declaration;
     try {
         declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
@@ -17858,12 +17942,12 @@ function j13DeclaredListLocal (printer, identifier) {
     if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
         return false;
     }
-    const type = String (printer.javaDeclaredLocalTypeResolver?.(declaration) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    const type = String (printer.javaDeclaredLocalType?.(declaration) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
     return type === 'List<Object>';
 }
 
 // a method body whose every return is an array literal or a never-reassigned local initialised with one
-function j13FreshListBody (declaration) {
+function javaFreshListBody (declaration) {
     if (!ts.isMethodDeclaration (declaration) || declaration.body === undefined) {
         return false;
     }
@@ -17901,18 +17985,18 @@ function j13FreshListBody (declaration) {
 }
 
 // every declaration a this-call can dispatch to is a generated-tier fresh-list body (no hand-written base)
-function j13FreshListMethod (call) {
+function javaFreshListMethod (call) {
     const name = String (call.expression.name.text);
     const state = javaFreshMapMethods ();
     const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name) ?? [];
     if (declarations.length === 0 || state.handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text))) {
         return false;
     }
-    return declarations.every ((d) => j13FreshListBody (d));
+    return declarations.every ((d) => javaFreshListBody (d));
 }
 
 // { cast } when the printed value is a List<Object> (or null) on every path, else undefined
-function j13ListValue (printer, node, declaration, depth = 0) {
+function javaListLocalValue (printer, node, declaration, depth = 0) {
     let value = unwrapParens (node);
     if (value !== undefined && ts.isAsExpression (value)) {
         // printAsExpression: `as any` prints ((Object)v), `as any[]` (List<Object>)(v), `as string[]` an
@@ -17922,7 +18006,7 @@ function j13ListValue (printer, node, declaration, depth = 0) {
         if (kind === ts.SyntaxKind.StringKeyword || element === ts.SyntaxKind.StringKeyword) {
             return undefined;
         }
-        const inner = j13ListValue (printer, value.expression, declaration, depth + 1);
+        const inner = javaListLocalValue (printer, value.expression, declaration, depth + 1);
         if (inner === undefined) {
             return undefined;
         }
@@ -17938,7 +18022,7 @@ function j13ListValue (printer, node, declaration, depth = 0) {
         return literalArrayLiteralIsPlain (value) ? { cast: false } : undefined;
     }
     if (ts.isIdentifier (value)) {
-        return value.text === declaration.name.text || j13DeclaredListLocal (printer, value) ? { cast: false } : undefined;
+        return value.text === declaration.name.text || javaDeclaredListLocal (printer, value) ? { cast: false } : undefined;
     }
     if (!ts.isCallExpression (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
         return undefined;
@@ -17952,7 +18036,7 @@ function j13ListValue (printer, node, declaration, depth = 0) {
         return undefined;
     }
     const name = String (value.expression.name.text);
-    const defaultAt = J13_SAFE_LIST_DEFAULT_AT.get (name);
+    const defaultAt = JAVA_SAFE_LIST_DEFAULT_AT.get (name);
     if (defaultAt !== undefined) {
         // BaseExchange.safeList* hands back a List element of the source or the default untouched
         if (!resolvesToBaseOrStrippedAccessor (printer, value, name) || !safeListInitializerIsList (printer, value)
@@ -17960,7 +18044,7 @@ function j13ListValue (printer, node, declaration, depth = 0) {
             return undefined;
         }
         const fallback = value.arguments[defaultAt];
-        return fallback === undefined || j13ListValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
+        return fallback === undefined || javaListLocalValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
     }
     const collection = collectionCallInfo (printer, value);
     if (collection !== undefined) {
@@ -17973,19 +18057,19 @@ function j13ListValue (printer, node, declaration, depth = 0) {
     if (declared === 'List<Object>') {
         return { cast: false };
     }
-    if (declared === '' && j13FreshListMethod (value)) {
+    if (declared === '' && javaFreshListMethod (value)) {
         return { cast: true };
     }
     return undefined;
 }
 
-function j13ListLocal (printer, declaration) {
+function javaListLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
         || declaration.initializer === undefined) {
         return undefined;
     }
-    const init = j13ListValue (printer, declaration.initializer, declaration);
+    const init = javaListLocalValue (printer, declaration.initializer, declaration);
     if (init === undefined) {
         return undefined;
     }
@@ -17993,16 +18077,16 @@ function j13ListLocal (printer, declaration) {
     const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
     const name = String (declaration.name.text);
     if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
-        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, J13_LIST_TYPE)) {
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_LIST_LOCAL_TYPE)) {
         return undefined;
     }
     let listWrites = 0;
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
-    const ok = isSafeToNarrow (printer, declaration, name, J13_LIST_TYPE, isProFile, {
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_LIST_LOCAL_TYPE, isProFile, {
         noCastAssertions: true,
         writeOnly: true,
         writeOk: (right) => {
-            const info = j13ListValue (printer, right, declaration);
+            const info = javaListLocalValue (printer, right, declaration);
             if (info !== undefined && !isNullishInitializer (unwrapParens (right))) {
                 listWrites++;
             }
@@ -18013,12 +18097,12 @@ function j13ListLocal (printer, declaration) {
     return ok && (listWrites > 0 || !isNullishInitializer (unwrapParens (declaration.initializer))) ? { cast: init.cast } : undefined;
 }
 
-export function installJ13ListLocals (transpiler) {
+export function installJavaListLocals (transpiler) {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaJ13ListLocalsPatched) {
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaListLocalsPatched) {
         return;
     }
-    printer._javaJ13ListLocalsPatched = true;
+    printer._javaListLocalsPatched = true;
     const typed = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -18034,15 +18118,15 @@ export function installJ13ListLocals (transpiler) {
         }
         let info;
         try {
-            info = j13ListLocal (printer, declaration);
+            info = javaListLocal (printer, declaration);
         } catch (e) {
             info = undefined;
         }
         if (info === undefined) {
             return printed;
         }
-        typed.set (declaration, J13_LIST_TYPE);
-        const head = marker.replace (/Object (\S+) = $/, `${J13_LIST_TYPE} $1 = `) + (info.cast ? J13_LIST_CAST + ' ' : '');
+        typed.set (declaration, JAVA_LIST_LOCAL_TYPE);
+        const head = marker.replace (/Object (\S+) = $/, `${JAVA_LIST_LOCAL_TYPE} $1 = `) + (info.cast ? JAVA_LIST_LOCAL_CAST + ' ' : '');
         return printed.slice (0, at) + head + printed.slice (at + marker.length);
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
@@ -18056,32 +18140,30 @@ export function installJ13ListLocals (transpiler) {
         let info;
         try {
             const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
-            info = declaration !== undefined && typed.has (declaration) ? j13ListValue (printer, node.right, declaration) : undefined;
+            info = declaration !== undefined && typed.has (declaration) ? javaListLocalValue (printer, node.right, declaration) : undefined;
         } catch (e) {
             info = undefined;
         }
         if (info === undefined || !info.cast) {
             return printed;
         }
-        return accumulatorCastWrite (printer, node, printed, { cast: J13_LIST_CAST });
+        return accumulatorCastWrite (printer, node, printed, { cast: JAVA_LIST_LOCAL_CAST });
     };
 }
 
-// ===== hx4 J14: Object locals fed only by proven Long/Double/String/Boolean producers print that box =====
+// ===== Object locals fed only by proven Long/Double/String/Boolean producers print that box =====
 // The init and every write must be the same box (or null): a sync callee whose on-disk Java declaration
 // returns it, a base accessor that returns it on every path (checkcast), a typed local, or a literal/
-// comparison for String/Boolean. Published to javaDeclaredLocalTypeResolver so J04/J05/J08/J09 fire.
-const J14_TYPES = [ 'Long', 'Double', 'String', 'Boolean' ];
+// comparison for String/Boolean. Published to javaDeclaredLocalTypeResolver so the native arithmetic/compare/equality rules fire.
+const JAVA_SCALAR_LOCAL_TYPES = [ 'Long', 'Double', 'String', 'Boolean' ];
 // base accessors declared `Object` in Java whose box is fixed when the default argument is absent/null
-// (safeIntegerOmitZero: Long or null on every path; safeNumberOmitZero / safeIntegerProduct2/N hand the
-// default back, so only a nullish default proves them)
-const J14_CAST_ACCESSORS = {
+// (safeIntegerOmitZero: Long or null on every path; safeNumberOmitZero hands the
+// default back, so only a nullish default proves it)
+const JAVA_SCALAR_CAST_ACCESSORS = {
     'safeIntegerOmitZero': { type: 'Long', defaultAt: -1 },
     'safeNumberOmitZero': { type: 'Double', defaultAt: 2 },
-    'safeIntegerProduct2': { type: 'Long', defaultAt: 4 },
-    'safeIntegerProductN': { type: 'Long', defaultAt: 3 },
-    // hx5 X21: base `: Str` methods printed `public Object` whose hand-written/generated Java body returns a
-    // String, null or throws on every path (no ts/src venue override; j14ResolvesToBase rejects any that appears):
+    // base `: Str` methods printed `public Object` whose hand-written/generated Java body returns a
+    // String, null or throws on every path (no ts/src venue override; javaResolvesToBase rejects any that appears):
     // currencyToPrecision -> forceString (String|null) | decimalToPrecision (String); forceString -> numberToString
     // (String) | an instanceof-String value; parsePrecision -> null | "1" | String concat; convertExpireDate ->
     // null | String concat; remove0xPrefix -> Encode.remove0xPrefix ((String) checkcast, substring)
@@ -18089,17 +18171,16 @@ const J14_CAST_ACCESSORS = {
     'forceString': { type: 'String', defaultAt: -1, x21: true },
     'parsePrecision': { type: 'String', defaultAt: -1, x21: true },
     'convertExpireDate': { type: 'String', defaultAt: -1, x21: true },
-    'remove0xPrefix': { type: 'String', defaultAt: -1, x21: true },
 };
-const J14_BASE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|functions[\\/]type\.ts)$/;
+const JAVA_BASE_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|functions[\\/]type\.ts)$/;
 
-function j14ResolvesToBase (printer, call) {
+function javaResolvesToBase (printer, call) {
     const file = resolvedSignatureFile (printer, call);
-    return file !== undefined && J14_BASE_FILE.test (file);
+    return file !== undefined && JAVA_BASE_SOURCE_FILE.test (file);
 }
 
 // { cast } when the printed value is a T box or null on every path, else undefined
-function j14Value (printer, node, declaration, type, depth = 0) {
+function javaScalarLocalValue (printer, node, declaration, type, depth = 0) {
     const value = unwrapParens (node);
     if (value === undefined || depth > 4) {
         return undefined;
@@ -18124,8 +18205,8 @@ function j14Value (printer, node, declaration, type, depth = 0) {
             return { cast: '' };
         }
         if (ts.isConditionalExpression (value)) {
-            return j14Value (printer, value.whenTrue, declaration, type, depth + 1)?.cast === ''
-                && j14Value (printer, value.whenFalse, declaration, type, depth + 1)?.cast === '' ? { cast: '' } : undefined;
+            return javaScalarLocalValue (printer, value.whenTrue, declaration, type, depth + 1)?.cast === ''
+                && javaScalarLocalValue (printer, value.whenFalse, declaration, type, depth + 1)?.cast === '' ? { cast: '' } : undefined;
         }
         if (ts.isBinaryExpression (value) || ts.isPropertyAccessExpression (value)) {
             return printedJavaIsString (printer, value) ? { cast: '' } : undefined;
@@ -18133,8 +18214,8 @@ function j14Value (printer, node, declaration, type, depth = 0) {
     }
     if (type === 'Long' && ts.isBinaryExpression (value) && [ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken ].includes (value.operatorToken.kind)) {
         // Helpers.add/subtract/multiply widen Integer to Long: Long|int operands give a Long box or null
-        const operand = (o) => j10IntLiteral (o) || j14Value (printer, o, declaration, 'Long', depth + 1)?.cast === '';
-        return operand (value.left) && operand (value.right) && !(j10IntLiteral (value.left) && j10IntLiteral (value.right)) ? { cast: '(Long)' } : undefined;
+        const operand = (o) => javaIntLiteral (o) || javaScalarLocalValue (printer, o, declaration, 'Long', depth + 1)?.cast === '';
+        return operand (value.left) && operand (value.right) && !(javaIntLiteral (value.left) && javaIntLiteral (value.right)) ? { cast: '(Long)' } : undefined;
     }
     if (type === 'Boolean' && (value.kind === ts.SyntaxKind.TrueKeyword || value.kind === ts.SyntaxKind.FalseKeyword
         || javaPrimitiveBooleanExpression (printer, value))) {
@@ -18147,6 +18228,11 @@ function j14Value (printer, node, declaration, type, depth = 0) {
         && value.expression.expression.text === 'Precise') {
         return type === 'String' && PRECISE_STRING_STATICS.has (String (value.expression.name.text)) ? { cast: '' } : undefined;
     }
+    // global parseInt(x) prints Helpers.parseInt(x), declared to return Long
+    if (type === 'Long' && ts.isIdentifier (value.expression) && value.expression.text === 'parseInt' && value.arguments.length === 1
+        && /^(?:Helpers\.parseInt|Long\.parseLong)\(/.test (printer.printNode (value, 0))) {
+        return { cast: '' };
+    }
     if (!isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a)) || isAsyncMethodCall (printer, value)) {
         return undefined;
     }
@@ -18158,11 +18244,11 @@ function j14Value (printer, node, declaration, type, depth = 0) {
             return undefined;
         }
         const fallback = value.arguments[accessor.defaultArg];
-        return fallback === undefined || j14Value (printer, fallback, declaration, type, depth + 1) !== undefined ? { cast: '(Boolean)' } : undefined;
+        return fallback === undefined || javaScalarLocalValue (printer, fallback, declaration, type, depth + 1) !== undefined ? { cast: '(Boolean)' } : undefined;
     }
-    const cast = J14_CAST_ACCESSORS[name];
+    const cast = JAVA_SCALAR_CAST_ACCESSORS[name];
     if (cast !== undefined) {
-        if (cast.type !== type || !j14ResolvesToBase (printer, value) || (cast.x21 === true && !x21BaseOnlyDispatch (value))) {
+        if (cast.type !== type || !javaResolvesToBase (printer, value) || (cast.x21 === true && !x21BaseOnlyDispatch (value))) {
             return undefined;
         }
         const fallback = cast.defaultAt < 0 ? undefined : value.arguments[cast.defaultAt];
@@ -18174,8 +18260,8 @@ function j14Value (printer, node, declaration, type, depth = 0) {
 }
 
 // a ternary arm / unary operand would unbox a Long/Double/Boolean local (NPE on null); equality is
-// value-safe since hx4 J15 (two declared boxes print Objects.equals / unboxed compare)
-function j14UnboxingUse (n) {
+// value-safe (two declared boxes print Objects.equals / unboxed compare)
+function javaUnboxingUse (n) {
     let child = n;
     let parent = n.parent;
     while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
@@ -18186,7 +18272,7 @@ function j14UnboxingUse (n) {
         || ts.isPrefixUnaryExpression (parent) && parent.operator !== ts.SyntaxKind.ExclamationToken);
 }
 
-function j14ScalarLocal (printer, declaration) {
+function javaScalarLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
         || declaration.initializer === undefined || isNullishInitializer (declaration.initializer)) {
@@ -18195,35 +18281,44 @@ function j14ScalarLocal (printer, declaration) {
     const scope = enclosingFunction (declaration);
     const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
     const name = String (declaration.name.text);
-    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+        return undefined;
+    }
+    // sibling `let name = <String producer>` blocks of one method may share the String type
+    const bound = index.bindingCounts.get (name) ?? 0;
+    if (bound !== 1 && !(bound > 1 && (index.declarations.get (name) ?? []).length === bound
+        && index.declarations.get (name).every ((d) => d.parent?.declarations?.length === 1 && ts.isVariableDeclarationList (d.parent)
+            && d.parent.parent?.kind !== ts.SyntaxKind.ForStatement && d.initializer !== undefined
+            && javaScalarLocalValue (printer, d.initializer, d, 'String') !== undefined))) {
         return undefined;
     }
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
-    for (const type of J14_TYPES) {
-        const init = j14Value (printer, declaration.initializer, declaration, type);
+    for (const type of JAVA_SCALAR_LOCAL_TYPES) {
+        const init = javaScalarLocalValue (printer, declaration.initializer, declaration, type);
         if (init === undefined || dataflowTypeTokenCollides (index, type)) {
             continue;
         }
-        if (type !== 'String' && (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name && j14UnboxingUse (n))) {
+        if (type !== 'String' && (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name && javaUnboxingUse (n))) {
             return undefined;
         }
         const ok = isSafeToNarrow (printer, declaration, name, type, isProFile, {
             writeOnly: true,
             nonNull: type === 'String' ? false : undefined,
             strictPlus: type === 'String',
-            writeOk: (right) => j14Value (printer, right, declaration, type) !== undefined,
+            stringAsCast: type === 'String', // `x as string` is an identity checkcast on a String local
+            writeOk: (right) => javaScalarLocalValue (printer, right, declaration, type) !== undefined,
         });
         return ok ? { type, cast: init.cast } : undefined;
     }
     return undefined;
 }
 
-export function installJ14ScalarLocals (transpiler) {
+export function installJavaScalarLocals (transpiler) {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._j14ScalarLocalsPatched) {
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaScalarLocalsPatched) {
         return;
     }
-    printer._j14ScalarLocalsPatched = true;
+    printer._javaScalarLocalsPatched = true;
     const typed = new WeakMap ();
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
@@ -18239,7 +18334,7 @@ export function installJ14ScalarLocals (transpiler) {
         }
         let info;
         try {
-            info = j14ScalarLocal (printer, declaration);
+            info = javaScalarLocal (printer, declaration);
         } catch (e) {
             info = undefined;
         }
@@ -18252,6 +18347,22 @@ export function installJ14ScalarLocals (transpiler) {
         return printed.slice (0, at) + head + rest;
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // `x as string` on a scalar String local is an identity checkcast: print the bare local
+    const upstreamAsString = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        if (node?.type?.kind === ts.SyntaxKind.StringKeyword && ts.isIdentifier (node.expression)) {
+            let declaration;
+            try {
+                declaration = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration?.resolve ();
+            } catch (e) {
+                declaration = undefined;
+            }
+            if (declaration !== undefined && typed.get (declaration) === 'String') {
+                return printer.printNode (node.expression, identation);
+            }
+        }
+        return upstreamAsString (node, identation);
+    };
     // later writes from an Object-declared producer take the same checkcast
     const upstreamBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node, identation) {
@@ -18263,7 +18374,7 @@ export function installJ14ScalarLocals (transpiler) {
         try {
             const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
             const type = declaration === undefined ? undefined : typed.get (declaration);
-            info = type === undefined ? undefined : j14Value (printer, node.right, declaration, type);
+            info = type === undefined ? undefined : javaScalarLocalValue (printer, node.right, declaration, type);
         } catch (e) {
             info = undefined;
         }
@@ -18274,10 +18385,10 @@ export function installJ14ScalarLocals (transpiler) {
     };
 }
 
-// ===== hx4 J15: J12 caller pre-scan =====
-// A J12 parameter whose caller passes a local no pass has typed YET (the caller prints after the callee)
-// marks the file; the file is then printed twice so every local table is filled before J12 decides.
-function j15UntypedLocalArgument (printer, method, index) {
+// ===== venue parameter caller pre-scan =====
+// A typed venue parameter whose caller passes a local not typed yet (caller prints after callee) marks
+// the file; it is then printed twice so every local table is filled before parameter typing decides.
+function javaUntypedLocalArgument (printer, method, index) {
     const name = method.name.text;
     let pending = false;
     const visit = (n) => {
@@ -18300,21 +18411,21 @@ function j15UntypedLocalArgument (printer, method, index) {
     return pending;
 }
 
-export function installJ15J12PreScan (transpiler) {
+export function installJavaParamTypesPreScan (transpiler) {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._j15PreScanPatched) {
+    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._javaParamPreScanPatched) {
         return;
     }
-    printer._j15PreScanPatched = true;
+    printer._javaParamPreScanPatched = true;
     const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
     printer.javaNativeParameterTypeOf = function (node) {
         const type = upstreamType (node);
-        if (type === undefined && printer._j15FirstPass && node?.kind === ts.SyntaxKind.Parameter && node.type !== undefined
-            && J12_PARAM_TYPES[node.type.getText ().replace (/\s/g, '')] !== undefined && node.parent?.kind === ts.SyntaxKind.MethodDeclaration
+        if (type === undefined && printer._javaParamPreScanFirstPass && node?.kind === ts.SyntaxKind.Parameter && node.type !== undefined
+            && JAVA_VENUE_PARAM_TYPES[node.type.getText ().replace (/\s/g, '')] !== undefined && node.parent?.kind === ts.SyntaxKind.MethodDeclaration
             && ts.isIdentifier (node.parent.name ?? {})) {
             try {
-                if (j15UntypedLocalArgument (printer, node.parent, node.parent.parameters.indexOf (node))) {
-                    printer._j15Retry = true;
+                if (javaUntypedLocalArgument (printer, node.parent, node.parent.parameters.indexOf (node))) {
+                    printer._javaParamPreScanRetry = true;
                 }
             } catch (e) {
                 // an unresolvable caller keeps the single-pass answer
@@ -18324,41 +18435,41 @@ export function installJ15J12PreScan (transpiler) {
     };
     const upstreamPrint = printer.printNode.bind (printer);
     printer.printNode = function (node, identation) {
-        if (node?.kind !== ts.SyntaxKind.SourceFile || printer._j15FirstPass !== undefined) {
+        if (node?.kind !== ts.SyntaxKind.SourceFile || printer._javaParamPreScanFirstPass !== undefined) {
             return upstreamPrint (node, identation);
         }
-        printer._j15FirstPass = true;
-        printer._j15Retry = false;
+        printer._javaParamPreScanFirstPass = true;
+        printer._javaParamPreScanRetry = false;
         let out;
         try {
             out = upstreamPrint (node, identation);
         } finally {
-            printer._j15FirstPass = undefined;
+            printer._javaParamPreScanFirstPass = undefined;
         }
-        if (!printer._j15Retry) {
+        if (!printer._javaParamPreScanRetry) {
             return out;
         }
-        // second pass: the local tables now hold every caller's type; J12 decides afresh
-        printer._j12ParamTypes = new WeakMap ();
-        printer._j15FirstPass = false;
+        // second pass: the local tables now hold every caller's type; parameter typing decides afresh
+        printer._javaVenueParamTypes = new WeakMap ();
+        printer._javaParamPreScanFirstPass = false;
         try {
             return upstreamPrint (node, identation);
         } finally {
-            printer._j15FirstPass = undefined;
+            printer._javaParamPreScanFirstPass = undefined;
         }
     };
 }
 
-// ===== hx4 J17: String returns of `: Str` / `: string` methods proven after their bodies print =====
+// ===== String returns of `: Str` / `: string` methods proven after their bodies print =====
 // javaNativeReturnType is memoised on first query; a caller printed above its callee asked before the
 // callee's typed locals were published, so the callee kept `Object`. Each class body now prints its
 // String-candidate methods callee-first (output order unchanged), and a candidate redeclared by a
 // descendant class keeps `Object` (Java return types are covariant only).
-let j17Index;
+let javaStringReturnsIndexCache;
 
-function j17ClassIndex () {
-    if (j17Index !== undefined) {
-        return j17Index;
+function javaStringReturnsClassIndex () {
+    if (javaStringReturnsIndexCache !== undefined) {
+        return javaStringReturnsIndexCache;
     }
     const files = new Map (); // resolved file -> { parent: resolved file | undefined, methods: Set }
     const visitDir = (dir) => {
@@ -18374,16 +18485,16 @@ function j17ClassIndex () {
                 continue;
             }
             if (entry.name.endsWith ('.ts') && !entry.name.endsWith ('.d.ts')) {
-                j17IndexSource (files, path.resolve (full), fs.readFileSync (full, 'utf8'));
+                javaStringReturnsIndexSource (files, path.resolve (full), fs.readFileSync (full, 'utf8'));
             }
         }
     };
     visitDir (JAVA_FRESH_MAP_TS_ROOT);
-    j17Index = files;
+    javaStringReturnsIndexCache = files;
     return files;
 }
 
-function j17IndexSource (files, fileName, text) {
+function javaStringReturnsIndexSource (files, fileName, text) {
     const sf = ts.createSourceFile (fileName, text, ts.ScriptTarget.Latest, true);
     const imports = new Map ();
     let parent;
@@ -18407,10 +18518,10 @@ function j17IndexSource (files, fileName, text) {
                 }
             }
         }
-        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && j17NumericUseHazard (n)) {
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && javaNumericUseHazard (n)) {
             hazards.add (n.expression.name.text);
         }
-        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && j17StringUseHazard (n)) {
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && javaStringUseHazard (n)) {
             stringHazards.add (n.expression.name.text);
         }
         n.forEachChild (visit);
@@ -18419,10 +18530,27 @@ function j17IndexSource (files, fileName, text) {
     files.set (fileName, { parent, methods, hazards, stringHazards });
 }
 
+// `cond ? undefined : <box>` prints `cond ? null : <box>`, typed as the box itself, so it never unboxes
+function javaReturnUnboxingUse (n) {
+    if (!javaUnboxingUse (n)) {
+        return false;
+    }
+    let child = n;
+    while (ts.isParenthesizedExpression (child.parent)) {
+        child = child.parent;
+    }
+    const parent = child.parent;
+    if (!ts.isConditionalExpression (parent)) {
+        return true;
+    }
+    const other = parent.whenTrue === child ? parent.whenFalse : parent.whenTrue;
+    return !isNullishInitializer (other);
+}
+
 // a Long/Double result here would unbox (ternary arm, unary operand) or meet a reference `==`;
 // a `const|let x = <call>` local is checked through every read of x in its function
-function j17NumericUseHazard (call) {
-    if (j14UnboxingUse (call)) {
+function javaNumericUseHazard (call) {
+    if (javaReturnUnboxingUse (call)) {
         return true;
     }
     let child = call;
@@ -18438,12 +18566,12 @@ function j17NumericUseHazard (call) {
         return false;
     }
     const scope = enclosingFunction (call);
-    return scope === undefined || (identifierIndex (scope).get (local.text) ?? []).some ((n) => n !== local && j14UnboxingUse (n));
+    return scope === undefined || (identifierIndex (scope).get (local.text) ?? []).some ((n) => n !== local && javaReturnUnboxingUse (n));
 }
 
 // a String result on the left of `+` moves Helpers.add to its (String, Object) overload, which prints
 // "null" where add(Object, Object) answers null; omitZero has a String overload too
-function j17StringUseHazard (call) {
+function javaStringUseHazard (call) {
     let child = call;
     let parent = call.parent;
     while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
@@ -18458,15 +18586,15 @@ function j17StringUseHazard (call) {
 }
 
 // some other ts/src class that extends this file's class (transitively) declares the same method name
-function j17RedeclaredByDescendant (method) {
+function javaRedeclaredByDescendant (method) {
     const name = method?.name?.text;
     if (name === undefined) {
         return true;
     }
-    const files = j17ClassIndex ();
+    const files = javaStringReturnsClassIndex ();
     const own = path.resolve (method.getSourceFile ().fileName);
     if (!files.has (own)) {
-        j17IndexSource (files, own, method.getSourceFile ().text); // a probe written after the index was built
+        javaStringReturnsIndexSource (files, own, method.getSourceFile ().text); // a probe written after the index was built
     }
     for (const [ file, entry ] of files) {
         if (file === own || !entry.methods.has (name)) {
@@ -18483,15 +18611,15 @@ function j17RedeclaredByDescendant (method) {
     return false;
 }
 
-const J17_NUMERIC_RETURNS = { 'Int': 'Long', 'Num': 'Double' };
+const JAVA_NUMERIC_RETURN_ALIASES = { 'Int': 'Long', 'Num': 'Double' };
 
 // any ts/src file calls this method name in a hazardous position for the box (over-approximated by name)
-function j17NumericCallHazard (method, table) {
+function javaNumericCallHazard (method, table) {
     const name = method.name.text;
-    const files = j17ClassIndex ();
+    const files = javaStringReturnsClassIndex ();
     const own = path.resolve (method.getSourceFile ().fileName);
     if (!files.has (own)) {
-        j17IndexSource (files, own, method.getSourceFile ().text);
+        javaStringReturnsIndexSource (files, own, method.getSourceFile ().text);
     }
     for (const entry of files.values ()) {
         if (entry[table].has (name)) {
@@ -18501,7 +18629,7 @@ function j17NumericCallHazard (method, table) {
     return false;
 }
 
-function j17IsStringCandidate (printer, member) {
+function javaIsStringReturnCandidate (printer, member) {
     if (!ts.isMethodDeclaration (member) || member.body === undefined || member.type === undefined
         || member.name === undefined || !ts.isIdentifier (member.name)) {
         return false;
@@ -18514,11 +18642,11 @@ function j17IsStringCandidate (printer, member) {
 }
 
 // String candidates callee-first (depth-first over `this.<candidate> (..)` calls), then every other member
-function j17PrintOrder (printer, node) {
+function javaStringReturnsPrintOrder (printer, node) {
     const members = [ ...node.members ];
     const candidates = new Map ();
     for (const member of members) {
-        if (j17IsStringCandidate (printer, member) && !candidates.has (member.name.text)) {
+        if (javaIsStringReturnCandidate (printer, member) && !candidates.has (member.name.text)) {
             candidates.set (member.name.text, member);
         }
     }
@@ -18555,13 +18683,26 @@ function j17PrintOrder (printer, node) {
     return order;
 }
 
-export function installJ17StringReturns (transpiler) {
+// BaseExchange.java declares amountToPrecision / priceToPrecision / costToPrecision `public String`;
+// a call that resolves to the Exchange.ts declaration prints that String
+const JAVA_BASE_STRING_PRECISION_METHODS = new Set ([ 'amountToPrecision', 'priceToPrecision', 'costToPrecision' ]);
+
+function javaBaseStringPrecisionCall (printer, node) {
+    try {
+        return isThisCall (node) && JAVA_BASE_STRING_PRECISION_METHODS.has (node.expression.name.text)
+            && !node.arguments.some ((a) => ts.isSpreadElement (a)) && javaResolvesToBase (printer, node);
+    } catch (e) {
+        return false;
+    }
+}
+
+export function installJavaStringReturns (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printClassBody !== 'function' || typeof printer.javaNativeReturnType !== 'function'
-        || printer._j17StringReturnsPatched) {
+        || printer._javaStringReturnsPatched) {
         return;
     }
-    printer._j17StringReturnsPatched = true;
+    printer._javaStringReturnsPatched = true;
     const upstreamReturnType = printer.javaNativeReturnType.bind (printer);
     printer.javaNativeReturnType = function (node) {
         const type = upstreamReturnType (node);
@@ -18570,7 +18711,7 @@ export function installJ17StringReturns (transpiler) {
         }
         let redeclared;
         try {
-            redeclared = j17RedeclaredByDescendant (node) || j17NumericCallHazard (node, type === 'String' ? 'stringHazards' : 'hazards');
+            redeclared = javaRedeclaredByDescendant (node) || javaNumericCallHazard (node, type === 'String' ? 'stringHazards' : 'hazards');
         } catch (e) {
             redeclared = true;
         }
@@ -18584,7 +18725,7 @@ export function installJ17StringReturns (transpiler) {
         if (own !== undefined || node?.type === undefined || !ts.isTypeReferenceNode (node.type) || !ts.isIdentifier (node.type.typeName)) {
             return own;
         }
-        const alias = J17_NUMERIC_RETURNS[node.type.typeName.text];
+        const alias = JAVA_NUMERIC_RETURN_ALIASES[node.type.typeName.text];
         let file;
         try {
             const symbol = printer.getChecker ().getSymbolAtLocation (node.type.typeName);
@@ -18597,6 +18738,9 @@ export function installJ17StringReturns (transpiler) {
     };
     const upstreamPrints = printer.javaExpressionPrintsType.bind (printer);
     printer.javaExpressionPrintsType = function (expression, target) {
+        if (target === 'String') {
+            return upstreamPrints (expression, target) || javaBaseStringPrecisionCall (printer, printer.javaUnwrapReturnExpression (expression));
+        }
         if (target !== 'Long' && target !== 'Double') {
             return upstreamPrints (expression, target);
         }
@@ -18618,7 +18762,7 @@ export function installJ17StringReturns (transpiler) {
                 if (printer.javaReturnedCallType (node) === target) {
                     return true;
                 }
-                return j14ResolvesToBase (printer, node) && syncCoreCallType (printer, node) === target;
+                return javaResolvesToBase (printer, node) && syncCoreCallType (printer, node) === target;
             }
         } catch (e) {
             return false;
@@ -18629,7 +18773,7 @@ export function installJ17StringReturns (transpiler) {
     printer.printClassBody = function (node, identation) {
         let order;
         try {
-            order = j17PrintOrder (printer, node);
+            order = javaStringReturnsPrintOrder (printer, node);
         } catch (e) {
             order = undefined;
         }
@@ -18650,12 +18794,15 @@ export function installJ17StringReturns (transpiler) {
     };
 }
 
-// hx4 J20: setLeverage / cancelAllOrdersAfter / handleErrors keep their first parameter `Object p` (an int in TS,
+// setLeverage / cancelAllOrdersAfter / handleErrors / Opinion.parseWsOrderStatus (first param) and Hyperliquid.buildOutcomeSymbol
+// (side, after a Map) keep an int TS parameter as `Object p` (an int in TS,
 // a Number box or null at runtime); a comparison / divide / mod of that unwritten parameter against an integer
 // literal prints the double compare with the helper's null arm (isLessThan(null, N) is true, isGreaterThan false).
-const J20_MEMBER = /^    public \S+(?:<[^>]*>)? (?:setLeverage|cancelAllOrdersAfter|handleErrors)\(Object (\w+)[,)]/;
+const JAVA_INT_PARAM_COMPARE_MEMBER = /^    public \S+(?:<[^>]*>)? (?:(?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object (\w+)[,)]|buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object (\w+)[,)])/;
+// Opinion.opinionOutcomeByMarketIdSide(marketId, outcomeSide): both callers pass safeInteger (Long/null); 2nd param.
+const JAVA_INT_PARAM_COMPARE_MEMBER_PAIR = /^    public \S+ opinionOutcomeByMarketIdSide\(Object (\w+), Object (\w+)\)/;
 
-function j20Rewrite (line, p) {
+function javaIntParamCompareRewrite (line, p) {
     const v = `((Number) ${p}).doubleValue()`;
     const lit = '(-?\\d+)L?';
     const cmp = new RegExp (`Helpers\\.(isLessThanOrEqual|isGreaterThanOrEqual|isLessThan|isGreaterThan|isEqual)\\(${p}, ${lit}\\)`, 'g');
@@ -18672,14 +18819,15 @@ function j20Rewrite (line, p) {
     return out;
 }
 
-export function nativeJavaJ20ParamCompare (content) {
-    if (!/ (?:setLeverage|cancelAllOrdersAfter|handleErrors)\(Object /.test (content)) return content;
+export function nativeJavaParamCompare (content) {
+    if (!/ (?:(?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object |buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object )|opinionOutcomeByMarketIdSide\(Object /.test (content)) return content;
     const lines = content.split ('\n');
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
-        const m = J20_MEMBER.exec (lines[i]);
+        const mb = JAVA_INT_PARAM_COMPARE_MEMBER_PAIR.exec (lines[i]);
+        const m = mb === null ? JAVA_INT_PARAM_COMPARE_MEMBER.exec (lines[i]) : [ mb[0], mb[2] ];
         if (m === null) continue;
-        const p = m[1];
+        const p = m[1] || m[2];
         let end = i + 1;
         while (end < lines.length && lines[end] !== '    }') end++;
         // D2: any write or redeclaration of the parameter keeps every helper in the member
@@ -18688,7 +18836,9 @@ export function nativeJavaJ20ParamCompare (content) {
         for (let k = i + 1; k < end; k++) if (write.test (lines[k].replace (/"(?:[^"\\]|\\.)*"/g, '""'))) { written = true; break; }
         if (!written) {
             for (let k = i + 1; k < end; k++) {
-                const next = j20Rewrite (lines[k], p);
+                let next = javaIntParamCompareRewrite (lines[k], p);
+                // marketId is non-null past the guard and compared with a Long: value equality
+                if (mb !== null) next = next.replace (`Helpers.isEqual(this.safeInteger(info, "marketId"), ${mb[1]})`, `java.util.Objects.equals(this.safeInteger(info, "marketId"), ${mb[1]})`);
                 if (next !== lines[k]) { lines[k] = next; changed = true; }
             }
         }
@@ -18698,12 +18848,11 @@ export function nativeJavaJ20ParamCompare (content) {
 }
 
 
-// hx4 J23
-// ===== hx4 J23: arithmetic helpers over typed primitives the J04 pass cannot prove =====
+// ===== arithmetic helpers over typed primitives the typed-operand pass cannot prove =====
 // Adds operand proofs (parseToInt of a numeric, Math.*, .size()/.length(), microseconds, double
 // chains), Double operands on + - / % and opNeg, multiply-with-double under value-insensitive consumers,
-// and null-guarded ternary arms whose other arm is the guarded Long. Runs after J04, also on base methods.
-function j23Operands (e) {
+// and null-guarded ternary arms whose other arm is the guarded Long. Runs after the typed-operand pass, also on base methods.
+function javaPrimitiveOperands (e) {
     const mask = longMultiplyMask (e);
     if (mask.includes ('"')) return undefined;
     const out = [];
@@ -18727,15 +18876,15 @@ function j23Operands (e) {
     return out.length > 1 ? { operands: out, ops } : undefined;
 }
 
-function j23Widest (ks) {
+function javaWidestKind (ks) {
     if (ks.includes (undefined)) return undefined;
     if (ks.includes ('double')) return 'double';
     return ks.includes ('long') ? 'long' : 'int';
 }
 
 // the Java primitive kind of a printed never-null numeric expression; undefined when unproven
-function j23Kind (ctx, text, nn) {
-    const base = j04Kind (ctx, text, nn);
+function javaPrimitiveKind (ctx, text, nn) {
+    const base = javaArithKind (ctx, text, nn);
     if (base !== undefined) return base;
     const e = longLimitStrip (text);
     if (/^-?\d+\.\d+$/.test (e)) return 'double';
@@ -18748,55 +18897,55 @@ function j23Kind (ctx, text, nn) {
     if (guarded !== null && guarded[2].replace (/^\(\([^)]*\)(\w+)\)$/, '$1') === guarded[1]) return 'int';
     const cast = /^\((long|double|int)\) (.*)$/.exec (e);
     if (cast !== null) {
-        const k = j23Kind (ctx, cast[2], nn);
+        const k = javaPrimitiveKind (ctx, cast[2], nn);
         return k === undefined ? undefined : (cast[1] === 'int' ? 'int' : cast[1]);
     }
     const neg = /^-([A-Za-z_(][\s\S]*)$/.exec (e);
     if (neg !== null && (/^[\w.]+(\(\))?$/.test (neg[1]) || longLimitStrip (neg[1]) !== neg[1].trim ())) {
-        return j23Kind (ctx, neg[1], nn);
+        return javaPrimitiveKind (ctx, neg[1], nn);
     }
     const mask = longMultiplyMask (e);
     // Double.parseDouble returns a primitive double (it throws on null); Math.* over primitives
     if (longLimitCallArgs (mask, 'Double.parseDouble') !== undefined) return 'double';
     for (const f of [ 'Math.floor', 'Math.ceil', 'Math.pow', 'Math.sqrt' ]) {
         const args = longLimitCallArgs (mask, f);
-        if (args !== undefined && args.every ((a) => j23Kind (ctx, a, () => true) !== undefined)) return 'double';
+        if (args !== undefined && args.every ((a) => javaPrimitiveKind (ctx, a, () => true) !== undefined)) return 'double';
     }
     const round = longLimitCallArgs (mask, 'Math.round');
-    if (round !== undefined && round.length === 1 && j23Kind (ctx, round[0], () => true) === 'double') return 'long';
+    if (round !== undefined && round.length === 1 && javaPrimitiveKind (ctx, round[0], () => true) === 'double') return 'long';
     for (const f of [ 'Math.min', 'Math.max' ]) {
         const args = longLimitCallArgs (mask, f);
         // the arguments already unbox in the original expression: a null box threw there too
-        if (args !== undefined && args.length === 2) return j23Widest (args.map ((a) => j23Kind (ctx, a, () => true)));
+        if (args !== undefined && args.length === 2) return javaWidestKind (args.map ((a) => javaPrimitiveKind (ctx, a, () => true)));
     }
     // parseToInt of a non-null number never answers null (numberToString/parseFloat/parseInt all succeed)
     const pti = /^((?:\w+\.)?this\.parseToInt)\(/.exec (e);
     if (pti !== null) {
         const args = longLimitCallArgs (e, pti[1]);
-        if (args !== undefined && args.length === 1 && j23Kind (ctx, args[0], nn) !== undefined) return 'long';
+        if (args !== undefined && args.length === 1 && javaPrimitiveKind (ctx, args[0], nn) !== undefined) return 'long';
     }
-    const chain = j23Operands (e);
-    if (chain !== undefined) return j23Widest (chain.operands.map ((o) => j23Kind (ctx, o, nn)));
+    const chain = javaPrimitiveOperands (e);
+    if (chain !== undefined) return javaWidestKind (chain.operands.map ((o) => javaPrimitiveKind (ctx, o, nn)));
     return undefined;
 }
 
-function j23NonNullValue (ctx, value, nn) {
-    if (j04NonNullValue (ctx, value, nn)) return true;
+function javaPrimitiveNonNullValue (ctx, value, nn) {
+    if (javaArithNonNullValue (ctx, value, nn)) return true;
     const e = longLimitStrip (value);
-    if (j23Kind (ctx, e, nn) !== undefined) return true;
+    if (javaPrimitiveKind (ctx, e, nn) !== undefined) return true;
     const t = longLimitSplitTernary (e);
     if (t !== undefined) {
         const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
         const arm = (a, isTrue) => (g !== null && longLimitStrip (a) === g[2] && (g[1] === '!') === isTrue
-            && [ 'Long', 'Integer', 'Double' ].includes (ctx.declType (g[2]))) || j23NonNullValue (ctx, a, nn);
+            && [ 'Long', 'Integer', 'Double' ].includes (ctx.declType (g[2]))) || javaPrimitiveNonNullValue (ctx, a, nn);
         return arm (t.whenTrue, true) && arm (t.whenFalse, false);
     }
     return false;
 }
 
-// j04MemberCtx with the J23 non-null producers and Double locals
-function j23MemberCtx (lines, from, to) {
-    const base = j04MemberCtx (lines, from, to);
+// javaArithMemberCtx with the primitive-arithmetic non-null producers and Double locals
+function javaPrimitiveArithMemberCtx (lines, from, to) {
+    const base = javaArithMemberCtx (lines, from, to);
     const ctx = base.ctx;
     const boxes = [ 'Long', 'Integer', 'Double' ];
     const writeCache = new Map ();
@@ -18827,7 +18976,7 @@ function j23MemberCtx (lines, from, to) {
         const t = ctx.declType (name);
         const ok = ws !== undefined && ws.length > 0 && boxes.includes (t)
             && new RegExp (`^\\s*(?:final\\s+)?${t} ${name} = `).test (lines[ws[0].line])
-            && ws.every ((w) => j23NonNullValue (ctx, w.value, (n) => base.nonNullAt (n, w.line) || writesNonNull (n, seen)));
+            && ws.every ((w) => javaPrimitiveNonNullValue (ctx, w.value, (n) => base.nonNullAt (n, w.line) || writesNonNull (n, seen)));
         seen.delete (name);
         memo.set (name, ok);
         return ok;
@@ -18838,7 +18987,7 @@ function j23MemberCtx (lines, from, to) {
 
 // multiply re-boxes an integral double as Long: a double product is only native under a consumer that
 // reads both boxes alike (parseToInt, Double.parseDouble(toString|valueOf))
-function j23BoxInsensitiveConsumer (mask, start, close) {
+function javaBoxInsensitiveConsumer (mask, start, close) {
     const before = mask.slice (0, start);
     const after = mask.slice (close + 1);
     const m = /(?:(?:\w+\.)?this\.parseToInt\(|Double\.parseDouble\((?:Helpers\.toString|String\.valueOf)\(\(?)(\(*)$/.exec (before);
@@ -18849,7 +18998,7 @@ function j23BoxInsensitiveConsumer (mask, start, close) {
 
 // `x = Objects.equals(G, null) ? <call> : G` (or the negated form) where G is a Long: the arms promote
 // to long and the call's Long box is unchanged; the G arm is read only when it is non-null
-function j23TernaryArmOk (line, mask, start, close, ctx) {
+function javaTernaryArmOk (line, mask, start, close, ctx) {
     const head = /^(\s*(?:[\w.<>]+ )?[A-Za-z_]\w* = |\s*return )/.exec (mask);
     if (head === null || !/;\s*(\/\/.*)?$/.test (line)) return false;
     const rhsEnd = mask.lastIndexOf (';');
@@ -18862,7 +19011,7 @@ function j23TernaryArmOk (line, mask, start, close, ctx) {
     return longLimitStrip (mine) === call && longLimitStrip (other) === g[2];
 }
 
-function j23Member (lines, from, to) {
+function javaPrimitiveArithMember (lines, from, to) {
     let state;
     let changed = false;
     const helpers = [ [ 'Helpers.add(', '+' ], [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ],
@@ -18870,7 +19019,7 @@ function j23Member (lines, from, to) {
     const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) ? e : `(${e})`);
     for (let j = from + 1; j < to; j++) {
         if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
-        state = state ?? j23MemberCtx (lines, from, to);
+        state = state ?? javaPrimitiveArithMemberCtx (lines, from, to);
         let line = lines[j];
         const mask0 = longMultiplyMask (line);
         const starts = [];
@@ -18885,12 +19034,12 @@ function j23Member (lines, from, to) {
             const call = longMultiplyArgSpans (mask, start + h.length - 1);
             if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) continue;
             const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
-            const plain = j04PlainValuePosition (mask, start, call.close);
-            const armOk = !plain && j23TernaryArmOk (line, mask, start, call.close, state.ctx);
+            const plain = javaPlainValuePosition (mask, start, call.close);
+            const armOk = !plain && javaTernaryArmOk (line, mask, start, call.close, state.ctx);
             if (!plain && !armOk) continue;
-            const ternary = j04TernaryGuarded (mask, line, start);
+            const ternary = javaTernaryGuarded (mask, line, start);
             const nn = (n) => ternary.has (n) || state.nonNullAt (n, j);
-            const kinds = args.map ((a) => j23Kind (state.ctx, a, nn));
+            const kinds = args.map ((a) => javaPrimitiveKind (state.ctx, a, nn));
             if (kinds.includes (undefined)) continue;
             const dbl = kinds.includes ('double');
             if (armOk && (dbl || op === '/' || op === '%')) continue;
@@ -18900,7 +19049,7 @@ function j23Member (lines, from, to) {
             } else if (op === '/' || op === '%') {
                 text = `(((double) ${atom (args[0])}) ${op} ((double) ${atom (args[1])}))`;
             } else if (dbl) {
-                if (op === '*' && !j23BoxInsensitiveConsumer (mask, start, call.close)) continue;
+                if (op === '*' && !javaBoxInsensitiveConsumer (mask, start, call.close)) continue;
                 // any Double operand makes the helper answer toDouble(a) op toDouble(b)
                 const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
                 text = `(${show (args[0], kinds[0])} ${op} ${show (args[1], kinds[1])})`;
@@ -18917,27 +19066,26 @@ function j23Member (lines, from, to) {
     return changed;
 }
 
-export function nativeJavaJ23Arithmetic (content) {
+export function nativeJavaPrimitiveArithmetic (content) {
     if (!/Helpers\.(?:add|subtract|multiply|divide|mod|opNeg)\(/.test (content)) return content;
     const lines = content.split ('\n');
     const starts = [];
     for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
     let changed = false;
     for (let s = 0; s < starts.length; s++) {
-        if (j23Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+        if (javaPrimitiveArithMember (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
     }
     return changed ? lines.join ('\n') : content;
 }
 
-// hx4 J24
-// ===== hx4 J24: retype Object numeric locals so multiply/subtract/divide/mod/opNeg go native =====
+// ===== retype Object numeric locals so multiply/subtract/divide/mod/opNeg go native =====
 // An `Object x` local whose every write is null or a proven primitive of one family (long/int, or double)
-// prints `Long x` / `Double x` when each read is box-neutral; the J23 pass then proves the operators.
-const J24_TARGETS = /Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/;
+// prints `Long x` / `Double x` when each read is box-neutral; the primitive-arithmetic pass then proves the operators.
+const JAVA_RETYPE_ARITH_TARGETS = /Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/;
 
-// the never-null primitive kind of a printed value: J23's proofs plus String.indexOf and proven ternaries
-function j24Kind (ctx, text, nn) {
-    const k = j23Kind (ctx, text, nn);
+// the never-null primitive kind of a printed value: the primitive-arithmetic proofs plus String.indexOf and proven ternaries
+function javaRetypeKind (ctx, text, nn) {
+    const k = javaPrimitiveKind (ctx, text, nn);
     if (k !== undefined) return k;
     const e = longLimitStrip (text);
     if (/^\(\(String\)[A-Za-z_]\w*\)\.indexOf\([^()]*(?:\(\(String\)[A-Za-z_]\w*\))?\)$/.test (e)) return 'int';
@@ -18947,15 +19095,15 @@ function j24Kind (ctx, text, nn) {
     const arm = (a, isTrue) => {
         const x = longLimitStrip (a);
         const guarded = g !== null && x === g[2] && (g[1] === '!') === isTrue;
-        return j24Kind (ctx, x, guarded ? () => true : nn);
+        return javaRetypeKind (ctx, x, guarded ? () => true : nn);
     };
     const ks = [ arm (t.whenTrue, true), arm (t.whenFalse, false) ];
     if (ks.includes (undefined)) return undefined;
     // a ternary over int and long promotes to long; int literals alone stay int
-    return ks.every ((x) => x === 'intlit') ? 'int' : j23Widest (ks.map ((x) => (x === 'intlit' ? 'int' : x)));
+    return ks.every ((x) => x === 'intlit') ? 'int' : javaWidestKind (ks.map ((x) => (x === 'intlit' ? 'int' : x)));
 }
 
-function j24UseOk (line, name, boxChanges) {
+function javaRetypeUseOk (line, name, boxChanges) {
     const lhs = new RegExp (`^(\\s*)${name} = `);
     const probe = line.replace (lhs, '$1j24w = ');
     const code = longLimitCodeOnly (probe);
@@ -18973,11 +19121,11 @@ function j24UseOk (line, name, boxChanges) {
         const callee = longLimitCallee (code, m.index);
         if (callee !== undefined && /^(?:Helpers\.\w+|(?:\w+\.)?this\.(?:parseToInt|iso8601|numberToString|sum)|java\.util\.Objects\.equals)$/.test (callee)) continue;
     }
-    return longLimitUseOk (probe, name, boxChanges) || (!boxChanges && j24NeutralLine (code, name));
+    return longLimitUseOk (probe, name, boxChanges) || (!boxChanges && javaBoxNeutralLine (code, name));
 }
 
-// every mention is one of the box-neutral shapes j24UseOk accepts for an unchanged box
-function j24NeutralLine (code, name) {
+// every mention is one of the box-neutral shapes javaRetypeUseOk accepts for an unchanged box
+function javaBoxNeutralLine (code, name) {
     const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
     let m;
     while ((m = re.exec (code)) !== null) {
@@ -18992,8 +19140,8 @@ function j24NeutralLine (code, name) {
     return true;
 }
 
-function j24RetypeMember (lines, from, to) {
-    const state = j23MemberCtx (lines, from, to);
+function javaRetypeNumericMember (lines, from, to) {
+    const state = javaPrimitiveArithMemberCtx (lines, from, to);
     const decl = /^(\s*)Object ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
     let changed = false;
     for (let i = from + 1; i < to; i++) {
@@ -19019,7 +19167,7 @@ function j24RetypeMember (lines, from, to) {
         if (!ok) continue;
         // every write: null or a never-null primitive of one family
         const kinds = writes.map ((w) => (w.value === 'null' ? 'null'
-            : j24Kind (state.ctx, w.value, (n) => n !== name && state.nonNullAt (n, w.line))));
+            : javaRetypeKind (state.ctx, w.value, (n) => n !== name && state.nonNullAt (n, w.line))));
         if (kinds.includes (undefined) || kinds.every ((k) => k === 'null')) continue;
         const dbl = kinds.some ((k) => k === 'double');
         if (dbl && kinds.some ((k) => k !== 'double' && k !== 'null')) continue;
@@ -19033,7 +19181,7 @@ function j24RetypeMember (lines, from, to) {
             if (!mention.test (code)) continue;
             const text = j === i ? `${iden}j24w = ${d[3]};` : lines[j];
             if (/->/.test (code) && new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`).test (code)) usesOk = false;
-            else if (!j24UseOk (text, name, boxChanges)) usesOk = false;
+            else if (!javaRetypeUseOk (text, name, boxChanges)) usesOk = false;
         }
         if (!usesOk) continue;
         const type = dbl ? 'Double' : allInt ? 'Integer' : 'Long';
@@ -19048,8 +19196,8 @@ function j24RetypeMember (lines, from, to) {
     return changed;
 }
 
-export function nativeJavaJ24Arithmetic (content) {
-    if (!J24_TARGETS.test (content)) return content;
+export function nativeJavaNumericLocalsRetype (content) {
+    if (!JAVA_RETYPE_ARITH_TARGETS.test (content)) return content;
     let out = content;
     for (let round = 0; round < 4; round++) {
         const lines = out.split ('\n');
@@ -19064,8 +19212,8 @@ export function nativeJavaJ24Arithmetic (content) {
             if (s === 0) next.push (...lines.slice (0, starts[0]));
             const work = member.slice ();
             // keep a retype only when it lets at least one target helper go native
-            if (j24RetypeMember (work, 0, work.length)) {
-                const native = nativeJavaJ23Arithmetic (nativeJavaJ04Arithmetic (work.join ('\n'))).split ('\n');
+            if (javaRetypeNumericMember (work, 0, work.length)) {
+                const native = nativeJavaPrimitiveArithmetic (nativeJavaTypedArithmetic (work.join ('\n'))).split ('\n');
                 if (count (native) < count (member)) { next.push (...native); changed = true; continue; }
             }
             next.push (...member);
@@ -19076,54 +19224,55 @@ export function nativeJavaJ24Arithmetic (content) {
     return out;
 }
 
-// hx4 J27
-// ===== hx4 J27: Object locals whose every write already yields one box (Long or Double, null allowed) =====
+// ===== Object locals whose every write already yields one box (Long or Double, null allowed) =====
 // Producers: safeInteger*/safeTimestamp*/parseToInt/Helpers.parseInt (Long), safeNumber*/parseFloat (Double),
-// sum/mathMin/mathMax over Long-family args, typed locals, J23 primitives. The box is unchanged, so only
-// box-neutral reads are allowed; J04/J23 then prove the operators under the existing null guards.
-function j27Box (ctx, text) {
+// sum/mathMin/mathMax over Long-family args, typed locals, proven primitives. The box is unchanged, so only
+// box-neutral reads are allowed; the native arithmetic passes then prove the operators under the existing null guards.
+function javaSingleBox (ctx, text) {
     const e = longLimitStrip (text).replace (/^\((?:Long|Double)\) /, '');
     if (e === 'null') return 'null';
     // string arguments masked: only the argument count and numeric arguments are read
     const masked = e.replace (/"(?:[^"\\]|\\.)*"/g, 'j27s');
     const call = (re) => { const m = re.exec (masked); return m === null ? undefined : longLimitCallArgs (masked, m[1]); };
     if (call (/^((?:\w+\.)?this\.(?:safeInteger|safeInteger2|safeIntegerN|safeTimestamp|safeTimestamp2|safeTimestampN|parseToInt))\(/) !== undefined) return 'Long';
-    if (call (/^(Helpers\.parseInt)\(/) !== undefined) return 'Long';
+    if (call (/^((?:Helpers\.parseInt|Long\.parseLong))\(/) !== undefined) return 'Long';
     if (call (/^((?:\w+\.)?this\.(?:safeNumber|safeNumber2|safeNumberN))\(/) !== undefined) return 'Double';
-    if (call (/^(Helpers\.parseFloat)\(/) !== undefined) return 'Double';
+    if (call (/^((?:Helpers\.parseFloat|Double\.parseDouble))\(/) !== undefined) return 'Double';
     if (/^[A-Za-z_]\w*$/.test (e)) {
         const t = ctx.declType (e);
         return t === 'Long' || t === 'Double' ? t : undefined;
     }
-    const longArg = (a) => { const b = j27Box (ctx, a); return b === 'Long' || (b === undefined && [ 'long', 'int', 'intlit' ].includes (j23Kind (ctx, a, () => true))); };
+    const longArg = (a) => { const b = javaSingleBox (ctx, a); return b === 'Long' || (b === undefined && [ 'long', 'int', 'intlit' ].includes (javaPrimitiveKind (ctx, a, () => true))); };
     // Generic.sum answers (long) for a whole sum: integer-family args always give a Long box
     const sum = call (/^((?:\w+\.)?this\.sum)\(/);
     if (sum !== undefined) return sum.every (longArg) ? 'Long' : undefined;
     // mathMin/mathMax hand back one operand: Long when both are Long boxes (an int literal would be Integer)
     const mm = call (/^(Helpers\.math(?:Min|Max))\(/);
-    if (mm !== undefined) return mm.length === 2 && mm.every ((a) => j27Box (ctx, a) === 'Long' || /^-?\d+L$/.test (longLimitStrip (a))) ? 'Long' : undefined;
-    const k = j23Kind (ctx, e, () => true);
+    if (mm !== undefined) return mm.length === 2 && mm.every ((a) => javaSingleBox (ctx, a) === 'Long' || /^-?\d+L$/.test (longLimitStrip (a))) ? 'Long' : undefined;
+    const k = javaPrimitiveKind (ctx, e, () => true);
     if (k === 'long') return 'Long';
     if (k === 'double') return 'Double';
     return undefined;
 }
 
-function j27RetypeMember (lines, from, to) {
-    const ctx = j04MemberCtx (lines, from, to).ctx;
-    const decl = /^(\s*)Object ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
+
+
+// `Object x = this.sum(<integral>, <integral>)` locals -> `Long x = (Long) this.sum(..)`.
+// Generic.sum maps null to 0 and answers (long) for any whole sum, so integral args always give a Long box.
+function sumLongLocalsMember (lines, from, to) {
+    const ctx = javaArithMemberCtx (lines, from, to).ctx;
+    const decl = /^(\s*)Object ([A-Za-z_]\w*) = (this\.sum\(.*)\);(\s*\/\/.*)?$/;
     let changed = false;
     for (let i = from + 1; i < to; i++) {
         const d = decl.exec (lines[i]);
         if (d === null) continue;
         const [ , iden, name ] = d;
         if (longLimitDeclarations (lines, from, to, name).length !== 1) continue;
-        const operand = new RegExp (`Helpers\\.(?:multiply|subtract|divide|mod|opNeg)\\([^;]*(?<![\\w$.])${name}\\b`);
-        if (!lines.slice (i, to).some ((l) => operand.test (longLimitCodeOnly (l)))) continue;
         const writeDecl = new RegExp (`^(\\s*)(?:Object )?${name} = (.*?);(\\s*//.*)?$`);
         const compound = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
         const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
         const assign = new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`);
-        const values = [];
+        const writeLines = [];
         let ok = true;
         for (let j = i; j < to && ok; j++) {
             const code = longLimitCodeOnly (lines[j]);
@@ -19131,69 +19280,62 @@ function j27RetypeMember (lines, from, to) {
             if (compound.test (code) || (/->/.test (code) && assign.test (code))) { ok = false; break; }
             const w = writeDecl.exec (lines[j]);
             if (w !== null && (j === i || !/^\s*Object /.test (lines[j]))) {
-                values.push (w[2].trim ());
-                if (!j24UseOk (j === i ? `${iden}j24w = ${d[3]};` : lines[j], name, false)) ok = false;
+                writeLines.push ([ j, w[2].trim () ]);
+                if (!javaRetypeUseOk (j === i ? `${iden}j24w = ${d[3]});` : lines[j], name, false)) ok = false;
             } else if (assign.test (code)) ok = false;
-            else if (!j24UseOk (lines[j], name, false)) ok = false;
+            else if (!javaRetypeUseOk (lines[j], name, false)) ok = false;
         }
         if (!ok) continue;
-        // a self-referencing write (`x = f(x)`) is classified without x
-        const boxes = values.map ((v) => j27Box (ctx, v));
-        const real = boxes.filter ((b) => b !== 'null');
-        if (boxes.includes (undefined) || real.length === 0 || real.some ((b) => b !== real[0])) continue;
-        lines[i] = `${iden}${real[0]} ${name} = ${d[3]};${d[4] ?? ''}`;
+        // every write is a Long-box producer (the sum call itself included)
+        const boxes = writeLines.map (([ , v ]) => javaSingleBox (ctx, v));
+        if (boxes.includes (undefined) || boxes.some ((b) => b !== 'Long' && b !== 'null')) continue;
+        if (javaSingleBox (ctx, `${d[3]})`) !== 'Long') continue;
+        lines[i] = `${iden}Long ${name} = (Long) ${d[3]});${d[4] ?? ''}`;
+        for (const [ j, v ] of writeLines) {
+            if (j === i || !/^this\.sum\(/.test (v)) continue;
+            lines[j] = lines[j].replace (new RegExp (`(?<![\\w$.])${name} = (?=this\\.sum\\()`), `${name} = (Long) `);
+        }
         changed = true;
     }
     return changed;
 }
 
-export function nativeJavaJ27Arithmetic (content) {
-    if (!J24_TARGETS.test (content)) return content;
-    const count = (ls) => ls.reduce ((n, l) => n + (longLimitCodeOnly (l).match (/Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/g) ?? []).length, 0);
-    let out = content;
-    for (let round = 0; round < 4; round++) {
-        const lines = out.split ('\n');
-        const starts = [];
-        for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
-        if (starts.length === 0) return out;
-        const next = lines.slice (0, starts[0]);
-        let changed = false;
-        for (let s = 0; s < starts.length; s++) {
-            const member = lines.slice (starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length);
-            const work = member.slice ();
-            // keep a retype only when it lets at least one target helper go native
-            if (j27RetypeMember (work, 0, work.length)) {
-                const native = nativeJavaJ24Arithmetic (nativeJavaJ23Arithmetic (nativeJavaJ04Arithmetic (work.join ('\n')))).split ('\n');
-                if (count (native) < count (member)) { next.push (...native); changed = true; continue; }
-            }
-            next.push (...member);
-        }
-        if (!changed) break;
-        out = next.join ('\n');
+export function nativeJavaSumLongLocals (content) {
+    if (!/^\s*Object [A-Za-z_]\w* = this\.sum\(/m.test (content)) return content;
+    // a class declaring its own sum() keeps the Object-typed call
+    if (/^    (?:public|private|protected)[^\n(]* sum\(/m.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    if (starts.length === 0) return content;
+    const out = lines.slice (0, starts[0]);
+    for (let s = 0; s < starts.length; s++) {
+        const member = lines.slice (starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length);
+        sumLongLocalsMember (member, 0, member.length);
+        out.push (...member);
     }
-    return out;
+    return out.join ('\n');
 }
 
-// hx4 J31
-// ===== hx4 J31: multiply/subtract over Long/Integer locals the J04/J23 null proofs miss =====
+// ===== multiply/subtract over Long/Integer locals the earlier native-arithmetic null proofs miss =====
 // Adds non-null writes the string-blind splitters reject: ternaries whose condition holds a string literal
 // (`Objects.equals(market.get("spot"), true) ? 500L : 1000L`) and safeInteger*(.., "k", <non-null default>).
-function j31Masked (text) {
+function javaMaskedText (text) {
     const strs = [];
     const masked = text.replace (/"(?:[^"\\]|\\.)*"/g, (s) => { strs.push (s); return 'j31s' + (strs.length - 1); });
     return { masked, unmask: (t) => t.replace (/j31s(\d+)/g, (_, i) => strs[Number (i)]) };
 }
 
-function j31NonNullValue (ctx, value, nn) {
-    if (j23NonNullValue (ctx, value, nn)) return true;
-    const { masked, unmask } = j31Masked (longLimitStrip (value));
+function javaLongNonNullValue (ctx, value, nn) {
+    if (javaPrimitiveNonNullValue (ctx, value, nn)) return true;
+    const { masked, unmask } = javaMaskedText (longLimitStrip (value));
     const t = longLimitSplitTernary (masked);
     if (t !== undefined) {
         const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
         const arm = (a, isTrue) => {
             const x = longLimitStrip (unmask (a));
             if (g !== null && x === g[2] && (g[1] === '!') === isTrue && [ 'Long', 'Integer' ].includes (ctx.declType (x))) return true;
-            return /^-?\d+L$/.test (x) || j31NonNullValue (ctx, x, nn);
+            return /^-?\d+L$/.test (x) || javaLongNonNullValue (ctx, x, nn);
         };
         return arm (t.whenTrue, true) && arm (t.whenFalse, false);
     }
@@ -19205,15 +19347,15 @@ function j31NonNullValue (ctx, value, nn) {
         if (args !== undefined && args.length === min) {
             const d = longLimitStrip (unmask (args[min - 1]));
             if (/^-?\d+L?$/.test (d)) return true;
-            const k = j23Kind (ctx, d, nn);
+            const k = javaPrimitiveKind (ctx, d, nn);
             if (k !== undefined && k !== 'double') return true;
         }
     }
     return false;
 }
 
-function j31MemberCtx (lines, from, to) {
-    const base = j23MemberCtx (lines, from, to);
+function javaLongArithMemberCtx (lines, from, to) {
+    const base = javaPrimitiveArithMemberCtx (lines, from, to);
     // a local re-declared in sibling blocks with one type keeps that type (writes are scanned member-wide)
     const ctx = { declType: (name) => {
         const t = base.ctx.declType (name);
@@ -19246,7 +19388,7 @@ function j31MemberCtx (lines, from, to) {
         const ws = writes (name);
         const ok = ws !== undefined && ws.length > 0
             && new RegExp (`^\\s*(?:final\\s+)?(?:Long|Integer) ${name} = `).test (lines[ws[0].line])
-            && ws.every ((w) => j31NonNullValue (ctx, w.value, (n) => base.nonNullAt (n, w.line) || writesNonNull (n, seen)));
+            && ws.every ((w) => javaLongNonNullValue (ctx, w.value, (n) => base.nonNullAt (n, w.line) || writesNonNull (n, seen)));
         seen.delete (name);
         memo.set (name, ok);
         return ok;
@@ -19260,7 +19402,7 @@ function j31MemberCtx (lines, from, to) {
         let ok = ctx.declType (name) === 'Object';
         const ws = ok ? writes (name) : undefined;
         ok = ok && ws !== undefined && ws.length > 0 && new RegExp (`^\\s*Object ${name} = `).test (lines[ws[0].line])
-            && ws.every ((w) => j31Integral (ctx, w.value, (n) => n !== name && nonNullAt (n, w.line), objectIntegral));
+            && ws.every ((w) => javaIntegralValue (ctx, w.value, (n) => n !== name && nonNullAt (n, w.line), objectIntegral));
         intMemo.set (name, ok);
         return ok;
     };
@@ -19268,18 +19410,18 @@ function j31MemberCtx (lines, from, to) {
 }
 
 // Generic.sum maps null to 0 and answers (long) for a whole sum: integral (or null) args give a Long box
-function j31IntegralSum (ctx, e, nn, objInt) {
+function javaIntegralSum (ctx, e, nn, objInt) {
     const m = /^((?:\w+\.)?this\.sum)\(/.exec (e);
     const args = m === null ? undefined : longLimitCallArgs (e, m[1]);
     return args !== undefined && args.every ((a) => {
         const x = longLimitStrip (a);
         if (/^[A-Za-z_]\w*$/.test (x) && [ 'Long', 'Integer', 'long', 'int' ].includes (ctx.declType (x))) return true;
-        return j31Integral (ctx, x, nn, objInt);
+        return javaIntegralValue (ctx, x, nn, objInt);
     });
 }
 
-// `((Number) <x>).longValue()` (a J31 emission) reads as a primitive long for the kind proofs
-function j31LongValues (text) {
+// `((Number) <x>).longValue()` (emitted by this pass) reads as a primitive long for the kind proofs
+function javaLongValueUnwrap (text) {
     let out = text;
     for (let k = out.indexOf ('((Number) '); k !== -1; k = out.indexOf ('((Number) ', k + 1)) {
         let depth = 0;
@@ -19294,40 +19436,40 @@ function j31LongValues (text) {
 }
 
 // a never-null int/long value (string literals in a ternary condition allowed); objInt proves Object locals
-function j31Integral (ctx, value, nn, objInt = () => false) {
-    value = j31LongValues (value);
-    const k = j24Kind (ctx, value, nn);
+function javaIntegralValue (ctx, value, nn, objInt = () => false) {
+    value = javaLongValueUnwrap (value);
+    const k = javaRetypeKind (ctx, value, nn);
     if (k !== undefined) return k !== 'double';
     const e = longLimitStrip (value);
     if (/^[A-Za-z_]\w*$/.test (e)) return ctx.declType (e) === 'Object' && objInt (e);
     if (/^-?\d+L$/.test (e)) return true;
-    if (j31IntegralSum (ctx, e, nn, objInt)) return true;
+    if (javaIntegralSum (ctx, e, nn, objInt)) return true;
     // mathMin/mathMax hand back one operand; multiply/subtract of integral boxes stay Long
     const h = /^(Helpers\.(?:mathMin|mathMax|multiply|subtract))\(/.exec (e);
     const hargs = h === null ? undefined : longLimitCallArgs (e, h[1]);
-    if (hargs !== undefined && hargs.length === 2) return hargs.every ((a) => j31Integral (ctx, a, nn, objInt));
-    const { masked, unmask } = j31Masked (e);
+    if (hargs !== undefined && hargs.length === 2) return hargs.every ((a) => javaIntegralValue (ctx, a, nn, objInt));
+    const { masked, unmask } = javaMaskedText (e);
     const t = longLimitSplitTernary (masked);
     if (t === undefined) return false;
-    const guards = new Set (j04GuardNames (t.cond, false));
-    const negs = new Set (j04GuardNames (t.cond, true));
+    const guards = new Set (javaGuardNames (t.cond, false));
+    const negs = new Set (javaGuardNames (t.cond, true));
     const arm = (a, isTrue) => {
         const x = longLimitStrip (unmask (a));
         const guarded = (isTrue ? guards : negs).has (x) && [ 'Long', 'Integer' ].includes (ctx.declType (x));
-        return guarded || j31Integral (ctx, x, nn, objInt);
+        return guarded || javaIntegralValue (ctx, x, nn, objInt);
     };
     return arm (t.whenTrue, true) && arm (t.whenFalse, false);
 }
 
-// j23Member restricted to multiply/subtract with the J31 null proofs
-function j31Member (lines, from, to) {
+// javaPrimitiveArithMember restricted to multiply/subtract with this pass's null proofs
+function javaLongArithMember (lines, from, to) {
     let state;
     let changed = false;
     const helpers = [ [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ] ];
     const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) ? e : `(${e})`);
     for (let j = from + 1; j < to; j++) {
         if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
-        state = state ?? j31MemberCtx (lines, from, to);
+        state = state ?? javaLongArithMemberCtx (lines, from, to);
         let line = lines[j];
         const mask0 = longMultiplyMask (line);
         const starts = [];
@@ -19342,21 +19484,21 @@ function j31Member (lines, from, to) {
             const call = longMultiplyArgSpans (mask, start + h.length - 1);
             if (call === undefined || call.spans.length !== 2) continue;
             const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
-            const plain = j04PlainValuePosition (mask, start, call.close);
-            const armOk = !plain && j23TernaryArmOk (line, mask, start, call.close, state.ctx);
+            const plain = javaPlainValuePosition (mask, start, call.close);
+            const armOk = !plain && javaTernaryArmOk (line, mask, start, call.close, state.ctx);
             if (!plain && !armOk) continue;
-            const ternary = j04TernaryGuarded (mask, line, start);
+            const ternary = javaTernaryGuarded (mask, line, start);
             const nn = (n) => ternary.has (n) || state.nonNullAt (n, j);
-            const kinds = args.map ((a) => j23Kind (state.ctx, j31LongValues (a), nn));
+            const kinds = args.map ((a) => javaPrimitiveKind (state.ctx, javaLongValueUnwrap (a), nn));
             // an integral Object local reads through Number.longValue(): the helper widened Integer to Long too
             args.forEach ((a, x) => {
                 if (kinds[x] === undefined && ((/^[A-Za-z_]\w*$/.test (a) && state.objectIntegral (a))
-                    || j31IntegralSum (state.ctx, a, nn, state.objectIntegral))) {
+                    || javaIntegralSum (state.ctx, a, nn, state.objectIntegral))) {
                     kinds[x] = 'long';
                     args[x] = `((Number) ${atom (a)}).longValue()`;
                 }
             });
-            // a double operand: subtract keeps toDouble(a) - toDouble(b); multiply would re-box (left to J23)
+            // a double operand: subtract keeps toDouble(a) - toDouble(b); multiply would re-box (left to the primitive-arithmetic pass)
             if (kinds.includes (undefined) || (kinds.includes ('double') && (op === '*' || armOk))) continue;
             const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
             let text;
@@ -19374,26 +19516,25 @@ function j31Member (lines, from, to) {
     return changed;
 }
 
-export function nativeJavaJ31Arithmetic (content) {
+export function nativeJavaIntegralMultiplySubtract (content) {
     if (!/Helpers\.(?:subtract|multiply)\(/.test (content)) return content;
     const lines = content.split ('\n');
     const starts = [];
     for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
     let changed = false;
     for (let s = 0; s < starts.length; s++) {
-        if (j31Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+        if (javaLongArithMember (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
     }
     return changed ? lines.join ('\n') : content;
 }
 
-// hx4 J32
-// ===== hx4 J32: Helpers.divide / Helpers.mod / Helpers.opNeg on proven Number operands print native =====
+// ===== Helpers.divide / Helpers.mod / Helpers.opNeg on proven Number operands print native =====
 // divide/mod return null for a null operand, else toDouble(a) op toDouble(b) (a Double box); opNeg negates the exact
 // box. Operands: numeric literals, declared Long/Integer/Double(/primitive) names, Object locals whose every write is a
 // Number producer, a non-overridden `this.sum(..)` (never null). Each boxed name is null-guarded once.
-const J32_NUMERIC_DECL = [ 'Long', 'Integer', 'Double', 'long', 'int', 'double' ];
+const JAVA_NUMERIC_DECL_TYPES = [ 'Long', 'Integer', 'Double', 'long', 'int', 'double' ];
 
-function j32Writes (lines, from, to, name) {
+function javaDivModNegWrites (lines, from, to, name) {
     const decl = new RegExp (`^\\s*(?:final\\s+)?[A-Za-z_][\\w.<>, ]*? ${name} = (.*?);(\\s*//.*)?$`);
     const plain = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
     const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b|(?<![\\w$.])${name}\\s*->`);
@@ -19410,8 +19551,8 @@ function j32Writes (lines, from, to, name) {
     return out;
 }
 
-function j32Member (lines, from, to, overrides) {
-    const ctx = j04MemberCtx (lines, from, to).ctx;
+function javaDivModNegMember (lines, from, to, overrides) {
+    const ctx = javaArithMemberCtx (lines, from, to).ctx;
     const memo = new Map ();
     const sumCall = (e) => !overrides.has ('sum') && longLimitCallArgs (e, 'this.sum') !== undefined;
     // a printed value that is null or a java.lang.Number at runtime
@@ -19420,11 +19561,11 @@ function j32Member (lines, from, to, overrides) {
         if (e === 'null' || /^-?\d+(?:\.\d+)?L?$/.test (e) || sumCall (e)) return true;
         if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e) && !overrides.has ('milliseconds') && !overrides.has ('seconds')) return true;
         if (!overrides.has ('parseToInt') && longLimitCallArgs (e, 'this.parseToInt') !== undefined) return true;
-        for (const h of [ 'Helpers.parseInt', 'Helpers.multiply', 'Helpers.subtract', 'Helpers.divide', 'Helpers.mod', 'Math.min', 'Math.max' ]) {
+        for (const h of [ 'Helpers.parseInt', 'Long.parseLong', 'Helpers.multiply', 'Helpers.subtract', 'Helpers.divide', 'Helpers.mod', 'Math.min', 'Math.max' ]) {
             if (longLimitCallArgs (e, h) !== undefined) return true;
         }
-        if (/^[A-Za-z_]\w*$/.test (e)) return objectNumber (e, seen) || J32_NUMERIC_DECL.includes (ctx.declType (e));
-        if (j04Kind (ctx, e, () => true) !== undefined) return true;
+        if (/^[A-Za-z_]\w*$/.test (e)) return objectNumber (e, seen) || JAVA_NUMERIC_DECL_TYPES.includes (ctx.declType (e));
+        if (javaArithKind (ctx, e, () => true) !== undefined) return true;
         const t = longLimitSplitTernary (e);
         return t !== undefined && numberValue (t.whenTrue, seen) && numberValue (t.whenFalse, seen);
     };
@@ -19432,7 +19573,7 @@ function j32Member (lines, from, to, overrides) {
         if (memo.has (name)) return memo.get (name);
         if (seen.has (name) || ctx.declType (name) !== 'Object') return false;
         seen.add (name);
-        const ws = j32Writes (lines, from, to, name);
+        const ws = javaDivModNegWrites (lines, from, to, name);
         const ok = ws !== undefined && ws.length > 0 && ws.every ((v) => numberValue (v, seen));
         seen.delete (name);
         memo.set (name, ok);
@@ -19451,7 +19592,7 @@ function j32Member (lines, from, to, overrides) {
             if (objectNumber (e, new Set ())) return { text: `((Number) ${e}).doubleValue()`, guard: e };
             return undefined;
         }
-        const k = j04Kind (ctx, e, () => false);
+        const k = javaArithKind (ctx, e, () => false);
         return k !== undefined ? { text: `((double) (${e}))` } : undefined;
     };
     const helpers = [ [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
@@ -19489,7 +19630,7 @@ function j32Member (lines, from, to, overrides) {
                 text = guards.length === 0 ? `(${value})` : `(${guards.join (' || ')} ? null : ${value})`;
             }
             // outside a plain value slot keep the helper's static type (Object)
-            if (!j04PlainValuePosition (mask, start, call.close)) text = `((Object) ${text})`;
+            if (!javaPlainValuePosition (mask, start, call.close)) text = `((Object) ${text})`;
             line = line.slice (0, start) + text + line.slice (call.close + 1);
         }
         if (line !== lines[j]) { lines[j] = line; changed = true; }
@@ -19497,7 +19638,7 @@ function j32Member (lines, from, to, overrides) {
     return changed;
 }
 
-export function nativeJavaJ32DivModNeg (content, base = false) {
+export function nativeJavaNumberDivModNeg (content, base = false) {
     if (!/Helpers\.(?:divide|mod|opNeg)\(/.test (content)) return content;
     const lines = content.split ('\n');
     // members the class itself declares shadow the base producers
@@ -19511,20 +19652,19 @@ export function nativeJavaJ32DivModNeg (content, base = false) {
     for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
     let changed = false;
     for (let s = 0; s < starts.length; s++) {
-        if (j32Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length, overrides)) changed = true;
+        if (javaDivModNegMember (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length, overrides)) changed = true;
     }
     return changed ? lines.join ('\n') : content;
 }
 
-// hx4 J37
-// ===== hx4 J37: every remaining Helpers.divide / Helpers.mod / Helpers.opNeg prints inline native Java =====
-// Tier 2 after J32's typed proofs: the call becomes a typed lambda applied in place, which evaluates each
+// ===== every remaining Helpers.divide / Helpers.mod / Helpers.opNeg prints inline native Java =====
+// Fallback after the typed div/mod/neg proofs: the call becomes a typed lambda applied in place, which evaluates each
 // operand once, left to right, and keeps the helper's static type (Object). Its body is a verbatim copy of
 // Helpers.divide / Helpers.mod / Helpers.opNeg + Helpers.toDouble + normalizeIntIfNeeded: null -> null,
 // Long/Integer/Double/Float/BigDecimal -> doubleValue, other values -> parseDouble(String.valueOf(x)) or 0.0,
 // a Double box for divide/mod (zero divisor = Infinity/NaN as in the helper), mod null for a non
 // String/Long/Integer/Double dividend, and opNeg negating the exact Byte/Short/Integer/Long/Float/Double box.
-function j37ToDouble () {
+function javaInlineToDouble () {
     return 'java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { '
         + 'if (j37o instanceof Double j37v) return j37v; '
         + 'if (j37o instanceof Float j37v) return j37v.doubleValue(); '
@@ -19534,7 +19674,7 @@ function j37ToDouble () {
         + 'try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; ';
 }
 
-function j37Inline (op, args) {
+function javaInlineDivModNeg (op, args) {
     if (op === 'neg') {
         return '((java.util.function.UnaryOperator<Object>) (j37a) -> { '
             + 'if (j37a instanceof Byte j37v) return (byte) -j37v; '
@@ -19549,11 +19689,11 @@ function j37Inline (op, args) {
         ? 'if (!(j37a instanceof String || j37a instanceof Long || j37a instanceof Integer || j37a instanceof Double)) return null; '
         : '';
     return '((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { '
-        + 'if (j37a == null || j37b == null) return null; ' + guard + j37ToDouble ()
+        + 'if (j37a == null || j37b == null) return null; ' + guard + javaInlineToDouble ()
         + `return j37d.applyAsDouble(j37a) ${op} j37d.applyAsDouble(j37b); }).apply(${args[0]}, ${args[1]})`;
 }
 
-export function nativeJavaJ37DivModNeg (content) {
+export function nativeJavaInlineDivModNeg (content) {
     if (!/Helpers\.(?:divide|mod|opNeg)\(/.test (content)) return content;
     const helpers = [ [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
     const lines = content.split ('\n');
@@ -19575,14 +19715,14 @@ export function nativeJavaJ37DivModNeg (content) {
             const call = longMultiplyArgSpans (mask, start + h.length - 1);
             if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) break;
             const args = call.spans.map (([ x, y ]) => line.slice (x, y).trim ());
-            line = line.slice (0, start) + j37Inline (op, args) + line.slice (call.close + 1);
+            line = line.slice (0, start) + javaInlineDivModNeg (op, args) + line.slice (call.close + 1);
         }
         if (line !== lines[j]) { lines[j] = line; changed = true; }
     }
     return changed ? lines.join ('\n') : content;
 }
 
-// hx5 X21: a sync `this.m (..)` whose every dispatchable declaration (own chain + every override in a
+// a sync `this.m (..)` whose every dispatchable declaration (own chain + every override in a
 // subclass, none hand-written in the Java base) returns a Map on every path: a fresh map (section 33), an
 // omit of a never-written parameter printed Map<String, Object> (the typed omit(Map, ..) overload builds a
 // fresh LinkedHashMap or answers null), an omit of a const element-1 binding of an audited base handle*
@@ -19643,7 +19783,7 @@ function x21MapCallee (printer, call) {
     }
     state.verdicts.set (key, ok);
     if (process.env.JAVA_LOCAL_TYPES_DEBUG) {
-        console.error (`x21 map callee ${name} -> ${ok}`);
+        console.error (`map callee ${name} -> ${ok}`);
     }
     return ok;
 }
@@ -19755,7 +19895,7 @@ function x21HandleParamsBinding (printer, element) {
     }
 }
 
-// a J14 cast accessor added by hx5 X21 is only proven while no venue class reachable by dispatch overrides it
+// a scalar-local cast accessor for a base `: Str` method is only proven while no venue class reachable by dispatch overrides it
 function x21BaseOnlyDispatch (call) {
     const name = String (call.expression.name.text);
     const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name);

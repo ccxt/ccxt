@@ -265,7 +265,7 @@ impl Okx {
 
     /// Typed wrapper around `watchLiquidationsForSymbols`.
     pub async fn watch_liquidations_for_symbols(&mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Liquidation>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_liquidations_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_liquidations_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Liquidation::from_value))
     }
 
@@ -277,13 +277,13 @@ impl Okx {
 
     /// Typed wrapper around `watchMyLiquidationsForSymbols`.
     pub async fn watch_my_liquidations_for_symbols(&mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Liquidation>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_my_liquidations_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_my_liquidations_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Liquidation::from_value))
     }
 
     /// Typed wrapper around `fetchDepositAddresses`.
     pub async fn fetch_deposit_addresses(&mut self, codes: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<DepositAddress>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_addresses(&[match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_addresses(&[match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(vec_from_value(&v, DepositAddress::from_value))
     }
 
@@ -295,7 +295,7 @@ impl Okx {
 
     /// Typed wrapper around `fetchMarginModes`.
     pub async fn fetch_margin_modes(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<MarginModes> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_margin_modes(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_margin_modes(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, MarginMode::from_value))
     }
 
@@ -319,19 +319,19 @@ impl Okx {
 
     /// Typed wrapper around `fetchLeverageTiers`.
     pub async fn fetch_leverage_tiers(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<LeverageTiers> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_leverage_tiers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_leverage_tiers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, |row| vec_from_value(&row, LeverageTier::from_value)))
     }
 
     /// Typed wrapper around `fetchFundingRates`.
     pub async fn fetch_funding_rates(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<FundingRates> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_funding_rates(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_funding_rates(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, FundingRate::from_value))
     }
 
     /// Typed wrapper around `fetchFundingIntervals`.
     pub async fn fetch_funding_intervals(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<FundingRates> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_funding_intervals(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_funding_intervals(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, FundingRate::from_value))
     }
 
@@ -343,13 +343,13 @@ impl Okx {
 
     /// Typed wrapper around `watchFundingRates`.
     pub async fn watch_funding_rates(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<FundingRates> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_funding_rates(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_funding_rates(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, FundingRate::from_value))
     }
 
     /// Typed wrapper around `watchFundingRatesForSymbols`.
     pub async fn watch_funding_rates_for_symbols(&mut self, symbols: Vec<String>, params: impl Into<Params>) -> crate::Result<FundingRates> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_funding_rates_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), &[params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_funding_rates_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), &[params.into().into_value()])).await?;
         Ok(dict_from_value(&v, FundingRate::from_value))
     }
 
@@ -379,7 +379,7 @@ impl Okx {
 
     /// Typed wrapper around `fetchLeverages`.
     pub async fn fetch_leverages(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Leverages> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_leverages(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_leverages(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Leverage::from_value))
     }
 
@@ -433,7 +433,7 @@ impl Okx {
 
     /// Typed wrapper around `fetchOpenInterests`.
     pub async fn fetch_open_interests(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<OpenInterests> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_open_interests(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_open_interests(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, OpenInterest::from_value))
     }
 
@@ -476,25 +476,25 @@ impl Okx {
     /// Typed wrapper around `fetchOHLCV`.
     pub async fn fetch_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchSpotOHLCV`.
     pub async fn fetch_spot_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_spot_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchContractOHLCV`.
     pub async fn fetch_contract_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_contract_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `watchOHLCV`.
     pub async fn watch_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().watch_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchBorrowInterest`.
@@ -528,8 +528,8 @@ impl Okx {
     }
 
     /// Typed wrapper around `fetchPartialBalance`.
-    pub async fn fetch_partial_balance(&mut self, part: Value, params: impl Into<Params>) -> crate::Result<Balances> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_partial_balance(part, &[params.into().into_value()])).await?;
+    pub async fn fetch_partial_balance(&mut self, part: &str, params: impl Into<Params>) -> crate::Result<Balances> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_partial_balance(Value::from(part), &[params.into().into_value()])).await?;
         Ok(Balances::from_value(v))
     }
 
@@ -559,7 +559,7 @@ impl Okx {
 
     /// Typed wrapper around `fetchDepositWithdrawFees`.
     pub async fn fetch_deposit_withdraw_fees(&mut self, codes: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<DepositWithdrawFees> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_withdraw_fees(&[match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_withdraw_fees(&[match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, DepositWithdrawFee::from_value))
     }
 
@@ -583,19 +583,19 @@ impl Okx {
 
     /// Typed wrapper around `fetchSpotTickers`.
     pub async fn fetch_spot_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_spot_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_spot_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Ticker::from_value))
     }
 
     /// Typed wrapper around `fetchContractTickers`.
     pub async fn fetch_contract_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_contract_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_contract_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Ticker::from_value))
     }
 
     /// Typed wrapper around `fetchOrderBooks`.
     pub async fn fetch_order_books(&mut self, symbols: Option<Vec<String>>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBooks> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_order_books(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_order_books(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(dict_from_value(&v, OrderBook::from_value))
     }
 
@@ -637,7 +637,7 @@ impl Okx {
 
     /// Typed wrapper around `fetchPositionsADLRank`.
     pub async fn fetch_positions_adl_rank(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<ADL>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_positions_adl_rank(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_positions_adl_rank(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(vec_from_value(&v, ADL::from_value))
     }
 
@@ -709,7 +709,7 @@ impl Okx {
 
     /// Typed wrapper around `fetchAllGreeks`.
     pub async fn fetch_all_greeks(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<AllGreeks> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_all_greeks(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_all_greeks(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Greeks::from_value))
     }
 
@@ -781,7 +781,7 @@ impl Okx {
 
     /// Typed wrapper around `fetchLastPrices`.
     pub async fn fetch_last_prices(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<LastPrices> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_last_prices(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_last_prices(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, LastPrice::from_value))
     }
 
@@ -812,19 +812,19 @@ impl Okx {
     /// Typed wrapper around `fetchMarkOHLCV`.
     pub async fn fetch_mark_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_mark_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchIndexOHLCV`.
     pub async fn fetch_index_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_index_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchPremiumIndexOHLCV`.
     pub async fn fetch_premium_index_ohlcv(&mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<OHLCV>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_premium_index_ohlcv(Value::from(symbol), &[timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+        Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
     }
 
     /// Typed wrapper around `fetchTransactions`.
@@ -877,13 +877,13 @@ impl Okx {
 
     /// Typed wrapper around `fetchPositionsHistory`.
     pub async fn fetch_positions_history(&mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_positions_history(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_positions_history(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Position::from_value))
     }
 
     /// Typed wrapper around `fetchPositionsRisk`.
     pub async fn fetch_positions_risk(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_positions_risk(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_positions_risk(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Position::from_value))
     }
 
@@ -901,19 +901,19 @@ impl Okx {
 
     /// Typed wrapper around `watchMyTradesForSymbols`.
     pub async fn watch_my_trades_for_symbols(&mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Trade>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_my_trades_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_my_trades_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Trade::from_value))
     }
 
     /// Typed wrapper around `watchTradesForSymbols`.
     pub async fn watch_trades_for_symbols(&mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Trade>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_trades_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_trades_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Trade::from_value))
     }
 
     /// Typed wrapper around `fetchBidsAsks`.
     pub async fn fetch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_bids_asks(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_bids_asks(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Ticker::from_value))
     }
 
@@ -925,13 +925,13 @@ impl Okx {
 
     /// Typed wrapper around `fetchMarkPrices`.
     pub async fn fetch_mark_prices(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_mark_prices(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_mark_prices(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Ticker::from_value))
     }
 
     /// Typed wrapper around `watchBidsAsks`.
     pub async fn watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_bids_asks(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_bids_asks(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Ticker::from_value))
     }
 
@@ -943,7 +943,7 @@ impl Okx {
 
     /// Typed wrapper around `watchMarkPrices`.
     pub async fn watch_mark_prices(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_mark_prices(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_mark_prices(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Ticker::from_value))
     }
 
@@ -955,13 +955,13 @@ impl Okx {
 
     /// Typed wrapper around `watchOrderBookForSymbols`.
     pub async fn watch_order_book_for_symbols(&mut self, symbols: Vec<String>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBook> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_order_book_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), &[limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_order_book_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), &[limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(OrderBook::from_value(v))
     }
 
     /// Typed wrapper around `watchOrdersForSymbols`.
     pub async fn watch_orders_for_symbols(&mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_orders_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_orders_for_symbols(Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Order::from_value))
     }
 
@@ -1033,19 +1033,19 @@ impl Okx {
 
     /// Typed wrapper around `watchPositions`.
     pub async fn watch_positions(&mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Position::from_value))
     }
 
     /// Typed wrapper around `watchPositionForSymbols`.
     pub async fn watch_position_for_symbols(&mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_position_for_symbols(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_position_for_symbols(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Position::from_value))
     }
 
     /// Typed wrapper around `fetchPositions`.
     pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Position::from_value))
     }
 
@@ -1063,13 +1063,13 @@ impl Okx {
 
     /// Typed wrapper around `fetchTickers`.
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().fetch_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Ticker::from_value))
     }
 
     /// Typed wrapper around `watchTickers`.
     pub async fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().watch_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().watch_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(dict_from_value(&v, Ticker::from_value))
     }
 
@@ -1177,13 +1177,13 @@ impl Okx {
 
     /// Typed wrapper around `cancelOrders`.
     pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().cancel_orders(Value::Arr(std::sync::Arc::new(ids.into_iter().map(|s| Value::Str(s.into())).collect())), &[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().cancel_orders(Value::Arr(std::sync::Arc::new(ids.into_iter().map(Value::from).collect())), &[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Order::from_value))
     }
 
     /// Typed wrapper around `cancelOrdersWithClientOrderIds`.
     pub async fn cancel_orders_with_client_order_ids(&mut self, client_order_ids: Vec<String>, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().cancel_orders_with_client_order_ids(Value::Arr(std::sync::Arc::new(client_order_ids.into_iter().map(|s| Value::Str(s.into())).collect())), &[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
+        let v = crate::runtime::call_typed(self.core_mut().cancel_orders_with_client_order_ids(Value::Arr(std::sync::Arc::new(client_order_ids.into_iter().map(Value::from).collect())), &[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Order::from_value))
     }
 

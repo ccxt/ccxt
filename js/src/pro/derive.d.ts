@@ -2,7 +2,7 @@ import deriveRest from '../derive.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Position, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class derive extends deriveRest {
-    describe(): any;
+    describe(): Dict;
     requestId(url: string): number;
     watchPublic(messageHash: string, message: Dict, subscription: Dict): Promise<any>;
     /**

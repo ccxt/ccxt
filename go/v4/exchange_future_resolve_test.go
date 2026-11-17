@@ -13,10 +13,9 @@ import (
 // ---------------------------------------------------------------------------
 
 func testResolveClient() *Client {
-	return &Client{
-		Futures:    map[string]any{},
-		Rejections: map[string]any{},
-	}
+	// the futures, rejections and pong state live in the client's own owner
+	// goroutine, which NewClient starts before it returns the client
+	return NewClient("", nil, nil, nil, nil)
 }
 
 // Await checks resolved state and appends its subscriber under one lock, so
@@ -95,9 +94,8 @@ func TestClientRejectRetainedWithoutWaiter(t *testing.T) {
 	}
 }
 
-// Rejections shares FuturesMu, concurrent NewFuture and Reject traffic must
-// be race clean, before the fix NewFuture read and deleted Rejections
-// without any lock.
+// NewFuture and Reject touch the same rejections map, which one owner goroutine
+// now holds alone; concurrent consumer and reject traffic must stay clean.
 func TestClientRejectionsAccessRaceClean(t *testing.T) {
 	client := testResolveClient()
 	var wg sync.WaitGroup

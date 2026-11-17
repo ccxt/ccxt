@@ -2,7 +2,7 @@ import extendedRest from '../extended.js';
 import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class extended extends extendedRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name extended#watchOrderBook

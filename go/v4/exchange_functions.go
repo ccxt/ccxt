@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
-	"sync"
 )
 
 // keysort sorts the keys of a map and returns a new map with the sorted keys.
@@ -31,16 +30,6 @@ func (this *BaseExchange) Keysort(parameters2 any) map[string]any {
 	switch v := parameters2.(type) {
 	case map[string]any:
 		tempMap = v
-
-	case *sync.Map:
-		tempMap = make(map[string]any)
-		v.Range(func(k, val any) bool {
-			keyStr, ok := k.(string)
-			if ok {
-				tempMap[keyStr] = val
-			}
-			return true
-		})
 
 	default:
 		// Unsupported type; return empty map
@@ -242,13 +231,6 @@ func (this *BaseExchange) ToArray(a any) []any {
 		for _, value := range m {
 			outList = append(outList, value)
 		}
-		return outList
-	} else if m, ok := a.(*sync.Map); ok {
-		outList := make([]any, 0)
-		m.Range(func(key, value any) bool {
-			outList = append(outList, value)
-			return true
-		})
 		return outList
 	}
 

@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchL2OrderBook extends BaseTest {
-    public CompletableFuture<Object> testFetchL2OrderBook(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchL2OrderBook(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {

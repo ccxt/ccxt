@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\coinbaseinternational as Exchange;
 
 class coinbaseinternational extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbaseinternational',
             'name' => 'Coinbase International',
@@ -315,7 +315,7 @@ class coinbaseinternational extends Exchange {
             ),
             'options' => array(
                 'route' => 'auto', // deribit for native Deribit, coinbase for Coinbase, auto detects known native key formats
-                'brokerId' => 'nfqkvdjp',
+                'brokerId' => 'ccxt',
                 'portfolio' => '', // default portfolio id
                 'accessTokenRefreshRatio' => 0.8, // refresh the bearer token after 80% of expires_in
                 'networksById' => array(
@@ -592,10 +592,10 @@ class coinbaseinternational extends Exchange {
             $type = 'option';
         }
         $symbol = $instrumentName;
-        if (!$isComboMarket) {
+        if (!$isComboMarket && ($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            if (!$isSpot) {
-                $symbol = $symbol . ':' . $settle;
+            if (!$isSpot && ($settle !== null)) {
+                $symbol = $base . '/' . $quote . ':' . $settle;
             }
         }
         $linear = $isSpot ? null : ($settle === $quote);
@@ -850,13 +850,13 @@ class coinbaseinternational extends Exchange {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments');
         }
         $limitResolved = $limit;
-        $duration = $this->parse_timeframe($timeframe);
+        $duration = $this->parse_to_int($this->parse_timeframe($timeframe));
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limitResolved === null) {
                 $limitResolved = 100;
             }
-            $request['start_timestamp'] = $this->sum($now, -$limitResolved * $duration * 1000);
+            $request['start_timestamp'] = $this->sum($now, $this->parse_to_int($limitResolved) * $duration * -1000);
             $request['end_timestamp'] = $now;
         } else {
             $sinceResolved = max($since - 1, 0);
@@ -864,7 +864,7 @@ class coinbaseinternational extends Exchange {
             if ($limitResolved === null) {
                 $request['end_timestamp'] = $now;
             } else {
-                $request['end_timestamp'] = $this->sum($sinceResolved, $limitResolved * $duration * 1000);
+                $request['end_timestamp'] = $this->sum($sinceResolved, $this->parse_to_int($limitResolved) * $duration * 1000);
             }
         }
         $until = $this->safe_integer($paramsPaginate, 'until');
@@ -947,7 +947,7 @@ class coinbaseinternational extends Exchange {
         $duration = $this->parse_timeframe('1h') * 1000;
         $now = $this->milliseconds();
         $sinceResolved = $since;
-        if ($sinceResolved === null) {
+        if ($since === null) {
             $sinceResolved = $now - (30 * 24 * 60 * 60 * 1000);
         }
         $request = array(
@@ -1212,8 +1212,8 @@ class coinbaseinternational extends Exchange {
                     throw new BadRequest($this->id . ' fetchOrderBook() limit must be between 1 and 10000');
                 }
                 for ($i = 0; $i < count($depths); $i++) {
-                    if ($limit <= $depths[$i]) {
-                        $request['depth'] = $depths[$i];
+                    if ($limit <= $this->parse_to_int($depths[$i])) {
+                        $request['depth'] = $this->safe_integer($depths, $i, 0);
                         break;
                     }
                 }
@@ -1546,14 +1546,14 @@ class coinbaseinternational extends Exchange {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             $summaries = $this->safe_list($result, 'summaries');
             if ($summaries !== null) {
-                return $this->parse_balance($summaries);
+                return $this->parse_balance_list($summaries);
             }
-            return $this->parse_balance($this->safe_dict($result, 'summaries', array()));
+            return $this->parse_balance_list($this->safe_dict($result, 'summaries', array()));
         }
-        return $this->parse_balance($result);
+        return $this->parse_balance_list($result);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -1606,7 +1606,7 @@ class coinbaseinternational extends Exchange {
         $currency = $this->currency($code);
         $now = $this->milliseconds();
         $sinceResolved = $since;
-        if ($sinceResolved === null) {
+        if ($since === null) {
             $sinceResolved = $now - (30 * 24 * 60 * 60 * 1000);
         }
         $request = array(
@@ -1802,29 +1802,32 @@ class coinbaseinternational extends Exchange {
         //
         $instrumentName = $this->safe_string($position, 'instrument_name');
         $marketResolved = $this->safe_market($instrumentName, $market);
-        $side = $this->safe_string($position, 'direction');
-        if ($side === 'buy') {
+        $direction = $this->safe_string($position, 'direction');
+        $side = null;
+        if ($direction === 'buy') {
             $side = 'long';
-        } elseif ($side === 'sell') {
+        } elseif ($direction === 'sell') {
             $side = 'short';
         }
-        $notional = $this->safe_string($position, 'size_currency');
         $initialMargin = $this->safe_string($position, 'initial_margin');
         $maintenanceMargin = $this->safe_string($position, 'maintenance_margin');
-        $contracts = $this->safe_number($position, 'size');
-        if ($this->is_native_deribit_credentials()) {
-            $size = $this->safe_string($position, 'size');
-            if ($marketResolved['option'] !== true) {
-                $notional = $size;
-                if ($marketResolved['linear'] === true) {
-                    $size = $this->safe_string($position, 'size_currency');
-                }
-            } else {
-                $notional = Precise::string_mul($size, $this->safe_string($position, 'mark_price'));
-            }
-            $contractsString = $this->safe_string($position, 'contracts', Precise::string_div($size, $this->safe_string($marketResolved, 'contractSize')));
-            $contracts = $this->parse_number(Precise::string_abs($contractsString));
+        // size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+        // size_currency is in the base currency, futures only
+        // contractSize is in USD for inverse futures and in the base currency otherwise
+        $size = $this->safe_string($position, 'size');
+        $amount = $size;  // `contract_size` converts between `amount` and `contracts`
+        $notional = null;
+        if ($this->safe_bool($marketResolved, 'option', false)) {
+            // For options, "size" is the base currency (e.g. BTC) instead of quote currency
+            $notional = Precise::string_mul($size, $this->safe_string($position, 'mark_price'));
+        } elseif ($this->safe_bool($marketResolved, 'linear', false)) {
+            $amount = $this->safe_string($position, 'size_currency'); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+            $notional = $size;
+        } else {
+            // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+            $notional = $this->safe_string($position, 'size_currency');
         }
+        $contractsString = Precise::string_div($amount, $this->safe_string($marketResolved, 'contractSize'));
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -1835,7 +1838,7 @@ class coinbaseinternational extends Exchange {
             'collateral' => null,
             'unrealizedPnl' => $this->safe_number($position, 'floating_profit_loss'),
             'side' => $side,
-            'contracts' => $contracts,
+            'contracts' => $this->parse_number(Precise::string_abs($contractsString)),
             'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'timestamp' => null,
             'datetime' => null,
@@ -1937,7 +1940,7 @@ class coinbaseinternational extends Exchange {
         $currency = $this->currency($code);
         $now = $this->milliseconds();
         $sinceResolved = $since;
-        if ($sinceResolved === null) {
+        if ($since === null) {
             $sinceResolved = $now - (30 * 24 * 60 * 60 * 1000);
         }
         $request = array(
@@ -2131,7 +2134,7 @@ class coinbaseinternational extends Exchange {
          * @return {string} precision-formatted exchange order $amount
          */
         $exchangeAmount = $this->number_to_string($amount);
-        if ($this->is_native_deribit_credentials() && ($market['contract'] === true)) {
+        if ($this->is_native_deribit_credentials() && ($this->safe_bool($market, 'contract', false))) {
             $exchangeAmount = Precise::string_mul($exchangeAmount, $this->safe_string($market, 'contractSize'));
         }
         return $this->amount_to_precision($market['symbol'], $exchangeAmount);
@@ -2398,7 +2401,7 @@ class coinbaseinternational extends Exchange {
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_update_timestamp');
         $filled = $this->safe_number($order, 'filled_amount');
         $amount = $this->safe_number($order, 'amount');
-        if ($this->is_native_deribit_credentials() && ($marketResolved['contract'] === true)) {
+        if ($this->is_native_deribit_credentials() && ($this->safe_bool($marketResolved, 'contract', false))) {
             $contractSize = $this->safe_string($marketResolved, 'contractSize');
             $amount = $this->parse_number($this->safe_string($order, 'contracts', Precise::string_div($this->safe_string($order, 'amount'), $contractSize)));
             $filled = $this->parse_number(Precise::string_div($this->safe_string($order, 'filled_amount'), $contractSize));
@@ -2414,7 +2417,7 @@ class coinbaseinternational extends Exchange {
         $cost = null;
         if (($filledString !== null) && ($averageString !== null)) {
             $cost = $this->parse_number(Precise::string_mul($filledString, $averageString));
-            if ($this->is_native_deribit_credentials() && ($marketResolved['inverse'] === true) && ($marketResolved['option'] !== true)) {
+            if ($this->is_native_deribit_credentials() && ($this->safe_bool($marketResolved, 'inverse', false)) && (!$this->safe_bool($marketResolved, 'option', false))) {
                 $cost = $this->parse_number(Precise::string_div($filledString, $averageString));
             }
         }
@@ -3001,14 +3004,14 @@ class coinbaseinternational extends Exchange {
         $price = $this->safe_number($trade, 'price');
         $amount = $this->safe_number($trade, 'amount');
         $amountString = $this->safe_string($trade, 'amount');
-        if ($this->is_native_deribit_credentials() && ($marketResolved['contract'] === true)) {
+        if ($this->is_native_deribit_credentials() && ($this->safe_bool($marketResolved, 'contract', false))) {
             $amount = $this->parse_number($this->safe_string($trade, 'contracts', Precise::string_div($amountString, $this->safe_string($marketResolved, 'contractSize'))));
         }
         $priceString = $this->safe_string($trade, 'price');
         $cost = null;
         if (($amountString !== null) && ($priceString !== null)) {
             $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-            if ($this->is_native_deribit_credentials() && ($marketResolved['inverse'] === true) && ($marketResolved['option'] !== true)) {
+            if ($this->is_native_deribit_credentials() && ($this->safe_bool($marketResolved, 'inverse', false)) && (!$this->safe_bool($marketResolved, 'option', false))) {
                 $cost = $this->parse_number(Precise::string_div($amountString, $priceString));
             }
         }
@@ -3137,7 +3140,7 @@ class coinbaseinternational extends Exchange {
         return $response;
     }
 
-    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null, $useEddsa = false) {
+    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null, bool $useEddsa = false) {
         /**
          * @ignore
          * signs a short-lived CDP JWT that public/auth exchanges for a gateway access token
@@ -3159,7 +3162,7 @@ class coinbaseinternational extends Exchange {
          * @return {string} signed JWT
          */
         $uri = null;
-        if ($url !== null) {
+        if (($url !== null) && ($method !== null)) {
             $uri = $method . ' ' . str_replace('https://', '', $url);
             $quesPos = mb_strpos($uri, '?');
             if ($quesPos > 0) {
@@ -3180,7 +3183,7 @@ class coinbaseinternational extends Exchange {
             'sub' => $this->apiKey,
             'iss' => $iss,
             'nbf' => $seconds,
-            'exp' => $seconds + 120,
+            'exp' => $this->parse_to_int($seconds) + 120,
             'iat' => $seconds,
         );
         if ($uri !== null) {
@@ -3257,21 +3260,14 @@ class coinbaseinternational extends Exchange {
     public function get_v2_access_token(): ?string {
         /**
          * @ignore
-         * the cached gateway access $token, options.v2AccessToken takes precedence over exchange.token
-         * @return {string|null} the access $token
+         * the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
+         * @return {string|null} the access token
          */
-        $token = $this->safe_string($this->options, 'v2AccessToken');
-        if (($token !== null) && ($token !== '')) {
-            return $token;
-        }
-        if (($this->token === null) || ($this->token === '')) {
-            return null;
-        }
-        return $this->token;
+        return $this->safe_string($this->options, 'v2AccessToken', $this->token);
     }
 
-    public function sign(string $path, mixed $api = 'public', string $method = 'GET', $params = array()): array {
-        $access = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) ? $api[0] : $api;
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $access = $api[0];
         $rpcMethod = $access . '/' . $path;
         $requestParams = $this->handle_route_and_params('sign', $params);
         $isNativeDeribit = $this->is_native_deribit_credentials();
@@ -3280,7 +3276,7 @@ class coinbaseinternational extends Exchange {
             $baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         $url = $baseApiUrl . '/' . $rpcMethod;
-        $requestHeaders = null;
+        $requestHeaders = array();
         if ($isNativeDeribit && (($path === 'get_leverage') || ($path === 'set_leverage'))) {
             throw new NotSupported($this->id . ' ' . $rpcMethod . ' is only documented on the Coinbase gateway');
         }
@@ -3301,7 +3297,7 @@ class coinbaseinternational extends Exchange {
         } elseif (($access === 'private') && $isNativeDeribit) {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
-            $nonce = (string) $this->nonce();
+            $nonce = $this->number_to_string($this->nonce());
             $signedRequest = '/' . 'api/' . $this->version . '/' . $access . '/' . $path;
             if (count($requestParams) > 0) {
                 $signedRequest .= '?' . $this->urlencode($requestParams);
@@ -3315,7 +3311,7 @@ class coinbaseinternational extends Exchange {
             );
         } elseif ($access === 'private') {
             $accessToken = $this->get_v2_access_token();
-            if ($accessToken === null) {
+            if (($accessToken === null) || ($accessToken === '')) {
                 throw new AuthenticationError($this->id . ' requires an access token from public/auth');
             }
             $requestHeaders = array(
@@ -3364,11 +3360,12 @@ class coinbaseinternational extends Exchange {
          * @param {string} [$params->route] auto (default), $deribit, or coinbase; overrides options.route
          * @return {array} cleaned parameters; options.route persists the selection for nested calls and Pro
          */
-        list($route, $paramsResolved) = $this->handle_option_and_params($params, $methodName, 'route', 'auto');
+        list($route, $paramsResolved) = $this->handle_option_string_and_params($params, $methodName, 'route', 'auto');
         $deribit = $this->resolve_route($route);
         $previousBackend = $this->safe_bool($this->options, 'routeBackend');
         $configuredBackend = $this->is_native_deribit_credentials();
-        $hasToken = $this->get_v2_access_token() !== null;
+        $currentToken = $this->get_v2_access_token();
+        $hasToken = ($currentToken !== null) && ($currentToken !== '');
         $hasWsState = $this->safe_integer($this->options, 'wsAuthRefreshAt') !== null;
         if (($previousBackend !== null) && ($previousBackend !== $deribit)) {
             throw new BadRequest($this->id . ' cannot switch route backend on an initialized instance; use a separate exchange instance');
@@ -3422,7 +3419,7 @@ class coinbaseinternational extends Exchange {
         return (strlen($this->apiKey) === 8) && (strlen($this->secret) === 43);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         //

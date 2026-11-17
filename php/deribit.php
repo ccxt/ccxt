@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\deribit as Exchange;
 
 class deribit extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'deribit',
             'name' => 'Deribit',
@@ -518,48 +518,48 @@ class deribit extends Exchange {
     public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = 'USD';
-        $settle = null;
+        $settle = '';
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
+        $hasSlash = mb_strpos($symbol, '/') > -1;
+        $hasUsdc = mb_strpos($symbol, 'USDC') > -1;
         $base = null;
         $expiry = null;
-        if (mb_strpos($symbol, '/') > -1) {
-            $base = $this->safe_string($symbolBase, 0);
+        if ($hasSlash) {
+            $base = $this->safe_string($symbolBase, 0, '');
             $expiry = $this->safe_string($optionParts, 1);
-            if (mb_strpos($symbol, 'USDC') > -1) {
-                $base = $base . '_USDC';
-            }
         } else {
-            $base = $this->safe_string($optionParts, 0);
+            $base = $this->safe_string($optionParts, 0, '');
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
         }
-        if (mb_strpos($symbol, 'USDC') > -1) {
-            $quote = 'USDC';
-            $settle = 'USDC';
-        } else {
-            $settle = $base;
-        }
-        $splitBase = $base;
         if ($base === null) {
             throw new ExchangeError($this->id . ' createExpiredOptionMarket() missing base');
         }
-        if (mb_strpos($base, '_') > -1) {
-            $splitSymbol = explode('_', $base);
-            $splitBase = $this->safe_string($splitSymbol, 0);
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        $baseSuffix = '';
+        if ($hasSlash && $hasUsdc) {
+            $baseSuffix = '_USDC';
         }
-        $strike = $this->safe_string($optionParts, 2);
-        $optionType = $this->safe_string($optionParts, 3);
+        $baseResolved = $base . $baseSuffix;
+        if ($hasUsdc) {
+            $quote = 'USDC';
+            $settle = 'USDC';
+        } else {
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            $settle = $baseResolved;
+        }
+        // the part of the base before the first underscore, or the whole base when it has none
+        $splitBase = $this->safe_string(explode('_', $baseResolved), 0, '');
+        $strike = $this->safe_string($optionParts, 2, '');
+        $optionType = $this->safe_string($optionParts, 3, '');
         $datetime = $this->convert_expire_date($expiry);
-        $timestamp = $this->parse8601($datetime);
-        $id = $base . '-' . $this->convert_expire_date_to_market_id_date($expiry) . '-' . $strike . '-' . $optionType;
-        $symbolExpired = $splitBase . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType;
         return array(
-            'id' => $id,
-            'symbol' => $symbolExpired,
-            'base' => $base,
+            'id' => $baseResolved . '-' . $this->convert_expire_date_to_market_id_date($expiry) . ('-' . $strike . '-' . $optionType),
+            'symbol' => $splitBase . '/' . $quote . ':' . $settle . '-' . $expiry . ('-' . $strike . '-' . $optionType),
+            'base' => $baseResolved,
             'quote' => $quote,
             'settle' => $settle,
-            'baseId' => $base,
+            'baseId' => $baseResolved,
             'quoteId' => $quote,
             'settleId' => $settle,
             'active' => false,
@@ -573,7 +573,7 @@ class deribit extends Exchange {
             'margin' => false,
             'contract' => true,
             'contractSize' => null,
-            'expiry' => $timestamp,
+            'expiry' => $this->parse8601($datetime),
             'expiryDatetime' => $datetime,
             'optionType' => ($optionType === 'C') ? 'call' : 'put',
             'strike' => $this->parse_number($strike),
@@ -1067,7 +1067,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $balance): array {
+    public function parse_balance(array $balance): array {
         $result = array(
             'info' => $balance,
         );
@@ -1421,16 +1421,12 @@ class deribit extends Exchange {
             'currency' => $currency['id'],
         );
         if ($type !== null) {
-            $requestType = null;
             if ($type === 'spot') {
-                $requestType = 'spot';
+                $request['kind'] = 'spot';
             } elseif ($type === 'future' || ($type === 'contract')) {
-                $requestType = 'future';
+                $request['kind'] = 'future';
             } elseif ($type === 'option') {
-                $requestType = 'option';
-            }
-            if ($requestType !== null) {
-                $request['kind'] = $requestType;
+                $request['kind'] = 'option';
             }
         }
         $response = $this->publicGetGetBookSummaryByCurrency($this->extend($request, $paramsOmitted));
@@ -1605,7 +1601,7 @@ class deribit extends Exchange {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         $amount = $this->safe_string($trade, 'amount');
         $cost = Precise::string_mul($amount, $priceString);
-        if ($marketResolved['inverse'] === true) {
+        if ($this->safe_bool($marketResolved, 'inverse', false)) {
             $cost = Precise::string_div($amount, $priceString);
         }
         $liquidity = $this->safe_string($trade, 'liquidity');
@@ -1819,11 +1815,11 @@ class deribit extends Exchange {
                 'maker' => $market['maker'],
                 'taker' => $market['taker'],
             );
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $fee = $this->extend($fee, $perpetualFee);
-            } elseif ($market['future'] === true) {
+            } elseif ($this->safe_bool($market, 'future', false)) {
                 $fee = $this->extend($fee, $futureFee);
-            } elseif ($market['option'] === true) {
+            } elseif ($this->safe_bool($market, 'option', false)) {
                 $fee = $this->extend($fee, $optionFee);
             }
             $parsedFees[$symbol] = $fee;
@@ -2138,7 +2134,7 @@ class deribit extends Exchange {
         $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
         $isLimitOrder = ($type === 'limit') || $isStopLimit || $isTakeLimit;
         $isMarketOrder = ($type === 'market') || $isStopMarket || $isTakeMarket;
-        $exchangeSpecificPostOnly = $this->safe_value($params, 'post_only');
+        $exchangeSpecificPostOnly = $this->safe_bool($params, 'post_only');
         $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificPostOnly, $params);
         if ($isLimitOrder) {
             $request['type'] = 'limit';
@@ -2250,9 +2246,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->safe_value($result, 'order');
-        $trades = $this->safe_list($result, 'trades', array());
-        $order['trades'] = $trades;
+        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order, $market);
     }
 
@@ -2301,9 +2295,7 @@ class deribit extends Exchange {
         }
         $response = $this->privateGetEdit($this->extend($request, $paramsOmitted));
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->safe_value($result, 'order');
-        $trades = $this->safe_list($result, 'trades', array());
-        $order['trades'] = $trades;
+        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order);
     }
 
@@ -2794,8 +2786,7 @@ class deribit extends Exchange {
         //
         $contract = $this->safe_string($position, 'instrument_name');
         $marketResolved = $this->safe_market($contract, $market);
-        $side = $this->safe_string($position, 'direction');
-        $side = ($side === 'buy') ? 'long' : 'short';
+        $side = ($this->safe_string($position, 'direction') === 'buy') ? 'long' : 'short';
         $unrealizedPnl = $this->safe_string($position, 'floating_profit_loss');
         $initialMarginString = $this->safe_string($position, 'initial_margin');
         $notionalString = $this->safe_string($position, 'size_currency');
@@ -3332,16 +3323,22 @@ class deribit extends Exchange {
         $month = 30 * 24 * 60 * 60 * 1000;
         $defaultSince = $now - $month;
         $sinceResolved = ($since === null) ? $defaultSince : $since;
-        $time = ($since === null) ? $now : $since . $month;
+        $time = $now;
+        if ($since !== null) {
+            $time = $this->parse_to_int($since . $month);
+        }
         $request = array(
             'instrument_name' => $market['id'],
             'start_timestamp' => $sinceResolved - 1,
         );
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'end_timestamp');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
-        $endTimestamp = ($until !== null) ? $until : $time;
+        $endTimestamp = $time;
+        if ($until !== null) {
+            $endTimestamp = $this->parse_to_int($until);
+        }
         $request['end_timestamp'] = $endTimestamp;
-        $isPaginationCall = (is_array($paramsUntil) && array_key_exists('isDeribitPaginationCall' ?? '', $paramsUntil));
+        $isPaginationCall = $this->safe_bool($paramsUntil, 'isDeribitPaginationCall', false);
         $paramsOmitted = $paramsUntil;
         if ($isPaginationCall) {
             $paramsOmitted = $this->omit($paramsUntil, 'isDeribitPaginationCall');
@@ -3444,8 +3441,8 @@ class deribit extends Exchange {
             return $this->fetch_paginated_call_cursor('fetchLiquidations', $symbol, $since, $limit, $paramsPaginate, 'continuation', 'continuation', null);
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
-            throw new NotSupported($this->id . ' fetchLiquidations() does not support ' . $market['type'] . ' markets');
+        if ($this->safe_bool($market, 'spot', false)) {
+            throw new NotSupported($this->id . ' fetchLiquidations() does not support ' . $this->safe_string($market, 'type', '') . ' markets');
         }
         $request = array(
             'instrument_name' => $market['id'],
@@ -3493,8 +3490,8 @@ class deribit extends Exchange {
         if ($cursor !== null) {
             $dataLength = count($data);
             if ($dataLength > 0) {
-                $first = $data[0];
-                $last = $data[$dataLength - 1];
+                $first = $this->safe_dict($data, 0, array());
+                $last = $this->safe_dict($data, $dataLength - 1, array());
                 $first['continuation'] = $cursor;
                 $last['continuation'] = $cursor;
                 $data[0] = $first;
@@ -3523,8 +3520,8 @@ class deribit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
-            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
+        if ($this->safe_bool($market, 'spot', false)) {
+            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $this->safe_string($market, 'type', '') . ' markets');
         }
         $request = array(
             'instrument_name' => $market['id'],
@@ -3902,7 +3899,7 @@ class deribit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -3976,7 +3973,7 @@ class deribit extends Exchange {
         $openInterest = $this->safe_number($interest, 'open_interest');
         $openInterestAmount = null;
         $openInterestValue = null;
-        if (($marketResolved['option'] === true) || (($marketResolved['future'] === true) && ($marketResolved['linear'] === true))) {
+        if (($this->safe_bool($marketResolved, 'option', false)) || (($this->safe_bool($marketResolved, 'future', false)) && ($this->safe_bool($marketResolved, 'linear', false)))) {
             $openInterestAmount = $openInterest;
         } else {
             $openInterestValue = $openInterest;
@@ -3991,7 +3988,7 @@ class deribit extends Exchange {
         ), $marketResolved);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -4032,7 +4029,7 @@ class deribit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }

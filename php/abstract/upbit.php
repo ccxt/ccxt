@@ -140,7 +140,7 @@ abstract class upbit extends \ccxt\Exchange {
         return $this->request('orderbook/instruments', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', array('private'), 'GET', $params, array("cost" => 0.67));
@@ -500,7 +500,7 @@ abstract class upbit extends \ccxt\Exchange {
         return $this->request('orderbook/instruments', array('public'), 'GET', $params, array("cost" => 2));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', array('private'), 'GET', $params, array("cost" => 0.67));

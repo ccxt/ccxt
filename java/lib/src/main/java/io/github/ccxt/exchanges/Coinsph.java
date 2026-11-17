@@ -38,7 +38,7 @@ public class Coinsph extends CoinsphApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "coinsph" );
@@ -795,7 +795,7 @@ public class Coinsph extends CoinsphApi
     {
         String id = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
-        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney", (Object) null);
+        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney", false);
         List<Object> networkList = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
@@ -827,35 +827,38 @@ public class Coinsph extends CoinsphApi
                 networks.put(networkCode, mapLiteral1);
             }
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("name", this.safeString(rawCurrency, "name"));
-        mapLiteral2.put("code", code);
-        mapLiteral2.put("type", (((java.util.Objects.equals(isFiat, true)))) ? "fiat" : "crypto");
-        mapLiteral2.put("precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "transferPrecision"))));
-        mapLiteral2.put("info", rawCurrency);
-        mapLiteral2.put("active", null);
-        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "depositAllEnable", (Object) null));
-        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "withdrawAllEnable", (Object) null));
-        mapLiteral2.put("networks", networks);
-        mapLiteral2.put("fee", null);
-        mapLiteral2.put("fees", null);
-        mapLiteral2.put("limits", new HashMap<String, Object>() {{}});
-        return this.safeCurrencyStructure(mapLiteral2);
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
+            put( "id", id );
+            put( "name", Coinsph.this.safeString(rawCurrency, "name") );
+            put( "code", code );
+            put( "type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto" );
+            put( "precision", Coinsph.this.parseNumber(Coinsph.this.parsePrecision(Coinsph.this.safeString(rawCurrency, "transferPrecision"))) );
+            put( "info", rawCurrency );
+            put( "active", null );
+            put( "deposit", Coinsph.this.safeBool(rawCurrency, "depositAllEnable", (Object) null) );
+            put( "withdraw", Coinsph.this.safeBool(rawCurrency, "withdrawAllEnable", (Object) null) );
+            put( "networks", networks );
+            put( "fee", null );
+            put( "fees", null );
+            put( "limits", new HashMap<String, Object>() {{}} );
+        }});
     }
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v13 -> j39v13.contains("symbol"); case Map<?, ?> j39v12 -> j39v12.containsKey("symbol"); case null, default -> false; })))
+        Boolean hasSymbolParam = ((switch ((Object)(parameters)) { case List<?> j39v4 -> j39v4.contains("symbol"); case Map<?, ?> j39v3 -> j39v3.containsKey("symbol"); case null, default -> false; }));
+        Boolean hasSymbolsParam = ((switch ((Object)(parameters)) { case List<?> j39v2 -> j39v2.contains("symbols"); case Map<?, ?> j39v1 -> j39v1.containsKey("symbols"); case null, default -> false; }));
+        Long limit = this.safeInteger(parameters, "limit");
+        if ((config.containsKey("noSymbol")) && !Boolean.TRUE.equals(hasSymbolParam))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("noSymbolAndNoSymbols")) && !((switch ((Object)(parameters)) { case List<?> j39v11 -> j39v11.contains("symbol"); case Map<?, ?> j39v10 -> j39v10.containsKey("symbol"); case null, default -> false; })) && !((switch ((Object)(parameters)) { case List<?> j39v9 -> j39v9.contains("symbols"); case Map<?, ?> j39v8 -> j39v8.containsKey("symbols"); case null, default -> false; })))
+        } else if ((config.containsKey("noSymbolAndNoSymbols")) && !Boolean.TRUE.equals(hasSymbolParam) && !Boolean.TRUE.equals(hasSymbolsParam))
         {
             return config.get("noSymbolAndNoSymbols");
-        } else if ((config.containsKey("byNumberOfSymbols")) && ((switch ((Object)(parameters)) { case List<?> j39v7 -> j39v7.contains("symbols"); case Map<?, ?> j39v6 -> j39v6.containsKey("symbols"); case null, default -> false; })))
+        } else if ((config.containsKey("byNumberOfSymbols")) && Boolean.TRUE.equals(hasSymbolsParam))
         {
-            Object symbols = Helpers.GetValue(parameters, "symbols");
-            Integer symbolsAmount = (switch ((Object)(symbols)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
+            List<Object> symbols = (List<Object>) this.safeList(parameters, "symbols", new ArrayList<Object>(Arrays.asList()));
+            Integer symbolsAmount = ((List<?>)symbols).size();
             List<Object> byNumberOfSymbols = (List<Object>) this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byNumberOfSymbols).size(); i++)
             {
@@ -863,20 +866,19 @@ public class Coinsph extends CoinsphApi
                 Long threshold = this.safeInteger(entry, 0);
                 if (!java.util.Objects.equals(threshold, null) && (threshold == null || (symbolsAmount != null && symbolsAmount >= threshold)))
                 {
-                    return Helpers.GetValue(entry, 1);
+                    return this.safeInteger(entry, 1);
                 }
             }
-        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v2 -> j39v2.contains("limit"); case Map<?, ?> j39v1 -> j39v1.containsKey("limit"); case null, default -> false; })))
+        } else if ((config.containsKey("byLimit")) && (!java.util.Objects.equals(limit, null)))
         {
-            Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 Long threshold = this.safeInteger(entry, 0);
-                if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(threshold, null) && (threshold == null || (limit != null && limit >= threshold)))
+                if (!java.util.Objects.equals(threshold, null) && (threshold == null || (limit != null && limit >= threshold)))
                 {
-                    return Helpers.GetValue(entry, 1);
+                    return this.safeInteger(entry, 1);
                 }
             }
         }
@@ -1021,37 +1023,37 @@ public class Coinsph extends CoinsphApi
                 Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
                 Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                 Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>();
-                    j39v14.put("id", id);
-                    j39v14.put("symbol", ((base + "/") + quote));
-                    j39v14.put("base", base);
-                    j39v14.put("quote", quote);
-                    j39v14.put("settle", null);
-                    j39v14.put("baseId", baseId);
-                    j39v14.put("quoteId", quoteId);
-                    j39v14.put("settleId", null);
-                    j39v14.put("type", "spot");
-                    j39v14.put("spot", true);
-                    j39v14.put("margin", false);
-                    j39v14.put("swap", false);
-                    j39v14.put("future", false);
-                    j39v14.put("option", false);
-                    j39v14.put("active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"));
-                    j39v14.put("contract", false);
-                    j39v14.put("linear", null);
-                    j39v14.put("inverse", null);
-                    j39v14.put("taker", null);
-                    j39v14.put("maker", null);
-                    j39v14.put("contractSize", null);
-                    j39v14.put("expiry", null);
-                    j39v14.put("expiryDatetime", null);
-                    j39v14.put("strike", null);
-                    j39v14.put("optionType", null);
-                    j39v14.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                j39v5.put("id", id);
+                j39v5.put("symbol", ((base + "/") + quote));
+                j39v5.put("base", base);
+                j39v5.put("quote", quote);
+                j39v5.put("settle", null);
+                j39v5.put("baseId", baseId);
+                j39v5.put("quoteId", quoteId);
+                j39v5.put("settleId", null);
+                j39v5.put("type", "spot");
+                j39v5.put("spot", true);
+                j39v5.put("margin", false);
+                j39v5.put("swap", false);
+                j39v5.put("future", false);
+                j39v5.put("option", false);
+                j39v5.put("active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"));
+                j39v5.put("contract", false);
+                j39v5.put("linear", null);
+                j39v5.put("inverse", null);
+                j39v5.put("taker", null);
+                j39v5.put("maker", null);
+                j39v5.put("contractSize", null);
+                j39v5.put("expiry", null);
+                j39v5.put("expiryDatetime", null);
+                j39v5.put("strike", null);
+                j39v5.put("optionType", null);
+                j39v5.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Coinsph.this.parseNumber(Coinsph.this.safeString(amountLimits, "stepSize")) );
                         put( "price", Coinsph.this.parseNumber(Coinsph.this.safeString(priceLimits, "tickSize")) );
                     }});
-                    j39v14.put("limits", new HashMap<String, Object>() {{
+                j39v5.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1069,9 +1071,9 @@ public class Coinsph extends CoinsphApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v14.put("created", null);
-                    j39v14.put("info", market);
-                    yield j39v14; } }));
+                j39v5.put("created", null);
+                j39v5.put("info", market);
+                ((List<Object>)result).add(j39v5);
             }
             this.setMarkets(result, (Object) null);
             return result;
@@ -1230,27 +1232,27 @@ public class Coinsph extends CoinsphApi
         String changeValue = this.safeString(ticker, "priceChange");
         String changePcnt = this.safeString(ticker, "priceChangePercent");
         changePcnt = Precise.stringMul(changePcnt, "100");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("symbol", marketResolved.get("symbol"));
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("open", open);
-        mapLiteral3.put("high", high);
-        mapLiteral3.put("low", low);
-        mapLiteral3.put("close", this.safeString2(ticker, "lastPrice", "price"));
-        mapLiteral3.put("bid", bid);
-        mapLiteral3.put("bidVolume", bidVolume);
-        mapLiteral3.put("ask", ask);
-        mapLiteral3.put("askVolume", askVolume);
-        mapLiteral3.put("vwap", vwap);
-        mapLiteral3.put("previousClose", prevClose);
-        mapLiteral3.put("change", changeValue);
-        mapLiteral3.put("percentage", changePcnt);
-        mapLiteral3.put("average", null);
-        mapLiteral3.put("baseVolume", baseVolume);
-        mapLiteral3.put("quoteVolume", quoteVolume);
-        mapLiteral3.put("info", ticker);
-        return this.safeTicker(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("open", open);
+        mapLiteral2.put("high", high);
+        mapLiteral2.put("low", low);
+        mapLiteral2.put("close", this.safeString2(ticker, "lastPrice", "price"));
+        mapLiteral2.put("bid", bid);
+        mapLiteral2.put("bidVolume", bidVolume);
+        mapLiteral2.put("ask", ask);
+        mapLiteral2.put("askVolume", askVolume);
+        mapLiteral2.put("vwap", vwap);
+        mapLiteral2.put("previousClose", prevClose);
+        mapLiteral2.put("change", changeValue);
+        mapLiteral2.put("percentage", changePcnt);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", baseVolume);
+        mapLiteral2.put("quoteVolume", quoteVolume);
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1584,21 +1586,21 @@ public class Coinsph extends CoinsphApi
         {
             costString = this.safeString(trade, "quoteQty");
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("order", orderId);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("type", type);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("takerOrMaker", takerOrMaker);
-        mapLiteral4.put("price", priceString);
-        mapLiteral4.put("amount", amountString);
-        mapLiteral4.put("cost", costString);
-        mapLiteral4.put("fee", fee);
-        mapLiteral4.put("info", trade);
-        return this.safeTrade(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", costString);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("info", trade);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1645,7 +1647,7 @@ public class Coinsph extends CoinsphApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         List<Object> balances = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -1707,7 +1709,8 @@ public class Coinsph extends CoinsphApi
             request.put("type", orderType);
             request.put("side", orderSide);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
-            Object newOrderRespType = this.safeValue(options, "newOrderRespType", new HashMap<String, Object>() {{}});
+            Object newOrderRespTypes = this.safeValue(options, "newOrderRespType", new HashMap<String, Object>() {{}});
+            String newOrderRespType = "FULL";
             // if limit order
             if (java.util.Objects.equals(orderType, "LIMIT") || java.util.Objects.equals(orderType, "STOP_LOSS_LIMIT") || java.util.Objects.equals(orderType, "TAKE_PROFIT_LIMIT") || java.util.Objects.equals(orderType, "LIMIT_MAKER"))
             {
@@ -1715,7 +1718,7 @@ public class Coinsph extends CoinsphApi
                 {
                     throw new ArgumentsRequired((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
                 }
-                newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
+                newOrderRespType = this.safeString(newOrderRespTypes, "limit", "FULL");
                 request.put("price", this.priceToPrecision(symbol, price));
                 request.put("quantity", this.amountToPrecision(symbol, amount));
                 if (!java.util.Objects.equals(orderType, "LIMIT_MAKER"))
@@ -1724,14 +1727,14 @@ public class Coinsph extends CoinsphApi
                 }
             } else if (java.util.Objects.equals(orderType, "MARKET") || java.util.Objects.equals(orderType, "STOP_LOSS") || java.util.Objects.equals(orderType, "TAKE_PROFIT"))
             {
-                newOrderRespType = this.safeString(newOrderRespType, "market", "FULL");
+                newOrderRespType = this.safeString(newOrderRespTypes, "market", "FULL");
                 if (java.util.Objects.equals(orderSide, "SELL"))
                 {
                     request.put("quantity", this.amountToPrecision(symbol, amount));
                 } else if (java.util.Objects.equals(orderSide, "BUY"))
                 {
                     String quoteAmount = null;
-                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsType), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                     Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                     Double cost = this.safeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty", (Object) null);
@@ -2071,29 +2074,29 @@ public class Coinsph extends CoinsphApi
         {
             triggerPrice = null;
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("id", id);
-        mapLiteral5.put("clientOrderId", this.safeString(order, "clientOrderId"));
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", null);
-        mapLiteral5.put("status", this.parseOrderStatus(this.safeString(order, "status")));
-        mapLiteral5.put("symbol", marketResolved.get("symbol"));
-        mapLiteral5.put("type", this.parseOrderType(this.safeString(order, "type")));
-        mapLiteral5.put("timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")));
-        mapLiteral5.put("side", this.parseOrderSide(this.safeString(order, "side")));
-        mapLiteral5.put("price", this.safeString(order, "price"));
-        mapLiteral5.put("triggerPrice", triggerPrice);
-        mapLiteral5.put("average", null);
-        mapLiteral5.put("amount", this.safeString(order, "origQty"));
-        mapLiteral5.put("cost", this.safeString(order, "cummulativeQuoteQty"));
-        mapLiteral5.put("filled", this.safeString(order, "executedQty"));
-        mapLiteral5.put("remaining", null);
-        mapLiteral5.put("fee", null);
-        mapLiteral5.put("fees", null);
-        mapLiteral5.put("trades", trades);
-        mapLiteral5.put("info", order);
-        return this.safeOrder(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("status", this.parseOrderStatus(this.safeString(order, "status")));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", this.parseOrderType(this.safeString(order, "type")));
+        mapLiteral4.put("timeInForce", this.parseOrderTimeInForce(this.safeString(order, "timeInForce")));
+        mapLiteral4.put("side", this.parseOrderSide(this.safeString(order, "side")));
+        mapLiteral4.put("price", this.safeString(order, "price"));
+        mapLiteral4.put("triggerPrice", triggerPrice);
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("amount", this.safeString(order, "origQty"));
+        mapLiteral4.put("cost", this.safeString(order, "cummulativeQuoteQty"));
+        mapLiteral4.put("filled", this.safeString(order, "executedQty"));
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("fee", null);
+        mapLiteral4.put("fees", null);
+        mapLiteral4.put("trades", trades);
+        mapLiteral4.put("info", order);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseOrderSide(String status)
@@ -2115,10 +2118,7 @@ public class Coinsph extends CoinsphApi
             put( "buy", "BUY" );
             put( "sell", "SELL" );
         }};
-        if (java.util.Objects.equals(status, null))
-        {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
 
@@ -2151,10 +2151,7 @@ public class Coinsph extends CoinsphApi
             put( "take_profit", "TAKE_PROFIT" );
             put( "take_profit_limit", "TAKE_PROFIT_LIMIT" );
         }};
-        if (java.util.Objects.equals(status, null))
-        {
-            return null;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
 
@@ -2222,7 +2219,7 @@ public class Coinsph extends CoinsphApi
             //     ]
             //
             Map<String, Object> tradingFee = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (tradingFee), market);
+            return this.parseTradingFee(tradingFee, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2345,7 +2342,7 @@ public class Coinsph extends CoinsphApi
             }
             Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted))).join();
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -2654,7 +2651,7 @@ public class Coinsph extends CoinsphApi
             //         "addressTag": ""
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2709,7 +2706,7 @@ public class Coinsph extends CoinsphApi
         }
     }
 
-    public String parseArrayParam(Object array, Object key)
+    public String parseArrayParam(Object array, String key)
     {
         String stringifiedArray = this.json(array);
         stringifiedArray = (stringifiedArray == null ? null : ((String)stringifiedArray).replaceFirst(java.util.regex.Pattern.quote("["), "%5B"));
@@ -2720,31 +2717,31 @@ public class Coinsph extends CoinsphApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object query = this.omit(parameters, this.extractParams(path));
+        Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, this.omit(parameters, this.extractParams(path)));
         String endpoint = (String) this.implodeParams(path, parameters);
         String url = ((apiUrl + "/") + endpoint);
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
-            Helpers.addElementToObject(query, "timestamp", this.milliseconds());
+            query.put("timestamp", this.milliseconds());
             Long recvWindow = this.safeInteger(query, "recvWindow");
             if (java.util.Objects.equals(recvWindow, null))
             {
                 Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
                 if (!java.util.Objects.equals(defaultRecvWindow, null))
                 {
-                    Helpers.addElementToObject(query, "recvWindow", defaultRecvWindow);
+                    query.put("recvWindow", defaultRecvWindow);
                 }
             }
-            Object signedQuery = this.urlEncodeQuery(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            String signedQuery = this.urlEncodeQuery(query);
             String signature = (String) this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256());
-            url = ((((url + "?") + signedQuery) + "&signature=") + signature);
+            url = ((((((apiUrl + "/") + endpoint) + "?") + signedQuery) + "&signature=") + signature);
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
                 put( "X-COINS-APIKEY", Coinsph.this.apiKey );
             }};
@@ -2757,10 +2754,10 @@ public class Coinsph extends CoinsphApi
                 return h2kMap1;
             }
         }
-        String encodedQuery = this.urlEncodeQuery(((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        String encodedQuery = this.urlEncodeQuery(query);
         if ((encodedQuery.length() != 0))
         {
-            url = (url + ("?" + encodedQuery));
+            url = ((((apiUrl + "/") + endpoint) + "?") + encodedQuery);
         }
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
@@ -2772,7 +2769,7 @@ public class Coinsph extends CoinsphApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2782,8 +2779,8 @@ public class Coinsph extends CoinsphApi
         if ((!java.util.Objects.equals(responseCode, null)) && (!java.util.Objects.equals(responseCode, "200")) && (!java.util.Objects.equals(responseCode, "0")))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), responseCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), responseCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

@@ -979,7 +979,7 @@ export default class polymarket extends Exchange {
      */
     async fetchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const promises = [
             this.clobPublicGetMidpoint({ 'token_id': tokenId }),
             this.clobPublicGetBook({ 'token_id': tokenId }),
@@ -1215,7 +1215,7 @@ export default class polymarket extends Exchange {
      */
     async fetchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const request = {
             'token_id': tokenId,
         };
@@ -1263,7 +1263,7 @@ export default class polymarket extends Exchange {
             throw new BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join(', '));
         }
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds();
         let startS;
@@ -1331,7 +1331,7 @@ export default class polymarket extends Exchange {
                 buckets[bucketKey] = [snappedMs, price, price, price, price, vol];
             }
             else {
-                const candle = buckets[bucketKey];
+                const candle = this.safeList(buckets, bucketKey, []);
                 candle[2] = Math.max(candle[2], price); // high
                 candle[3] = Math.min(candle[3], price); // low
                 candle[4] = price; // close (last tick wins)
@@ -1490,7 +1490,7 @@ export default class polymarket extends Exchange {
      */
     async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const conditionId = this.safeString(outcomeInfo, 'conditionId');
         if (conditionId === undefined) {
@@ -1534,7 +1534,7 @@ export default class polymarket extends Exchange {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome(outcome);
-            request['asset_id'] = outcomeObj['outcomeId'];
+            request['asset_id'] = this.safeString(outcomeObj, 'outcomeId');
         }
         const response = await this.clobPrivateGetDataTrades(this.extend(request, params));
         const rawTrades = Array.isArray(response) ? response : this.safeList(response, 'data', []);
@@ -1816,7 +1816,7 @@ export default class polymarket extends Exchange {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome(outcome);
-            request['asset_id'] = outcomeObj['outcomeId'];
+            request['asset_id'] = this.safeString(outcomeObj, 'outcomeId');
         }
         const response = await this.clobPrivateGetDataOrders(this.extend(request, params));
         const orders = this.safeList(response, 'data', []);
@@ -2023,7 +2023,7 @@ export default class polymarket extends Exchange {
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         const outcomeObj = this.outcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const sideStr = side.toUpperCase();
         const isMarket = (type === 'market');
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -2305,7 +2305,7 @@ export default class polymarket extends Exchange {
         };
         const innerEncoded = this.ethEncodeStructuredData(orderDomain, { 'TypedDataSign': typedDataSignStruct, 'Order': orderStruct }, innerValue);
         const innerSigObj = this.signMessage(innerEncoded, this.privateKey);
-        const innerSig = this.remove0xPrefix(innerSigObj['r']) + this.remove0xPrefix(innerSigObj['s']) + this.intToBase16(innerSigObj['v']);
+        const innerSig = this.remove0xPrefix(this.safeString(innerSigObj, 'r')) + this.remove0xPrefix(this.safeString(innerSigObj, 's')) + this.intToBase16(innerSigObj['v']);
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -2381,7 +2381,7 @@ export default class polymarket extends Exchange {
         if (outcome !== undefined) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
             const outcomeObj = await this.loadOutcome(outcome);
-            const request = { 'asset_id': outcomeObj['outcomeId'] };
+            const request = { 'asset_id': this.safeString(outcomeObj, 'outcomeId') };
             response = await this.clobPrivateDeleteCancelMarketOrders(this.extend(request, params));
         }
         else {
@@ -2683,7 +2683,7 @@ export default class polymarket extends Exchange {
      */
     sign(path, api = ['gamma'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const access = this.safeString(api, 1, 'public');
+        const access = api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['gamma']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
@@ -2970,38 +2970,42 @@ export default class polymarket extends Exchange {
         // keepAlive interval set in describe.streaming sends it on both the market and user channels
         return 'PING';
     }
-    handleMessage(client, message) {
+    handleTextMessage(client, message) {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if (typeof message === 'string') {
-            client.lastPong = this.milliseconds();
-            return;
-        }
-        const events = Array.isArray(message) ? message : [message];
-        for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+        client.lastPong = this.milliseconds();
+    }
+    handleMessage(client, message) {
+        this.handleMessageEvent(client, message);
+    }
+    handleListMessage(client, message) {
+        for (let i = 0; i < message.length; i++) {
+            const event = message[i];
             if ((event === undefined) || (event === null) || (typeof event !== 'object')) {
                 continue;
             }
-            const eventType = this.safeString(event, 'event_type');
-            if (eventType === 'book') {
-                this.handleOrderBookSnapshot(client, event);
-            }
-            else if (eventType === 'price_change') {
-                this.handleOrderBookDelta(client, event);
-            }
-            else if (eventType === 'last_trade_price') {
-                this.handleTrade(client, event);
-            }
-            else if (eventType === 'order') {
-                this.handleOrder(client, event);
-            }
-            else if (eventType === 'trade') {
-                this.handleMyTrade(client, event);
-            }
-            // tick_size_change events are silently ignored for now
+            this.handleMessageEvent(client, event);
         }
+    }
+    handleMessageEvent(client, event) {
+        const eventType = this.safeString(event, 'event_type');
+        if (eventType === 'book') {
+            this.handleOrderBookSnapshot(client, event);
+        }
+        else if (eventType === 'price_change') {
+            this.handleOrderBookDelta(client, event);
+        }
+        else if (eventType === 'last_trade_price') {
+            this.handleTrade(client, event);
+        }
+        else if (eventType === 'order') {
+            this.handleOrder(client, event);
+        }
+        else if (eventType === 'trade') {
+            this.handleMyTrade(client, event);
+        }
+        // tick_size_change events are silently ignored for now
     }
     handleOrderBookSnapshot(client, event) {
         const tokenId = this.safeString(event, 'asset_id');
@@ -3122,8 +3126,8 @@ export default class polymarket extends Exchange {
      */
     async watchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        const outcomeValue = this.safeString(outcomeObj, 'outcome');
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
+        const outcomeValue = this.safeString(outcomeObj, 'outcome', '');
         const messageHash = 'orderbook::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
@@ -3143,8 +3147,8 @@ export default class polymarket extends Exchange {
      */
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        const outcomeValue = this.safeString(outcomeObj, 'outcome');
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
+        const outcomeValue = this.safeString(outcomeObj, 'outcome', '');
         const messageHash = 'trades::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
@@ -3162,14 +3166,14 @@ export default class polymarket extends Exchange {
      */
     async watchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
         const outcomeValue = this.safeString(outcomeObj, 'outcome');
-        const messageHash = 'ticker::' + outcomeValue;
-        const subscribeHash = 'subscribe::' + tokenId;
-        const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
         if (outcomeValue === undefined) {
             throw new ExchangeError(this.id + ' watchTicker() missing outcome');
         }
+        const messageHash = 'ticker::' + outcomeValue;
+        const subscribeHash = 'subscribe::' + tokenId;
+        const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
         if (!(outcomeValue in this.orderbooks)) {
             const seededBook = this.orderBook({});
             if (outcomeValue !== undefined) {
@@ -3256,7 +3260,8 @@ export default class polymarket extends Exchange {
         if (outcomeResolved !== undefined) {
             const outcomeObj = await this.loadOutcome(outcomeResolved);
             outcomeResolved = this.safeString(outcomeObj, 'outcome');
-            messageHash = 'orders::' + outcomeResolved;
+            const outcomeName = this.safeString(outcomeObj, 'outcome', '');
+            messageHash = 'orders::' + outcomeName;
         }
         const orders = await this.subscribeUserChannel(messageHash, params);
         let limitResolved = limit;
@@ -3283,7 +3288,8 @@ export default class polymarket extends Exchange {
         if (outcomeResolved !== undefined) {
             const outcomeObj = await this.loadOutcome(outcomeResolved);
             outcomeResolved = this.safeString(outcomeObj, 'outcome');
-            messageHash = 'myTrades::' + outcomeResolved;
+            const outcomeName = this.safeString(outcomeObj, 'outcome', '');
+            messageHash = 'myTrades::' + outcomeName;
         }
         const trades = await this.subscribeUserChannel(messageHash, params);
         let limitResolved = limit;

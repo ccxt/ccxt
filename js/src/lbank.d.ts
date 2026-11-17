@@ -5,7 +5,7 @@ import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Mark
  * @augments Exchange
  */
 export default class lbank extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name lbank#fetchTime
@@ -99,7 +99,7 @@ export default class lbank extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     parseFundingRate(ticker: any, market?: Market): FundingRate;
     /**
      * @method
@@ -334,5 +334,5 @@ export default class lbank extends Exchange {
     parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     convertSecretToPem(secret: any): string;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

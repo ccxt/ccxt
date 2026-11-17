@@ -30,17 +30,20 @@ unsafe fn coerce_to_mut_unsafe(e: &Exchange) -> &mut Exchange {
     &mut *ptr
 }
 
+// One owner thread hands out the counter, so two tasks can never take the same
+// value and no call site touches an atomic.
+static RANDOM_COUNTER: std::sync::LazyLock<crate::value::OwnerThread<u64>> =
+    std::sync::LazyLock::new(|| crate::value::OwnerThread::spawn("ccxt-random", 0u64));
+
 /// Non-cryptographic 64-bit PRNG (splitmix64) seeded from a global
 /// counter mixed with the high-resolution clock. Good enough for the
 /// `uuid*` helpers — uniqueness across calls, not security.
 fn random_u64() -> u64 {
-    use std::sync::atomic::{AtomicU64, Ordering};
-    static COUNTER: AtomicU64 = AtomicU64::new(0);
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos() as u64)
         .unwrap_or(0);
-    let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let n = RANDOM_COUNTER.run(|c| { *c = c.wrapping_add(1); *c });
     let mut z = now ^ n.wrapping_mul(0x9E37_79B9_7F4A_7C15);
     z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
     z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
@@ -65,7 +68,7 @@ pub(crate) fn bytes_to_value(bytes: &[u8]) -> Value {
 
 /// True when `v` is a `Value::Array` whose elements are all integer
 /// byte values (0..=255) — the port's stand-in for a binary buffer.
-fn is_byte_array(v: &Value) -> bool {
+pub(crate) fn is_byte_array(v: &Value) -> bool {
     match v {
         Value::Arr(a) => a
             .iter()
@@ -665,6 +668,35 @@ impl Exchange {
         }
     }
 
+    /// `safe_string_k` without the box: same lookup, empty-string and default
+    /// rules, `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_value_k(obj, key, &[]) {
+            Value::Str(s) => Some(s.to_string()),
+            Value::Int(n) => Some(n.to_string()),
+            Value::Float(f) => Some(f.to_string()),
+            _ => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
+    /// `safe_string` without the box (Value key): same lookup and default rules.
+    #[inline]
+    pub fn safe_string_opt(&self, obj: Value, key: Value, optional_args: &[Value]) -> Option<String> {
+        match self.safe_value(obj, key, &[]) {
+            Value::Str(s) => Some(s.to_string()),
+            Value::Int(n) => Some(n.to_string()),
+            Value::Float(f) => Some(f.to_string()),
+            _ => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
     #[inline]
     pub fn safe_integer_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
@@ -699,6 +731,82 @@ impl Exchange {
     #[inline]
     pub fn safe_number_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         self.safe_float_k(obj, key, optional_args)
+    }
+
+    /// `safe_bool_k` without the box: `Some` only for an actual boolean, else `None`.
+    #[inline]
+    pub fn safe_bool_k_opt(&self, obj: Value, key: &str, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value_k(obj, key, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_bool` without the box (Value key): same lookup rule as `safe_bool_k_opt`.
+    #[inline]
+    pub fn safe_bool_opt(&self, obj: Value, key: Value, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value(obj, key, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_bool2` without the box: first key holding a real boolean wins, else `None`.
+    #[inline]
+    pub fn safe_bool2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<bool> {
+        if let Value::Bool(b) = self.safe_value(obj.clone(), k1, &[]) {
+            return Some(b);
+        }
+        match self.safe_value(obj, k2, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_bool_n` without the box: `Some` only for an actual boolean, else `None`.
+    #[inline]
+    pub fn safe_bool_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value_n(obj, keys, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_string2` without the box: first key whose `safe_string` is non-null, then the
+    /// default; `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string2_opt(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
+        self.safe_string_opt(obj.clone(), k1, &[])
+            .or_else(|| self.safe_string_opt(obj, k2, &[]))
+            .or_else(|| match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            })
+    }
+
+    /// `safe_string_n` without the box: first key whose `safe_string` is non-null, then the
+    /// default; `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string_n_opt(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Option<String> {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
+                if let Some(s) = self.safe_string_opt(obj.clone(), k, &[]) {
+                    return Some(s);
+                }
+            }
+        }
+        match arg_default(optional_args) {
+            Value::Str(d) => Some(d.to_string()),
+            _ => None,
+        }
+    }
+
+    /// `safe_number2` without the box (no default): first key whose string form parses as f64.
+    pub fn safe_number2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<f64> {
+        match self.safe_string2(obj, k1, k2, &[]) {
+            Value::Str(s) => s.parse::<f64>().ok(),
+            _ => None,
+        }
     }
 
     #[inline]
@@ -844,6 +952,19 @@ impl Exchange {
         arg_default(optional_args)
     }
 
+    /// `safe_string_upper_k` without the box: the found value is upper-cased, a
+    /// default is returned verbatim (`None` where the boxed helper yields `Null`).
+    #[inline]
+    pub fn safe_string_upper_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_string_k_opt(obj, key, &[]) {
+            Some(s) => Some(s.to_uppercase()),
+            None => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
     pub fn safe_string_lower_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
@@ -897,6 +1018,19 @@ impl Exchange {
             return v;
         }
         arg_default(optional_args)
+    }
+
+    /// `safe_string_lower_k` without the box: the found value is lower-cased, a
+    /// default is returned verbatim (`None` where the boxed helper yields `Null`).
+    #[inline]
+    pub fn safe_string_lower_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_string_k_opt(obj, key, &[]) {
+            Some(s) => Some(s.to_lowercase()),
+            None => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
     }
 
     pub fn safe_string_lower2(
@@ -1153,23 +1287,27 @@ impl Exchange {
 
     /// `randNumber(size)` — a random integer with `size` decimal digits.
     pub fn rand_number(&self, size: Value) -> Value {
-        use rand::Rng;
+        use rsa::rand_core::{OsRng, RngCore};
         let n = size.as_i64().unwrap_or(0).max(0) as usize;
-        let mut rng = rand::thread_rng();
         let mut s = String::new();
-        for _ in 0..n {
-            s.push(char::from(b'0' + rng.gen_range(0..10u8)));
+        let mut byte = [0u8; 1];
+        while s.len() < n {
+            OsRng.fill_bytes(&mut byte);
+            // Reject 250..=255 so every digit is equally likely.
+            if byte[0] < 250 {
+                s.push(char::from(b'0' + byte[0] % 10));
+            }
         }
         Value::Int(s.parse::<i64>().unwrap_or(0))
     }
 
     /// `randomBytes(length)` — `length` random bytes as a hex string.
     pub fn random_bytes(&self, length: Value) -> Value {
-        use rand::Rng;
+        use rsa::rand_core::{OsRng, RngCore};
         let n = length.as_i64().unwrap_or(0).max(0) as usize;
-        let mut rng = rand::thread_rng();
-        let bytes: Vec<u8> = (0..n).map(|_| rng.gen()).collect();
-        Value::Str(hex::encode(bytes).into())
+        let mut bytes = vec![0u8; n];
+        OsRng.fill_bytes(&mut bytes);
+        Value::Str(crate::exchange::hex_encode(bytes).into())
     }
 
     /// `convertToBigInt(value)` — the Value-bag has no distinct bigint type,
@@ -1238,7 +1376,7 @@ impl Exchange {
         let mut hash = hasher.finalize().to_vec();
         hash[6] = (hash[6] & 0x0f) | 0x50;
         hash[8] = (hash[8] & 0x3f) | 0x80;
-        let h = hex::encode(&hash[0..16]);
+        let h = crate::exchange::hex_encode(&hash[0..16]);
         Value::Str(format!(
             "{}-{}-{}-{}-{}",
             &h[0..8],
@@ -1280,7 +1418,7 @@ impl Exchange {
                         }
                     })
                     .collect(),
-                Value::Str(s) => hex::decode(s.trim_start_matches("0x")).unwrap_or_default(),
+                Value::Str(s) => crate::exchange::hex_decode(s.trim_start_matches("0x")).unwrap_or_default(),
                 _ => Vec::new(),
             }
         };
@@ -1361,7 +1499,7 @@ impl Exchange {
         );
     }
 
-    /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (waves).
+    /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (Waves exchange).
     pub fn axolotl(&self, _payload: Value, _hex_key: Value, _ed25519: Value) -> Value {
         self.crypto_not_supported("axolotl")
     }
@@ -1634,6 +1772,17 @@ impl Exchange {
             }
         }
         arg_default(optional_args)
+    }
+
+    /// `safe_integer2` without the box (no default): first key yielding an integer.
+    pub fn safe_integer2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<i64> {
+        self.safe_integer(obj.clone(), k1, &[]).as_i64().or_else(|| self.safe_integer(obj, k2, &[]).as_i64())
+    }
+
+    /// `safe_integer_n` without the box (no default): first key in `keys` yielding an integer.
+    pub fn safe_integer_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<i64> {
+        let Value::Arr(ks) = keys else { return None };
+        ks.iter().find_map(|k| self.safe_integer(obj.clone(), k.clone(), &[]).as_i64())
     }
 
     /// Reads `obj[key]` as a number, multiplies by `factor`, and casts
@@ -2604,9 +2753,9 @@ impl Exchange {
             Value::Str(s) => s.trim_start_matches("0x").to_string(),
             _ => return Value::Str(String::new().into()),
         };
-        let pk_bytes = match hex::decode(&pk_s) {
-            Ok(b) => b,
-            Err(_) => return Value::Str(String::new().into()),
+        let pk_bytes = match crate::exchange::hex_decode(&pk_s) {
+            Some(b) => b,
+            None => return Value::Str(String::new().into()),
         };
         let sk = match SigningKey::from_slice(&pk_bytes) {
             Ok(k) => k,
@@ -2615,15 +2764,29 @@ impl Exchange {
         let point = sk.verifying_key().to_encoded_point(false); // 0x04 || X || Y
         let pubkey = &point.as_bytes()[1..]; // 64 bytes
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
-        Value::Str(format!("0x{}", hex::encode(&hash[12..32])).into())
+        Value::Str(format!("0x{}", crate::exchange::hex_encode(&hash[12..32])).into())
+    }
+    /// ensures the file path has a whitelisted extension, so users are safeguarded from arbitrary file access
+    pub fn ensure_whitelisted_file(&self, p: &Value) {
+        let path = match p {
+            Value::Str(s) => s.to_string(),
+            _ => panic!("invalid file path: {}", stringify_param(p)),
+        };
+        let exts = ["ccxtfile", "pem", "wasm"];
+        if exts.iter().any(|ext| path.ends_with(&format!(".{}", ext))) {
+            return;
+        }
+        panic!("invalid file path: {}", path);
     }
     pub fn exists_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => Value::Bool(std::path::Path::new(path.as_ref()).is_file()),
             _ => Value::Bool(false),
         }
     }
     pub fn read_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => match std::fs::read_to_string(path.as_ref()) {
                 Ok(s) => Value::Str(s.into()),
@@ -2633,6 +2796,7 @@ impl Exchange {
         }
     }
     pub fn write_file(&self, p: Value, content: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         let path = match &p {
             Value::Str(s) => s.to_string(),
             _ => return Value::Bool(false),
@@ -2733,26 +2897,38 @@ impl Exchange {
     /// to make the call compile; live signing won't be correct.
     /// `packb(value)` — MessagePack-encode a Value into a byte array.
     pub fn packb(&self, action: Value, _optional_args: &[Value]) -> Value {
-        fn to_rmpv(v: &Value) -> rmpv::Value {
+        // Narrowest-form MessagePack: non-negative ints as uint, negative as int, floats as f64.
+        fn head(buf: &mut Vec<u8>, fix: u8, fix_max: u64, tags: [u8; 4], n: u64) {
+            match n {
+                n if n <= fix_max => buf.push(fix | n as u8),
+                n if n <= 0xff && tags[0] != 0 => buf.extend([tags[0], n as u8]),
+                n if n <= 0xffff => { buf.push(tags[1]); buf.extend((n as u16).to_be_bytes()) }
+                n if n <= 0xffff_ffff => { buf.push(tags[2]); buf.extend((n as u32).to_be_bytes()) }
+                n => { buf.push(tags[3]); buf.extend(n.to_be_bytes()) }
+            }
+        }
+        fn enc(buf: &mut Vec<u8>, v: &Value) {
             match v {
-                Value::Null => rmpv::Value::Nil,
-                Value::Bool(b) => rmpv::Value::Boolean(*b),
-                Value::Int(i) => rmpv::Value::Integer((*i).into()),
-                Value::Float(f) => rmpv::Value::F64(*f),
-                Value::Str(s) => rmpv::Value::String(s.clone().into()),
-                Value::Arr(a) => rmpv::Value::Array(a.iter().map(to_rmpv).collect()),
-                Value::Dict(m) => rmpv::Value::Map(
-                    m.iter()
-                        .map(|(k, v)| (rmpv::Value::String(k.clone().into()), to_rmpv(v)))
-                        .collect(),
-                ),
+                Value::Null => buf.push(0xc0),
+                Value::Bool(b) => buf.push(0xc2 | *b as u8),
+                Value::Int(i) if *i >= 0 => head(buf, 0x00, 0x7f, [0xcc, 0xcd, 0xce, 0xcf], *i as u64),
+                Value::Int(i) if *i >= -32 => buf.push(*i as u8),
+                Value::Int(i) if *i >= -128 => buf.extend([0xd0, *i as u8]),
+                Value::Int(i) if *i >= -32768 => { buf.push(0xd1); buf.extend((*i as i16).to_be_bytes()) }
+                Value::Int(i) if *i >= i32::MIN as i64 => { buf.push(0xd2); buf.extend((*i as i32).to_be_bytes()) }
+                Value::Int(i) => { buf.push(0xd3); buf.extend(i.to_be_bytes()) }
+                Value::Float(f) => { buf.push(0xcb); buf.extend(f.to_be_bytes()) }
+                Value::Str(s) => { head(buf, 0xa0, 31, [0xd9, 0xda, 0xdb, 0xdb], s.len() as u64); buf.extend(s.as_bytes()) }
+                Value::Arr(a) => { head(buf, 0x90, 15, [0, 0xdc, 0xdd, 0xdd], a.len() as u64); a.iter().for_each(|x| enc(buf, x)) }
+                Value::Dict(m) => {
+                    head(buf, 0x80, 15, [0, 0xde, 0xdf, 0xdf], m.len() as u64);
+                    m.iter().for_each(|(k, x)| { enc(buf, &Value::Str(k.clone().into())); enc(buf, x) })
+                }
             }
         }
         let mut buf: Vec<u8> = Vec::new();
-        match rmpv::encode::write_value(&mut buf, &to_rmpv(&action)) {
-            Ok(_) => Value::Array(buf.iter().map(|b| Value::Int(*b as i64)).collect()),
-            Err(_) => Value::Null,
-        }
+        enc(&mut buf, &action);
+        Value::Array(buf.iter().map(|b| Value::Int(*b as i64)).collect())
     }
 
     /// `ethEncodeStructuredData(domain, types, message)` — EIP-712
@@ -3081,8 +3257,8 @@ impl Exchange {
     /// `rateLimit` is milliseconds-per-token, so `refillRate = 1/rateLimit`
     /// tokens/ms; `tokens` may go negative (a request proceeds when `tokens >= 0`
     /// and then subtracts its cost), and the next request waits until the bucket
-    /// refills back to zero. State lives in `internals.throttle` behind an async
-    /// mutex, so concurrent calls on one instance serialize (the TS single queue).
+    /// refills back to zero. The bucket is owned by one task, so concurrent calls
+    /// on one instance serialize by queuing there (the TS single queue).
     /// A no-op when `enableRateLimit` is false or the rate is effectively
     /// unlimited.
     pub async fn throttle(&self, cost: &[Value]) -> Value {
@@ -3110,32 +3286,7 @@ impl Exchange {
             .and_then(|v| v.as_f64())
             .unwrap_or_else(|| tb("cost").unwrap_or(1.0));
 
-        let now_ms = || {
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_millis() as i64)
-                .unwrap_or(0)
-        };
-
-        let mut guard = self.internals.throttle.lock().await;
-        let (tokens, last_ms) = &mut *guard;
-        if *last_ms == 0 {
-            *last_ms = now_ms();
-        }
-        // Refill for the elapsed time (capped at capacity).
-        let n = now_ms();
-        *tokens = (*tokens + refill_rate * (n - *last_ms).max(0) as f64).min(capacity);
-        *last_ms = n;
-        // In deficit → wait until the bucket refills to zero, holding the lock so
-        // requests stay serialized.
-        if *tokens < 0.0 {
-            let wait = ((-*tokens) / refill_rate).max(delay_ms);
-            tokio::time::sleep(std::time::Duration::from_millis(wait.ceil() as u64)).await;
-            let n2 = now_ms();
-            *tokens = (*tokens + refill_rate * (n2 - *last_ms).max(0) as f64).min(capacity);
-            *last_ms = n2;
-        }
-        *tokens -= this_cost;
+        self.internals.throttle.wait(refill_rate, capacity, delay_ms, this_cost).await;
         Value::Null
     }
 
@@ -3278,5 +3429,146 @@ mod spawn_queue_tests {
         assert_eq!(batch.len(), 1);
         assert_eq!(batch[0].0, "keep_alive_listen_key");
         assert!(next_spawn_due().is_none(), "queue drained");
+    }
+}
+
+#[cfg(test)]
+mod packb_tests {
+    use crate::exchange::Exchange;
+    use crate::Value;
+    use sha2::{Digest, Sha256};
+
+    fn packb_bytes(v: Value) -> Vec<u8> {
+        match Exchange::new(None).packb(v, &[]) {
+            Value::Arr(a) => a.iter().map(|b| match b { Value::Int(i) => *i as u8, _ => panic!("non-int byte") }).collect(),
+            other => panic!("packb returned {:?}", other),
+        }
+    }
+    fn hex(b: &[u8]) -> String { b.iter().map(|x| format!("{:02x}", x)).collect() }
+    fn pack_json(j: &str) -> String { hex(&packb_bytes(Value::from_json(&serde_json::from_str(j).unwrap()))) }
+
+    // (json input, expected hex): the shared TS vectors, all byte-identical in Rust.
+    const VECTORS: &[(&str, &str)] = &[
+        ("null", "c0"),
+        ("true", "c3"),
+        ("false", "c2"),
+        ("0", "00"),
+        ("1", "01"),
+        ("127", "7f"),
+        ("128", "cc80"),
+        ("255", "ccff"),
+        ("256", "cd0100"),
+        ("65535", "cdffff"),
+        ("65536", "ce00010000"),
+        ("4294967295", "ceffffffff"),
+        ("4294967296", "cf0000000100000000"),
+        ("1700000000000", "cf0000018bcfe56800"),
+        ("9007199254740991", "cf001fffffffffffff"),
+        ("-1", "ff"),
+        ("-32", "e0"),
+        ("-33", "d0df"),
+        ("-128", "d080"),
+        ("-129", "d1ff7f"),
+        ("-32768", "d18000"),
+        ("-32769", "d2ffff7fff"),
+        ("-2147483648", "d280000000"),
+        ("-2147483649", "d3ffffffff7fffffff"),
+        ("-1700000000000", "d3fffffe74301a9800"),
+        ("1.5", "cb3ff8000000000000"),
+        ("0.1", "cb3fb999999999999a"),
+        ("-2.25", "cbc002000000000000"),
+        ("\"\"", "a0"),
+        ("\"a\"", "a161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "bf61616161616161616161616161616161616161616161616161616161616161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "d9206161616161616161616161616161616161616161616161616161616161616161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "d9ff616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "da010061616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161"),
+        ("\"héllo €𝄞\"", "ae68c3a96c6c6f20e282acf09d849e"),
+        ("[]", "90"),
+        ("[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]", "9f000102030405060708090a0b0c0d0e"),
+        ("[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]", "dc0010000102030405060708090a0b0c0d0e0f"),
+        ("{}", "80"),
+        ("{\"k0\":0,\"k1\":1,\"k2\":2,\"k3\":3,\"k4\":4,\"k5\":5,\"k6\":6,\"k7\":7,\"k8\":8,\"k9\":9,\"k10\":10,\"k11\":11,\"k12\":12,\"k13\":13,\"k14\":14}", "8fa26b3000a26b3101a26b3202a26b3303a26b3404a26b3505a26b3606a26b3707a26b3808a26b3909a36b31300aa36b31310ba36b31320ca36b31330da36b31340e"),
+        ("{\"k0\":0,\"k1\":1,\"k2\":2,\"k3\":3,\"k4\":4,\"k5\":5,\"k6\":6,\"k7\":7,\"k8\":8,\"k9\":9,\"k10\":10,\"k11\":11,\"k12\":12,\"k13\":13,\"k14\":14,\"k15\":15}", "de0010a26b3000a26b3101a26b3202a26b3303a26b3404a26b3505a26b3606a26b3707a26b3808a26b3909a36b31300aa36b31310ba36b31320ca36b31330da36b31340ea36b31350f"),
+        ("{\"a\":[1,{\"b\":null,\"c\":[true,\"x\"]}],\"d\":{}}", "82a161920182a162c0a16392c3a178a16480"),
+        ("{\"type\":\"order\",\"orders\":[{\"a\":4,\"b\":true,\"p\":\"1100.5\",\"s\":\"0.2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}},\"c\":\"0x1234567890abcdef1234567890abcdef\"}],\"grouping\":\"na\",\"builder\":{\"b\":\"0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6\",\"f\":10}}", "84a474797065a56f72646572a66f72646572739187a16104a162c3a170a6313130302e35a173a3302e32a172c2a17481a56c696d697481a3746966a3477463a163d92230783132333435363738393061626364656631323334353637383930616263646566a867726f7570696e67a26e61a76275696c64657282a162d92a307836353330353132613663383963376366636562633362613766636439616461356633303832376136a1660a"),
+        ("{\"type\":\"order\",\"orders\":[{\"a\":10005,\"b\":false,\"p\":\"0\",\"s\":\"1\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"1900\",\"tpsl\":\"sl\"}}}],\"grouping\":\"normalTpsl\"}", "83a474797065a56f72646572a66f72646572739186a161cd2715a162c2a170a130a173a131a172c3a17481a77472696767657283a869734d61726b6574c3a9747269676765725078a431393030a47470736ca2736ca867726f7570696e67aa6e6f726d616c5470736c"),
+        ("{\"type\":\"cancel\",\"cancels\":[{\"a\":0,\"o\":123456789012}]}", "82a474797065a663616e63656ca763616e63656c739182a16100a16fcf0000001cbe991a14"),
+        ("{\"type\":\"cancelByCloid\",\"cancels\":[{\"asset\":3,\"cloid\":\"0x1234567890abcdef1234567890abcdef\"}]}", "82a474797065ad63616e63656c4279436c6f6964a763616e63656c739182a5617373657403a5636c6f6964d92230783132333435363738393061626364656631323334353637383930616263646566"),
+        ("{\"type\":\"batchModify\",\"modifies\":[{\"oid\":70000,\"order\":{\"a\":1,\"b\":true,\"p\":\"2000\",\"s\":\"0.01\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Alo\"}}}}]}", "82a474797065ab62617463684d6f64696679a86d6f6469666965739182a36f6964ce00011170a56f7264657286a16101a162c3a170a432303030a173a4302e3031a172c2a17481a56c696d697481a3746966a3416c6f"),
+        ("{\"type\":\"updateLeverage\",\"asset\":1,\"isCross\":true,\"leverage\":20}", "84a474797065ae7570646174654c65766572616765a5617373657401a7697343726f7373c3a86c6576657261676514"),
+        ("{\"type\":\"updateIsolatedMargin\",\"asset\":1,\"isBuy\":true,\"ntli\":-5000000}", "84a474797065b475706461746549736f6c617465644d617267696ea5617373657401a56973427579c3a46e746c69d2ffb3b4c0"),
+        ("{\"type\":\"vaultTransfer\",\"vaultAddress\":\"0xdfc24b077bc1425ad1dea75bcb6f8158e10df303\",\"isDeposit\":true,\"usd\":5000000}", "84a474797065ad7661756c745472616e73666572ac7661756c7441646472657373d92a307864666332346230373762633134323561643164656137356263623666383135386531306466333033a969734465706f736974c3a3757364ce004c4b40"),
+        ("{\"type\":\"scheduleCancel\",\"time\":1700000000000}", "82a474797065ae7363686564756c6543616e63656ca474696d65cf0000018bcfe56800"),
+        ("{\"type\":\"twapOrder\",\"twap\":{\"a\":0,\"b\":true,\"s\":\"1\",\"r\":false,\"m\":30,\"t\":false}}", "82a474797065a9747761704f72646572a47477617086a16100a162c3a173a131a172c2a16d1ea174c2"),
+        ("[\"op\",1,\"0xabc\",[1700000000000,\"x\"],null,false]", "96a26f7001a5307861626392cf0000018bcfe56800a178c0c2"),
+    ];
+
+    #[test]
+    fn packb_matches_vectors() {
+        for (j, h) in VECTORS {
+            assert_eq!(pack_json(j), *h, "input {}", j);
+        }
+    }
+
+    #[test]
+    fn packb_long_str_and_array() {
+        for (kind, n, len, head, sha) in [
+        ("str", 65535, 65538, "daffff616161", "ae606c3d6aaca8b43b24feb4aae3e5ab4088edb6d99d254d366f00e08f287c3d"),
+        ("str", 65536, 65541, "db0001000061", "5f97d047d40a13f57389f8c7817f5afd69fe1e7739a305850eb23c5adb54674a"),
+        ("array", 65535, 196224, "dcffff000102", "8c336eb0f76e5433623ce52adf0fa4704a7410cacd206d5442c835b7bd294f04"),
+        ("array", 65536, 196229, "dd0001000000", "659da62605120aecab3feb7ceb9f912947719200e22ea46c7705c99cb10cacfa"),
+        ] {
+            let v = if kind == "str" { Value::Str("a".repeat(n).into()) } else { Value::Array((0..n as i64).map(Value::Int).collect()) };
+            let b = packb_bytes(v);
+            assert_eq!((b.len(), &hex(&b)[..12]), (len, head), "{} {}", kind, n);
+            assert_eq!(hex(&Sha256::digest(&b)), sha, "{} {}", kind, n);
+        }
+    }
+
+    #[test]
+    fn packb_edges_beyond_vectors() {
+        let one = |v: Value| hex(&packb_bytes(v));
+        assert_eq!(one(Value::Int(i64::MAX)), "cf7fffffffffffffff");
+        assert_eq!(one(Value::Int(i64::MIN)), "d38000000000000000");
+        assert_eq!(one(Value::Int(2147483647)), "ce7fffffff");
+        assert_eq!(one(Value::Int(-31)), "e1");
+        assert_eq!(one(Value::Float(-0.0)), "cb8000000000000000");
+        assert_eq!(one(Value::Float(3.0)), "cb4008000000000000");
+        assert_eq!(one(Value::Str("\u{e9}".repeat(16).into())), format!("d920{}", "c3a9".repeat(16)));
+        assert_eq!(&one(Value::Str("\u{20ac}".repeat(85).into()))[..4], "d9ff");
+        assert_eq!(&one(Value::Str("\u{e9}".repeat(128).into()))[..6], "da0100");
+        let m16: Value = Value::from_json(&serde_json::from_str(&format!("{{{}}}", (0..65536).map(|i| format!("\"{}\":0", i)).collect::<Vec<_>>().join(","))).unwrap());
+        assert_eq!(&one(m16)[..10], "df00010000");
+    }
+}
+
+#[cfg(test)]
+mod random_tests {
+    use super::*;
+
+    #[test]
+    fn random_bytes_is_lowercase_hex_of_requested_length() {
+        let ex = Exchange::new(None);
+        let a = ex.random_bytes(Value::Int(32));
+        let b = ex.random_bytes(Value::Int(32));
+        let a = a.as_str().expect("hex string").to_string();
+        assert_eq!(a.len(), 64);
+        assert!(a.bytes().all(|c| matches!(c, b'0'..=b'9' | b'a'..=b'f')), "{a}");
+        assert_ne!(Some(a.as_str()), b.as_str(), "two calls differ");
+        assert_eq!(ex.random_bytes(Value::Int(0)).as_str(), Some(""));
+    }
+
+    #[test]
+    fn rand_number_has_requested_digit_count() {
+        let ex = Exchange::new(None);
+        let mut seen = std::collections::HashSet::new();
+        for _ in 0..20 {
+            let v = ex.rand_number(Value::Int(12)).as_i64().expect("int");
+            assert!((0..1_000_000_000_000).contains(&v), "{v}");
+            seen.insert(v);
+        }
+        assert!(seen.len() > 1, "two calls differ");
+        assert_eq!(ex.rand_number(Value::Int(0)).as_i64(), Some(0));
     }
 }

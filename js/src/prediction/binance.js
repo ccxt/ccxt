@@ -201,9 +201,15 @@ export default class binance extends Exchange {
      */
     async fetchRawTopics(maxTopics, rest = {}) {
         const maxTopicsOption = this.safeInteger(this.options, 'maxFetchMarketsLimit', 200);
-        const maxTopicsResolved = (maxTopics !== undefined) ? maxTopics : maxTopicsOption;
+        let maxTopicsResolved = this.parseToInt(maxTopicsOption);
+        if (maxTopics !== undefined) {
+            maxTopicsResolved = this.parseToInt(maxTopics);
+        }
         const pageLimitOption = this.safeInteger(this.options, 'marketsPageLimit', 100);
-        const pageLimit = (pageLimitOption > 100) ? 100 : pageLimitOption;
+        let pageLimit = this.parseToInt(100);
+        if (pageLimitOption < 100) {
+            pageLimit = this.parseToInt(pageLimitOption);
+        }
         const collected = [];
         let offset = 0;
         while (true) {
@@ -439,8 +445,14 @@ export default class binance extends Exchange {
         const seen = {};
         const collected = [];
         const queriesLength = queries.length;
-        const limitValue = (limit === undefined) ? 20 : limit;
-        const limitResolved = (limitValue > 50) ? 50 : limitValue;
+        let limitValue = this.parseToInt(20);
+        if (limit !== undefined) {
+            limitValue = this.parseToInt(limit);
+        }
+        let limitResolved = limitValue;
+        if (limitValue > 50) {
+            limitResolved = this.parseToInt(50);
+        }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request = {
                 'query': queries[qi],
@@ -1068,7 +1080,7 @@ export default class binance extends Exchange {
             request['limit'] = limit;
         }
         const wallet = await this.fetchWallet('fetchOpenOrders', paramsMaxEntriesPerRequest);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest));
         //
         // {
@@ -1156,7 +1168,7 @@ export default class binance extends Exchange {
             request['endDate'] = this.yyyymmdd(until);
         }
         const wallet = await this.fetchWallet('fetchOrders', paramsOmitted);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
@@ -1220,7 +1232,7 @@ export default class binance extends Exchange {
         }
         const wallet = await this.fetchWallet('fetchPositions', params);
         const request = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString(wallet, 'walletAddress'),
         };
         const response = await this.sapiPrivateGetPositionList(this.extend(request, params));
         //
@@ -1307,7 +1319,7 @@ export default class binance extends Exchange {
             request['marketTopicId'] = market['info']['marketTopicId'];
         }
         const wallet = await this.fetchWallet('fetchOrders', params);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetPositionFilter(this.extend(request, params));
         //
         //
@@ -1420,7 +1432,7 @@ export default class binance extends Exchange {
             request['endDate'] = this.yyyymmdd(until);
         }
         const wallet = await this.fetchWallet('fetchMyTrades', paramsOmitted);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
@@ -1685,7 +1697,7 @@ export default class binance extends Exchange {
         const cost = this.safeString(params, 'cost');
         const slippageBps = this.parseToInt(Precise.stringMul(slippage, '10000'));
         const commonRequest = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString(wallet, 'walletAddress'),
             'orderType': typeUpper,
             'slippageBps': slippageBps,
         };
@@ -1734,7 +1746,7 @@ export default class binance extends Exchange {
         const quote = await this.fetchQuote(quoteRequest, paramsOmitted);
         const quoteId = this.safeString(quote, 'quoteId');
         const orderRequest = this.extend(commonRequest, {
-            'walletId': wallet['walletId'],
+            'walletId': this.safeString(wallet, 'walletId'),
             'quoteId': quoteId,
             'timeInForce': timeInForce,
             'accountType': accountType,
@@ -1812,8 +1824,8 @@ export default class binance extends Exchange {
         }
         const wallet = await this.fetchWallet('cancelOrders', params);
         const request = {
-            'walletAddress': wallet['walletAddress'],
-            'walletId': wallet['walletId'],
+            'walletAddress': this.safeString(wallet, 'walletAddress'),
+            'walletId': this.safeString(wallet, 'walletId'),
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for (let i = 0; i < ids.length; i++) {
@@ -1839,17 +1851,14 @@ export default class binance extends Exchange {
         const failedOrders = this.safeList(response, 'failed', []);
         const failedOrdersLength = failedOrders.length;
         if (failedOrdersLength > 0) {
-            let failedDetails = '';
+            const failedDetails = [];
             for (let i = 0; i < failedOrdersLength; i++) {
                 const failedOrder = this.safeDict(failedOrders, i);
-                const failedOrderId = this.safeString(failedOrder, 'orderId');
-                const failedReason = this.safeString(failedOrder, 'reason');
-                if (i > 0) {
-                    failedDetails = failedDetails + ', ';
-                }
-                failedDetails = failedDetails + failedOrderId + ': ' + failedReason;
+                const failedOrderId = this.safeString(failedOrder, 'orderId', '');
+                const failedReason = this.safeString(failedOrder, 'reason', '');
+                failedDetails.push(failedOrderId + ': ' + failedReason);
             }
-            throw new OrderNotFound(this.id + ' cancelOrders() failed for ' + failedDetails);
+            throw new OrderNotFound(this.id + ' cancelOrders() failed for ' + failedDetails.join(', '));
         }
         const orders = [];
         const canceledOrdersLength = canceledOrders.length;

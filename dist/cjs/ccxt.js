@@ -22,6 +22,7 @@ var binanceus = require('./src/binanceus.js');
 var binanceusdm = require('./src/binanceusdm.js');
 var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
+var bit2me = require('./src/bit2me.js');
 var bitbank = require('./src/bitbank.js');
 var bitbns = require('./src/bitbns.js');
 var bitfinex = require('./src/bitfinex.js');
@@ -45,7 +46,6 @@ var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
 var bybiteu = require('./src/bybiteu.js');
 var bybitid = require('./src/bybitid.js');
-var bydfi = require('./src/bydfi.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
 var coinbaseexchange = require('./src/coinbaseexchange.js');
@@ -124,6 +124,7 @@ var binancecoinm$1 = require('./src/pro/binancecoinm.js');
 var binanceus$1 = require('./src/pro/binanceus.js');
 var binanceusdm$1 = require('./src/pro/binanceusdm.js');
 var bingx$1 = require('./src/pro/bingx.js');
+var bit2me$1 = require('./src/pro/bit2me.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
@@ -138,7 +139,6 @@ var bullish$1 = require('./src/pro/bullish.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var bybiteu$1 = require('./src/pro/bybiteu.js');
 var bybitid$1 = require('./src/pro/bybitid.js');
-var bydfi$1 = require('./src/pro/bydfi.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
@@ -202,7 +202,7 @@ var sxbet = require('./src/prediction/sxbet.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.90';
+const version = '4.5.93';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -216,6 +216,7 @@ const exchanges = {
     'binanceusdm': binanceusdm["default"],
     'bingx': bingx["default"],
     'bit2c': bit2c["default"],
+    'bit2me': bit2me["default"],
     'bitbank': bitbank["default"],
     'bitbns': bitbns["default"],
     'bitfinex': bitfinex["default"],
@@ -239,7 +240,6 @@ const exchanges = {
     'bybit': bybit["default"],
     'bybiteu': bybiteu["default"],
     'bybitid': bybitid["default"],
-    'bydfi': bydfi["default"],
     'cex': cex["default"],
     'coinbase': coinbase["default"],
     'coinbaseexchange': coinbaseexchange["default"],
@@ -320,6 +320,7 @@ const pro = {
     'binanceus': binanceus$1["default"],
     'binanceusdm': binanceusdm$1["default"],
     'bingx': bingx$1["default"],
+    'bit2me': bit2me$1["default"],
     'bitfinex': bitfinex$1["default"],
     'bitget': bitget$1["default"],
     'bithumb': bithumb$1["default"],
@@ -334,7 +335,6 @@ const pro = {
     'bybit': bybit$1["default"],
     'bybiteu': bybiteu$1["default"],
     'bybitid': bybitid$1["default"],
-    'bydfi': bydfi$1["default"],
     'cex': cex$1["default"],
     'coinbase': coinbase$1["default"],
     'coinbaseexchange': coinbaseexchange$1["default"],
@@ -469,6 +469,7 @@ exports.binanceus = binanceus["default"];
 exports.binanceusdm = binanceusdm["default"];
 exports.bingx = bingx["default"];
 exports.bit2c = bit2c["default"];
+exports.bit2me = bit2me["default"];
 exports.bitbank = bitbank["default"];
 exports.bitbns = bitbns["default"];
 exports.bitfinex = bitfinex["default"];
@@ -492,7 +493,6 @@ exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
 exports.bybiteu = bybiteu["default"];
 exports.bybitid = bybitid["default"];
-exports.bydfi = bydfi["default"];
 exports.cex = cex["default"];
 exports.coinbase = coinbase["default"];
 exports.coinbaseexchange = coinbaseexchange["default"];

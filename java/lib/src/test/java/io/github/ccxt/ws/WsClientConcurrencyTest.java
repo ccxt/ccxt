@@ -75,7 +75,7 @@ class WsClientConcurrencyTest {
         start.countDown();
         for (Thread t : threads) t.join();
 
-        assertTrue(client.startedConnecting.get(), "startedConnecting should be set after connect");
+        assertTrue(client.startedConnecting, "startedConnecting should be set after connect");
         // All callers must observe the same future reference (single connection attempt).
         for (int i = 1; i < n; i++) {
             assertSame(returned[0], returned[i], "Caller " + i + " got a different future");

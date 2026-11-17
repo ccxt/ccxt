@@ -11,7 +11,7 @@ import java.util.HashMap;
 
 public class TestBinaryToBase58 extends BaseTest
 {
-        public Object helperStrToBinary5(Exchange exchange, Object str)
+        public Object helperStrToBinary5(Exchange exchange, String str)
         {
             return exchange.base64ToBinary(exchange.stringToBase64(str));
         }

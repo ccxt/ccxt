@@ -3608,6 +3608,17 @@ public class KucoinfuturesApi extends Kucoin
     }
 
     /**
+     * Calls the utaV2GetMarketOrderbook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  utaV2GetMarketOrderbook (Object... optionalArgs)
+    {
+        return this.callAsync ("utaV2GetMarketOrderbook", optionalArgs);
+    }
+
+    /**
      * Calls the utaPrivateGetMarketOrderbook endpoint.
      *
      * @param optionalArgs the request parameters

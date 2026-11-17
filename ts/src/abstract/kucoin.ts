@@ -1313,6 +1313,10 @@ abstract class Exchange extends _Exchange {
         return this.request ('market/funding-rate', [ 'utaV2' ], 'GET', params, { 'cost': 6 });
     }
 
+    utaV2GetMarketOrderbook (params = {}): Promise<Dict> {
+        return this.request ('market/orderbook', [ 'utaV2' ], 'GET', params, { 'cost': 10 });
+    }
+
     utaPrivateGetMarketOrderbook (params = {}): Promise<Dict> {
         return this.request ('market/orderbook', [ 'utaPrivate' ], 'GET', params, { 'cost': 6 });
     }

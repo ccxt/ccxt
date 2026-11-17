@@ -18,7 +18,7 @@ func newBinancecoinm() *Binancecoinm {
 	return p
 }
 
-func (this *Binancecoinm) Describe() any {
+func (this *Binancecoinm) Describe() map[string]any {
 	// eslint-disable-next-line new-cap
 	restInstance := ccxt.NewBinancecoinm(nil)
 	var restDescribe any = restInstance.Describe()

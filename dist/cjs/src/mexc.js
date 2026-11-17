@@ -1520,7 +1520,7 @@ class mexc extends mexc$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const response = await this.spotPublicGetDepth(this.extend(request, params));
             //
             //     {
@@ -1540,7 +1540,7 @@ class mexc extends mexc$1["default"] {
             spotOrderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
             return spotOrderbook;
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             const response = await this.contractPublicGetDepthSymbol(this.extend(request, params));
             //
             //     {
@@ -1566,7 +1566,7 @@ class mexc extends mexc$1["default"] {
             swapOrderbook['nonce'] = this.safeInteger(data, 'version');
             return swapOrderbook;
         }
-        throw new errors.NotSupported(this.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets');
+        throw new errors.NotSupported(this.id + ' fetchOrderBook() does not support ' + this.safeString(market, 'type', '') + ' markets');
     }
     parseOrderBookBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const countKey = 2;
@@ -1604,7 +1604,7 @@ class mexc extends mexc$1["default"] {
             request['limit'] = limit;
         }
         let trades = [];
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const until = this.safeInteger2(params, 'endTime', 'until');
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -1664,7 +1664,7 @@ class mexc extends mexc$1["default"] {
             //     ]
             //
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             const response = await this.contractPublicGetDealsSymbol(this.extend(request, params));
             //
             //     {
@@ -1857,7 +1857,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const maxLimit = (market['spot'] === true) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+        const maxLimit = (this.safeBool(market, 'spot', false)) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
@@ -1877,7 +1877,7 @@ class mexc extends mexc$1["default"] {
         if (omitUntil) {
             paramsUntil = this.omit(paramsPaginate, ['until']);
         }
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (since !== undefined) {
                 request['startTime'] = since;
             }
@@ -1920,7 +1920,7 @@ class mexc extends mexc$1["default"] {
             //
             candles = this.toArray(response);
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             if (since !== undefined) {
                 request['start'] = this.parseToInt(since / 1000);
             }
@@ -2001,8 +2001,7 @@ class mexc extends mexc$1["default"] {
         if (symbols !== undefined) {
             const length = symbols.length;
             isSingularMarket = length === 1;
-            const firstSymbol = this.safeString(symbols, 0);
-            market = this.market(firstSymbol);
+            market = this.market(symbols[0]);
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let tickers = undefined;
@@ -2171,9 +2170,9 @@ class mexc extends mexc$1["default"] {
         let changePcnt = undefined;
         let changeValue = undefined;
         let prevClose = undefined;
-        const isSwap = this.safeBool(marketResolved, 'swap');
+        const isSwap = this.safeBool(marketResolved, 'swap', false);
         // if swap
-        if ((isSwap === true) || ('timestamp' in ticker)) {
+        if (isSwap || ('timestamp' in ticker)) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -2201,10 +2200,10 @@ class mexc extends mexc$1["default"] {
             baseVolume = this.safeString(ticker, 'volume24');
             quoteVolume = this.safeString(ticker, 'amount24');
             const contractSize = this.safeString(marketResolved, 'contractSize');
-            if ((isSwap === true) && (contractSize !== undefined)) {
+            if (isSwap && (contractSize !== undefined)) {
                 // volume24 counts contracts, amount24 is in the settle currency
                 const contractVolume = Precise["default"].stringMul(baseVolume, contractSize);
-                if (marketResolved['inverse'] === true) {
+                if (this.safeBool(marketResolved, 'inverse', false)) {
                     baseVolume = quoteVolume;
                     quoteVolume = contractVolume;
                 }
@@ -2344,7 +2343,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -2367,7 +2366,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -2409,7 +2408,7 @@ class mexc extends mexc$1["default"] {
         }
         const market = this.market(symbol);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.createSpotOrder(market, type, side, amount, price, marginMode, query);
         }
         else {
@@ -2417,7 +2416,7 @@ class mexc extends mexc$1["default"] {
         }
     }
     createSpotOrderRequest(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if ((type === undefined) || (side === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a type and a side argument');
         }
@@ -2567,35 +2566,35 @@ class mexc extends mexc$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let openType = this.safeInteger(params, 'openType', 2); // defaulting to cross margin
         if (marginMode !== undefined) {
             if (marginMode === 'cross') {
-                openType = this.parseToInt(2);
+                openType = 2;
             }
             else if (marginMode === 'isolated') {
-                openType = this.parseToInt(1);
+                openType = 1;
             }
             else {
                 throw new errors.ArgumentsRequired(this.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"');
             }
         }
-        if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
+        if ((type !== 'limit') && (type !== 'market') && (!this.inArray(type, [1, 2, 3, 4, 5, 6]))) {
             throw new errors.InvalidOrder(this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 2, params);
-        let orderType = undefined;
+        let orderType = this.parseToInt(0); // typed seed, every branch below assigns it
         if (postOnly) {
-            orderType = 2;
+            orderType = this.parseToInt(2);
         }
         else if (type === 'limit') {
-            orderType = 1;
+            orderType = this.parseToInt(1);
         }
         else if (type === 'market') {
-            orderType = 6;
+            orderType = this.parseToInt(6);
         }
         else {
-            orderType = type;
+            orderType = this.parseToInt(type);
         }
         let volString = this.amountToPrecision(symbol, amount);
         if (volString === undefined) {
@@ -2604,7 +2603,7 @@ class mexc extends mexc$1["default"] {
         const request = {
             'symbol': market['id'],
             // 'price': parseFloat (this.priceToPrecision (symbol, price)),
-            'vol': parseFloat(volString),
+            'vol': this.parseNumber(volString),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
             // order types: 1 limit, 2 post only (PO), 3 IOC, 4 FOK, 5 market, 6 convert market price to current price
@@ -2618,12 +2617,12 @@ class mexc extends mexc$1["default"] {
             // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
-        if ((orderType !== 5) && (orderType !== 6) && (orderType !== 'market')) {
+        if ((orderType !== 5) && (orderType !== 6)) {
             let priceString = this.priceToPrecision(symbol, price);
             if (priceString === undefined) {
                 priceString = '0';
             }
-            request['price'] = parseFloat(priceString);
+            request['price'] = this.parseNumber(priceString);
         }
         if (openType === 1) {
             const leverage = this.safeInteger(paramsPostOnly, 'leverage');
@@ -2725,7 +2724,7 @@ class mexc extends mexc$1["default"] {
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             const market = this.market(marketId);
-            if (market['spot'] !== true) {
+            if (!this.safeBool(market, 'spot', false)) {
                 throw new errors.NotSupported(this.id + ' createOrders() is only supported for spot markets');
             }
             if (symbol === undefined) {
@@ -2796,7 +2795,7 @@ class mexc extends mexc$1["default"] {
             'symbol': market['id'],
         };
         let data = {};
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const clientOrderId = this.safeString(params, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['origClientOrderId'] = clientOrderId;
@@ -2860,7 +2859,7 @@ class mexc extends mexc$1["default"] {
             //     }
             //
         }
-        else if (market['swap'] === true) {
+        else if (this.safeBool(market, 'swap', false)) {
             request['order_id'] = id;
             const response = await this.contractPrivateGetOrderGetOrderId(this.extend(request, params));
             //
@@ -2922,7 +2921,7 @@ class mexc extends mexc$1["default"] {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
@@ -3117,7 +3116,7 @@ class mexc extends mexc$1["default"] {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrdersByIds', market, params);
         if (marketType === 'spot') {
@@ -3344,7 +3343,7 @@ class mexc extends mexc$1["default"] {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            market['id'];
+            this.safeString(market, 'id');
         }
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         const [marginMode, query] = this.handleMarginModeAndParams('cancelOrder', paramsMarketType);
@@ -3969,7 +3968,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' fetchTradingFee() supports spot markets only');
         }
         const request = {
@@ -4058,18 +4057,20 @@ class mexc extends mexc$1["default"] {
         //         "tradeEnabled": true
         //     }
         //
+        const isMarginType = marketType === 'margin';
+        const isSwapType = marketType === 'swap';
         let wallet;
-        if (marketType === 'margin') {
+        if (isMarginType) {
             wallet = this.safeList(response, 'assets', []);
         }
-        else if (marketType === 'swap') {
+        else if (isSwapType) {
             wallet = this.safeList(response, 'data', []);
         }
         else {
             wallet = this.safeList(response, 'balances', []);
         }
         let result = { 'info': response };
-        if (marketType === 'margin') {
+        if (isMarginType) {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = this.safeDict(wallet, i);
                 const base = this.safeDict(entry, 'baseAsset', {});
@@ -4085,7 +4086,7 @@ class mexc extends mexc$1["default"] {
             }
             return this.safeBalance(result);
         }
-        else if (marketType === 'swap') {
+        else if (isSwapType) {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = this.safeDict(wallet, i);
                 const currencyId = this.safeString(entry, 'currency');
@@ -4154,9 +4155,7 @@ class mexc extends mexc$1["default"] {
                 const symbols = this.safeList(paramsOmitted2, 'symbols');
                 if (symbols !== undefined) {
                     const symbolIds = this.marketIds(symbols);
-                    if (symbolIds !== undefined) {
-                        parsedSymbols = symbolIds.join(',');
-                    }
+                    parsedSymbols = symbolIds.join(',');
                 }
             }
             else {
@@ -4515,13 +4514,16 @@ class mexc extends mexc$1["default"] {
         if (positionId === undefined) {
             const openType = this.safeNumber(params, 'openType'); // 1 or 2
             const positionType = this.safeNumber(params, 'positionType'); // 1 or 2
-            const market = (symbol !== undefined) ? this.market(symbol) : undefined;
+            let market = undefined;
+            if (symbol !== undefined) {
+                market = this.market(symbol);
+            }
             if ((openType === undefined) || (positionType === undefined) || (market === undefined)) {
                 throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions');
             }
             else {
                 request['openType'] = openType;
-                request['symbol'] = market['id'];
+                request['symbol'] = this.safeString(market, 'id');
                 request['positionType'] = positionType;
             }
         }
@@ -4554,7 +4556,7 @@ class mexc extends mexc$1["default"] {
         };
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -4908,16 +4910,14 @@ class mexc extends mexc$1["default"] {
         }
         while (Precise["default"].stringLt(floor, maxVol)) {
             const cap = Precise["default"].stringAdd(floor, riskIncrVol);
-            const minNotional = this.parseNumber(floor);
-            const mainMarginRate = this.parseNumber(maintenanceMarginRate);
             const maxLev = this.parseNumber(Precise["default"].stringDiv('1', initialMarginRate));
             tiers.push({
                 'tier': this.parseNumber(Precise["default"].stringDiv(cap, riskIncrVol)),
                 'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
                 'currency': this.safeCurrencyCode(quoteId),
-                'minNotional': minNotional,
+                'minNotional': this.parseNumber(floor),
                 'maxNotional': this.parseNumber(cap),
-                'maintenanceMarginRate': mainMarginRate,
+                'maintenanceMarginRate': this.parseNumber(maintenanceMarginRate),
                 'maxLeverage': maxLev,
                 'info': info,
             });
@@ -5110,11 +5110,12 @@ class mexc extends mexc$1["default"] {
         }
         if (code !== undefined) {
             currency = this.currency(code);
-            request['coin'] = currency['id'];
+            const currencyId = currency['id'];
+            request['coin'] = currencyId;
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
             if (rawNetwork !== undefined) {
-                request['coin'] = currency['id'] + '-' + rawNetwork;
+                request['coin'] = currencyId + '-' + rawNetwork;
             }
         }
         if (since !== undefined) {
@@ -5272,7 +5273,8 @@ class mexc extends mexc$1["default"] {
         let currencyId = undefined;
         const currencyWithNetwork = this.safeString(transaction, 'coin');
         if (currencyWithNetwork !== undefined) {
-            currencyId = currencyWithNetwork.split('-')[0];
+            const currencyParts = currencyWithNetwork.split('-');
+            currencyId = currencyParts[0];
         }
         const code = this.safeCurrencyCode(currencyId, currency);
         let network = undefined;
@@ -5498,7 +5500,7 @@ class mexc extends mexc$1["default"] {
         //    }
         //
         const marketResolved = this.safeMarket(this.safeString(position, 'symbol'), market, undefined, 'swap');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const contracts = this.safeString(position, 'holdVol');
         const entryPrice = this.safeNumber(position, 'openAvgPrice');
         const initialMargin = this.omitZero(this.safeString(position, 'im'));
@@ -5900,9 +5902,8 @@ class mexc extends mexc$1["default"] {
             return this.parseTransaction(responseForInternal, currency);
         }
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeString2(paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId(network, this.safeString(currency, 'code'));
+        const networkRaw = this.safeString2(paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
+        const network = this.networkCodeToId(this.safeString(networks, networkRaw, networkRaw), this.safeString(currency, 'code')); // handle ETH > ERC-20 alias
         this.checkAddress(address, code, tagResolved);
         const request = {
             'coin': currency['id'],
@@ -6348,7 +6349,7 @@ class mexc extends mexc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase();
@@ -6383,11 +6384,11 @@ class mexc extends mexc$1["default"] {
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
-        const section = this.safeString(api, 0);
-        const access = this.safeString(api, 1);
+        const section = api[0];
+        const access = api[1];
         const pathValue = this.implodeParams(path, params);
         const paramsValue = this.omit(params, this.extractParams(path));
-        let url = undefined;
+        let url = '';
         if (section === 'spot' || section === 'broker') {
             if (section === 'broker') {
                 const apiUrl = this.safeString(this.urls['api'][section], access);
@@ -6403,7 +6404,7 @@ class mexc extends mexc$1["default"] {
                 }
                 url = apiUrl + '/api/' + this.version + '/' + pathValue;
             }
-            let urlParams = paramsValue;
+            let urlParams = this.extend(paramsValue, {});
             if (access === 'private') {
                 if (section === 'broker' && ((method === 'POST') || (method === 'PUT') || (method === 'DELETE'))) {
                     urlParams = {
@@ -6420,12 +6421,12 @@ class mexc extends mexc$1["default"] {
             let paramsEncoded = '';
             if (Object.keys(urlParams).length > 0) {
                 paramsEncoded = this.urlencode(urlParams);
-                url += '?' + paramsEncoded;
+                url = url + '?' + paramsEncoded;
             }
             if (access === 'private') {
                 this.checkRequiredCredentials();
                 const signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha2_js.sha256);
-                url += '&' + 'signature=' + signature;
+                url = url + '&signature=' + signature;
                 requestHeaders = {
                     'X-MEXC-APIKEY': this.apiKey,
                     'source': this.safeString(this.options, 'broker', 'CCXT'),
@@ -6454,12 +6455,6 @@ class mexc extends mexc$1["default"] {
                 this.checkRequiredCredentials();
                 const timestamp = this.nonce().toString();
                 let auth = '';
-                requestHeaders = {
-                    'ApiKey': this.apiKey,
-                    'Request-Time': timestamp,
-                    'Content-Type': 'application/json',
-                    'source': this.safeString(this.options, 'broker', 'CCXT'),
-                };
                 if (method === 'POST') {
                     auth = this.json(paramsOmitted);
                     requestBody = auth;
@@ -6473,7 +6468,13 @@ class mexc extends mexc$1["default"] {
                 }
                 auth = this.apiKey + timestamp + auth;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
-                requestHeaders['Signature'] = signature;
+                requestHeaders = {
+                    'ApiKey': this.apiKey,
+                    'Request-Time': timestamp,
+                    'Content-Type': 'application/json',
+                    'source': this.safeString(this.options, 'broker', 'CCXT'),
+                    'Signature': signature,
+                };
             }
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
