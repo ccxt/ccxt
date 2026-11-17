@@ -54,6 +54,11 @@ import { installJavaR90j6AsStringListReaders } from './java-local-types.js';
 import { installJavaR90j6PairLocals } from './java-local-types.js';
 import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
 import { installJavaR90j7MapDelete } from './java-local-types.js';
+import { installJavaR92j3LongDefaultParams } from './java-local-types.js';
+import { installJavaR92j3LongFixedParams } from './java-local-types.js';
+import { installJavaR92j3ParseToIntCompare } from './java-local-types.js';
+import { installJavaR92j3SafeIntegerOperands } from './java-local-types.js';
+import { installJavaR92j3HexStringCalls } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaR92j1AssertedStringLocals } from './java-local-types.js';
 import { installJavaR92j1StringRowLocals } from './java-local-types.js';
@@ -2538,6 +2543,11 @@ class NewTranspiler {
         installJavaR90j6PairLocals(this.transpiler);
         installJavaR90j6ListCopyLocals(this.transpiler);
         installJavaR90j7MapDelete(this.transpiler);
+        installJavaR92j3LongDefaultParams(this.transpiler);
+        installJavaR92j3LongFixedParams(this.transpiler);
+        installJavaR92j3ParseToIntCompare(this.transpiler);
+        installJavaR92j3SafeIntegerOperands(this.transpiler);
+        installJavaR92j3HexStringCalls(this.transpiler);
         installJavaR90j8OmitParamLocals(this.transpiler);
         installJavaR92j1AssertedStringLocals(this.transpiler);
         installJavaR92j1StringRowLocals(this.transpiler);
@@ -6105,6 +6115,35 @@ function mapLocalsSelfTest (): string[] {
         problems.push(`ral-90j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(r90j3, { force: true });
+    }
+    // integer-literal defaulted number slots (buildOHLCVC since / limit) print Long, so call sites pass NL
+    const r92j3 = path.join(process.cwd(), 'ts', 'src', `zz92j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r92j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Int, Dict, Trade } from './base/types.js';",
+            'export default class zz92j3selftest extends Exchange {',
+            "    candles (trades: Trade[]) { const c = this.buildOHLCVC (trades, '1m', 0, 100); return c; }",
+            "    insertMissingCandles (candles: number[][], distanceInMs: number, since: Int, limit: number): number[] { const out: number[] = []; let n: Int = 0; while (n < limit) { out.push (n); n = this.sum (n, 1); } return out; }",
+            "    fill (xs: number[][]) { return this.insertMissingCandles (xs, 1000, undefined, 5); }",
+            "    within (xs: string[], p: Dict) { const end = this.safeInteger (p, 'end'); return this.parseToInt (xs[0]) > end; }",
+            "    deadline () { const d = this.seconds () + this.safeInteger (this.options, 'expiry', 600); return d; }",
+            "    grow (p: Dict, n: Int = 1) { const have = this.safeInteger (p, 'have', 0); const next = have + n; return next > 10; }",
+            "    sig (o: Dict) { const s = this.remove0xPrefix (this.safeString (o, 'r')) + this.intToBase16 (o['v']); return '0x' + s; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j3).content as string;
+        if (!/this\.buildOHLCVC\([^\n]*, 0L, 100L\)/.test(out)) problems.push("r92j3 R1: buildOHLCVC since / limit must take Long arguments");
+        if (!/this\.insertMissingCandles\(xs, 1000, \(Object\) null, 5L\)|this\.insertMissingCandles\(xs, 1000, null, 5L\)/.test(out)) problems.push("r92j3 R2: a fixed whole-number slot must take its int literal as NL");
+        if (!/List<Object> insertMissingCandles\([^)]*Long limit\)/.test(out)) problems.push("r92j3 R2: insertMissingCandles limit must print Long");
+        if (!/this\.parseToInt\([^\n]*\) > end\)/.test(out) || /\}\)\.test\(this\.parseToInt\(/.test(out)) problems.push("r92j3 R3: a parseToInt compare operand must print the native compare");
+        if (!/= \(this\.seconds\(\) \+ this\.safeInteger\(this\.options, "expiry", 600\)\);/.test(out)) problems.push("r92j3 R4: a defaulted safeInteger operand must print the native long add");
+        if (!/Long next = \(have \+ java\.util\.Objects\.requireNonNullElse\(n, 1L\)\);/.test(out)) problems.push("r92j3 R4: 'next' (sum of a defaulted safeInteger local and a Long slot) must be a native Long");
+        if (!/String s = \(this\.remove0xPrefix\(this\.safeString\(o, "r"\)\) \+ this\.intToBase16\(/.test(out)) problems.push("r92j3 R5: remove0xPrefix + intToBase16 must print the native concat");
+    } catch (e) {
+        problems.push(`r92j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r92j3, { force: true });
     }
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [

@@ -24159,6 +24159,405 @@ export function installJavaR90j3CounterLoops (transpiler) {
     };
 }
 
+// ===== r92j3. integer-literal defaulted number parameters print `Long` =====
+// Every printed declaration of these (method, position) slots defaults to an integer literal, is
+// annotated number/Int (or not at all) and never written, so the slot holds a whole number: the
+// compares and min of the body print as native long operations instead of the inline helper blobs.
+const R92J3_LONG_DEFAULT_PARAMS = {
+    'buildOHLCVC': [ 2, 3 ],
+    'waitForTransactionReceipt': [ 2 ],
+};
+
+function r92j3LongDefaultParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || !ts.isIdentifier (method.name ?? {}) || !Object.hasOwn (R92J3_LONG_DEFAULT_PARAMS, method.name.text)) {
+        return undefined;
+    }
+    const index = method.parameters.indexOf (node);
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (!R92J3_LONG_DEFAULT_PARAMS[method.name.text].includes (index) || fileName.includes ('/ts/src/test/')
+        || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    const initializer = unwrapParens (node.initializer);
+    if (initializer === undefined || !ts.isNumericLiteral (initializer) || !/^\d+$/.test (initializer.text)
+        || Number (initializer.text) > 2147483647 || ![ '', 'number', 'Int', 'int' ].includes (annotation)
+        || !ts.isIdentifier (node.name) || printer.javaParameterIsWritten (node)) {
+        throw new Error (`java long param ${method.name.text}#${index} (${fileName}) is not a read-only integer-literal default`);
+    }
+    return 'Long';
+}
+
+export function installJavaR92j3LongDefaultParams (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaOptionalParameterTypeOf !== 'function' || printer._javaR92j3LongDefaultParamsPatched) {
+        return;
+    }
+    printer._javaR92j3LongDefaultParamsPatched = true;
+    const upstreamType = printer.javaOptionalParameterTypeOf.bind (printer);
+    printer.javaOptionalParameterTypeOf = function (node) {
+        return r92j3LongDefaultParamType (printer, node) ?? upstreamType (node);
+    };
+    // a read of such a slot prints `requireNonNullElse(x, NL)`: a non-null Long, so compares,
+    // min/max and arithmetic on it take the native long forms
+    const isSlotRead = (node) => {
+        const bare = unwrapParens (node);
+        if (bare === undefined || !ts.isIdentifier (bare)) {
+            return false;
+        }
+        const declaration = printer.javaDeclarationOfIdentifier (bare);
+        if (declaration?.kind !== ts.SyntaxKind.Parameter || r92j3LongDefaultParamType (printer, declaration) !== 'Long') {
+            return false;
+        }
+        return printer.javaDefaultedLocalName (bare) === `java.util.Objects.requireNonNullElse(${bare.text}, ${unwrapParens (declaration.initializer).text}L)`;
+    };
+    const upstreamKind = printer.javaProvableNumericKind.bind (printer);
+    printer.javaProvableNumericKind = function (node, allowDeclaredLocals = true) {
+        return (allowDeclaredLocals && isSlotRead (node)) ? 'long' : upstreamKind (node, allowDeclaredLocals);
+    };
+    // Math.min/max of a slot read and a non-null int/long operand: Math.min(long, long) is the
+    // helper's pick on two whole numbers
+    const upstreamMinMax = printer.printNativeMathMinMax.bind (printer);
+    printer.printNativeMathMinMax = function (node, left, right, leftText, rightText, name) {
+        const integral = (n) => [ 'int', 'long' ].includes (printer.javaProvableNumericKind (unwrapParens (n)));
+        if ((isSlotRead (left) || isSlotRead (right)) && integral (left) && integral (right)
+            && printer.javaNativeMathMinMaxResultIsPlainValue (node)) {
+            return `Math.${name}(${leftText}, ${rightText})`;
+        }
+        return upstreamMinMax (node, left, right, leftText, rightText, name);
+    };
+    // `const x = Math.min (<slot read>, <int/long>)` holds that native long: declare it `long`
+    const minMaxLocals = new WeakMap ();
+    const isMinMaxLocal = (declaration) => {
+        if (!minMaxLocals.has (declaration)) {
+            let ok = false;
+            try {
+                const init = unwrapParens (declaration.initializer);
+                ok = ts.isVariableDeclaration (declaration) && ts.isIdentifier (declaration.name)
+                    && ts.isVariableDeclarationList (declaration.parent) && (declaration.parent.flags & ts.NodeFlags.Const) !== 0
+                    && declaration.parent.declarations.length === 1 && init !== undefined && ts.isCallExpression (init)
+                    && ts.isPropertyAccessExpression (init.expression) && ts.isIdentifier (init.expression.expression)
+                    && init.expression.expression.text === 'Math' && [ 'min', 'max' ].includes (init.expression.name.text)
+                    && init.arguments.length === 2 && init.arguments.some ((a) => isSlotRead (a))
+                    && init.arguments.every ((a) => [ 'int', 'long' ].includes (printer.javaProvableNumericKind (unwrapParens (a))));
+            } catch (e) {
+                ok = false;
+            }
+            minMaxLocals.set (declaration, ok);
+        }
+        return minMaxLocals.get (declaration);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (declaration !== undefined && ts.isVariableDeclaration (declaration)
+        && isMinMaxLocal (declaration) ? 'long' : undefined));
+    const upstreamList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamList (node, identation);
+        const declaration = node.declarations?.length === 1 ? node.declarations[0] : undefined;
+        if (declaration === undefined || !isMinMaxLocal (declaration)) {
+            return printed;
+        }
+        const head = `Object ${declaration.name.text} = Math.`;
+        const at = printed.indexOf (head);
+        if (at < 0) {
+            throw new Error (`min/max local ${declaration.name.text} printed without its native Math call`);
+        }
+        return printed.slice (0, at) + `long ${declaration.name.text} = Math.` + printed.slice (at + head.length);
+    };
+    const upstreamOperand = printer.javaComparisonOperand.bind (printer);
+    printer.javaComparisonOperand = function (node) {
+        return isSlotRead (node) ? { kind: 'long', boxed: false } : upstreamOperand (node);
+    };
+}
+
+// ===== r92j3 R2. fixed whole-number parameters print `Long` =====
+// Venue methods whose (method, position) slot is annotated number/int, has no default, is never
+// written and is handed a whole number at every call site (an int literal, a Long-declared local,
+// a loop counter or native long arithmetic): the slot prints Long, so the body's compares of it
+// print the native long forms instead of the inline helper blobs.
+const R92J3_LONG_FIXED_PARAMS = {
+    'futuresTransfer': [ 2 ],
+    'insertMissingCandles': [ 3 ],
+    'unsubscribeChannelsFrom': [ 5 ],
+};
+
+function r92j3LongFixedParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration
+        || !ts.isIdentifier (method.name ?? {}) || node.initializer !== undefined
+        || !Object.hasOwn (R92J3_LONG_FIXED_PARAMS, method.name.text)) {
+        return undefined;
+    }
+    const index = method.parameters.indexOf (node);
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (!R92J3_LONG_FIXED_PARAMS[method.name.text].includes (index) || fileName.includes ('/ts/src/test/')
+        || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    if (![ 'number', 'int' ].includes (annotation) || !ts.isIdentifier (node.name) || node.dotDotDotToken !== undefined
+        || node.questionToken !== undefined || printer.javaParameterIsWritten (node)) {
+        throw new Error (`java long param ${method.name.text}#${index} (${fileName}) is not a read-only whole number`);
+    }
+    return 'Long';
+}
+
+// the argument prints a Java whole number the Long slot takes as is (or via the NL literal form)
+function r92j3LongArgumentIsTyped (printer, arg) {
+    const bare = unwrapParens (arg);
+    if (bare === undefined) {
+        return false;
+    }
+    if (ts.isNumericLiteral (bare) && /^\d+$/.test (bare.text)) {
+        return true;
+    }
+    const kind = printer.javaProvableNumericKind (bare);
+    if (!ts.isIdentifier (bare) && (kind === 'long' || printer.javaNativeArithmeticType?.(bare) === 'Long')) {
+        return true;
+    }
+    // `i + 1` over a printed int loop counter prints the widened native add `(((long) i) + 1L)`
+    if (ts.isBinaryExpression (bare) && bare.operatorToken.kind === ts.SyntaxKind.PlusToken
+        && printer.javaPrintedIntCounter (unwrapParens (bare.left)) && ts.isNumericLiteral (unwrapParens (bare.right))
+        && /^\d+$/.test (unwrapParens (bare.right).text)) {
+        return true;
+    }
+    if (ts.isIdentifier (bare)) {
+        const declaration = printer.javaDeclarationOfIdentifier (bare);
+        const declared = declaration === undefined ? undefined : String (printer.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').trim ();
+        return declared === 'Long' && printer.printNode (bare, 0) === bare.text;
+    }
+    return false;
+}
+
+export function installJavaR92j3LongFixedParams (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterType !== 'function' || printer._javaR92j3LongFixedParamsPatched) {
+        return;
+    }
+    printer._javaR92j3LongFixedParamsPatched = true;
+    const upstreamType = printer.javaNativeParameterType.bind (printer);
+    printer.javaNativeParameterType = function (node) {
+        return r92j3LongFixedParamType (printer, node) ?? upstreamType (node);
+    };
+    // an int literal handed to such a slot prints its long form `NL`
+    const literalSlot = (node) => {
+        const call = node?.parent;
+        if (call === undefined || !ts.isCallExpression (call) || !call.arguments.includes (node)) {
+            return false;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        } catch (e) {
+            return false;
+        }
+        const param = declaration?.parameters?.[call.arguments.indexOf (node)];
+        return param !== undefined && r92j3LongFixedParamType (printer, param) === 'Long';
+    };
+    const upstreamLiteral = printer.printNumericLiteral.bind (printer);
+    printer.printNumericLiteral = function (node) {
+        const printed = upstreamLiteral (node);
+        return (/^\d+$/.test (printed) && literalSlot (node)) ? printed + 'L' : printed;
+    };
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        if (type === 'Long' && r92j3LongArgumentIsTyped (printer, arg)) {
+            return true;
+        }
+        return upstreamTyped (arg, type);
+    };
+}
+
+// ===== r92j3 R3. base `this.parseToInt (x)` is a non-null long compare operand =====
+// BaseExchange.parseToInt is declared Long and ends in `((Number) Double.parseDouble(..)).longValue()`:
+// it throws on a non-numeric argument and never answers null, so in a compare it is an unboxed long
+// and the compare prints the native form instead of the inline helper blob.
+function r92j3ParseToIntCall (printer, node) {
+    const call = unwrapParens (node);
+    if (!isThisCall (call) || call.expression.name.text !== 'parseToInt' || call.arguments.length !== 1) {
+        return false;
+    }
+    let member;
+    try {
+        member = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName);
+}
+
+export function installJavaR92j3ParseToIntCompare (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaComparisonOperand !== 'function' || printer._javaR92j3ParseToIntComparePatched) {
+        return;
+    }
+    printer._javaR92j3ParseToIntComparePatched = true;
+    const upstream = printer.javaComparisonOperand.bind (printer);
+    printer.javaComparisonOperand = function (node) {
+        return r92j3ParseToIntCall (printer, node) ? { kind: 'long', boxed: false } : upstream (node);
+    };
+}
+
+// ===== r92j3 R4. defaulted safeInteger reads are non-null long operands =====
+// Base safeInteger / safeInteger2 / safeIntegerN with an int-literal default answer the converted
+// default on every miss (SafeIntegerN never returns null), and are declared Long: as an arithmetic
+// operand, directly or through a never-written const local, they are a non-null long, so `+` / `-`
+// with another proven long prints the native long operator instead of the inline add / subtract blob.
+function r92j3DefaultedSafeIntegerOperand (printer, node, depth = 0) {
+    const n = unwrapParens (node);
+    if (n === undefined || depth > 2) {
+        return false;
+    }
+    if (ts.isCallExpression (n)) {
+        return javaSubtractSafeIntegerWithDefault (printer, n);
+    }
+    if (!ts.isIdentifier (n) || printer.printNode (n, 0) !== n.text) {
+        return false;
+    }
+    let target;
+    try {
+        target = printer.getChecker ().getSymbolAtLocation (n)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return target !== undefined && ts.isVariableDeclaration (target) && ts.isVariableDeclarationList (target.parent)
+        && (target.parent.flags & ts.NodeFlags.Const) !== 0 && target.parent.declarations.length === 1
+        && enclosingFunction (target) === enclosingFunction (n) && target.initializer !== undefined
+        && String (printer.javaDeclaredTypeOfDeclaration?.(target) ?? '').replace (/^final\s+/, '').trim () === 'Long'
+        && r92j3DefaultedSafeIntegerOperand (printer, target.initializer, depth + 1);
+}
+
+export function installJavaR92j3SafeIntegerOperands (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaProvableNumericKind !== 'function' || printer._javaR92j3SafeIntegerOperandsPatched) {
+        return;
+    }
+    printer._javaR92j3SafeIntegerOperandsPatched = true;
+    const upstream = printer.javaProvableNumericKind.bind (printer);
+    printer.javaProvableNumericKind = function (node, allowDeclaredLocals = true) {
+        const kind = upstream (node, allowDeclaredLocals);
+        // the call form relies on no retyped local, so it also answers `+` (allowDeclaredLocals false)
+        if (kind !== undefined || (!allowDeclaredLocals && !ts.isCallExpression (unwrapParens (node) ?? node))) {
+            return kind;
+        }
+        let ok = false;
+        try {
+            ok = r92j3DefaultedSafeIntegerOperand (printer, node);
+        } catch (e) {
+            ok = false;
+        }
+        return ok ? 'long' : undefined;
+    };
+    const sumLocals = new WeakMap ();
+    const isSumLocal = (declaration) => {
+        if (!sumLocals.has (declaration)) {
+            let ok = false;
+            try {
+                ok = r92j3NativeSumLocal (printer, declaration);
+            } catch (e) {
+                ok = false;
+            }
+            sumLocals.set (declaration, ok);
+        }
+        return sumLocals.get (declaration);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (declaration !== undefined && isSumLocal (declaration) ? 'Long' : undefined));
+    const upstreamList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamList (node, identation);
+        const declaration = node.declarations?.length === 1 ? node.declarations[0] : undefined;
+        if (declaration === undefined || !isSumLocal (declaration)) {
+            return printed;
+        }
+        const head = `Object ${declaration.name.text} = (`;
+        const at = printed.indexOf (head);
+        if (at < 0) {
+            return printed;
+        }
+        return printed.slice (0, at) + `Long ${declaration.name.text} = (` + printed.slice (at + head.length);
+    };
+    // the `+` rule reads its own operand table
+    const upstreamWidened = printer.javaWidenedNumericKind.bind (printer);
+    printer.javaWidenedNumericKind = function (node) {
+        const kind = upstreamWidened (node);
+        if (kind !== undefined) {
+            return kind;
+        }
+        let ok = false;
+        try {
+            ok = r92j3DefaultedSafeIntegerOperand (printer, node) || r92j3DefaultedLongParamRead (printer, node);
+        } catch (e) {
+            ok = false;
+        }
+        return ok ? 'long' : undefined;
+    };
+}
+
+// `const x = a + b` / `a - b` printed as the native long add over at least one operand proven here:
+// the local holds that long, so it is declared `Long` (its later compares then print natively)
+function r92j3NativeSumLocal (printer, declaration) {
+    if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || !ts.isVariableDeclarationList (declaration.parent)
+        || (declaration.parent.flags & ts.NodeFlags.Const) === 0 || declaration.parent.declarations.length !== 1) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isBinaryExpression (init) || init.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return false;
+    }
+    const mine = (n) => r92j3DefaultedSafeIntegerOperand (printer, n) || r92j3DefaultedLongParamRead (printer, n);
+    const longish = (n) => mine (n) || printer.javaWidenedNumericKind (unwrapParens (n)) === 'long';
+    return (mine (init.left) || mine (init.right)) && longish (init.left) && longish (init.right);
+}
+
+// a read of a Long-typed integer-literal defaulted parameter prints `requireNonNullElse(x, NL)`: never null
+function r92j3DefaultedLongParamRead (printer, node) {
+    const bare = unwrapParens (node);
+    if (bare === undefined || !ts.isIdentifier (bare)) {
+        return false;
+    }
+    const declaration = printer.javaDeclarationOfIdentifier (bare);
+    if (declaration?.kind !== ts.SyntaxKind.Parameter || !ts.isNumericLiteral (unwrapParens (declaration.initializer) ?? declaration)
+        || printer.javaOptionalParameterType (declaration) !== 'Long') {
+        return false;
+    }
+    return printer.javaDefaultedLocalName (bare) === `java.util.Objects.requireNonNullElse(${bare.text}, ${unwrapParens (declaration.initializer).text}L)`;
+}
+
+// ===== r92j3 R5. base `remove0xPrefix` / `intToBase16` calls print a non-null String =====
+// Encode.remove0xPrefix casts and calls `startsWith` (a null argument throws, it never answers null) and
+// Encode.intToBase16 ends in Long.toHexString: both are declared String in BaseExchange.java, so the
+// printer's resolver may answer String for them and a `+` over them prints the native concat.
+function r92j3HexStringCall (printer, node) {
+    const call = unwrapParens (node);
+    if (!isThisCall (call) || ![ 'remove0xPrefix', 'intToBase16' ].includes (call.expression.name.text)
+        || call.arguments.length !== 1 || r87j6UnderPropertyAssignment (call)) {
+        return false;
+    }
+    let member;
+    try {
+        member = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName);
+}
+
+export function installJavaR92j3HexStringCalls (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || printer._javaR92j3HexStringCallsPatched) {
+        return;
+    }
+    printer._javaR92j3HexStringCallsPatched = true;
+    const upstream = printer.javaExpressionTypeResolver;
+    printer.javaExpressionTypeResolver = function (node) {
+        if (r92j3HexStringCall (printer, node)) {
+            return 'String';
+        }
+        return typeof upstream === 'function' ? upstream (node) : undefined;
+    };
+}
+
 // ===== r87-j4. const native-split locals already printed List<Object> =====
 // `const parts = s.split (sep)` that an earlier section declared `java.util.List<Object>` holds only the
 // Strings of `String.split`: when 84j8's split audit accepts every use, declare it List<String> (the
