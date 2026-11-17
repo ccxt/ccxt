@@ -35,9 +35,9 @@ cargo add ccxt-prediction
 
 ```toml
 [dependencies]
-ccxt = "4.5.92"                 # REST exchanges (typed) — required
-ccxt-pro = "4.5.92"             # WebSocket (watch*) exchanges — only if you stream
-ccxt-prediction = "4.5.92"      # prediction markets — only if you trade them
+ccxt = "4.5.93"                 # REST exchanges (typed) — required
+ccxt-pro = "4.5.93"             # WebSocket (watch*) exchanges — only if you stream
+ccxt-prediction = "4.5.93"      # prediction markets — only if you trade them
 tokio = { version = "1", features = ["full"] }
 ```
 
