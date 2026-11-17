@@ -1106,3 +1106,24 @@ func (this *BaseExchange) SafeDict2Map(dictionaryOrList any, key1 any, key2 any,
 func (this *BaseExchange) SafeDictNMap(dictionaryOrList any, keys any, optionalArgs ...any) map[string]any {
 	return MapTyped(this.SafeDictN(dictionaryOrList, keys, optionalArgs...))
 }
+
+// SafeList2Strings and SafeListNStrings are SafeList2 / SafeListN read as the []string a string-list
+// local holds: nil exactly where the reader answers nil, else the elements Join joins.
+func (this *BaseExchange) SafeList2Strings(dictionaryOrList any, key1 any, key2 any) []string {
+	return joinListValue(this.SafeList2(dictionaryOrList, key1, key2))
+}
+
+func (this *BaseExchange) SafeListNStrings(dictionaryOrList any, keys any) []string {
+	return joinListValue(this.SafeListN(dictionaryOrList, keys))
+}
+
+// SafeListSlice is SafeList read as a []any: the member or default list, nil where that answer is
+// not a list (GetArrayLength of such a box was 0, so a length-bounded read sees nothing either way).
+func (this *BaseExchange) SafeListSlice(dictionaryOrList any, key any, defaultValue any) []any {
+	return listValueToTypedSlice(this.SafeList(dictionaryOrList, key, defaultValue))
+}
+
+// SafeListNSlice is SafeListN (no default) read as a []any: nil exactly where SafeListN answers nil.
+func (this *BaseExchange) SafeListNSlice(dictionaryOrList any, keys any) []any {
+	return listValueToTypedSlice(this.SafeListN(dictionaryOrList, keys))
+}

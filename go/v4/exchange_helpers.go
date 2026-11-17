@@ -1592,14 +1592,41 @@ func Join(slice any, sep any) string {
 	case []string:
 		strSlice = v
 	case []any:
-		for _, elem := range v {
-			strSlice = append(strSlice, ToString(elem))
-		}
+		strSlice = joinElemStrings(v)
 	default:
 		return ""
 	}
 
 	return strings.Join(strSlice, sepStr)
+}
+
+// joinElemStrings is Join's per-element conversion of a []any (nil for a nil slice)
+func joinElemStrings(v []any) []string {
+	var strSlice []string
+	for _, elem := range v {
+		strSlice = append(strSlice, ToString(elem))
+	}
+	return strSlice
+}
+
+// joinListValue is the []string Join reads from a list box: nil only where the box itself is nil,
+// the joined elements of a []any / []string, and an empty slice for every kind Join prints as ""
+func joinListValue(value any) []string {
+	if value == nil {
+		return nil
+	}
+	switch v := derefScalar(value).(type) {
+	case []string:
+		if v == nil {
+			return []string{}
+		}
+		return v
+	case []any:
+		if s := joinElemStrings(v); s != nil {
+			return s
+		}
+	}
+	return []string{}
 }
 
 // Split splits a string into a slice of substrings separated by a separator
