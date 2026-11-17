@@ -364,9 +364,31 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'parseBorrowInterests', 'parseMarginModifications', 'parseConversions', 'parseIncomes',
     'parseLiquidations', 'parseFundingRateHistories', 'parseLongShortRatioHistory', 'parseOpenInterestsHistory',
     'arraySlice',
+    // ral-87j7: no override in ts/src; parsePredictionPositions returns its own List<Object>
+    // `results` local, parsePredictionTrades returns filterByValueSinceLimit (List<Object>). Only
+    // these two of 84j7 R1's names: their result locals are read by size()/get(i) (native uses)
+    'parsePredictionPositions', 'parsePredictionTrades',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>' };
+// ral-84j7 R3: prediction order structures. safePredictionOrder returns its fresh
+// Map<String, Object> `result` on its one path; every parsePredictionOrder declaration
+// (base throws, 9 prediction venues) returns `this.safePredictionOrder (..)`. Joined into
+// JAVA_MAP_RETURN_METHODS below, so signatures, locals and `.put` writes follow.
+const JAVA_84J7_MAP_RETURN_METHODS = [ 'safePredictionOrder', 'parsePredictionOrder' ];
+// a long initializer calling one of them keeps Object: later core-argument coercions widen
+// the printed arguments, the declaration token grows by 13 characters, and the house limit
+// is no added line over 400 characters
+function j84j7InitWithinWidth (printer, initializer) {
+    const call = unwrapParens (initializer);
+    if (call === undefined || !ts.isCallExpression (call) || !isThisCall (call)
+        || !JAVA_84J7_MAP_RETURN_METHODS.includes (String (call.expression.name.text))) {
+        return true;
+    }
+    // an `x as any` argument into a typed core slot prints a switch-expression coercion blob
+    // (the two long polymarket sites); a plain argument list stays short
+    return !call.arguments.some ((a) => ts.isAsExpression (unwrapParens (a)) && unwrapParens (a).type.kind === ts.SyntaxKind.AnyKeyword);
+}
 
 // base methods whose every return is the own `symbols` parameter (checkcast) or a String
 // accumulator list (section 26) print `java.util.List<String>`; locals take it in section 31
@@ -649,7 +671,7 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 // Structure accessors whose Java return is declared Map<String, Object> on every declaration
 // (base + overrides): each return is a literal/null, a markets/currencies row, super./this. call
 // of the same family or createExpiredOptionMarket (a row) - checkcast at the return site only.
-const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket' ]);
+const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS ]);
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
@@ -3061,6 +3083,9 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         return receiverMethodLocalType (initializer);
     }
     const name = assertedCall.expression.name.text;
+    if (!j84j7InitWithinWidth (printer, assertedCall)) {
+        return undefined;
+    }
     if (!asserted && (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name))) {
         // the signature hook retypes real method declarations by name; a field of the
         // same name would print an untyped call and could not hold a String result
@@ -6218,7 +6243,10 @@ export function installJavaLocalTypes (transpiler) {
             if (expression === undefined || at === -1 || enclosingFunction (node) !== method
                 || ts.isObjectLiteralExpression (expression) || expression.kind === ts.SyntaxKind.NullKeyword
                 || (ts.isIdentifier (expression) && expression.text === 'undefined')
-                || (isThisOrSuperCall (expression) && JAVA_MAP_RETURN_METHODS.has (expression.expression.name.text))) {
+                || (isThisOrSuperCall (expression) && JAVA_MAP_RETURN_METHODS.has (expression.expression.name.text))
+                || (JAVA_84J7_MAP_RETURN_METHODS.includes (methodName) && ts.isIdentifier (expression)
+                    && typeof printer.javaDeclaredTypeOf === 'function'
+                    && /^(java\.util\.)?Map<String, ?Object>$/.test (printer.javaDeclaredTypeOf (expression) ?? ''))) {
                 return printed;
             }
             const tail = printed.slice (at + 'return '.length);
@@ -10989,8 +11017,130 @@ const JAVA_VENUE_TS_ROOT = path.join (path.dirname (fileURLToPath (import.meta.u
 const JAVA_VENUE_RETURN_MAP = {
     'Dict': 'Map<String, Object>', 'string': 'String', 'Str': 'String', 'boolean': 'Boolean', 'Bool': 'Boolean',
     'Int': 'Long', 'int': 'Long', 'Num': 'Double', 'number': 'Double',
+    // ral-87j7: a venue-only `Promise<Dict[]>` (raw page fetchers) prints CompletableFuture<List<Object>>
+    'Dict[]': 'List<Object>',
+    // ral-87j7 R4: `Str[]` / `string[]` locals print java.util.List<Object> too (array literal + push)
+    'Str[]': 'List<Object>', 'string[]': 'List<Object>',
 };
 let javaVenueReturnTable;
+const javaVenueListFiles = [];
+
+// self-test hook: drop the ts/src indexes so a probe file written after they were built is seen
+export function resetJavaVenueIndexes () {
+    javaVenueReturnTable = undefined;
+    javaVenueListFiles.length = 0;
+    javaFreshMapMethodIndex = undefined;
+}
+
+// names m with some `const x = await this.m (..)` in a defining file whose x is read by .length or x[..]
+function javaVenueListReadNames () {
+    const names = new Set ();
+    for (const file of new Set (javaVenueListFiles.map (([ , f ]) => f))) {
+        const text = readTsIndexSource (file);
+        if (text === undefined) {
+            continue;
+        }
+        const sf = ts.createSourceFile (file, text);
+        const visit = (node) => {
+            if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.initializer !== undefined) {
+                const init = unwrapParens (node.initializer);
+                const call = init.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (init.expression) : undefined;
+                const scope = isThisCall (call) ? enclosingFunction (node) : undefined;
+                if (scope !== undefined) {
+                    const local = node.name.text;
+                    let read = false;
+                    const uses = (n) => {
+                        if (read) {
+                            return;
+                        }
+                        if (ts.isIdentifier (n) && n.text === local && n !== node.name) {
+                            const parent = n.parent;
+                            read = (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.name.text === 'length')
+                                || (ts.isElementAccessExpression (parent) && parent.expression === n);
+                        }
+                        n.forEachChild (uses);
+                    };
+                    uses (scope);
+                    if (read) {
+                        names.add (call.expression.name.text);
+                    }
+                }
+            }
+            node.forEachChild (visit);
+        };
+        visit (sf);
+    }
+    return names;
+}
+
+function javaVenueSafeListSeededWrites () {
+    const names = new Set ();
+    for (const file of new Set (javaVenueListFiles.map (([ , f ]) => f))) {
+        const text = readTsIndexSource (file);
+        if (text === undefined) {
+            continue;
+        }
+        const sf = ts.createSourceFile (file, text);
+        const seeded = new Set ();
+        const collect = (node) => {
+            if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && isThisCall (unwrapParens (node.initializer))
+                && unwrapParens (node.initializer).expression.name.text === 'safeList') {
+                seeded.add (node.name.text);
+            }
+            node.forEachChild (collect);
+        };
+        collect (sf);
+        const writes = (node) => {
+            if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (node.left)
+                && seeded.has (node.left.text)) {
+                const right = unwrapParens (node.right);
+                const call = right !== undefined && right.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (right.expression) : undefined;
+                if (isThisCall (call)) {
+                    names.add (call.expression.name.text);
+                }
+            }
+            node.forEachChild (writes);
+        };
+        writes (sf);
+    }
+    return names;
+}
+
+function javaVenueListReturnsProven (file, name) {
+    const text = readTsIndexSource (file);
+    if (text === undefined) {
+        return false;
+    }
+    const sf = ts.createSourceFile (file, text);
+    let ok = true;
+    let found = 0;
+    const visitMethod = (member) => {
+        if (member.kind !== ts.SyntaxKind.MethodDeclaration || member.name === undefined || !ts.isIdentifier (member.name)
+            || member.name.text !== name || member.body === undefined) {
+            return;
+        }
+        found++;
+        const walk = (node) => {
+            if (!ok || node === undefined || (node !== member && ts.isFunctionLike (node))) {
+                return;
+            }
+            if (ts.isReturnStatement (node)) {
+                const value = unwrapParens (node.expression);
+                ok = value !== undefined && (ts.isIdentifier (value)
+                    || (isThisCall (value) && value.expression.name.text === 'arraySlice'));
+                return;
+            }
+            node.forEachChild (walk);
+        };
+        walk (member);
+    };
+    for (const statement of sf.statements) {
+        if (ts.isClassDeclaration (statement)) {
+            statement.members.forEach (visitMethod);
+        }
+    }
+    return ok && found > 0;
+}
 
 function javaVenueScan (file, re, onMatch) {
     const content = readTsIndexSource (file);
@@ -11021,9 +11171,12 @@ export function javaVenueAsyncReturnTable () {
             // only async declarations print a CompletableFuture core; a same-named sync helper elsewhere is unrelated
             javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )(\w+) \(/, (m, line) => {
                 const full = /^ {4}(async )?\w+ \(.*\)\s*(?::\s*(.+?))?\s*\{\s*$/.exec (line);
-                const promise = full === null ? undefined : /^Promise<(\w+)>$/.exec (full[2] ?? '');
+                const promise = full === null ? undefined : /^Promise<(\w+(?:\[\])?)>$/.exec (full[2] ?? '');
                 const spelling = (full !== null && full[1] !== undefined && promise) ? JAVA_VENUE_RETURN_MAP[promise[1]] : undefined;
                 const set = seen.get (m[2]) ?? new Set ();
+                if (spelling === 'List<Object>') {
+                    javaVenueListFiles.push ([ m[2], path.join (JAVA_VENUE_TS_ROOT, dir, f) ]);
+                }
                 set.add (spelling ?? '?');
                 seen.set (m[2], set);
             });
@@ -11033,6 +11186,29 @@ export function javaVenueAsyncReturnTable () {
     for (const [ name, set ] of seen) {
         if (!baseNames.has (name) && set.size === 1 && !set.has ('?')) {
             javaVenueReturnTable.set (name, [ ...set ][0]);
+        }
+    }
+    // ral-87j7: a `Promise<Dict[]>` core keeps no cast only when every return is a local or
+    // this.arraySlice (..) (List<Object> in BaseExchange.java); a returned Object call (safeList) would
+    // need a checkcast at the return, so those names stay out (parsed from the TS AST of each file)
+    for (const [ name, file ] of javaVenueListFiles) {
+        if (javaVenueReturnTable.get (name) === 'List<Object>' && !javaVenueListReturnsProven (file, name)) {
+            javaVenueReturnTable.delete (name);
+        }
+    }
+    // a `x = await this.m (..)` write into a local seeded from this.safeList (..) would make that
+    // local List with a declaration checkcast and no native use: keep such names Object
+    // the change only counts where a result local is read as a list (`x.length`, `x[i]`); a name whose
+    // awaited results are only handed on stays Object (ral-87j7: native use, not a declaration retype)
+    const listRead = javaVenueListReadNames ();
+    for (const [ name, spelling ] of [ ...javaVenueReturnTable ]) {
+        if (spelling === 'List<Object>' && !listRead.has (name)) {
+            javaVenueReturnTable.delete (name);
+        }
+    }
+    for (const name of javaVenueSafeListSeededWrites ()) {
+        if (javaVenueReturnTable.get (name) === 'List<Object>') {
+            javaVenueReturnTable.delete (name);
         }
     }
     return javaVenueReturnTable;
@@ -11060,7 +11236,7 @@ function awaitedVenueCallType (printer, node) {
     if (file === undefined || BASE_SOURCE_FILE.test (file)) {
         return undefined;
     }
-    return spelling === 'Map<String, Object>' ? JAVA_STRUCTURE_TYPE : spelling;
+    return spelling === 'Map<String, Object>' ? JAVA_STRUCTURE_TYPE : spelling === 'List<Object>' ? JAVA_ARRAY_TYPE : spelling;
 }
 
 // ===== 13. null accumulators joined over every provable later write (r10-j2b) =====
@@ -14628,14 +14804,16 @@ function javaFreshMapExtendCall (call) {
 // extend, or another such call); hand-written base methods of that name are never proven
 function javaFreshMapMethod (file, name, visiting) {
     const state = javaFreshMapMethods ();
-    const key = `${path.resolve (file)}#${name}`;
+    const scoped = javaFreshMapPredictionScope && JAVA_84J7_MAP_RETURN_METHODS.includes (name);
+    const key = `${path.resolve (file)}#${name}${scoped ? '#p87' : ''}`;
     if (state.verdicts.has (key)) {
         return state.verdicts.get (key);
     }
     if (visiting.has (key) || visiting.size > 6) {
         return false;
     }
-    const declarations = javaFreshMapDispatch (file, name) ?? [];
+    const dispatched = javaFreshMapDispatch (file, name);
+    const declarations = (scoped && !(dispatched?.length > 0) ? javaFreshMapPredictionBase (file, name) : dispatched) ?? dispatched ?? [];
     const declaredByHand = state.handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text));
     let fresh = declarations.length > 0 && !declaredByHand;
     visiting.add (key);
@@ -14679,6 +14857,9 @@ function javaFreshMapValue (expression, visiting) {
     if (ts.isObjectLiteralExpression (value)) {
         return true;
     }
+    if (ts.isIdentifier (value)) {
+        return javaFreshMapPredictionScope && javaFreshMapConstLiteral (value); // ral-87j7
+    }
     if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression)) {
         return false;
     }
@@ -14688,6 +14869,65 @@ function javaFreshMapValue (expression, visiting) {
     }
     return javaFreshMapExtendCall (value) || javaFreshMapMethod (value.getSourceFile ().fileName, value.expression.name.text, visiting)
         || javaFreshMapPassThroughCall (value, visiting);
+}
+
+// ral-87j7: `return result` where `const result = { .. }` is a single-binding const declared in the
+// same function (safePredictionOrder): a const binding is never rebound, and element writes keep the
+// object literal's HashMap, so the value is that fresh map. Decided from the declaration node alone.
+function javaFreshMapConstLiteral (identifier) {
+    const scope = enclosingFunction (identifier);
+    if (scope === undefined) {
+        return false;
+    }
+    let found;
+    let count = 0;
+    const walk = (node) => {
+        if (node === undefined || count > 1) {
+            return;
+        }
+        if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.name.text === identifier.text) {
+            count++;
+            found = node;
+        }
+        if (node.kind === ts.SyntaxKind.Parameter) {
+            if (ts.isIdentifier (node.name) && node.name.text === identifier.text) {
+                count += 2;
+            }
+        }
+        node.forEachChild (walk);
+    };
+    walk (scope);
+    if (count !== 1 || found === undefined || found.parent === undefined || !ts.isVariableDeclarationList (found.parent)
+        || (found.parent.flags & ts.NodeFlags.Const) === 0 || enclosingFunction (found) !== scope) {
+        return false;
+    }
+    const init = javaFreshMapUnwrap (found.initializer);
+    return init !== undefined && ts.isObjectLiteralExpression (init);
+}
+
+// ral-87j7: a prediction venue's chain leaves its file through ../abstract/prediction/<id>.js, which
+// the index does not hold, so dispatch is not closed. For the prediction-order names only
+// (JAVA_84J7_MAP_RETURN_METHODS, no abstract class declares them) the next declaration up that
+// chain is base/PredictionExchange.ts. A prediction venue class has no subclass in ts/src (checked
+// below), so its own declaration or the base one is the whole dispatch set.
+// Only the declared-Map put rewrite (patchJavaFreshMapElementWrites) turns the scope on: other
+// readers of the fresh-map proof would add a checkcast on an Object local instead of a native use.
+let javaFreshMapPredictionScope = false;
+function javaFreshMapPredictionBase (file, name) {
+    if (!JAVA_84J7_MAP_RETURN_METHODS.includes (name)) {
+        return undefined;
+    }
+    const { classes } = javaFreshMapMethods ();
+    const own = classes.get (path.resolve (file));
+    const base = classes.get (path.resolve (JAVA_FRESH_MAP_TS_ROOT, 'base', 'PredictionExchange.ts'));
+    const root = path.resolve (file);
+    if (own === undefined || base === undefined || typeof own.parent !== 'string' || classes.has (own.parent)
+        || !/[\\/]abstract[\\/]prediction[\\/][^\\/]+\.ts$/.test (own.parent) || !/[\\/]prediction[\\/][^\\/]+\.ts$/.test (root)
+        || [ ...classes.values () ].some ((entry) => entry.parent === root)) {
+        return undefined;
+    }
+    const decls = own.methods.get (name) ?? base.methods.get (name);
+    return decls === undefined ? undefined : [ ...decls ];
 }
 
 // `this.m (x, ..)` where every dispatchable m hands back its own never-reassigned parameter
@@ -14809,8 +15049,14 @@ export function patchJavaFreshMapElementWrites (transpiler) {
         // a null start (`let x = undefined`) holds no map yet: every later write must be fresh
         const init = declaration !== undefined && ts.isVariableDeclaration (declaration) ? javaFreshMapUnwrap (declaration.initializer) : undefined;
         const nullStart = init !== undefined && (init.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (init) && init.text === 'undefined'));
-        const fresh = init !== undefined && (nullStart || javaFreshMapValue (init, new Set ()))
-            && javaFreshMapStable (printer, receiver, declaration);
+        javaFreshMapPredictionScope = true;
+        let fresh;
+        try {
+            fresh = init !== undefined && (nullStart || javaFreshMapValue (init, new Set ()))
+                && javaFreshMapStable (printer, receiver, declaration);
+        } finally {
+            javaFreshMapPredictionScope = false;
+        }
         if (!fresh && !printer.javaPrintsNonNullValue (node.right)) {
             return printed;
         }
@@ -18097,6 +18343,19 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
         const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
         return { cast: declared !== 'Map<String,Object>' };
     }
+    // ral-87j7: a prediction-order call (signature printed Map<String, Object>) proven fresh through
+    // base/PredictionExchange.ts: the local takes it with no cast and its writes bind the native put
+    if (JAVA_84J7_MAP_RETURN_METHODS.includes (name) && !isAsyncMethodCall (printer, value)
+        && resolvesToMethodNamed (printer, value, name)) {
+        javaFreshMapPredictionScope = true;
+        try {
+            if (javaFreshMapValue (value, new Set ())) {
+                return { cast: false };
+            }
+        } finally {
+            javaFreshMapPredictionScope = false;
+        }
+    }
     if (!isAsyncMethodCall (printer, value) && x21MapCallee (printer, value)) {
         const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
         return { cast: declared !== 'Map<String,Object>' };
@@ -18147,7 +18406,7 @@ function javaMapLocal (printer, declaration) {
         return undefined;
     }
     const init = javaMapLocalValue (printer, declaration.initializer, declaration);
-    if (init === undefined || (init.needsElementRead === true && !javaMapLocalHasElementRead (declaration))) {
+    if (init === undefined || (init.needsElementRead === true && !javaMapLocalHasElementRead (declaration)) || !j84j7InitWithinWidth (printer, declaration.initializer)) {
         return undefined;
     }
     const scope = enclosingFunction (declaration);

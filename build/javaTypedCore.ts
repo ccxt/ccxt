@@ -136,6 +136,7 @@ export function coreConverter(m: MethodInfo): string {
     if (m.javaReturnType === 'String') return 'res -> (String) res';
     if (m.javaReturnType === 'Boolean') return 'res -> (Boolean) res';
     if (m.javaReturnType === 'Map<String, Object>') return 'res -> (java.util.Map<String, Object>) res';
+    if (m.javaReturnType === 'List<Object>') return 'res -> (java.util.List<Object>) res'; // ral-87j7 venue Promise<Dict[]>
     return `io.github.ccxt.types.${m.javaReturnType}::new`;
 }
 
@@ -315,7 +316,7 @@ function wholeThisCall(expr: string): string | undefined {
  */
 export function supplyBodyReturnsType(lines: string[], from: number, to: number, supplyIndent: string, m: MethodInfo, ctx?: SupplyReturnContext): boolean {
     const want = m.isArray ? undefined : m.javaReturnType;
-    if (want === undefined || ![ 'String', 'Long', 'Double', 'Boolean', 'Map<String, Object>' ].includes(want)) return false;
+    if (want === undefined || ![ 'String', 'Long', 'Double', 'Boolean', 'Map<String, Object>', 'List<Object>' ].includes(want)) return false;
     const body = lines.slice(from, to);
     const opened = body.findIndex(l => l.trim().endsWith('supplyAsync(() -> {'));
     if (opened === -1) return false;
@@ -333,7 +334,7 @@ export function supplyBodyReturnsType(lines: string[], from: number, to: number,
             declTypes.set(d[2], set);
         }
     }
-    const sameType = (t: string) => t === want || (want === 'Map<String, Object>' && t === 'HashMap<String, Object>');
+    const sameType = (t: string) => t === want || (want === 'Map<String, Object>' && t === 'HashMap<String, Object>') || (want === 'List<Object>' && t === 'ArrayList<Object>');
     let returns = 0;
     for (const raw of inner) {
         // a trailing `// comment` after the statement (no quote in it, so it is not inside a string)
@@ -370,6 +371,8 @@ function returnExprHasType(e: string, want: string, ctx?: SupplyReturnContext): 
     if (call !== undefined && TYPED_BASE_READERS[call] === want) return true;
     if (call !== undefined && TYPED_BASE_TWO_ARG_READERS[call] === want && topLevelArgCount(e) === 2) return true;
     if (want === 'Map<String, Object>' && /^new (?:java\.util\.)?HashMap<String, Object>\(\)(?: \{\{\}\})?$/.test(e)) return true;
+    // BaseExchange.java `List<Object> arraySlice(Object, Object[, Object])` (ral-87j7)
+    if (want === 'List<Object>' && call === 'arraySlice') return true;
     if (want === 'String') {
         const field = /^this\.(\w+)$/.exec(e);
         if (field !== null && TYPED_BASE_STRING_FIELDS.has(field[1])) return true;
