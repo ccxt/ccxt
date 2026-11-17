@@ -9480,6 +9480,13 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('84c2 c ? market[quote] : market[base] never a key keeps object',
             rowHost + ' f (marketId) { const market = this.safeMarket (marketId, undefined, undefined, \'contract\'); const code = (this.safeBool (market, \'linear\', false)) ? market[\'quote\'] : market[\'base\']; return { \'code\': code }; }',
             'object code = ');
+        // 87c2 R1: a literal-key element read whose first write is an unconditional push -> IList<object>
+        check ('87c2 literal-key read pushed in its block -> IList with a native Add',
+            'f (eventGroup: Dict, m) { const groupMarkets = eventGroup[\'markets\']; groupMarkets.push (m); eventGroup[\'markets\'] = groupMarkets; }',
+            'groupMarkets.Add(m);', 'object groupMarkets = ');
+        check ('87c2 literal-key read pushed only inside a branch keeps object',
+            'f (eventGroup: Dict, m) { const groupMarkets = eventGroup[\'markets\']; if (m) { groupMarkets.push (m); } return groupMarkets; }',
+            'object groupMarkets = ');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {

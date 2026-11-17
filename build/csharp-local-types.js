@@ -20383,3 +20383,96 @@ function passThroughHelperLocal84c7 (csharp, declaration, context) {
     }
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type } : undefined;
 }
+
+// ===== 87c2: conditional / element-read initialisers proven by their uses =====
+//
+// (R1) `const entryMarkets = eventEntry['markets']; entryMarkets.push (m); eventEntry['markets'] = entryMarkets;`
+// The ral-84c3 use-proven element rule (useProvenElementBox) takes computed keys only; a LITERAL
+// key read prints `getValue (x, "k")` or the printer's null-guard conditional
+// `(x != null && x.ContainsKey ("k") ? x["k"] : null)`, both `object`. When the local's first
+// write is an unconditional `.push (v)` statement of its own block, reached through nothing but
+// variable declarations (pure reads), the box is a list or the push throws: a non-list threw
+// InvalidCast at `((IList<object>)x).Add` before and throws it at the declaration cast now with
+// nothing observable run in between; null passes the cast and throws NullReference at the same
+// `.Add`. Every other use is a write-back `recv[k] = x`, a `.push (x)` into another list, a pure
+// safe* read (argument 0) or a null test. The declaration names `IList<object>` behind that cast;
+// the push prints `x.Add (v)` with no cast (csharpReceiverIsDeclaredList). Market-row names and
+// the test / example tiers keep `object`.
+function literalKeyPushedListLocal (csharp, declaration) {
+    const name = declaration?.name?.text;
+    if (name === undefined || declaration.name.kind !== ts.SyntaxKind.Identifier || DICT_ROW_VETO_NAMES.has (name)
+            || !isBlockScopedDeclaration (declaration) || declaration.parent.declarations.length !== 1) {
+        return undefined;
+    }
+    const init = stripParens (declaration.initializer);
+    if (init?.kind !== ts.SyntaxKind.ElementAccessExpression || init.expression?.kind !== ts.SyntaxKind.Identifier
+            || !ts.isStringLiteralLike (init.argumentExpression)) {
+        return undefined;
+    }
+    const fileName = (declaration.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const statement = declaration.parent.parent;
+    const block = statement?.parent;
+    if (statement?.kind !== ts.SyntaxKind.VariableStatement || block?.kind !== ts.SyntaxKind.Block) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const statementIndex = block.statements.indexOf (statement);
+    let firstPush = -1;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        if (enclosingFunction (use) !== enclosingFunction (declaration)) {
+            return undefined;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use && parent.name?.text === 'push'
+                && parent.parent?.kind === ts.SyntaxKind.CallExpression && parent.parent.expression === parent && parent.parent.arguments.length === 1) {
+            const top = parent.parent.parent;
+            const index = (top?.kind === ts.SyntaxKind.ExpressionStatement && top.parent === block) ? block.statements.indexOf (top) : -1;
+            if (index > statementIndex && (firstPush < 0 || index < firstPush)) {
+                firstPush = index;
+            }
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.right === use && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                && parent.left?.kind === ts.SyntaxKind.ElementAccessExpression) {
+            continue; // write-back
+        }
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments.length === 1 && parent.arguments[0] === use
+                && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression.name?.text === 'push') {
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && ROW_USE_PURE_READERS.has (parent.expression.name?.text)) {
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (parent.operatorToken.kind)) {
+            const other = (parent.left === use) ? parent.right : parent.left;
+            if ((other?.kind === ts.SyntaxKind.Identifier && other.text === 'undefined') || other?.kind === ts.SyntaxKind.NullKeyword) {
+                continue;
+            }
+        }
+        return undefined;
+    }
+    if (firstPush < 0) {
+        return undefined;
+    }
+    for (let k = statementIndex + 1; k < firstPush; k++) {
+        if (block.statements[k].kind !== ts.SyntaxKind.VariableStatement) {
+            return undefined;
+        }
+    }
+    return 'IList<object>';
+}
+const c87UpstreamUseProvenElementBox = useProvenElementBox;
+// eslint-disable-next-line no-func-assign
+useProvenElementBox = function (csharp, declaration) {
+    return c87UpstreamUseProvenElementBox (csharp, declaration) ?? literalKeyPushedListLocal (csharp, declaration);
+};
