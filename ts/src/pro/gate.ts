@@ -1971,7 +1971,8 @@ export default class gate extends gateRest {
             const symbol = symbols[i];
             client.resolve (liquidationsBySymbol[symbol], 'myLiquidations::' + symbol);
         }
-        if (newLiquidations.length > 0) {
+        const numNewLiquidations = newLiquidations.length;
+        if (numNewLiquidations > 0) {
             client.resolve (newLiquidations, 'myLiquidations');
         }
     }
