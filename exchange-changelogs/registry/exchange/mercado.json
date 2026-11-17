@@ -1,0 +1,15 @@
+{
+  "id": "mercado",
+  "kind": "exchange",
+  "name": "Mercado Bitcoin",
+  "domains": ["mercadobitcoin.net", "mercadobitcoin.com.br"],
+  "sources": [
+    {
+      "id": "mercado-v4-docs",
+      "type": "hash",
+      "url": "https://api.mercadobitcoin.net/api/v4/docs",
+      "scope": "v4 REST API reference (no changelog)",
+      "expectBlocked": "Cloudflare blocks datacenter IPs (403 'Attention Required' on the docs and on the API itself)"
+    }
+  ]
+}

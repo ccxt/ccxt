@@ -1,0 +1,29 @@
+{
+    "name": "ccxt-exchange-changelogs-collector",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Collects crypto exchange API changelogs into entries and feeds for docs.ccxt.com",
+    "type": "module",
+    "engines": {
+        "node": ">=22"
+    },
+    "scripts": {
+        "collect": "node --import tsx src/collect.ts",
+        "build-feed": "node --import tsx src/build-feed.ts",
+        "run": "node --import tsx src/run.ts",
+        "coverage": "node --import tsx src/coverage.ts",
+        "report": "node --import tsx src/report.ts",
+        "spec": "node --import tsx --test spec/*.spec.ts",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "cheerio": "^1.2.0",
+        "fast-xml-parser": "^5.12.0",
+        "tsx": "^4.23.15",
+        "yaml": "^2.9.1"
+    },
+    "devDependencies": {
+        "@types/node": "^22.20.5",
+        "typescript": "^7.0.2"
+    }
+}

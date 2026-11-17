@@ -1,0 +1,29 @@
+{
+  "id": "coinbase",
+  "kind": "exchange",
+  "name": "Coinbase Advanced",
+  "domains": ["coinbase.com"],
+  "sources": [
+    {
+      "id": "coinbase-app",
+      "type": "md",
+      "url": "https://docs.cdp.coinbase.com/coinbase-app/introduction/changelog.md",
+      "link": "https://docs.cdp.coinbase.com/coinbase-app/introduction/changelog",
+      "scope": "all (Advanced Trade REST + WebSocket, Coinbase App APIs)",
+      "split": { "heading": "^###\\s+20\\d\\d-[A-Za-z]{3}-\\d{1,2}\\b" },
+      "date": { "from": "title" },
+      "minEntries": 20
+    },
+    {
+      "id": "coinbase-derivatives",
+      "type": "md",
+      "url": "https://docs.cdp.coinbase.com/derivatives/changes/changelog.md",
+      "link": "https://docs.cdp.coinbase.com/derivatives/changes/changelog",
+      "role": "secondary",
+      "scope": "Coinbase Derivatives Exchange (institutional FIX/UDP)",
+      "split": { "heading": "^###\\s+20\\d\\d-[A-Za-z]{3}-\\d{1,2}\\b" },
+      "date": { "from": "title" },
+      "minEntries": 10
+    }
+  ]
+}

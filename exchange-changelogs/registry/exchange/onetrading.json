@@ -1,0 +1,58 @@
+{
+  "id": "onetrading",
+  "kind": "exchange",
+  "name": "One Trading",
+  "domains": ["onetrading.com"],
+  "sources": [
+    {
+      "id": "onetrading-llms",
+      "type": "hash",
+      "url": "https://docs.onetrading.com/llms.txt",
+      "link": "https://docs.onetrading.com/",
+      "scope": "docs index (pages and endpoint descriptions)"
+    },
+    {
+      "id": "onetrading-create-order",
+      "type": "hash",
+      "url": "https://docs.onetrading.com/rest/trading/create-order.md",
+      "link": "https://docs.onetrading.com/rest/trading/create-order",
+      "role": "secondary",
+      "scope": "REST create order"
+    },
+    {
+      "id": "onetrading-instruments",
+      "type": "hash",
+      "url": "https://docs.onetrading.com/rest/public/instruments.md",
+      "link": "https://docs.onetrading.com/rest/public/instruments",
+      "scope": "REST instruments"
+    },
+    {
+      "id": "onetrading-market-ticker",
+      "type": "hash",
+      "url": "https://docs.onetrading.com/rest/public/market-ticker.md",
+      "link": "https://docs.onetrading.com/rest/public/market-ticker",
+      "scope": "REST market ticker"
+    },
+    {
+      "id": "onetrading-get-order",
+      "type": "hash",
+      "url": "https://docs.onetrading.com/rest/trading/get-order-order-id.md",
+      "link": "https://docs.onetrading.com/rest/trading/get-order-order-id",
+      "scope": "REST get order"
+    },
+    {
+      "id": "onetrading-futures",
+      "type": "hash",
+      "url": "https://docs.onetrading.com/futures/summary.md",
+      "link": "https://docs.onetrading.com/futures/summary",
+      "scope": "futures summary"
+    },
+    {
+      "id": "onetrading-ws-subscribe",
+      "type": "hash",
+      "url": "https://docs.onetrading.com/websocket/subscribe.md",
+      "link": "https://docs.onetrading.com/websocket/subscribe",
+      "scope": "websocket subscribe (channels)"
+    }
+  ]
+}

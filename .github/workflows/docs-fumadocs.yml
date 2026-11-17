@@ -165,6 +165,48 @@ jobs:
           # grid cell, real content strings are there, no error boundary, and the homepage
           # hero renders.
           # Root build (no /v2): the app serves at /. nginx proxies `location / -> :3005`.
+          # Exchange API changelog page and feeds (exchange-changelogs/README.md, "Deploy"). Their data
+          # is read at runtime from the changelog-data branch, so an empty feed (branch not created
+          # yet, raw.githubusercontent.com down) or an unset revalidate secret is only a warning;
+          # a 5xx from the app fails the canary, except a page 5xx while the JSON route answers 503
+          # (no data anywhere: the page has nothing to render yet).
+          changelog_smoke() {
+            local base="http://127.0.0.1:$1" f code count feed
+            f=$(mktemp)
+            # the feed first: 503 means no changelog data anywhere (no changelog-data branch yet, no
+            # build-time snapshot), and then the page cannot render either; that is a warning, so the
+            # docs can deploy before the exchange-changelogs workflow has published
+            feed=$(curl -sS -o "$f" -w '%{http_code}' --max-time 60 "${base}/changelog-exchanges.json?limit=1") || feed=000
+            count=$(grep -oE '"count":[0-9]+' "$f" | head -1 | grep -oE '[0-9]+' || true)
+            case "$feed" in
+              200) if [ "${count:-0}" -gt 0 ]; then echo "smoke: changelog feed count=$count"; else echo "::warning title=Changelog smoke::/changelog-exchanges.json has no entries (changelog-data branch missing or empty?)"; fi ;;
+              503) echo "::warning title=Changelog smoke::/changelog-exchanges.json HTTP 503 (no changelog feed yet: does the changelog-data branch exist?)" ;;
+              5??) echo "smoke: /changelog-exchanges.json HTTP $feed"; rm -f "$f"; return 1 ;;
+              *) echo "::warning title=Changelog smoke::/changelog-exchanges.json HTTP $feed" ;;
+            esac
+            code=$(curl -sS -o "$f" -w '%{http_code}' --max-time 60 "${base}/docs/changelog-exchanges") || code=000
+            case "$code" in
+              5??)
+                if [ "$feed" = 503 ]; then
+                  echo "::warning title=Changelog smoke::/docs/changelog-exchanges HTTP $code while the feed has no data (503): expected until the changelog-data branch exists"
+                else
+                  echo "smoke: /docs/changelog-exchanges HTTP $code (feed HTTP $feed)"; rm -f "$f"; return 1
+                fi ;;
+              200) if grep -q 'Venues monitored</dt><dd[^>]*>0<' "$f"; then echo "::warning title=Changelog smoke::/docs/changelog-exchanges renders 0 venues (no changelog data)"; fi ;;
+              *) echo "::warning title=Changelog smoke::/docs/changelog-exchanges HTTP $code" ;;
+            esac
+            rm -f "$f"
+            # a wrong secret must be refused: 401 = secret configured, 404 = CHANGELOG_REVALIDATE_SECRET unset
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 25 -X POST -H 'x-revalidate-secret: smoke-wrong-secret' "${base}/api/revalidate/changelog") || code=000
+            case "$code" in
+              401) echo "smoke: changelog revalidate rejects a wrong secret (401)" ;;
+              404) echo "::warning title=Changelog smoke::CHANGELOG_REVALIDATE_SECRET is not set in /root/ccxt-docs.env: the daily changelog job cannot refresh the page (it updates hourly instead)" ;;
+              5??) echo "smoke: /api/revalidate/changelog HTTP $code"; return 1 ;;
+              *) echo "::warning title=Changelog smoke::/api/revalidate/changelog answered HTTP $code to a wrong secret (expected 401)" ;;
+            esac
+            return 0
+          }
+
           smoke() {
             local port="$1" html n hdr og
             for i in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${port}/docs/install" 2>/dev/null && break; sleep 2; done
@@ -180,6 +222,7 @@ jobs:
             for og in og/home.png og/docs/exchanges/binance/image.png; do
               hdr=$(curl -fsS --max-time 25 -D - -o /dev/null "http://127.0.0.1:${port}/${og}") && echo "$hdr" | grep -qi '^content-length:' || { echo "smoke: /${og} missing or has no Content-Length"; return 1; }
             done
+            changelog_smoke "$port" || return 1
             echo "smoke: OK (grid-area:main x$n)"
           }
 

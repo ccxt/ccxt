@@ -1,0 +1,136 @@
+{
+  "id": "cryptomus",
+  "kind": "exchange",
+  "name": "Cryptomus",
+  "domains": ["cryptomus.com"],
+  "sources": [
+    {
+      "id": "cryptomus-get-current-market-price",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/get-current-market-price",
+      "scope": "spot: current market price",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-list-of-available-trading-pairs",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs",
+      "scope": "spot: trading pairs",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-market-order-creation",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/market-order-creation",
+      "scope": "spot: market order creation",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-limit-order-creation",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/limit-order-creation",
+      "scope": "spot: limit order creation",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-limit-order-cancellation",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/limit-order-cancellation",
+      "scope": "spot: limit order cancellation",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-list-of-active-orders",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/list-of-active-orders",
+      "scope": "spot: active orders",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-history-of-completed-orders",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/history-of-completed-orders",
+      "scope": "spot: order history",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-wallet-balances",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/wallet-balances",
+      "scope": "spot: wallet balances",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-tariffs",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/tariffs",
+      "scope": "spot: trading fees (tariffs)",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-websockets",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/exchange/websockets",
+      "scope": "spot: websocket streams",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-mc-assets",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/market-cap/assets",
+      "scope": "market data: assets",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-mc-tickers",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/market-cap/tickers",
+      "scope": "market data: tickers",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-mc-orderbook",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/market-cap/orderbook",
+      "scope": "market data: order book",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-mc-trades",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/market-cap/trades",
+      "scope": "market data: trades",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-convert-balance",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/converts/balance",
+      "scope": "convert: balance",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    },
+    {
+      "id": "cryptomus-request-format",
+      "type": "hash",
+      "url": "https://doc.cryptomus.com/methods/request-format",
+      "scope": "request format and signing",
+      "slice": { "selector": "article" },
+      "strip": ["dl:has(dt button)", ".react-syntax-highlighter-line-number"]
+    }
+  ]
+}

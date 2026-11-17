@@ -1,0 +1,68 @@
+{
+  "id": "zaif",
+  "kind": "exchange",
+  "name": "Zaif",
+  "domains": ["zaif.jp", "zaif-api-document.readthedocs.io", "github.com"],
+  "sources": [
+    {
+      "id": "zaif-public-api",
+      "type": "hash",
+      "url": "https://zaif-api-document.readthedocs.io/ja/latest/_sources/PublicAPI.md.txt",
+      "link": "https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html",
+      "scope": "public API reference"
+    },
+    {
+      "id": "zaif-trading-api",
+      "type": "hash",
+      "url": "https://zaif-api-document.readthedocs.io/ja/latest/_sources/TradingAPI.md.txt",
+      "link": "https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html",
+      "scope": "trading API reference"
+    },
+    {
+      "id": "zaif-payment-api",
+      "type": "hash",
+      "url": "https://zaif-api-document.readthedocs.io/ja/latest/_sources/PaymentAPI.md.txt",
+      "link": "https://zaif-api-document.readthedocs.io/ja/latest/PaymentAPI.html",
+      "scope": "payment (ecapi) API reference"
+    },
+    {
+      "id": "zaif-websocket-api",
+      "type": "hash",
+      "url": "https://zaif-api-document.readthedocs.io/ja/latest/_sources/WebSocket_API.md.txt",
+      "link": "https://zaif-api-document.readthedocs.io/ja/latest/WebSocket_API.html",
+      "scope": "websocket API reference"
+    },
+    {
+      "id": "zaif-oauth-api",
+      "type": "hash",
+      "url": "https://zaif-api-document.readthedocs.io/ja/latest/_sources/OAuthAPI.md.txt",
+      "link": "https://zaif-api-document.readthedocs.io/ja/latest/OAuthAPI.html",
+      "scope": "OAuth API reference"
+    },
+    {
+      "id": "zaif-others",
+      "type": "hash",
+      "url": "https://zaif-api-document.readthedocs.io/ja/latest/_sources/Others.md.txt",
+      "link": "https://zaif-api-document.readthedocs.io/ja/latest/Others.html",
+      "scope": "general rules (limits, error codes, nonce)"
+    },
+    {
+      "id": "zaif-news",
+      "type": "rss",
+      "url": "https://corp.zaif.jp/info/rss.xml",
+      "link": "https://corp.zaif.jp/info",
+      "role": "secondary",
+      "scope": "company news, API-related items only (Japanese)",
+      "titleFilter": "API|仕様変更|撤去|廃止",
+      "minEntries": 0
+    },
+    {
+      "id": "zaif-docs-commits",
+      "type": "gh-commits",
+      "repo": "zaifdotjp/api-doc",
+      "ref": "master",
+      "role": "secondary",
+      "scope": "API docs repository commits (Japanese, ZAIF ticket ids)"
+    }
+  ]
+}

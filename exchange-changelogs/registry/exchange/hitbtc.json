@@ -1,0 +1,19 @@
+{
+  "id": "hitbtc",
+  "kind": "exchange",
+  "name": "HitBTC",
+  "subclasses": ["bequant", "fmfwio"],
+  "domains": ["hitbtc.com"],
+  "sources": [
+    {
+      "id": "hitbtc-changelog",
+      "type": "html",
+      "url": "https://api.hitbtc.com/",
+      "scope": "all (API v3 REST + websocket)",
+      "slice": { "selector": ".content" },
+      "split": { "heading": "#changelog ~ h2[id*='-20']" },
+      "date": { "from": "anchor", "pattern": "^(\\d{2}-\\d{2}-\\d{4})$", "order": "dmy" },
+      "minEntries": 20
+    }
+  ]
+}

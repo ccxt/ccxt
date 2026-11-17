@@ -1,0 +1,28 @@
+{
+  "id": "okx",
+  "kind": "exchange",
+  "name": "OKX",
+  "subclasses": ["myokx", "okxus"],
+  "domains": ["okx.com"],
+  "sources": [
+    {
+      "id": "okx-log",
+      "type": "html",
+      "url": "https://www.okx.com/docs-v5/log_en/",
+      "scope": "all v5 (REST, websocket, SBE; includes upcoming changes)",
+      "slice": { "selector": ".content" },
+      "split": { "heading": "h1:not(:has(+ h2)), h2" },
+      "minEntries": 100
+    },
+    {
+      "id": "okx-help-api",
+      "type": "html",
+      "url": "https://www.okx.com/help/section/announcements-api",
+      "role": "secondary",
+      "scope": "help-center API announcements (served as en-us to US IPs, so some items are OKX US only)",
+      "split": { "item": "ul[aria-label^=\"Articles\"] > li" },
+      "date": { "from": "body" },
+      "strip": ["[class*=\"compactText\"]"]
+    }
+  ]
+}

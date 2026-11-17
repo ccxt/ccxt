@@ -1,0 +1,51 @@
+{
+  "id": "bullish",
+  "kind": "exchange",
+  "name": "Bullish",
+  "domains": ["bullish.com"],
+  "sources": [
+    {
+      "id": "bullish-rest",
+      "type": "json",
+      "url": "https://docs.exchange.bullish.com/rest/changelog",
+      "scope": "REST (also FIX notes)",
+      "mapper": "bullish",
+      "minEntries": 10
+    },
+    {
+      "id": "bullish-ws",
+      "type": "json",
+      "url": "https://docs.exchange.bullish.com/websocket/ws-api-change-log",
+      "scope": "websocket",
+      "mapper": "bullish"
+    },
+    {
+      "id": "bullish-deprecated",
+      "type": "hash",
+      "url": "https://docs.exchange.bullish.com/rest/deprecated/bullish-deprecated-features-apis",
+      "scope": "deprecated features and APIs",
+      "strip": ["a.hash-link"],
+      "slice": { "selector": "article .theme-doc-markdown" }
+    },
+    {
+      "id": "bullish-trading-openapi",
+      "type": "spec",
+      "url": "https://docs.exchange.bullish.com/assets/files/bullish-trading-api-488a7b097459516ea90cac17c63ef08a.yml",
+      "link": "https://docs.exchange.bullish.com/api-specifications",
+      "discover": { "url": "https://docs.exchange.bullish.com/api-specifications", "pattern": "href=\"(/assets/files/bullish-trading-api-[0-9a-f]+\\.yml)\"" },
+      "specFormat": "openapi",
+      "role": "secondary",
+      "scope": "REST (OpenAPI)"
+    },
+    {
+      "id": "bullish-ws-private-asyncapi",
+      "type": "spec",
+      "url": "https://docs.exchange.bullish.com/assets/files/ws-private-data-a71f55e1cd4b1639fdeded5c521fb143.yml",
+      "link": "https://docs.exchange.bullish.com/api-specifications",
+      "discover": { "url": "https://docs.exchange.bullish.com/api-specifications", "pattern": "href=\"(/assets/files/ws-private-data-[0-9a-f]+\\.yml)\"" },
+      "specFormat": "asyncapi",
+      "role": "secondary",
+      "scope": "private websocket (AsyncAPI)"
+    }
+  ]
+}

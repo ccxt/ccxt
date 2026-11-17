@@ -1,0 +1,81 @@
+{
+  "id": "indodax",
+  "kind": "exchange",
+  "name": "Indodax",
+  "domains": ["indodax.com", "github.com"],
+  "sources": [
+    {
+      "id": "indodax-public-rest",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/Public-RestAPI.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md",
+      "scope": "public REST API"
+    },
+    {
+      "id": "indodax-private-rest",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/Private-RestAPI.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md",
+      "scope": "private REST API (trade API v1)"
+    },
+    {
+      "id": "indodax-tradeapi-v2-public",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/INDODAX-TradeAPI-2-Public.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2-Public.md",
+      "scope": "Trade API 2.0, public endpoints (replaced INDODAX-TradeAPI-2.md in Nov 2026)"
+    },
+    {
+      "id": "indodax-tradeapi-v2-private",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/INDODAX-TradeAPI-2-Private.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/INDODAX-TradeAPI-2-Private.md",
+      "scope": "Trade API 2.0, private endpoints and the legacy /tapi migration notes (replaced INDODAX-TradeAPI-2.md in Nov 2026)"
+    },
+    {
+      "id": "indodax-stp",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/Self-Trade%20Prevention-TradeAPI.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/Self-Trade%20Prevention-TradeAPI.md",
+      "scope": "self-trade prevention"
+    },
+    {
+      "id": "indodax-marketdata-ws",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/Marketdata-websocket.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/Marketdata-websocket.md",
+      "scope": "market data websocket"
+    },
+    {
+      "id": "indodax-private-ws",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/Private-websocket.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/Private-websocket.md",
+      "scope": "private websocket"
+    },
+    {
+      "id": "indodax-deadman",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/Deadman-switch.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs/blob/master/Deadman-switch.md",
+      "scope": "deadman switch"
+    },
+    {
+      "id": "indodax-docs-index",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/btcid/indodax-official-api-docs/master/README.md",
+      "link": "https://github.com/btcid/indodax-official-api-docs",
+      "role": "secondary",
+      "scope": "docs index (new or removed documents, versions)",
+      "minChange": 10
+    },
+    {
+      "id": "indodax-docs-commits",
+      "type": "gh-commits",
+      "repo": "btcid/indodax-official-api-docs",
+      "ref": "master",
+      "role": "secondary",
+      "scope": "API docs repository commits"
+    }
+  ]
+}

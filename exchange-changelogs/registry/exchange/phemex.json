@@ -1,0 +1,73 @@
+{
+  "id": "phemex",
+  "kind": "exchange",
+  "name": "Phemex",
+  "domains": ["phemex.com", "phemex-docs.github.io", "github.com"],
+  "sources": [
+    {
+      "id": "phemex-docs-generic",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/phemex-docs/phemex-docs.github.io/main/source/includes/_generic.md",
+      "link": "https://phemex-docs.github.io/#overview",
+      "scope": "overview (endpoints, signing, rate limits, error codes)"
+    },
+    {
+      "id": "phemex-docs-contract",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/phemex-docs/phemex-docs.github.io/main/source/includes/_contract.md",
+      "link": "https://phemex-docs.github.io/#coin-m-perpetual-rest-api",
+      "scope": "COIN-M and USDⓈ-M perpetual REST and websocket"
+    },
+    {
+      "id": "phemex-docs-spot",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/phemex-docs/phemex-docs.github.io/main/source/includes/_spot.md",
+      "link": "https://phemex-docs.github.io/#spot-rest-api",
+      "scope": "spot and margin REST and websocket"
+    },
+    {
+      "id": "phemex-docs-uta",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/phemex-docs/phemex-docs.github.io/main/source/includes/_uta.md",
+      "link": "https://phemex-docs.github.io/#unified-trading-account-rest-api",
+      "scope": "unified trading account REST"
+    },
+    {
+      "id": "phemex-docs-transfer",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/phemex-docs/phemex-docs.github.io/main/source/includes/_transfer.md",
+      "link": "https://phemex-docs.github.io/#transfer-rest-api",
+      "scope": "transfer and convert REST"
+    },
+    {
+      "id": "phemex-docs-transferv2",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/phemex-docs/phemex-docs.github.io/main/source/includes/_transferV2.md",
+      "link": "https://phemex-docs.github.io/#new-transfer-rest-api-universal-transfer-rest-api",
+      "scope": "universal transfer REST"
+    },
+    {
+      "id": "phemex-docs-withdraw",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/phemex-docs/phemex-docs.github.io/main/source/includes/_withdraw.md",
+      "link": "https://phemex-docs.github.io/#deposit-and-withdraw-rest-api",
+      "scope": "deposit and withdraw REST"
+    },
+    {
+      "id": "phemex-docs-copytrade",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/phemex-docs/phemex-docs.github.io/main/source/includes/_copytrade.md",
+      "link": "https://phemex-docs.github.io/#copy-trade-rest-api",
+      "scope": "copy trade REST"
+    },
+    {
+      "id": "phemex-docs-commits",
+      "type": "gh-commits",
+      "repo": "phemex-docs/phemex-docs.github.io",
+      "ref": "main",
+      "path": "source",
+      "role": "secondary",
+      "scope": "API docs repository commits"
+    }
+  ]
+}

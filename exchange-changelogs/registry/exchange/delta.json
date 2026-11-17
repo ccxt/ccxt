@@ -1,0 +1,17 @@
+{
+  "id": "delta",
+  "kind": "exchange",
+  "name": "Delta Exchange",
+  "domains": ["delta.exchange"],
+  "sources": [
+    {
+      "id": "delta-changelog",
+      "type": "json",
+      "url": "https://docs.delta.exchange/",
+      "link": "https://docs.delta.exchange/#changelog",
+      "scope": "all (REST v2 + WebSocket)",
+      "mapper": "delta",
+      "minEntries": 10
+    }
+  ]
+}

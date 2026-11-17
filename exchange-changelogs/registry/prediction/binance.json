@@ -1,0 +1,28 @@
+{
+  "id": "binance",
+  "kind": "prediction",
+  "name": "Binance Prediction",
+  "domains": ["binance.com", "github.com"],
+  "sources": [
+    {
+      "id": "binance-prediction",
+      "type": "html",
+      "url": "https://developers.binance.com/legacy-docs/w3w_prediction/change-log",
+      "scope": "prediction trading (REST, WebSocket)",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "strip": [".hash-link"],
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" }
+    },
+    {
+      "id": "binance-prediction-sdk-py",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/binance/binance-connector-python/master/clients/w3w_prediction/CHANGELOG.md",
+      "link": "https://github.com/binance/binance-connector-python/blob/master/clients/w3w_prediction/CHANGELOG.md",
+      "role": "secondary",
+      "scope": "prediction SDK (Python)",
+      "split": { "heading": "^##\\s+\\d+\\.\\d+\\.\\d+" },
+      "date": { "from": "title", "pattern": "(\\d{4}-\\d{2}-\\d{2})" }
+    }
+  ]
+}

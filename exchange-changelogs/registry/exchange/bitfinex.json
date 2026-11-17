@@ -1,0 +1,33 @@
+{
+  "id": "bitfinex",
+  "kind": "exchange",
+  "name": "Bitfinex",
+  "domains": ["docs.bitfinex.com"],
+  "sources": [
+    {
+      "id": "bitfinex-changelog",
+      "type": "md",
+      "url": "https://docs.bitfinex.com/docs/changelog.md",
+      "link": "https://docs.bitfinex.com/docs/changelog",
+      "scope": "all (REST v2, websocket v2; rarely updated)",
+      "split": { "heading": "^#\\s+v\\d{4}-\\d{2}-\\d{2}" },
+      "date": { "from": "title", "pattern": "^v(\\d{4}-\\d{2}-\\d{2})" },
+      "minEntries": 5
+    },
+    {
+      "id": "bitfinex-docs-index",
+      "type": "hash",
+      "url": "https://docs.bitfinex.com/llms.txt",
+      "link": "https://docs.bitfinex.com/reference",
+      "scope": "API reference index (new, removed or renamed endpoints)"
+    },
+    {
+      "id": "bitfinex-limits",
+      "type": "hash",
+      "url": "https://docs.bitfinex.com/docs/requirements-and-limitations.md",
+      "link": "https://docs.bitfinex.com/docs/requirements-and-limitations",
+      "role": "secondary",
+      "scope": "requirements and rate limits"
+    }
+  ]
+}

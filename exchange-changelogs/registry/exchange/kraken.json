@@ -1,0 +1,19 @@
+{
+  "id": "kraken",
+  "kind": "exchange",
+  "name": "Kraken",
+  "domains": ["kraken.com"],
+  "sources": [
+    {
+      "id": "kraken-changelog",
+      "type": "md",
+      "url": "https://docs.kraken.com/exchange/changelog.md",
+      "link": "https://docs.kraken.com/exchange/changelog",
+      "scope": "all (Spot REST, Spot WS v1/v2, FIX, Derivatives, Affiliate)",
+      "sharedWith": ["krakenfutures"],
+      "split": { "heading": "^###\\s+\\d{1,2}\\s+[A-Za-z]+\\s+20\\d\\d\\b" },
+      "date": { "from": "title" },
+      "minEntries": 20
+    }
+  ]
+}

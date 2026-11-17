@@ -1,0 +1,18 @@
+{
+  "id": "woofipro",
+  "kind": "exchange",
+  "name": "WOOFi Pro",
+  "domains": ["orderly.network", "woo.org"],
+  "sources": [
+    {
+      "id": "woofipro-omnichain",
+      "type": "md",
+      "url": "https://orderly.network/docs/release-notes/omnichain.md",
+      "link": "https://orderly.network/docs/release-notes/omnichain",
+      "scope": "Orderly omnichain API (REST, websocket)",
+      "sharedWith": ["modetrade"],
+      "split": { "heading": "^##\\s+" },
+      "date": { "from": "title" }
+    }
+  ]
+}

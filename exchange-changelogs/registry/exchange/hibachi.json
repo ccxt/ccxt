@@ -1,0 +1,24 @@
+{
+  "id": "hibachi",
+  "kind": "exchange",
+  "name": "Hibachi",
+  "domains": ["hibachi.xyz"],
+  "sources": [
+    {
+      "id": "hibachi-postman",
+      "type": "spec",
+      "url": "https://api-doc.hibachi.xyz/api/collections/38930884/2sAXxQfD4P?environment=38930884-e5245e24-69ae-4eb4-bb10-aaa4447be197&segregateAuth=true&versionTag=latest",
+      "link": "https://api-doc.hibachi.xyz/",
+      "scope": "REST API surface (Postman collection behind the API docs; no changelog exists)",
+      "specFormat": "postman"
+    },
+    {
+      "id": "hibachi-limits",
+      "type": "hash",
+      "url": "https://docs.hibachi.xyz/hibachi-docs/trading/limits.md",
+      "link": "https://docs.hibachi.xyz/hibachi-docs/trading/limits",
+      "role": "secondary",
+      "scope": "order size, transfer and rate limits"
+    }
+  ]
+}

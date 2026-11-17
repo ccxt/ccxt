@@ -1,0 +1,22 @@
+{
+  "id": "coinspot",
+  "kind": "exchange",
+  "name": "CoinSpot",
+  "domains": ["coinspot.com.au"],
+  "sources": [
+    {
+      "id": "coinspot-api-v2",
+      "type": "hash",
+      "url": "https://www.coinspot.com.au/v2/api",
+      "scope": "API V2 reference (public, private and read-only REST)",
+      "slice": { "selector": ".page-content-body .col-md-9" }
+    },
+    {
+      "id": "coinspot-api-v1",
+      "type": "hash",
+      "url": "https://www.coinspot.com.au/api",
+      "scope": "legacy API V1 reference (the version ccxt calls)",
+      "slice": { "selector": ".page-content-body .col-md-9" }
+    }
+  ]
+}

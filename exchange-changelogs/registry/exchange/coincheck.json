@@ -1,0 +1,23 @@
+{
+  "id": "coincheck",
+  "kind": "exchange",
+  "name": "Coincheck",
+  "domains": ["coincheck.com"],
+  "sources": [
+    {
+      "id": "coincheck-api",
+      "type": "hash",
+      "url": "https://coincheck.com/documents/exchange/api",
+      "scope": "API docs (REST + WebSocket)",
+      "slice": { "selector": "div.content" }
+    },
+    {
+      "id": "coincheck-api-ja",
+      "type": "hash",
+      "url": "https://coincheck.com/ja/documents/exchange/api",
+      "role": "secondary",
+      "scope": "API docs, Japanese edition",
+      "slice": { "selector": "div.content" }
+    }
+  ]
+}

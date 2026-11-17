@@ -1,0 +1,17 @@
+{
+  "id": "polymarket",
+  "kind": "prediction",
+  "name": "Polymarket",
+  "domains": ["polymarket.com"],
+  "sources": [
+    {
+      "id": "polymarket-predictions",
+      "type": "rss",
+      "url": "https://docs.polymarket.com/changelog/predictions/rss.xml",
+      "link": "https://docs.polymarket.com/changelog/predictions",
+      "scope": "prediction markets (CLOB, Gamma, Data API, WebSocket)",
+      "date": { "from": "title" },
+      "minEntries": 5
+    }
+  ]
+}

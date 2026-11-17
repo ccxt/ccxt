@@ -1,0 +1,15 @@
+{
+  "id": "alpaca",
+  "kind": "exchange",
+  "name": "Alpaca",
+  "domains": ["alpaca.markets"],
+  "sources": [
+    {
+      "id": "alpaca-changelog",
+      "type": "rss",
+      "url": "https://docs.alpaca.markets/us/changelog.rss",
+      "link": "https://docs.alpaca.markets/us/changelog",
+      "scope": "all (Trading, Market Data incl. crypto, Broker; the feed keeps the latest 10 posts)"
+    }
+  ]
+}

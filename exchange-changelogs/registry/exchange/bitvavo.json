@@ -1,0 +1,15 @@
+{
+  "id": "bitvavo",
+  "kind": "exchange",
+  "name": "Bitvavo",
+  "domains": ["bitvavo.com"],
+  "sources": [
+    {
+      "id": "bitvavo-releases",
+      "type": "rss",
+      "url": "https://docs.bitvavo.com/releases/rss.xml",
+      "link": "https://docs.bitvavo.com/releases/",
+      "scope": "all (Exchange REST + WebSocket, Market Data Pro WebSocket, FIX, Institutional)"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "bingx",
+  "kind": "exchange",
+  "name": "BingX",
+  "domains": ["bingx.com", "bingx-api.github.io"],
+  "sources": [
+    {
+      "id": "bingx-changelog",
+      "type": "json",
+      "url": "https://bingx-api.github.io/docs-v3/static/js/app.9149f5bb7dc21a77fc01.js",
+      "discover": {
+        "url": "https://bingx-api.github.io/docs-v3/",
+        "pattern": "src=[\"']?(\\./static/js/app\\.[0-9a-f]+\\.js)"
+      },
+      "link": "https://bingx-api.github.io/docs-v3/#/en/changes/logs",
+      "scope": "all (spot, USDT-M and coin-M perpetuals, copy trading, sub-accounts)",
+      "mapper": "bingx",
+      "minEntries": 20
+    }
+  ]
+}

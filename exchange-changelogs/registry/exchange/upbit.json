@@ -1,0 +1,26 @@
+{
+  "id": "upbit",
+  "kind": "exchange",
+  "name": "Upbit",
+  "domains": ["upbit.com"],
+  "sources": [
+    {
+      "id": "upbit-kr",
+      "type": "rss",
+      "url": "https://docs.upbit.com/kr/changelog.rss",
+      "link": "https://docs.upbit.com/kr/changelog",
+      "scope": "all (Upbit Korea, api.upbit.com; Korean)",
+      "excludeFilter": "서버\\s*점검|server\\s+maintenance",
+      "minEntries": 3
+    },
+    {
+      "id": "upbit-global",
+      "type": "rss",
+      "url": "https://global-docs.upbit.com/changelog.rss",
+      "link": "https://global-docs.upbit.com/changelog",
+      "scope": "all (Upbit Global: SG, ID, TH)",
+      "excludeFilter": "server\\s+maintenance|서버\\s*점검",
+      "minEntries": 3
+    }
+  ]
+}

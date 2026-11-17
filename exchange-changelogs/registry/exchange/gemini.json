@@ -1,0 +1,25 @@
+{
+  "id": "gemini",
+  "kind": "exchange",
+  "name": "Gemini",
+  "domains": ["gemini.com"],
+  "sources": [
+    {
+      "id": "gemini-revisions",
+      "type": "md",
+      "url": "https://developer.gemini.com/changelog/revision-history.md",
+      "link": "https://developer.gemini.com/changelog/revision-history",
+      "scope": "all (REST, WebSocket, FIX, prediction markets)",
+      "split": { "heading": "^###\\s+\\[?20\\d\\d-\\d{2}-\\d{2}" },
+      "date": { "from": "title" },
+      "minEntries": 100
+    },
+    {
+      "id": "gemini-upcoming",
+      "type": "hash",
+      "url": "https://developer.gemini.com/changelog/upcoming-changes.md",
+      "link": "https://developer.gemini.com/changelog/upcoming-changes",
+      "scope": "scheduled changes"
+    }
+  ]
+}

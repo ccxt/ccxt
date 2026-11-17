@@ -1,0 +1,34 @@
+{
+  "id": "bittrade",
+  "kind": "exchange",
+  "name": "BitTrade",
+  "domains": ["bittrade.co.jp", "github.com"],
+  "sources": [
+    {
+      "id": "bittrade-api-docs",
+      "type": "hash",
+      "url": "https://api-doc.bittrade.co.jp/",
+      "scope": "API reference (REST, websocket public and private; no changelog exists)",
+      "slice": { "selector": ".content" }
+    },
+    {
+      "id": "bittrade-help-api",
+      "type": "json",
+      "url": "https://support.bittrade.co.jp/api/v2/help_center/articles/search.json?query=API&locale=ja&per_page=100",
+      "link": "https://support.bittrade.co.jp/hc/ja",
+      "role": "secondary",
+      "scope": "help-center API announcements (Japanese)",
+      "mapper": "bittrade",
+      "titleFilter": "API|仕様変更|廃止",
+      "excludeFilter": "ありますか|方法$|キャンペーン|[%％]\\s*OFF"
+    },
+    {
+      "id": "bittrade-docs-commits",
+      "type": "gh-commits",
+      "repo": "BitTrade-Inc/BitTrade-api-docs",
+      "ref": "main",
+      "role": "secondary",
+      "scope": "API docs repository commits (markdown mirror of the reference)"
+    }
+  ]
+}

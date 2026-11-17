@@ -1,0 +1,19 @@
+{
+  "id": "sxbet",
+  "kind": "prediction",
+  "name": "SX Bet",
+  "domains": ["sx.bet"],
+  "sources": [
+    {
+      "id": "sxbet-changelog",
+      "type": "html",
+      "url": "https://docs.sx.bet/changelog",
+      "scope": "all (REST, WebSocket, platform)",
+      "slice": { "selector": "#content" },
+      "strip": ["[data-component-part=\"update-tag-list\"]"],
+      "split": { "item": ".update-container" },
+      "date": { "from": "anchor" },
+      "minEntries": 10
+    }
+  ]
+}

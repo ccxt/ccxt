@@ -1,0 +1,57 @@
+{
+  "id": "opinion",
+  "kind": "prediction",
+  "name": "Opinion",
+  "domains": ["opinion.trade"],
+  "sources": [
+    {
+      "id": "opinion-openapi",
+      "type": "spec",
+      "url": "https://openapi.gitbook.com/o/1aihsQicBABePu5ByDnd/spec/opinion-openapi-v7.yaml",
+      "link": "https://docs.opinion.trade/developer-guide/opinion-open-api/overview",
+      "discover": {
+        "url": "https://docs.opinion.trade/developer-guide/opinion-open-api/market",
+        "pattern": "(https://openapi\\.gitbook\\.com/o/[A-Za-z0-9]+/spec/[A-Za-z0-9._-]+\\.ya?ml)"
+      },
+      "scope": "Open API REST (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "opinion-ws-market",
+      "type": "hash",
+      "url": "https://docs.opinion.trade/developer-guide/opinion-websocket/market-channels.md",
+      "link": "https://docs.opinion.trade/developer-guide/opinion-websocket/market-channels",
+      "scope": "WebSocket market channels"
+    },
+    {
+      "id": "opinion-ws-user",
+      "type": "hash",
+      "url": "https://docs.opinion.trade/developer-guide/opinion-websocket/user-channels.md",
+      "link": "https://docs.opinion.trade/developer-guide/opinion-websocket/user-channels",
+      "scope": "WebSocket user channels"
+    },
+    {
+      "id": "opinion-ws-overview",
+      "type": "hash",
+      "url": "https://docs.opinion.trade/developer-guide/opinion-websocket/overview.md",
+      "link": "https://docs.opinion.trade/developer-guide/opinion-websocket/overview",
+      "scope": "WebSocket overview (connection, auth, heartbeat)"
+    },
+    {
+      "id": "opinion-docs-index",
+      "type": "hash",
+      "url": "https://docs.opinion.trade/llms.txt",
+      "link": "https://docs.opinion.trade/",
+      "role": "secondary",
+      "scope": "docs index (new or removed pages)",
+      "minChange": 10
+    },
+    {
+      "id": "opinion-clob-sdk-methods",
+      "type": "hash",
+      "url": "https://docs.opinion.trade/developer-guide/opinion-clob-python-sdk/api-references/methods.md",
+      "link": "https://docs.opinion.trade/developer-guide/opinion-clob-python-sdk/api-references/methods",
+      "scope": "CLOB SDK methods (place/cancel order, balances)"
+    }
+  ]
+}

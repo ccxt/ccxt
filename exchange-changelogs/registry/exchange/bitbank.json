@@ -1,0 +1,18 @@
+{
+  "id": "bitbank",
+  "kind": "exchange",
+  "name": "bitbank",
+  "domains": ["github.com", "bitbank.cc"],
+  "sources": [
+    {
+      "id": "bitbank-changelog",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/bitbankinc/bitbank-api-docs/master/CHANGELOG.md",
+      "link": "https://github.com/bitbankinc/bitbank-api-docs/blob/master/CHANGELOG.md",
+      "scope": "all (public/private REST, public/private stream, errors)",
+      "split": { "heading": "^##\\s+\\d{4}-\\d{2}-\\d{2}" },
+      "date": { "from": "title" },
+      "minEntries": 10
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "toobit",
+  "kind": "exchange",
+  "name": "Toobit",
+  "domains": ["toobit.com"],
+  "sources": [
+    {
+      "id": "toobit-changelog",
+      "type": "html",
+      "url": "https://api-docs.toobit.com/api/changelog.html",
+      "scope": "all (spot, USDT-M futures, copy trading, wallet)",
+      "slice": { "selector": ".vp-doc" },
+      "split": { "heading": "h2[id^='_20']" },
+      "date": { "from": "anchor", "pattern": "^_(\\d{4}-\\d{2}-\\d{2})$" },
+      "minEntries": 5
+    }
+  ]
+}

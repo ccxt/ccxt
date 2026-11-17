@@ -1,0 +1,36 @@
+{
+  "id": "digifinex",
+  "kind": "exchange",
+  "name": "DigiFinex",
+  "domains": ["digifinex.com"],
+  "sources": [
+    {
+      "id": "digifinex-spot-rest",
+      "type": "hash",
+      "url": "https://docs.digifinex.com/en-ww/spot/v3/rest.html",
+      "scope": "spot REST v3",
+      "slice": { "selector": ".content" }
+    },
+    {
+      "id": "digifinex-spot-ws",
+      "type": "hash",
+      "url": "https://docs.digifinex.com/en-ww/spot/v1/websocket.html",
+      "scope": "spot WebSocket v1",
+      "slice": { "selector": ".content" }
+    },
+    {
+      "id": "digifinex-swap-rest",
+      "type": "hash",
+      "url": "https://docs.digifinex.com/en-ww/swap/v2/rest.html",
+      "scope": "swap REST v2",
+      "slice": { "selector": ".content" }
+    },
+    {
+      "id": "digifinex-swap-ws",
+      "type": "hash",
+      "url": "https://docs.digifinex.com/en-ww/swap/v2/websocket.html",
+      "scope": "swap WebSocket v2",
+      "slice": { "selector": ".content" }
+    }
+  ]
+}

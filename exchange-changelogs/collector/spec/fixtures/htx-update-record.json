@@ -1,0 +1,41 @@
+{
+ "code": 200,
+ "message": "success",
+ "data": {
+  "total": 3,
+  "list": [
+   {
+    "interface_id": "7ec4f25c-7773-11ed-9966-0242ac110003",
+    "interface_path": "/v1/settings/common/chains",
+    "biz_type_code": 1,
+    "biz_type": "Spot",
+    "update_type_code": 1,
+    "update_type": "Add",
+    "update_summary": "Added new response parameters: isc (stock chain flag), tkn (on-chain token name), isrn (issuer name)",
+    "update_time": "2026-11-06"
+   },
+   {
+    "interface_id": "8cb89359-77b5-11ed-9966-1a19c8f236c",
+    "interface_path": "/api/v6/tradingBot/grid/order",
+    "biz_type_code": 5597,
+    "biz_type": "通用",
+    "update_type_code": 1,
+    "update_type": "Add",
+    "update_summary": "New feature launched: \"Create Futures Grid Bot\"",
+    "update_time": "2026-11-02"
+   },
+   {
+    "interface_id": "8cb89359-77b5-11ed-9966-195a6c94551",
+    "interface_path": "account",
+    "biz_type_code": 5531,
+    "biz_type": "通用",
+    "update_type_code": 1,
+    "update_type": "Add",
+    "update_summary": "Added a new push parameter `isolated_available`：Available assets for this currency in the isolated margin account.",
+    "update_time": "2026-10-13"
+   }
+  ],
+  "pageNum": 1,
+  "pageSize": 3
+ }
+}

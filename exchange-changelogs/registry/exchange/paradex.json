@@ -1,0 +1,33 @@
+{
+  "id": "paradex",
+  "kind": "exchange",
+  "name": "Paradex",
+  "domains": ["paradex.trade"],
+  "sources": [
+    {
+      "id": "paradex-changelog",
+      "type": "rss",
+      "url": "https://docs.paradex.trade/releases/changelog.rss",
+      "link": "https://docs.paradex.trade/releases/changelog",
+      "scope": "API sections of the daily release notes (UI-only days are left out)",
+      "section": "^API$",
+      "minEntries": 20
+    },
+    {
+      "id": "paradex-rest-openapi",
+      "type": "spec",
+      "url": "https://api.prod.paradex.trade/swagger/doc.json",
+      "link": "https://docs.paradex.trade/api/general-information",
+      "role": "secondary",
+      "scope": "REST API (Swagger, prod)"
+    },
+    {
+      "id": "paradex-ws-asyncapi",
+      "type": "spec",
+      "url": "https://docs.paradex.trade/asyncapi.json",
+      "link": "https://docs.paradex.trade/ws/general-information/introduction",
+      "role": "secondary",
+      "scope": "websocket channels (AsyncAPI)"
+    }
+  ]
+}

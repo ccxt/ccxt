@@ -1,0 +1,298 @@
+name: Exchange changelogs
+
+# Daily collection of exchange API changelogs (exchange-changelogs/collector).
+# Data is committed to the orphan branch "changelog-data" (never to master), then
+# docs.ccxt.com/docs/changelog-exchanges is revalidated.
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+    inputs:
+      venue:
+        description: 'Comma-separated venue ids to collect (empty = all)'
+        required: false
+        default: ''
+      dry_run:
+        description: 'Collect and build the feed, but do not push data or revalidate the docs'
+        type: boolean
+        default: false
+      allow_shrink:
+        description: 'Publish even if entry lines or state files drop by more than 10% (e.g. after removing sources)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: exchange-changelogs
+  cancel-in-progress: false
+
+jobs:
+  # Runs npm and the collector on fetched web content, so it only gets a read-only token. The data
+  # it produces leaves this job as an artifact; nothing here can push.
+  collect:
+    if: github.repository == 'ccxt/ccxt'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      # the changelog-data commit this run built on (empty when it started an orphan branch);
+      # publish refuses to push unless the branch head is still this commit
+      base: ${{ steps.data.outputs.base }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      # ls-remote --exit-code: 0 = branch exists, 2 = no such branch (first run: start an orphan
+      # branch), anything else (network, auth) fails the job: starting over from an empty tree would
+      # re-run every source as a first run and replace the history
+      - name: Check out the changelog-data branch into exchange-changelogs/data
+        id: data
+        run: |
+          rc=0
+          git ls-remote --exit-code --heads origin changelog-data > /dev/null || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            git fetch --no-tags --depth 1 origin +refs/heads/changelog-data:refs/remotes/origin/changelog-data
+            git worktree add -B changelog-data exchange-changelogs/data origin/changelog-data
+          elif [ "$rc" -eq 2 ]; then
+            echo '::notice title=Changelog data::no changelog-data branch yet, starting an orphan branch'
+            git worktree add --orphan -b changelog-data exchange-changelogs/data
+          else
+            echo "::error title=Changelog data::git ls-remote failed (exit $rc); not starting from an empty history"
+            exit 1
+          fi
+          echo "base=$(git -C exchange-changelogs/data rev-parse -q --verify HEAD || true)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: exchange-changelogs/collector/package-lock.json
+
+      - name: Install collector
+        working-directory: exchange-changelogs/collector
+        run: npm ci
+
+      # every ccxt id (exchanges.json) needs a registry file, a subclasses entry or "unmonitored";
+      # a gap fails this step (shown as a warning annotation) but collection still runs
+      - name: Check registry coverage
+        continue-on-error: true
+        working-directory: exchange-changelogs/collector
+        run: npm run coverage -- --exchanges ../../exchanges.json
+
+      - name: Collect and build feed
+        working-directory: exchange-changelogs/collector
+        env:
+          VENUE: ${{ inputs.venue }}
+          # read-only job token: gh-commits sources call api.github.com with it (higher rate limit than anonymous)
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "$VENUE" ]; then
+            npm run run -- --venue "$VENUE"
+          else
+            npm run run
+          fi
+
+      - name: Upload data
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-data
+          path: |
+            exchange-changelogs/data
+            !exchange-changelogs/data/.git
+          if-no-files-found: error
+          retention-days: 3
+
+  # Holds the write token. Runs no npm and no repository code: it starts from an empty git repo,
+  # so no hook or script from the collect job can reach the token.
+  publish:
+    needs: collect
+    if: ${{ github.repository == 'ccxt/ccxt' && !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the changelog-data branch
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          git init -q data
+          cd data
+          git remote add origin "https://github.com/$REPO.git"
+          # same rule as in collect: only exit 2 (no such branch) starts an orphan branch
+          rc=0
+          git ls-remote --exit-code --heads origin changelog-data > /dev/null || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            git fetch -q --no-tags --depth 1 origin +refs/heads/changelog-data:refs/remotes/origin/changelog-data
+            git checkout -q -B changelog-data origin/changelog-data
+          elif [ "$rc" -eq 2 ]; then
+            git checkout -q --orphan changelog-data
+          else
+            echo "::error title=Changelog data::git ls-remote failed (exit $rc)"
+            exit 1
+          fi
+          # the artifact is the complete new tree
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+
+      # The artifact replaces the whole tree, so it must have been built on the commit that is the
+      # branch head now. A different head means collect started from an orphan tree while the branch
+      # existed (firstSeen dates, revisions and backfill flags would be lost even though the counts
+      # below barely move), or someone pushed between the two jobs. allow_shrink overrides it.
+      - name: Refuse to publish over a different base
+        working-directory: data
+        env:
+          BASE: ${{ needs.collect.outputs.base }}
+          ALLOW_SHRINK: ${{ inputs.allow_shrink }}
+        run: |
+          head="$(git rev-parse -q --verify HEAD || true)"
+          if [ "$head" = "$BASE" ]; then
+            echo "base ${BASE:-(none, first run)} is the branch head"
+            exit 0
+          fi
+          msg="collect built on ${BASE:-an empty orphan tree}, but changelog-data is at ${head:-nothing}"
+          if [ "$ALLOW_SHRINK" = 'true' ]; then
+            echo "::warning title=Changelog data base changed::$msg (allowed by allow_shrink)"
+            exit 0
+          fi
+          echo "::error title=Changelog data base changed::$msg: not pushing. Re-run the workflow (or use allow_shrink if this is intended)."
+          printf '## Changelog data not published\n\n%s. Re-run the workflow, or use `allow_shrink` if this is intended.\n' "$msg" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+      - name: Download data
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog-data
+          path: data
+
+      # Compares the artifact with the branch head: more than 10% fewer entry lines
+      # (entries/**/*.jsonl) or state/sources/*.json files means a run started from an empty or
+      # partial tree, and pushing it would replace the history. allow_shrink overrides it; the first
+      # run (no branch yet) has nothing to compare.
+      - name: Refuse to publish a shrunken history
+        working-directory: data
+        env:
+          ALLOW_SHRINK: ${{ inputs.allow_shrink }}
+        run: |
+          git add -A
+          if ! git rev-parse -q --verify HEAD > /dev/null; then
+            echo 'first run (no changelog-data branch yet): nothing to compare'
+            exit 0
+          fi
+          # non-empty lines of entries/**/*.jsonl in HEAD or the index; git grep exits 1 when nothing matches
+          count_lines() {
+            local out rc=0
+            out="$(git grep -h -c -e . "$1" -- 'entries/*.jsonl')" || rc=$?
+            [ "$rc" -le 1 ] || return "$rc"
+            printf '%s\n' "$out" | awk '{ s += $1 } END { print s + 0 }'
+          }
+          count_states() {
+            grep -c '^state/sources/[^/]*\.json$' || true
+          }
+          old_lines="$(count_lines HEAD)"
+          new_lines="$(count_lines --cached)"
+          old_states="$(git ls-tree -r --name-only HEAD -- state/sources/ | count_states)"
+          new_states="$(git ls-files -- state/sources/ | count_states)"
+          echo "entry lines: $old_lines -> $new_lines; state/sources files: $old_states -> $new_states"
+          shrunk=''
+          if [ $((new_lines * 10)) -lt $((old_lines * 9)) ]; then
+            shrunk="entry lines $old_lines -> $new_lines"
+          fi
+          if [ $((new_states * 10)) -lt $((old_states * 9)) ]; then
+            shrunk="${shrunk:+$shrunk, }state files $old_states -> $new_states"
+          fi
+          if [ -z "$shrunk" ]; then
+            exit 0
+          fi
+          if [ "$ALLOW_SHRINK" = 'true' ]; then
+            echo "::warning title=Changelog data shrank::$shrunk (allowed by allow_shrink)"
+            exit 0
+          fi
+          echo "::error title=Changelog data shrank::$shrunk, more than 10%: not pushing. Re-run with allow_shrink if this is intended."
+          printf '## Changelog data not published\n\n%s (more than 10%%). Re-run the workflow with `allow_shrink` if this is intended.\n' "$shrunk" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+      - name: Commit and push data
+        working-directory: data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'no data changes'
+            exit 0
+          fi
+          git -c core.hooksPath=/dev/null commit -q -m "[Automated changes] changelog data $(date -u +%Y-%m-%d)"
+          auth="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)"
+          git -c core.hooksPath=/dev/null -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/changelog-data
+
+      # DOCS_REVALIDATE_SECRET (GitHub) must equal CHANGELOG_REVALIDATE_SECRET on the docs server
+      # (exchange-changelogs/README.md, "Deploy"). Without it the page still refreshes within an hour
+      # (ISR), so problems are warnings, not failures.
+      - name: Revalidate docs.ccxt.com
+        continue-on-error: true
+        env:
+          REVALIDATE_SECRET: ${{ secrets.DOCS_REVALIDATE_SECRET }}
+        run: |
+          if [ -z "$REVALIDATE_SECRET" ]; then
+            echo '::warning title=Changelog revalidation::DOCS_REVALIDATE_SECRET is not set: docs.ccxt.com picks up the new data within an hour instead'
+            exit 0
+          fi
+          # the docs read the branch through raw.githubusercontent.com, which caches it for ~300 s:
+          # revalidating right after the push would cache the previous latest.json for an hour
+          sleep 330
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST --max-time 30 -H "x-revalidate-secret: $REVALIDATE_SECRET" https://docs.ccxt.com/api/revalidate/changelog)" || code=000
+          case "$code" in
+            2??) echo "revalidated (HTTP $code)" ;;
+            401) echo '::warning title=Changelog revalidation::HTTP 401: DOCS_REVALIDATE_SECRET does not match CHANGELOG_REVALIDATE_SECRET on the docs server' ;;
+            404) echo '::warning title=Changelog revalidation::HTTP 404: CHANGELOG_REVALIDATE_SECRET is not set on the docs server (or the route is not deployed)' ;;
+            *) echo "::warning title=Changelog revalidation::HTTP $code from /api/revalidate/changelog" ;;
+          esac
+          # revalidateTag is stale-while-revalidate: one request triggers the regeneration
+          curl -fsS -o /dev/null --max-time 60 https://docs.ccxt.com/docs/changelog-exchanges
+
+  # Reads feed/health.json from the artifact and fails the run when a source not marked expectBlocked
+  # failed 3 runs in a row, so GitHub emails the workflow owner. Runs after publish (or after a failed
+  # collect, which it reports as missing health data), not on a cancelled run; read-only token.
+  report:
+    needs: [collect, publish]
+    if: ${{ !cancelled() && github.repository == 'ccxt/ccxt' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: exchange-changelogs/collector
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: exchange-changelogs/collector/package-lock.json
+
+      - name: Install collector
+        working-directory: exchange-changelogs/collector
+        run: npm ci
+
+      - name: Download data
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog-data
+          path: ${{ runner.temp }}/changelog-data
+
+      - name: Source health
+        working-directory: exchange-changelogs/collector
+        env:
+          DATA: ${{ runner.temp }}/changelog-data
+        run: npm run report -- --data "$DATA" --fail-after 3

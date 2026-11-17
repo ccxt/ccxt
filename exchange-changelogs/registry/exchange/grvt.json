@@ -1,0 +1,52 @@
+{
+  "id": "grvt",
+  "kind": "exchange",
+  "name": "GRVT",
+  "domains": ["grvt.io", "github.com"],
+  "sources": [
+    {
+      "id": "grvt-trading-api",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/gravity-technologies/api-spec/main/artifacts/apidocs/trading_api.md",
+      "link": "https://github.com/gravity-technologies/api-spec/blob/main/artifacts/apidocs/trading_api.md",
+      "scope": "trading REST API"
+    },
+    {
+      "id": "grvt-market-data-api",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/gravity-technologies/api-spec/main/artifacts/apidocs/market_data_api.md",
+      "link": "https://github.com/gravity-technologies/api-spec/blob/main/artifacts/apidocs/market_data_api.md",
+      "scope": "market data REST API"
+    },
+    {
+      "id": "grvt-trading-streams",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/gravity-technologies/api-spec/main/artifacts/apidocs/trading_streams.md",
+      "link": "https://github.com/gravity-technologies/api-spec/blob/main/artifacts/apidocs/trading_streams.md",
+      "scope": "trading websocket streams"
+    },
+    {
+      "id": "grvt-market-data-streams",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/gravity-technologies/api-spec/main/artifacts/apidocs/market_data_streams.md",
+      "link": "https://github.com/gravity-technologies/api-spec/blob/main/artifacts/apidocs/market_data_streams.md",
+      "scope": "market data websocket streams"
+    },
+    {
+      "id": "grvt-api-spec-commits",
+      "type": "gh-commits",
+      "repo": "gravity-technologies/api-spec",
+      "ref": "main",
+      "path": "artifacts",
+      "role": "secondary",
+      "scope": "API spec repository commits (docs, schemas, Postman and SDK artifacts)"
+    },
+    {
+      "id": "grvt-raw-types",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/gravity-technologies/api-spec/main/artifacts/pysdk/grvt_raw_types.py",
+      "link": "https://github.com/gravity-technologies/api-spec/blob/main/artifacts/pysdk/grvt_raw_types.py",
+      "scope": "request/response types and enums (generated Python SDK types)"
+    }
+  ]
+}

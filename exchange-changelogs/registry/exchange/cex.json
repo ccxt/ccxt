@@ -1,0 +1,19 @@
+{
+  "id": "cex",
+  "kind": "exchange",
+  "name": "CEX.IO",
+  "domains": ["cex.io"],
+  "sources": [
+    {
+      "id": "cex-latest-changes",
+      "type": "html",
+      "url": "https://trade.cex.io/docs/",
+      "link": "https://trade.cex.io/docs/#latest-changes",
+      "scope": "REST + WebSocket (latest changes, effective dates)",
+      "slice": { "selector": "div.content" },
+      "split": { "heading": "p > code:only-child" },
+      "titleFilter": "^20\\d\\d-\\d{2}-\\d{2}$",
+      "date": { "from": "title" }
+    }
+  ]
+}

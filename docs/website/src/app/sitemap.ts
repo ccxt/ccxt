@@ -62,6 +62,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   }
 
+  // Exchange API changelogs: a live-feed page outside the fumadocs source (English only).
+  entries.push({ url: `${base}/docs/changelog-exchanges`, changeFrequency: 'daily' });
+
   // The blog is NOT listed here: its canonical home is ccxt.com/blog, and a sitemap on
   // docs.ccxt.com may only list ccxt.com URLs if ccxt.com/robots.txt vouches for it.
   // Blog URLs live in /blog-sitemap.xml instead, which the ccxt.com Worker serves on

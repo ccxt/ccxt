@@ -1,0 +1,17 @@
+{
+  "id": "whitebit",
+  "kind": "exchange",
+  "name": "WhiteBIT",
+  "domains": ["whitebit.com"],
+  "sources": [
+    {
+      "id": "whitebit-changelog",
+      "type": "rss",
+      "url": "https://docs.whitebit.com/changelog/rss.xml",
+      "link": "https://docs.whitebit.com/changelog",
+      "scope": "all (spot, collateral/futures, websocket, webhooks, main account)",
+      "date": { "from": "title" },
+      "minEntries": 5
+    }
+  ]
+}

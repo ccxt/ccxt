@@ -1,0 +1,45 @@
+{
+  "id": "lighter",
+  "kind": "exchange",
+  "name": "Lighter",
+  "domains": ["lighter.xyz", "pypi.org"],
+  "sources": [
+    {
+      "id": "lighter-openapi",
+      "type": "spec",
+      "url": "https://openapi.gitbook.com/o/UL2QKgoUbvRiSpqVpgNb/spec/lighter-api.json",
+      "link": "https://docs.lighter.xyz/api",
+      "scope": "REST (OpenAPI behind docs.lighter.xyz/api)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "lighter-websocket",
+      "type": "hash",
+      "url": "https://docs.lighter.xyz/api/websocket.md",
+      "link": "https://docs.lighter.xyz/api/websocket",
+      "scope": "websocket reference"
+    },
+    {
+      "id": "lighter-rate-limits",
+      "type": "hash",
+      "url": "https://docs.lighter.xyz/developers/reference/rate-limits.md",
+      "link": "https://docs.lighter.xyz/developers/reference/rate-limits",
+      "scope": "rate limits"
+    },
+    {
+      "id": "lighter-errors",
+      "type": "hash",
+      "url": "https://docs.lighter.xyz/developers/reference/data-structures-constants-and-errors.md",
+      "link": "https://docs.lighter.xyz/developers/reference/data-structures-constants-and-errors",
+      "scope": "constants and error codes"
+    },
+    {
+      "id": "lighter-pypi-sdk",
+      "type": "rss",
+      "url": "https://pypi.org/rss/project/lighter-sdk/releases.xml",
+      "link": "https://pypi.org/project/lighter-sdk/#history",
+      "role": "secondary",
+      "scope": "official Python SDK releases"
+    }
+  ]
+}

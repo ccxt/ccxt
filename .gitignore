@@ -107,3 +107,6 @@ rust/tests.bin
 rust/BUILD_OPTIMIZATION.md
 PR_RESPONSE.md
 
+# exchange-changelogs collector (data lives on the changelog-data branch)
+exchange-changelogs/data/
+exchange-changelogs/collector/node_modules/

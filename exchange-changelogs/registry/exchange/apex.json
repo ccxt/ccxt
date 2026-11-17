@@ -1,0 +1,34 @@
+{
+  "id": "apex",
+  "kind": "exchange",
+  "name": "ApeX Omni",
+  "domains": ["apex.exchange", "pypi.org", "github.com"],
+  "sources": [
+    {
+      "id": "apex-docs",
+      "type": "hash",
+      "url": "https://api-docs.omni.apex.exchange/",
+      "scope": "Omni API docs (REST, public/private websocket; no changelog is kept)",
+      "slice": { "selector": ".content" }
+    },
+    {
+      "id": "apex-pypi-apexomni",
+      "type": "rss",
+      "url": "https://pypi.org/rss/project/apexomni/releases.xml",
+      "link": "https://pypi.org/project/apexomni/#history",
+      "role": "secondary",
+      "scope": "official Python SDK (apexomni) releases"
+    },
+    {
+      "id": "apex-sdk-changelog",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/ApeX-Protocol/apexpro-openapi/main/CHANGELOG.md",
+      "link": "https://github.com/ApeX-Protocol/apexpro-openapi/blob/main/CHANGELOG.md",
+      "role": "secondary",
+      "scope": "official Python SDK changelog",
+      "split": { "heading": "^##\\s+\\[" },
+      "date": { "from": "title" },
+      "minEntries": 1
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "polymarket",
+  "kind": "exchange",
+  "name": "Polymarket Perps",
+  "domains": ["polymarket.com"],
+  "sources": [
+    {
+      "id": "polymarket-perps",
+      "type": "rss",
+      "url": "https://docs.polymarket.com/changelog/perps/rss.xml",
+      "link": "https://docs.polymarket.com/changelog/perps",
+      "scope": "perps (REST, WebSocket, platform)",
+      "date": { "from": "title" },
+      "minEntries": 5
+    }
+  ]
+}

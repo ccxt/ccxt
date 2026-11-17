@@ -1,0 +1,46 @@
+{
+  "id": "coinsph",
+  "kind": "exchange",
+  "name": "Coins.ph",
+  "domains": ["coins.ph"],
+  "sources": [
+    {
+      "id": "coinsph-rest",
+      "type": "html",
+      "url": "https://docs.coins.ph/rest-api/",
+      "scope": "REST (spot, convert, transfer, wallet)",
+      "slice": { "selector": "#main-content" },
+      "split": { "item": "#main-content > p" },
+      "titleFilter": "^\\d{4}-\\d{2}-\\d{2}:",
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" },
+      "minEntries": 20
+    },
+    {
+      "id": "coinsph-ws-streams",
+      "type": "html",
+      "url": "https://docs.coins.ph/web-socket-streams/",
+      "scope": "websocket market streams",
+      "slice": { "selector": "#main-content" },
+      "split": { "item": "#main-content > p" },
+      "titleFilter": "^\\d{4}-\\d{2}-\\d{2}:",
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" }
+    },
+    {
+      "id": "coinsph-user-stream",
+      "type": "html",
+      "url": "https://docs.coins.ph/user-data-stream/",
+      "scope": "websocket user data stream",
+      "slice": { "selector": "#main-content" },
+      "split": { "item": "#main-content > p" },
+      "titleFilter": "^\\d{4}-\\d{2}-\\d{2}:",
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" }
+    },
+    {
+      "id": "coinsph-errors",
+      "type": "hash",
+      "url": "https://docs.coins.ph/errors/",
+      "scope": "error codes",
+      "slice": { "selector": "#main-content" }
+    }
+  ]
+}

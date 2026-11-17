@@ -1,0 +1,62 @@
+{
+  "id": "xt",
+  "kind": "exchange",
+  "name": "XT.COM",
+  "domains": ["xt.com", "github.com"],
+  "sources": [
+    {
+      "id": "xt-futures-user-openapi",
+      "type": "spec",
+      "url": "https://raw.githubusercontent.com/XtApis/api/main/api-docs/en/user/biz-user.yml",
+      "link": "https://github.com/XtApis/api/blob/main/api-docs/en/user/biz-user.yml",
+      "scope": "futures account and order REST (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "xt-futures-market-openapi",
+      "type": "spec",
+      "url": "https://raw.githubusercontent.com/XtApis/api/main/api-docs/en/contract/biz-quotation.yml",
+      "link": "https://github.com/XtApis/api/blob/main/api-docs/en/contract/biz-quotation.yml",
+      "scope": "futures market data REST (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "xt-futures-changelog",
+      "type": "html",
+      "url": "https://doc.xt.com/docs/futures/Access%20Description/websocketV2Changelog",
+      "scope": "futures (websocket V2 and new REST endpoints; rarely updated)",
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "split": { "heading": "h2, h3[id*='20']" },
+      "minEntries": 3
+    },
+    {
+      "id": "xt-spot-order-docs",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/XtApis/api/main/docs/spot/Order/orderPost.mdx",
+      "link": "https://doc.xt.com/docs/spot/Order/SubmitOrder",
+      "scope": "spot submit order (POST /v4/order) reference"
+    },
+    {
+      "id": "xt-spot-symbol-docs",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/XtApis/api/main/docs/spot/Market/symbol.mdx",
+      "link": "https://doc.xt.com/docs/spot/Market/GetSymbolInformation",
+      "scope": "spot symbol information (GET /v4/public/symbol) reference"
+    },
+    {
+      "id": "xt-spot-error-codes",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/XtApis/api/main/docs/spot/Access%20Description/errorCode.mdx",
+      "link": "https://doc.xt.com/docs/spot/Access%20Description/ResponseCode",
+      "scope": "spot error codes"
+    },
+    {
+      "id": "xt-docs-commits",
+      "type": "gh-commits",
+      "repo": "XtApis/api",
+      "ref": "main",
+      "role": "secondary",
+      "scope": "docs repository commits (spot, futures, broker, user-center docs and OpenAPI specs)"
+    }
+  ]
+}

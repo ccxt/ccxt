@@ -1,0 +1,32 @@
+{
+  "id": "predictfun",
+  "kind": "prediction",
+  "name": "Predict.fun",
+  "domains": ["predict.fun"],
+  "sources": [
+    {
+      "id": "predictfun-rest-openapi",
+      "type": "spec",
+      "url": "https://dev.predict.fun/openapi/rest.json",
+      "link": "https://dev.predict.fun/api",
+      "scope": "REST API (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "predictfun-websocket",
+      "type": "hash",
+      "url": "https://dev.predict.fun/websocket.md",
+      "link": "https://dev.predict.fun/websocket",
+      "scope": "WebSocket API overview (connection, messages, topics)"
+    },
+    {
+      "id": "predictfun-docs-index",
+      "type": "hash",
+      "url": "https://dev.predict.fun/llms.txt",
+      "link": "https://dev.predict.fun/",
+      "role": "secondary",
+      "scope": "developer docs index (new or removed pages, endpoints and WebSocket topics)",
+      "minChange": 10
+    }
+  ]
+}

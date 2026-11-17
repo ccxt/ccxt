@@ -1,0 +1,35 @@
+{
+  "id": "btcbox",
+  "kind": "exchange",
+  "name": "BtcBox",
+  "domains": ["btcbox.jp", "btcbox.co.jp"],
+  "sources": [
+    {
+      "id": "btcbox-api-ja",
+      "type": "hash",
+      "url": "https://blog.btcbox.jp/archives/8759",
+      "scope": "REST API reference (Japanese post, current version; no changelog)",
+      "slice": { "selector": "article .entry-content" },
+      "strip": [".blogcard"]
+    },
+    {
+      "id": "btcbox-api-en",
+      "type": "hash",
+      "url": "https://blog.btcbox.jp/en/archives/8762",
+      "role": "secondary",
+      "scope": "REST API reference (English post, lags the Japanese one)",
+      "slice": { "selector": "article .entry-content" },
+      "strip": [".blogcard"]
+    },
+    {
+      "id": "btcbox-notices",
+      "type": "rss",
+      "url": "https://blog.btcbox.jp/feed",
+      "link": "https://blog.btcbox.jp/",
+      "role": "secondary",
+      "scope": "Japanese notices filtered to API, spec changes and full service suspensions",
+      "titleFilter": "API|仕様|全サービス",
+      "minEntries": 0
+    }
+  ]
+}

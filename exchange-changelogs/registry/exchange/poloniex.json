@@ -1,0 +1,28 @@
+{
+  "id": "poloniex",
+  "kind": "exchange",
+  "name": "Poloniex",
+  "domains": ["poloniex.com"],
+  "sources": [
+    {
+      "id": "poloniex-spot-changelog",
+      "type": "html",
+      "url": "https://api-docs.poloniex.com/changelog/spot",
+      "scope": "spot (REST + websocket)",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "heading": "h3" },
+      "excludeFilter": "^[A-Z0-9,]+ currency markets\\W*$",
+      "minEntries": 15
+    },
+    {
+      "id": "poloniex-futures-changelog",
+      "type": "html",
+      "url": "https://api-docs.poloniex.com/changelog/futures",
+      "scope": "futures v3 (REST + websocket)",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "date": { "from": "title" },
+      "minEntries": 8
+    }
+  ]
+}

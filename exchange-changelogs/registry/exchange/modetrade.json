@@ -1,0 +1,7 @@
+{
+  "id": "modetrade",
+  "kind": "exchange",
+  "name": "Mode Trade",
+  "domains": ["orderly.network", "mode.network"],
+  "sources": []
+}

@@ -1,0 +1,33 @@
+{
+  "id": "hashkey",
+  "kind": "exchange",
+  "name": "HashKey Global",
+  "domains": ["hashkey.com", "hashkeyglobal-apidoc.readme.io"],
+  "sources": [
+    {
+      "id": "hashkey-announcements",
+      "type": "html",
+      "url": "https://docs.hashkey.com/glb/en/",
+      "scope": "all (Announcement section of the current docs)",
+      "slice": { "selector": ".content" },
+      "split": { "heading": "#announcement ~ h3:not(#announcement ~ h1 ~ *)" }
+    },
+    {
+      "id": "hashkey-docs",
+      "type": "hash",
+      "url": "https://docs.hashkey.com/glb/en/",
+      "role": "secondary",
+      "scope": "all (whole docs page; no changelog is kept)",
+      "slice": { "selector": ".content" }
+    },
+    {
+      "id": "hashkey-readme",
+      "type": "html",
+      "url": "https://hashkeyglobal-apidoc.readme.io/reference/change-log",
+      "role": "secondary",
+      "scope": "legacy readme.io changelog (stale since 2024-10-08)",
+      "slice": { "selector": ".rm-Markdown" },
+      "split": { "heading": "h2" }
+    }
+  ]
+}

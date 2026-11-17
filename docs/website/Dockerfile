@@ -18,10 +18,13 @@ ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 ENV NEXT_PUBLIC_SITE_URL=https://docs.ccxt.com \
     NEXT_PUBLIC_AI_ENABLED=true \
     NODE_OPTIONS=--max-old-space-size=4096
-# Drop the copy of public/ that output tracing puts into the standalone bundle (a dynamic
+# `npm run build` first runs the prebuild step (scripts/fetch-changelog-snapshot.mjs): it bakes the
+# exchange-changelogs feed into src/data/changelog-snapshot/ as the page's last-good fallback, and
+# never fails the build (the dir is created empty when the download failed, so the COPY below works).
+# Then drop the copy of public/ that output tracing puts into the standalone bundle (a dynamic
 # readFile path makes Turbopack trace the whole project). The runner stage copies public/
 # on its own below, so keeping both would ship every pre-rendered OG card (public/og) twice.
-RUN npm run build && rm -rf .next/standalone/public
+RUN npm run build && rm -rf .next/standalone/public && mkdir -p src/data/changelog-snapshot
 
 FROM node:24-slim AS runner
 WORKDIR /app
@@ -37,5 +40,7 @@ COPY --from=builder /app/.next/static ./.next/static
 # public/ holds the CCXT logo assets used by the homepage hero, plus the OG cards that
 # `npm run build` renders into public/og (served as static files, with Content-Length)
 COPY --from=builder /app/public ./public
+# build-time changelog snapshot, read with fs at runtime (not traced into standalone)
+COPY --from=builder /app/src/data/changelog-snapshot ./src/data/changelog-snapshot
 EXPOSE 3005
 CMD ["node", "server.js"]

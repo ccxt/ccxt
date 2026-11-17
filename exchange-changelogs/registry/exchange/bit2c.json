@@ -1,0 +1,16 @@
+{
+  "id": "bit2c",
+  "kind": "exchange",
+  "name": "Bit2C",
+  "domains": ["bit2c.co.il"],
+  "sources": [
+    {
+      "id": "bit2c-api",
+      "type": "hash",
+      "url": "https://bit2c.co.il/home/api",
+      "scope": "REST API reference (Hebrew/English page, no changelog)",
+      "slice": { "selector": "main" },
+      "strip": ["#trade-message-error", "#inline-message"]
+    }
+  ]
+}

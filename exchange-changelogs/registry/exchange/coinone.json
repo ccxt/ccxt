@@ -1,0 +1,16 @@
+{
+  "id": "coinone",
+  "kind": "exchange",
+  "name": "Coinone",
+  "domains": ["coinone.co.kr"],
+  "sources": [
+    {
+      "id": "coinone-changelog",
+      "type": "rss",
+      "url": "https://docs.coinone.co.kr/changelog.rss",
+      "link": "https://docs.coinone.co.kr/changelog",
+      "scope": "all (public/private REST + websocket; posts in Korean, feed keeps the 10 latest)",
+      "expectBlocked": "Cloudflare on docs.coinone.co.kr answers 403 to the collector's User-Agent (the same URL returned 200 to the survey's fetches)"
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "id": "zebpay",
+  "kind": "exchange",
+  "name": "ZebPay",
+  "domains": ["zebpay.com", "github.com"],
+  "sources": [
+    {
+      "id": "zebpay-futures-changelog",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/CHANGELOG.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/CHANGELOG.md",
+      "scope": "futures public market REST API and sample clients",
+      "split": { "heading": "^#\\s+" },
+      "date": { "from": "body", "pattern": "\\*\\*Date:\\*\\*\\s*([^\\n*]+)" }
+    },
+    {
+      "id": "zebpay-futures-changelog-file",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/CHANGELOG.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/CHANGELOG.md",
+      "role": "secondary",
+      "scope": "futures changelog file (in-place edits)"
+    },
+    {
+      "id": "zebpay-spot-public",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/spot/api-reference/public-endpoints.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md",
+      "scope": "spot public REST endpoints"
+    },
+    {
+      "id": "zebpay-spot-private",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/spot/api-reference/private-endpoints.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md",
+      "scope": "spot private REST endpoints"
+    },
+    {
+      "id": "zebpay-futures-market",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/api-reference/public-endpoints/market.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md",
+      "scope": "futures public market REST endpoints"
+    },
+    {
+      "id": "zebpay-futures-exchange",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/api-reference/public-endpoints/exchange.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md",
+      "scope": "futures public exchange-info REST endpoints"
+    },
+    {
+      "id": "zebpay-futures-trade",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/api-reference/private-endpoints/trade.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md",
+      "scope": "futures private trade REST endpoints"
+    },
+    {
+      "id": "zebpay-futures-wallet",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/api-reference/private-endpoints/wallet.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md",
+      "scope": "futures private wallet REST endpoints"
+    },
+    {
+      "id": "zebpay-futures-ws-events",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/api-reference/websocket/events.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/websocket/events.md",
+      "scope": "futures private websocket events"
+    },
+    {
+      "id": "zebpay-futures-data-models",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/api-reference/data-models.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/data-models.md",
+      "scope": "futures data models (response payloads)"
+    },
+    {
+      "id": "zebpay-futures-errors",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/api-reference/error-handling.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/error-handling.md",
+      "scope": "futures error handling and codes"
+    },
+    {
+      "id": "zebpay-futures-auth",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/futures/api-reference/authentication.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/authentication.md",
+      "scope": "futures authentication"
+    },
+    {
+      "id": "zebpay-spot-data-models",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/zebpay/zebpay-api-references/main/spot/api-reference/data-models.md",
+      "link": "https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/data-models.md",
+      "scope": "spot data models (response payloads)"
+    },
+    {
+      "id": "zebpay-docs-commits",
+      "type": "gh-commits",
+      "repo": "zebpay/zebpay-api-references",
+      "ref": "main",
+      "role": "secondary",
+      "scope": "API docs repository commits (spot and futures)"
+    }
+  ]
+}

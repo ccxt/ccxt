@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf8" /><title>Example API</title></head>
+<body>
+<div id="redoc"><div class="sc-redoc">GET /v1/markets "quoted {braces}"</div></div>
+<script src="https://cdn.redoc.ly/redoc/v2.1.5/bundles/redoc.standalone.js"></script>
+<script>
+    const __redoc_state = {"menu":{"activeItemIdx":-1},"spec":{"data":{"openapi":"3.0.0","info":{"title":"Example API","version":"1.0","description":"Braces in strings: { \"not\": \"json\" } and a closing brace }"},"paths":{"/v1/markets":{"get":{"parameters":[{"name":"type","in":"query"}]}},"/v1/orders/{id}":{"parameters":[{"name":"id","in":"path","required":true}],"get":{},"delete":{"deprecated":true}},"/v1/orders":{"post":{"requestBody":{"$ref":"#/components/requestBodies/NewOrder"}}}},"components":{"requestBodies":{"NewOrder":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/NewOrder"}}}}},"schemas":{"NewOrder":{"type":"object","properties":{"market":{"type":"string"},"side":{"type":"string"},"size":{"type":"string"}}}}}}},"searchIndex":{"store":[],"index":{}},"options":{}};
+
+    var container = document.getElementById('redoc');
+    Redoc.hydrate(__redoc_state, container);
+</script>
+</body>
+</html>

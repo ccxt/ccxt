@@ -1,0 +1,23 @@
+{
+  "id": "paymium",
+  "kind": "exchange",
+  "name": "Paymium",
+  "domains": ["paymium.com", "paymium.github.io", "github.com"],
+  "sources": [
+    {
+      "id": "paymium-api-changes",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/Paymium/api-documentation/master/API-CHANGES.md",
+      "link": "https://github.com/Paymium/api-documentation/blob/master/API-CHANGES.md",
+      "scope": "REST (generated spec diff, one section per version, undated)",
+      "split": { "heading": "^#\\s+API Changelog" }
+    },
+    {
+      "id": "paymium-openapi",
+      "type": "spec",
+      "url": "https://paymium.github.io/api-documentation/",
+      "specFormat": "redoc",
+      "scope": "REST API (OpenAPI embedded in the Redoc page)"
+    }
+  ]
+}

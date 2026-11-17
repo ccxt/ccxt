@@ -1,0 +1,41 @@
+{
+  "id": "independentreserve",
+  "kind": "exchange",
+  "name": "Independent Reserve",
+  "domains": ["independentreserve.com", "github.com"],
+  "sources": [
+    {
+      "id": "independentreserve-api-changes",
+      "type": "hash",
+      "url": "https://www.independentreserve.com/features/api",
+      "link": "https://www.independentreserve.com/features/api#api-changes",
+      "scope": "API Changes notes",
+      "slice": { "selector": "section.api-section:has(#api-changes) .content" },
+      "minChange": 20
+    },
+    {
+      "id": "independentreserve-api-docs",
+      "type": "hash",
+      "url": "https://www.independentreserve.com/features/api",
+      "scope": "REST API reference",
+      "slice": { "selector": "article.content-page__body" },
+      "strip": [".api-sidebar", "section.api-section:has(#api-changes)", "section.api-section:has(#sample-api-clients)"]
+    },
+    {
+      "id": "independentreserve-websockets",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/independentreserve/websockets/master/orderbook-ticker.md",
+      "link": "https://github.com/independentreserve/websockets/blob/master/orderbook-ticker.md",
+      "scope": "websocket order book ticker"
+    },
+    {
+      "id": "independentreserve-postman",
+      "type": "spec",
+      "url": "https://raw.githubusercontent.com/independentreserve/dotNetApiClient/master/test/Postman/Independent%20Reserve%20API.postman_collection.json",
+      "link": "https://github.com/independentreserve/dotNetApiClient/tree/master/test/Postman",
+      "role": "secondary",
+      "scope": "official Postman collection (lags the docs)",
+      "specFormat": "postman"
+    }
+  ]
+}

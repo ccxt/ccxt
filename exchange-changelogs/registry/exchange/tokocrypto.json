@@ -1,0 +1,20 @@
+{
+  "id": "tokocrypto",
+  "kind": "exchange",
+  "name": "Tokocrypto",
+  "domains": ["tokocrypto.com"],
+  "sources": [
+    {
+      "id": "tokocrypto-changelog",
+      "type": "html",
+      "url": "https://www.tokocrypto.com/apidocs/",
+      "link": "https://www.tokocrypto.com/apidocs/#change-log",
+      "scope": "spot (REST + websocket)",
+      "expectBlocked": "CloudFront geo-block: HTTP 451 for US IPs",
+      "split": { "heading": "h3" },
+      "titleFilter": "^\\s*\\d{4}-\\d{2}-\\d{2}\\s*$",
+      "date": { "from": "title" },
+      "minEntries": 3
+    }
+  ]
+}

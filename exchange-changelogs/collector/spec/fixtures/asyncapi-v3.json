@@ -1,0 +1,12 @@
+{
+    "asyncapi": "3.0.0",
+    "info": { "title": "Example exchange websocket API v3", "version": "3.0.0" },
+    "channels": {
+        "tickers": { "address": "public/tickers/{instrument}", "parameters": { "instrument": {} }, "messages": { "ticker": { "payload": { "type": "object" } } } },
+        "heartbeat": { "address": "heartbeat", "messages": { "ping": {}, "pong": {} } },
+        "legacyTrades": { "address": "public/trades", "deprecated": true, "messages": { "trade": {} } }
+    },
+    "operations": {
+        "receiveTicker": { "action": "receive", "channel": { "$ref": "#/channels/tickers" } }
+    }
+}

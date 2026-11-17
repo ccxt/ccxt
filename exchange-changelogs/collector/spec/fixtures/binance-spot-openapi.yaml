@@ -1,0 +1,266 @@
+# Trimmed from https://raw.githubusercontent.com/binance/binance-api-swagger/master/spot_api.yaml (5 paths)
+openapi: 3.0.2
+info:
+  title: Binance Public Spot API
+  version: "1.0"
+servers:
+  - url: https://api.binance.com
+  - url: https://testnet.binance.vision
+paths:
+  /api/v3/time:
+    get:
+      tags:
+        - Market
+  /api/v3/depth:
+    get:
+      tags:
+        - Market
+      parameters:
+        - $ref: "#/components/parameters/symbol"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 100
+            maximum: 5000
+  /api/v3/ticker/price:
+    get:
+      tags:
+        - Market
+      parameters:
+        - $ref: "#/components/parameters/optionalSymbol"
+        - $ref: "#/components/parameters/arraySymbols"
+  /api/v3/order:
+    get:
+      tags:
+        - Trade
+      parameters:
+        - $ref: "#/components/parameters/symbol"
+        - $ref: "#/components/parameters/orderId"
+        - $ref: "#/components/parameters/origClientOrderId"
+        - $ref: "#/components/parameters/recvWindow"
+        - $ref: "#/components/parameters/timestamp"
+        - $ref: "#/components/parameters/signature"
+      security:
+        - ApiKeyAuth: []
+    post:
+      tags:
+        - Trade
+      parameters:
+        - $ref: "#/components/parameters/symbol"
+        - $ref: "#/components/parameters/side"
+        - $ref: "#/components/parameters/orderType"
+        - $ref: "#/components/parameters/timeInForce"
+        - $ref: "#/components/parameters/optionalQuantity"
+        - $ref: "#/components/parameters/quoteOrderQty"
+        - $ref: "#/components/parameters/optionalPrice"
+        - $ref: "#/components/parameters/newClientOrderId"
+        - $ref: "#/components/parameters/strategyId"
+        - $ref: "#/components/parameters/strategyType"
+        - $ref: "#/components/parameters/stopPrice"
+        - $ref: "#/components/parameters/optionalTrailingDelta"
+        - $ref: "#/components/parameters/icebergQty"
+        - $ref: "#/components/parameters/newOrderRespType"
+        - $ref: "#/components/parameters/selfTradePreventionMode"
+        - $ref: "#/components/parameters/recvWindow"
+        - $ref: "#/components/parameters/timestamp"
+        - $ref: "#/components/parameters/signature"
+      security:
+        - ApiKeyAuth: []
+    delete:
+      tags:
+        - Trade
+      parameters:
+        - $ref: "#/components/parameters/symbol"
+        - $ref: "#/components/parameters/orderId"
+        - $ref: "#/components/parameters/origClientOrderId"
+        - $ref: "#/components/parameters/newClientOrderId"
+        - $ref: "#/components/parameters/cancelRestrictions"
+        - $ref: "#/components/parameters/recvWindow"
+        - $ref: "#/components/parameters/timestamp"
+        - $ref: "#/components/parameters/signature"
+      security:
+        - ApiKeyAuth: []
+  /api/v3/openOrders:
+    get:
+      tags:
+        - Trade
+      parameters:
+        - $ref: "#/components/parameters/optionalSymbol"
+        - $ref: "#/components/parameters/recvWindow"
+        - $ref: "#/components/parameters/timestamp"
+        - $ref: "#/components/parameters/signature"
+      security:
+        - ApiKeyAuth: []
+    delete:
+      tags:
+        - Trade
+      parameters:
+        - $ref: "#/components/parameters/symbol"
+        - $ref: "#/components/parameters/recvWindow"
+        - $ref: "#/components/parameters/timestamp"
+        - $ref: "#/components/parameters/signature"
+      security:
+        - ApiKeyAuth: []
+components:
+  parameters:
+    symbol:
+      name: symbol
+      in: query
+      required: true
+      schema:
+        type: string
+    optionalSymbol:
+      name: symbol
+      in: query
+      schema:
+        type: string
+    arraySymbols:
+      name: symbols
+      in: query
+      schema:
+        type: string
+    orderId:
+      name: orderId
+      in: query
+      schema:
+        type: integer
+        format: int64
+    origClientOrderId:
+      name: origClientOrderId
+      in: query
+      schema:
+        type: string
+    recvWindow:
+      name: recvWindow
+      in: query
+      schema:
+        type: integer
+        format: int64
+    timestamp:
+      name: timestamp
+      in: query
+      required: true
+      schema:
+        type: integer
+        format: int64
+    signature:
+      name: signature
+      in: query
+      required: true
+      schema:
+        type: string
+    side:
+      name: side
+      in: query
+      required: true
+      schema:
+        type: string
+        enum:
+          - SELL
+          - BUY
+    orderType:
+      name: type
+      in: query
+      required: true
+      schema:
+        type: string
+        enum:
+          - LIMIT
+          - MARKET
+          - STOP_LOSS
+          - STOP_LOSS_LIMIT
+          - TAKE_PROFIT
+          - TAKE_PROFIT_LIMIT
+          - LIMIT_MAKER
+    timeInForce:
+      name: timeInForce
+      in: query
+      schema:
+        type: string
+        enum:
+          - GTC
+          - IOC
+          - FOK
+    optionalQuantity:
+      name: quantity
+      in: query
+      schema:
+        type: number
+        format: double
+    quoteOrderQty:
+      name: quoteOrderQty
+      in: query
+      schema:
+        type: number
+        format: double
+    optionalPrice:
+      name: price
+      in: query
+      schema:
+        type: number
+        format: double
+    newClientOrderId:
+      name: newClientOrderId
+      in: query
+      schema:
+        type: string
+    strategyId:
+      name: strategyId
+      in: query
+      schema:
+        type: integer
+        format: int64
+    strategyType:
+      name: strategyType
+      in: query
+      schema:
+        type: integer
+        format: int64
+    stopPrice:
+      name: stopPrice
+      in: query
+      schema:
+        type: number
+        format: double
+    optionalTrailingDelta:
+      name: trailingDelta
+      in: query
+      schema:
+        type: number
+        format: double
+    icebergQty:
+      name: icebergQty
+      in: query
+      schema:
+        type: number
+        format: double
+    newOrderRespType:
+      name: newOrderRespType
+      in: query
+      schema:
+        type: string
+        enum:
+          - ACK
+          - RESULT
+          - FULL
+    selfTradePreventionMode:
+      name: selfTradePreventionMode
+      in: query
+      schema:
+        type: string
+        enum:
+          - EXPIRE_TAKER
+          - EXPIRE_MAKER
+          - EXPIRE_BOTH
+          - NONE
+    cancelRestrictions:
+      name: cancelRestrictions
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - ONLY_NEW
+          - ONLY_PARTIALLY_FILLED

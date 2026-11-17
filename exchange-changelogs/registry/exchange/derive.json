@@ -1,0 +1,17 @@
+{
+  "id": "derive",
+  "kind": "exchange",
+  "name": "Derive",
+  "domains": ["derive.xyz"],
+  "sources": [
+    {
+      "id": "derive-changelog",
+      "type": "json",
+      "url": "https://docs.derive.xyz/changelog.md",
+      "link": "https://docs.derive.xyz/changelog",
+      "scope": "all (v3 REST + WebSocket + risk parameters)",
+      "mapper": "derive",
+      "minEntries": 10
+    }
+  ]
+}

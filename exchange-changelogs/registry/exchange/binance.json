@@ -1,0 +1,28 @@
+{
+  "id": "binance",
+  "kind": "exchange",
+  "name": "Binance",
+  "subclasses": ["binancecoinm", "binanceusdm"],
+  "domains": ["binance.com", "github.com"],
+  "sources": [
+    {
+      "id": "binance-spot",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/binance/binance-spot-api-docs/master/CHANGELOG.md",
+      "link": "https://github.com/binance/binance-spot-api-docs/blob/master/CHANGELOG.md",
+      "scope": "spot (REST, WebSocket API, streams, FIX, SBE)",
+      "split": { "heading": "^###\\s+\\d{4}-\\d{2}-\\d{2}" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" }
+    },
+    {
+      "id": "binance-spot-testnet",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/binance/binance-spot-api-docs/master/testnet/CHANGELOG.md",
+      "link": "https://github.com/binance/binance-spot-api-docs/blob/master/testnet/CHANGELOG.md",
+      "role": "secondary",
+      "scope": "spot testnet",
+      "split": { "heading": "^###\\s+\\d{4}-\\d{2}-\\d{2}" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" }
+    }
+  ]
+}

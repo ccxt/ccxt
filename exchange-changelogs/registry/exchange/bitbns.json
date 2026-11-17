@@ -1,0 +1,30 @@
+{
+  "id": "bitbns",
+  "kind": "exchange",
+  "name": "Bitbns",
+  "domains": ["docs.bitbns.com"],
+  "sources": [
+    {
+      "id": "bitbns-docs-1",
+      "type": "hash",
+      "url": "https://docs.bitbns.com/bitbns/llms-full.txt",
+      "link": "https://docs.bitbns.com/bitbns",
+      "scope": "docs pages 1-100 (REST endpoints, OAuth; no changelog)"
+    },
+    {
+      "id": "bitbns-docs-2",
+      "type": "hash",
+      "url": "https://docs.bitbns.com/bitbns/llms-full.txt/1",
+      "link": "https://docs.bitbns.com/bitbns",
+      "scope": "docs pages 101-158 (margin, FIP, websockets, partner APIs, error codes)"
+    },
+    {
+      "id": "bitbns-docs-index",
+      "type": "hash",
+      "url": "https://docs.bitbns.com/bitbns/llms.txt",
+      "link": "https://docs.bitbns.com/bitbns",
+      "role": "secondary",
+      "scope": "docs page index (new or removed pages)"
+    }
+  ]
+}

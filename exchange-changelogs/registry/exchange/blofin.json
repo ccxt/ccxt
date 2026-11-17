@@ -1,0 +1,28 @@
+{
+  "id": "blofin",
+  "kind": "exchange",
+  "name": "BloFin",
+  "domains": ["blofin.com"],
+  "sources": [
+    {
+      "id": "blofin-changelog",
+      "type": "html",
+      "url": "https://docs.blofin.com/changelog.html",
+      "scope": "all (REST + WebSocket)",
+      "slice": { "selector": ".content" },
+      "split": { "heading": "h1" },
+      "date": { "from": "anchor" },
+      "expectBlocked": "Cloudflare may serve a challenge (403) to datacenter IPs",
+      "minEntries": 5
+    },
+    {
+      "id": "blofin-docs",
+      "type": "hash",
+      "url": "https://docs.blofin.com/index.html",
+      "role": "secondary",
+      "scope": "API reference (REST + WebSocket; no changelog)",
+      "slice": { "selector": ".content" },
+      "expectBlocked": "Cloudflare may serve a challenge (403) to datacenter IPs"
+    }
+  ]
+}

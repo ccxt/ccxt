@@ -1,0 +1,19 @@
+{
+  "id": "pacifica",
+  "kind": "exchange",
+  "name": "Pacifica",
+  "domains": ["pacifica.fi"],
+  "sources": [
+    {
+      "id": "pacifica-changelog",
+      "type": "md",
+      "url": "https://docs.pacifica.fi/api-documentation/changelog.md",
+      "link": "https://docs.pacifica.fi/api-documentation/changelog",
+      "scope": "all (REST, websocket, signing; tracks docs changes, which can lag the API change)",
+      "slice": { "from": "^#\\s+Changelog", "to": "^This documentation is built and hosted on" },
+      "split": { "heading": "^###\\s+\\d{4}-\\d{2}-\\d{2}" },
+      "date": { "from": "title" },
+      "minEntries": 10
+    }
+  ]
+}

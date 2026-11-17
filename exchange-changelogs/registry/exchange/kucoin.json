@@ -1,0 +1,38 @@
+{
+  "id": "kucoin",
+  "kind": "exchange",
+  "name": "KuCoin",
+  "subclasses": ["kucoinfutures"],
+  "domains": ["kucoin.com", "github.com"],
+  "sources": [
+    {
+      "id": "kucoin-changelog",
+      "type": "html",
+      "url": "https://www.kucoin.com/docs-new/change-log",
+      "scope": "all (spot, margin, futures, UTA, websocket)",
+      "slice": { "selector": ".markdown-body" },
+      "split": { "item": "[data-markdown-component=\"x-card\"]" },
+      "date": { "from": "title", "pattern": "^(\\d{4}\\.\\d{2}\\.\\d{2})", "order": "ymd" },
+      "strip": [".anchor"],
+      "minEntries": 20
+    },
+    {
+      "id": "kucoin-sdk",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/Kucoin/kucoin-universal-sdk/main/CHANGELOG.md",
+      "link": "https://github.com/Kucoin/kucoin-universal-sdk/blob/main/CHANGELOG.md",
+      "role": "secondary",
+      "scope": "universal SDK (synced API doc version)",
+      "split": { "heading": "^##\\s+\\d{4}-\\d{2}-\\d{2}" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" }
+    },
+    {
+      "id": "kucoin-endpoints",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/Kucoin/kucoin-universal-sdk/main/spec/apis.csv",
+      "link": "https://github.com/Kucoin/kucoin-universal-sdk/blob/main/spec/apis.csv",
+      "role": "secondary",
+      "scope": "REST endpoint list (SDK spec)"
+    }
+  ]
+}

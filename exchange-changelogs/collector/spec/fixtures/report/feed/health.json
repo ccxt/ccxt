@@ -1,0 +1,13 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-11-09T05:40:00.000Z",
+ "sources": [
+  { "id": "alpaca-changelog", "venue": "alpaca", "kind": "exchange", "type": "rss", "link": "https://docs.alpaca.markets/us/changelog", "role": "primary", "ok": true, "lastRunAt": "2026-11-09T05:30:00.000Z", "lastOkAt": "2026-11-09T05:30:00.000Z", "lastError": null, "consecutiveFailures": 0, "entryCount": 10, "latestDate": "2026-11-05" },
+  { "id": "gate-v4", "venue": "gate", "kind": "exchange", "type": "spec", "link": "https://www.gate.com/docs/developers/apiv4/", "role": "primary", "ok": true, "expectBlocked": "Akamai returns 403 Access Denied to datacenter IPs", "lastRunAt": "2026-11-09T05:30:00.000Z", "lastOkAt": "2026-11-09T05:30:00.000Z", "lastError": null, "consecutiveFailures": 0, "entryCount": 3, "latestDate": null },
+  { "id": "btcmarkets-docs-v3", "venue": "btcmarkets", "kind": "exchange", "type": "html", "link": "https://docs.btcmarkets.net/v3/", "role": "primary", "ok": false, "expectBlocked": "Cloudflare challenge (403) from datacenter IPs", "lastRunAt": "2026-11-09T05:30:00.000Z", "lastOkAt": null, "lastError": "HTTP 403 (bot challenge)", "consecutiveFailures": 10, "entryCount": 0, "latestDate": null },
+  { "id": "zaif-docs-commits", "venue": "zaif", "kind": "exchange", "type": "gh-commits", "link": "https://github.com/zaifapi/zaif-api-document/commits/master", "role": "secondary", "ok": false, "lastRunAt": "2026-11-09T05:30:00.000Z", "lastOkAt": "2026-11-05T05:30:00.000Z", "lastError": "HTTP 404 | not found\n see `docs` ![x](https://evil.example/p.png)", "consecutiveFailures": 4, "entryCount": 0, "latestDate": null },
+  { "id": "kalshi-changelog", "venue": "kalshi", "kind": "prediction", "type": "rss", "link": "https://docs.kalshi.com/changelog (rss)", "role": "primary", "ok": false, "lastRunAt": "2026-11-09T05:30:00.000Z", "lastOkAt": "2026-11-07T05:30:00.000Z", "lastError": "timeout after 30000 ms", "consecutiveFailures": 3, "entryCount": 12, "latestDate": "2026-11-01" },
+  { "id": "okx-log", "venue": "okx", "kind": "exchange", "type": "html", "link": "https://www.okx.com/docs-v5/log_en/", "role": "primary", "ok": false, "lastRunAt": "2026-11-09T05:30:00.000Z", "lastOkAt": "2026-11-08T05:30:00.000Z", "lastError": "HTTP 502", "consecutiveFailures": 1, "entryCount": 40, "latestDate": "2026-11-06" },
+  { "id": "newex-changelog", "venue": "newex", "kind": "exchange", "type": "md", "link": "https://newex.example/changelog.md", "role": "primary", "ok": false, "lastRunAt": "", "lastOkAt": null, "lastError": "never run", "consecutiveFailures": 0, "entryCount": 0, "latestDate": null }
+ ]
+}

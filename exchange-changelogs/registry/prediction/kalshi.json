@@ -1,0 +1,16 @@
+{
+  "id": "kalshi",
+  "kind": "prediction",
+  "name": "Kalshi",
+  "domains": ["kalshi.com"],
+  "sources": [
+    {
+      "id": "kalshi-changelog",
+      "type": "rss",
+      "url": "https://docs.kalshi.com/changelog/rss.xml",
+      "link": "https://docs.kalshi.com/changelog",
+      "scope": "all (REST, WebSocket, FIX; Predictions + Margin)",
+      "minEntries": 5
+    }
+  ]
+}

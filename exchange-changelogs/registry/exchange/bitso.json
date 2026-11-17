@@ -1,0 +1,28 @@
+{
+  "id": "bitso",
+  "kind": "exchange",
+  "name": "Bitso",
+  "domains": ["bitso.com"],
+  "sources": [
+    {
+      "id": "bitso-trading",
+      "type": "md",
+      "url": "https://docs.bitso.com/bitso-api/docs/history-of-changes.md",
+      "link": "https://docs.bitso.com/bitso-api/docs/history-of-changes",
+      "scope": "trading (REST, websocket, margin, errors)",
+      "split": { "heading": "^###\\s+(?:\\*\\*)?\\d{4}-\\d{1,2}-\\d{1,2}" },
+      "date": { "from": "title" },
+      "minEntries": 10
+    },
+    {
+      "id": "bitso-payouts-funding",
+      "type": "md",
+      "url": "https://docs.bitso.com/bitso-payouts-funding/docs/history-of-changes.md",
+      "link": "https://docs.bitso.com/bitso-payouts-funding/docs/history-of-changes",
+      "scope": "payouts and funding (deposits, withdrawals)",
+      "split": { "heading": "^###\\s+(?:\\*\\*)?\\d{4}-\\d{1,2}-\\d{1,2}" },
+      "date": { "from": "title" },
+      "minEntries": 10
+    }
+  ]
+}

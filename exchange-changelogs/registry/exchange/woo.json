@@ -1,0 +1,35 @@
+{
+  "id": "woo",
+  "kind": "exchange",
+  "name": "WOO X",
+  "domains": ["woox.io"],
+  "sources": [
+    {
+      "id": "woo-v3-release-notes",
+      "type": "rss",
+      "url": "https://developer.woox.io/changelog/release_note_v3/rss.xml",
+      "link": "https://developer.woox.io/changelog/release_note_v3",
+      "scope": "V3 API (REST + websocket)"
+    },
+    {
+      "id": "woo-v1-release-notes",
+      "type": "html",
+      "url": "https://docs.woox.io/",
+      "link": "https://docs.woox.io/",
+      "scope": "V1 REST + websocket V2 (legacy docs, still used by ccxt)",
+      "slice": { "selector": ".content" },
+      "split": { "heading": "#release-note ~ h2" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" },
+      "minEntries": 5
+    },
+    {
+      "id": "woo-v3-openapi",
+      "type": "spec",
+      "url": "https://developer.woox.io/openapi-merged.json",
+      "link": "https://developer.woox.io/",
+      "role": "secondary",
+      "scope": "V3 REST (OpenAPI)",
+      "specFormat": "openapi"
+    }
+  ]
+}

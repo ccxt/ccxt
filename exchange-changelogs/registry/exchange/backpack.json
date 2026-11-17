@@ -1,0 +1,26 @@
+{
+  "id": "backpack",
+  "kind": "exchange",
+  "name": "Backpack",
+  "domains": ["backpack.exchange"],
+  "sources": [
+    {
+      "id": "backpack-changelog",
+      "type": "html",
+      "url": "https://docs.backpack.exchange/",
+      "link": "https://docs.backpack.exchange/#section/Changelog",
+      "scope": "all (REST, websocket)",
+      "split": { "item": "[data-section-id^=\"section/Changelog/\"]" },
+      "date": { "from": "title" },
+      "minEntries": 20
+    },
+    {
+      "id": "backpack-openapi",
+      "type": "spec",
+      "url": "https://docs.backpack.exchange/",
+      "role": "secondary",
+      "scope": "REST and websocket API surface (OpenAPI embedded in the Redoc page)",
+      "specFormat": "redoc"
+    }
+  ]
+}
