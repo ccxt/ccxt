@@ -1916,7 +1916,7 @@ class delta(Exchange, ImplicitAPI):
                 timestamp = self.safe_integer_product(order, 'created_at', 0.001)
         marketId = self.safe_string(order, 'product_id')
         marketsByNumericId = self.safe_dict(self.options, 'marketsByNumericId', {})
-        marketValue = self.safe_value(marketsByNumericId, marketId, market)
+        marketValue = self.safe_dict(marketsByNumericId, marketId, market)
         symbol = None
         if marketValue is None:
             symbol = marketId

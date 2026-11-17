@@ -426,7 +426,7 @@ class bitrue(ccxt.async_support.bitrue):
             if baseId is None or quoteId is None:
                 raise ExchangeError(self.id + ' findSwapMarketByWsBaseQuote() market ' + symbolId + ' has no baseId or quoteId')
             if baseId + quoteId == wsBaseQuote:
-                return candidate
+                return self.market(symbolId)
         return None
 
     def parse_contract_bids_asks(self, bidsAsks: list[object], symbol: str) -> list:
