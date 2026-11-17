@@ -331,6 +331,8 @@ const CSHARP_INOP_DICT_FIELDS: { [name: string]: string } = {
     'timeframes': 'Dictionary<string, object>', 'has': 'Dictionary<string, object>',
     'options': 'ConcurrentDictionary<string, object>', 'clients': 'ConcurrentDictionary<string, WebSocketClient>',
     'markets': 'IDictionary<string, object>', 'currencies_by_id': 'IDictionary<string, object>',
+    'outcomes': 'IDictionary<string, object>', 'outcomes_by_id': 'IDictionary<string, object>',
+    'events': 'IDictionary<string, object>', 'events_by_slug': 'IDictionary<string, object>',
 }
 const CSHARP_WS_CLIENT_MAP_RE = /^([A-Za-z_]\w*)\.(subscriptions|futures)$/
 const CSHARP_WS_CLIENT_MAPS: { [name: string]: string } = { 'subscriptions': 'IDictionary<string, object>', 'futures': 'IDictionary<string, Future>' }
@@ -522,6 +524,12 @@ const CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES = [ 'Int64?', 'long?', 'int?' ];
 const CSHARP_OPERATOR_NULLABLE_NUMERIC_TYPES = [ 'Int64?', 'long?', 'int?', 'double?' ];
 const CSHARP_OPERATOR_TOKENS = { isGreaterThan: '>', isGreaterThanOrEqual: '>=', isLessThan: '<', isLessThanOrEqual: '<=' };
 
+// hand-written base members an operator rule may read by name: `Int64? precisionMode`
+// (Exchange.Options.cs) and the `public static int` counting-mode constants (Exchange.Number.cs)
+const CSHARP_OPERATOR_FIELD_TYPES: { [name: string]: string } = {
+    'this.precisionMode': 'Int64?', 'DECIMAL_PLACES': 'int', 'SIGNIFICANT_DIGITS': 'int', 'TICK_SIZE': 'int',
+};
+
 // the kind of one printed operand: a string / numeric literal, null, or a name the emitted
 // text declares (its declared type); undefined for every other expression
 function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType) {
@@ -545,6 +553,10 @@ function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType
     if (clientUrl !== null) {
         const owner = takeType (clientUrl[1]);
         return ((owner !== undefined) && (owner.type === 'WebSocketClient')) ? { kind: 'name', type: 'string' } : undefined;
+    }
+    const field = CSHARP_OPERATOR_FIELD_TYPES[maskedArg];
+    if (field !== undefined) {
+        return { kind: 'name', type: field };
     }
     if (!/^[A-Za-z_]\w*$/.test (maskedArg) || (maskedArg === 'null')) {
         return undefined;
@@ -1578,17 +1590,17 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:aster': { 'parseWsTicker': [ 1 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:backpack': { 'parseWsOrderSide': [ 0 ], 'parseWsOrderStatus': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:binance': { 'ensureUserDataStreamWsSubscribeListenToken': [ 0 ], 'ensureUserDataStreamWsSubscribeSignature': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ] },
-    'pro:bingx': { 'getOrderBookLimitByMarketType': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:bingx': { 'getOrderBookLimitByMarketType': [ 0 ], 'setPositionsCache': [ 1 ], 'unWatchTrades': [ 0 ] },
     'pro:bitfinex': { 'parseWsOrderStatus': [ 0 ], 'subscribe': [ 1 ], 'unWatchTrades': [ 0 ] },
     'pro:bitget': { 'parseWsOrderStatus': [ 0 ], 'parseWsTicker': [ 1 ], 'unWatchTrades': [ 0 ] },
     'pro:bitopro': { 'watchPublic': [ 1 ] },
     'pro:bitrue': { 'parseWsOrderStatus': [ 0 ], 'parseWsOrderType': [ 0 ] },
-    'pro:bitstamp': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:bitstamp': { 'subscribePrivate': [ 1 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:bitvavo': { 'unWatchTrades': [ 0 ] },
     'pro:blockchaincom': { 'parseWsOrderStatus': [ 0 ] },
     'pro:blofin': { 'parseWsTicker': [ 1 ] },
     'pro:bybit': { 'authenticate': [ 0 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
-    'pro:coinbase': { 'parseWsTicker': [ 1 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:coinbase': { 'parseWsTicker': [ 1 ], 'subscribe': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:coinbaseexchange': { 'parseWsOrderStatus': [ 0 ] },
     'pro:coinbaseinternational': { 'parseWsTicker': [ 1 ] },
     'pro:cryptocom': { 'unWatchTrades': [ 0 ] },
@@ -1597,24 +1609,24 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:dydx': { 'unWatchTrades': [ 0 ] },
     'pro:gate': { 'authenticate': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:gemini': { 'parseWsOrderStatus': [ 0 ], 'parseWsOrderType': [ 0 ] },
-    'pro:hitbtc': { 'subscribePrivate': [ 0 ] },
+    'pro:hitbtc': { 'subscribePrivate': [ 0 ], 'subscribePublic': [ 0, 1 ] },
     'pro:htx': { 'unWatchTrades': [ 0 ] },
     'pro:hyperliquid': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:kraken': { 'orderRequestWs': [ 1, 2 ], 'watchPrivate': [ 0, 1 ] },
     'pro:krakenfutures': { 'parseWsTicker': [ 1 ], 'subscribePublic': [ 1 ] },
-    'pro:kucoin': { 'parseWsOrderStatus': [ 0 ], 'unWatchFundingRate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:kucoin': { 'parseWsOrderStatus': [ 0 ], 'unWatchFundingRate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ], 'watchMultiHelper': [ 1 ] },
     'pro:lbank': { 'parseWsOrderStatus': [ 0 ] },
     'pro:lighter': { 'unWatchMarkPrice': [ 0 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:mexc': { 'parseWsOrderStatus': [ 0 ], 'parseWsOrderType': [ 0 ], 'unWatchFundingRate': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:nado': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ], 'watchPrivate': [ 0 ] },
-    'pro:okx': { 'unWatchTrades': [ 0 ] },
+    'pro:okx': { 'subscribeMultiple': [ 1 ], 'unWatchTrades': [ 0 ] },
     'pro:onetrading': { 'parseTradingOrderStatus': [ 0 ], 'parseWsOrderStatus': [ 0 ] },
     'pro:pacifica': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
-    'pro:poloniex': { 'parseStatus': [ 0 ] },
-    'pro:toobit': { 'parseWsTicker': [ 1 ], 'setBalanceCache': [ 1 ] },
-    'pro:upbit': { 'parseWsOrderStatus': [ 0 ] },
+    'pro:poloniex': { 'parseStatus': [ 0 ], 'subscribe': [ 0, 1 ] },
+    'pro:toobit': { 'parseWsTicker': [ 1 ], 'setBalanceCache': [ 1 ], 'setPositionsCache': [ 1 ] },
+    'pro:upbit': { 'parseWsOrderStatus': [ 0 ], 'watchPublicMultiple': [ 1 ] },
     'pro:weex': { 'subscribePrivate': [ 2 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
-    'pro:whitebit': { 'parseWsOrderType': [ 0 ] },
+    'pro:whitebit': { 'parseWsOrderType': [ 0 ], 'setBalanceCache': [ 1 ] },
     'pro:woo': { 'unWatchTrades': [ 0 ] },
     'pro:xt': { 'subscribe': [ 1, 2 ], 'unSubscribe': [ 2, 3 ], 'unWatchFundingRate': [ 0 ], 'unWatchTrades': [ 0 ] },
     'revolutx': { 'parseOrderStatus': [ 0 ] },
@@ -5990,10 +6002,10 @@ class NewTranspiler {
             const fields = [
                 '    public PredictionExchange(object args = null) : base(args) {}',
                 '',
-                '    public object outcomes { get; set; } = null;',
-                '    public object outcomes_by_id { get; set; } = null;',
-                '    public object events { get; set; } = null;',
-                '    public object events_by_slug { get; set; } = null;',
+                '    public IDictionary<string, object> outcomes { get; set; } = null;',
+                '    public IDictionary<string, object> outcomes_by_id { get; set; } = null;',
+                '    public IDictionary<string, object> events { get; set; } = null;',
+                '    public IDictionary<string, object> events_by_slug { get; set; } = null;',
                 '    public bool reloadingEvents { get; set; } = false;',
                 '    public Task<object> eventsLoading { get; set; } = null;',
                 '',
