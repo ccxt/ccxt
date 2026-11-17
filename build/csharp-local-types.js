@@ -7359,7 +7359,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             if (parent.left === n) {
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
-                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right);
+                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
@@ -7391,8 +7391,10 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         const selfTernary = ((selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType)) || selfTernaryString || selfTernaryCollection;
                         // ral-84c8 R3: `x = this.safeString (o, k, '<literal>')` into a `string` local whose own
                         // initializer is such a call too: the reader hands back the value or the non-null default
-                        const nonNullDefaultWrite = (csharpType === 'string') && nonNullStringDefaultCall (csharp, declaration.initializer, context)
-                            && nonNullStringDefaultCall (csharp, parent.right, context);
+                        const nonNullDefaultWrite = (csharpType === 'string') && ((nonNullStringDefaultCall (csharp, declaration.initializer, context)
+                            && nonNullStringDefaultCall (csharp, parent.right, context))
+                            // ral-87c4 R3: the uninitialised `let x: string;` whose every write is such a call
+                            || definiteStringDefaultWrites87c4 (csharp, scope, declaration, varName, context));
                         if (!selfConcat && !selfStringWrite && !nonNullWrite && !nonNullDefaultWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
                             return false;
                         }
@@ -11779,6 +11781,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         cast = 'string';
         safe = true;
     }
+    // ral-87c4 R3: `let x: string;` (no initialiser, so TS definite assignment proves a write before every
+    // read) whose every write is a safeString* call with a non-null string default: x is a non-null string
+    // at every read, so the non-null spelling holds the same box and its `+` reads bind add(string, *)
+    if (!safe && csharpType === 'string?' && definiteStringDefaultWrites87c4 (csharp, scope, declaration, sourceName, ctx) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        safe = true;
+    }
     // `this.handleOptionStringAndParams (p, m, k, '<literal>')[0]`: checkOptionString hands back the
     // option string or the literal default, never null — retried only after `string?` was rejected
     if (!safe && csharpType === 'string?' && tupleElement0LiteralDefault (declaration.initializer) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
@@ -12568,7 +12577,153 @@ function nullInitFamilyName (declaration) {
 }
 
 function isNullInitFamilyString (declaration) {
-    return nullInitFamilyName (declaration) !== undefined && NULL_INIT_STRING_LOCAL_NAMES.has (declaration.name.text) && isNullInit (declaration);
+    return (nullInitFamilyName (declaration) !== undefined && NULL_INIT_STRING_LOCAL_NAMES.has (declaration.name.text) && isNullInit (declaration))
+        || nullSeedNativeStringLocal (declaration);
+}
+
+// ral-87c4: `let x: Str = undefined` (or `: string`) that the function then uses as a string RECEIVER
+// (`x.toLowerCase ()`, `x.replace (..)`, `x.indexOf (..)`, ...) or as `x as string`: today every such use
+// prints `((string)x).M(..)` over the object local. Declared `string?`, the same uses print natively, so
+// this joins the name-keyed family above (its market-row read and narrowed-copy writes, with the same
+// write cast) plus a same-file sync call whose printed return is `string`/`string?`. Decided from the
+// declaration's type node and the uses' AST parents only.
+const NULL_SEED_NATIVE_STRING_METHODS = [ 'toLowerCase', 'toUpperCase', 'replace', 'replaceAll', 'indexOf', 'slice', 'split', 'trim', 'startsWith', 'endsWith' ];
+const nullSeedNativeStringCache = new WeakMap ();
+
+function nullSeedNativeStringLocal (declaration) {
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier || !isNullInit (declaration)
+            || declaration.parent?.declarations?.length !== 1 || !isBlockScopedDeclaration (declaration)) {
+        return false;
+    }
+    const type = declaration.type;
+    const isStr = (type?.kind === ts.SyntaxKind.StringKeyword)
+        || (type?.kind === ts.SyntaxKind.TypeReference && type.typeArguments === undefined && type.typeName?.kind === ts.SyntaxKind.Identifier && type.typeName.text === 'Str');
+    if (!isStr) {
+        return false;
+    }
+    if (nullSeedNativeStringCache.has (declaration)) {
+        return nullSeedNativeStringCache.get (declaration);
+    }
+    const name = declaration.name.text;
+    const scope = enclosingFunction (declaration);
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name && n !== declaration.name) {
+            const parent = n.parent;
+            if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === n
+                    && NULL_SEED_NATIVE_STRING_METHODS.includes (parent.name?.text) && parent.parent?.kind === ts.SyntaxKind.CallExpression && parent.parent.expression === parent) {
+                found = true;
+            } else if (parent?.kind === ts.SyntaxKind.AsExpression && parent.type?.kind === ts.SyntaxKind.StringKeyword) {
+                found = true;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
+    nullSeedNativeStringCache.set (declaration, found);
+    return found;
+}
+
+// ral-87c4 R2 (the sum half of 84c4 R2): a write `x = this.sum (a, b)` into a null-seeded local
+// (`let x = undefined` / `let x: Int = undefined`) over integer-or-null operands binds the hand-written
+// `Int64 sum (Int64?, Int64?)` twin (integerBoxCastType, the declaration-initialiser proof), so the write
+// stores that Int64 box with no cast and the local's `<` / `==` reads bind the native Int64? operators.
+// Only a seed the function also reads as a `<` / `>` / `<=` / `>=` operand asks: that read is the use the
+// Int64? spelling makes native (a seed only stored or handed to object parameters keeps object).
+function nullSeedSumWriteType87c4 (csharp, declaration, node, context) {
+    if (!isNullInit (declaration) || declaration.name?.kind !== ts.SyntaxKind.Identifier || !nullSeedRelationalRead87c4 (declaration)) {
+        return undefined;
+    }
+    return integerBoxCastType (csharp, stripParens (node), context);
+}
+
+const NULL_SEED_RELATIONAL_OPERATORS = [ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanEqualsToken ];
+
+function nullSeedRelationalRead87c4 (declaration) {
+    const name = declaration.name.text;
+    const scope = enclosingFunction (declaration);
+    let found = false;
+    const visit = (n) => {
+        if (found) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name && n !== declaration.name) {
+            let operand = n;
+            while (operand.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                operand = operand.parent;
+            }
+            const parent = operand.parent;
+            if (parent?.kind === ts.SyntaxKind.BinaryExpression && NULL_SEED_RELATIONAL_OPERATORS.includes (parent.operatorToken.kind)) {
+                found = true;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    if (scope?.body !== undefined) {
+        visit (scope.body);
+    }
+    return found;
+}
+
+// a safeString* call whose default argument is a non-null string: a value nonNullStringDefaultCall proves, or
+// (one level down, `this.safeString (o, k, this.safeString (o, 'public', ''))`) such a call itself
+function nestedNonNullStringDefaultCall87c4 (csharp, node, context, depth) {
+    if (nonNullStringDefaultCall (csharp, node, context)) {
+        return true;
+    }
+    const call = stripParens (node);
+    if (depth > 0 || call?.kind !== ts.SyntaxKind.CallExpression || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const arity = NON_NULL_DEFAULT_SAFE_STRING_ARITY[call.expression.name?.text];
+    return arity !== undefined && call.arguments?.length === arity && nestedNonNullStringDefaultCall87c4 (csharp, call.arguments[arity - 1], context, depth + 1);
+}
+
+// ral-87c4 R3: the uninitialised `let x: string;` (StringKeyword only, never `Str`) with at least one write,
+// every reference to it either a plain `x = <safeString* with a non-null string default>` write or a read
+function definiteStringDefaultWrites87c4 (csharp, scope, declaration, varName, context) {
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.initializer !== undefined || declaration.exclamationToken !== undefined
+            || declaration.type?.kind !== ts.SyntaxKind.StringKeyword || declaration.parent?.declarations?.length !== 1 || !isBlockScopedDeclaration (declaration)
+            || scope === undefined) {
+        return false;
+    }
+    let writes = 0;
+    for (const n of (indexScope (csharp, scope).identifiers.get (varName) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !nestedNonNullStringDefaultCall87c4 (csharp, parent.right, context, 0)) {
+                return false;
+            }
+            writes++;
+        } else if (parent?.kind === ts.SyntaxKind.PrefixUnaryExpression || parent?.kind === ts.SyntaxKind.PostfixUnaryExpression
+                || parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            return false;
+        }
+    }
+    return writes > 0;
+}
+
+// ral-87c4: a write `x = this.<m> (..)` into such a local whose same-file sync declaration prints a string
+function nullSeedNativeStringCallWriteType (csharp, declaration, node) {
+    if (!nullSeedNativeStringLocal (declaration)) {
+        return undefined;
+    }
+    const call = stripParens (node);
+    if (call?.kind !== ts.SyntaxKind.CallExpression || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const printed = sameFileSyncReturnType (csharp, call, call.expression.name?.text);
+    return (printed === 'string' || printed === 'string?') ? printed : undefined;
 }
 
 // `x = market['symbol']` as a write: the audited key table (MARKET_ROW_STRING_KEYS) plus the
@@ -12623,7 +12778,7 @@ function narrowedCopyWriteType (declaration, node) {
 
 // the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
 function nullInitWriteValueType (csharp, declaration, node) {
-    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node);
+    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node) ?? nullSeedNativeStringCallWriteType (csharp, declaration, node);
 }
 
 // the write-time record of a retyped name-keyed local (`scope -> Map<printed name, declaration>`), read
@@ -13014,6 +13169,11 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             written = selfOmitWriteType (csharp, context, declaration, parent.right);
         }
         written ??= interfaceSelfOmitWriteType (csharp, context, declaration, type, sawNull, parent.right);
+        // ral-87c4 R4: `let x = undefined; … x = this.safeDict (o, k, {}); … x = this.omit (x, k)`: the null seed
+        // set sawNull, but omit(object) on any receiver (null included) returns the fresh outDict, so the
+        // self-omit stores a Dictionary into the IDictionary? declaration exactly like the non-null family
+        written ??= (type === 'IDictionary<string, object>' && sawNull && isNullInit (declaration))
+            ? interfaceSelfOmitWriteType (csharp, context, declaration, type, false, parent.right) : undefined;
         if (written === undefined && safeHelperLocalInitializer (declaration.initializer)) {
             // `let x = this.safeString (…); … x = <expression reading x>`: the read of x inside
             // the write is statically the declaration's own type, so the expression can only be

@@ -8686,7 +8686,7 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12818,5 +12818,31 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
     // a helper with a non-literal return path keeps object
     const kept = print ('chan (id) { if (id) { return \'a\'; } return id; }\n g (id) { const c = this.chan (id); const k = c + \':r\'; return this.hash (k, 1, 1); }');
     if (!kept.includes ('object c = this.chan(id);')) problems.push (`84c7 non-null string call locals: unproven helper retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// 87c4 snippet checks (part of `csharpTranspiler.ts --self-test`): a `let x: Str = undefined` read as a string
+// receiver is declared `string?`, its same-file string-call write needs no cast and the receiver prints natively;
+// a seed with no string-receiver use keeps object
+export function nullSeedNativeStringChecks87c4 (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } };
+    const pre = 'type Str = string | undefined;\nclass Test {\n signed (a: Str): Str { if (a === undefined) { return undefined; } return \'-\' + a; }\n';
+    const print = (body: string) => emit.transpileCSharp (pre + body + '\n}').content;
+    const out = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = this.signed (a); } if (x !== undefined) { return x.toLowerCase (); } return x; }');
+    if (!out.includes ('string? x = null;') || out.includes ('((string)x)')) problems.push (`87c4 null-seed native string: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    const kept = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = this.signed (a); } return x; }');
+    if (!kept.includes ('object x = null;')) problems.push (`87c4 null-seed native string: seed with no string use retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    // R2: a null seed written by `this.sum (a, b)` over integer operands and read by `<` is Int64? (needs the corpus' typed until/since)
+    const whitebit: string = emit.transpileCSharpByPath ('./ts/src/whitebit.ts').content;
+    const start = whitebit.indexOf (' fetchOHLCV(');
+    const body = (start < 0) ? '' : whitebit.slice (start, whitebit.indexOf ('\n    }\n', start));
+    if (!body.includes ('Int64? endTime = null;')) problems.push ('87c4 R2 null-seed sum write: whitebit fetchOHLCV endTime not Int64?');
+    // R4: `let p = undefined; p = this.safeDict (o, 1, {}); … p = this.omit (p, k)` is IDictionary, so the omit binds the dict overload
+    const r4 = print ('safeDict (o, k, d = undefined) { return d; }\n omit (o, k) { return o; }\n f (o) { let p = undefined; p = this.safeDict (o, 1, {}); if (o) { p = this.omit (p, \'a\'); } return p; }');
+    if (!r4.includes ('IDictionary<string, object> p = null;')) problems.push (`87c4 R4 null-seed self-omit: ${r4.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
