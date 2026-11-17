@@ -1935,10 +1935,8 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
         params['callerMethodName'] = 'watchOHLCV';
-        return await this.unWatchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], params);
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
     handleOHLCV (client: Client, message: Dict) {

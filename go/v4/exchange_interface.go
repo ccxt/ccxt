@@ -412,7 +412,7 @@ type ICoreExchange interface {
 	UnWatchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[bool]
-	UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[bool]
+	UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes [][]string, optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchOrderBookForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[bool]
