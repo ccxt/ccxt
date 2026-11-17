@@ -1093,9 +1093,9 @@ impl Coinbaseexchange {
                 if (previousSequence.is_none()) || ((sequence.is_some() && previousSequence.is_some() && sequence > previousSequence)) {
                     if (type_var.as_deref() == Some("match")) {
                         let mut trade: Value = self.parse_ws_trade(message.clone(), None);
-                        let mut previousTrades: Value = self.safe_list_k(previousOrder.clone(), "trades", &[Value::from(vec![])]);
-                        if let Value::Arr(__a) = &mut previousTrades { std::sync::Arc::make_mut(__a).push(trade.clone()); }
-                        add_element_to_object(&mut previousOrder, &Value::Str("trades".into()), previousTrades.clone());
+                        let mut previousTrades: crate::value::List = self.safe_list_k(previousOrder.clone(), "trades", &[Value::from(vec![])]).into_list();
+                        std::sync::Arc::make_mut(&mut previousTrades).push(trade.clone());
+                        add_element_to_object(&mut previousOrder, &Value::Str("trades".into()), Value::Arr(previousTrades.clone()));
                         add_element_to_object(&mut previousOrder, &Value::Str("lastTradeTimestamp".into()), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
                         let mut totalCost: String = "0".to_string();
                         let mut totalAmount: String = "0".to_string();
@@ -1103,7 +1103,7 @@ impl Coinbaseexchange {
                                                         let mut i: i64 = 0;
                             let mut __for_first_238: bool = true;
                             while { if !__for_first_238 { i += 1; } __for_first_238 = false; i < (previousTrades.len() as i64) } {
-                            let mut tradeEntry: crate::value::Dict = self.safe_dict(previousTrades.clone(), Value::Int(i), &[]).into_dict();
+                            let mut tradeEntry: crate::value::Dict = self.safe_dict(&previousTrades, Value::Int(i), &[]).into_dict();
                             totalCost = self.safe_string_k(&tradeEntry, "cost", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                             totalAmount = self.safe_string_k(&tradeEntry, "amount", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                         }

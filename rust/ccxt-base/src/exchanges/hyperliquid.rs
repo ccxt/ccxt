@@ -1943,9 +1943,9 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut secondPart: Value = Value::Int((((i * 10000)) - 10000));
-            let mut offset: Value = self.sum(&[Value::Int(110000), secondPart]);
-            add_element_to_object(&mut perpDexesOffset, &self.safe_string_k(&dex, "name", &[Value::Str("".into())]), offset.clone());
+            let mut secondPart: i64 = (((i * 10000)) - 10000);
+            let mut offset: i64 = (110000 + secondPart);
+            add_element_to_object(&mut perpDexesOffset, &self.safe_string_k(&dex, "name", &[Value::Str("".into())]), Value::from(offset));
         }
         }
         let mut fetchDexesList: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -2937,7 +2937,7 @@ impl Hyperliquid {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_15]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_15]).await.into_opt_list();
         //
         //     [
         //         {
@@ -2955,8 +2955,8 @@ impl Hyperliquid {
         //     ]
         //
         let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            candles = response.into_list();
+        if (response.is_some()) {
+            candles = response.unwrap_or_default();
         }
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, Value::from(originalSince), limit, Value::Bool(useTail)]);
         Value::Null
@@ -3022,7 +3022,7 @@ impl Hyperliquid {
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_16]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_16]).await.into_opt_list();
         //
         //     [
         //         {
@@ -3044,8 +3044,8 @@ impl Hyperliquid {
         //     ]
         //
         let mut fills: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            fills = response.into_list();
+        if (response.is_some()) {
+            fills = response.unwrap_or_default();
         }
         return self.parse_trades(&fills, market.as_ref(), &[since, limit]);
         Value::Null
@@ -5126,7 +5126,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_22]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_22]).await.into_opt_list();
         //
         //     [
         //         {
@@ -5139,8 +5139,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let mut result: Vec<Value> = Vec::new();
         let mut fundings: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            fundings = response.into_list();
+        if (response.is_some()) {
+            fundings = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;
@@ -5230,7 +5230,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsMethod]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_23]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_23]).await.into_opt_list();
         //
         //     [
         //         {
@@ -5246,8 +5246,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let mut orderWithStatus: Vec<Value> = Vec::new();
         let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            rawOrders = response.into_list();
+        if (response.is_some()) {
+            rawOrders = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;
@@ -5421,7 +5421,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_24]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_24]).await.into_opt_list();
         //
         //     [
         //         {
@@ -5447,8 +5447,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let mut historicalOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            historicalOrders = response.into_list();
+        if (response.is_some()) {
+            historicalOrders = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;
@@ -5656,7 +5656,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_26]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_26]).await.into_opt_list();
         //
         //     [
         //         {
@@ -5679,8 +5679,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     ]
         //
         let mut myFills: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            myFills = response.into_list();
+        if (response.is_some()) {
+            myFills = response.unwrap_or_default();
         }
         return self.parse_trades(&myFills, market.as_ref(), &[since, limit]);
         Value::Null
@@ -5744,7 +5744,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("endTime".into(), Value::from(until));
         }
         let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_27]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_27]).await.into_opt_list();
         //
         //     [
         //         {
@@ -5772,13 +5772,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     ]
         //
         let mut fills: Vec<Value> = Vec::new();
-        if (matches!(&response, Value::Arr(_))) {
+        if (response.is_some()) {
             let mut user: Option<String> = self.safe_string_lower_k_opt(&request, "user", &[]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_824: bool = true;
-                while { if !__for_first_824 { i += 1; } __for_first_824 = false; i < (response.len() as i64) } {
-                let mut fill: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+                while { if !__for_first_824 { i += 1; } __for_first_824 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut fill: crate::value::Dict = self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -6772,7 +6772,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit(params2, &["until"], &[]);
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[params2.clone()]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_33]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_33]).await.into_opt_list();
         //
         // [
         //     {
@@ -6787,8 +6787,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // ]
         //
         let mut depositLedger: Value = Value::from(vec![]);
-        if (matches!(&response, Value::Arr(_))) {
-            depositLedger = response;
+        if (response.is_some()) {
+            depositLedger = response.map_or(Value::Null, Value::Arr);
         }
         let mut records: crate::value::List = self.extract_type_from_delta(&[depositLedger]).into_list();
         let mut vaultAddress: Option<String> = None;
@@ -6871,7 +6871,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit(params2, &["until"], &[]);
         }
         let __ws_arg_34 = self.extend(Value::Map(request), &[params2.clone()]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_34]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_34]).await.into_opt_list();
         //
         // [
         //     {
@@ -6886,8 +6886,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // ]
         //
         let mut withdrawalLedger: Value = Value::from(vec![]);
-        if (matches!(&response, Value::Arr(_))) {
-            withdrawalLedger = response;
+        if (response.is_some()) {
+            withdrawalLedger = response.map_or(Value::Null, Value::Arr);
         }
         let mut records: crate::value::List = self.extract_type_from_delta(&[withdrawalLedger]).into_list();
         let mut vaultAddress: Option<String> = None;

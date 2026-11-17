@@ -2648,9 +2648,9 @@ impl Bitfinex {
             let mut valuesList: crate::value::List = self.safe_list(&networkObj, Value::Int(1), &[]).into_list();
             let mut networkName: Option<String> = self.safe_string_opt(&valuesList, Value::Int(0), &[]);
             // for GOlang transpiler, do with "safe" method
-            let mut networksList: Value = self.safe_list(&indexedNetworks, Value::from(networkName.as_deref()), &[Value::from(vec![])]);
-            if let Value::Arr(__a) = &mut networksList { std::sync::Arc::make_mut(__a).push(networkId.map(Value::from).unwrap_or(Value::Null)); }
-            indexedNetworks.insert(networkName.as_deref().unwrap_or("null").to_string(), networksList);
+            let mut networksList: crate::value::List = self.safe_list(&indexedNetworks, Value::from(networkName.as_deref()), &[Value::from(vec![])]).into_list();
+            std::sync::Arc::make_mut(&mut networksList).push(networkId.map(Value::from).unwrap_or(Value::Null));
+            indexedNetworks.insert(networkName.as_deref().unwrap_or("null").to_string(), Value::Arr(networksList));
         }
         }
         let mut ids: crate::value::List = self.safe_list(&response, Value::Int(0), &[Value::from(vec![])]).into_list();

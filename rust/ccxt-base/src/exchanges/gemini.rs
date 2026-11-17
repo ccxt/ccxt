@@ -2174,7 +2174,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut marketIdsRaw: Value = self.public_get_v1_symbols(&[params.clone()]).await;
+        let mut marketIdsRaw: Option<crate::value::List> = self.public_get_v1_symbols(&[params.clone()]).await.into_opt_list();
         //
         //     [
         //         "btcusd",
@@ -2190,8 +2190,8 @@ impl Gemini {
         let mut brokenPairs: crate::value::List = self.safe_list_k(self.options.clone(), "brokenPairs", &[Value::from(vec![])]).into_list();
         let mut marketIds: Vec<Value> = Vec::new();
         let mut allMarketIds: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&marketIdsRaw, Value::Arr(_))) {
-            allMarketIds = marketIdsRaw.into_list();
+        if (marketIdsRaw.is_some()) {
+            allMarketIds = marketIdsRaw.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;
@@ -3225,7 +3225,7 @@ impl Gemini {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_v2_candles_symbol_timeframe(&[__ws_arg_14]).await;
+        let mut response: Option<crate::value::List> = self.public_get_v2_candles_symbol_timeframe(&[__ws_arg_14]).await.into_opt_list();
         //
         //     [
         //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
@@ -3234,8 +3234,8 @@ impl Gemini {
         //     ]
         //
         let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            candles = response.into_list();
+        if (response.is_some()) {
+            candles = response.unwrap_or_default();
         }
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null

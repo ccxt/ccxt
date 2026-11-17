@@ -3103,12 +3103,12 @@ impl Krakenfutures {
         let mut isTriggerOrder: bool = triggerPrice.is_some();
         let mut stopLossTriggerPrice: Option<String> = self.safe_string_k_opt(&paramsPostOnly, "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k_opt(&paramsPostOnly, "takeProfitPrice", &[]);
-        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        let mut isStopLossTriggerOrder: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitTriggerOrder: bool = (takeProfitTriggerPrice.is_some());
+        let mut isStopLossOrTakeProfitTrigger: bool = (isStopLossTriggerOrder || isTakeProfitTriggerOrder);
         let mut triggerSignal: String = self.safe_string_k(&paramsPostOnly, "triggerSignal", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
         let mut reduceOnlyParam: bool = self.safe_bool_k_opt(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let mut reduceOnly: bool = reduceOnlyParam == true;
+        let mut reduceOnly: bool = (reduceOnlyParam == true);
         if isStopLossOrTakeProfitTrigger || isTriggerOrder {
             request.insert("triggerSignal".into(), Value::from(triggerSignal));
         }

@@ -4583,9 +4583,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut accounts: Value = self.safe_list_k(&result, "sub_account_list", &[Value::from(vec![])]);
-        if let Value::Arr(__a) = &mut accounts { std::sync::Arc::make_mut(__a).push(Value::Dict(masterAccount)); }
-        return self.parse_accounts(accounts, &[params]);
+        let mut accounts: crate::value::List = self.safe_list_k(&result, "sub_account_list", &[Value::from(vec![])]).into_list();
+        std::sync::Arc::make_mut(&mut accounts).push(Value::Dict(masterAccount));
+        return self.parse_accounts(&accounts, &[params]);
         Value::Null
         }).await?))
     }

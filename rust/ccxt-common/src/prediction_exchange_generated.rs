@@ -235,7 +235,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (status == Value::Null) || (status.as_str() == Some("all")) {
             return events;
         }
-        let mut wantActive: Value = (Value::Bool(status.as_str() == Some("active")));
+        let mut wantActive: bool = (status.as_str() == Some("active"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -244,7 +244,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut event: crate::value::Dict = self.safe_dict(events.clone(), Value::Int(i), &[]).into_dict();
             let mut isActive: Option<bool> = self.safe_bool_k_opt(&event, "active", &[]);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
-            if (isActive.is_none()) || ((isActive == wantActive.as_bool())) {
+            if (isActive.is_none()) || ((isActive == Some(wantActive))) {
                 result.push(self.safe_value(events.clone(), Value::Int(i), &[]));
             }
         }

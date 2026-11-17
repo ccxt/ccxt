@@ -2732,7 +2732,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if matches!(&heldYes, Value::Bool(true)) {
             heldLabel = "YES".to_string();
         }
-        let mut tickerMissing: bool = ticker.is_none();
+        let mut tickerMissing: bool = (ticker.is_none());
         let mut useHeldYesTicker: bool = matches!(&heldYes, Value::Bool(true)) || tickerMissing;
         let mut heldTicker: Option<String> = None;
         if useHeldYesTicker {

@@ -3228,8 +3228,8 @@ impl Btse {
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(&query, "takeProfitPrice", &[]);
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(&query, "stopLossPrice", &[]);
         let mut isTriggerOrder: bool = ((triggerPrice.is_some()) || (takeProfitPrice.is_some()));
-        let mut isStopLossOrder: bool = stopLossPrice.is_some();
-        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
+        let mut isStopLossOrder: bool = (stopLossPrice.is_some());
+        let mut isConditionalOrder: bool = ((isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder));
         let mut isAlgoOrder: bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
         if isLimitOrder || (typeValue == "PEG") || (typeValue == "OCO") {
             if (price == Value::Null) {
@@ -3469,8 +3469,8 @@ impl Btse {
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(&query, "takeProfitPrice", &[]);
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(&query, "stopLossPrice", &[]);
         let mut isTriggerOrder: bool = ((triggerPrice.is_some()) || (takeProfitPrice.is_some()));
-        let mut isStopLossOrder: bool = stopLossPrice.is_some();
-        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
+        let mut isStopLossOrder: bool = (stopLossPrice.is_some());
+        let mut isConditionalOrder: bool = ((isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder));
         let mut isAlgoOrder: bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
         if isLimitOrder || (typeValue == "OCO") {
             if (price == Value::Null) {

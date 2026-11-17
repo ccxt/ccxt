@@ -2320,7 +2320,7 @@ impl Poloniex {
             return self.parse_ohlc_vs(&data, Some(&market), &[timeframe.clone(), since.clone(), limit.clone()]);
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.public_get_markets_symbol_candles(&[__ws_arg_1]).await;
+        let mut response: Option<crate::value::List> = self.public_get_markets_symbol_candles(&[__ws_arg_1]).await.into_opt_list();
         //
         //     [
         //         [
@@ -2342,8 +2342,8 @@ impl Poloniex {
         //     ]
         //
         let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            candles = response.into_list();
+        if (response.is_some()) {
+            candles = response.unwrap_or_default();
         }
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
@@ -4836,11 +4836,11 @@ impl Poloniex {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let __ws_arg_40 = self.extend(params, &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("includeMultiChainCurrencies".to_string(), Value::Bool(true));
-            m
-        })]);
-        let mut response: Value = self.public_get_currencies(&[__ws_arg_40]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("includeMultiChainCurrencies".to_string(), Value::Bool(true));
+    m
+})]);
+        let mut response: Option<crate::value::List> = self.public_get_currencies(&[__ws_arg_40]).await.into_opt_list();
         //
         //     [
         //         {
@@ -4869,8 +4869,8 @@ impl Poloniex {
             m
         });
         let mut entries: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            entries = response.into_list();
+        if (response.is_some()) {
+            entries = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;

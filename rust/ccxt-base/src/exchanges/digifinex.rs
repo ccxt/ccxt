@@ -2364,13 +2364,13 @@ impl Digifinex {
             let mut isAllowedRaw: i64 = self.safe_integer_k(&market, "is_allow", &[Value::Int(1)]).as_i64().unwrap_or(1);
             let mut isTradingSwap: bool = false;
             let mut type_var: String = (if (defaultType.as_deref() == Some("margin")) { "margin".to_string() } else { "spot".to_string() });
-            let mut spot: Value = Value::Bool(settle.is_none());
-            let mut swap: Value = Value::Bool(!(matches!(&spot, Value::Bool(true))));
+            let mut spot: bool = (settle.is_none());
+            let mut swap: bool = !(spot);
             let mut margin: Option<bool> = (if (marginMode.is_some()) { Some(true) } else { None });
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             let mut isInverse: Option<bool> = None;
             let mut isLinear: Option<bool> = None;
-            if matches!(&swap, Value::Bool(true)) {
+            if swap {
                 type_var = "swap".to_string();
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
                 isInverse = self.safe_bool_k(&market, "is_inverse", &[]).as_bool();
@@ -2392,13 +2392,13 @@ impl Digifinex {
                     m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), Value::from(type_var));
-                    m.insert("spot".to_string(), spot);
+                    m.insert("spot".to_string(), Value::Bool(spot));
                     m.insert("margin".to_string(), margin.map_or(Value::Null, Value::Bool));
-                    m.insert("swap".to_string(), swap.clone());
+                    m.insert("swap".to_string(), Value::Bool(swap));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), isActive);
-                    m.insert("contract".to_string(), swap);
+                    m.insert("contract".to_string(), Value::Bool(swap));
                     m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
                     m.insert("inverse".to_string(), isInverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contractSize".to_string(), self.safe_number_k(&market, "contract_value", &[]));

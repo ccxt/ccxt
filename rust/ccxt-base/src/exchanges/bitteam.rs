@@ -2503,7 +2503,7 @@ impl Bitteam {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.public_get_trade_api_cmc_summary(&[]).await;
+        let mut response: Option<crate::value::List> = self.public_get_trade_api_cmc_summary(&[]).await.into_opt_list();
         //
         //     [
         //         {
@@ -2537,8 +2537,8 @@ impl Bitteam {
         //
         let mut tickers: Vec<Value> = Vec::new();
         let mut rawTickers: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            rawTickers = response.into_list();
+        if (response.is_some()) {
+            rawTickers = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;

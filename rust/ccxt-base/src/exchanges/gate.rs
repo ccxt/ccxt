@@ -5370,10 +5370,10 @@ if _try_result.is_err() {
             let mut tradeStatus: Option<String> = self.safe_string_k_opt(market.clone(), "trade_status", &[]);
             let mut marginStatus: i64 = self.safe_integer_k(market.clone(), "status", &[Value::Int(1)]).as_i64().unwrap_or(1); // 0 disabled, 1 enabled
             let mut leverage: Option<f64> = self.safe_number_k(market.clone(), "leverage", &[]).as_f64();
-            let mut margin: bool = leverage.is_some();
+            let mut margin: bool = (leverage.is_some());
             let mut buyStart: Option<i64> = self.safe_integer_product_k(&spotMarket, "buy_start", Value::Int(1000), &[]).as_i64(); // buy_start is the trading start time, while sell_start is offline orders start time
             let mut createdTs: Option<i64> = (if (buyStart != Some(0)) { buyStart } else { None });
-            let mut active: Value = Value::Bool((tradeStatus.as_deref() == Some("tradable")) || (margin && (marginStatus == 1)));
+            let mut active: Value = Value::Bool(((tradeStatus.as_deref() == Some("tradable")) || (margin && (marginStatus == 1))));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -5386,7 +5386,7 @@ if _try_result.is_err() {
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(true));
-                    m.insert("margin".to_string(), Value::Bool(margin.clone()));
+                    m.insert("margin".to_string(), Value::Bool(margin));
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
@@ -8090,9 +8090,9 @@ if _try_result.is_err() {
         let mut triggerPrice: Option<f64> = self.safe_number2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
         let mut stopLossPrice: Option<f64> = self.safe_number_k(params.clone(), "stopLossPrice", &[Value::from(triggerPrice)]).as_f64();
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(params.clone(), "takeProfitPrice", &[]);
-        let mut isStopLossOrder: bool = stopLossPrice.is_some();
-        let mut isTakeProfitOrder: bool = takeProfitPrice.is_some();
-        let mut isTpsl: bool = isStopLossOrder || isTakeProfitOrder;
+        let mut isStopLossOrder: bool = (stopLossPrice.is_some());
+        let mut isTakeProfitOrder: bool = (takeProfitPrice.is_some());
+        let mut isTpsl: bool = (isStopLossOrder || isTakeProfitOrder);
         let mut nonTriggerOrder: bool = !isTpsl && (trigger.is_none());
         let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
@@ -8253,9 +8253,9 @@ if _try_result.is_err() {
         let mut triggerPrice: Option<f64> = self.safe_number2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
         let mut stopLossPrice: Option<f64> = self.safe_number_k(params.clone(), "stopLossPrice", &[Value::from(triggerPrice)]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(params.clone(), "takeProfitPrice", &[]).as_f64();
-        let mut isStopLossOrder: bool = stopLossPrice.is_some();
-        let mut isTakeProfitOrder: bool = takeProfitPrice.is_some();
-        let mut isTpsl: bool = isStopLossOrder || isTakeProfitOrder;
+        let mut isStopLossOrder: bool = (stopLossPrice.is_some());
+        let mut isTakeProfitOrder: bool = (takeProfitPrice.is_some());
+        let mut isTpsl: bool = (isStopLossOrder || isTakeProfitOrder);
         if isStopLossOrder && isTakeProfitOrder {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")));
         }

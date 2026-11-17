@@ -4721,27 +4721,27 @@ impl Coinbaseinternational {
         let routeparamsResolvedVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName, Value::Str("route".into()), &[Value::Str("auto".into())]).as_array().cloned().unwrap_or_default();
         let mut route: Option<String> = routeparamsResolvedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsResolved: crate::value::Dict = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut deribit: Value = self.resolve_route(&[route.map(Value::from).unwrap_or(Value::Null)]);
+        let mut deribit: bool = self.resolve_route(&[route.map(Value::from).unwrap_or(Value::Null)]).as_bool().unwrap_or_default();
         let mut previousBackend: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "routeBackend", &[]);
         let mut configuredBackend: bool = self.is_native_deribit_credentials().as_bool().unwrap_or_default();
         let mut currentToken: Option<String> = self.get_v2_access_token();
         let mut hasToken: bool = (currentToken.is_some()) && (currentToken.as_deref() != Some(""));
         let mut hasWsState: bool = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]) != Value::Null;
-        if (previousBackend.is_some()) && ((previousBackend != deribit.as_bool())) {
+        if (previousBackend.is_some()) && ((previousBackend != Some(deribit))) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cannot switch route backend on an initialized instance; use a separate exchange instance")));
         }
-        if (previousBackend.is_none()) && ((self.markets.clone() != Value::Null) || hasToken || hasWsState) && ((Some(configuredBackend) != deribit.as_bool())) {
+        if (previousBackend.is_none()) && ((self.markets.clone() != Value::Null) || hasToken || hasWsState) && (configuredBackend != deribit) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cannot switch route backend after markets or authentication state; use a separate exchange instance")));
         }
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
-        if deribit.as_bool() == Some(true) {
+        if deribit {
             if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("deribit".into())); }
         }  else {
             if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("coinbase".into())); }
         }
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("routeBackend".into(), deribit.clone()); }
-        if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!(deribit.as_bool() == Some(true)))); }
-        if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!(deribit.as_bool() == Some(true)))); }
+        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("routeBackend".into(), Value::Bool(deribit)); }
+        if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!deribit)); }
+        if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!deribit)); }
         return self.omit(&paramsResolved, &["route", "defaultRoute", "callerMethodName"], &[]);
 
     Value::Null

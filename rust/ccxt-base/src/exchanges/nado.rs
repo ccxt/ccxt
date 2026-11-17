@@ -1660,10 +1660,10 @@ impl Nado {
         let mut triggerPrice: Option<String> = self.safe_string2_opt(Value::from(&paramsRecvWindow), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossTriggerPrice: Option<String> = self.safe_string_k_opt(&paramsRecvWindow, "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k_opt(&paramsRecvWindow, "takeProfitPrice", &[]);
-        let mut isStopLossOrder: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut isStopOrder: bool = triggerPrice.is_some();
-        let mut isTriggerOrder: bool = isStopOrder || isStopLossOrder || isTakeProfitOrder;
+        let mut isStopLossOrder: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitOrder: bool = (takeProfitTriggerPrice.is_some());
+        let mut isStopOrder: bool = (triggerPrice.is_some());
+        let mut isTriggerOrder: bool = ((isStopOrder || isStopLossOrder) || isTakeProfitOrder);
         if isStopOrder {
             // the final omit drops triggerDirection from the request
             let mut triggerDirection: Option<String> = self.safe_string_opt(self.handle_trigger_direction_and_params(&paramsRecvWindow, &[]), Value::Int(0), &[]);

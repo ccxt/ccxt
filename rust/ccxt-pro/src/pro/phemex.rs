@@ -873,8 +873,8 @@ impl Phemex {
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
-        let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
-        let mut isUsdtSwap: bool = (isSwap == true) && settleIsUSDT;
+        let mut settleIsUSDT: bool = (Value::from((market).settle.as_deref()).as_str() == Some("USDT"));
+        let mut isUsdtSwap: bool = ((isSwap == true) && settleIsUSDT);
         let mut name: String = "trade".to_string();
         if isUsdtSwap {
             name = "trade_p".to_string();
@@ -932,8 +932,8 @@ impl Phemex {
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
-        let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
-        let mut isUsdtSwap: bool = (isSwap == true) && settleIsUSDT;
+        let mut settleIsUSDT: bool = (Value::from((market).settle.as_deref()).as_str() == Some("USDT"));
+        let mut isUsdtSwap: bool = ((isSwap == true) && settleIsUSDT);
         let mut name: String = "orderbook".to_string();
         if isUsdtSwap {
             name = "orderbook_p".to_string();
@@ -990,8 +990,8 @@ impl Phemex {
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
-        let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
-        let mut isUsdtSwap: bool = (isSwap == true) && settleIsUSDT;
+        let mut settleIsUSDT: bool = (Value::from((market).settle.as_deref()).as_str() == Some("USDT"));
+        let mut isUsdtSwap: bool = ((isSwap == true) && settleIsUSDT);
         let mut name: String = "kline".to_string();
         if isUsdtSwap {
             name = "kline_p".to_string();

@@ -1655,7 +1655,7 @@ impl Hyperliquid {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_4]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_4]).await.into_opt_list();
         //
         //     [
         //         {
@@ -1673,8 +1673,8 @@ impl Hyperliquid {
         //     ]
         //
         let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            candles = response.into_list();
+        if (response.is_some()) {
+            candles = response.unwrap_or_default();
         }
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
@@ -2298,7 +2298,7 @@ impl Hyperliquid {
             m
         });
         if (clientOrderId != Value::Null) {
-            let mut cloids: Value = (if (matches!(&clientOrderId, Value::Arr(_))) { clientOrderId.clone() } else { Value::from(vec![clientOrderId.clone()]) });
+            let mut cloids: crate::value::List = (if (matches!(&clientOrderId, Value::Arr(_))) { clientOrderId.clone() } else { Value::from(vec![clientOrderId.clone()]) }).into_list();
             cancelAction.insert("type".into(), Value::Str("cancelByCloid".into()));
             {
                                 let mut i: i64 = 0;
@@ -2307,7 +2307,7 @@ impl Hyperliquid {
                 std::sync::Arc::make_mut(&mut cancelReq).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), Value::from(assetId));
-                        m.insert("cloid".to_string(), cloids.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                        m.insert("cloid".to_string(), cloids.get(i as usize).cloned().unwrap_or(Value::Null));
                     m
                 }));
             }
@@ -2430,11 +2430,11 @@ impl Hyperliquid {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMethod]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_8]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_8]).await.into_opt_list();
         let mut ordersWithStatus: Vec<Value> = Vec::new();
         let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            rawOrders = response.into_list();
+        if (response.is_some()) {
+            rawOrders = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;
@@ -2495,15 +2495,15 @@ impl Hyperliquid {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
-        let mut response: Value = self.public_post_info(&[__ws_arg_9]).await;
+        let mut response: Option<crate::value::List> = self.public_post_info(&[__ws_arg_9]).await.into_opt_list();
         // Deduplicate by oid keeping most recent statusTimestamp
         let mut deduped: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut historicalOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            historicalOrders = response.into_list();
+        if (response.is_some()) {
+            historicalOrders = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;
@@ -2904,10 +2904,10 @@ impl Hyperliquid {
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            let mut parentMarkets: Value = self.safe_list(&groupMap, parentSymbol.clone(), &[Value::from(vec![])]);
-            if let Value::Arr(__a) = &mut parentMarkets { std::sync::Arc::make_mut(__a).push(Value::Dict(mkt)); }
+            let mut parentMarkets: crate::value::List = self.safe_list(&groupMap, parentSymbol.clone(), &[Value::from(vec![])]).into_list();
+            std::sync::Arc::make_mut(&mut parentMarkets).push(Value::Dict(mkt));
             if (parentSymbol != Value::Null) {
-                groupMap.insert(crate::runtime::stringify_param(&parentSymbol), parentMarkets);
+                groupMap.insert(crate::runtime::stringify_param(&parentSymbol), Value::Arr(parentMarkets));
             }
         }
         }

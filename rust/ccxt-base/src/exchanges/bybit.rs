@@ -8119,8 +8119,8 @@ impl Bybit {
         let mut trailingAmount: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("trailingAmount".into()), Value::Str("trailingStop".into()), &[]);
         let mut isTrailingOrder: bool = trailingAmount.is_some();
         let mut isTriggerOrder: bool = triggerPrice.is_some();
-        let mut isStopLossOrder: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitOrder: bool = takeProfitTriggerPrice.is_some();
+        let mut isStopLossOrder: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitOrder: bool = (takeProfitTriggerPrice.is_some());
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         let mut isMarket: bool = lowerCaseType.as_deref() == Some("market");

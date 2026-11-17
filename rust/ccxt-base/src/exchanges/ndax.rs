@@ -2220,7 +2220,7 @@ impl Ndax {
             }
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_get_ticker_history(&[__ws_arg_6]).await;
+        let mut response: Option<crate::value::List> = self.public_get_get_ticker_history(&[__ws_arg_6]).await.into_opt_list();
         //
         //     [
         //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
@@ -2229,8 +2229,8 @@ impl Ndax {
         //     ]
         //
         let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            candles = response.into_list();
+        if (response.is_some()) {
+            candles = response.unwrap_or_default();
         }
         return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null

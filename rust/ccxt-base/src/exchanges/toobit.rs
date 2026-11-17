@@ -3105,12 +3105,12 @@ impl Toobit {
         }
         let mut values: Vec<Value> = self.handle_trigger_prices_and_params(symbol.clone(), &paramsPostOnly, &[]).as_array().cloned().unwrap_or_default();
         let mut triggerPrice: Option<String> = values.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsTrigger: Value = values.get(3).cloned().unwrap_or(Value::Null);
+        let mut paramsTrigger: crate::value::Dict = values.get(3).cloned().unwrap_or(Value::Null).into_dict();
         if (triggerPrice.is_some()) {
             request.insert("stopPrice".into(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsTrigger.clone(), "stopLoss", &[]).into_opt_dict();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsTrigger.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&paramsTrigger, "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&paramsTrigger, "takeProfit", &[]).into_opt_dict();
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut triggerPriceTypes: indexmap::IndexMap<String, Value> = ({
@@ -3143,11 +3143,11 @@ impl Toobit {
                 request.insert("tpTriggerBy".into(), self.safe_string(&triggerPriceTypes, Value::from(triggerPriceType.as_deref()), &[Value::from(triggerPriceType.as_deref())]));
             }
         }
-        let mut paramsOmitted: Value = self.omit(paramsTrigger, &["stopLoss", "takeProfit"], &[]);
-        if (self.safe_string_k(paramsOmitted.clone(), "newClientOrderId", &[]) == Value::Null) {
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTrigger, &["stopLoss", "takeProfit"], &[]).into_dict();
+        if (self.safe_string_k(&paramsOmitted, "newClientOrderId", &[]) == Value::Null) {
             request.insert("newClientOrderId".into(), Value::from(self.uuid(&[])));
         }
-        return Value::from(vec![Value::Map(request), paramsOmitted]);
+        return Value::from(vec![Value::Map(request), Value::Dict(paramsOmitted)]);
 
     Value::Null
 }

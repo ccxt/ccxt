@@ -5151,8 +5151,8 @@ impl Kucoin {
             let mut market: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let mut expiry: Option<i64> = self.safe_integer_k(&market, "expireDate", &[]).as_i64();
-            let mut future: Value = Value::Bool(self.safe_string_k(&market, "nextFundingRateTime", &[]) == Value::Null);
-            let mut swap: Value = Value::Bool(!(matches!(&future, Value::Bool(true))));
+            let mut future: bool = (self.safe_string_k(&market, "nextFundingRateTime", &[]) == Value::Null);
+            let mut swap: bool = !(future);
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCurrency", &[]);
             let mut settleId: Option<String> = self.safe_string_k_opt(&market, "settleCurrency", &[]);
@@ -5164,7 +5164,7 @@ impl Kucoin {
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             let mut type_var: String = "swap".to_string();
-            if matches!(&future, Value::Bool(true)) {
+            if future {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())]));
                 type_var = "future".to_string();
             }
@@ -5200,8 +5200,8 @@ impl Kucoin {
                     m.insert("type".to_string(), Value::from(type_var));
                     m.insert("spot".to_string(), Value::Bool(false));
                     m.insert("margin".to_string(), Value::Bool(false));
-                    m.insert("swap".to_string(), swap);
-                    m.insert("future".to_string(), future);
+                    m.insert("swap".to_string(), Value::Bool(swap));
+                    m.insert("future".to_string(), Value::Bool(future));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("Open"))));
                     m.insert("contract".to_string(), Value::Bool(true));
@@ -7762,12 +7762,12 @@ impl Kucoin {
             m
         });
         let mut marginModeUpper: Option<String> = self.safe_string_upper_k_opt(&paramsOmitted2, "marginMode", &[]);
-        let mut paramsOmitted: Value = (if (marginModeUpper.is_some()) { self.omit(&paramsOmitted2, Value::Str("marginMode".into()), &[]) } else { Value::from(&paramsOmitted2) });
+        let mut paramsOmitted: crate::value::Dict = (if (marginModeUpper.is_some()) { self.omit(&paramsOmitted2, Value::Str("marginMode".into()), &[]).into_dict() } else { paramsOmitted2 });
         if (marginModeUpper.is_some()) {
             request.insert("marginMode".into(), marginModeUpper.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut cost: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "cost", &[]);
-        paramsOmitted = self.omit(paramsOmitted, Value::Str("cost".into()), &[]);
+        let mut cost: Option<String> = self.safe_string_k_opt(&paramsOmitted, "cost", &[]);
+        paramsOmitted = self.omit(Value::Dict(paramsOmitted), Value::Str("cost".into()), &[]).into_dict();
         if (cost.is_some()) {
             request.insert("valueQty".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
         }  else {
@@ -7782,12 +7782,12 @@ impl Kucoin {
                 request.insert("size".into(), (match sizeString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null }));
             }
         }
-        self.check_trigger_prices(paramsOmitted.clone());
-        let mut triggerPrice: Option<f64> = self.safe_number2(paramsOmitted.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-        let mut stopLossPrice: Option<f64> = self.safe_number_k(paramsOmitted.clone(), "stopLossPrice", &[]).as_f64();
-        let mut takeProfitPrice: Option<f64> = self.safe_number_k(paramsOmitted.clone(), "takeProfitPrice", &[]).as_f64();
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsOmitted.clone(), "stopLoss", &[]).into_opt_dict();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsOmitted.clone(), "takeProfit", &[]).into_opt_dict();
+        self.check_trigger_prices(&paramsOmitted);
+        let mut triggerPrice: Option<f64> = self.safe_number2(&paramsOmitted, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+        let mut stopLossPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "stopLossPrice", &[]).as_f64();
+        let mut takeProfitPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "takeProfitPrice", &[]).as_f64();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&paramsOmitted, "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&paramsOmitted, "takeProfit", &[]).into_opt_dict();
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
         // const isTpAndSl = stopLossPrice && takeProfitPrice;
@@ -7798,9 +7798,9 @@ impl Kucoin {
                 m.insert("index".to_string(), Value::Str("IP".into()));
             m
         });
-        let mut triggerPriceType: String = self.safe_string_k(paramsOmitted.clone(), "triggerPriceType", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
+        let mut triggerPriceType: String = self.safe_string_k(&paramsOmitted, "triggerPriceType", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
         let mut triggerPriceTypeValue: Option<String> = self.safe_string_opt(&triggerPriceTypes, Value::from(triggerPriceType.clone()), &[Value::from(triggerPriceType)]);
-        paramsOmitted = self.omit(paramsOmitted, &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"], &[]);
+        paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"], &[]).into_dict();
         if (triggerPrice.is_some()) {
             request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("up".into()) } else { Value::Str("down".into()) }));
             request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
@@ -7832,7 +7832,7 @@ impl Kucoin {
             request.insert("stopPriceType".into(), triggerPriceTypeValue.map(Value::from).unwrap_or(Value::Null));
         }
         let mut uppercaseType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
-        let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(paramsOmitted.clone(), "timeInForce", &[]);
+        let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&paramsOmitted, "timeInForce", &[]);
         if (uppercaseType.as_deref() == Some("LIMIT")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for limit orders")));
@@ -7844,24 +7844,24 @@ impl Kucoin {
             }
         }
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (postOnly == Some(true)) {
             request.insert("postOnly".into(), Value::Bool(true));
         }
-        let hidden: bool = self.safe_value_k(paramsOmitted.clone(), "hidden", &[]) != Value::Null;
+        let hidden: bool = self.safe_value_k(&paramsOmitted, "hidden", &[]) != Value::Null;
         if (postOnly == Some(true)) && (hidden) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() does not support the postOnly parameter together with a hidden parameter")));
         }
-        let mut iceberg: Value = self.safe_value_k(paramsOmitted.clone(), "iceberg", &[]);
+        let mut iceberg: Value = self.safe_value_k(&paramsOmitted, "iceberg", &[]);
         if (iceberg != Value::Null) && (!(match &(iceberg) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) {
-            let mut visibleSize: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "visibleSize", &[]);
+            let mut visibleSize: Option<String> = self.safe_string_k_opt(&paramsOmitted, "visibleSize", &[]);
             if (visibleSize.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a visibleSize parameter for iceberg orders")));
             }
         }
-        let mut reduceOnly: bool = self.safe_bool_k_opt(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsOmitted, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut hedged: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsOmitted.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_param_bool(&paramsOmitted, Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if reduceOnly {
             request.insert("reduceOnly".into(), Value::Bool(reduceOnly));
             if (hedged == Some(true)) {
@@ -7880,8 +7880,8 @@ impl Kucoin {
                 request.insert("positionSide".into(), Value::from(posSide));
             }
         }
-        paramsOmitted = self.omit(paramsOmitted, &["timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"], &[]); // Time in force only valid for limit orders, exchange error when gtc for market orders
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"], &[]).into_dict(); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }
@@ -8020,7 +8020,7 @@ impl Kucoin {
         let mut postOnly: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsRequest)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut timeInForce: Option<String> = self.handle_time_in_force(&[Value::from(&paramsRequest)]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (timeInForce.is_some()) { self.omit(&paramsRequest, Value::Str("timeInForce".into()), &[]) } else { Value::from(&paramsRequest) });
+        let mut paramsOmitted: crate::value::Dict = (if (timeInForce.is_some()) { self.omit(&paramsRequest, Value::Str("timeInForce".into()), &[]).into_dict() } else { paramsRequest });
         if (timeInForce.is_some()) {
             request.insert("timeInForce".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         }
@@ -8032,16 +8032,16 @@ impl Kucoin {
                 if (marginMode.is_some()) {
                     request.insert("marginMode".into(), marginMode.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
                     if (marginMode.as_deref() == Some("isolated")) {
-                        let mut leverage: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "leverage", &[]).as_i64();
+                        let mut leverage: Option<i64> = self.safe_integer_k(&paramsOmitted, "leverage", &[]).as_i64();
                         if (leverage.is_none()) {
                             request.insert("leverage".into(), Value::Int(1));
                         }
                     }
                 }
-                let mut reduceOnly: bool = self.safe_bool_k_opt(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
-                let mut hedged: Value = Value::Bool(false);
-                { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsOmitted.clone(), Value::Str("hedged".into()), &[hedged.clone()]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-                if (hedged.as_bool() == Some(true)) {
+                let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsOmitted, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+                let mut hedged: bool = false;
+                { let __destr_tmp: Vec<Value> = self.handle_param_bool(&paramsOmitted, Value::Str("hedged".into()), &[Value::Bool(hedged)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+                if (hedged == true) {
                     let mut positionSide: String = "SHORT".to_string();
                     if (side.as_str() == Some("buy")) {
                         positionSide = "LONG".to_string();
@@ -8054,12 +8054,12 @@ impl Kucoin {
             }
         }
         // handling with conditional orders
-        self.check_trigger_prices(paramsOmitted.clone());
-        let mut triggerPrice: Option<f64> = self.safe_number2(paramsOmitted.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-        let mut stopLossPrice: Option<f64> = self.safe_number_k(paramsOmitted.clone(), "stopLossPrice", &[]).as_f64();
-        let mut takeProfitPrice: Option<f64> = self.safe_number_k(paramsOmitted.clone(), "takeProfitPrice", &[]).as_f64();
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsOmitted.clone(), "stopLoss", &[]).into_opt_dict();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsOmitted.clone(), "takeProfit", &[]).into_opt_dict();
+        self.check_trigger_prices(&paramsOmitted);
+        let mut triggerPrice: Option<f64> = self.safe_number2(&paramsOmitted, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+        let mut stopLossPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "stopLossPrice", &[]).as_f64();
+        let mut takeProfitPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "takeProfitPrice", &[]).as_f64();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&paramsOmitted, "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&paramsOmitted, "takeProfit", &[]).into_opt_dict();
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut triggerPriceTypes: indexmap::IndexMap<String, Value> = ({
@@ -8070,7 +8070,7 @@ impl Kucoin {
             m
         });
         if (triggerPrice.is_some()) {
-            let mut triggerDirection: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "triggerDirection", &[]);
+            let mut triggerDirection: Option<String> = self.safe_string_k_opt(&paramsOmitted, "triggerDirection", &[]);
             if (triggerDirection.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice")));
             }
@@ -8097,20 +8097,20 @@ impl Kucoin {
                 request.insert("triggerDirection".into(), (if (side.as_str() == Some("buy")) { Value::Str("UP".into()) } else { Value::Str("DOWN".into()) }));
                 request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))));
                 if (isContract == true) {
-                    let mut stopLossPriceType: String = self.safe_string2(paramsOmitted.clone(), Value::Str("stopLossPriceType".into()), Value::Str("triggerPriceType".into()), &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
+                    let mut stopLossPriceType: String = self.safe_string2(&paramsOmitted, Value::Str("stopLossPriceType".into()), Value::Str("triggerPriceType".into()), &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("triggerPriceType".into(), self.safe_string(&triggerPriceTypes, Value::from(stopLossPriceType.clone()), &[Value::from(stopLossPriceType)]));
                 }
             }  else {
                 request.insert("triggerDirection".into(), (if (side.as_str() == Some("buy")) { Value::Str("DOWN".into()) } else { Value::Str("UP".into()) }));
                 request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitPrice))));
                 if (isContract == true) {
-                    let mut takeProfitPriceType: String = self.safe_string2(paramsOmitted.clone(), Value::Str("takeProfitPriceType".into()), Value::Str("triggerPriceType".into()), &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
+                    let mut takeProfitPriceType: String = self.safe_string2(&paramsOmitted, Value::Str("takeProfitPriceType".into()), Value::Str("triggerPriceType".into()), &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("triggerPriceType".into(), self.safe_string(&triggerPriceTypes, Value::from(takeProfitPriceType.clone()), &[Value::from(takeProfitPriceType)]));
                 }
             }
         }
-        paramsOmitted = self.omit(paramsOmitted, &["triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPriceType", "stopLossPriceType", "takeProfitPriceType", "triggerPriceType", "triggerDirection", "stopLoss", "takeProfit", "hedged"], &[]);
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPriceType", "stopLossPriceType", "takeProfitPriceType", "triggerPriceType", "triggerDirection", "stopLoss", "takeProfit", "hedged"], &[]).into_dict();
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }

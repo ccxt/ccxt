@@ -2247,12 +2247,12 @@ impl Hitbtc {
             let mut market: Option<crate::value::Dict> = self.safe_dict(&response, Value::from(id.as_deref()), &[]).into_opt_dict();
             let mut marketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
             let mut expiry: Option<i64> = self.safe_integer_k(&market, "expiry", &[]).as_i64();
-            let mut contract: Value = (Value::Bool(marketType.as_deref() == Some("futures")));
+            let mut contract: bool = marketType.as_deref() == Some("futures");
             let mut spot: bool = marketType.as_deref() == Some("spot");
             let mut marginTrading: bool = self.safe_bool_k_opt(&market, "margin_trading", &[Value::Bool(false)]).unwrap_or(false);
             let mut margin: bool = (spot && marginTrading);
-            let mut future: Value = (Value::Bool(expiry.is_some()));
-            let mut swap: Value = Value::Bool(matches!(&contract, Value::Bool(true)) && !(matches!(&future, Value::Bool(true))));
+            let mut future: bool = (expiry.is_some());
+            let mut swap: bool = (contract && !(future));
             let mut option: bool = false;
             let mut baseId: Option<String> = self.safe_string2_opt(&market, Value::Str("base_currency".into()), Value::Str("underlying".into()), &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quote_currency", &[]);
@@ -2270,7 +2270,7 @@ impl Hitbtc {
             let mut contractSize: Option<f64> = None;
             let mut linear: Option<bool> = None;
             let mut inverse: Option<bool> = None;
-            if matches!(&contract, Value::Bool(true)) {
+            if contract {
                 contractSize = Some(1_f64);
                 settleId = feeCurrencyId.take();
                 let mut settleCode: Option<String> = self.safe_currency_code(Value::from(settleId.as_deref()), None);
@@ -2278,7 +2278,7 @@ impl Hitbtc {
                 linear = Some(quote == settleCode);
                 inverse = Some(!(linear == Some(true)));
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle);
-                if matches!(&future, Value::Bool(true)) {
+                if future {
                     symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle).into()), "-").into()), self.safe_string_k(&market, "expiry", &[Value::Str("".into())]));
                     type_var = "future".to_string();
                 }  else {
@@ -2302,11 +2302,11 @@ impl Hitbtc {
                     m.insert("type".to_string(), Value::from(type_var));
                     m.insert("spot".to_string(), Value::Bool(spot));
                     m.insert("margin".to_string(), Value::Bool(margin));
-                    m.insert("swap".to_string(), swap);
-                    m.insert("future".to_string(), future);
+                    m.insert("swap".to_string(), Value::Bool(swap));
+                    m.insert("future".to_string(), Value::Bool(future));
                     m.insert("option".to_string(), Value::Bool(option));
                     m.insert("active".to_string(), Value::Bool(true));
-                    m.insert("contract".to_string(), contract);
+                    m.insert("contract".to_string(), Value::Bool(contract));
                     m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
                     m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("taker".to_string(), self.safe_number_k(&market, "take_rate", &[]));

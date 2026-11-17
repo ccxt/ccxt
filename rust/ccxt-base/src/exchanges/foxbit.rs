@@ -2025,16 +2025,16 @@ impl Foxbit {
             let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut type_var: String = self.safe_string_upper_k(&order, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut orderParams: Value = self.safe_dict_k(&order, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&order, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             if (type_var != "LIMIT") && (type_var != "MARKET") && (type_var != "STOP_MARKET") && (type_var != "STOP_LIMIT") && (type_var != "INSTANT") {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", "Invalid order type: ", type_var).into()), ". Must be one of: limit, market, stop_market, stop_limit, instant.")));
             }
-            let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(orderParams.clone(), "timeInForce", &[]);
-            let mut postOnly: bool = self.safe_bool_k_opt(orderParams.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
-            let mut triggerPrice: Option<f64> = self.safe_number_k(orderParams.clone(), "triggerPrice", &[]).as_f64();
+            let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&orderParams, "timeInForce", &[]);
+            let mut postOnly: bool = self.safe_bool_k_opt(&orderParams, "postOnly", &[Value::Bool(false)]).unwrap_or(false);
+            let mut triggerPrice: Option<f64> = self.safe_number_k(&orderParams, "triggerPrice", &[]).as_f64();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("market_symbol".to_string(), Value::from((market).id.as_deref()));
@@ -2053,15 +2053,15 @@ impl Foxbit {
                 }  else {
                     request.insert("time_in_force".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
                 }
-                if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).shift_remove("timeInForce"); }
+                std::sync::Arc::make_mut(&mut orderParams).shift_remove("timeInForce");
             }
             if postOnly {
                 request.insert("post_only".into(), Value::Bool(true));
-                if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).shift_remove("postOnly"); }
+                std::sync::Arc::make_mut(&mut orderParams).shift_remove("postOnly");
             }
             if (triggerPrice.is_some()) {
                 request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::from(triggerPrice))));
-                if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).shift_remove("triggerPrice"); }
+                std::sync::Arc::make_mut(&mut orderParams).shift_remove("triggerPrice");
             }
             if (type_var == "INSTANT") {
                 request.insert("amount".into(), Value::from(self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "amount", &[]))));
@@ -2071,7 +2071,7 @@ impl Foxbit {
             if (type_var == "LIMIT") || (type_var == "STOP_LIMIT") {
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "price", &[]))));
             }
-            ordersRequests.push(self.extend(Value::Map(request), &[orderParams]));
+            ordersRequests.push(self.extend(Value::Map(request), &[&orderParams]));
         }
         }
         let mut createOrdersRequest: indexmap::IndexMap<String, Value> = ({

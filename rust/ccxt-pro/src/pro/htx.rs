@@ -2139,9 +2139,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsRequest: Value = Value::Dict(paramsMarginMode);
         let mut linear: bool = subType.as_deref() == Some("linear");
-        let mut swap: bool = type_var.as_str() == Some("swap");
-        let mut future: bool = type_var.as_str() == Some("future");
-        let mut isV5Linear: bool = linear && (swap || future);
+        let mut swap: bool = (type_var.as_str() == Some("swap"));
+        let mut future: bool = (type_var.as_str() == Some("future"));
+        let mut isV5Linear: bool = (linear && (swap || future));
         messageHash = format!("{}{}", Value::Str(format!("{}{}", marginMode.as_deref().unwrap_or("null"), ":positions").into()), messageHash);
         let mut channel: Option<String> = Some("positions.*".to_string());
         // one positions cache per margin mode: linear, inverse and futures symbols never collide

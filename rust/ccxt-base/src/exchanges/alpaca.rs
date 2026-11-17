@@ -2973,7 +2973,7 @@ impl Alpaca {
                 m
             });
             let __ws_arg_21 = self.extend(Value::Map(request), &[params.clone()]);
-            let mut activities: Value = self.trader_private_get_v2_account_activities(&[__ws_arg_21]).await;
+            let mut activities: Option<crate::value::List> = self.trader_private_get_v2_account_activities(&[__ws_arg_21]).await.into_opt_list();
             //
             //     [
             //         {
@@ -2987,8 +2987,8 @@ impl Alpaca {
             //
             let mut filtered: Vec<Value> = Vec::new();
             let mut ledger: crate::value::List = std::sync::Arc::new(Vec::new());
-            if (matches!(&activities, Value::Arr(_))) {
-                ledger = activities.into_list();
+            if (activities.is_some()) {
+                ledger = activities.unwrap_or_default();
             }
             {
                                 let mut i: i64 = 0;
@@ -3009,7 +3009,7 @@ impl Alpaca {
             }
             return self.parse_transactions(Value::from(filtered), currency.as_ref(), &[since.clone(), limit.clone(), params.clone()]);
         }
-        let mut response: Value = self.trader_private_get_v2_wallets_transfers(&[params.clone()]).await;
+        let mut response: Option<crate::value::List> = self.trader_private_get_v2_wallets_transfers(&[params.clone()]).await.into_opt_list();
         //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -3029,8 +3029,8 @@ impl Alpaca {
         //
         let mut results: Vec<Value> = Vec::new();
         let mut transfers: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            transfers = response.into_list();
+        if (response.is_some()) {
+            transfers = response.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;

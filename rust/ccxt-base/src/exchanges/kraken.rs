@@ -3454,9 +3454,9 @@ impl Kraken {
         }
         let mut stopLossTriggerPrice: Option<String> = self.safe_string_k_opt(&paramsOmitted, "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k_opt(&paramsOmitted, "takeProfitPrice", &[]);
-        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        let mut isStopLossTriggerOrder: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitTriggerOrder: bool = (takeProfitTriggerPrice.is_some());
+        let mut isStopLossOrTakeProfitTrigger: bool = (isStopLossTriggerOrder || isTakeProfitTriggerOrder);
         let mut trailingAmount: Option<String> = self.safe_string_k_opt(&paramsOmitted, "trailingAmount", &[]);
         let mut trailingPercent: Option<String> = self.safe_string_k_opt(&paramsOmitted, "trailingPercent", &[]);
         let mut trailingLimitAmount: Option<String> = self.safe_string_k_opt(&paramsOmitted, "trailingLimitAmount", &[]);

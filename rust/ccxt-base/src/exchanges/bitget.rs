@@ -8226,8 +8226,8 @@ if _try_result.is_err() {
                 if (instrument.is_some()) {
                     // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
                     let mut assetType: Option<String> = self.safe_string_lower_k_opt(&instrument, "symbolType", &[]);
-                    let mut isReality: bool = self.safe_string_lower_k(&instrument, "isReality", &[]).as_str() == Some("yes");
-                    if let Value::Dict(__rda) = &mut parsedMarket { std::sync::Arc::make_mut(__rda).insert("stock".to_string(), Value::Bool((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality))); }
+                    let mut isReality: bool = (self.safe_string_lower_k(&instrument, "isReality", &[]).as_str() == Some("yes"));
+                    if let Value::Dict(__rda) = &mut parsedMarket { std::sync::Arc::make_mut(__rda).insert("stock".to_string(), Value::Bool(((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality)))); }
                 }
             }
             result.push(parsedMarket);
@@ -10503,7 +10503,7 @@ if _try_result.is_err() {
     m
 })]).into_dict();
         let mut recentEndpointAvailableDays: Option<i64> = self.safe_integer(&recentEndpointDaysMap, timeframe.clone(), &[]).as_i64();
-        let mut historicalEndpointNeeded: bool = useHistoryEndpoint == true;
+        let mut historicalEndpointNeeded: bool = (useHistoryEndpoint == true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         let mut calculatedStartTime: Value = Value::Null;
@@ -10597,7 +10597,7 @@ if _try_result.is_err() {
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let mut extended: crate::value::Dict = self.extend(Value::Map(request), &[&paramsProductType]).into_dict();
-            if !(historicalEndpointNeeded) && ((priceType.as_deref() == Some("mark")) || (priceType.as_deref() == Some("index"))) {
+            if !historicalEndpointNeeded && ((priceType.as_deref() == Some("mark")) || (priceType.as_deref() == Some("index"))) {
                 if !limitDefined {
                     std::sync::Arc::make_mut(&mut extended).insert("limit".into(), Value::Int(1000));
                     limitResolved = 1000;
@@ -11042,9 +11042,9 @@ if _try_result.is_err() {
         let mut trailingPercent: Option<String> = self.safe_string2_opt(params, Value::Str("trailingPercent".into()), Value::Str("callbackRatio".into()), &[]);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTriggerOrder: bool = triggerPrice.is_some();
-        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        let mut isStopLossTriggerOrder: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitTriggerOrder: bool = (takeProfitTriggerPrice.is_some());
+        let mut isStopLossOrTakeProfitTrigger: bool = (isStopLossTriggerOrder || isTakeProfitTriggerOrder);
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut response: Option<crate::value::Dict> = None;
@@ -11125,11 +11125,11 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut productType: Option<String> = None;
-        let mut paramsProductType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[params]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsProductType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[params]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (productType.as_deref() == Some("SPOT")) {
             let mut marginMode: Option<String> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsProductType.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsProductType)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             if (marginMode.is_some()) {
                 productType = Some("MARGIN".to_string());
             }
@@ -11142,43 +11142,43 @@ if _try_result.is_err() {
                 m.insert("side".to_string(), side.clone());
             m
         });
-        let mut clientOrderId: Option<String> = self.safe_string2_opt(paramsProductType.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
+        let mut clientOrderId: Option<String> = self.safe_string2_opt(&paramsProductType, Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderId.is_some()) {
             request.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            paramsProductType = self.omit(paramsProductType, Value::Str("clientOrderId".into()), &[]);
+            paramsProductType = self.omit(&paramsProductType, Value::Str("clientOrderId".into()), &[]).into_dict();
         }
-        let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(paramsProductType.clone(), "stopLossPrice", &[]).as_f64();
-        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(paramsProductType.clone(), "takeProfitPrice", &[]).as_f64();
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsProductType.clone(), "stopLoss", &[]).into_opt_dict();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsProductType.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(&paramsProductType, "stopLossPrice", &[]).as_f64();
+        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(&paramsProductType, "takeProfitPrice", &[]).as_f64();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&paramsProductType, "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&paramsProductType, "takeProfit", &[]).into_opt_dict();
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
-        let mut isStopLossTrigger: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitTrigger: bool = takeProfitTriggerPrice.is_some();
-        let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTrigger || isTakeProfitTrigger;
+        let mut isStopLossTrigger: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitTrigger: bool = (takeProfitTriggerPrice.is_some());
+        let mut isStopLossOrTakeProfitTrigger: bool = (isStopLossTrigger || isTakeProfitTrigger);
         if isStopLossOrTakeProfitTrigger {
             if isStopLossTrigger {
-                let mut slType: String = self.safe_string_k(paramsProductType.clone(), "slTriggerBy", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
+                let mut slType: String = self.safe_string_k(&paramsProductType, "slTriggerBy", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                 request.insert("slTriggerBy".into(), Value::from(slType));
                 request.insert("stopLoss".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice))));
                 if (price != Value::Null) {
                     request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
-                    request.insert("slOrderType".into(), self.safe_string_k(paramsProductType.clone(), "slOrderType", &[Value::Str("limit".into())]));
+                    request.insert("slOrderType".into(), self.safe_string_k(&paramsProductType, "slOrderType", &[Value::Str("limit".into())]));
                 }  else {
-                    request.insert("slOrderType".into(), self.safe_string_k(paramsProductType.clone(), "slOrderType", &[Value::Str("market".into())]));
+                    request.insert("slOrderType".into(), self.safe_string_k(&paramsProductType, "slOrderType", &[Value::Str("market".into())]));
                 }
             }  else if isTakeProfitTrigger {
-                let mut tpType: String = self.safe_string_k(paramsProductType.clone(), "tpTriggerBy", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
+                let mut tpType: String = self.safe_string_k(&paramsProductType, "tpTriggerBy", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                 request.insert("tpTriggerBy".into(), Value::from(tpType));
                 request.insert("takeProfit".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice))));
                 if (price != Value::Null) {
                     request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
-                    request.insert("tpOrderType".into(), self.safe_string_k(paramsProductType.clone(), "tpOrderType", &[Value::Str("limit".into())]));
+                    request.insert("tpOrderType".into(), self.safe_string_k(&paramsProductType, "tpOrderType", &[Value::Str("limit".into())]));
                 }  else {
-                    request.insert("tpOrderType".into(), self.safe_string_k(paramsProductType.clone(), "tpOrderType", &[Value::Str("market".into())]));
+                    request.insert("tpOrderType".into(), self.safe_string_k(&paramsProductType, "tpOrderType", &[Value::Str("market".into())]));
                 }
             }
-            paramsProductType = self.omit(paramsProductType, &["stopLossPrice", "takeProfitPrice"], &[]);
+            paramsProductType = self.omit(&paramsProductType, &["stopLossPrice", "takeProfitPrice"], &[]).into_dict();
         }  else {
             if hasStopLoss {
                 let mut slTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
@@ -11186,9 +11186,9 @@ if _try_result.is_err() {
                 request.insert("stopLoss".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(slTriggerPrice))));
                 if (slLimitPrice.is_some()) {
                     request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(slLimitPrice))));
-                    request.insert("slOrderType".into(), self.safe_string_k(paramsProductType.clone(), "slOrderType", &[Value::Str("limit".into())]));
+                    request.insert("slOrderType".into(), self.safe_string_k(&paramsProductType, "slOrderType", &[Value::Str("limit".into())]));
                 }  else {
-                    request.insert("slOrderType".into(), self.safe_string_k(paramsProductType.clone(), "slOrderType", &[Value::Str("market".into())]));
+                    request.insert("slOrderType".into(), self.safe_string_k(&paramsProductType, "slOrderType", &[Value::Str("market".into())]));
                 }
             }
             if hasTakeProfit {
@@ -11197,9 +11197,9 @@ if _try_result.is_err() {
                 request.insert("takeProfit".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(tpTriggerPrice))));
                 if (tpLimitPrice.is_some()) {
                     request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(tpLimitPrice))));
-                    request.insert("tpOrderType".into(), self.safe_string_k(paramsProductType.clone(), "tpOrderType", &[Value::Str("limit".into())]));
+                    request.insert("tpOrderType".into(), self.safe_string_k(&paramsProductType, "tpOrderType", &[Value::Str("limit".into())]));
                 }  else {
-                    request.insert("tpOrderType".into(), self.safe_string_k(paramsProductType.clone(), "tpOrderType", &[Value::Str("market".into())]));
+                    request.insert("tpOrderType".into(), self.safe_string_k(&paramsProductType, "tpOrderType", &[Value::Str("market".into())]));
                 }
             }
             let mut isMarketOrder: bool = type_var.as_str().map(str::to_owned).as_deref() == Some("market");
@@ -11207,11 +11207,11 @@ if _try_result.is_err() {
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             }
             request.insert("orderType".into(), type_var);
-            let mut exchangeSpecificTifParam: Option<String> = self.safe_string_k_opt(paramsProductType.clone(), "timeInForce", &[]);
+            let mut exchangeSpecificTifParam: Option<String> = self.safe_string_k_opt(&paramsProductType, "timeInForce", &[]);
             let mut postOnly: Option<bool> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificTifParam.as_deref() == Some("post_only")), &[paramsProductType.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificTifParam.as_deref() == Some("post_only")), &[Value::from(&paramsProductType)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             let mut timeInForce: Option<String> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsProductType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params(&paramsProductType, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).into_list(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             if (timeInForce.is_some()) {
                 timeInForce = timeInForce.as_deref().map(str::to_uppercase);
             }
@@ -11225,9 +11225,9 @@ if _try_result.is_err() {
                 request.insert("timeInForce".into(), Value::Str("ioc".into()));
             }
         }
-        let mut reduceOnly: bool = self.safe_bool_k_opt(paramsProductType.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsProductType, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut hedged: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsProductType.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).and_then(Value::as_bool); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_param_bool(&paramsProductType, Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).and_then(Value::as_bool); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if reduceOnly {
             if (hedged == Some(true)) || isStopLossOrTakeProfitTrigger {
                 let mut reduceOnlyPosSide: String = "short".to_string();
@@ -11247,8 +11247,8 @@ if _try_result.is_err() {
                 request.insert("posSide".into(), Value::from(posSide));
             }
         }
-        paramsProductType = self.omit(paramsProductType, &["stopLoss", "takeProfit", "postOnly", "reduceOnly", "hedged"], &[]);
-        return self.extend(Value::Map(request), &[paramsProductType]);
+        paramsProductType = self.omit(&paramsProductType, &["stopLoss", "takeProfit", "postOnly", "reduceOnly", "hedged"], &[]).into_dict();
+        return self.extend(Value::Map(request), &[&paramsProductType]);
 
     Value::Null
 }
@@ -11271,9 +11271,9 @@ if _try_result.is_err() {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketType: Option<String> = None;
         let mut marginMode: Option<String> = None;
-        let mut paramsMarketType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("createOrder".into()), Some(&market), &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsMarketType.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsMarketType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("createOrder".into()), Some(&market), &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -11281,28 +11281,28 @@ if _try_result.is_err() {
             m
         });
         let mut hedged: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsMarketType.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_param_bool(&paramsMarketType, Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         // backward compatibility for `oneWayMode`
         let mut oneWayMode: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsMarketType.clone(), Value::Str("oneWayMode".into()), &[]).as_array().cloned().unwrap_or_default(); oneWayMode = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_param_bool(&paramsMarketType, Value::Str("oneWayMode".into()), &[]).as_array().cloned().unwrap_or_default(); oneWayMode = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (oneWayMode.is_some()) {
             hedged = Some(!(oneWayMode == Some(true)));
         }
         let mut isMarketOrder: bool = type_var.as_str().map(str::to_owned).as_deref() == Some("market");
-        let mut triggerPrice: Option<f64> = self.safe_number2(paramsMarketType.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
-        let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(paramsMarketType.clone(), "stopLossPrice", &[]).as_f64();
-        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(paramsMarketType.clone(), "takeProfitPrice", &[]).as_f64();
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsMarketType.clone(), "stopLoss", &[]).into_opt_dict();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsMarketType.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut triggerPrice: Option<f64> = self.safe_number2(&paramsMarketType, Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
+        let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(&paramsMarketType, "stopLossPrice", &[]).as_f64();
+        let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(&paramsMarketType, "takeProfitPrice", &[]).as_f64();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&paramsMarketType, "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&paramsMarketType, "takeProfit", &[]).into_opt_dict();
         let mut isTriggerOrder: bool = triggerPrice.is_some();
-        let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
-        let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut hasStopLoss: bool = stopLoss.is_some();
-        let mut hasTakeProfit: bool = takeProfit.is_some();
-        let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        let mut isStopLossOrTakeProfit: bool = hasStopLoss || hasTakeProfit;
-        let mut trailingTriggerPrice: Option<String> = self.safe_string_k_opt(paramsMarketType.clone(), "trailingTriggerPrice", &[Value::from(self.number_to_string(price.clone()))]);
-        let mut trailingPercent: Option<String> = self.safe_string2_opt(paramsMarketType.clone(), Value::Str("trailingPercent".into()), Value::Str("callbackRatio".into()), &[]);
+        let mut isStopLossTriggerOrder: bool = (stopLossTriggerPrice.is_some());
+        let mut isTakeProfitTriggerOrder: bool = (takeProfitTriggerPrice.is_some());
+        let mut hasStopLoss: bool = (stopLoss.is_some());
+        let mut hasTakeProfit: bool = (takeProfit.is_some());
+        let mut isStopLossOrTakeProfitTrigger: bool = (isStopLossTriggerOrder || isTakeProfitTriggerOrder);
+        let mut isStopLossOrTakeProfit: bool = (hasStopLoss || hasTakeProfit);
+        let mut trailingTriggerPrice: Option<String> = self.safe_string_k_opt(&paramsMarketType, "trailingTriggerPrice", &[Value::from(self.number_to_string(price.clone()))]);
+        let mut trailingPercent: Option<String> = self.safe_string2_opt(&paramsMarketType, Value::Str("trailingPercent".into()), Value::Str("callbackRatio".into()), &[]);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         // const multipleTriggers = (isTriggerOrder && (isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder))
         //     || (isStopLossTriggerOrder && (isTakeProfitTriggerOrder || isTrailingPercentOrder))
@@ -11317,14 +11317,14 @@ if _try_result.is_err() {
         if (type_var.as_str() == Some("limit")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone()))); }
         }
-        let mut triggerPriceType: String = self.safe_string2(paramsMarketType.clone(), Value::Str("triggerPriceType".into()), Value::Str("triggerType".into()), &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
-        let mut reduceOnly: bool = self.safe_bool_k_opt(paramsMarketType.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let mut clientOrderId: Option<String> = self.safe_string2_opt(paramsMarketType.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut exchangeSpecificTifParam: Option<String> = self.safe_string2_opt(paramsMarketType.clone(), Value::Str("force".into()), Value::Str("timeInForce".into()), &[]);
+        let mut triggerPriceType: String = self.safe_string2(&paramsMarketType, Value::Str("triggerPriceType".into()), Value::Str("triggerType".into()), &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
+        let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsMarketType, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+        let mut clientOrderId: Option<String> = self.safe_string2_opt(&paramsMarketType, Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
+        let mut exchangeSpecificTifParam: Option<String> = self.safe_string2_opt(&paramsMarketType, Value::Str("force".into()), Value::Str("timeInForce".into()), &[]);
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificTifParam.as_deref() == Some("post_only")), &[paramsMarketType.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificTifParam.as_deref() == Some("post_only")), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut timeInForce: Option<String> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsMarketType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (timeInForce.is_some()) {
             timeInForce = timeInForce.as_deref().map(str::to_uppercase);
         }
@@ -11337,12 +11337,12 @@ if _try_result.is_err() {
         }  else if (timeInForce.as_deref() == Some("IOC")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("IOC".into())); }
         }
-        paramsMarketType = self.omit(paramsMarketType, &["stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"], &[]);
+        paramsMarketType = self.omit(&paramsMarketType, &["stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"], &[]).into_dict();
         if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginCoin".into(), crate::value::KeyRead::key_read(&&market, "settleId")); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone()))); }
             let mut productType: Option<String> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[paramsMarketType.clone()]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null)); }
             if (clientOrderId.is_some()) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)); }
@@ -11457,12 +11457,12 @@ if _try_result.is_err() {
             let mut quantity: Option<String> = None;
             let mut planType: Option<String> = None;
             let mut createMarketBuyOrderRequiresPrice: bool = true;
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-                createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).into_list(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
+                paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             if isMarketOrder && (side.as_str() == Some("buy")) {
                 planType = Some("total".to_string());
-                let mut cost: Option<f64> = self.safe_number_k(paramsMarketType.clone(), "cost", &[]).as_f64();
-                paramsMarketType = self.omit(paramsMarketType, Value::Str("cost".into()), &[]);
+                let mut cost: Option<f64> = self.safe_number_k(&paramsMarketType, "cost", &[]).as_f64();
+                paramsMarketType = self.omit(&paramsMarketType, Value::Str("cost".into()), &[]).into_dict();
                 if (cost.is_some()) {
                     quantity = self.cost_to_precision(symbol.clone(), Value::from(cost));
                 }  else if createMarketBuyOrderRequiresPrice {
@@ -11507,7 +11507,7 @@ if _try_result.is_err() {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support ").into()), marketType.as_deref().unwrap_or("null")).into()), " orders")));
         }
-        return self.extend(request, &[paramsMarketType]);
+        return self.extend(request, &[&paramsMarketType]);
 
     Value::Null
 }
@@ -12778,8 +12778,8 @@ if _try_result.is_err() {
         let mut trailing: bool = self.safe_bool_k_opt(&paramsMarginMode, "trailing", &[Value::Bool(false)]).unwrap_or(false);
         let mut trigger: Option<bool> = self.safe_bool2_opt(&paramsMarginMode, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut planTypeValue: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "planType", &[]);
-        let mut planTypeDefined: bool = planTypeValue.is_some();
-        let mut isTrigger: bool = (trigger == Some(true)) || planTypeDefined;
+        let mut planTypeDefined: bool = (planTypeValue.is_some());
+        let mut isTrigger: bool = ((trigger == Some(true)) || planTypeDefined);
         { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Dict(request), &paramsMarginMode, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (since != Value::Null) {
             std::sync::Arc::make_mut(&mut request).insert("startTime".into(), since.clone());

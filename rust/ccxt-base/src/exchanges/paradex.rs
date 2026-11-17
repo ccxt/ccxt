@@ -3349,9 +3349,9 @@ impl Paradex {
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(params.clone(), "takeProfitPrice", &[]);
         let mut isMarket: bool = orderType.as_deref() == Some("MARKET");
-        let mut isTakeProfitOrder: bool = takeProfitPrice.is_some();
-        let mut isStopLossOrder: bool = stopLossPrice.is_some();
-        let mut isStopOrder: bool = (triggerPrice.is_some()) || isTakeProfitOrder || isStopLossOrder;
+        let mut isTakeProfitOrder: bool = (takeProfitPrice.is_some());
+        let mut isStopLossOrder: bool = (stopLossPrice.is_some());
+        let mut isStopOrder: bool = (((triggerPrice.is_some()) || isTakeProfitOrder) || isStopLossOrder);
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(params.clone(), "timeInForce", &[]);
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]);
         let mut instruction: Option<String> = Some("GTC".to_string());
@@ -3385,7 +3385,7 @@ impl Paradex {
         if (recvWindow != Value::Null) {
             request.insert("recv_window".into(), Value::from(self.parse_to_int(recvWindow)));
         }
-        let mut isTakeProfitOrStopLoss: bool = isStopLossOrder || isTakeProfitOrder;
+        let mut isTakeProfitOrStopLoss: bool = (isStopLossOrder || isTakeProfitOrder);
         let mut sizeString: Option<String> = Some("0".to_string());
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
         if !isTakeProfitOrStopLoss || ((amount != Value::Null) && (amount.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) {

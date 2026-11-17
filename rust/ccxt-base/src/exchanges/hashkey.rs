@@ -1326,7 +1326,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path);
-        let mut query: Value = Value::Null;
+        let mut query: Option<String> = None;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: i64 = self.milliseconds();
@@ -1346,44 +1346,44 @@ impl crate::exchange::DerivedExchange for Hashkey {
                 m
             });
             let mut signature: Option<String> = None;
-            let mut bodySigned: Value = Value::Null;
+            let mut bodySigned: Option<String> = None;
             if (method.as_str() == Some("POST")) && ((path.as_str() == Some("api/v1/spot/batchOrders")) || (path.as_str() == Some("api/v1/futures/batchOrders"))) {
                 headersSigned.insert("Content-Type".into(), Value::Str("application/json".into()));
-                bodySigned = self.json(self.safe_list_k(params.clone(), "orders", &[]));
+                bodySigned = self.json(self.safe_list_k(params.clone(), "orders", &[])).as_str().map(str::to_owned);
                 signature = Some(self.hmac(self.encode(self.custom_urlencode(&[Value::Map(additionalParams.clone())]).map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
                 let __ws_arg_44 = self.extend(Value::Map(additionalParams.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signature".to_string(), Value::from(signature.as_deref()));
     m
 })]);
-                query = self.custom_urlencode(&[__ws_arg_44]).map(Value::from).unwrap_or(Value::Null);
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path).into()), "?").into()), query);
+                query = self.custom_urlencode(&[__ws_arg_44]);
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path).into()), "?").into()), query.as_deref().unwrap_or("null"));
             }  else {
                 let mut totalParams: crate::value::Dict = self.extend(Value::Map(additionalParams), &[params.clone()]).into_dict();
                 signature = Some(self.hmac(self.encode(self.custom_urlencode(&[Value::from(&totalParams)]).map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
                 std::sync::Arc::make_mut(&mut totalParams).insert("signature".into(), Value::from(signature.as_deref()));
-                query = self.custom_urlencode(&[Value::Dict(totalParams)]).map(Value::from).unwrap_or(Value::Null);
+                query = self.custom_urlencode(&[Value::Dict(totalParams)]);
                 if (method.as_str() == Some("GET")) {
-                    url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path).into()), "?").into()), query);
+                    url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path).into()), "?").into()), query.as_deref().unwrap_or("null"));
                 }  else {
                     bodySigned = query.clone();
                 }
             }
             headersSigned.insert("INPUT-SOURCE".into(), self.safe_string_k(self.options.clone(), "broker", &[Value::Str("10000700011".into())]));
             headersSigned.insert("broker_sign".into(), signature.map(Value::from).unwrap_or(Value::Null));
-            let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { Value::Null } else { bodySigned });
+            let mut bodyResolved: Option<String> = (if (method.as_str() == Some("GET")) { None } else { bodySigned });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
 });
         }  else {
-            query = Value::from(self.urlencode(params, &[]));
-            if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path).into()), "?").into()), query);
+            query = Some(self.urlencode(params, &[]));
+            if (((query.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path).into()), "?").into()), query.as_deref().unwrap_or("null"));
             }
         }
         return Value::Map({

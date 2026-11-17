@@ -1998,10 +1998,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut isStoredBool: Value = (Value::Bool(matches!(&sanitizedStoredOutput, Value::Bool(_))));
                 let mut isComputedString: Value = (Value::Bool(matches!(&sanitizedNewOutput, Value::Str(_))));
                 let mut isStoredString: Value = (Value::Bool(matches!(&sanitizedStoredOutput, Value::Str(_))));
-                let mut isComputedUndefined: Value = (Value::Bool(sanitizedNewOutput == Value::Null));
-                let mut isStoredUndefined: Value = (Value::Bool(sanitizedStoredOutput == Value::Null));
-                let mut shouldBeSame: Value = Value::Bool((isComputedBool.as_bool() == isStoredBool.as_bool()) && (isComputedString.as_bool() == isStoredString.as_bool()) && (isComputedUndefined.as_bool() == isStoredUndefined.as_bool()));
-                if !(shouldBeSame.as_bool() == Some(true)) && ((self.lang.as_str() == Some("PY")) || (self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO"))) && !(isComputedBool.as_bool() == Some(true)) && !(isStoredBool.as_bool() == Some(true)) && !(isComputedUndefined.as_bool() == Some(true)) && !(isStoredUndefined.as_bool() == Some(true)) {
+                let mut isComputedUndefined: bool = (sanitizedNewOutput == Value::Null);
+                let mut isStoredUndefined: bool = (sanitizedStoredOutput == Value::Null);
+                let mut shouldBeSame: Value = Value::Bool((isComputedBool.as_bool() == isStoredBool.as_bool()) && (isComputedString.as_bool() == isStoredString.as_bool()) && (isComputedUndefined == isStoredUndefined));
+                if !(shouldBeSame.as_bool() == Some(true)) && ((self.lang.as_str() == Some("PY")) || (self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO"))) && !(isComputedBool.as_bool() == Some(true)) && !(isStoredBool.as_bool() == Some(true)) && !isComputedUndefined && !isStoredUndefined {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
@@ -2035,7 +2035,7 @@ if _try_result.is_err() {
                 self.assert_static_error(shouldBeSame, Value::Str("output type mismatch".into()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                 let mut isBoolean: bool = is_true(&isComputedBool) || is_true(&isStoredBool);
                 let mut isString: bool = is_true(&isComputedString) || is_true(&isStoredString);
-                let mut isUndefined: bool = is_true(&isComputedUndefined) || is_true(&isStoredUndefined); // undefined is a perfetly valid value
+                let mut isUndefined: bool = (isComputedUndefined || isStoredUndefined); // undefined is a perfetly valid value
                 if isBoolean || isString || isUndefined {
                     if (self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO")) {
                         // tmp c# number comparsion

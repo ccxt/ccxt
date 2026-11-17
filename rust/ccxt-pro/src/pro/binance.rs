@@ -795,7 +795,7 @@ impl Binance {
         }
         let mut resolvedAuth: Vec<Value> = self.resolve_auth_type(Value::Str("watchLiquidationsForSymbols".into()), firstMarket.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = resolvedAuth.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsValue: Value = resolvedAuth.get(2).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = resolvedAuth.get(2).cloned().unwrap_or(Value::Null).into_dict();
         // the spot check runs on the RESOLVED type: a spot default combined
         // with a linear or inverse defaultSubType means the caller wants the
         // matching derivatives stream, so the rewrite is allowed to route it
@@ -822,7 +822,7 @@ impl Binance {
                 m.insert("id".to_string(), Value::from(requestId));
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsValue]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut newLiquidations: Value = self.watch_multiple(url.as_str(), Value::from(messageHashes), __ws_arg_1, Value::from(subscriptionHashes), Value::Map(subscribe)).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
@@ -2493,7 +2493,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             type_var = (if ((firstMarket).linear == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
             wsUrlType = type_var.clone();
         }
-        let mut isSpot: bool = type_var.as_str() == Some("spot");
+        let mut isSpot: bool = (type_var.as_str() == Some("spot"));
         let timezoneparamsTimezoneVariable: Vec<Value> = self.handle_param_string(&paramsChannel, Value::Str("timezone".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut timezone: Option<String> = timezoneparamsTimezoneVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimezone: crate::value::Dict = timezoneparamsTimezoneVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2604,7 +2604,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             type_var = (if ((firstMarket).linear == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
             wsUrlType = type_var.clone();
         }
-        let mut isSpot: bool = type_var.as_str() == Some("spot");
+        let mut isSpot: bool = (type_var.as_str() == Some("spot"));
         let timezoneparamsTimezoneVariable: Vec<Value> = self.handle_param_string(&paramsChannel, Value::Str("timezone".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut timezone: Option<String> = timezoneparamsTimezoneVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimezone: crate::value::Dict = timezoneparamsTimezoneVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -4240,8 +4240,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut time: i64 = self.milliseconds();
         let mut resolvedAuth: Vec<Value> = self.resolve_auth_type(Value::Str("authenticate".into()), None, &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = resolvedAuth.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsAuth: Value = resolvedAuth.get(2).cloned().unwrap_or(Value::Null);
-        let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsAuth, Value::Str("authenticate".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let mut paramsAuth: crate::value::Dict = resolvedAuth.get(2).cloned().unwrap_or(Value::Null).into_dict();
+        let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsAuth, Value::Str("authenticate".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPortfolioMargin: crate::value::Dict = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // For spot use WebSocket API signature subscription
@@ -7546,12 +7546,11 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                                 let mut orderFee: crate::value::Dict = fees.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                                 if (self.safe_string_k(&orderFee, "currency", &[]).as_str() == self.safe_string_k(tradeFee.clone(), "currency", &[]).as_str()) {
                                     let mut feeCost: Value = self.sum(&[tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&orderFee, "cost")]);
-                                    let mut feeCostString: Value = Value::from(self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]));
-                                    if (feeCostString == Value::Null) {
-                                        feeCostString = Value::Str("0".into());
+                                    let mut feeCostString: Option<String> = self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]);
+                                    if (feeCostString.is_none()) {
+                                        feeCostString = Some("0".to_string());
                                     }
-                                    add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".into())), &Value::Int(i)), &Value::Str("cost".into()), (match &feeCostString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f),
-                                        Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
+                                    add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".into())), &Value::Int(i)), &Value::Str("cost".into()), (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -7563,11 +7562,11 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                         }  else if (fee.is_some()) {
                             if (self.safe_string_k(&fee, "currency", &[]).as_str() == self.safe_string_k(tradeFee.clone(), "currency", &[]).as_str()) {
                                 let mut feeCost: Value = self.sum(&[crate::value::KeyRead::key_read(&&fee, "cost"), tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)]);
-                                let mut feeCostString: Value = Value::from(self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]));
-                                if (feeCostString == Value::Null) {
-                                    feeCostString = Value::Str("0".into());
+                                let mut feeCostString: Option<String> = self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]);
+                                if (feeCostString.is_none()) {
+                                    feeCostString = Some("0".to_string());
                                 }
-                                add_element_to_object(get_value_mut(&mut order, &Value::Str("fee".into())), &Value::Str("cost".into()), (match &feeCostString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
+                                add_element_to_object(get_value_mut(&mut order, &Value::Str("fee".into())), &Value::Str("cost".into()), (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
                             }  else if (crate::value::KeyRead::key_read(&&fee, "currency") == Value::Null) {
                                 add_element_to_object(&mut order, &Value::Str("fee".into()), tradeFee.clone());
                             }  else {
@@ -7578,9 +7577,9 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                             add_element_to_object(&mut order, &Value::Str("fee".into()), tradeFee);
                         }
                         // save this trade in the order
-                        let mut orderTrades: Value = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]);
-                        if let Value::Arr(__a) = &mut orderTrades { std::sync::Arc::make_mut(__a).push(trade.clone()); }
-                        add_element_to_object(&mut order, &Value::Str("trades".into()), orderTrades);
+                        let mut orderTrades: crate::value::List = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]).into_list();
+                        std::sync::Arc::make_mut(&mut orderTrades).push(trade.clone());
+                        add_element_to_object(&mut order, &Value::Str("trades".into()), Value::Arr(orderTrades));
                         // write the updated order back into the cache: php
                         // arrays are value types, so the fee/trades mutations
                         // above only touched a local copy there — the cache

@@ -156,7 +156,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         let mut volume24h: Option<f64> = self.safe_number_k(raw.clone(), "volumeFormatted", &[]).as_f64();
         // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
         let mut winningOutcomeIndex: Option<i64> = self.safe_integer_k(raw.clone(), "winningOutcomeIndex", &[]).as_i64();
-        let mut marketResolved: Value = (Value::Bool(winningOutcomeIndex.is_some()));
+        let mut marketResolved: bool = (winningOutcomeIndex.is_some());
         let mut resolvedOutcome: Option<String> = None;
         let mut marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
@@ -195,7 +195,7 @@ impl crate::exchange::DerivedExchange for Limitless {
             }
             let mut winnerRaw: Option<bool> = None;
             let mut settleFractionRaw: Option<i64> = None;
-            if matches!(&marketResolved, Value::Bool(true)) {
+            if marketResolved {
                 winnerRaw = Some((winningOutcomeIndex == legIndex.as_i64()));
                 settleFractionRaw = (if (winnerRaw == Some(true)) { Some(1) } else { Some(0) });
                 if (winnerRaw == Some(true)) {
@@ -254,7 +254,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("resolved".to_string(), marketResolved);
+        m.insert("resolved".to_string(), Value::Bool(marketResolved));
         m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
@@ -1474,15 +1474,15 @@ impl Limitless {
             while { if !__for_first_1305 { i += 1; } __for_first_1305 = false; i < (expandedRaw.len() as i64) } {
             let mut raw: Value = expandedRaw.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut groupId: Option<String> = self.safe_string_n_opt(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
-            let mut eventKey: Value = Value::Null;
+            let mut eventKey: Option<String> = None;
             if (groupId.is_some()) && (groupId.as_deref() != Some("")) {
-                eventKey = self.shorten_slug(Value::from(groupId.as_deref()));
+                eventKey = self.shorten_slug(Value::from(groupId.as_deref())).as_str().map(str::to_owned);
             }
             let mut m: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_market(self, raw.clone()).into_dict();
             markets.push(Value::from(&m));
-            if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
-                if !(matches!(&eventKey, Value::Str(__k) if eventGroups.contains_key(__k.as_ref()))) {
-                    eventGroups.insert(crate::runtime::stringify_param(&eventKey), Value::Map({
+            if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) {
+                if !(matches!(eventKey.as_deref(), Some(__k) if eventGroups.contains_key(__k))) {
+                    eventGroups.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
@@ -1491,7 +1491,7 @@ impl Limitless {
     m
 }));
                 }
-                let mut eventGroup: Value = eventGroups.get(eventKey.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                let mut eventGroup: Value = eventGroups.get(eventKey.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -2552,12 +2552,12 @@ impl Limitless {
         let mut outcomeLabel: Option<String> = self.safe_string_upper_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "outcomeLabel", &[]);
         let mut interval: String = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[Value::Str("1d".into())]).as_str().unwrap_or("1d").to_string();
         let __ws_arg_21 = self.extend(Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
-                m.insert("interval".to_string(), Value::from(interval));
-            m
-        }), &[params]);
-        let mut response: Value = self.limitless_public_get_markets_slug_historical_price(&[__ws_arg_21]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
+        m.insert("interval".to_string(), Value::from(interval));
+    m
+}), &[params]);
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.limitless_public_get_markets_slug_historical_price(&[__ws_arg_21]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         //
         //     {
         //         "data": [
@@ -2591,10 +2591,10 @@ impl Limitless {
         //     ]
         //
         let mut responseRows: Value = Value::from(vec![]);
-        if (matches!(&response, Value::Arr(_))) {
-            responseRows = response.clone();
+        if (response.is_some()) {
+            responseRows = response.clone().map_or(Value::Null, Value::Arr);
         }
-        let mut rawHistory: Value = self.safe_list_k(response.clone(), "data", &[self.safe_list(response.clone(), Value::Str("prices".into()), &[responseRows])]);
+        let mut rawHistory: Value = self.safe_list_k(&response__map, "data", &[self.safe_list(&response__map, Value::Str("prices".into()), &[responseRows])]);
         let mut history: Value = rawHistory.clone();
         let mut rawHistoryLength: i64 = rawHistory.len() as i64;
         if rawHistoryLength > 0 {
@@ -3202,8 +3202,8 @@ if _try_result.is_err() {
         // when the profile trades through a smart wallet the order must be signed by the
         // linked embedded (owner) wallet, not by the smart wallet itself
         let mut embeddedAddress: Option<String> = self.safe_string_k_opt(&accountInfo, "embeddedAccount", &[]);
-        let mut hasEmbedded: bool = embeddedAddress.is_some();
-        let mut isSmartWallet: bool = usesSmartWallet && hasEmbedded;
+        let mut hasEmbedded: bool = (embeddedAddress.is_some());
+        let mut isSmartWallet: bool = (usesSmartWallet && hasEmbedded);
         let mut signer: Value = maker.clone();
         if isSmartWallet {
             signer = embeddedAddress.map(Value::from).unwrap_or(Value::Null);
@@ -4184,18 +4184,18 @@ if _try_result.is_err() {
             while { if !__for_first_1332 { i += 1; } __for_first_1332 = false; i < rawMarketsLength } {
             let mut raw: Value = expandedMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut groupId: Option<String> = self.safe_string_n_opt(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
-            let mut eventKey: Value = Value::Null;
+            let mut eventKey: Option<String> = None;
             if (groupId.is_some()) && (groupId.as_deref() != Some("")) {
-                eventKey = self.shorten_slug(Value::from(groupId.as_deref()));
+                eventKey = self.shorten_slug(Value::from(groupId.as_deref())).as_str().map(str::to_owned);
             }
             let mut m: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, raw.clone());
             if (m == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing m")));
             }
             add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
-            if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
-                if !(matches!(&eventKey, Value::Str(__k) if eventGroups.contains_key(__k.as_ref()))) {
-                    eventGroups.insert(crate::runtime::stringify_param(&eventKey), Value::Map({
+            if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) {
+                if !(matches!(eventKey.as_deref(), Some(__k) if eventGroups.contains_key(__k))) {
+                    eventGroups.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
@@ -4204,7 +4204,7 @@ if _try_result.is_err() {
     m
 }));
                 }
-                let mut eventGroup: Value = eventGroups.get(eventKey.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                let mut eventGroup: Value = eventGroups.get(eventKey.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -4328,10 +4328,10 @@ if _try_result.is_err() {
 }));
         let __tags_empty = Vec::new();
         let tags = tags.as_array().unwrap_or(&__tags_empty);
-        let mut categoriesResponse: Value = self.limitless_public_get_categories(&[]).await;
+        let mut categoriesResponse: Option<crate::value::List> = self.limitless_public_get_categories(&[]).await.into_opt_list();
         let mut categories: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&categoriesResponse, Value::Arr(_))) {
-            categories = categoriesResponse.into_list();
+        if (categoriesResponse.is_some()) {
+            categories = categoriesResponse.unwrap_or_default();
         }
         let mut wanted: Vec<Value> = Vec::new();
         {

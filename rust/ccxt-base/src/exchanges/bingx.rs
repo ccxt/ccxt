@@ -5779,9 +5779,9 @@ impl Bingx {
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(&paramsMarketType, "stopLossPrice", &[]);
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(&paramsMarketType, "takeProfitPrice", &[]);
         let mut triggerPrice: Option<String> = self.safe_string2_opt(Value::from(&paramsMarketType), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
-        let mut isTriggerOrder: bool = triggerPrice.is_some();
-        let mut isStopLossPriceOrder: bool = stopLossPrice.is_some();
-        let mut isTakeProfitPriceOrder: bool = takeProfitPrice.is_some();
+        let mut isTriggerOrder: bool = (triggerPrice.is_some());
+        let mut isStopLossPriceOrder: bool = (stopLossPrice.is_some());
+        let mut isTakeProfitPriceOrder: bool = (takeProfitPrice.is_some());
         let mut exchangeClientOrderId: String = "clientOrderId".to_string();
         if isSpot {
             exchangeClientOrderId = "newClientOrderId".to_string();
@@ -5860,9 +5860,9 @@ impl Bingx {
             let mut trailingPercent: Option<String> = self.safe_string2_opt(Value::from(&paramsPostOnly), Value::Str("trailingPercent".into()), Value::Str("priceRate".into()), &[]);
             let mut trailingType: String = self.safe_string_k(&paramsPostOnly, "trailingType", &[Value::Str("TRAILING_STOP_MARKET".into())]).as_str().unwrap_or("TRAILING_STOP_MARKET").to_string();
             let mut trailingTriggerPrice: Option<String> = self.safe_string2_opt(Value::from(&paramsPostOnly), Value::Str("trailingTriggerPrice".into()), Value::Str("activationPrice".into()), &[]);
-            let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
-            let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
-            let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
+            let mut isTrailingAmountOrder: bool = (trailingAmount.is_some());
+            let mut isTrailingPercentOrder: bool = (trailingPercent.is_some());
+            let mut isTrailing: bool = (isTrailingAmountOrder || isTrailingPercentOrder);
             let mut stopLossDict: Option<crate::value::Dict> = self.safe_dict_k(&paramsPostOnly, "stopLoss", &[]).into_opt_dict();
             let mut takeProfitDict: Option<crate::value::Dict> = self.safe_dict_k(&paramsPostOnly, "takeProfit", &[]).into_opt_dict();
             let mut hasStopLoss: bool = stopLossDict.is_some();
@@ -5881,7 +5881,7 @@ impl Bingx {
             }
             let mut reduceOnlyParam: bool = self.safe_bool_k_opt(paramsTakeProfit.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             // stop loss / take profit price orders are always reduce only
-            let mut reduceOnly: bool = reduceOnlyParam || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
+            let mut reduceOnly: bool = (reduceOnlyParam || (!(isTriggerOrder) && (isStopLossPriceOrder || isTakeProfitPriceOrder)));
             let mut triggerPriceType: Option<String> = self.safe_string2_opt(paramsTakeProfit.clone(), Value::Str("triggerPriceType".into()), Value::Str("workingType".into()), &[]);
             if (triggerPriceType.is_some()) {
                 request.insert("workingType".into(), self.encode_trigger_price_type(triggerPriceType.as_deref()));

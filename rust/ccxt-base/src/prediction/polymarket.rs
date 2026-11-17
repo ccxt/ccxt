@@ -1761,16 +1761,16 @@ impl Polymarket {
             m
         }).into_dict();
         firstPageRequest = self.extend(firstPageRequest, &[&baseRequest]).into_dict();
-        let mut firstPageResponse: Value = self.gamma_public_get_events(&[Value::Dict(firstPageRequest)]).await;
-        let mut firstPageIsArray: bool = matches!(&firstPageResponse, Value::Arr(_));
-        let mut firstPage: Value = (if (firstPageIsArray) { firstPageResponse } else { Value::from(vec![]) });
+        let mut firstPageResponse: Option<crate::value::List> = self.gamma_public_get_events(&[Value::Dict(firstPageRequest)]).await.into_opt_list();
+        let mut firstPageIsArray: bool = firstPageResponse.is_some();
+        let mut firstPage: crate::value::List = (if (firstPageIsArray) { firstPageResponse.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) }).into_list();
         let mut firstPageLength: i64 = firstPage.len() as i64;
         let mut allRawEvents: Vec<Value> = Vec::new();
         {
                         let mut fi: i64 = 0;
             let mut __for_first_1417: bool = true;
             while { if !__for_first_1417 { fi += 1; } __for_first_1417 = false; fi < firstPageLength } {
-            allRawEvents.push(firstPage.as_array().map(Vec::as_slice).unwrap_or_default().get(fi as usize).cloned().unwrap_or(Value::Null));
+            allRawEvents.push(firstPage.get(fi as usize).cloned().unwrap_or(Value::Null));
         }
         }
         if firstPageLength >= pageSize {
@@ -2307,9 +2307,9 @@ impl Polymarket {
             let mut midpoints: Value = responses.get(1).cloned().unwrap_or(Value::Null);
             let mut lastTradesResponse: Value = responses.get(2).cloned().unwrap_or(Value::Null);
             let mut booksIsArray: bool = matches!(&booksResponse, Value::Arr(_));
-            let mut books: Value = (if (booksIsArray) { booksResponse } else { Value::from(vec![]) });
+            let mut books: crate::value::List = (if (booksIsArray) { booksResponse } else { Value::from(vec![]) }).into_list();
             let mut lastTradesIsArray: bool = matches!(&lastTradesResponse, Value::Arr(_));
-            let mut lastTrades: Value = (if (lastTradesIsArray) { lastTradesResponse } else { Value::from(vec![]) });
+            let mut lastTrades: crate::value::List = (if (lastTradesIsArray) { lastTradesResponse } else { Value::from(vec![]) }).into_list();
             let mut lastTradesByTokenId: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2319,7 +2319,7 @@ impl Polymarket {
                                 let mut li: i64 = 0;
                 let mut __for_first_1432: bool = true;
                 while { if !__for_first_1432 { li += 1; } __for_first_1432 = false; li < lastTradesLength } {
-                let mut lastTradeEntry: crate::value::Dict = lastTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(li as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut lastTradeEntry: crate::value::Dict = lastTrades.get(li as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut lastTradeTokenId: Option<String> = self.safe_string_k_opt(&lastTradeEntry, "token_id", &[]);
                 if (lastTradeTokenId.is_some()) {
                     lastTradesByTokenId.insert(lastTradeTokenId.as_deref().unwrap_or("null").to_string(), Value::Dict(lastTradeEntry));
@@ -2331,7 +2331,7 @@ impl Polymarket {
                                 let mut i: i64 = 0;
                 let mut __for_first_1433: bool = true;
                 while { if !__for_first_1433 { i += 1; } __for_first_1433 = false; i < booksLength } {
-                let mut book: crate::value::Dict = books.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut book: crate::value::Dict = books.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut tokenId: Option<String> = self.safe_string_k_opt(&book, "asset_id", &[]);
                 if (tokenId.is_none()) || !(matches!(tokenId.as_deref(), Some(__k) if outcomesByTokenId.contains_key(__k))) {
                     continue;
@@ -2907,14 +2907,14 @@ impl Polymarket {
         });
         request.insert("limit".into(), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)]));
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.data_public_get_trades(&[__ws_arg_6]).await;
-        let mut rawTrades: Value = (if (matches!(&response, Value::Arr(_))) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.data_public_get_trades(&[__ws_arg_6]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        let mut rawTrades: crate::value::List = (if (response.is_some()) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) }).into_list();
         let mut filteredTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1436: bool = true;
             while { if !__for_first_1436 { i += 1; } __for_first_1436 = false; i < (rawTrades.len() as i64) } {
-            let mut trade: crate::value::Dict = rawTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut tradeAsset: Option<String> = self.safe_string_k_opt(&trade, "asset", &[]);
             if (tradeAsset.as_deref() == Some(tokenId.as_str())) {
                 filteredTrades.push(Value::Dict(trade));
@@ -2961,8 +2961,8 @@ impl Polymarket {
             request.insert("asset_id".into(), self.safe_string_k(&outcomeObj, "outcomeId", &[]));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.clob_private_get_data_trades(&[__ws_arg_7]).await;
-        let mut rawTrades: Value = (if (matches!(&response, Value::Arr(_))) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.clob_private_get_data_trades(&[__ws_arg_7]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        let mut rawTrades: Value = (if (response.is_some()) { response.clone().map_or(Value::Null, Value::Arr) } else { self.safe_list_k(&response__map, "data", &[Value::from(vec![])]) });
         return self.parse_prediction_trades(rawTrades, &[crate::Value::from(outcomeObj.as_ref()), since, limit]);
         Value::Null
         }).await?))
@@ -4144,9 +4144,9 @@ impl Polymarket {
             }  else {
                 lookup.insert("slug".into(), requestedSlug.map(Value::from).unwrap_or(Value::Null));
             }
-            let mut response: Value = self.gamma_public_get_events(&[Value::Map(lookup)]).await;
-            let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
-            rawEvents = (if (responseIsArray) { response } else { Value::from(vec![]) }).into_list();
+            let mut response: Option<crate::value::List> = self.gamma_public_get_events(&[Value::Map(lookup)]).await.into_opt_list();
+            let mut responseIsArray: bool = response.is_some();
+            rawEvents = (if (responseIsArray) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) }).into_list();
         }  else if queriesLength > 0 {
             rawEvents = self.fetch_raw_events_by_search(Value::from(&queries), &[Value::from(&rest)]).await.into_list();
         }  else {
