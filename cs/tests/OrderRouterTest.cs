@@ -1595,7 +1595,7 @@ public class OrderRouterTest
             });
         }
 
-        public override async Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+        public override async Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
         {
             var size = amount;
             this.calls.Add("createOrder:" + type + ":" + side + ":" + size.ToString(CultureInfo.InvariantCulture));

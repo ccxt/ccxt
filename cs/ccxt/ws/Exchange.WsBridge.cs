@@ -344,7 +344,7 @@ public partial class BaseExchange
 
 public partial class Exchange
 {
-    public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
+    public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue((inOp(this.orderbooks, symbol))))

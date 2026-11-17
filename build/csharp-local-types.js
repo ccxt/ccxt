@@ -1418,6 +1418,10 @@ export const CSHARP_WS_ROW_BUILDER_RETURNS = {
     'parsePerpetualTicker': 'Dictionary<string, object>',
     'parseSwapTicker': 'Dictionary<string, object>',
     'parseOrderTrade': 'Dictionary<string, object>',
+    // setTakeProfitAndStopLossParams: one declaration (base, TS `: Dict`), its only return is the
+    // `Dictionary<string, object> paramsOmitted` local (this.omit of the typed bag), so the declared
+    // return names the box the callers already receive; CreateOrder / CreateOrderWs take it as their bag
+    'setTakeProfitAndStopLossParams': 'Dictionary<string, object>',
 };
 
 // the mapped return type a generated method name carries: the shared closed table, the
@@ -6514,6 +6518,10 @@ export function csharpTypeOfValue (csharp, node, context) {
     }
     case ts.SyntaxKind.ConditionalExpression: {
         // `c ? a : b` prints `((bool) isTrue(c)) ? A : B`; typeable when both arms agree
+        // 87c1: an arm reading a local already emitted as `object` has that static type
+        if (armReadsPrintedObjectLocal (csharp, node.whenTrue) || armReadsPrintedObjectLocal (csharp, node.whenFalse)) {
+            return undefined;
+        }
         const whenTrue = conditionalArmType (csharp, node.whenTrue, context);
         const whenFalse = conditionalArmType (csharp, node.whenFalse, context);
         // the Dictionary/IDictionary arm pair has the interface as its natural C# type in every
@@ -6733,6 +6741,9 @@ function localIdentifierType (csharp, node) {
     }
     if (binding.parent?.declarations?.length !== 1) {
         return undefined; // multi-declarator lists are not rewritten by installCsharpLocalTypes
+    }
+    if (printedObjectDeclarations.has (binding)) {
+        return undefined; // already emitted as `object` (see printedObjectDeclarations)
     }
     if (localReadTypesInFlight.has (binding)) {
         return undefined; // `let a = cond ? a : 'x'` must not recurse
@@ -15078,6 +15089,8 @@ export function installCsharpLocalTypes (transpiler) {
         }
         const info = csharpLocalDeclaration (csharp, declaration);
         if (info === undefined) {
+            // 87c1: the emitted line keeps `object`; a later read must not answer another type
+            printedObjectDeclarations.add (declaration);
             return printed;
         }
         const iden = csharp.getIden (identation);
@@ -15471,6 +15484,21 @@ function stringEqualityBindingIsProvable (scope, node) {
 // awaited call, which no printer-side table names), so the condition-operand hook answers reads of
 // these declarations from this record first -- the recorded type IS the emitted declaration.
 const retypedDeclarationTypes = new WeakMap ();
+// 87c1: declarations the wrapper above printed and left `object` (csharpLocalDeclaration answered
+// undefined at the declaration's own print). A later answer for the same declaration can differ
+// (the proof context of a later read is not the declaration's), and a conditional arm that read
+// such a local as Dictionary named a type the emitted `object` line does not carry (coinbase
+// createOrder paramsBase, CS0266); localIdentifierType answers undefined for these.
+const printedObjectDeclarations = new WeakSet ();
+
+function armReadsPrintedObjectLocal (csharp, arm) {
+    const read = stripParens (arm);
+    if (read?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const reference = resolveReference (csharp, read);
+    return (reference !== undefined) && printedObjectDeclarations.has (reference);
+}
 
 // ===== `add (x, y)` -> native `(x + y)` =====
 //
@@ -17419,24 +17447,27 @@ export default installCsharpLocalTypes;
 // argument somewhere (tuple slots, object locals) stay out: a cast at the call is not a typing.
 export const PARAMETERS_ARG_TYPED_METHODS = [
     'addMargin', 'authenticate', 'authenticateRest', 'borrowCrossMargin', 'borrowIsolatedMargin',
-    'borrowMargin', 'buildMessageHash', 'buildOrderbookOrder', 'calculateFee', 'calculateFeeWithRate',
-    'callAsync', 'CancelAllContractOrders', 'CancelAllOrders', 'CancelAllOrdersAfter',
-    'CancelAllOrdersRequest', 'cancelAllOrdersRequest', 'CancelAllOrdersWs', 'CancelAllSpotOrders',
-    'CancelAllUtaOrders', 'CancelContractOrder', 'CancelOrder', 'cancelOrderRequest', 'CancelOrders',
-    'CancelOrdersForSymbols', 'CancelOrdersRequest', 'cancelOrdersRequest', 'CancelOrdersWithClientOrderIds',
-    'CancelOrdersWs', 'CancelOrderWithClientOrderId', 'CancelOrderWs', 'CancelSpotOrder', 'CancelTwapOrder',
-    'CancelUnifiedOrder', 'CancelUtaOrder', 'CancelUtaOrders', 'closeAllPositions', 'ClosePosition',
-    'codeFromOptions', 'CreateAmmOrder', 'CreateConvertTrade', 'CreateDepositAddress', 'CreateLimitBuyOrder',
-    'CreateLimitBuyOrderWs', 'CreateLimitOrder', 'CreateLimitOrderWs', 'CreateLimitSellOrder',
-    'CreateLimitSellOrderWs', 'CreateMarketBuyOrder', 'CreateMarketBuyOrderWithCost',
+    'borrowMargin', 'buildClobOrderBody', 'buildMessageHash', 'buildOrderbookOrder', 'calcOrderPrice',
+    'calculateFee', 'calculateFeeWithRate', 'callAsync', 'CancelAllContractOrders', 'CancelAllOrders',
+    'CancelAllOrdersAfter', 'CancelAllOrdersRequest', 'cancelAllOrdersRequest', 'CancelAllOrdersWs',
+    'CancelAllSpotOrders', 'CancelAllUtaOrders', 'CancelContractOrder', 'CancelOrder', 'cancelOrderRequest',
+    'CancelOrders', 'CancelOrdersForSymbols', 'CancelOrdersRequest', 'cancelOrdersRequest',
+    'CancelOrdersWithClientOrderIds', 'CancelOrdersWs', 'CancelOrderWithClientOrderId', 'CancelOrderWs',
+    'CancelSpotOrder', 'CancelTwapOrder', 'CancelUnifiedOrder', 'CancelUtaOrder', 'CancelUtaOrders',
+    'closeAllPositions', 'ClosePosition', 'codeFromOptions', 'CreateAmmOrder', 'CreateContractOrder',
+    'createContractOrderRequest', 'CreateContractOrders', 'CreateConvertTrade', 'CreateDepositAddress',
+    'CreateLimitBuyOrder', 'CreateLimitBuyOrderWs', 'CreateLimitOrder', 'CreateLimitOrderWs',
+    'CreateLimitSellOrder', 'CreateLimitSellOrderWs', 'CreateMarketBuyOrder', 'CreateMarketBuyOrderWithCost',
     'CreateMarketBuyOrderWs', 'CreateMarketOrder', 'CreateMarketOrderWithCost', 'CreateMarketOrderWithCostWs',
     'CreateMarketOrderWs', 'CreateMarketSellOrder', 'CreateMarketSellOrderWithCost',
-    'CreateMarketSellOrderWs', 'createOrderAppendix', 'CreateOrderbookOrder', 'CreateOrdersWs',
-    'CreateOrderWithTakeProfitAndStopLoss', 'CreateOrderWithTakeProfitAndStopLossWs', 'CreatePostOnlyOrder',
-    'CreatePostOnlyOrderWs', 'createProxyCredentials', 'CreateReduceOnlyOrder', 'CreateReduceOnlyOrderWs',
-    'CreateStopLimitOrder', 'CreateStopLimitOrderWs', 'CreateStopLossOrder', 'CreateStopLossOrderWs',
-    'CreateStopMarketOrder', 'CreateStopMarketOrderWs', 'CreateStopOrder', 'CreateStopOrderWs',
-    'CreateSubAccount', 'CreateTakeProfitOrder', 'CreateTakeProfitOrderWs', 'createTpslOrderRequest',
+    'CreateMarketSellOrderWs', 'CreateOrder', 'createOrderAppendix', 'CreateOrderbookOrder', 'CreateOrders',
+    'createOrdersRequest', 'CreateOrdersWs', 'CreateOrderWithTakeProfitAndStopLoss',
+    'CreateOrderWithTakeProfitAndStopLossWs', 'CreateOrderWs', 'CreatePostOnlyOrder', 'CreatePostOnlyOrderWs',
+    'createProxyCredentials', 'CreateReduceOnlyOrder', 'CreateReduceOnlyOrderWs', 'CreateSpotOrder',
+    'CreateSpotOrderRequest', 'createSpotOrderRequest', 'CreateSpotOrders', 'CreateStopLimitOrder',
+    'CreateStopLimitOrderWs', 'CreateStopLossOrder', 'CreateStopLossOrderWs', 'CreateStopMarketOrder',
+    'CreateStopMarketOrderWs', 'CreateStopOrder', 'CreateStopOrderWs', 'CreateSubAccount', 'CreateSwapOrder',
+    'createSwapOrderRequest', 'CreateTakeProfitOrder', 'CreateTakeProfitOrderWs', 'createTpslOrderRequest',
     'CreateTrailingAmountOrder', 'CreateTrailingAmountOrderWs', 'CreateTrailingPercentOrder',
     'CreateTrailingPercentOrderWs', 'createTransferSettlementData', 'CreateTriggerOrder',
     'CreateTriggerOrderWs', 'CreateTwapOrder', 'CreateUtaOrder', 'CreateUtaOrders',
@@ -17458,7 +17489,7 @@ export const PARAMETERS_ARG_TYPED_METHODS = [
     'FetchEvent', 'FetchEvents', 'FetchFreeBalance', 'FetchFundingHistory', 'FetchFundingInterval',
     'FetchFundingIntervals', 'FetchFundingRate', 'FetchFundingRateHistory', 'FetchFundingRates',
     'FetchFutureMarkets', 'FetchGreeks', 'FetchHip3Markets', 'FetchIndexOHLCV', 'FetchIsolatedBorrowRate',
-    'FetchIsolatedBorrowRates', 'FetchL3OrderBook', 'FetchLastPrices', 'FetchLedger',
+    'FetchIsolatedBorrowRates', 'FetchL2OrderBook', 'FetchL3OrderBook', 'FetchLastPrices', 'FetchLedger',
     'FetchLedgerEntriesByIds', 'FetchLedgerEntry', 'FetchLeverage', 'FetchLeverages', 'FetchLeverageTiers',
     'FetchLiquidations', 'FetchLongShortRatio', 'FetchLongShortRatioHistory', 'FetchMarginAdjustmentHistory',
     'FetchMarginMode', 'FetchMarginModes', 'FetchMarketLeverageTiers', 'FetchMarkets', 'FetchMarketsByType',
@@ -17468,20 +17499,20 @@ export const PARAMETERS_ARG_TYPED_METHODS = [
     'fetchMyTradesRequest', 'FetchMyTradesWs', 'FetchMyUtaTrades', 'FetchOHLCV', 'fetchOHLCVRequest',
     'FetchOHLCVWs', 'FetchOpenInterest', 'FetchOpenInterestHistory', 'FetchOpenInterests', 'FetchOpenOrders',
     'FetchOpenOrdersV1', 'FetchOpenOrdersV2', 'FetchOpenOrdersWs', 'FetchOption', 'FetchOptionChain',
-    'FetchOptionMarkets', 'FetchOptionOHLCV', 'FetchOptionPositions', 'FetchOrder', 'FetchOrderBookWs',
-    'FetchOrderClassic', 'FetchOrderDefault', 'fetchOrderRequest', 'FetchOrders', 'FetchOrdersByIds',
-    'FetchOrdersByState', 'FetchOrdersByStates', 'FetchOrdersByStatus', 'FetchOrdersByStatusWs',
-    'FetchOrdersByType', 'fetchOrdersRequest', 'FetchOrderStatus', 'FetchOrderSupplement',
-    'FetchOrdersWithMethod', 'FetchOrdersWs', 'FetchOrderTrades', 'FetchOrderWithClientOrderId',
-    'FetchOrderWs', 'fetchPaginatedCallCursor', 'fetchPaginatedCallDeterministic',
-    'fetchPaginatedCallDynamic', 'fetchPaginatedCallIncremental', 'FetchPartialBalance',
-    'FetchPaymentMethods', 'FetchPosition', 'FetchPositionADLRank', 'FetchPositionHistory',
-    'FetchPositionMode', 'FetchPositions', 'FetchPositionsADLRank', 'FetchPositionsForSymbol',
-    'FetchPositionsForSymbolWs', 'FetchPositionsHistory', 'FetchPositionsRisk', 'FetchPositionsWs',
-    'FetchPositionWs', 'FetchPremiumIndexOHLCV', 'FetchPublicDepositWithdrawFees',
+    'FetchOptionMarkets', 'FetchOptionOHLCV', 'FetchOptionPositions', 'FetchOrder', 'FetchOrderBook',
+    'FetchOrderBooks', 'FetchOrderBookWs', 'FetchOrderClassic', 'FetchOrderDefault', 'fetchOrderRequest',
+    'FetchOrders', 'FetchOrdersByIds', 'FetchOrdersByState', 'FetchOrdersByStates', 'FetchOrdersByStatus',
+    'FetchOrdersByStatusWs', 'FetchOrdersByType', 'fetchOrdersRequest', 'FetchOrderStatus',
+    'FetchOrderSupplement', 'FetchOrdersWithMethod', 'FetchOrdersWs', 'FetchOrderTrades',
+    'FetchOrderWithClientOrderId', 'FetchOrderWs', 'fetchPaginatedCallCursor',
+    'fetchPaginatedCallDeterministic', 'fetchPaginatedCallDynamic', 'fetchPaginatedCallIncremental',
+    'FetchPartialBalance', 'FetchPaymentMethods', 'FetchPosition', 'FetchPositionADLRank',
+    'FetchPositionHistory', 'FetchPositionMode', 'FetchPositions', 'FetchPositionsADLRank',
+    'FetchPositionsForSymbol', 'FetchPositionsForSymbolWs', 'FetchPositionsHistory', 'FetchPositionsRisk',
+    'FetchPositionsWs', 'FetchPositionWs', 'FetchPremiumIndexOHLCV', 'FetchPublicDepositWithdrawFees',
     'FetchPublicTransactionFees', 'FetchRawActiveMarkets', 'FetchRawEventByTicker', 'FetchRawMarketById',
-    'FetchRawMarketsByTags', 'FetchRawQuestionById', 'fetchSecurities', 'FetchSettlements',
-    'FetchSpotMarkets', 'FetchSpotOHLCV', 'FetchSpotOrders', 'FetchSpotOrdersByStates',
+    'FetchRawMarketsByTags', 'FetchRawQuestionById', 'FetchRestOrderBookSafe', 'fetchSecurities',
+    'FetchSettlements', 'FetchSpotMarkets', 'FetchSpotOHLCV', 'FetchSpotOrders', 'FetchSpotOrdersByStates',
     'FetchSpotOrdersByStatus', 'FetchSpotOrderTrades', 'FetchSpotTickers', 'FetchStatus',
     'FetchSwapAndFutureMarkets', 'FetchSwapMarkets', 'fetchSxbetBestOdds', 'FetchTicker', 'FetchTickers',
     'FetchTickersV2', 'FetchTickersV3', 'FetchTickersWs', 'FetchTickerV1', 'FetchTickerV1AndV2',
@@ -17491,38 +17522,40 @@ export const PARAMETERS_ARG_TYPED_METHODS = [
     'FetchTransactionsByType', 'FetchTransactionsHelper', 'FetchTransactionsWithMethod', 'FetchTransfer',
     'FetchTransfers', 'FetchUnifiedOrder', 'FetchUSDTMarkets', 'FetchUsedBalance', 'FetchUtaBalance',
     'FetchUtaCanceledAndClosedOrders', 'FetchUTAMarkets', 'FetchUTAOHLCV', 'FetchUtaOrdersByStatus',
-    'FetchWithdrawals', 'fetchWithdrawalsRequest', 'FetchWithdrawalsWs', 'findAccountId',
-    'getAssetHistoryRows', 'getMarketsPaginated', 'getV5LinearChannelAndMessageHash', 'getWithdrawNonce',
-    'handleMarketTypeAndParams', 'handleMaxEntriesPerRequestAndParams', 'handlePaginationParams',
-    'handleSinceAndUntil', 'handleSubTypeAndParams', 'handleToken', 'handleTradingStatisticsWindow',
-    'handleUntilOptionString', 'initializeClient', 'isUTAEnabled', 'loadAccounts', 'loadLeverageBrackets',
-    'loadMarkets', 'loadOrderBook', 'loadOutcomes', 'loadProxyCredentials', 'loadTimeDifference',
-    'loadTradingLimits', 'modifyLeverageAndMarginMode', 'modifyMarginHelper', 'multiOrderSpotPrepareRequest',
-    'orderBookSuffix', 'override', 'parseADLRanks', 'parseAllGreeks', 'parseConversions',
-    'parseDepositAddresses', 'parseLastPrices', 'parseLedger', 'parseOrders', 'parsePredictionOrders',
-    'parsePredictionPositions', 'parsePredictionTrades', 'parseSearchQueries', 'parseTickers',
-    'parseTransfers', 'parseWsTrades', 'preLoadLighterLibrary', 'prepareAccountRequest',
-    'prepareAccountRequestWithCurrencyCode', 'prepareOrdersByStatusRequest',
+    'FetchWallet', 'FetchWithdrawals', 'fetchWithdrawalsRequest', 'FetchWithdrawalsWs', 'findAccountId',
+    'getAssetHistoryRows', 'getMarketsPaginated', 'getMarketType', 'getV5LinearChannelAndMessageHash',
+    'getWithdrawNonce', 'handleMarketTypeAndParams', 'handleMaxEntriesPerRequestAndParams',
+    'handlePaginationParams', 'handleSinceAndUntil', 'handleSubTypeAndParams', 'handleTimeInForce',
+    'handleToken', 'handleTradingStatisticsWindow', 'handleUntilOptionString', 'initializeClient',
+    'isConditionalOrder', 'isUTAEnabled', 'loadAccounts', 'loadLeverageBrackets', 'loadMarkets',
+    'loadOrderBook', 'loadOutcomes', 'loadProxyCredentials', 'loadTimeDifference', 'loadTradingLimits',
+    'modifyLeverageAndMarginMode', 'modifyMarginHelper', 'multiOrderSpotPrepareRequest', 'orderBookSuffix',
+    'orderRequest', 'orderRequestWs', 'override', 'parseADLRanks', 'parseAllGreeks', 'parseConversions',
+    'parseCreateEditOrderArgs', 'parseDepositAddresses', 'parseLastPrices', 'parseLedger', 'parseOrders',
+    'parsePredictionOrders', 'parsePredictionPositions', 'parsePredictionTrades', 'parseSearchQueries',
+    'parseTickers', 'parseTransfers', 'parseWsTrades', 'preLoadLighterLibrary', 'prepareAccountRequest',
+    'prepareAccountRequestWithCurrencyCode', 'prepareOrdersByStatusRequest', 'prepareRequest',
     'prepareRequestForDepositAddress', 'queryContracts', 'queryTransactionsByEventType', 'redeem',
     'reduceMargin', 'repayCrossMargin', 'repayIsolatedMargin', 'repayMargin', 'requestWalletHistoryRows',
     'requireEventQuery', 'resolveAuthType', 'safeDeterministicCall', 'sendSubscription', 'sendUnsubscribe',
     'setBalanceCache', 'SetLeverage', 'SetMargin', 'SetMarginMode', 'SetPositionMode', 'setPositionsCache',
-    'setTakeProfitAndStopLossParams', 'signAndCancelAllOrders', 'signAndCancelOrder', 'signIn',
-    'signInWithApiKey', 'signInWithPrivateKey', 'spotOrderPrepareRequest', 'subscribeMyriadChannel',
-    'subscribePrivate', 'subscribePublicMultiple', 'subscribePublicUta', 'subscribeUserChannel',
-    'subscribeWsTickers', 'tradeRequest', 'Transfer', 'TransferBetweenMainAndSubAccount',
-    'TransferBetweenSubAccounts', 'TransferClassic', 'TransferUta', 'unSubscribe', 'unsubscribeChannelAt',
-    'unsubscribeChannels', 'unsubscribeChannelsFrom', 'unSubscribeMultiple', 'unsubscribeMultipleWrapper',
-    'unSubscribePublic', 'unsubscribePublic', 'unSubscribePublicMultiple', 'unWatch', 'unWatchBidsAsks',
-    'unWatchChannels', 'unWatchFundingRate', 'unWatchFundingRates', 'unWatchMarkPrice', 'unWatchMarkPrices',
-    'unWatchMyTrades', 'unWatchOHLCV', 'unWatchOHLCVForSymbols', 'unWatchOrderBook',
-    'unWatchOrderBookForSymbols', 'unWatchOrders', 'unWatchPositions', 'unwatchPublic',
-    'unWatchPublicMultiple', 'unWatchTicker', 'unWatchTickers', 'unWatchTopics', 'unWatchTrades',
-    'unWatchTradesForSymbols', 'unWatchWalletEvents', 'virtual', 'WatchBalance', 'WatchFundingRate',
-    'WatchFundingRates', 'WatchFundingRatesForSymbols', 'WatchLiquidations', 'WatchLiquidationsForSymbols',
-    'WatchMarkPrice', 'WatchMarkPrices', 'watchMultipleSubscription', 'watchMultiTickerHelper',
-    'WatchMyLiquidations', 'WatchMyLiquidationsForSymbols', 'WatchMyTrades', 'WatchMyTradesForSymbols',
-    'WatchOHLCV', 'WatchOHLCVForSymbols', 'WatchOrderBook', 'WatchOrderBookForSymbols', 'WatchOrders',
+    'setTakeProfitAndStopLossParams', 'signAndCancelAllOrders', 'signAndCancelOrder', 'signAndCreateOrder',
+    'signIn', 'signInWithApiKey', 'signInWithPrivateKey', 'signPerpsOp', 'spotOrderPrepareRequest',
+    'subscribeMyriadChannel', 'subscribePrivate', 'subscribePublicMultiple', 'subscribePublicUta',
+    'subscribeUserChannel', 'subscribeWsTickers', 'tradeRequest', 'Transfer',
+    'TransferBetweenMainAndSubAccount', 'TransferBetweenSubAccounts', 'TransferClassic', 'TransferUta',
+    'unSubscribe', 'unsubscribeChannelAt', 'unsubscribeChannels', 'unsubscribeChannelsFrom',
+    'unSubscribeMultiple', 'unsubscribeMultipleWrapper', 'unSubscribePublic', 'unsubscribePublic',
+    'unSubscribePublicMultiple', 'unWatch', 'unWatchBidsAsks', 'unWatchChannels', 'unWatchFundingRate',
+    'unWatchFundingRates', 'unWatchMarkPrice', 'unWatchMarkPrices', 'unWatchMyTrades', 'unWatchOHLCV',
+    'unWatchOHLCVForSymbols', 'unWatchOrderBook', 'unWatchOrderBookForSymbols', 'unWatchOrders',
+    'unWatchPositions', 'unwatchPublic', 'unWatchPublicMultiple', 'unWatchTicker', 'unWatchTickers',
+    'unWatchTopics', 'unWatchTrades', 'unWatchTradesForSymbols', 'unWatchWalletEvents', 'virtual',
+    'WatchBalance', 'WatchFundingRate', 'WatchFundingRates', 'WatchFundingRatesForSymbols',
+    'WatchLiquidations', 'WatchLiquidationsForSymbols', 'WatchMarkPrice', 'WatchMarkPrices',
+    'watchMultipleSubscription', 'watchMultiTickerHelper', 'WatchMyLiquidations',
+    'WatchMyLiquidationsForSymbols', 'WatchMyTrades', 'WatchMyTradesForSymbols', 'WatchOHLCV',
+    'WatchOHLCVForSymbols', 'WatchOrderBook', 'WatchOrderBookForSymbols', 'WatchOrders',
     'WatchOrdersForSymbols', 'WatchPosition', 'WatchPositionForSymbols', 'WatchPositions',
     'watchPrivateMultiple', 'watchPrivateSubscribe', 'watchSpotPrivate', 'watchSpotPublic',
     'watchStockMarketStream', 'watchSwapPrivate', 'watchSwapPublic', 'WatchTicker', 'WatchTrades',
