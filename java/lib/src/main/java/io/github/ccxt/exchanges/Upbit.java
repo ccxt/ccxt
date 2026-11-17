@@ -14,6 +14,7 @@ import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.OrderBooks;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -38,7 +39,7 @@ public class Upbit extends UpbitApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "upbit" );
@@ -442,12 +443,12 @@ public class Upbit extends UpbitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            return (this.fetchCurrencyById(currency.get("id"), parameters)).join();
+            return (this.fetchCurrencyById((String) (currency.get("id")), parameters)).join();
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
-    public CompletableFuture<Map<String, Object>> fetchCurrencyById(Object id, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchCurrencyById(String id, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -504,16 +505,16 @@ public class Upbit extends UpbitApi
             Boolean walletLocked = (Boolean) this.safeBool(memberInfo, "wallet_locked", (Object) null);
             Boolean locked = (Boolean) this.safeBool(memberInfo, "locked", (Object) null);
             Boolean active = true;
-            if ((!java.util.Objects.equals(canWithdraw, null)) && (!java.util.Objects.equals(canWithdraw, true)))
+            if ((!java.util.Objects.equals(canWithdraw, null)) && (!Boolean.TRUE.equals(canWithdraw)))
             {
                 active = false;
             } else if (!java.util.Objects.equals(walletState, "working"))
             {
                 active = false;
-            } else if ((!java.util.Objects.equals(walletLocked, null)) && (java.util.Objects.equals(walletLocked, true)))
+            } else if ((!java.util.Objects.equals(walletLocked, null)) && Boolean.TRUE.equals(walletLocked))
             {
                 active = false;
-            } else if ((!java.util.Objects.equals(locked, null)) && (java.util.Objects.equals(locked, true)))
+            } else if ((!java.util.Objects.equals(locked, null)) && Boolean.TRUE.equals(locked))
             {
                 active = false;
             }
@@ -718,15 +719,17 @@ public class Upbit extends UpbitApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing id")) ;
         }
-        var quoteIdbaseIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
-        var quoteId = ((List<Object>) quoteIdbaseIdVariable).get(0);
-        var baseId = ((List<Object>) quoteIdbaseIdVariable).get(1);
-        String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-        String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
+        String quoteId = this.safeString(parts, 0);
+        String baseId = this.safeString(parts, 1);
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
+        Map<String, Object> tradingFeesByQuoteCurrency = (Map<String, Object>) this.safeDict(this.options, "tradingFeesByQuoteCurrency", new HashMap<String, Object>() {{}});
+        Map<String, Object> tradingFees = (Map<String, Object>) this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", id);
         mapLiteral4.put("symbol", ((base + "/") + quote));
@@ -746,8 +749,8 @@ public class Upbit extends UpbitApi
         mapLiteral4.put("contract", false);
         mapLiteral4.put("linear", null);
         mapLiteral4.put("inverse", null);
-        mapLiteral4.put("taker", this.safeNumber(this.options.get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker")));
-        mapLiteral4.put("maker", this.safeNumber(this.options.get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker")));
+        mapLiteral4.put("taker", this.safeNumber(tradingFeesByQuoteCurrency, quote, this.safeNumber(tradingFees, "taker", (Object) null)));
+        mapLiteral4.put("maker", this.safeNumber(tradingFeesByQuoteCurrency, quote, this.safeNumber(tradingFees, "maker", (Object) null)));
         mapLiteral4.put("contractSize", null);
         mapLiteral4.put("expiry", null);
         mapLiteral4.put("expiryDatetime", null);
@@ -780,14 +783,14 @@ public class Upbit extends UpbitApi
         return this.safeMarketStructure(mapLiteral4);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
@@ -821,7 +824,7 @@ public class Upbit extends UpbitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
+            List<Object> response = (this.privateGetAccounts(parameters)).join();
             //
             //     [ {          currency: "BTC",
             //                   "balance": "0.005",
@@ -834,7 +837,7 @@ public class Upbit extends UpbitApi
             //         "avg_krw_buy_price": "250000",
             //                  "modified":  false    }   ]
             //
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }
@@ -862,10 +865,9 @@ public class Upbit extends UpbitApi
             Object ids = null;
             if (java.util.Objects.equals(symbols, null))
             {
-                Object allIds = this.ids;
-                if (!java.util.Objects.equals(allIds, null))
+                if (!java.util.Objects.equals(this.ids, null))
                 {
-                    ids = String.join(",", (List<String>)allIds);
+                    ids = String.join(",", (List<String>)this.ids);
                 }
             } else
             {
@@ -911,14 +913,14 @@ public class Upbit extends UpbitApi
             List<Object> orderbooks = this.toArray(response);
             for (var i = 0; i < ((List<?>)orderbooks).size(); i++)
             {
-                Object orderbook = (orderbooks == null || i < 0 || i >= orderbooks.size() ? null : orderbooks.get(i));
+                Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(orderbooks, i, new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(orderbook, "market");
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
                 Long timestamp = this.safeInteger(orderbook, "timestamp");
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "symbol", symbol );
-        put( "bids", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size", 2), 0, true) );
-        put( "asks", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "ask_price", "ask_size", 2), 0) );
+        put( "bids", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(orderbook.get("orderbook_units"), "bid_price", "bid_size", 2), 0, true) );
+        put( "asks", Upbit.this.sortBy(Upbit.this.parseOrderBookBidsAsks(orderbook.get("orderbook_units"), "ask_price", "ask_size", 2), 0) );
         put( "timestamp", timestamp );
         put( "datetime", Upbit.this.iso8601(timestamp) );
         put( "nonce", null );
@@ -945,7 +947,7 @@ public class Upbit extends UpbitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            OrderBooks orderbooks = (this.fetchOrderBooks(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), limit, parameters)).join();
+            OrderBooks orderbooks = (this.fetchOrderBooks(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), limit, parameters)).join();
             Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(orderbooks, symbol, (Object) null);
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1056,7 +1058,7 @@ public class Upbit extends UpbitApi
                     {
                         quoteCurrencies = (quoteCurrencies + ",");
                     }
-                    quoteCurrencies = (quoteCurrencies + (sortedQuoteIds == null || i < 0 || i >= ((List<?>)sortedQuoteIds).size() ? null : ((List<?>)sortedQuoteIds).get(i)));
+                    quoteCurrencies = (quoteCurrencies + this.safeString(sortedQuoteIds, i, ""));
                 }
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("quote_currencies", quoteCurrencies);
@@ -1065,13 +1067,12 @@ public class Upbit extends UpbitApi
             {
                 List<String> ids = this.marketIds(symbolsNormalized);
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                Object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+                List<Object> queries = (List<Object>) this.idsQueryStrings(ids); // the url is limited to about 8000 characters once the commas are percent-encoded
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
                 {
-                    Object idsQuery = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
-                    ((List<Object>)promises).add(this.publicGetTicker(this.extend(new HashMap<String, Object>() {{
-                        put( "markets", idsQuery );
-                    }}, parameters)));
+                    HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                    mapLiteral5.put("markets", this.safeString(queries, i, ""));
+                    ((List<Object>)promises).add(this.publicGetTicker(this.extend(mapLiteral5, parameters)));
                 }
                 Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 tickers = this.arraysConcat(responses);
@@ -1109,23 +1110,18 @@ public class Upbit extends UpbitApi
 
     }
 
-    public Object idsQueryStrings(Object ids, Object maxQueryLength)
+    public Object idsQueryStrings(Object ids)
     {
-        if (java.util.Objects.equals(ids, null))
-        {
-            return new ArrayList<Object>(Arrays.asList());
-        }
         String idsString = "";
         List<Object> queries = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
             if (!java.util.Objects.equals(idsString, ""))
             {
                 idsString = (idsString + ",");
             }
-            idsString = (idsString + id);
-            if (Helpers.isGreaterThanOrEqual(((String)idsString).length(), maxQueryLength))
+            idsString = (idsString + this.safeString(ids, i, ""));
+            if (((String)idsString).length() >= 4000)
             {
                 ((List<Object>)queries).add(idsString);
                 idsString = "";
@@ -1198,7 +1194,7 @@ public class Upbit extends UpbitApi
             timestamp = this.parse8601(this.safeString(trade, "created_at"));
         }
         String side = null;
-        String askOrBid = this.safeStringLower2(trade, "ask_bid", "side");
+        String askOrBid = this.safeStringLower2(trade, "ask_bid", "side", "");
         if (java.util.Objects.equals(askOrBid, "ask"))
         {
             side = "sell";
@@ -1215,26 +1211,28 @@ public class Upbit extends UpbitApi
         String feeCost = this.safeString(trade, (askOrBid + "_fee"));
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", marketResolved.get("quote"),
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("currency", marketResolved.get("quote"));
+                hx4NewMap0.put("cost", feeCost);
+                fee = hx4NewMap0;
+            }
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("id", id);
-        mapLiteral5.put("info", trade);
-        mapLiteral5.put("order", orderId);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("symbol", marketResolved.get("symbol"));
-        mapLiteral5.put("type", null);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("takerOrMaker", null);
-        mapLiteral5.put("price", price);
-        mapLiteral5.put("amount", amount);
-        mapLiteral5.put("cost", cost);
-        mapLiteral5.put("fee", fee);
-        return this.safeTrade(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("info", trade);
+        mapLiteral6.put("order", orderId);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("symbol", marketResolved.get("symbol"));
+        mapLiteral6.put("type", null);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("takerOrMaker", null);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("cost", cost);
+        mapLiteral6.put("fee", fee);
+        return this.safeTrade(mapLiteral6, marketResolved);
     }
 
     /**
@@ -1388,14 +1386,15 @@ public class Upbit extends UpbitApi
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fetchMarketResponse).size(); i++)
             {
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(fetchMarketResponse, i, (Object) null);
                 Map<String, Object> element = new HashMap<String, Object>() {{}};
-                element.put("maker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "maker", (Object) null));
-                element.put("taker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "taker", (Object) null));
-                element.put("symbol", this.safeString((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "symbol"));
+                element.put("maker", this.safeNumber(item, "maker", (Object) null));
+                element.put("taker", this.safeNumber(item, "taker", (Object) null));
+                element.put("symbol", this.safeString(item, "symbol"));
                 element.put("percentage", true);
                 element.put("tierBased", false);
-                element.put("info", (fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)));
-                String feeSymbol = this.safeString((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "symbol");
+                element.put("info", item);
+                String feeSymbol = this.safeString(item, "symbol");
                 if (!java.util.Objects.equals(feeSymbol, null))
                 {
                     response.put(feeSymbol, element);
@@ -1507,15 +1506,15 @@ public class Upbit extends UpbitApi
 
     }
 
-    public String calcOrderPrice(String symbol, Object amount, Object price, Object parameters)
+    public String calcOrderPrice(String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
         String quoteAmount = null;
-        Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", (Object) null);
+        Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false);
         String cost = this.safeString(parameters, "cost");
         if (!java.util.Objects.equals(cost, null))
         {
             quoteAmount = this.costToPrecision(symbol, cost);
-        } else if (java.util.Objects.equals(createMarketBuyOrderRequiresPrice, true))
+        } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
         {
             if (java.util.Objects.equals(price, null) || java.util.Objects.equals(amount, null))
             {
@@ -1609,7 +1608,7 @@ public class Upbit extends UpbitApi
                 if (java.util.Objects.equals(side, "buy"))
                 {
                     request.put("ord_type", "price");
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, parameters);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, parameters);
                     request.put("price", orderPrice);
                 } else
                 {
@@ -1630,7 +1629,7 @@ public class Upbit extends UpbitApi
                 request.put("ord_type", "best");
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, paramsOrdType);
                     request.put("price", orderPrice);
                 } else
                 {
@@ -1666,7 +1665,7 @@ public class Upbit extends UpbitApi
             }
             Map<String, Object> response = null;
             Map<String, Object> paramsRequest = this.omit(paramsOrdType, new ArrayList<Object>(Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
-            if (java.util.Objects.equals(test, true))
+            if (Boolean.TRUE.equals(test))
             {
                 response = (this.privatePostOrdersTest(this.extend(request, paramsRequest))).join();
             } else
@@ -1812,7 +1811,7 @@ public class Upbit extends UpbitApi
                 if (java.util.Objects.equals(side, "buy"))
                 {
                     request.put("new_ord_type", "price");
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOmitted);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, paramsOmitted);
                     request.put("new_price", orderPrice);
                 } else
                 {
@@ -1833,7 +1832,7 @@ public class Upbit extends UpbitApi
                 request.put("new_ord_type", "best");
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    String orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);
+                    String orderPrice = this.calcOrderPrice((String) (symbol), amount, price, paramsOrdType);
                     request.put("new_price", orderPrice);
                 } else
                 {
@@ -1970,7 +1969,7 @@ public class Upbit extends UpbitApi
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchDeposit(String id, String code, Object parameters)
+    public CompletableFuture<Object> fetchDeposit(String id, String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2004,7 +2003,7 @@ public class Upbit extends UpbitApi
             //         "transaction_type": "default"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         });
 
     }
@@ -2076,7 +2075,7 @@ public class Upbit extends UpbitApi
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Object parameters)
+    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2110,7 +2109,7 @@ public class Upbit extends UpbitApi
             //         "transaction_type": "default"
             //     }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         });
 
     }
@@ -2317,16 +2316,16 @@ public class Upbit extends UpbitApi
         String feeCost = this.safeString(order, "paid_fee");
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("order", id);
-        mapLiteral6.put("type", type);
-        trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, mapLiteral6);
+        List<Object> trades = this.parseTrades(this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList())), marketResolved, (Long) null, (Long) null, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("order", id);
+            j39v1.put("type", type);
+            yield j39v1; } }));
         Integer numTrades = ((List<?>)trades).size();
         if ((numTrades != null && numTrades > 0))
         {
             // the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = Helpers.GetValue((trades == null || ((int) (((long) numTrades) - 1L)) < 0 || ((int) (((long) numTrades) - 1L)) >= trades.size() ? null : trades.get(((int) (((long) numTrades) - 1L)))), "timestamp");
+            Map<String, Object> lastTrade = (Map<String, Object>) this.safeDict(trades, (((long) numTrades) - 1L), new HashMap<String, Object>() {{}});
+            lastTradeTimestamp = lastTrade.get("timestamp");
             Boolean getFeesFromTrades = false;
             if (java.util.Objects.equals(feeCost, null))
             {
@@ -2340,7 +2339,7 @@ public class Upbit extends UpbitApi
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
                 if (Boolean.TRUE.equals(getFeesFromTrades))
                 {
-                    Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "fee", new HashMap<String, Object>() {{}});
+                    Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
                     String tradeFeeCost = this.safeString(tradeFee, "cost");
                     if (!java.util.Objects.equals(tradeFeeCost, null))
                     {
@@ -2352,10 +2351,12 @@ public class Upbit extends UpbitApi
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", marketResolved.get("quote"),
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("currency", marketResolved.get("quote"));
+                hx4NewMap1.put("cost", feeCost);
+                fee = hx4NewMap1;
+            }
         }
         HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
         mapLiteral7.put("info", order);
@@ -2482,7 +2483,7 @@ public class Upbit extends UpbitApi
             {
                 request.put("limit", limit);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil))).join();
@@ -2553,7 +2554,7 @@ public class Upbit extends UpbitApi
             {
                 request.put("limit", limit);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.privateGetOrdersClosed(this.extend(requestUntil, paramsUntil))).join();
@@ -2716,7 +2717,7 @@ public class Upbit extends UpbitApi
         String currencyId = this.safeString(depositAddress, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String networkId = this.safeString(depositAddress, "net_type");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -2754,10 +2755,10 @@ public class Upbit extends UpbitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
             }
-            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(Helpers.newMap(
-                "currency", currency.get("id"),
-                "net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
-            ), paramsNetworkCode))).join();
+            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("currency", currency.get("id"));
+                j39v2.put("net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
+                yield j39v2; } }), paramsNetworkCode))).join();
             //
             //    {
             //        currency: 'XRP',
@@ -2766,7 +2767,7 @@ public class Upbit extends UpbitApi
             //        secondary_address: '167029435'
             //    }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseDepositAddress(response, (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2816,7 +2817,7 @@ public class Upbit extends UpbitApi
             {
                 throw new AddressPending((((this.id + " is generating ") + code) + " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
             }
-            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseDepositAddress(response, (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -2830,17 +2831,17 @@ public class Upbit extends UpbitApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagResolvedparamsTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagResolved = ((List<Object>) tagResolvedparamsTagVariable).get(0);
+            List<Object> tagResolvedparamsTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagResolved = (String) ((List<Object>) tagResolvedparamsTagVariable).get(0);
             Map<String, Object> paramsTag = (Map<String, Object>) ((List<Object>) tagResolvedparamsTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -2853,7 +2854,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(code, "KRW"))
             {
-                this.checkAddress(address);
+                this.checkAddress(address, code, tagResolved);
                 // 2023-05-23 Change to required parameters for digital assets
                 String network = this.safeStringUpper2(paramsTag, "network", "net_type");
                 if (java.util.Objects.equals(network, null))
@@ -2897,9 +2898,10 @@ public class Upbit extends UpbitApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2909,36 +2911,35 @@ public class Upbit extends UpbitApi
         }});
         url = (url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
         Object query = this.omit(parameters, this.extractParams(path));
+        Integer numQueryKeys = ((Map<String, Object>)query).size();
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if ((numQueryKeys != null && numQueryKeys > 0))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
         }
-        Boolean hasBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
-        String requestBody = body;
+        Boolean hasBody = (java.util.Objects.equals(apiName, "private")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
+        String requestBody = null;
         if (Boolean.TRUE.equals(hasBody))
         {
             requestBody = this.json(parameters);
         }
-        Map<String, Object> privateHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        Map<String, Object> headers = new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
-            privateHeaders = new HashMap<String, Object>() {{}};
             String nonce = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "access_key", Upbit.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Integer hasQuery = Helpers.objectKeys(query).size();
             String auth = null;
             if (Boolean.TRUE.equals(hasBody))
             {
-                privateHeaders.put("Content-Type", "application/json");
+                headers.put("Content-Type", "application/json");
             }
-            if (!java.util.Objects.equals(hasQuery, 0))
+            if (!java.util.Objects.equals(numQueryKeys, 0))
             {
                 auth = this.rawencode(query);
             }
@@ -2949,9 +2950,9 @@ public class Upbit extends UpbitApi
                 request.put("query_hash_alg", "SHA512");
             }
             String token = jwt(request, this.encode(this.secret), sha256());
-            privateHeaders.put("Authorization", ("Bearer " + token));
+            headers.put("Authorization", ("Bearer " + token));
         }
-        Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? privateHeaders : headers;
+        Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? headers : null;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
@@ -2962,7 +2963,7 @@ public class Upbit extends UpbitApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2985,10 +2986,10 @@ public class Upbit extends UpbitApi
             String message = this.safeString(error, "message");
             String name = this.safeString(error, "name");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), name, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), name, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), name, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), name, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

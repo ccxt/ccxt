@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class mudrex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mudrex, self).describe(), {
             'id': 'mudrex',
             'name': 'Mudrex',
@@ -185,21 +185,20 @@ class mudrex(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         apiUrls = self.safe_dict(self.urls, 'api', {})
-        base = self.safe_string(apiUrls, api)
+        base = self.safe_string(apiUrls, apiName)
         if base is None:
-            raise ExchangeError(self.id + ' unknown API namespace: ' + api)
+            raise ExchangeError(self.id + ' unknown API namespace: ' + apiName)
         url = base + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         requestHeaders = {}
-        if headers is not None:
-            requestHeaders = self.extend({}, headers)
         brokerId = self.safe_string(self.options, 'broker')
         if brokerId is not None:
             requestHeaders['Partner-Id'] = brokerId
         methodUpper = method.upper()
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             requestHeaders['X-Authentication'] = self.secret
             if methodUpper == 'POST' or methodUpper == 'PATCH' or methodUpper == 'DELETE':
@@ -213,15 +212,15 @@ class mudrex(Exchange, ImplicitAPI):
                     return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
                 bodyStr = self.json(query)
                 return {'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': requestHeaders}
-        if len(query) > 0:
+        if not self.is_empty(query):
             url += '?' + self.urlencode(query)
         return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None or not isinstance(response, dict):
             return None
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             errors = self.safe_list(response, 'errors', [])
             first = self.safe_dict(errors, 0, {})
             text = self.safe_string(first, 'text', self.json(response))
@@ -276,31 +275,25 @@ class mudrex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         priceType = self.safe_string(params, 'price')
         # the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        assetPair = market['baseId'] + '/' + market['quoteId']
+        baseIdString = self.safe_string(market, 'baseId', '')
+        quoteIdString = self.safe_string(market, 'quoteId', '')
+        assetPair = baseIdString + '/' + quoteIdString
         request = {
             'assets': assetPair,
             'aggregation': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         # the endpoint requires an explicit time window (in seconds)
         duration = self.parse_timeframe(timeframe)
-        requestLimit = limit
-        if requestLimit is None:
-            requestLimit = 500
+        requestLimit = 500 if (limit is None) else limit
         now = self.seconds()
-        startTime = None
-        if since is not None:
-            startTime = self.parse_to_int(since / 1000)
-        else:
-            startTime = now - duration * requestLimit
-        if startTime is None:
-            raise ExchangeError(self.id + ' fetchOHLCV() missing startTime')
-        endTime = startTime + duration * requestLimit
+        windowLength = duration * requestLimit
+        defaultStart = now - windowLength
+        startTime = self.parse_to_int((since / 1000) if (since is not None) else defaultStart)
+        windowEnd = self.parse_to_int(startTime + duration * requestLimit)
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, ['price', 'until'])
-        if until is not None:
-            endTime = self.parse_to_int(until / 1000)
-        elif endTime > now:
-            endTime = now
+        cappedEnd = now if (windowEnd > now) else windowEnd
+        endTime = self.parse_to_int((until / 1000) if (until is not None) else cappedEnd)
         request['start_time'] = startTime
         request['end_time'] = endTime
         response: dict
@@ -374,7 +367,11 @@ class mudrex(Exchange, ImplicitAPI):
         request = {}
         response = await self.privateGetFutures(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
-        rows = data if isinstance(data, list) else self.safe_list(data, 'items', [])
+        rows = []
+        if isinstance(data, list):
+            rows = self.to_array(data)
+        else:
+            rows = self.safe_list(data, 'items', [])
         resultTickers = {}
         for i in range(0, len(rows)):
             t = rows[i]
@@ -429,7 +426,7 @@ class mudrex(Exchange, ImplicitAPI):
         offset = 0
         pageLimit = 100
         paging = True
-        while(paging is True):
+        while(paging):
             q = self.extend({'limit': pageLimit, 'offset': offset}, params)
             response = await self.privateGetFutures(q)
             data = self.safe_value(response, 'data', [])
@@ -553,10 +550,9 @@ class mudrex(Exchange, ImplicitAPI):
             currency = 'USDT'
         if response is None:
             raise NullResponse(self.id + ' fetchBalance() returned empty response')
-        response['currency'] = currency
-        return self.parse_balance(response)
+        return self.parse_balance(self.extend(response, {'currency': currency}))
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         data = self.safe_dict(response, 'data', {})
         currency = self.safe_string(response, 'currency', 'USDT')
         result = {
@@ -1048,6 +1044,7 @@ class mudrex(Exchange, ImplicitAPI):
             'lastPrice': self.safe_number(position, 'closed_price'),  # exit price for closed positions
             'notional': notional,
             'leverage': self.safe_integer(position, 'leverage'),
+            'positionMargin': self.parse_number(initialMargin),
             'collateral': self.parse_number(initialMargin),
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': None,
@@ -1075,18 +1072,18 @@ class mudrex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
+        market = self.market(symbol)
         positionId = self.safe_string(params, 'position_id')
         amount = self.safe_value(params, 'amount')
         if positionId is None:
-            market = self.market(symbol)
             positions = await self.fetch_positions([symbol], params)
-            for i in range(0, len(positions)):
-                p = positions[i]
-                if side is not None and p['side'] != side:
-                    continue
-                if p['symbol'] == market['symbol']:
-                    positionId = self.safe_string(p, 'id')
-                    break
+            candidates = self.filter_by(positions, 'symbol', market['symbol'])
+            if side is not None:
+                candidates = self.filter_by(candidates, 'side', side)
+            numCandidates = len(candidates)
+            if numCandidates > 0:
+                found = candidates[0]
+                positionId = self.safe_string(found, 'id')
         if positionId is None:
             raise OrderNotFound(self.id + ' closePosition() could not resolve position_id')
         request = {
@@ -1101,10 +1098,12 @@ class mudrex(Exchange, ImplicitAPI):
                 request['limit_price'] = lp
             partialParams = self.omit(params, ['order_type', 'limit_price', 'amount', 'position_id'])
             partialResponse = await self.privatePostFuturesPositionsPositionIdClosePartial(self.extend(request, partialParams))
-            return partialResponse
+            partialData = self.safe_dict(partialResponse, 'data', partialResponse)
+            return self.parse_order(partialData, market)
         closeParams = self.omit(params, ['position_id'])
         response = await self.privatePostFuturesPositionsPositionIdClose(self.extend(request, closeParams))
-        return response
+        data = self.safe_dict(response, 'data', response)
+        return self.parse_order(data, market)
 
     async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """
@@ -1123,11 +1122,11 @@ class mudrex(Exchange, ImplicitAPI):
         positionId = self.safe_string(params, 'position_id')
         if positionId is None:
             positions = await self.fetch_positions([symbol], params)
-            for i in range(0, len(positions)):
-                p = positions[i]
-                if p['symbol'] == symbol:
-                    positionId = self.safe_string(p, 'id')
-                    break
+            matches = self.filter_by(positions, 'symbol', symbol)
+            numMatches = len(matches)
+            if numMatches > 0:
+                found = matches[0]
+                positionId = self.safe_string(found, 'id')
         if positionId is None:
             raise OrderNotFound(self.id + ' addMargin() could not resolve position_id')
         request = {
@@ -1171,37 +1170,36 @@ class mudrex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         maxCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, 'fetchMyTrades', 'paginationCalls', 10)
-        pageSize = 0
-        if limit is not None:
-            # every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-            pageSize = limit * 2
+        # every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+        pageSize = 0 if (limit is None) else limit * 2
         allRows = []
-        transactionsCount = 0
-        calls = 0
+        transactionsCount = self.parse_to_int(0)
+        calls = self.parse_to_int(0)
         offset = 0
         paging = True
-        while(paging is True):
+        while(paging):
             request = {}
-            if pageSize > 0:
+            if (limit is not None) and (limit > 0):
                 request['limit'] = pageSize
                 request['offset'] = offset
             response = await self.privateGetFuturesFeeHistory(self.extend(request, paramsPaginationCalls))
             data = self.safe_list(response, 'data', [])
             dataLength = len(data)
-            for i in range(0, dataLength):
+            for i in range(0, len(data)):
                 entry = data[i]
                 allRows.append(entry)
                 if self.safe_string(entry, 'fee_type') == 'TRANSACTION':
                     # count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (market is None) or (self.safe_string(entry, 'symbol') == market['id']):
-                        transactionsCount = self.sum(transactionsCount, 1)
-            calls = self.sum(calls, 1)
+                        transactionsCount = self.parse_to_int(transactionsCount + 1)
+            calls = self.parse_to_int(calls + 1)
             paging = False
             # the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if (limit is not None) and (dataLength == pageSize) and (transactionsCount < limit) and (calls < maxCalls):
-                # this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = self.sum(offset, pageSize)
-                paging = True
+            if (limit is not None) and (dataLength == pageSize):
+                if (transactionsCount < limit) and (calls < maxCalls):
+                    # this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                    offset = self.sum(offset, pageSize)
+                    paging = True
         # a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
         rebateKeys = []
         rebateAmounts = []
@@ -1224,7 +1222,7 @@ class mudrex(Exchange, ImplicitAPI):
                 if rebateKeys[j] == transactionKeys[i]:
                     rebate = self.safe_string(rebateAmounts, j)
                     # blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-                    rebateKeys[j] = None
+                    rebateKeys[j] = ''
                     break
             if rebate is None:
                 rows.append(transactions[i])

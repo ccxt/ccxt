@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class krakenfutures extends \ccxt\async\krakenfutures {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -144,7 +144,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         );
         $marketIds = array();
         $messageHash = $name;
-        $symbolsValue = ($symbols === null) ? array() : $symbols;
+        $symbolsValue = $symbols;
         for ($i = 0; $i < count($symbolsValue); $i++) {
             $symbol = $symbolsValue[$i];
             $marketIds[] = $this->market_id($symbol);
@@ -152,7 +152,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $length = count($symbolsValue);
         if ($length === 1) {
             $market = $this->market($marketIds[0]);
-            $messageHash = $messageHash . ':' . $market['symbol'];
+            $messageHash .= ':' . $market['symbol'];
         }
         $subscribe['product_ids'] = $marketIds;
         $request = $this->extend($subscribe, $params);
@@ -298,7 +298,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $trades = Async\await($this->watch_multi_helper('trade', 'trade', $symbols, null, $params));
-        $first = $this->safe_list($trades, 0);
+        $first = $this->safe_dict($trades, 0);
         $tradeSymbol = $this->safe_string($first, 'symbol');
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -397,10 +397,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
-            $position = $this->parse_ws_position($rawPosition);
             $timestamp = $this->safe_integer($message, 'timestamp');
-            $position['timestamp'] = $timestamp;
-            $position['datetime'] = $this->iso8601($timestamp);
+            $position = $this->parse_ws_position($rawPosition, null, $timestamp);
             $newPositions[] = $position;
             $cache->append($position);
         }
@@ -418,7 +416,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position(array $position, ?array $market = null): array {
+    public function parse_ws_position(array $position, ?array $market = null, ?int $timestamp = null): array {
         //
         //        {
         //            instrument: 'PF_LTCUSD',
@@ -461,8 +459,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'side' => $side,
             'hedged' => $hedged,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'maintenanceMargin' => $this->safe_number($position, 'maintenance_margin'),
             'maintenanceMarginPercentage' => null,
             'collateral' => null,
@@ -544,7 +542,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $messageHash = 'myTrades';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash .= ':' . $market['symbol'];
+            $messageHash = 'myTrades' . ':' . $market['symbol'];
         }
         $trades = Async\await($this->subscribe_private($name, $messageHash, $params));
         $limitResolved = $limit;
@@ -566,7 +564,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->account] can be either 'futures' or 'flex_futures'
-         * @return {array} a object of wallet types each with a balance structure array(@link https://docs.ccxt.com/?id=balance-structure)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~ of the $account type the message updated ('cash', 'futures' margin, or 'flex_futures')
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -626,17 +624,20 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
             $messageHash = $this->get_message_hash('trade', null, $symbol);
-            if ($this->safe_list($this->trades, $symbol) === null) {
+            // safeValue, not safeList: the values are ArrayCache instances, and
+            // the typed accessor casts them to a plain list in c#, which throws
+            $tradesArray = $this->safe_value($this->trades, $symbol);
+            if ($tradesArray === null) {
                 $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $this->trades[$symbol] = new ArrayCache($tradesLimit);
+                $tradesArray = new ArrayCache($tradesLimit);
+                $this->trades[$symbol] = $tradesArray;
             }
-            $tradesArray = $this->trades[$symbol];
             if ($channel === 'trade_snapshot') {
                 $trades = $this->safe_list($message, 'trades', array());
                 $length = count($trades);
                 for ($i = 0; $i < $length; $i++) {
-                    $index = $length - 1 - $i; // need reverse to correct chronology
-                    $item = $trades[$index];
+                    // need reverse to correct chronology
+                    $item = $trades[$length - 1 - $i];
                     $trade = $this->parse_ws_trade($item);
                     $tradesArray->append($trade);
                 }
@@ -855,7 +856,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
                 $totalCost = '0';
                 $totalAmount = '0';
-                $trades = $previousOrder['trades'];
+                $trades = $this->safe_list($previousOrder, 'trades', array());
                 for ($i = 0; $i < count($trades); $i++) {
                     $currentTrade = $trades[$i];
                     $totalCost = Precise::string_add($totalCost, $this->number_to_string($currentTrade['cost']));
@@ -879,8 +880,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                         'currency' => $this->number_to_string($this->safe_string($trade['fee'], 'currency')),
                     );
                 }
-                if (($previousOrder['fee']['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
-                    $stringOrderCost = $this->number_to_string($previousOrder['fee']['cost']);
+                $previousFee = $this->safe_dict($previousOrder, 'fee', array());
+                if (($previousFee['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
+                    $stringOrderCost = $this->number_to_string($previousFee['cost']);
                     $stringTradeCost = $this->number_to_string($this->safe_number($trade['fee'], 'cost'));
                     $previousOrder['fee']['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);
                 }
@@ -890,8 +892,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $client->resolve($orders, $messageHash);
             }
         } else {
-            $isCancel = $this->safe_bool($message, 'is_cancel');
-            if ($isCancel === true) {
+            $isCancel = $this->safe_bool($message, 'is_cancel', false);
+            if ($isCancel) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
                 // mapping every removal to canceled. Preserve reason on info
@@ -907,9 +909,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $messageHash = 'orders:verbose';
                 }
                 // get order without symbol
+                $cancelledOrderId = $this->safe_string($message, 'order_id');
                 for ($i = 0; $i < count($orders); $i++) {
                     $currentOrder = $orders[$i];
-                    if ($currentOrder['id'] === $message['order_id']) {
+                    $currentOrderId = $this->safe_string($currentOrder, 'id');
+                    if ($currentOrderId === $cancelledOrderId) {
                         $info = $this->extend($this->safe_dict($currentOrder, 'info', array()), array(
                             'reason' => $reason,
                         ));
@@ -918,7 +922,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                             'info' => $info,
                         ));
                         $client->resolve($orders, $messageHash);
-                        $client->resolve($orders, $messageHash . ':' . $currentOrder['symbol']);
+                        $client->resolve($orders, $messageHash . ':' . $this->safe_string($currentOrder, 'symbol', ''));
                         break;
                     }
                 }
@@ -976,8 +980,12 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        ]
         //    }
         $orders = $this->safe_list($message, 'orders', array());
-        $limit = $this->safe_integer($this->options, 'ordersLimit');
-        $this->orders = new ArrayCacheBySymbolById($limit);
+        // reuse the existing cache: replacing it would orphan consumers holding
+        // a reference to the old one across a reconnect snapshot
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit');
+            $this->orders = new ArrayCacheBySymbolById($limit);
+        }
         $feed = $this->safe_string($message, 'feed');
         $messageHash = 'orders';
         if ($feed === 'open_orders_verbose_snapshot') {
@@ -985,14 +993,47 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $symbols = array();
         $cachedOrders = $this->orders;
+        $snapshotIds = array();
         for ($i = 0; $i < count($orders); $i++) {
             $order = $orders[$i];
             $parsed = $this->parse_ws_order($order);
-            $symbol = $parsed['symbol'];
+            $symbol = $this->safe_string($parsed, 'symbol');
             if ($symbol !== null) {
                 $symbols[$symbol] = true;
             }
+            $parsedId = $this->safe_string($parsed, 'id');
+            if ($parsedId !== null) {
+                $snapshotIds[$parsedId] = true;
+            }
             $cachedOrders->append($parsed);
+        }
+        // reconcile the reused cache with the snapshot: the snapshot lists every
+        // currently open order, so an order cached as open but missing from it is
+        // no longer open on the venue - it filled or was cancelled while we were
+        // disconnected. the snapshot does not say which, so mark it canceled
+        // instead of leaving it open in the cache forever
+        $cachedSymbols = is_array($cachedOrders->hashmap) ? array_keys($cachedOrders->hashmap) : array();
+        for ($i = 0; $i < count($cachedSymbols); $i++) {
+            $cachedSymbol = $cachedSymbols[$i];
+            $ordersById = $this->safe_dict($cachedOrders->hashmap, $cachedSymbol, array());
+            $cachedIds = is_array($ordersById) ? array_keys($ordersById) : array();
+            for ($j = 0; $j < count($cachedIds); $j++) {
+                $cachedId = $cachedIds[$j];
+                if (!(is_array($snapshotIds) && array_key_exists($cachedId ?? '', $snapshotIds))) {
+                    $cachedOrder = $this->safe_dict($ordersById, $cachedId, array());
+                    $cachedStatus = $this->safe_string($cachedOrder, 'status');
+                    // parseWsOrder leaves status undefined for snapshot and
+                    // non-cancel updates, so undefined means open here
+                    if (($cachedStatus === null) || ($cachedStatus === 'open')) {
+                        $cachedOrder['status'] = 'canceled';
+                        // write the updated order back through append: the cache
+                        // rows are copies in the value-type runtimes (php), and
+                        // append also feeds the newUpdates accounting
+                        $cachedOrders->append($cachedOrder);
+                        $symbols[$cachedSymbol] = true;
+                    }
+                }
+            }
         }
         $length = count($this->orders);
         if ($length > 0) {
@@ -1049,8 +1090,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $unparsedOrder = $order;
         $status = null;
         if ($isCancelled !== null) {
-            $unparsedOrder = $this->safe_value($order, 'order');
-            if ($isCancelled === true) {
+            $unparsedOrder = $this->safe_dict($order, 'order');
+            if ($isCancelled) {
                 $status = 'cancelled';
             }
         }
@@ -1122,7 +1163,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $marketId = $this->safe_string($message, 'product_id');
         if ($marketId !== null) {
             $ticker = $this->parse_ws_ticker($message);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $this->tickers[$symbol] = $ticker;
             }
@@ -1151,7 +1192,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $marketId = $this->safe_string($message, 'product_id');
         if ($marketId !== null) {
             $ticker = $this->parse_ws_ticker($message);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $this->bidsasks[$symbol] = $ticker;
             }
@@ -1271,13 +1312,14 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    }
         //
         $marketId = $this->safe_string($message, 'product_id');
-        $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_symbol($marketId);
         $messageHash = $this->get_message_hash('orderbook', null, $symbol);
         $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
         $timestamp = $this->safe_integer($message, 'timestamp');
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        }
         $orderbook = $this->orderbooks[$symbol];
         $bids = $this->safe_list($message, 'bids');
         if ($bids === null) {
@@ -1287,23 +1329,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($asks === null) {
             return;
         }
-        for ($i = 0; $i < count($bids); $i++) {
-            $bid = $this->safe_dict($bids, $i);
-            $price = $this->safe_number($bid, 'price');
-            $qty = $this->safe_number($bid, 'qty');
-            $bidsSide = $orderbook['bids'];
-            $bidsSide->store($price, $qty);
-        }
-        for ($i = 0; $i < count($asks); $i++) {
-            $ask = $this->safe_dict($asks, $i);
-            $price = $this->safe_number($ask, 'price');
-            $qty = $this->safe_number($ask, 'qty');
-            $asksSide = $orderbook['asks'];
-            $asksSide->store($price, $qty);
-        }
-        $orderbook['timestamp'] = $timestamp;
-        $orderbook['datetime'] = $this->iso8601($timestamp);
-        $orderbook['symbol'] = $symbol;
+        $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'qty');
+        $orderbook->reset($snapshot);
         $client->resolve($orderbook, $messageHash);
     }
 
@@ -1320,8 +1347,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    }
         //
         $marketId = $this->safe_string($message, 'product_id');
-        $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_symbol($marketId);
         $messageHash = $this->get_message_hash('orderbook', null, $symbol);
         $orderbook = $this->orderbooks[$symbol];
         $side = $this->safe_string($message, 'side');
@@ -1486,38 +1512,49 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        "seq": 2
         //    }
         //
+        // merge updates into the existing per-account balance objects instead of
+        // building fresh ones: a consumer awakened by an earlier message holds a
+        // reference to this.balance['cash'/'margin'/'flex'], and Client.resolve
+        // is a no-op while nobody is awaiting, so a replaced object would make
+        // updates landing in that window invisible to the consumer forever
+        // (same class of bug as kraken issue #26773)
         $holding = $this->safe_dict($message, 'holding');
         $futures = $this->safe_dict($message, 'futures');
         $flexFutures = $this->safe_dict($message, 'flex_futures');
         $messageHash = 'balances';
         $timestamp = $this->safe_integer($message, 'timestamp');
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $updatedBalance = null;
         if ($holding !== null) {
             $holdingKeys = is_array($holding) ? array_keys($holding) : array();                  // cashAccount
-            $holdingResult = array(
-                'info' => $message,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            );
+            $this->balance['cash'] = $this->safe_dict($this->balance, 'cash', array());
+            $this->balance['cash']['info'] = $message;
+            $this->balance['cash']['timestamp'] = $timestamp;
+            $this->balance['cash']['datetime'] = $this->iso8601($timestamp);
+            $holdingCodes = array();
             for ($i = 0; $i < count($holdingKeys); $i++) {
                 $key = $holdingKeys[$i];
                 $code = $this->safe_currency_code($key);
                 $newAccount = $this->account();
                 $newAccount['total'] = $this->safe_string($holding, $key);
                 if ($code !== null) {
-                    $holdingResult[$code] = $newAccount;
+                    $holdingCodes[$code] = true;
+                    $this->balance['cash'][$code] = $newAccount;
                 }
             }
-            $this->balance['cash'] = $holdingResult;
+            $this->balance['cash'] = $this->prune_stale_balance_keys($this->balance['cash'], $holdingCodes);
             $this->balance['cash'] = $this->safe_balance($this->balance['cash']);
-            $client->resolve($holdingResult, $messageHash);
+            $updatedBalance = $this->balance['cash'];
         }
         if ($futures !== null) {
             $futuresKeys = is_array($futures) ? array_keys($futures) : array();                  // marginAccount
-            $futuresResult = array(
-                'info' => $message,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            );
+            $this->balance['margin'] = $this->safe_dict($this->balance, 'margin', array());
+            $this->balance['margin']['info'] = $message;
+            $this->balance['margin']['timestamp'] = $timestamp;
+            $this->balance['margin']['datetime'] = $this->iso8601($timestamp);
+            $futuresSymbols = array();
             for ($i = 0; $i < count($futuresKeys); $i++) {
                 $key = $futuresKeys[$i];
                 $symbol = $this->safe_symbol($key);
@@ -1528,23 +1565,28 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $newAccount['free'] = $this->safe_string($future, 'available');
                 $newAccount['used'] = $this->safe_string($future, 'initial_margin');
                 $newAccount['total'] = $this->safe_string($future, 'balance');
-                $futuresResult[$symbol] = array();
+                $symbolAccounts = array();
                 if (($symbol !== null) && ($code !== null)) {
-                    $futuresResult[$symbol][$code] = $newAccount;
+                    $futuresSymbols[$symbol] = true;
+                    $symbolAccounts[$code] = $newAccount;
                 }
+                $this->balance['margin'][$symbol] = $symbolAccounts;
             }
-            $this->balance['margin'] = $futuresResult;
+            $this->balance['margin'] = $this->prune_stale_balance_keys($this->balance['margin'], $futuresSymbols);
             $this->balance['margin'] = $this->safe_balance($this->balance['margin']);
-            $client->resolve($this->balance['margin'], $messageHash . 'futures');
+            $client->resolve($this->balance['margin'], $messageHash . ':futures');
+            if ($updatedBalance === null) {
+                $updatedBalance = $this->balance['margin'];
+            }
         }
         if ($flexFutures !== null) {
             $flexFutureCurrencies = $this->safe_dict($flexFutures, 'currencies', array());
             $flexFuturesKeys = is_array($flexFutureCurrencies) ? array_keys($flexFutureCurrencies) : array(); // multi-collateral margin account
-            $flexFuturesResult = array(
-                'info' => $message,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            );
+            $this->balance['flex'] = $this->safe_dict($this->balance, 'flex', array());
+            $this->balance['flex']['info'] = $message;
+            $this->balance['flex']['timestamp'] = $timestamp;
+            $this->balance['flex']['datetime'] = $this->iso8601($timestamp);
+            $flexCodes = array();
             for ($i = 0; $i < count($flexFuturesKeys); $i++) {
                 $key = $flexFuturesKeys[$i];
                 $flexFuture = $this->safe_dict($flexFutureCurrencies, $key);
@@ -1554,14 +1596,43 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $newAccount['used'] = $this->safe_string($flexFuture, 'collateral_value');
                 $newAccount['total'] = $this->safe_string($flexFuture, 'quantity');
                 if ($code !== null) {
-                    $flexFuturesResult[$code] = $newAccount;
+                    $flexCodes[$code] = true;
+                    $this->balance['flex'][$code] = $newAccount;
                 }
             }
-            $this->balance['flex'] = $flexFuturesResult;
+            $this->balance['flex'] = $this->prune_stale_balance_keys($this->balance['flex'], $flexCodes);
             $this->balance['flex'] = $this->safe_balance($this->balance['flex']);
-            $client->resolve($this->balance['flex'], $messageHash . 'flex_futures');
+            $client->resolve($this->balance['flex'], $messageHash . ':flex_futures');
+            if ($updatedBalance === null) {
+                $updatedBalance = $this->balance['flex'];
+            }
         }
-        $client->resolve($this->balance, $messageHash);
+        // resolve the plain hash exactly once per message, with the unified
+        // balance of the account the message updated (cash first, matching the
+        // legacy behaviour): a second resolve on the same hash is not portable
+        // (the rust client hands the consumer the LAST resolved value)
+        if ($updatedBalance !== null) {
+            $client->resolve($updatedBalance, $messageHash);
+        }
+    }
+
+    public function prune_stale_balance_keys(array $balanceObject, array $seenKeys): array {
+        /**
+         * @ignore
+         * removes currency/symbol $keys that disappeared from a full-state balance message, keeping the cached object itself alive for consumers holding a reference to it
+         * @param {array} $balanceObject the cached per-account balance object, mutated in place
+         * @param {array} $seenKeys the currency codes / symbols present in the current message
+         * @return {array} the pruned balance object (assign it back => php passes arrays by value)
+         */
+        $reserved = array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' );
+        $keys = is_array($balanceObject) ? array_keys($balanceObject) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (!(is_array($seenKeys) && array_key_exists($key ?? '', $seenKeys)) && !$this->in_array($key, $reserved)) {
+                unset($balanceObject[$key]);
+            }
+        }
+        return $balanceObject;
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -1601,8 +1672,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         for ($i = 0; $i < count($trades); $i++) {
             $trade = $trades[$i];
             $parsedTrade = $this->parse_ws_my_trade($trade);
-            if ($parsedTrade['symbol'] !== null) {
-                $tradeSymbols[$parsedTrade['symbol']] = true;
+            $tradeSymbol = $this->safe_string($parsedTrade, 'symbol');
+            if ($tradeSymbol !== null) {
+                $tradeSymbols[$tradeSymbol] = true;
             }
             $stored->append($parsedTrade);
         }
@@ -1637,7 +1709,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $timestamp = $this->safe_integer($trade, 'time');
         $marketId = $this->safe_string($trade, 'instrument');
         $marketResolved = $this->safe_market($marketId, $market);
-        $isBuy = $this->safe_bool($trade, 'buy');
+        $isBuy = $this->safe_bool($trade, 'buy', false);
         $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1647,7 +1719,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => $this->safe_string($trade, 'type'),
-            'side' => ($isBuy === true) ? 'buy' : 'sell',
+            'side' => $isBuy ? 'buy' : 'sell',
             'takerOrMaker' => $this->safe_string($trade, 'fill_type'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'qty'),
@@ -1660,11 +1732,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ));
     }
 
-    public function watch_multi_helper(string $unifiedName, string $channelName, mixed $symbols = null, mixed $subscriptionArgs = null, $params = array()) {
+    public function watch_multi_helper(string $unifiedName, string $channelName, mixed $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
         return Async\async(self::do_watch_multi_helper(...))($unifiedName, $channelName, $symbols, $subscriptionArgs, $params);
     }
 
-    private function do_watch_multi_helper(string $unifiedName, string $channelName, mixed $symbols = null, mixed $subscriptionArgs = null, $params = array()) {
+    private function do_watch_multi_helper(string $unifiedName, string $channelName, mixed $symbols = null, ?array $subscriptionArgs = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }

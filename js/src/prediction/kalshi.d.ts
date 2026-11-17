@@ -1,11 +1,11 @@
 import Exchange from '../abstract/prediction/kalshi.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams, NullableDict } from '../base/types.js';
 /**
  * @class kalshi
  * @augments Exchange
  */
 export default class kalshi extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name kalshi#fetchMarkets
@@ -41,7 +41,7 @@ export default class kalshi extends Exchange {
      * @returns {object} the outcome cache
      */
     fetchOutcomes(outcomeSymbols: string[]): Promise<any>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, params?: Dict): {
         type: string;
         currency: string;
@@ -206,7 +206,7 @@ export default class kalshi extends Exchange {
      * @param {object} response the raw balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name kalshi#fetchPositions
@@ -238,7 +238,7 @@ export default class kalshi extends Exchange {
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    parseSettlement(settlement: Dict, market?: Market): any;
+    parseSettlement(settlement: Dict, market?: Market): Dict;
     /**
      * @ignore
      * @method
@@ -401,7 +401,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the events endpoint
      * @returns {object} the raw kalshi event object with nested markets
      */
-    fetchRawEventByTicker(ticker: string, params?: Dict): Promise<any>;
+    fetchRawEventByTicker(ticker: string, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -441,7 +441,7 @@ export default class kalshi extends Exchange {
      * @param {object} rawEvent the raw event object
      * @returns {object} an event structure
      */
-    parseEvent(rawEvent: Dict): any;
+    parseEvent(rawEvent: Dict): PredictionEvent;
     /**
      * @ignore
      * @method
@@ -451,11 +451,9 @@ export default class kalshi extends Exchange {
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;

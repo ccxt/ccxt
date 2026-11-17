@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     v1PublicGetPublicVolumeStats(params?: {}): Promise<Dict>;
     v1PublicGetPublicBrokerName(params?: {}): Promise<Dict>;
     v1PublicGetPublicChainInfoBrokerId(params?: {}): Promise<Dict>;
@@ -150,7 +150,5 @@ interface Exchange {
     v1PrivateDeleteBatchOrder(params?: {}): Promise<Dict>;
     v1PrivateDeleteClientBatchOrder(params?: {}): Promise<Dict>;
     v2PrivatePostInternalTransfer(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

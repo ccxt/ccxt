@@ -310,7 +310,7 @@ public partial class cex : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "bitcoin" },
                     { "ERC20", "ERC20" },
-                    { "BSC20", "binancesmartchain" },
+                    { "BEP20", "binancesmartchain" },
                     { "DOGE", "dogecoin" },
                     { "ALGO", "algorand" },
                     { "XLM", "stellar" },
@@ -322,7 +322,7 @@ public partial class cex : Exchange
                     { "THETA", "theta" },
                     { "XTZ", "tezos" },
                     { "TIA", "celestia" },
-                    { "CRONOS", "cronos" },
+                    { "CRC20", "cronos" },
                     { "MATIC", "polygon" },
                     { "TON", "ton" },
                     { "TRC20", "tron" },
@@ -364,7 +364,7 @@ public partial class cex : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         promises.Add(this.publicPostGetCurrenciesInfo(parameters));
         //
         //    {
@@ -402,7 +402,7 @@ public partial class cex : Exchange
         //            },
         //            ...
         //
-        List<object> responses = await promiseAll(promises);
+        List<object> responses = new List<object>(await Task.WhenAll(promises));
         List<object> dataCurrencies = this.safeList((responses != null && 0 < responses.Count ? responses[0] : null), "data", new List<object>() {});
         IDictionary<string, object> dataNetworks = this.safeDict((responses != null && 1 < responses.Count ? responses[1] : null), "data", new Dictionary<string, object>() {});
         Dictionary<string, object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
@@ -526,7 +526,7 @@ public partial class cex : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string id = ((bs + "-") + quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         string symbol = ((bs + "/") + quote);
@@ -606,7 +606,7 @@ public partial class cex : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data");
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        return ccxt.BaseExchange.ToInt64Value(timestamp);
+        return timestamp ?? 0;
     }
 
     /**
@@ -649,7 +649,7 @@ public partial class cex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            request["pairs"] = this.marketIds(symbols);
+            request["pairs"] = this.marketIds(this.toArray(symbols));
         }
         Dictionary<string, object> response = await this.publicPostGetTicker(this.extend(request, parameters));
         //
@@ -679,7 +679,7 @@ public partial class cex : Exchange
         //            ...
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, this.toArray(symbols)));
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -878,7 +878,7 @@ public partial class cex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
-            { "resolution", getValue(this.timeframes, timeframeVar) },
+            { "resolution", (this.timeframes != null && timeframeVar != null && this.timeframes.ContainsKey(timeframeVar) ? this.timeframes[timeframeVar] : null) },
             { "dataType", dataType },
         };
         if ((since != null))
@@ -965,7 +965,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(fees, true));
     }
 
-    public virtual Dictionary<string, object> parseTradingFees(IDictionary<string, object> response, object useKeyAsId = null)
+    public virtual Dictionary<string, object> parseTradingFees(IDictionary<string, object> response, bool? useKeyAsId = null)
     {
         useKeyAsId ??= false;
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -974,7 +974,7 @@ public partial class cex : Exchange
         {
             string? key = ((string)keys[i]);
             IDictionary<string, object> market = null;
-            if (isTrue(useKeyAsId))
+            if (useKeyAsId == true)
             {
                 market = this.safeMarket(key);
             }
@@ -998,7 +998,7 @@ public partial class cex : Exchange
         return result;
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object>? market = null)
     {
         return new Dictionary<string, object>() {
             { "info", fee },
@@ -1149,7 +1149,7 @@ public partial class cex : Exchange
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string? status, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1246,7 +1246,7 @@ public partial class cex : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByStatus("closed", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByStatus("closed", symbol, since, limit, parameters);
     }
 
     /**
@@ -1263,7 +1263,7 @@ public partial class cex : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrdersByStatus("open", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchOrdersByStatus("open", symbol, since, limit, parameters);
     }
 
     /**
@@ -1284,10 +1284,11 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "orderId", parseInt(id) },
+            { "orderId", this.parseToInt(id) },
         };
-        List<object> result = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        return ccxt.BaseExchange.ToOrder((result != null && 0 < result.Count ? result[0] : null));
+        List<object> result = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol, null, null, this.extend(request, parameters)));
+        IDictionary<string, object> order = this.safeDict(result, 0);
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -1308,10 +1309,11 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "orderId", parseInt(id) },
+            { "orderId", this.parseToInt(id) },
         };
-        List<object> result = ccxt.BaseExchange.FromOrderList(await this.FetchClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        return ccxt.BaseExchange.ToOrder((result != null && 0 < result.Count ? result[0] : null));
+        List<object> result = ccxt.BaseExchange.FromOrderList(await this.FetchClosedOrders(symbol, null, null, this.extend(request, parameters)));
+        IDictionary<string, object> order = this.safeDict(result, 0);
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1541,7 +1543,7 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "orderId", parseInt(id) },
+            { "orderId", this.parseToInt(id) },
             { "cancelRequestId", ("c_" + (this.milliseconds()).ToString()) },
             { "timestamp", this.milliseconds() },
         };
@@ -2021,19 +2023,20 @@ public partial class cex : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if ((api is "public"))
+        if (apiName == "public")
         {
             if ((method == "GET"))
             {
@@ -2077,12 +2080,12 @@ public partial class cex : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
@@ -2093,7 +2096,7 @@ public partial class cex : Exchange
             if ((body == null))
             {
                 throw new NullResponse ((this.id + " returned empty response")) ;
-            } else if (isEqual(getValue(body, 0), "{"))
+            } else if (((string)body).StartsWith("{"))
             {
                 string? fixedVar = ((string)this.fixStringifiedJsonMembers(body));
                 responseFixed = this.parseJson(fixedVar);
@@ -2107,8 +2110,8 @@ public partial class cex : Exchange
         if ((error != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, feedback);
             throw new ExchangeError (feedback) ;
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
@@ -2118,7 +2121,7 @@ public partial class cex : Exchange
             string? rejectReason = this.safeString(data, "rejectReason");
             if ((rejectReason != null))
             {
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), rejectReason, rejectReason);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), rejectReason, rejectReason);
                 throw new ExchangeError (((this.id + " createOrder() ") + rejectReason)) ;
             }
         }

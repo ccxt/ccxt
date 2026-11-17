@@ -33,8 +33,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Async Balance Coinbasepro](./examples/py/async-balance-coinbasepro.md)
 
-- [Async Balance Gdax](./examples/py/async-balance-gdax.md)
-
 - [Async Balance](./examples/py/async-balance.md)
 
 - [Async Balances](./examples/py/async-balances.md)
@@ -138,10 +136,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Async Orderbooks](./examples/py/async-orderbooks.md)
 
 - [Async Rtt](./examples/py/async-rtt.md)
-
-- [Async Theocean Orderbook](./examples/py/async-theocean-orderbook.md)
-
-- [Async Theocean Tickers](./examples/py/async-theocean-tickers.md)
 
 - [Async Ticker](./examples/py/async-ticker.md)
 
@@ -253,20 +247,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Bitget Perpetual Futures Swaps](./examples/py/bitget-perpetual-futures-swaps.md)
 
-- [Bitmex Cancel Orders](./examples/py/bitmex-cancel-orders.md)
-
-- [Bitmex Create Order](./examples/py/bitmex-create-order.md)
-
-- [Bitmex Fetch Ohlcv With Extra Params](./examples/py/bitmex-fetch-ohlcv-with-extra-params.md)
-
-- [Bitmex Ohlcv Convert 5m To 15m](./examples/py/bitmex-ohlcv-convert-5m-to-15m.md)
-
-- [Bitmex Order Value](./examples/py/bitmex-order-value.md)
-
-- [Bitmex Watch Ohlcv](./examples/py/bitmex_watch_ohlcv.md)
-
-- [Bitmex Watch Ticker And Ohlcv](./examples/py/bitmex_watch_ticker_and_ohlcv.md)
-
 - [Bittrex Fetch Closed Orders History](./examples/py/bittrex-fetch-closed-orders-history.md)
 
 - [Bitvavo Un Watch Order Book For Symbols](./examples/py/bitvavo-un-watch-order-book-for-symbols.md)
@@ -317,8 +297,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Coinbaseexchange Fetch My Trades Pagination](./examples/py/coinbaseexchange-fetch-my-trades-pagination.md)
 
-- [Coinex Futures](./examples/py/coinex-futures.md)
-
 - [Coinone Fetch Tickers](./examples/py/coinone-fetch-tickers.md)
 
 - [Coinone Markets](./examples/py/coinone-markets.md)
@@ -360,8 +338,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Fetch Create Deposit Address](./examples/py/fetch-create-deposit-address.md)
 
 - [Fetch First Ohlcv Timestamp](./examples/py/fetch-first-ohlcv-timestamp.md)
-
-- [Fetch Gdax Ohlcv Sequentially](./examples/py/fetch-gdax-ohlcv-sequentially.md)
 
 - [Fetch Ohlcv Cex](./examples/py/fetch-ohlcv-cex.md)
 
@@ -477,6 +453,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Normalize Sparse Candle Timestamps](./examples/py/normalize-sparse-candle-timestamps.md)
 
+- [Ohlcv Convert 5m To 15m](./examples/py/ohlcv-convert-5m-to-15m.md)
+
 - [Okx Bbo Tbt](./examples/py/okx-bbo-tbt.md)
 
 - [Okx Create Swap Order](./examples/py/okx-create-swap-order.md)
@@ -543,13 +521,11 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Set Markets From Exchange](./examples/py/set_markets_from_exchange.md)
 
-- [Sign In](./examples/py/sign-in.md)
-
 - [Sort Swap Markets By Hourly Price Change](./examples/py/sort-swap-markets-by-hourly-price-change.md)
 
 - [Source Ip Address](./examples/py/source-ip-address.md)
 
-- [Spot Vs Future Arbitrage Bitmart](./examples/py/spot-vs-future-arbitrage-bitmart.md)
+- [Spot Vs Future Arbitrage](./examples/py/spot-vs-future-arbitrage.md)
 
 - [Symbols](./examples/py/symbols.md)
 
@@ -570,6 +546,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Watch Custom Exchange Specific Streams](./examples/py/watch-custom-exchange-specific-streams.md)
 
 - [Watch Many Exchanges Many Tickers](./examples/py/watch-many-exchanges-many-tickers.md)
+
+- [Watch Ticker And Ohlcv](./examples/py/watch-ticker-and-ohlcv.md)
 
 - [Watch Ticker To Csv](./examples/py/watch-ticker-to-csv.md)
 

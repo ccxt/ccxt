@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class indodax(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(indodax, self).describe(), {
             'id': 'indodax',
             'name': 'INDODAX',
@@ -227,7 +227,7 @@ class indodax(Exchange, ImplicitAPI):
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'XLM': 'Stellar Token',
-                    'BSC': 'bep20',
+                    'BEP20': 'bep20',
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     # 'BEP2': 'bep2',
@@ -317,7 +317,7 @@ class indodax(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def fetch_time(self, params: dict = {}) -> Int:
@@ -441,7 +441,7 @@ class indodax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balances = self.safe_dict(response, 'return', {})
         free = self.safe_dict(balances, 'balance', {})
         used = self.safe_dict(balances, 'balance_hold', {})
@@ -541,8 +541,10 @@ class indodax(Exchange, ImplicitAPI):
         #
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'server_time')
-        baseVolume = 'vol_' + self.safe_string_lower(market, 'baseId')
-        quoteVolume = 'vol_' + self.safe_string_lower(market, 'quoteId')
+        baseId = self.safe_string_lower(market, 'baseId', '')
+        quoteId = self.safe_string_lower(market, 'quoteId', '')
+        baseVolume = 'vol_' + baseId
+        quoteVolume = 'vol_' + quoteId
         last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
@@ -640,7 +642,7 @@ class indodax(Exchange, ImplicitAPI):
             market = self.safe_market(marketId)
             parsed = self.parse_ticker(rawTicker, market)
             parsedTickers[marketId] = parsed
-        return self.filter_by_array(parsedTickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(parsedTickers, 'symbol', symbols)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'date')
@@ -729,7 +731,10 @@ class indodax(Exchange, ImplicitAPI):
             request['from'] = int(math.floor(since / 1000))
         else:
             duration = self.parse_timeframe(timeframe)
-            request['from'] = now - limitResolved * duration - 1
+            if limit is None:
+                request['from'] = now - 1000 * duration - 1
+            else:
+                request['from'] = now - limit * duration - 1
         response = self.publicGetTradingviewHistoryV2(self.extend(request, paramsOmitted))
         #
         #     [
@@ -745,7 +750,7 @@ class indodax(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             'filled': 'closed',
@@ -795,9 +800,7 @@ class indodax(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        side = None
-        if 'type' in order:
-            side = self.safe_string(order, 'type')
+        side = self.safe_string(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
         symbol = None
         cost = None
@@ -809,11 +812,11 @@ class indodax(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         if marketResolved is not None:
             symbol = marketResolved['symbol']
-            quoteId = marketResolved['quoteId']
-            baseId = marketResolved['baseId']
-            if (marketResolved['quoteId'] == 'idr') and ('order_rp' in order):
+            quoteId = self.safe_string(marketResolved, 'quoteId', '')
+            baseId = self.safe_string(marketResolved, 'baseId', '')
+            if (marketResolved['quoteId'] == 'idr') and (self.safe_string(order, 'order_rp') is not None):
                 quoteId = 'rp'
-            if (marketResolved['baseId'] == 'idr') and ('remain_rp' in order):
+            if (marketResolved['baseId'] == 'idr') and (self.safe_string(order, 'remain_rp') is not None):
                 baseId = 'rp'
             cost = self.safe_string(order, 'order_' + quoteId)
             amount = self.safe_string(order, 'order_' + baseId)
@@ -903,11 +906,12 @@ class indodax(Exchange, ImplicitAPI):
         if symbol is not None:
             return self.parse_orders(rawOrders, market, since, limit)
         # { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-        marketIds = list(rawOrders.keys())
+        ordersDict = self.safe_dict(openOrdersResult, 'orders', {})
+        marketIds = list(ordersDict.keys())
         exchangeOrders = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            marketOrders = rawOrders[marketId]
+            marketOrders = ordersDict[marketId]
             market = self.safe_market(marketId)
             parsedOrders = self.parse_orders(marketOrders, market, since, limit)
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
@@ -1112,10 +1116,14 @@ class indodax(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'return', {})
         result = self.deposit_withdraw_fee(response)
-        result['withdraw']['fee'] = self.safe_number(data, 'withdraw_fee')
-        result['withdraw']['percentage'] = False
-        result['deposit']['fee'] = 0
-        result['deposit']['percentage'] = False
+        result['withdraw'] = {
+            'fee': self.safe_number(data, 'withdraw_fee'),
+            'percentage': False,
+        }
+        result['deposit'] = {
+            'fee': 0,
+            'percentage': False,
+        }
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -1201,13 +1209,13 @@ class indodax(Exchange, ImplicitAPI):
         transactions = []
         currency = None
         if code is None:
-            keys = list(withdraw.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
+            withdrawKeys = list(withdraw.keys())
+            for i in range(0, len(withdrawKeys)):
+                key = withdrawKeys[i]
                 transactions = self.array_concat(transactions, withdraw[key])
-            keys = list(deposit.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
+            depositKeys = list(deposit.keys())
+            for i in range(0, len(depositKeys)):
+                key = depositKeys[i]
                 transactions = self.array_concat(transactions, deposit[key])
         else:
             currency = self.currency(code)
@@ -1216,7 +1224,7 @@ class indodax(Exchange, ImplicitAPI):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1225,12 +1233,12 @@ class indodax(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -1343,7 +1351,7 @@ class indodax(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'success': 'ok',
         }
@@ -1401,9 +1409,7 @@ class indodax(Exchange, ImplicitAPI):
         addresses = self.safe_dict(data, 'address', {})
         networks = self.safe_dict(data, 'network', {})
         addressKeys = list(addresses.keys())
-        result = {
-            'info': data,
-        }
+        result = []
         for i in range(0, len(addressKeys)):
             marketId = addressKeys[i]
             code = self.safe_currency_code(marketId)
@@ -1430,29 +1436,30 @@ class indodax(Exchange, ImplicitAPI):
                             network = _netIdTmp.upper()
                 finalNetwork = network  # java req
                 if code is not None:
-                    result[code] = {
+                    result.append({
                         'info': {},
                         'currency': code,
                         'network': finalNetwork,
                         'address': address,
                         'tag': None,
-                    }
-        return result
+                    })
+        return self.to_array(result)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl
         privateBody = None
         privateHeaders = None
-        isPublic = (api == 'public')
+        isPublic = (apiName == 'public')
         if isPublic:
             query = self.omit(params, self.extract_params(path))
             requestPath = '/' + self.implode_params(path, params)
-            url += requestPath
+            url = apiUrl + requestPath
             if len(query) > 0:
-                url += '?' + self.urlencode_with_array_repeat(query)
+                url = apiUrl + requestPath + '?' + self.urlencode_with_array_repeat(query)
         else:
             self.check_required_credentials()
             privateBody = self.urlencode(self.extend({
@@ -1467,13 +1474,13 @@ class indodax(Exchange, ImplicitAPI):
             }
         requestBody = privateBody
         if isPublic:
-            requestBody = body
+            requestBody = None
         requestHeaders = privateHeaders
         if isPublic:
-            requestHeaders = headers
+            requestHeaders = None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         # { success: 0, error: "invalid order." }
@@ -1483,9 +1490,9 @@ class indodax(Exchange, ImplicitAPI):
         if isinstance(response, list):
             return None  # public endpoints may return []-arrays
         error = self.safe_string(response, 'error', '')
-        if not ('success' in response) and error == '':
-            return None  # no 'success' property on public responses
         status = self.safe_string(response, 'success')
+        if (status is None) and (error == ''):
+            return None  # no 'success' property on public responses
         if status == 'approved':
             return None
         if self.safe_integer(response, 'success', 0) == 1:

@@ -1313,18 +1313,18 @@ public partial class bingx : Exchange
         return await this.callAsync<Dictionary<string, object>> ("apiV3PrivatePostPostAssetTransfer",parameters);
     }
 
+    /// <summary>Calls the apiAssetV1PrivateGetTransferSupportCoins endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> apiAssetV1PrivateGetTransferSupportCoins (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("apiAssetV1PrivateGetTransferSupportCoins",parameters);
+    }
+
     /// <summary>Calls the apiAssetV1PrivatePostTransfer endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> apiAssetV1PrivatePostTransfer (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("apiAssetV1PrivatePostTransfer",parameters);
-    }
-
-    /// <summary>Calls the apiAssetV1PublicGetTransferSupportCoins endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> apiAssetV1PublicGetTransferSupportCoins (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("apiAssetV1PublicGetTransferSupportCoins",parameters);
     }
 
     /// <summary>Calls the agentV1PrivateGetAccountInviteAccountList endpoint.</summary>

@@ -2,7 +2,7 @@ import upbitRest from '../upbit.js';
 import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances, Tickers, Strings, OHLCV, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class upbit extends upbitRest {
-    describe(): any;
+    describe(): Dict;
     watchPublicMultiple(symbols: Strings, channel: Str, params?: Dict): Promise<any>;
     /**
      * @method
@@ -77,7 +77,7 @@ export default class upbit extends upbitRest {
     handleOrderBook(client: Client, message: Dict): void;
     handleTrades(client: Client, message: Dict): void;
     handleOHLCV(client: Client, message: Dict): void;
-    authenticate(params?: Dict): Promise<import("../base/ws/WsClient.js").default>;
+    authenticate(params?: Dict): void;
     watchPrivate(symbol: Str, channel: string, messageHash: string, params?: Dict): Promise<any>;
     /**
      * @method
@@ -103,7 +103,7 @@ export default class upbit extends upbitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseWsOrderStatus(status: Str): string | undefined;
+    parseWsOrderStatus(status: Str): Str;
     parseWsOrder(order: Dict, market?: Market): Order;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleMyOrder(client: Client, message: Dict): void;

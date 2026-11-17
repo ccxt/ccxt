@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class predictfun(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(predictfun, self).describe(), {
             'id': 'predictfun',
             'name': 'predict.fun',
@@ -303,10 +303,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         """
         # the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
         # overrides it so a caller can pass the slug the same way fetchEvents () takes it
-        paramSlug = self.safe_string(params, 'slug')
-        slug = id
-        if paramSlug is not None:
-            slug = paramSlug
+        slug = self.safe_string(params, 'slug', id)
         if slug is None:
             raise ArgumentsRequired(self.id + ' fetchEvent() requires the "id" argument or the "slug" parameter')
         events = await self.fetch_events(self.extend({'slug': slug}, params))
@@ -359,10 +356,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         else:
             request = {}
             tags = self.safe_list(paramsValue, 'tags', [])
-            tagsLength = len(tags)
-            if tagsLength > 0:
-                tagsString = ','.join(tags)
-                request['tagIds'] = tagsString
+            if len(tags) > 0:
+                request['tagIds'] = ','.join(tags)
             postOmitKeys.append('limit')
             paramsCategories = self.omit(paramsValue, ['limit', 'tags'])
             extendedRequest = self.extend(request, paramsCategories)
@@ -607,7 +602,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         orphanSlugs = []
         for i in range(0, queriesLength):
             request = {
-                'query': queries[i],
+                'query': self.safe_string(queries, i, ''),
                 'limit': limit,
                 'includeResolved': includeResolved,
             }
@@ -732,7 +727,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
                 })
         return result
 
-    def parse_event(self, rawTopic: dict) -> object:
+    def parse_event(self, rawTopic: dict) -> dict:
         """
  @ignore
         parses a raw predictfun market topic(with nested markets) into the unified event shape
@@ -952,9 +947,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
             return None
         digits = '0123456789'
         chars = self.string_to_chars_array(text)
-        charsLength = len(chars)
         stripped = ''
-        for i in range(0, charsLength):
+        for i in range(0, len(chars)):
             ch = chars[i]
             keep = True
             if ch == '$':
@@ -964,7 +958,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
                 # up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 # ordinary punctuation and stays, so it still separates words
                 prevIsDigit = (i > 0) and (digits.find(chars[i - 1]) >= 0)
-                nextIsDigit = ((i + 1) < charsLength) and (digits.find(chars[i + 1]) >= 0)
+                nextIsDigit = ((i + 1) < len(chars)) and (digits.find(chars[i + 1]) >= 0)
                 keep = not (prevIsDigit and nextIsDigit)
             if keep:
                 stripped = stripped + ch
@@ -1367,7 +1361,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         outcomeFound = False
         for i in range(0, rawOutcomesLength):
             candidate = rawOutcomes[i]
-            if self.safe_integer(candidate, 'indexSet') == indexSet:
+            candidateIndexSet = self.safe_integer(candidate, 'indexSet')
+            if candidateIndexSet == indexSet:
                 rawOutcome = candidate
                 outcomeFound = True
                 break
@@ -1375,7 +1370,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             # an unmatched indexSet would otherwise return a ticker whose every quote is
             # undefined, which reads as an empty book rather than as a market that never
             # carried this outcome
-            requested = self.safe_outcome_symbol(None, market)
+            requested = self.safe_string(market, 'outcome', '')
             raise BadSymbol(self.id + ' fetchTicker() did not find ' + requested + ' among the outcomes of its market')
         # the venue quotes each outcome on its own side of the book, so no complement is needed
         bestBid = self.safe_dict(rawOutcome, 'bestBid', {})
@@ -1871,9 +1866,9 @@ class predictfun(PredictionExchange, ImplicitAPI):
         marketFeeRateBps = self.safe_string(marketRow, 'feeRateBps', '200')  # should be at least 200
         feeRateBps = self.safe_string(paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', marketFeeRateBps)
         marketIsNegRisk = self.safe_bool(marketRow, 'isNegRisk', False)
-        isNegRisk = self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk)
+        isNegRisk = (self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk) is True)
         marketIsYieldBearing = self.safe_bool(marketRow, 'isYieldBearing', False)
-        isYieldBearing = self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing)
+        isYieldBearing = (self.safe_bool(paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing) is True)
         defaultExpiration = self.safe_integer(self.options, 'defaultExpiration', 3600)  # 1 hour
         expirationDelta = defaultExpiration
         expiration = self.safe_integer(paramsWarnOnMarketOrderWithoutPrice, 'expiration')
@@ -2027,14 +2022,14 @@ class predictfun(PredictionExchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'data', [])
-        parsed = self.parse_prediction_positions(rows)
         if outcomesLength == 0:
-            return parsed
+            return self.parse_prediction_positions(rows)
+        parsed = self.parse_prediction_positions(rows)
         # the venue filters by marketId only, so a set of outcome handles is applied here
         wanted = {}
         wantedOutcomes = self.to_array(outcomes)
         for i in range(0, outcomesLength):
-            outcomeObj = self.outcome(wantedOutcomes[i])
+            outcomeObj = self.outcome(self.safe_string(wantedOutcomes, i))
             wantedId = self.safe_string(outcomeObj, 'outcomeId', '')
             wanted[wantedId] = True
         result = []
@@ -2490,16 +2485,16 @@ class predictfun(PredictionExchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_errors(self, statusCode: Int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         """
  @ignore
         maps the venue's error slugs and messages onto the unified exceptions
-        :param int statusCode: the http status code
-        :param str statusText: the http status text
+        :param int code: the http status code
+        :param str reason: the http status text
         :param str url: the request url
         :param str method: the http method
-        :param dict responseHeaders: the response headers
-        :param str responseBody: the raw response body
+        :param dict headers: the response headers
+        :param str body: the raw response body
         :param dict response: the parsed response
         :param dict requestHeaders: the request headers
         :param dict requestBody: the request body
@@ -2510,7 +2505,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         success = self.safe_bool(response, 'success', True)
         if success:
             return None
-        feedback = self.id + ' ' + responseBody
+        feedback = self.id + ' ' + body
         # the message is matched first because it is the more specific of the two: several
         # distinct failures share a generic slug, notably 'unauthorized', which the venue also
         # returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -2520,14 +2515,14 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # order - that case is matched above and has already thrown, so reaching here with a 401
         # means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         # or aged out before its window closes is replayed for the life of the process
-        if statusCode == 401:
+        if code == 401:
             self.options['jwtToken'] = None
             self.options['jwtTokenExpiresAt'] = 0
         error = self.safe_string(response, 'error')
         self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
         # a 400 is a rejected request or a business rule, not a transport outage - the base would
         # otherwise map the bare status onto a retryable network error
-        if statusCode == 400:
+        if code == 400:
             raise BadRequest(feedback)
         raise ExchangeError(feedback)
 
@@ -2614,12 +2609,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         rHex = self.pad_hex_to_even(rHex)
         sHex = self.pad_hex_to_even(sHex)
         yParity = self.safe_integer(signature, 'v')
-        signedFields = []
-        for i in range(0, len(fields)):
-            signedFields.append(fields[i])
-        signedFields.append(self.rlp_encode_bytes(self.int_to_rlp_hex(yParity)))
-        signedFields.append(self.rlp_encode_bytes(rHex))
-        signedFields.append(self.rlp_encode_bytes(sHex))
+        signedFields = self.array_concat(fields, [self.rlp_encode_bytes(self.int_to_rlp_hex(yParity)), self.rlp_encode_bytes(rHex), self.rlp_encode_bytes(sHex)])
         return '0x02' + self.rlp_encode_list(signedFields)
 
     async def approve(self, outcome: Str = None, params: dict = {}) -> object:
@@ -2661,8 +2651,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
             marketSymbol = self.safe_string(outcomeObj, 'market')
             marketObj = self.safe_dict(self.markets, marketSymbol, {})
             marketRow = self.safe_dict(marketObj, 'info', {})
-            isNegRisk = self.safe_bool(marketRow, 'isNegRisk', False)
-            isYieldBearing = self.safe_bool(marketRow, 'isYieldBearing', False)
+            isNegRisk = (self.safe_bool(marketRow, 'isNegRisk', False) is True)
+            isYieldBearing = (self.safe_bool(marketRow, 'isYieldBearing', False) is True)
         if side == 'sell':
             ctfToken = self.safe_string(params, 'token', self.conditional_tokens_address(isNegRisk, isYieldBearing))
             operators = []
@@ -2686,7 +2676,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             receipts = []
             operatorsLength = len(operators)
             for i in range(0, operatorsLength):
-                operatorAddress = operators[i]
+                operatorAddress = self.safe_string(operators, i)
                 if operatorAddress is None:
                     raise ArgumentsRequired(self.id + ' approve() could not resolve the operator to approve for chain ' + chainKey)
                 # setApprovalForAll(operator, approved) -> selector 0xa22cb465
@@ -2856,7 +2846,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             # pinned on one waiter and belongs to the connection as a whole
             raise error
         for i in range(0, messageHashesLength):
-            client.reject(error, messageHashes[i])
+            client.reject(error, self.safe_string(messageHashes, i, ''))
 
     def handle_un_subscription(self, client: Client, subscription: dict):
         """
@@ -2890,7 +2880,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # silently leaving those two languages with a stale cache
         subMessageHashesLength = len(subMessageHashes)
         for i in range(0, subMessageHashesLength):
-            subHash = subMessageHashes[i]
+            subHash = self.safe_string(subMessageHashes, i)
             if (subHash == 'orders') or (subHash == 'myTrades'):
                 self.clean_cache({
                     'topic': subHash,
@@ -2910,7 +2900,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         """
         messageHash = 'orders'
         outcomeResolved = outcome
-        if outcomeResolved is not None:
+        if outcome is not None:
             await self.load_outcome(outcomeResolved)
             outcomeObj = self.outcome(outcomeResolved)
             outcomeResolved = self.safe_outcome_symbol(None, outcomeObj)
@@ -2942,7 +2932,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         """
         messageHash = 'myTrades'
         outcomeResolved = outcome
-        if outcomeResolved is not None:
+        if outcome is not None:
             await self.load_outcome(outcomeResolved)
             outcomeObj = self.outcome(outcomeResolved)
             outcomeResolved = self.safe_outcome_symbol(None, outcomeObj)
@@ -3130,9 +3120,9 @@ class predictfun(PredictionExchange, ImplicitAPI):
         :returns dict[]: the outcome objects
         """
         result = []
-        cached = self.outcomes
-        if (marketId is None) or (cached is None):
+        if (marketId is None) or (self.outcomes is None):
             return result
+        cached = self.outcomes
         handles = list(cached.keys())
         handlesLength = len(handles)
         for i in range(0, handlesLength):
@@ -3330,7 +3320,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         if outcomeHandle is not None:
             client.resolve(stored, 'myTrades::' + outcomeHandle)
 
-    def wallet_event_outcome(self, details: dict) -> object:
+    def wallet_event_outcome(self, details: dict) -> dict:
         """
  @ignore
         resolves the cached outcome a wallet event refers to, by market and outcome index
@@ -3344,7 +3334,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         for i in range(0, outcomesLength):
             candidate = outcomes[i]
             info = self.safe_dict(candidate, 'info', {})
-            if self.safe_integer(info, 'indexSet') == outcomeIndex:
+            candidateIndexSet = self.safe_integer(info, 'indexSet')
+            if candidateIndexSet == outcomeIndex:
                 return candidate
         # the wallet stream reports every market the wallet ever touched, including ones outside
         # the capped listing watchOrders () warms the cache from, so a miss survives that warm-up.
@@ -3580,21 +3571,19 @@ class predictfun(PredictionExchange, ImplicitAPI):
         elif channel == 'predictWalletEvents':
             self.handle_wallet_event(client, message)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: object = 'predictfun', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['predictfun'], method: str = 'GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches the API key header required by every endpoint
         :param str path: the endpoint path
-        :param string|str[] [api]: the API group and access level
+        :param str[] [api]: the API group and access level
         :param str [method]: HTTP method
         :param dict [params]: request parameters
-        :param dict [headers]: request headers
-        :param dict [body]: request body
         :returns dict: a dictionary with url, method, body and headers
         """
         # the venue authenticates every endpoint, so the key is required up front rather than
@@ -3604,7 +3593,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         apiKey = self.apiKey
         if (apiKey is None) and not sandboxMode:
             raise AuthenticationError(self.id + ' sign() requires the "apiKey" credential for all endpoints')
-        apiGroup = api if isinstance(api, str) else api[0]
+        apiGroup = api[0]
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['predictfun'])
         url = baseUrl + '/' + self.implode_params(path, params)
@@ -3612,7 +3601,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         if method == 'GET':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        existingHeaders = headers if (headers is not None) else {}
+        existingHeaders = {}
         headersValue = existingHeaders
         authHeaders = {}
         if (apiKey is not None) and (not sandboxMode):
@@ -3646,7 +3635,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # 401 without it, so it is attached on both hosts
         if (jwtToken is not None) and self.in_array(path, walletPaths):
             authHeaders['Authorization'] = 'Bearer ' + jwtToken
-        bodyValue = body
+        bodyValue = None
         if method != 'GET':
             if not sandboxMode:
                 self.check_required_credentials()

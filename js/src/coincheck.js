@@ -273,10 +273,11 @@ export default class coincheck extends Exchange {
             const code = codes[i];
             const currency = this.currency(code);
             const currencyId = currency['id'];
-            if (currencyId in response) {
+            const free = this.safeString(response, currencyId);
+            if (free !== undefined) {
                 const account = this.account();
                 const reserved = currencyId + '_reserved';
-                account['free'] = this.safeString(response, currencyId);
+                account['free'] = free;
                 account['used'] = this.safeString(response, reserved);
                 result[code] = account;
             }
@@ -560,11 +561,12 @@ export default class coincheck extends Exchange {
         let side = undefined;
         let fee = undefined;
         let orderId = undefined;
-        if ('liquidity' in trade) {
-            if (this.safeString(trade, 'liquidity') === 'T') {
+        const liquidity = this.safeString(trade, 'liquidity');
+        if (liquidity !== undefined) {
+            if (liquidity === 'T') {
                 takerOrMaker = 'taker';
             }
-            else if (this.safeString(trade, 'liquidity') === 'M') {
+            else if (liquidity === 'M') {
                 takerOrMaker = 'maker';
             }
             const funds = this.safeDict(trade, 'funds', {});
@@ -982,7 +984,8 @@ export default class coincheck extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
         const apiUrl = this.safeString(this.urls['api'], 'rest');
@@ -991,8 +994,9 @@ export default class coincheck extends Exchange {
         }
         let url = apiUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
-            if (Object.keys(query).length > 0) {
+        const hasQuery = Object.keys(query).length > 0;
+        if (apiName === 'public') {
+            if (hasQuery) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1001,14 +1005,14 @@ export default class coincheck extends Exchange {
             const nonce = this.nonce().toString();
             let queryString = '';
             if (method === 'GET') {
-                if (Object.keys(query).length > 0) {
+                if (hasQuery) {
                     url += '?' + this.urlencode(this.keysort(query));
                 }
             }
             else {
-                if (Object.keys(query).length > 0) {
-                    bodySigned = this.urlencode(this.keysort(query));
-                    queryString = bodySigned;
+                if (hasQuery) {
+                    queryString = this.urlencode(this.keysort(query));
+                    bodySigned = queryString;
                 }
             }
             const auth = nonce + url + queryString;
@@ -1019,11 +1023,11 @@ export default class coincheck extends Exchange {
                 'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha256),
             };
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -1032,12 +1036,12 @@ export default class coincheck extends Exchange {
         //     {"success":false,"error":"invalid authentication"}
         //
         const success = this.safeBool(response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             const error = this.safeString(response, 'error');
             const feedback = this.id + ' ' + this.json(response);
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-            throw new ExchangeError(this.id + ' ' + this.json(response));
+            throw new ExchangeError(feedback);
         }
         return undefined;
     }

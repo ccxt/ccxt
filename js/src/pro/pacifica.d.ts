@@ -2,7 +2,7 @@ import pacificaRest from '../pacifica.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
 export default class pacifica extends pacificaRest {
-    describe(): any;
+    describe(): Dict;
     setupApiKeyHeaders(key?: Str): void;
     /**
      * @method
@@ -256,7 +256,7 @@ export default class pacifica extends pacificaRest {
     handleOrderUnsubscription(client: Client, subscription: Dict): void;
     handleMyTradesUnsubscription(client: Client, subscription: Dict): void;
     handleSubscriptionResponse(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     ping(client: Client): {
         method: string;
     };

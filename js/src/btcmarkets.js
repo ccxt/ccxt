@@ -439,20 +439,20 @@ export default class btcmarkets extends Exchange {
         }
         const cryptoPaymentDetail = this.safeDict(transaction, 'paymentDetail', {});
         const txid = this.safeString(cryptoPaymentDetail, 'txId');
-        let address = this.safeString(cryptoPaymentDetail, 'address');
+        const addressRaw = this.safeString(cryptoPaymentDetail, 'address');
+        let address = undefined;
         let tag = undefined;
-        if (address !== undefined) {
-            const addressParts = address.split('?dt=');
+        if (addressRaw !== undefined) {
+            const addressParts = addressRaw.split('?dt=');
             const numParts = addressParts.length;
             if (numParts > 1) {
                 address = addressParts[0];
                 tag = addressParts[1];
             }
+            else {
+                address = addressRaw;
+            }
         }
-        const addressTo = address;
-        const tagTo = tag;
-        const addressFrom = undefined;
-        const tagFrom = undefined;
         const fee = this.safeString(transaction, 'fee');
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         const currencyId = this.safeString(transaction, 'assetName');
@@ -468,11 +468,11 @@ export default class btcmarkets extends Exchange {
             'datetime': this.iso8601(timestamp),
             'network': undefined,
             'address': address,
-            'addressTo': addressTo,
-            'addressFrom': addressFrom,
+            'addressTo': address,
+            'addressFrom': undefined,
             'tag': tag,
-            'tagTo': tagTo,
-            'tagFrom': tagFrom,
+            'tagTo': tag,
+            'tagFrom': undefined,
             'type': type,
             'amount': this.parseNumber(amount),
             'currency': code,
@@ -552,8 +552,8 @@ export default class btcmarkets extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': fees['taker'],
-            'maker': fees['maker'],
+            'taker': this.safeNumber(fees, 'taker'),
+            'maker': this.safeNumber(fees, 'maker'),
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -602,7 +602,7 @@ export default class btcmarkets extends Exchange {
         //
         return this.parse8601(this.safeString(response, 'timestamp'));
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i);
@@ -630,7 +630,7 @@ export default class btcmarkets extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.privateGetAccountsMeBalances(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -754,7 +754,6 @@ export default class btcmarkets extends Exchange {
         //
         const marketId = this.safeString(ticker, 'marketId');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601(this.safeString(ticker, 'timestamp'));
         const last = this.safeString(ticker, 'lastPrice');
         const baseVolume = this.safeString(ticker, 'volume24h');
@@ -762,7 +761,7 @@ export default class btcmarkets extends Exchange {
         const change = this.safeString(ticker, 'price24h');
         const percentage = this.safeString(ticker, 'pricePct24h');
         return this.safeTicker({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high24h'),
@@ -1057,7 +1056,7 @@ export default class btcmarkets extends Exchange {
         const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = parseInt (ids[i]);
-            numericIds.push(parseInt(ids[i]));
+            numericIds.push(this.parseToInt(this.safeString(ids, i)));
         }
         const request = {
             'ids': numericIds,
@@ -1115,6 +1114,7 @@ export default class btcmarkets extends Exchange {
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         /**
          * @method
+         * @name btcmarkets#calculateFee
          * @description calculates the presumptive fee that would be charged for an order
          * @param {string} symbol unified market symbol
          * @param {string} type not used by btcmarkets.calculateFee
@@ -1130,10 +1130,7 @@ export default class btcmarkets extends Exchange {
         let cost = undefined;
         if (market['quote'] === 'AUD') {
             currency = this.safeString(market, 'quote');
-            const amountString = this.numberToString(amount);
-            const priceString = this.numberToString(price);
-            const otherUnitsAmount = Precise.stringMul(amountString, priceString);
-            cost = this.costToPrecision(symbol, otherUnitsAmount);
+            cost = this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
         }
         else {
             currency = this.safeString(market, 'base');
@@ -1149,7 +1146,7 @@ export default class btcmarkets extends Exchange {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat(feeCost),
+            'cost': this.parseNumber(feeCost),
         };
     }
     parseOrderStatus(status) {
@@ -1376,12 +1373,13 @@ export default class btcmarkets extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const tagWithdrawTag = this.safeString(params, 'tag');
+        const paramsWithdrawTag = this.omit(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1391,7 +1389,7 @@ export default class btcmarkets extends Exchange {
             'amount': this.currencyToPrecision(code, amount),
         };
         if (code !== 'AUD') {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             request['toAddress'] = address;
         }
         if (tagWithdrawTag !== undefined) {
@@ -1419,12 +1417,13 @@ export default class btcmarkets extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestHeaders = undefined;
         let requestBody = undefined;
         let request = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.keysort(this.omit(params, this.extractParams(path)));
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const secret = this.base64ToBinary(this.secret);
@@ -1435,8 +1434,9 @@ export default class btcmarkets extends Exchange {
                 }
             }
             else {
-                requestBody = this.json(query);
-                auth += requestBody;
+                const jsonBody = this.json(query);
+                requestBody = jsonBody;
+                auth = method + request + nonce + jsonBody;
             }
             const signature = this.hmac(this.encode(auth), secret, sha512, 'base64');
             requestHeaders = {
@@ -1448,18 +1448,18 @@ export default class btcmarkets extends Exchange {
                 'BM-AUTH-SIGNATURE': signature,
             };
         }
-        else if (api === 'public') {
+        else if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 request += '?' + this.urlencode(query);
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + request;
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

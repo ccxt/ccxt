@@ -25,8 +25,7 @@
 //     no cast. Every return of every definition boxes a dictionary — a dict literal, an
 //     audited row helper (safeTicker/safeOrder/safeTrade/safePosition), a helper that returns
 //     its own dict-literal argument (safeLiquidation/safeBalance), parseTrade/parseOrder/
-//     parseTicker/parsePosition, this.account (), or null. Only the call site inherited the
-//     #30502 cast-back until now. S50 added the names the table still left out, each on its own
+//     parseTicker/parsePosition, this.account (), or null. Further names, each on its own
 //     return-path proof: parseWsOHLCV -> List<object>, parseWsTrades -> IList<object>,
 //     parseWsMarginMode -> string?, plus the venue-local ws builders (parseWSTicker /
 //     parseWSSwapOrder / parseTradingOrder / parseFundingRateWs / parsePerpetualTicker /
@@ -55,8 +54,8 @@
 //     counters also get the typed `Int64 requestId (...)` signature, so their call sites
 //     carry no cast (typedRequestIdCall / csharpMethodReturnType);
 //     `this.parseOrderBook (...)` -> Dictionary<string, object> moved to the genuine
-//     declaration retype (CSHARP_COLLECTION_RETURN_METHODS, S19) — its only definition returns
-//     an object literal, so no call site carries a cast any more; a bare `await promiseAll (...)`
+//     declaration retype (CSHARP_COLLECTION_RETURN_METHODS) — its only definition returns
+//     an object literal, so no call site carries a cast; a bare `await promiseAll (...)`
 //     -> List<object> (the hand-written helper's own Task<List<object>>, no cast needed)
 //   - Precise.string* statics (string? / bool)
 //   - `this.sum (a, b)` with both arguments provably an integer box (or a nullable integer
@@ -66,8 +65,8 @@
 //   - `a % b` over two provably numeric operands (int / uint / long / Int64 / double, or an
 //     Int64? mixed with those): mod's typed twins return the object overload's own Int64 /
 //     Int64? box, so the declaration is `Int64` / `Int64?` with NO cast (modTwinCallType)
-//   - the crypto/encode helpers retyped object -> the concrete box in this PR, together with
-//     the table entries that name it: this.ecdsa / this.Ecdsa -> Dictionary<string, object>
+//   - the crypto/encode helpers retyped object -> the concrete box, with the table entries
+//     that name it: this.ecdsa / this.Ecdsa -> Dictionary<string, object>
 //     (the fresh { r, s, v } signature row, Exchange.Crypto.cs) and this.base16ToBinary /
 //     this.ethEncodeStructuredData -> byte[] (ConvertHexStringToByteArray and Nethereum's
 //     EncodeTypedDataRaw, Exchange.Encode.cs / Exchange.ETH.cs). `hash` stays `object`
@@ -79,36 +78,27 @@
 //     `getValue(market, "symbol")` and is declared `string?` behind the `(string)` cast when the
 //     receiver is a proven market row and the key is in MARKET_ROW_STRING_KEYS. Receiver shapes:
 //     this.market / this.safeMarket / this.safeMarketStructure (and the MARKET_ROW_HELPER_PRODUCERS
-//     ws resolvers), a `market: Market` parameter, or a local bound to one of those. Value census
-//     (ts/src, checker-typed): the
-//     safeMarketStructure skeleton (undefined) plus 150 market-row literals — parseMarket /
-//     fetchMarkets builders / safeMarketStructure arguments — with 1,276 fields at these keys,
-//     every value a string literal / `string` / `Str` / `undefined`, plus six element writes on
-//     MarketInterface-typed receivers (string/Str). The five `any`-typed sites (gate settleId,
-//     gemini id, independentreserve baseId/quoteId, mercado baseId) hold strings at runtime
-//     (safeString* results, `Object.keys` elements, `.slice`/`.replace` receivers); no boolean,
-//     numeric, list or dictionary value exists at these keys anywhere in the corpus, so the cast
-//     can never throw where the untyped `object` box did not. The added keys (uppercaseId, subType,
-//     optionType, expiryDatetime, feeSide) carry the same census: campaigns/cs90/tools/U01/
-//     key-value-census.mjs. The other row keys (bool keys outside MARKET_ROW_BOOL_KEYS: margin /
-//     active / quanto / prediction; numerics: contractSize/strike/expiry/numericId; dicts: info /
-//     fees / marginModes) stay `object` — same census file, per-key reject reasons in REPORT.md.
+//     ws resolvers), a `market: Market` parameter, or a local bound to one of those. Every writer
+//     of these keys (market-row literals, safeMarketStructure arguments, MarketInterface element
+//     writes) stores a string or undefined, so the cast never throws where the `object` box did
+//     not. The other row keys (bool keys outside MARKET_ROW_BOOL_KEYS: margin / active / quanto /
+//     prediction; numerics: contractSize/strike/expiry/numericId; dicts: info / fees /
+//     marginModes) stay `object`: their writers hold mixed or non-string values.
 //   - a MARKET ROW read by a literal BOOL key: `market['swap']` prints `getValue(market, "swap")`
 //     and is declared `bool?` behind the `(bool?)` cast when the key is in MARKET_ROW_BOOL_KEYS
-//     (spot/swap/contract/future/option/linear/inverse/index/stock; writer census and fence: the
-//     key table below, re-run for the added keys with tools/U01/key-value-census.mjs)
+//     (spot/swap/contract/future/option/linear/inverse/index/stock; every writer stores a bool
+//     or undefined — see the key table below)
 //   - a MARKET ROW read by a literal DICT key (precision/limits): declared
 //     `IDictionary<string, object>` behind the `(IDictionary<string, object>)` cast; every writer
 //     is an object literal, which the printer boxes as `new Dictionary<string, object>()`
-//     (census: tools/U01/key-value-census.mjs — the key table below names the reject reasons for
-//     info / fees / marginModes)
+//     (the key table below names the reject reasons for info / fees / marginModes)
 //   - a ROW-LIST element read by one of the 12 element-read local names (balance/order/rawOrder/
 //     position/rawPosition/trade/rawTrade/ticker/account/tier/chain/networkEntry): the TS checker
 //     proves the receiver's element type is a ccxt row shape (`orders: OrderRequest[]`, `trades =
 //     this.parseTrades (...)`, `positions = await this.fetchPositions ()`, `networkEntries =
 //     rawCurrency as Dict[]`, `accounts = await this.loadAccounts ()`, the tests' `Object.values
 //     (response)`), so the box is a decoded row dictionary — declared `IDictionary<string, object>`
-//     behind the same interface cast the safeValue-twin family emits (see the U06 section below)
+//     behind the same interface cast the safeValue-twin family emits (see the safeValue-twin section below)
 //   - `a + b` (printed `add(a, b)`) whose every operand is provably int / uint / long / Int64,
 //     or a double left with a provably numeric right: the typed add overloads of the hand-written
 //     base return the same unchecked sum the (object, object) overload's Int64 / double branch
@@ -217,7 +207,7 @@
 //     a boundary cast on the whole conditional (`((Int64?)(c ? parseInt (v) : null))`) — the one
 //     cast-carrying producer whose printed value is a conditional, hence the extra paren pair
 //     the install hook emits when info.castWhole is set
-//   - the printer's `((string)add (a, b))` wrap (S07): a throw argument / a startsWith /
+//   - the printer's `((string)add (a, b))` wrap: a throw argument / a startsWith /
 //     endsWith / replace argument / a `delete` key whose expression is a `+` chain with a
 //     provably string LEFT operand. add(string, *) binds and returns `string`
 //     (Exchange.TranspileHelpers.cs), so the cast's target IS the static type — an identity
@@ -231,30 +221,27 @@
 //     stubs out and in a helper with no C# counterpart), and typing would need an upstream
 //     printer change, not a local-type refinement.
 //
-// What this module deliberately does NOT type, with the census that proved it:
+// What this module deliberately does NOT type, and why:
 //   - locals initialised from a PARAMETER (`const x = symbol;`): every generated
 //     parameter is printed `object name = null`; the typed-core narrowing to string /
 //     Int64? happens in build/csharpTranspiler.ts#typeCoreArgs AFTER printing, and that
 //     pass also inserts an `object nameVar = name;` shadow (renaming every body use) for
 //     any parameter the body assigns — including the `??=` this printer emits for a
 //     literal default. Neither the narrowed type nor the shadow is knowable at print
-//     time, so a local copying a parameter keeps `object`. Tree-wide census: 98 copies,
-//     14 in narrowable positions, every one unprovable from the AST alone.
+//     time, so a local copying a parameter keeps `object`.
 //   - element reads whose receiver the C# side cannot name (`getValue (recv, key)`):
-//     receivers that are parameters (219 census sites), a this.safeList / this.call
-//     result (172 + 269 — the element is the caller's data), a dictionary (its values
+//     receivers that are parameters, a this.safeList / this.call
+//     result (the element is the caller's data), a dictionary (its values
 //     are unknown) and a Promise.all list whose promises are mixed or unproven types.
 //     Only a list whose elements a producer above proves takes a named declaration.
 //   - `const x: Dict = <expr>` (the 4.4k Dict/List annotations all have an initialiser):
 //     the annotation cannot replace an initialiser the printer can only box as `object`
 //     (CS0266, no implicit object -> Dictionary conversion) and is redundant when the
-//     initialiser is already provable — census: 0 additional locals.
+//     initialiser is already provable.
 //   - `this.sum (a, b)` / `a % b` sites whose operand is not provable: a parameter (its box
 //     is whatever the caller passed), an unproven local, a `double` argument of sum (the
 //     object overload hands that double straight back) and the `sum (params object[])`
-//     arities. Census on base (131 arithmetic + sum declarations across the three generated
-//     trees): 105 are blocked by such an operand — parameters and untyped loop locals
-//     dominate — so they keep `object`.
+//     arities keep `object`.
 //
 //   - `+` chains whose LEFT operand is provably a string (`this.id` — a `string` property
 //     on the hand-written base — a string literal, a nested `+` of the same, an
@@ -269,8 +256,8 @@
 //     `object`, so the chain's own static type is object and only a cast could name it —
 //     and `((string)...)` would throw where the box is null (a missing urls key) or an
 //     Int64 (add(object, object) returns a numeric left unchanged, and no call site can
-//     prove no url is ever numeric). Census: 107 such chains, all rejected; the same holds
-//     for every `getValue(...)` left leaf (149 on base) and for member reads the base does
+//     prove no url is ever numeric). The same holds for every `getValue(...)` left
+//     leaf and for member reads the base does
 //     not declare `string` (`this.apiKey`, `this.login`)
 //   - `x as string` / `<string>x` -> string (`((string)x)` is the printed cast)
 //   - `x as T` for every T the C# printer does NOT cast (`as List` / `as Dict` /
@@ -280,9 +267,8 @@
 //     `as any` prints `((object)x)` (still an object box, nothing proven) and `as any[]`
 //     prints `(IList<object>)(x)` (that cast's own static type)
 //   - `string x = <non-null>; ... x = <nullable string>;` widens to string? (the box is a
-//     string on both paths; getExtendedStarkAmount / createOrderAppendix / hexToDecimalString
-//     are the motivating cases — the string-returns section below needs the returned local
-//     declared, and a nullable write used to keep the whole local `object`)
+//     string on both paths; e.g. getExtendedStarkAmount / createOrderAppendix /
+//     hexToDecimalString, whose returned local the string-returns section below needs declared)
 //
 // Naming the type never changes the runtime value inside the box, so behaviour is identical
 // EXCEPT where C# resolves something at compile time against the declared type. Those cases
@@ -352,7 +338,7 @@
 //     divide(double,double) and the (Int64?, Int64?) twins of multiply / divide / mod plus
 //     mod's (Int64,Int64) / (double,double). Each mirrors the (object, object) overload for
 //     every operand pair that binds it (value, box type, null, overflow, division by zero),
-//     proven by the tree-wide bind audit in campaigns/cs-strict/tools/S57/ (0 DIVERGENT).
+//     verified by a tree-wide overload-binding audit (no divergent site).
 //   - typeof on a non-nullable value type (`x is int` is CS0183, an error under
 //     TreatWarningsAsErrors)
 //   - a local/parameter in scope at the declaration literally named like a C# type token
@@ -438,30 +424,9 @@
 // built from promises of one proven Task<T> (Dictionary<string, object> / List<object> /
 // string, re-boxed by the hand-written PromiseAll through FromTyped).
 //
-// `await this.<m>(...)` locals are typed from the callee's C# `Task<T>` signature:
-//   - CSHARP_LOCAL_AWAIT_RETURN_TYPES below (hand-written base methods, plus the async
-//     cores retyped by installCsharpAsyncCoreReturns)
-//   - the generated implicit-api wrappers cs/ccxt/api/<id>.cs, read lazily (see
-//     awaitedApiReturnTypes) — their `Task<T>` is the exact static type of the awaited
-//     call, so a local declared T can never disagree with its callee; the lookup is
-//     tier-aware (a ts/src/prediction source reads cs/ccxt/api/prediction/<id>.cs first,
-//     because the prediction classes are a separate hierarchy that does not inherit the
-//     REST wrappers)
-//   - a method declared in the CURRENT source file whose printed C# return the printer
-//     already types concretely (see sameFileAwaitedReturnType): `await this.fetchSomething()`
-//     where that declaration prints `Task<bool>` / `Task<IDictionary<string, object>>`
-//     returns that T. A typed core prints `Task<object>` at print time (its retype is a
-//     text pass), so its call sites stay object here.
-// Anything else an await can return (a typed core, which the transpiler funnels through
-// its From* helper, or a method whose C# return is still `object`) stays `object` —
-// `await this.<watch*|subscribe*>(...)` included (census: 418 `object` declarations in the
-// pro tree, 12 in the prediction tree, 13 `var` destructuring holders): every one of the 27
-// callees is declared `Task<object>` (base watch/watchMultiple in cs/ccxt/ws/Exchange.WsBridge.cs
-// plus the venue plumbing helpers) and the box is written by the venue's resolve() at runtime.
-// S52 typed the DECLARATION side instead: of the 388 `Task<object>` ws declarations (pro tree
-// + both generated base halves) 11 prove a box on every path (CSHARP_AWAITED_CORE_RETURNS
-// below). `watch`/`watchMultiple` stay Task<object> — their future's box is the payload the
-// venue resolves (dict/list/bool/string per channel), so no single type is honest.
+// await this.<m>(...) locals take T from the callee's C# Task<T>: CSHARP_LOCAL_AWAIT_RETURN_TYPES,
+// the generated api wrappers (tier-aware, see awaitedApiReturnTypes) or a same-file concrete return.
+// Anything else, including watch*/subscribe* (payload box varies per channel), stays object.
 //
 // `[a, b] = this.handleM (...)` and `const [a, b] = this.handleM (...)` print through the
 // printer's destructuring paths. For this tuple family the printer declares the holder
@@ -488,46 +453,17 @@
 // local on every path (~161 call sites) — a candidate for a follow-up, kept out of this
 // change.
 //
-// The STRING half of that candidate list is now implemented, for the null-initialised shard
-// (`object x = null;` — the same scan retypes `let x: Str = undefined` locals): element 0 of
-// handleParamString / handleParamString2 / handleNetworkCodeAndParams, plus the venue helpers
-// handleProductTypeAndParams (bitget) and getMarginMode (gate) whose bodies are safeString2 /
-// safeStringLower2 plus string literals only, plus handleMarketTypeAndParams once its two
-// unproven paths were closed (the `defaultValue: any` argument is gated per call site and the
-// `getValue (market, 'type')` path is backed by a full census of market-row 'type' writers —
-// see DESTRUCTURED_STRING_HELPERS). 373 declarations tree-wide become `string? x = null;`
-// with the forced `(string)` element cast; the non-string halves (handleParamInteger* /
-// handleParamBool* / handlePostOnly / handleHfAndParams / handleOptionAndParams*) stay
-// `object`.
+// String element 0 of handleParamString/2, handleNetworkCodeAndParams, handleProductTypeAndParams,
+// getMarginMode and handleMarketTypeAndParams (defaultValue gated per call site): null-initialised
+// targets become string? with a (string) element cast; non-string helpers stay object.
 //
-// cs90 U13 extends that same proof three ways (no new kind of evidence): the LITERAL-initialised
-// shard joins it (a `let type = 'spot'` target with the same destructuring write becomes
-// `string?`, its own box is the string the helper may hand back — see literalInitElement0Type);
-// the defaultValue gate also accepts an argument whose own proven C# type is string / string?
-// (`defaultMarket = isMarkPrice ? 'swap' : undefined`, so the helper still hands back a string
-// or null); and two venue helpers whose slot IS one of the audited boxes join the table —
-// getBybitType (element 0 is its `type`/`subType` from the two handle*AndParams above) and
-// resolveAuthType (element 0 its `type`, element 1 its `subType` — the slot table below).
-// handleOptionAndParams / handleOptionAndParams2 / handleMarginModeAndParams /
-// customHandleMarginModeAndParams / getInstType stay out for the same reason as before: their
-// slot holds the CALLER's params value on the `value != null` path, so no cast can be exact.
+// Literal-initialised targets and string-typed defaultValue arguments join the same proof, as do
+// getBybitType and resolveAuthType (their slots hold audited string boxes). Helpers whose slot
+// may hold the caller's params value (handleOptionAndParams*, margin-mode helpers) stay out.
 //
-// The destructured ELEMENTS are cast back for element 0 of the helpers below: each of them
-// holds a CONCRETELY-TYPED local in that slot on EVERY return path (read off the generated
-// C# body, not the TS tuple annotation), so `x = (T)((IList<object>)tmp)[0]` names exactly
-// the box the helper produced — see DESTRUCTURED_ELEMENT0_TYPES. Every other helper keeps
-// the printer's untyped read: handleOptionAndParams/2 element 0 is the user's params value
-// or `defaultValue` (any) — the bool-option shard (U14, BOOL_OPTION_HELPERS) is the audited
-// exception, its keys being documented booleans with a bool default argument per call site,
-// so the slot holds a boxed bool or null there; handleMarketTypeAndParams returns
-// `getValue (market, 'type')` /
-// `defaultValue` on two of six paths, handleMarginModeAndParams / handleSubTypeAndParams /
-// handleUntilOption thread caller values through. The TS checker does type the elements from
-// the call's tuple return type (`[Str, Dict]` -> Str, the `[T, Dict]` overload -> T), but a
-// cast is only provable from the method's own C# body.
-// The generated non-async string-returning methods (parse*Status and
-// friends) no longer belong to that list: the string-returns section above retypes their
-// signatures, and the same table is merged into CSHARP_LOCAL_THIS_RETURN_TYPES below.
+// Element 0 is cast back only for helpers holding a concretely-typed local in that slot on every
+// C# return path (DESTRUCTURED_ELEMENT0_TYPES; bool options via BOOL_OPTION_HELPERS), so the
+// cast names the exact box. Helpers threading caller values through keep the untyped read.
 //
 // Why not flip the printer's INFER_VAR_TYPE: it only fires on the `= undefined` path and
 // takes the TypeScript declared type at face value, so `let x: Dict = undefined; x =
@@ -596,7 +532,7 @@ export const CORE_NUMERIC_ARGS = {
     'createOrder': { 3: 'double', 4: 'double?' },
     'createOrderWithTakeProfitAndStopLossWs': { 3: 'double', 4: 'double?' },
     'createOrderWs': { 3: 'double', 4: 'double?' },
-    'createOrderbookOrder': { 3: 'double', 4: 'double?' },
+    'createOrderbookOrder': { 3: 'double?', 4: 'double?' },
     'createPostOnlyOrderWs': { 3: 'double', 4: 'double?' },
     'createReduceOnlyOrderWs': { 3: 'double', 4: 'double?' },
     'createStopLimitOrderWs': { 2: 'double', 3: 'double' },
@@ -637,7 +573,7 @@ export const CORE_NUMERIC_ARGS = {
     'fetchDeposits': { 1: 'Int64?', 2: 'Int64?' },
     'fetchDepositsWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
     'fetchDerivativesOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchEventsByQuery': { 1: 'Int64' },
+    'fetchEventsByQuery': { 1: 'Int64?' },
     'fetchFundingHistory': { 1: 'Int64?', 2: 'Int64?' },
     'fetchFundingRateHistory': { 1: 'Int64?', 2: 'Int64?' },
     'fetchL2OrderBook': { 1: 'Int64?' },
@@ -646,7 +582,9 @@ export const CORE_NUMERIC_ARGS = {
     'fetchLedgerByEntries': { 2: 'Int64?' },
     'fetchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
     'fetchLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMarginAdjustmentHistory': { 2: 'Int64?', 3: 'Int64?' },
     'fetchMarkOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'handleTradingStatisticsWindow': { 2: 'Int64?', 3: 'Int64?' },
     'fetchMyBuys': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyContractTrades': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyDustTrades': { 1: 'Int64?', 2: 'Int64?' },
@@ -656,7 +594,9 @@ export const CORE_NUMERIC_ARGS = {
     'fetchMySpotTrades': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyUtaTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchIndexOHLCV': { 2: 'Int64?', 3: 'Int64?' },
     'fetchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchPremiumIndexOHLCV': { 2: 'Int64?', 3: 'Int64?' },
     'fetchOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
     'fetchOpenOrders': { 1: 'Int64?', 2: 'Int64?' },
     'fetchOpenOrdersV1': { 1: 'Int64?', 2: 'Int64?' },
@@ -700,6 +640,7 @@ export const CORE_NUMERIC_ARGS = {
     'repayMargin': { 1: 'double' },
     'setMargin': { 1: 'double' },
     'transfer': { 1: 'double' },
+    'transferOut': { 1: 'double' },
     'watchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
     'watchLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'watchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
@@ -717,6 +658,18 @@ export const CORE_NUMERIC_ARGS = {
     'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'withdraw': { 1: 'double' },
 };
+
+// retype-cs-divide-arith: numeric parameters used in divide(p, N)/divide(N, p) take the C# twin of
+// their TS annotation so the call prints native. Name-keyed, so base and overrides agree
+// (CS0115/CS0508); call sites are wrapped by castCoreArgCallSites.
+export const RETYPE_CS_DIVIDE_NUMERIC_ARGS = {
+    'safeDeterministicCall': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchPaginatedCallDeterministic': { 2: 'Int64?' },
+    'createTwapOrder': { 3: 'double' },
+};
+for (const [ retypeName, retypePositions ] of Object.entries (RETYPE_CS_DIVIDE_NUMERIC_ARGS)) {
+    CORE_NUMERIC_ARGS[retypeName] = { ...(CORE_NUMERIC_ARGS[retypeName] ?? {}), ...retypePositions };
+}
 
 export const CORE_STRING_ARGS = {
     'addMargin': [ 0 ],
@@ -962,9 +915,11 @@ export const CORE_STRING_ARGS = {
     'watchPosition': [ 0 ],
     'watchTicker': [ 0 ],
     'watchTrades': [ 0 ],
-    'withdraw': [ 0, 2, 3 ],
+    'withdraw': [ 0, 2 ],
     'withdrawRequest': [ 0, 3 ],
-    'withdrawWs': [ 0, 2, 3 ],
+    'withdrawWs': [ 0, 2 ],
+    // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
+    // hand-written WsBridge caller both pass `object` and cannot be narrowed here
 };
 
 // ===== string-returning method signatures =====
@@ -980,10 +935,8 @@ export const CORE_STRING_ARGS = {
 // every local that received their result had to stay `object` on the call site
 // (the local-typing tables in this file).
 //
-// This module retypes the signature — `string` / `string?` — for a CLOSED, per-name table
-// (110 names, 400 declarations). A name is listed only when a census of the whole tree
-// proved, for EVERY declaration of the name (base Exchange.ts below its delimiter, the
-// prediction base, every exchange, the pro tree, the prediction tree):
+// Retypes the signature to string / string? for a closed per-name table. A name is listed only
+// when, for EVERY declaration of it across all tiers (base, prediction, exchanges, pro):
 //
 //   * it is a non-async class method (statics and async methods are out of scope),
 //   * the resolved TS return type is string-ish: `string`, a union of string literals, or
@@ -994,45 +947,22 @@ export const CORE_STRING_ARGS = {
 //     ternary whose arms are one of those, a call to another listed name (fixpoint), or a
 //     local whose initializer and every later write are one of those.
 //
-// A return expression that already prints as a string needs no unboxing; one that does not
-// is wrapped in the boundary cast `((string)((object)(x)))` (see stringReturnIsTyped /
-// installCsharpStringReturns), which only names the box the value already has. Names with
-// any other return shape — calls to helpers whose C# return is `object`
-// (safeValue/safeDict/market/forceString/...), object-typed parameters returned directly,
-// fetched members — stay `object`; the census for those is in the PR body.
+// A return already printing as a string needs no unboxing; others get the boundary cast
+// ((string)((object)(x))), which only names the box the value already has. Names with any other
+// return shape (object helpers, object parameters, fetched members) stay object.
 //
 // The decision is per NAME, so a base virtual and each of its overrides always print the
 // same return type: the override path in printMethodDefinition substitutes the parent's
 // printed type only when the override's own print produced `object`, and both prints go
 // through the same table lookup.
 //
-// Deliberately absent although their census is clean:
-//   * intToBase16 / binaryToString / uuid5 / exceptionMessage / reduceDigits — declared
-//     above the Exchange.ts delimiter or in base/Precise.ts, i.e. already hand-written in
-//     C# with a concrete string return; there is no generated signature to retype.
-//   * encodeDydxTxForSimulation — hand-written `object` in cs/ccxt/base/Exchange.cs would
-//     contradict the generated signature.
-//   * getMarketType (ts/src/pro/binance.ts) — its `let type: Str = undefined` receives a
-//     destructured `[ type, params ] = handleMarketTypeAndParams (...)`, which the C#
-//     printer lowers to untyped list-element reads, so the local can never be typed.
-//     (Reported in the PR census; needs a source rewrite, not a signature change.)
-//   * marketId / networkCodeToId / networkIdToCode / getMarketType — one return path each
-//     hands back a box the callee does not own (the caller's parameter: `return symbol` /
-//     `return networkCode`; or an options-derived value: networkIdToCode's `preferredChain`
-//     from prioritizedNetworkAliases, getMarketType's handleMarketTypeAndParams (...)[0]),
-//     so the unboxing cast could throw where the object return passed the box through.
+// Excluded: names already hand-written in C# with a string return (intToBase16, uuid5, ...),
+// encodeDydxTxForSimulation (hand-written object), and names with a return path handing back a
+// box they do not own (marketId, networkCodeToId, networkIdToCode, getMarketType).
 //
-// Call-site proof (whole ts/src tree, admitted names): the only shape whose C# overload
-// resolution changes is a listed call as the LEFT operand of `+` — the left operand's
-// static type picks the add() family, and a null LEFT differs between add(object, object)
-// (null) and add(string, *) (the right operand). The census found 5 such sites, all inert:
-// four `this.intToBase16 (...)` chains (that method is hand-written `string` already, so
-// the operand was string-typed before and after) and one `this.shortenSlug (name) + '_'`
-// whose body is `((string)joined).ToUpper()` — never null. Everywhere else a `string?`
-// call converts to `object` implicitly: assignments, arguments, returns, dictionary
-// values, `isEqual`/`isTrue` wrappers, `((string)x).ToUpper()` receivers, and RIGHT
-// operands of `+` (add(string, object) and add(string, string) are identical for every
-// input — Exchange.TranspileHelpers.cs).
+// Only a listed call as the LEFT operand of + changes C# overload resolution (null left differs
+// between add(object, object) and add(string, *)); all such sites are non-null or already string.
+// Everywhere else string? converts to object implicitly with identical behaviour.
 //
 // IMPORTANT: scan the AST with `node.name.text`, never by printed text — the
 // reserved-keyword pass renames some identifiers before printing.
@@ -1059,7 +989,8 @@ export const CSHARP_STRING_RETURN_METHODS = {
     'handleTimeInForce': 'string?', 'handleTradeType': 'string?', 'hexToDecimalString': 'string?', 'mapSide': 'string?',
     'mapTimeInForce': 'string?', 'marketOrderAmountToPrecision': 'string', 'marketOutcomeToSymbol': 'string?',
     'outcomeSearchQuery': 'string?', 'padHex': 'string', 'paraseTransferStatus': 'string?', 'parseAccountId': 'string?',
-    'parseAccountType': 'string?', 'parseDepositStatus': 'string?', 'parseFundingInterval': 'string?',
+    'parseAccountType': 'string?', 'parseContractOrderSide': 'string?', 'parseDepositStatus': 'string?',
+    'parseFundingInterval': 'string?',
     'parseLedgerDirection': 'string?', 'parseLedgerEntryDirection': 'string?', 'parseLedgerEntryStatus': 'string?',
     'parseLedgerStatus': 'string?', 'parseLedgerType': 'string?', 'parseMarginModeType': 'string?',
     'parseMarginStatus': 'string?', 'parseMarginType': 'string?', 'parseMarketType': 'string?', 'parseOrderSide': 'string?',
@@ -1079,17 +1010,10 @@ export const CSHARP_STRING_RETURN_METHODS = {
     'walletAddressOrUndefined': 'string?'
 };
 
-// U27 census: the generated non-async helpers whose EVERY return, in EVERY declaration of
-// the name (base, exchanges, pro, prediction), is provably a C# `string`-or-null box:
-// string literals, this.safeString*/decimalToPrecision/numberToString, `x as string`,
-// ternaries or `+` chains of those, calls to a name listed here (fixpoint), and locals
-// whose initializer and every later plain write are one of those (including the
-// self-concatenating accumulator `s = s + x`). A return that does not already print as a
-// string is emitted with the boundary cast `((string?)((object)(x)))`, which only names
-// the box the value already has (null in, null out) — see installCsharpStringReturns.
-// Names whose declaration C# types disagree with the hand-written base, that a sibling
-// table already retypes, or whose returns include a bare parameter/deep read stay `object`.
-const CSHARP_STRING_RETURN_METHODS_U27 = {
+// Generated non-async helpers whose every return in every declaration is a string-or-null box
+// (literals, safeString*, string + chains, listed calls, proven locals). Non-string-printing returns
+// get the boundary cast ((string?)((object)(x))), null in null out; see installCsharpStringReturns.
+const CSHARP_STRING_RETURN_METHODS_BOUNDARY_CAST = {
     'convertDerivativesId': 'string?', 'convertExpireDate': 'string?', 'convertExpireDateToMarketIdDate': 'string?',
     'convertMarketIdExpireDate': 'string?', 'convertSecretToPem': 'string?', 'createAuthToken': 'string',
     'createCcxtTradeId': 'string?', 'createSubaccount': 'string', 'findBroadlyMatchedKey': 'string?',
@@ -1100,33 +1024,26 @@ const CSHARP_STRING_RETURN_METHODS_U27 = {
     'orderVerifyingContract': 'string', 'pairToSymbol': 'string?', 'prepareMessage': 'string?',
     'removeCommaFromValue': 'string?', 'signL1AndPrepareTxInfo': 'string?',
     'toSandboxMarketId': 'string?',
-    // S10: this.getMessageHash was the string member of CSHARP_LOCAL_CAST_CALL_TYPES (the
-    // call site carried `((string)…)` back). Its five generated definitions (ts/src/pro/
-    // {kraken,krakenfutures,kucoin,bingx,lighter}.ts) all build the hash from their `string`
-    // first parameter plus string literals / `this.symbol (...)` through the add() chain, so
-    // every return boxes a string or null; the signature now names `string?` itself and the
-    // 37 call-site casts are gone.
+    // getMessageHash: all five pro definitions build the hash from their string first parameter
+    // plus string literals / this.symbol(...) via add(), so every return boxes a string or null
+    // and the signature names string? directly.
     'getMessageHash': 'string?'
 };
-Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_U27);
+Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_BOUNDARY_CAST);
 
-// S35 census: the roster's string-boxed venue helpers, proven per declaration. networkIdToCode
-// (2 declarations): base returns undefined | the safeString(...) local | chainPair[0] of
-// prioritizedNetworkAliases, whose every writer (the base default options table) fills string
-// pairs; htx hands back a super call. marketId (1): market['id'] is the MARKET_ROW_STRING_KEYS
-// proof and `return symbol` is dead — all three market() declarations throw before returning null.
-const CSHARP_STRING_RETURN_METHODS_S35 = {
+// String-boxed venue helpers proven per declaration: networkIdToCode returns undefined, a
+// safeString local or a string pair entry of prioritizedNetworkAliases (htx defers to super);
+// marketId returns market['id'] (MARKET_ROW_STRING_KEYS), its other return being unreachable.
+const CSHARP_STRING_RETURN_METHODS_VENUE_HELPERS = {
     'marketId': 'string?',
     'networkIdToCode': 'string?',
 };
-Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_S35);
+Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_VENUE_HELPERS);
 
-
-// S51 census: 72 further generated non-async names whose EVERY declaration's every return path
-// boxes a string or null (per-site evidence in the S51 report). Bodies are byte-identical for
-// the 25 names below; the 47 in the boundary table have one remaining return whose object box
-// the census proved string-or-null and take the U27 boundary cast.
-const CSHARP_STRING_RETURN_METHODS_S51 = {
+// Further non-async names whose every declaration returns a string or null: the names below have
+// byte-identical bodies; those in the boundary table have one object-boxed return proven
+// string-or-null and take the boundary cast.
+const CSHARP_STRING_RETURN_METHODS_PROVEN = {
     'ethChecksumAddress': 'string?', 'generateRandomClientIdOmni': 'string?',
     'getMarketType': 'string?', 'intToRlpHex': 'string?', 'keccakMessage': 'string?', 'outcomeCoin': 'string?',
     'outcomeToken': 'string?', 'padHexAddress': 'string?', 'rlpEncodeList': 'string?',
@@ -1136,7 +1053,7 @@ const CSHARP_STRING_RETURN_METHODS_S51 = {
     'slugToMarketSymbol': 'string?', 'slugToOutcomeSymbol': 'string?',
     'stringToBase16': 'string?'
 };
-const CSHARP_STRING_RETURN_METHODS_S51_BOUNDARY = {
+const CSHARP_STRING_RETURN_METHODS_PROVEN_BOUNDARY = {
     'actionAndMarketMessageHash': 'string?', 'actionAndOrderIdMessageHash': 'string?', 'addHyphenBeforeUsdt': 'string?',
     'buildOutcomeParentSymbol': 'string?', 'buildOutcomeSymbol': 'string?', 'checkAddress': 'string?',
     'coinToMarketId': 'string?', 'commonCurrencyCode': 'string?', 'createAuth': 'string?',
@@ -1153,31 +1070,22 @@ const CSHARP_STRING_RETURN_METHODS_S51_BOUNDARY = {
     'tagToSlug': 'string?', 'timeframeFromMilliseconds': 'string?', 'updateSpotCurrencyCode': 'string?',
     'urlEncodeQuery': 'string?', 'urlencodeWithArrayBrackets': 'string?'
 };
-Object.assign (CSHARP_STRING_RETURN_METHODS_U27, CSHARP_STRING_RETURN_METHODS_S51_BOUNDARY);
-Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_S51, CSHARP_STRING_RETURN_METHODS_S51_BOUNDARY);
+Object.assign (CSHARP_STRING_RETURN_METHODS_BOUNDARY_CAST, CSHARP_STRING_RETURN_METHODS_PROVEN_BOUNDARY);
+Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_PROVEN, CSHARP_STRING_RETURN_METHODS_PROVEN_BOUNDARY);
 
-// the names whose return statements may carry the boundary cast: the U27 census table
-// (S51's boundary entries included above) plus the S35 entries (same per-declaration
-// proof, so the same wrap is permitted)
-const CSHARP_STRING_BOUNDARY_CAST_NAMES = Object.assign ({}, CSHARP_STRING_RETURN_METHODS_U27, CSHARP_STRING_RETURN_METHODS_S35);
+// Names whose returns may carry the boundary cast: the boundary string table plus the
+// networkIdToCode/marketId entries (same per-declaration proof, so the same wrap is permitted).
+const CSHARP_STRING_BOUNDARY_CAST_NAMES = Object.assign ({}, CSHARP_STRING_RETURN_METHODS_BOUNDARY_CAST, CSHARP_STRING_RETURN_METHODS_VENUE_HELPERS);
 
-// S54 census: the remaining sync `object` venue helpers whose EVERY declaration (all tiers)
-// is non-async, prints `object`, passes the stringishReturn checker gate and returns on
-// every path a literal / `+` chain with a proven string left operand / a call the tables
-// above already name / a proven local (campaigns/cs-strict/tools/S54, REPORT.md).
-// formatNumber / opinionWsUrl / urlEncodeQuery / urlencodeWithArrayBrackets return a PROVEN
-// string value the C# declares `object` (a local / an add chain over one): stringReturnIsTyped
-// cannot see it, so their returns would reach a `string` signature without the boundary cast
-// (CS0266) — they live in CSHARP_METHOD_RETURN_TYPES instead, which always casts.
-// Rejected with the same census: ping (dict literals beside strings), handlePong and the
-// other ws handlers (`return message` — the caller's box), signHash (dict builds in
-// dydx/hyperliquid), hashMessage (dydx returns the `object` `this.hash (...)` box).
-const CSHARP_STRING_RETURN_METHODS_S54 = {
+// Sync object venue helpers whose every path returns a literal, a proven-string + chain, a listed
+// call or a proven local. formatNumber/opinionWsUrl/urlEncodeQuery/urlencodeWithArrayBrackets live
+// in CSHARP_METHOD_RETURN_TYPES (always cast, avoiding CS0266); ping/handlePong/signHash stay out.
+const CSHARP_STRING_RETURN_METHODS_NON_NULL = {
     'ethChecksumAddress': 'string', 'keccakMessage': 'string',
     'outcomeCoin': 'string', 'outcomeToken': 'string',
     'signApiKeyAuth': 'string', 'signClobAuth': 'string', 'signOpinionOrder': 'string'
 };
-Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_S54);
+Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_NON_NULL);
 
 // the printer's declared return type must still be `object` (bool/Task/anything the printer
 // already proved is left alone), and the node must be an emitted, non-async method
@@ -1235,12 +1143,9 @@ function stringishReturn (csharp, node) {
     }
 }
 
-// true when a `return <expr>;` of a listed method already prints a string: a literal, a
-// bare `null`/`undefined`, or an expression this module proves has a string static type
-// (this.safeString*, a call to another listed name, a `((string)x)` cast, a ternary or
-// `+` chain whose operands qualify, a string local, `x.slice(...)`, ...). Only the
-// remaining returns — object-typed boxes the census proved hold a string or null — carry
-// the boundary cast, so every other return line stays byte-identical.
+// True when a return of a listed method already prints a string (literal, null/undefined, or a
+// proven string expression). Only the remaining object-boxed returns carry the boundary cast, so
+// every other return line stays byte-identical.
 function stringReturnIsTyped (csharp, expression) {
     if (expression === undefined) {
         return true;
@@ -1290,8 +1195,8 @@ export function installCsharpStringReturns (transpiler) {
         // that callback, never to the enclosing listed method
         const scopeFunction = ts.findAncestor (node.parent, ts.isFunctionLike);
         const stringType = stringReturnType (csharp, scopeFunction, 'object');
-        // only the U27/S35 names carry the boundary cast — the original names' bodies are
-        // byte-identical (their census proved every return already prints a string)
+        // only the boundary-table names carry the boundary cast; the other names' bodies stay
+        // byte-identical (every return already prints a string)
         if (stringType === undefined || !Object.prototype.hasOwnProperty.call (CSHARP_STRING_BOUNDARY_CAST_NAMES, scopeFunction?.name?.text)
             || !node.expression || stringReturnIsTyped (csharp, node.expression)) {
             return upstreamReturnStatement (node, identation);
@@ -1315,12 +1220,9 @@ export function installCsharpStringReturns (transpiler) {
 // C# signatures in cs/ccxt/base/Exchange.Generic.cs already name the type), calls to another
 // listed name (fixpoint), or locals the local-typing pass proves for the same reason.
 //
-// Closed per-NAME table, audited like the string-returns section above: a name is listed
-// only when a census of the whole tree (base Exchange.ts below its delimiter, the prediction
-// base, every exchange, the pro tree, the prediction tree) proved that EVERY declaration
-// returns only boxes of the mapped type. The decision is per name, so a base virtual and
-// each of its overrides always print the same return type (CS0508 holds), and no listed
-// method has a hand-written `object` declaration to contradict.
+// Closed per-name table: listed only when every declaration across all tiers returns boxes of the
+// mapped type. Per-name, so a base virtual and its overrides print the same return type (CS0508),
+// and no listed method has a hand-written object declaration to contradict.
 //
 // A return expression that does NOT already print as the mapped type is wrapped in the same
 // boundary cast CSHARP_METHOD_RETURN_TYPES emits: `((T)((object)(x)))`. The cast only names
@@ -1341,26 +1243,21 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'eipDefinitions': 'Dictionary<string, object>', 'eipDomainData': 'Dictionary<string, object>', 'eipMessageForOrder': 'Dictionary<string, object>', 'fetchDepositsRequest': 'Dictionary<string, object>',
     'fetchMyTradesRequest': 'Dictionary<string, object>', 'fetchOHLCVRequest': 'Dictionary<string, object>', 'fetchOrdersRequest': 'Dictionary<string, object>', 'fetchWithdrawalsRequest': 'Dictionary<string, object>',
     'getDefaultOptions': 'Dictionary<string, object>', 'getDescribeForExtendedWsExchange': 'Dictionary<string, object>', 'getMarketFromClientAndMessage': 'Dictionary<string, object>', 'getMarketFromOrder': 'Dictionary<string, object>',
+    // polymarket#sendSubscription: one declaration, both returns are this.extend (request, params)
+    'sendSubscription': 'Dictionary<string, object>',
     'getSubscriptionRequest': 'Dictionary<string, object>', 'hardcodedCurrencies': 'Dictionary<string, object>', 'indexPositionBreakList': 'Dictionary<string, object>', 'invertFlatStringDictionary': 'Dictionary<string, object>',
     // base-only (1 declaration, no venue override): two `return undefined` paths (printed
     // `return null`) and `return market`, the local `this.market(...)` fills (the same
     // Dictionary row) — every path boxes that row or null.
     'getMarketFromSymbols': 'Dictionary<string, object>',
     'opinionOrderRawAmounts': 'Dictionary<string, object>', 'parseAccountPosition': 'Dictionary<string, object>', 'parseAccountSettings': 'Dictionary<string, object>', 'parseBidAskCustom': 'Dictionary<string, object>',
-    // U49: ts/src/base/Exchange.ts#safeBalance — ONE declaration in the whole tree, one return
-    // path, `return balance as any` where `balance` is the `Dict` parameter, i.e. the box is the
-    // caller's own balance row. The body already unboxes the parameter on its first write
-    // (`((IDictionary<string,object>)balance)["free"] = …`), so naming the type moves the 84
-    // call sites' unbox into the body on the SAME value: no runtime change, and the boundary
-    // cast the callers carried becomes an identity box.
+    // safeBalance: one declaration, one return of its Dict parameter, which the body already
+    // unboxes on its first write; naming the type moves the callers' unbox into the body on the
+    // same value, so behaviour is unchanged.
     'safeBalance': 'Dictionary<string, object>',
-    // U49: ts/src/base/Exchange.ts#safeLiquidation — same proof as safeBalance: ONE
-    // declaration, one return path `return liquidation as Liquidation` where `liquidation` is
-    // the `Dict` parameter, and the body ALREADY unboxes it five lines earlier
-    // (`((IDictionary<string,object>)liquidation)["contracts"] = …`), so a non-dict caller
-    // throws today. The unbox the retype adds sits at the `return`, i.e. strictly after the
-    // body's own unbox: no call site can fail that does not already fail. All in-tree callers
-    // pass a fresh `new Dictionary<string, object>() {...}` literal.
+    // safeLiquidation: same proof as safeBalance; the body unboxes its Dict parameter before the
+    // return, so the added unbox cannot fail where the body would not already. All in-tree
+    // callers pass a fresh Dictionary literal.
     'safeLiquidation': 'Dictionary<string, object>',
     'parseBorrowRateHistories': 'Dictionary<string, object>', 'parseBorrowRates': 'Dictionary<string, object>', 'parseContractMarket': 'Dictionary<string, object>', 'parseCurrenciesCustom': 'Dictionary<string, object>',
     // parseBorrowRate: the BaseExchange `throw` stub plus 7 venue overrides whose only return is
@@ -1370,41 +1267,30 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'parseCurrencyCustom': 'Dictionary<string, object>', 'parseDepositMethodId': 'Dictionary<string, object>', 'parseDepositWithdrawFees': 'Dictionary<string, object>', 'parseDustTrade': 'Dictionary<string, object>',
     'parseFeeTiers': 'Dictionary<string, object>', 'parseLedgerComment': 'Dictionary<string, object>', 'parseLeverages': 'Dictionary<string, object>', 'parseMarginLoan': 'Dictionary<string, object>',
     'parseMarginModes': 'Dictionary<string, object>', 'parseMarketToEvent': 'Dictionary<string, object>', 'parseNetworks': 'Dictionary<string, object>', 'parseOptionChain': 'Dictionary<string, object>',
-    // ts/src/base/Exchange.ts#parseOrderBook is the only declaration in the tree and its
-    // single return is an object literal — moved off the #30502 cast-back
-    // (CSHARP_LOCAL_EXACT_CAST_CALL_TYPES) to the declaration retype, so its 72 call sites
-    // lose the `((Dictionary<string, object>)this.parseOrderBook (...))` cast (S19)
+    // parseOrderBook: one declaration in the tree, single return of an object literal, so the
+    // declaration is retyped and call sites need no Dictionary cast.
     'parseOrderBook': 'Dictionary<string, object>',
-    // the parse* row builders: a census of all 333 declarations found every return path
-    // ending in safeTicker / safeOrder / safeTrade / safePosition (a row the producer returns
-    // unchanged), a peer builder with the same single return, a literal, or a typed local
+    // the parse* row builders: every return path ends in safeTicker/safeOrder/safeTrade/
+    // safePosition (a row returned unchanged), a peer builder with the same single return, a
+    // literal, or a typed local
     'parseOrder': 'Dictionary<string, object>', 'parsePosition': 'Dictionary<string, object>',
     'parseTicker': 'Dictionary<string, object>', 'parseTrade': 'Dictionary<string, object>',
     // parseTickers: the BaseExchange declaration and hollaex's override, whose only returns are
     // `this.filterByArray (results, 'symbol', symbols)` (3-argument default) and the same box
     // through filterByArrayTickers — indexBy's Dictionary, so the override pair moves together.
     'parseTickers': 'Dictionary<string, object>',
-    // parseBalance (the BaseExchange declaration + 79 venue overrides): every override hands its
-    // own argument back (this.safeBalance(<local>)), the local is initialised by an object
-    // literal and never reassigned (79/79 censused), so the boundary cast names the existing box.
+    // parseBalance (base + venue overrides): every override returns this.safeBalance(<local>),
+    // whose local is initialised by an object literal and never reassigned, so the boundary
+    // cast names the existing box.
     'parseBalance': 'Dictionary<string, object>',
+    'parseBalanceList': 'Dictionary<string, object>',
     // safeBalance itself stays `object`: its value IS its own `object` argument, and 22 ws call
     // sites pass `this.balance` (a ccxt.pro.CustomConcurrentDictionary, NOT a Dictionary), so a
     // Dictionary spelling would throw/null those boxes.
     'parseOutcomeDescription': 'Dictionary<string, object>', 'parsePublicDepositWithdrawFees': 'Dictionary<string, object>', 'parseSettlement': 'Dictionary<string, object>', 'parseSpotMarket': 'Dictionary<string, object>',
-    // the prediction sweep's own helper names (cs/ccxt/base/PredictionExchange.cs and the seven
-    // venue files — no other tree declares any of them; census: 0 hits in cs/ccxt/exchanges/*.cs
-    // and cs/ccxt/exchanges/pro/*.cs). Return-path proofs, read from those declarations:
-    //   parsePredictionPositions  one return, the `List<object> results` local it fills
-    //   safePredictionPosition    one return, the fresh `Dictionary` result literal it builds
-    //   parsePredictionPosition   base throws NotSupported; all 7 overrides return
-    //                             this.safePredictionPosition ({...}) or a dict literal (limitless)
-    //   parseMyriadMarket / parseTopicMarket  single return of a dict literal
-    //   parseOutcomeMarket        single return, this.omit (<Dictionary local>, "symbol")
-    //   getOutcomeBySlugAndLabel  the `IDictionary<string, object> outcome` local (this.safeDict
-    //                             result) or null
-    //   opinionOutcomeByMarketIdSide  this.safeDict (outcomes, index) or null
-    //   getPositionFromClobEntry  null or this.safePredictionPosition (parsed)
+    // prediction-only helpers (PredictionExchange.cs and its venue files; declared nowhere else):
+    // each returns a dict/list literal or local, a safeDict/safePredictionPosition result, an
+    // omit of a Dictionary local, or null.
     'parsePredictionPositions': 'List<object>', 'parsePredictionPosition': 'Dictionary<string, object>', 'safePredictionPosition': 'Dictionary<string, object>',
     'parseMyriadMarket': 'Dictionary<string, object>', 'parseTopicMarket': 'Dictionary<string, object>', 'parseOutcomeMarket': 'Dictionary<string, object>',
     'getOutcomeBySlugAndLabel': 'IDictionary<string, object>', 'opinionOutcomeByMarketIdSide': 'IDictionary<string, object>', 'getPositionFromClobEntry': 'Dictionary<string, object>',
@@ -1422,14 +1308,9 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // a single return, the input row itself, after the body wrote fee/fees/amount/price/cost
     // (safeTrade) or percentage/contractSize (safePosition) through an IDictionary hard cast
     'safeTrade': 'Dictionary<string, object>',
-    // prediction tier only (cs/ccxt/base/PredictionExchange.cs, the whole cs/ccxt/exchanges
-    // tree declares none of these names): safeOutcome / loadOutcome hand back a row of
-    // this.outcomes / this.outcomes_by_id — every writer records an IDictionary<string, object>
-    // (indexMarketOutcomes hard-casts each row before the write, hyperliquid stores a
-    // safeDict result) — or the fresh Dictionary literal. The 2-arg passthrough returns the
-    // caller's outcomeObj behind the boundary cast; every in-tree 2-arg caller passes a
-    // market row (safeMarket/parseMarket result / `market as any`), and the 1-arg call sites
-    // (the 48 cast-backs this unit removed) are map reads.
+    // prediction tier only: safeOutcome/loadOutcome return a row of this.outcomes(_by_id), every
+    // writer storing an IDictionary<string, object>, or a fresh Dictionary literal; the 2-arg
+    // passthrough returns a market row behind the boundary cast.
     'safeOutcome': 'IDictionary<string, object>',
     'setApiCredentials': 'Dictionary<string, object>', 'signParams': 'Dictionary<string, object>', 'withdrawRequest': 'Dictionary<string, object>', 'wrapAsPostAction': 'Dictionary<string, object>',
     // sign (every tier): the request-description dict. Every return path of all 101 venue
@@ -1459,10 +1340,10 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'handleApiKeyIndex': 'List<object>', 'handleDeriveSubaccountId': 'List<object>', 'handleDeriveWalletAddress': 'List<object>', 'handleHfAndParams': 'List<object>',
     'handleMaxEntriesPerRequestAndParams': 'List<object>', 'handleNetworkCodeAndParams': 'List<object>', 'handleOriginAndSingleAddress': 'List<object>', 'handleParamBool': 'List<object>',
     'handleParamBool2': 'List<object>', 'handleParamInteger': 'List<object>', 'handleParamInteger2': 'List<object>', 'handlePostOnly': 'List<object>',
-    'handleProductTypeAndParams': 'List<object>', 'handlePublicAddress': 'List<object>', 'handleRequestNetwork': 'List<object>', 'handleSubTypeAndParams': 'List<object>',
+    'handleProductTypeAndParams': 'List<object>', 'handlePublicAddress': 'List<object>', 'handleSubTypeAndParams': 'List<object>',
     'handleTriggerAndParams': 'List<object>', 'handleTriggerDirectionAndParams': 'List<object>', 'handleTriggerOptionAndParams': 'List<object>', 'handleTriggerPrices': 'List<object>',
     'handleTriggerPricesAndParams': 'List<object>', 'handleTypePostOnlyAndTimeInForce': 'List<object>', 'handleUntilOption': 'List<object>', 'handleUntilOptionString': 'List<object>',
-    'handleWithdrawTagAndParams': 'List<object>', 'idsQueryStrings': 'List<object>', 'multiOrderSpotPrepareRequest': 'List<object>', 'orderRequest': 'List<object>',
+    'idsQueryStrings': 'List<object>', 'multiOrderSpotPrepareRequest': 'List<object>', 'orderRequest': 'List<object>',
     'orderRequestWs': 'List<object>', 'ordersToTrades': 'List<object>', 'parseAccountPositions': 'List<object>', 'parseAccounts': 'List<object>',
     'parseAddress': 'List<object>', 'parseBinaryMarketToOutcomes': 'List<object>', 'parseCancelOrders': 'List<object>', 'parseContractBidsAsks': 'List<object>',
     'parseCreateEditOrderArgs': 'List<object>', 'parseDepositMethodIds': 'List<object>', 'parseEventToMarkets': 'List<object>', 'parseEvents': 'List<object>',
@@ -1485,43 +1366,16 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
 // while the generated declaration stayed `object`. This table retypes the DECLARATION
 // instead, so the call site needs no cast at all.
 //
-// Census (campaigns/cs-strict/tools/S19/ws-row-returns.ts on b01e9230fea; 176 definitions /
-// 186 return paths across ts/src/pro/**, the base stubs in ts/src/base/Exchange.ts included):
-// every path is a dict literal, a call to this.safeTicker / safeOrder / safeTrade /
-// safePosition / safeLiquidation with a dict-literal argument (the first four already print
-// Dictionary<string, object> through the table above; safeLiquidation returns its argument),
-// a call to the already-retyped this.parseTrade / parseOrder / parseTicker / parsePosition,
-// this.parseBalance (...) (blofin; hands back this.safeBalance (a fresh dict literal)),
-// this.safeBalance (result) / this.account () (a dict-literal local, a fresh-dict helper),
-// super.parseTrade (trade) (the retyped base method), `undefined`, or a throw-only body.
-// Deliberately out, as in #30502: parseWsOHLCV / parseWsTrades (List boxes — parseOHLCV
-// hands a non-list argument back unchanged), parseWsTimestamp (Int64), parseWsMarginMode
-// (string).
+// ws row builders across ts/src/pro: every path is a dict literal, a safeTicker/Order/Trade/
+// Position/Liquidation call on a dict literal, an already-retyped parse*/safeBalance/account call,
+// undefined, or a throw. Non-dict names (parseWsOHLCV, parseWsTrades, ...) are handled below.
 //
-// Ownership: S19 owns this table and the call-site cast removal; S50 extends it to the
-// remaining ws row-builder names (the declaration retype is the same mechanism for both).
+// The same declaration retype covers the base ws row builders and the remaining ws row-builder
+// names below.
 //
-// S50 extension (census campaigns/cs-strict/tools/S50/ws-returns-census.ts + cs-census.py;
-// every other parseWs* name is already typed — parseWsOHLCVs -> List<object> and
-// parseWsAllBidsAsks -> Dictionary through CSHARP_COLLECTION_RETURN_METHODS, parseWsTimestamp
-// -> Int64? through CSHARP_NUMERIC_RETURN_TYPES,
-// parseWs{OrderSide,OrderStatus,OrderType,PositionSide,TimeInForce} + parseTradeSide ->
-// string? through CSHARP_STRING_RETURN_METHODS, parseWSBalances has no return path):
-//   parseWsOHLCV   17 definitions: 14 array literals, plus `this.parseOHLCV (...)` in grvt,
-//                  toobit and the base stub. The only reachable parseOHLCV declarations
-//                  (grvt / toobit / bydfi, the one venue calling the base stub) all return an
-//                  array literal, so the boundary cast never unboxes a non-list.
-//   parseWsTrades  2 definitions (base + hitbtc): both returns already print IList<object>
-//                  (this.parseTradesHelper / this.filterBySymbolSinceLimit), so this entry
-//                  emits no boundary cast at all.
-//   parseWsMarginMode  1 definition (deepcoin): every path is the parameter (its only caller
-//                  passes this.safeString (position, 'i')) or
-//                  this.safeString (modes, marginMode, marginMode) — a string or null.
-//   the venue-local ws row builders, each a single declaration whose only return is
-//   this.safeTicker / safeOrder / safeTrade (<literal>) — already Dictionary<string, object>
-//   through the table above, so no cast: parseWSTicker (coinex, onetrading), parseWSSwapOrder
-//   (phemex), parseTradingOrder (onetrading), parseFundingRateWs (paradex, object literal),
-//   parsePerpetualTicker / parseSwapTicker (phemex), parseOrderTrade (htx).
+// Remaining ws names: parseWsOHLCV (every reachable path an array literal), parseWsTrades (already
+// IList<object>), parseWsMarginMode (a string or null), and venue-local row builders returning
+// safeTicker/safeOrder/safeTrade(<literal>), already Dictionary<string, object>, so no cast.
 export const CSHARP_WS_ROW_BUILDER_RETURNS = {
     'parseWsBalance': 'Dictionary<string, object>', 'parseWsBidAsk': 'Dictionary<string, object>',
     'parseWsFundingRate': 'Dictionary<string, object>', 'parseWsInstrument': 'Dictionary<string, object>',
@@ -1533,7 +1387,7 @@ export const CSHARP_WS_ROW_BUILDER_RETURNS = {
     'parseWsTrade': 'Dictionary<string, object>', 'parseWsUtaOrder': 'Dictionary<string, object>',
     'parseWsUtaPosition': 'Dictionary<string, object>', 'parseWsUtaTicker': 'Dictionary<string, object>',
     'parseWsUtaTrade': 'Dictionary<string, object>', 'parseWsUpdatedTicker': 'Dictionary<string, object>',
-    // ---- S50: the remaining ws row-builder names (see the census above) ----
+    // ---- the remaining ws row-builder names (see above) ----
     'parseWsOHLCV': 'List<object>',
     'parseWsTrades': 'IList<object>',
     'parseWsMarginMode': 'string?',
@@ -1564,24 +1418,23 @@ export const CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION = {
     // object and deribit's is unproven, so those two declarations keep `object` and their
     // call sites stay `object` — the by-declaration prover decides per declaration).
     'addPaginationCursorToResult': 'List<object>',
+    // derive (pro): the one declaration returns only its `position` local (IDictionary, safeDict /
+    // safePosition joined)
+    'handlePositionDelta': 'IDictionary<string, object>',
     'cancelAllOrdersRequest': 'Dictionary<string, object>',
     'cancelOrderRequest': 'Dictionary<string, object>',
     'cancelOrdersRequest': 'Dictionary<string, object>',
     'createContractOrderRequest': 'Dictionary<string, object>',
-    // U37: a name may box more than one collection when its venues disagree — dydx / pacifica /
-    // lighter's createOrderRequest returns the `new List<object>() {...}` pair, okx / paradex
-    // the request Dictionary. Each declaration proves whichever of the admissible boxes its own
-    // return paths print (the call site is typed only when the BOUND declaration proves it).
+    // a name may box more than one collection when venues disagree (createOrderRequest: List pair
+    // or request Dictionary); each declaration proves its own box and the call site is typed
+    // only when the bound declaration proves it.
     'createOrderRequest': [ 'Dictionary<string, object>', 'List<object>' ],
     'createOrdersRequest': 'Dictionary<string, object>',
     'createSpotOrderRequest': 'Dictionary<string, object>',
     'editOrderRequest': 'Dictionary<string, object>',
-    // the single-row parse* builders (~400 declarations): every real return path of every
-    // declaration is a dict literal, `this.safeLedgerEntry` / `this.safeOpenInterest` (both
-    // above) or a `Dict`-annotated local, so each declaration proves on its own.
-    // parseDepositWithdrawFee deliberately out: htx/mexc return
-    // `this.assignDefaultDepositWithdrawFees(...)`, the base helper that hands its
-    // caller-provided `object fee` back — naming that box needs the helper's own caller census.
+    // single-row parse* builders: every return is a dict literal, safeLedgerEntry/safeOpenInterest
+    // or a Dict local, so each declaration proves on its own. parseDepositWithdrawFee stays out:
+    // some venues return assignDefaultDepositWithdrawFees, which hands back the caller's box.
     'parseTransaction': 'Dictionary<string, object>',
     'parseTransfer': 'Dictionary<string, object>',
     'parseFundingRate': 'Dictionary<string, object>',
@@ -1592,17 +1445,17 @@ export const CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION = {
     'parseLeverage': 'Dictionary<string, object>',
     'parseMarginModification': 'Dictionary<string, object>',
     'parseIncome': 'Dictionary<string, object>',
+    // backpack stockDataRequest: single declaration, `return request` (the extend() local)
+    'stockDataRequest': 'Dictionary<string, object>',
 };
 
-// S54 census: sync `object` venue helpers whose every return path is an object/array literal
-// or a call the collection tables already name (safeTrade / safePredictionTrade). Same census
-// as CSHARP_STRING_RETURN_METHODS_S54.
-// Rejected with the same census: getCurrencyFromChaincode (woo returns its `currency`
-// PARAMETER on the first path — the caller's box).
-const CSHARP_COLLECTION_RETURN_METHODS_S54 = {
+// Sync object venue helpers whose every return is an object/array literal or a call the collection
+// tables already name (safeTrade/safePredictionTrade). getCurrencyFromChaincode stays out: one
+// path returns its currency parameter (the caller's box).
+const CSHARP_COLLECTION_RETURN_METHODS_VENUE_HELPERS = {
     'orderBookSuffix': 'List<object>',
 };
-Object.assign (CSHARP_COLLECTION_RETURN_METHODS, CSHARP_COLLECTION_RETURN_METHODS_S54);
+Object.assign (CSHARP_COLLECTION_RETURN_METHODS, CSHARP_COLLECTION_RETURN_METHODS_VENUE_HELPERS);
 
 // orderToTrade builds its row through safeTrade / safePredictionTrade; both are listed above,
 // so each declaration's own return paths prove the box at print time (the boundary cast is
@@ -1638,21 +1491,27 @@ export const CSHARP_STRING_RETURN_METHODS_BY_DECLARATION = {
     'signOnboardingAction': [ 'Dictionary<string, object>' ],
 };
 
-// U37 census: venue-local dict builders whose every declaration returns a local the local pass
-// already declares `Dictionary<string, object>` (a null-init `FeeString` written with the
-// object literal), so each declaration proves on its own.
-//   parseTokenAndFeeTemp — woo / woofipro / modetrade, 3 declarations, `return fee;` only.
+// venue-local dict builders whose every declaration returns a local already declared
+// Dictionary<string, object>, so each declaration proves on its own.
+//   parseTokenAndFeeTemp: woo / woofipro / modetrade, each only returns fee.
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'parseTokenAndFeeTemp': 'Dictionary<string, object>',
 });
 
-// U37 census: the dydx credential helpers. retrieveDydxCredentials is the hand-written
-// Exchange.cs stub (body is a single throw, so it has no return path to carry a cast) and
-// retrieveCredentials (dydx, one declaration, 5 call sites) returns only the `credentials`
-// local: safeDict result (IDictionary) joined with that stub (Dictionary) -> IDictionary.
+// dydx credential helpers: retrieveDydxCredentials is a hand-written stub that only throws
+// (no return path to cast); retrieveCredentials returns only its credentials local, which
+// joins IDictionary with Dictionary, so the declared type is IDictionary.
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS, {
     'retrieveDydxCredentials': 'Dictionary<string, object>',
     'retrieveCredentials': 'IDictionary<string, object>',
+    'handleRouteAndParams': 'Dictionary<string, object>',
+    'handlePaginationParams': 'Dictionary<string, object>', // bullish only: both returns are this.extend / paramsExtended
+});
+
+// subscribeRequest: declared only in pro/paradex and its single return is a dict literal,
+// so the by-declaration proof retypes it and its object request callers.
+Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
+    'subscribeRequest': 'Dictionary<string, object>',
 });
 
 // the mapped collection type for a method declaration, or undefined to leave the printer's
@@ -1712,9 +1571,8 @@ const ROW_BUILDER_RETURN_METHODS = new Set ([
     'parseTicker', 'parseOrder', 'parseTrade', 'parsePosition', 'safeTrade', 'safePosition',
 ]);
 
-// the pro-tree ws row builders (CSHARP_WS_ROW_BUILDER_RETURNS) hand their value to the same
-// helpers and locals, so a return this module's classifiers can already name needs no
-// redundant boundary cast there either (S19)
+// pro-tree ws row builders (CSHARP_WS_ROW_BUILDER_RETURNS) feed the same helpers and locals,
+// so a return these classifiers already name needs no redundant boundary cast there either.
 for (const name of Object.keys (CSHARP_WS_ROW_BUILDER_RETURNS)) {
     ROW_BUILDER_RETURN_METHODS.add (name);
 }
@@ -1850,32 +1708,22 @@ function callCollectionReturnType (csharp, call) {
     return (typeof csharp.csharpTypeOfInitializer === 'function') ? csharp.csharpTypeOfInitializer (call) : undefined;
 }
 
-// the boundary-cast targets this unit (U49) owns; a wrap mapped to anything else belongs to the
-// sibling cast units (U47 string, U48 IList<object>). `IDictionary<string, object>` is listed
-// because the boundary wrap's own value can be EXACTLY that box (a local the local pass declares
-// `IDictionary<string, object>`) — a `Dictionary<string, object>` producer feeding an
-// `IDictionary<string, object>` mapped method is NOT listed: the concrete box is not the cast
-// target, so rule 1 keeps that cast.
-const U49_OWNED_CAST_TYPES = new Set ([ 'object', 'Int64', 'Int64?', 'Dictionary<string, object>', 'List<object>', 'IDictionary<string, object>' ]);
+// boundary-cast targets this rule may drop; string and IList<object> wraps are handled
+// elsewhere. IDictionary<string, object> is listed for a value that is exactly that box; a
+// Dictionary producer feeding an IDictionary mapped method keeps its cast (different target).
+const IDENTITY_BOUNDARY_CAST_TYPES = new Set ([ 'object', 'Int64', 'Int64?', 'Dictionary<string, object>', 'List<object>', 'IDictionary<string, object>' ]);
 
-// U49: the called method's own generated C# signature already names `mapped`, so the call
-// expression's static type IS `mapped` and the boundary cast `((mapped)((object)(call)))` is an
-// identity box (a box + an unbox of the same value). The proof reads the same tables that decide
-// the emitted signature: CSHARP_COLLECTION_RETURN_METHODS / _BY_DECLARATION (their entries print
-// the mapped type by construction), the hand-written base signatures mirrored by
-// CSHARP_LOCAL_THIS_RETURN_TYPES (callReturnType), and — for an awaited call — the async-core
-// table whose entries print `Task<mapped>`. Exact string equality only: an interface spelling
-// (IDictionary/IList) never crosses to the concrete box, and a nullable spelling never crosses
-// to the non-nullable one.
+// the callee's generated C# signature already names mapped, so the boundary cast is an
+// identity box; proven from the tables that print the signature (collection/async-core tables,
+// CSHARP_LOCAL_THIS_RETURN_TYPES). Exact string match only: no interface or nullable crossing.
 function callReturnIsMapped (csharp, expression, mapped) {
-    // U49's cast family only: the boundary wraps whose mapped type is one of the four this unit
-    // owns — (object) / (Int64[?]) / (Dictionary<string, object>) / (List<object>). A wrap whose
-    // mapped type is `string?` / `IList<object>` is another unit's family (U47 / U48) and keeps
-    // its cast here.
-    if (expression === undefined || !U49_OWNED_CAST_TYPES.has (mapped)) {
+    // only boundary wraps mapped to (object) / (Int64[?]) / (Dictionary<string, object>) /
+    // (List<object>) are dropped here; string? and IList<object> wraps keep their cast.
+    if (expression === undefined || !IDENTITY_BOUNDARY_CAST_TYPES.has (mapped)) {
         return false;
     }
-    let node = expression;
+    // `response as Foo` prints the bare operand (unwrapPassthroughExpression), so the proof reads it
+    let node = unwrapPassthroughExpression (expression);
     let awaited = false;
     for (;;) {
         if (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.NonNullExpression) {
@@ -2035,11 +1883,11 @@ function byDeclarationCollectionReturnIsProven (csharp, declaration) {
     const name = declaration?.name?.text;
     const mapped = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[name];
     if (mapped !== undefined) {
-        // U37: the mapped value may list several acceptable types (declarationMappedTypes)
+        // the mapped value may list several acceptable types (declarationMappedTypes)
         const proven = declarationCollectionReturnType (csharp, declaration, mapped);
         return proven !== undefined && declarationMappedTypes (mapped).includes (proven);
     }
-    // U34: the string table's own fallback (scalar mapped values, `===` is the same proof)
+    // the string table's own fallback (scalar mapped values, === is the same proof)
     const mappedString = CSHARP_STRING_RETURN_METHODS_BY_DECLARATION[name];
     return mappedString !== undefined && declarationMappedTypes (mappedString).includes (declarationCollectionReturnType (csharp, declaration, mappedString));
 }
@@ -2065,10 +1913,8 @@ export function installCsharpCollectionReturns (transpiler) {
         // that callback, never to the enclosing mapped method
         const enclosing = ts.findAncestor (node.parent, ts.isFunctionLike);
         const mapped = collectionReturnType (csharp, enclosing, 'object');
-        // a proven per-declaration method already hands the mapped box back on EVERY path, so
-        // the boundary cast would be a redundant `(T)((object)v)` on each of them (U49 adds the
-        // called method's own signature: a callee that already returns `mapped` makes the cast
-        // an identity box too)
+        // a proven per-declaration method, or a callee whose signature already returns mapped,
+        // hands back the mapped box on every path, so the boundary cast would be an identity box
         if (mapped === undefined || !node.expression || collectionReturnIsTyped (csharp, node.expression, mapped) || callReturnIsMapped (csharp, node.expression, mapped) || rowBuilderReturnIsTyped (csharp, enclosing, node.expression, mapped) || byDeclarationCollectionReturnIsProven (csharp, enclosing)) {
             return upstreamReturnStatement (node, identation);
         }
@@ -2116,21 +1962,19 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // itself, so naming the type moves no value.
     'safeMarketStructure': 'Dictionary<string, object>',
     'safeCurrencyStructure': 'Dictionary<string, object>',
-    // U49: Exchange.BaseMethods.cs#safeBalance — retyped by CSHARP_COLLECTION_RETURN_METHODS on
-    // the same proof (single `return balance as any` of the Dict parameter); the call sites'
-    // locals take the same box.
+    // Exchange.BaseMethods.cs#safeBalance: retyped by CSHARP_COLLECTION_RETURN_METHODS (single
+    // return of the Dict parameter); the call sites' locals take the same box.
     'safeBalance': 'Dictionary<string, object>',
-    // U49: same proof as safeBalance (Exchange.BaseMethods.cs#safeLiquidation is retyped by
-    // CSHARP_COLLECTION_RETURN_METHODS on its own single `return liquidation as Liquidation`).
+    // same proof as safeBalance: safeLiquidation is retyped by CSHARP_COLLECTION_RETURN_METHODS
+    // on its single return liquidation as Liquidation.
     'safeLiquidation': 'Dictionary<string, object>',
     'safeMarket': 'Dictionary<string, object>',
     'safeCurrency': 'Dictionary<string, object>',
     'market': 'Dictionary<string, object>',
     'currency': 'Dictionary<string, object>',
-    // The row builders the six above compose: every return path of every declaration ends
-    // in one of the six, a literal Dictionary, or a peer builder that resolves to one of
-    // those (the SYNC_TYPED_CORES census in build/csharpTranspiler.ts), so their box is
-    // the same row dictionary.
+    // row builders composed from the six above: every return path ends in one of them, a
+    // literal Dictionary, or a peer builder resolving to those (SYNC_TYPED_CORES in
+    // build/csharpTranspiler.ts), so their box is the same row dictionary.
     'parseMarket': 'Dictionary<string, object>',
     'parseCurrency': 'Dictionary<string, object>',
     'createExpiredOptionMarket': 'Dictionary<string, object>',
@@ -2157,8 +2001,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // return-path proof (mergeBalanceAccount: both paths return the caller's dict; createSignedRequest
     // — grvt's only declaration — its single return is the caller's dict literal).
     'mergeBalanceAccount': 'Dictionary<string, object>',
-    // U37: the venue-local helpers whose definitions installCsharpMethodReturnTypes retypes
-    // (CSHARP_METHOD_RETURN_TYPES) — the local is exactly the printed signature, no cast.
+    // venue-local helpers whose definitions installCsharpMethodReturnTypes retypes
+    // (CSHARP_METHOD_RETURN_TYPES): the local is exactly the printed signature, no cast.
     'fromEp': 'string?',
     'fromEv': 'string?',
     'fromEr': 'string?',
@@ -2199,28 +2043,21 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // incrementingNonce (base only, no override): returns nonce () or lastNonce + 1, an Int64 box
     'incrementingNonce': 'Int64?',
     'parseToInt': 'Int64?',
-    // grvt#convertToBigIntCustom (generated): its single definition's single return path is
-    // `return parseInt (x);` — an Int64 or null box once parseInt is retyped (see
-    // CSHARP_NUMERIC_RETURN_TYPES below, which emits the same signature). cs90 U35.
+    // grvt#convertToBigIntCustom (generated): its single return is parseInt (x), an Int64 or
+    // null box (see CSHARP_NUMERIC_RETURN_TYPES below, which emits the same signature).
     'convertToBigIntCustom': 'Int64?',
     'parseNumber': 'double?',
     'safeNumber': 'double?',
     'safeNumber2': 'double?',
     'safeNumberN': 'double?',
     'safeNumberOmitZero': 'double?',
-    // Exchange.BaseMethods.cs — generated, retyped from `object` by the numeric-returns
-    // section at the end of this file (transpiled from ts/src/base/Exchange.ts#safeIntegerOmitZero).
-    // The single definition (no venue override, census over cs/ccxt/**) returns `null` or
-    // `this.safeInteger (obj, key, defaultValue)` — hand-written `Int64?`,
-    // Exchange.SafeMethods.cs — on every path, so a local fed by this call holds a null or an
-    // Int64 box. The named type moves no box; the nullable spelling is what the null path
-    // needs.
+    // safeIntegerOmitZero (generated, retyped by the numeric-returns section below): its single
+    // definition returns null or the hand-written Int64? safeInteger, so the local holds a null
+    // or Int64 box; the nullable spelling covers the null path.
     'safeIntegerOmitZero': 'Int64?',
-    // Generated venue helpers retyped by the numeric-returns section at the end of this
-    // file (keep the two in sync — the census and the rejected names live there): each C#
-    // signature becomes the mapped nullable type, so a local fed by one of them is exactly
-    // that type. The scan rejects the local wherever the declared type would re-bind an
-    // overload or a ref sink, exactly like every other entry.
+    // generated venue helpers retyped by the numeric-returns section below (keep in sync): the
+    // local takes the mapped nullable type, and the scan still rejects it wherever the declared
+    // type would re-bind an overload or a ref sink.
     'convertFromRealAmount': 'double?',
     'encodeAccountType': 'Int64?',
     'encodeFlowType': 'Int64?',
@@ -2322,10 +2159,9 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // Exchange.Functions.cs — every path hands back the fresh List<object> or null
     'arrayConcat': 'List<object>',
     'aggregate': 'List<object>',
-    // Collection helpers retyped by build/csharpTranspiler.ts#typeCollectionReturns — every
-    // return site yields the list/null box (see the return-site census in that table), and
-    // every generated declaration now carries the real type (parseCurrencies is the
-    // code-keyed dictionary)
+    // collection helpers retyped by build/csharpTranspiler.ts#typeCollectionReturns: every
+    // return site yields the list/null box and every declaration carries the real type
+    // (parseCurrencies is the code-keyed dictionary)
     'filterByKey': 'IList<object>',
     'filterBySymbol': 'IList<object>',
     'filterByLimit': 'IList<object>',
@@ -2355,9 +2191,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'isArray': 'bool',
     'inArray': 'bool',
     'isJsonEncodedObject': 'bool',
-    // Exchange.Functions.cs (JSON.stringify; returns null for a null input — the local
-    // must stay nullable: a `string` spelling would let it sit on the LEFT of `+`)
-    'json': 'string?',
+    // Exchange.Functions.cs: json() is declared `string` in TS and C#
+    'json': 'string',
     // Exchange.Misc.cs — retyped object -> string in this PR, but the value is NOT always
     // a string: a null path returns the null path itself on the empty/all-null dictionary
     // branch and on the list branch (the dictionary branch throws for a null path only
@@ -2402,31 +2237,27 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // retyped by the same proof (CSHARP_COLLECTION_RETURN_METHODS) this table mirrors.
     'outcome': 'IDictionary<string, object>',
     'safeOutcomeSymbol': 'string?',
-    // U33: the helpers retyped in CSHARP_METHOD_RETURN_TYPES below (their TS return type is
-    // `any`, so the string-returns table's stringishReturn gate cannot carry them; networkCodeToId's
-    // `Str` passes that gate but its htx override does not, see the entry below) plus the
-    // hand-written remove0xPrefix (cs/ccxt/base/Exchange.Encode.cs, `var str = (string)str2`
-    // unboxes the argument before either return, so both paths hand back that string).
-    // getSupportedMapping / getUrlByMarket / convertTypeToAccount / codeFromOptions each
-    // carry a per-declaration return-path census in the METHOD_RETURN_TYPES comment below.
+    // helpers retyped in CSHARP_METHOD_RETURN_TYPES below (TS return any, so stringishReturn
+    // cannot carry them) plus hand-written remove0xPrefix, which unboxes its argument to string
+    // before either return; per-declaration return-path notes live in that table.
     'getSupportedMapping': 'string',
     'getUrlByMarket': 'string?',
+    'getUrlByMarketType': 'string?',
     'convertTypeToAccount': 'string?',
     'codeFromOptions': 'string?',
     'remove0xPrefix': 'string',
     'networkCodeToId': 'string?',
+    // base `string? selectNetworkKeyFromNetworks` (ts `: Str`), sole declaration tree-wide
+    'selectNetworkKeyFromNetworks': 'string?',
     // Exchange.ETH.cs — `public string ethGetAddressFromPrivateKey(object privateKey)`
     // (hand-written base; the ts/src declaration is annotated `: string`). Listed because it
     // is the write producer that blocks the walletAddress family: lighter/myriad assign
     // `walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey)` into the local.
     'ethGetAddressFromPrivateKey': 'string',
+    'getWsUrl': 'string?', // pro/{binance,paradex,coinbaseinternational} all print `string? getWsUrl`
+    // zaif#customNonce: sole declaration tree-wide, ts `: string`, prints `string? customNonce()`
+    'customNonce': 'string?',
 };
-
-// Families whose declarations in the PREDICTION tree belong to another unit of the same
-// campaign: that shard owns ts/src/prediction sources (and the prediction C# tree), so the
-// entries above must not fire there — the crypto + ws sources keep them (63 root + 12 pro
-// safeTimestamp* declarations on this base; the 10 prediction ones stay object here).
-const CSHARP_PREDICTION_OWNED_RETURNS = new Set ([ 'safeTimestamp', 'safeTimestamp2', 'safeTimestampN' ]);
 
 // bare `name(...)` calls (a plain Identifier callee, no `this.`): C# resolves them to the
 // same BaseExchange instance method, so the return types above apply unchanged. Only
@@ -2441,16 +2272,9 @@ export const CSHARP_LOCAL_BARE_RETURN_TYPES = {
     // function and the C# call binds the inherited BaseExchange instance method); the name
     // resolves to the retyped `ecdsa` above in every declaration the corpus contains
     'ecdsa': 'Dictionary<string, object>',
-    // `parseInt (x)` is the TS global; the C# call binds Exchange.TranspileHelpers.cs#parseInt,
-    // whose every return path is the Convert.ToInt64 box or null (the catch) — cs90 U35
-    // retyped that signature from `object` to `Int64?`, so the call's own C# type IS Int64?
-    // and the ~10 generated declarations it feeds (`object leverage = parseInt (s)`) need no
-    // cast. The other ~40 call sites keep the value in an object context (a dict slot, a
-    // request value, an object local/param, `parseToNumeric`'s `return parseInt (...)`),
-    // where the box is unchanged. `parseFloat` is deliberately NOT listed: it is not on this
-    // unit's roster line, its 2 `object x = parseFloat (...)` declarations (htx, zaif) are an
-    // adjacent family with the same single-box shape (the Convert.ToDouble box or null), and
-    // REPORT.md records them as a residual for whoever owns that name.
+    // parseInt binds Exchange.TranspileHelpers.cs#parseInt, typed Int64? (Convert.ToInt64 box or
+    // null), so declarations fed by it need no cast; object-context call sites keep the same box.
+    // parseFloat is not listed and its two object declarations (htx, zaif) stay object.
     'parseInt': 'Int64?',
 };
 
@@ -2503,10 +2327,9 @@ for (const [ name, type ] of Object.entries ({
     'subscriptionExistsForHash': 'bool',
     'usesPrivateKey': 'bool',
     'parseMarketActive': 'bool?',
-    // U37: the market-type predicates. Both names are declared exactly twice tree-wide
-    // (binance.ts + aster.ts, each `: boolean` -> printed `bool`, every return a comparison)
-    // and every `this.isLinear/isInverse (...)` call site lives in those two files, so the
-    // call's own C# type is bool.
+    // market-type predicates: isLinear/isInverse are declared only in binance.ts and aster.ts
+    // as boolean (printed bool, every return a comparison) and every call site is in those two
+    // files, so the call's own C# type is bool.
     'isLinear': 'bool',
     'isInverse': 'bool',
 })) {
@@ -2594,6 +2417,9 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     // kucoin override; build/csharp-worker.ts prints `Task<bool>` for the annotation
     // (the stub returns a literal false), so the awaited value is a plain C# bool.
     'isUTAEnabled': 'bool',
+    // dydx's fetchDydxAccount (`Task<Dictionary<string, object>>`, declared in dydx.ts only): the
+    // awaited account row feeds signDydxTx/estimateTxFee (object params) and safe* reads
+    'fetchDydxAccount': 'Dictionary<string, object>',
     // cs/ccxt/base/Exchange.cs, retyped from Task<object> by installCsharpAsyncCoreReturns()
     // (see the async-core-returns section below): every declaration of these names —
     // base, venue override, ws override — now prints `Task<IDictionary<string, object>>` in
@@ -2603,20 +2429,21 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'loadMarketsHelper': 'IDictionary<string, object>',
     'fetchCurrencies': 'IDictionary<string, object>',
     'fetchCurrenciesWs': 'IDictionary<string, object>',
-    // the awaited same-file cores (CSHARP_AWAITED_CORE_RETURNS): their generated signature
-    // prints Task<T> wherever the name is declared (the census behind that table), so a ws
-    // subclass calling an inherited one types its local identically
+    // awaited same-file cores (CSHARP_AWAITED_CORE_RETURNS): the generated signature prints
+    // Task<T> wherever the name is declared, so a ws subclass calling an inherited one types its
+    // local identically
     'isUnifiedEnabled': 'List<object>',
     'getAssetHistoryRows': 'List<object>',
     'estimateTxFee': 'Dictionary<string, object>',
     'getSystemConfig': 'IDictionary<string, object>',
     'getWithdrawNonce': 'double?',
     'authenticateUta': 'string?',
-    // U29: paradex's authenticateRest — retyped to Task<string?> by
-    // installCsharpAsyncCoreReturns (CSHARP_AWAITED_CORE_RETURNS: both return paths hand back a
-    // `string?` local), so the pro tree's `object token = await this.authenticateRest ()` takes
-    // the string? box; the name is declared in the REST file only, hence this table
+    'prepareWsStockParams': 'IDictionary<string, object>',
+    // paradex's authenticateRest: installCsharpAsyncCoreReturns retypes it to Task<string?>
+    // (both returns are string? locals), so the pro tree's awaited token local takes string?;
+    // the name is declared in the REST file only, hence this table
     'authenticateRest': 'string?',
+    'loadProxyCredentials': 'IDictionary<string, object>',
     // nado's queryContracts (CSHARP_AWAITED_CORE_RETURNS), awaited from the pro subclass too
     'queryContracts': 'IDictionary<string, object>',
     // cs/ccxt/base/PredictionExchange.cs, retyped from Task<object> by
@@ -2632,7 +2459,6 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'reduceMargin': 'Dictionary<string, object>',
     'addMargin': 'Dictionary<string, object>',
     'modifyMarginHelper': 'Dictionary<string, object>',
-    'closePosition': 'IDictionary<string, object>',
     'borrowCrossMargin': 'Dictionary<string, object>',
     'repayCrossMargin': 'Dictionary<string, object>',
     'borrowIsolatedMargin': 'Dictionary<string, object>',
@@ -2663,15 +2489,36 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'onboarding': 'Dictionary<string, object>',
     'prepareParadexDomain': 'Dictionary<string, object>',
     'ensureErc20Allowance': 'Dictionary<string, object>',
-    // the async venue url/auth helpers above (CSHARP_ASYNC_CORE_RETURNS): the generated
-    // signature prints Task<string?> at the declaration, so the awaited value is the string
-    // (or null) every return path of the declaration already boxes (U28 census)
+    // async venue url/auth helpers above (CSHARP_ASYNC_CORE_RETURNS): the signature prints
+    // Task<string?>, so the awaited value is the string (or null) every return path boxes
     'getUrlByMarketType': 'string?',
     'getUtaUrl': 'string?',
     'getListenKey': 'string?',
     'handleToken': 'string?',
     'authenticateRest': 'string?',
     'loadMultiSignAddress': 'string?',
+    // lighter fetchNonce (typed core Int64, every return parseToInt): FromInt64 is skipped as identity, bare Int64 await
+    'fetchNonce': 'Int64',
+    // coinbase fetchCurrenciesFromCache (`: Promise<Dict>`, prints Task<Dictionary<string, object>>); only coinbase.ts declares/awaits it
+    'fetchCurrenciesFromCache': 'Dictionary<string, object>',
+    // dydx fetchLatestBlockHeight (only declaration; prints Task<Int64>, typed-core Int64 awaits unwrapped)
+    'fetchLatestBlockHeight': 'Int64',
+    // htx fetchAccountIdByType: sole declaration is Task<string> (every path safeString)
+    'fetchAccountIdByType': 'string?',
+};
+
+// Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
+// hitbtc: List<Transaction>, dydx: List<Dictionary>): consulted before the name-keyed table.
+// poloniex fetchTransactionsHelper is a VENUE_TYPED_CORES Dictionary<string, object> core; its FromDict
+// funnel is the identity, so the await stays bare and the Dictionary local is the box already held.
+const CSHARP_LOCAL_AWAIT_RETURN_TYPES_BY_VENUE = {
+    'poloniex': { 'fetchTransactionsHelper': 'Dictionary<string, object>' },
+    'nado': {
+        'createOrderRequest': 'Dictionary<string, object>',
+        'editOrderRequest': 'Dictionary<string, object>',
+        'cancelAllOrdersRequest': 'Dictionary<string, object>',
+        'cancelOrdersRequest': 'Dictionary<string, object>',
+    },
 };
 
 // `await promiseAll (...)` — the printer's rewrite of `await Promise.all (<one arg>)`
@@ -2708,15 +2555,9 @@ function bareAwaitedCallType (node) {
     return Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_AWAIT_BARE_CALL_TYPES, name) ? CSHARP_LOCAL_AWAIT_BARE_CALL_TYPES[name] : undefined;
 }
 
-// `const orderbook = await this.watch (url, messageHash, …); return orderbook.limit ();`
-// (the ws order book subscribers). `watch` awaits client.future (messageHash) and hands back
-// whatever the handler resolved for that hash; for these cores the resolved value IS the
-// ccxt.pro.IOrderBook cache, and `.limit ()` is an IOrderBook-only member. That immediate
-// deref is the only site the rule fires on — every other resolve family (caches, lists,
-// dicts, tickers) keeps `object`, see campaigns/cs90 U27 REPORT.md.
-// Venue helpers that reach the same bridge (gemini's helperForWatchMultipleConstruct) and
-// hashkey's misspelled `wathPublic` are listed by their literal name: the proof is the
-// caller's `.limit ()` deref, the name only keeps the family scoped.
+// ws order book subscribers: await this.watch (...) followed by orderbook.limit (); the value
+// resolved for that hash is the ccxt.pro.IOrderBook cache, and only this immediate deref fires.
+// Venue helpers reaching the same bridge are listed by literal name to keep the family scoped.
 const CSHARP_WS_WATCH_METHOD_NAMES = ['watch', 'watchMultiple', 'watchPublic', 'watchPublicMultiple', 'watchPrivate', 'watchPrivateMultiple', 'watchTopics', 'watchMany', 'watchMultiHelper', 'watchMultipleWrapper', 'watchMultipleSubscription', 'watchMultiTickerHelper', 'watchRequest', 'watchPrivateSubscribe', 'watchExecuteRequest', 'watchStockMarketStream', 'helperForWatchMultipleConstruct', 'wathPublic', 'subscribe', 'subscribeMultiple', 'subscribePublic', 'subscribePrivate', 'subscribePublicMultiple', 'subscribeUserChannel', 'subscribeMyriadChannel', 'subscribeOpinionChannel', 'subscribePublicUta', 'subscribePublicMultipleUta', 'subscribePrivateUta', 'negotiate'];
 
 // the awaited method name of `await this.<name> (...)`, or undefined
@@ -2816,7 +2657,7 @@ function awaitedCallIsPrintedAsProven (value, initializer) {
     if (call?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
-    // `await client.future (hash)` prints as that very call (the resolve-box family, U45)
+    // await client.future (hash) prints as that very call (the resolve-box family)
     if (clientFutureHashArgument (call) !== undefined && value.startsWith ('await client.future(')) {
         return true;
     }
@@ -2914,14 +2755,30 @@ function csharpFunnelFileContent (file) {
 // the funnel declaration this local had in the last generated output — `<type> <name> =
 // ccxt.BaseExchange.From<Helper>(await this.<core>(` — so the helper (and with it the box) is the
 // funnel pass's own verdict for this exact site: a site the pass did not wrap matches nothing
+//
+// The reader has to tolerate its own output (otherwise every forced regen flips the file between two
+// fixpoints): build/csharpTranspiler.ts#declareDictListLocals / #declareOHLCVDictLocals rewrite a
+// sound `T x = From<Family>(await this.<core>(...))` line into `<core's own type> x = await
+// this.<core>(...)`, which drops the funnel text. That declared spelling is the same verdict, so it
+// maps back to the helper that produced it; without it the next run finds no funnel, keeps `object`,
+// re-emits the helper, and the run after that rewrites it again (dydx / ws OHLCV / prediction files).
+const CSHARP_FUNNEL_DECLARED_HELPERS = {
+    'List<Dictionary<string, object>>': 'FromDictList',
+    'Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>': 'FromOHLCVDict',
+};
 function csharpFunnelHelper (content, name, core) {
-    // the emitted call site is pascalized (pascalizeTypedCores), the AST holds the TS name, so the
+    // the emitted call site is pascalized (the printer's typedCores), the AST holds the TS name, so the
     // core matches case-insensitively; the helper and the local name must match exactly
     const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + name + ' = ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
+    const declared = new RegExp ('^[ \\t]*([A-Za-z][\\w<>,. ]*) ' + name + ' = await this\\.' + core + '\\(', 'i');
     for (const text of content.split ('\n')) {
         const match = line.exec (text);
         if (match !== null) {
             return match[1];
+        }
+        const own = declared.exec (text);
+        if (own !== null && Object.prototype.hasOwnProperty.call (CSHARP_FUNNEL_DECLARED_HELPERS, own[1])) {
+            return CSHARP_FUNNEL_DECLARED_HELPERS[own[1]];
         }
     }
     return undefined;
@@ -2952,8 +2809,34 @@ function typedCoreFunnelType (csharp, declaration) {
         if (helper !== undefined) {
             return table.get (helper);
         }
+        // identity From* (FromInt64 / FromStringValue / FromDict) add no funnel line: the awaited
+        // core's own declared Task<T> IS the box, when every same-name declaration here agrees
+        const own = csharpIdentityCoreBox (content, core, table);
+        if (own !== undefined) {
+            return own;
+        }
     }
     return undefined;
+}
+
+const CSHARP_IDENTITY_FUNNEL_HELPERS = [ 'FromInt64', 'FromStringValue', 'FromDict' ];
+function csharpIdentityCoreBox (content, core, table) {
+    const boxes = new Set (CSHARP_IDENTITY_FUNNEL_HELPERS.map ((helper) => table.get (helper)));
+    const signature = new RegExp ('^[ \\t]*public async (?:virtual |override )+Task<([^\\n]+)> ' + core + '\\(', 'i');
+    const objectSignature = new RegExp ('^[ \\t]*public [^\\n(]*\\b' + core + '\\(', 'i');
+    const found = new Set ();
+    for (const text of content.split ('\n')) {
+        if (!objectSignature.test (text)) {
+            continue;
+        }
+        const match = signature.exec (text);
+        found.add (match === null ? '?' : match[1]);
+    }
+    if (found.size !== 1) {
+        return undefined;
+    }
+    const [ box ] = found;
+    return boxes.has (box) ? box : undefined;
 }
 
 // The generated implicit-api wrappers (cs/ccxt/api/<id>.cs + cs/ccxt/api/prediction/<id>.cs)
@@ -2973,26 +2856,9 @@ const CSHARP_API_METHOD = /^\s*public async Task<(.+)> (\w+) \(object parameters
 const CSHARP_API_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'api');
 const awaitedApiTables = new Map ();
 
-// ===== U44: prediction-tier shard =====
-// (1) the typed-core funnel in the prediction tree: build/csharpTranspiler.ts#wrapTypedCoreConsumers
-// rewrites every `await this.<core>(...)` whose core declares a struct return into
-// `ccxt.BaseExchange.From<Family>(await this.<Core>(...))`. The helper's object overload
-// (Exchange.TypedCores.cs / Exchange.TranspileHelpers.cs) hands the argument back unchanged on a
-// non-matching arm and builds the box below on the matching one — and the funnel wraps only the
-// cores whose C# return type IS that argument type, so the box is what the call returns at runtime:
-//   FromDict                  -> the typed `Dictionary<string, object> FromDict(Dictionary<string, object>)`
-//                                overload in Exchange.TranspileHelpers.cs (no cast: the call's own
-//                                C# type already is the box)
-//   FromDictList              -> List<object> (arm `values is List<Dictionary<string, object>>` ->
-//                                `new List<object>(typed)`)
-//   FromTradeList / FromPredictionTradeList / FromPredictionOrderList / FromPredictionEventList /
-//   FromPredictionPositionList -> List<object> (arm `values is List<T>` -> a fresh List<object>)
-//   FromPredictionOrder / FromPredictionEvent / FromPredictionOrderBook / FromPredictionPosition
-//                             -> Dictionary<string, object> (arm `value is T` -> a fresh dict)
-// A null argument matches no arm and comes back null, which every one of these boxes holds.
-// The funnel line itself is read from the generated prediction file on disk — the same file the
-// C# compiler compiles — exactly as awaitedApiReturnTypes reads the implicit-api wrappers, so the
-// declaration can only name a helper the pass really emitted for this site.
+// ===== prediction-tier shard ===== (1) typed-core funnel: wrapTypedCoreConsumers wraps a
+// struct-returning core call in From<Family>(...), whose matching arm builds a List<object> or
+// Dictionary<string, object> box (null passes through); read from the generated file on disk.
 const CSHARP_PREDICTION_FUNNEL_BOXES = {
     'FromDict': { type: 'Dictionary<string, object>', cast: undefined },
     'FromDictList': { type: 'List<object>', cast: 'List<object>' },
@@ -3064,13 +2930,12 @@ function predictionFunnelCallType (csharp, declaration) {
 // walletAddress / privateKey as `public string <name> { get; set; }`, so a read of one of them has
 // the C# static type `string` (null while unset) — a declaration initialised from that read, or
 // from an arm of a conditional that reads it, holds that string or null. Prediction tier only:
-// the same names are read in the crypto tree, where the local families belong to the REST units.
+// every tier: the retype scan re-validates each later read and write of the local.
 const CSHARP_PREDICTION_STRING_MEMBERS = new Set ([ 'apiKey', 'secret', 'password', 'walletAddress', 'privateKey' ]);
 
 function predictionMemberStringRead (declaration) {
-    if (!isPredictionSource (declaration)) {
-        return undefined;
-    }
+    // every tier: `let apiKey = this.apiKey` in the REST/pro trees (woofipro, modetrade) read the same
+    // hand-written `string` property, so the local keeps the string box instead of de-typing to object
     const read = declaration.initializer;
     if (read?.kind !== ts.SyntaxKind.PropertyAccessExpression || read.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
         return undefined;
@@ -3078,15 +2943,9 @@ function predictionMemberStringRead (declaration) {
     return CSHARP_PREDICTION_STRING_MEMBERS.has (read.name?.text) ? 'string?' : undefined;
 }
 
-// (3) a prediction-tier local fed by a venue helper whose DECLARATION this module already
-// retypes: CSHARP_STRING_RETURN_METHODS / CSHARP_COLLECTION_RETURN_METHODS /
-// CSHARP_WS_ROW_BUILDER_RETURNS / CSHARP_NUMERIC_RETURN_TYPES / CSHARP_METHOD_RETURN_TYPES all
-// drive installCsharp*Returns, which rewrites the printed signature to the table's box — so the
-// call's own C# static type is that box and the declaration names it without a cast. Only the
-// string-valued rows are consulted (the per-declaration maps hold objects). Scoped to the
-// prediction tier: the REST and pro trees' local families belong to the units that landed those
-// tables, and an ungated fallback would retype their locals too.
-// the tables are declared further down the module, so the list is built on first use
+// (3) a prediction-tier local fed by a venue helper whose declaration a return table retypes
+// (string / collection / ws row / numeric / method tables): the call already has that type, so
+// no cast; scoped to the prediction tier, tables are built on first use (declared later).
 function predictionRetypedCallTables () {
     return [ CSHARP_STRING_RETURN_METHODS, CSHARP_COLLECTION_RETURN_METHODS, CSHARP_WS_ROW_BUILDER_RETURNS, CSHARP_NUMERIC_RETURN_TYPES, CSHARP_METHOD_RETURN_TYPES ];
 }
@@ -3111,11 +2970,6 @@ function predictionRetypedCallType (initializer) {
 function isPredictionSource (node) {
     const fileName = node.getSourceFile?.()?.fileName ?? '';
     return fileName.includes ('/prediction/') || fileName.includes ('\\prediction\\');
-}
-
-// the prediction shard (U32): every ts/src/prediction source plus the prediction base
-function predictionTreeSource (node) {
-    return isPredictionSource (node) || /PredictionExchange\.ts$/.test (node.getSourceFile?.()?.fileName ?? '');
 }
 
 function awaitedApiReturnTypes (exchange, predictionSource = false) {
@@ -3233,6 +3087,10 @@ function thisCallResultType (csharp, call) {
     if (methodName === undefined) {
         return undefined;
     }
+    const venueRegistered = CSHARP_LOCAL_AWAIT_RETURN_TYPES_BY_VENUE[sourceExchangeId (call)]?.[methodName];
+    if (venueRegistered !== undefined) {
+        return venueRegistered;
+    }
     const registered = CSHARP_LOCAL_AWAIT_RETURN_TYPES[methodName];
     if (registered !== undefined) {
         return registered;
@@ -3312,55 +3170,34 @@ function clientMemberReadType (node) {
     return memberType;
 }
 
-// `this.<member>` reads of the hand-written BaseExchange fields/properties
-// (cs/ccxt/base/Exchange.Options.cs). Only members whose declared C# type already IS the
-// value's box are listed; verified tree-wide: no other class declares or hides these
-// members (census over cs/ccxt/**/*.cs).
-//   symbols              `public List<object> symbols { get; set; } = null;`
-//   isSandboxModeEnabled `public bool isSandboxModeEnabled { get; set; } = false;`
-//   orders / myTrades    `public ccxt.pro.ArrayCache ...;` — retyped from `object` in this
-//     unit. Every writer of the two fields across cs/** (census: 88 ArrayCache-family
-//     constructors, 6 null, 21 write-backs of the `object x = this.orders/myTrades` copy
-//     locals below — the `if (x == null) { x = new ArrayCacheBy(…); this.orders = x; }`
-//     cache-setup pattern, plus bitstamp's two pruneCachedBySymbols writes) stores an
-//     ArrayCache subclass or null; that one non-constructor producer is retyped in
-//     CSHARP_METHOD_RETURN_TYPES and returns the caller's own fresh ArrayCacheBySymbolById.
-//     ArrayCacheBySymbolById / BySymbolBySide / ByOutcomeById / ByTimestamp derive from
-//     ArrayCache (cs/ccxt/ws/ArrayCache.cs), so naming the base moves no box and needs no cast.
-// positions stays `object`: binance / gate / htx / bitget / toobit write a
-//     `new Dictionary<string, object>()` (the account-type-keyed map of caches) into it.
+// this.<member> reads of hand-written BaseExchange members whose declared C# type is already
+// the box (symbols, isSandboxModeEnabled, orders / myTrades as ccxt.pro.ArrayCache: every writer
+// stores an ArrayCache subclass or null); positions stays object (some venues write a dict).
 const CSHARP_LOCAL_WS_MEMBER_TYPES = {
     'symbols': 'List<object>',
     'isSandboxModeEnabled': 'bool',
     'orders': 'ccxt.pro.ArrayCache',
     'myTrades': 'ccxt.pro.ArrayCache',
-    // Exchange.Options.cs: `public string walletAddress { get; set; }` (U33). The read's C#
-    // static type IS the property's declared type, so the local names the box it already has;
-    // no other class in cs/ccxt/** declares or hides the member (census over cs/ccxt/**/*.cs).
+    // Exchange.Options.cs: public string walletAddress. The read's static type is the declared
+    // type, and no other class in cs/ccxt declares or hides the member.
     'walletAddress': 'string',
     // not a ws field, same proof shape: Exchange.Options.cs declares `public string secret
     // { get; set; }`, so the read's C# static type is the property's own type — a settable
     // property that can hold null at runtime, hence the nullable spelling (the same one
     // CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES carries for the ternary arms)
     'secret': 'string?',
-    // U37: every writer in cs/** stores `new ArrayCache (limit)` or null (Exchange.Options.cs
-    // declaration retyped with it); the reads feed filterBySymbolsSinceLimit / callDynamically.
+    // every writer stores new ArrayCache (limit) or null (matching the Exchange.Options.cs
+    // declaration); the reads feed filterBySymbolsSinceLimit / callDynamically.
     'liquidations': 'ccxt.pro.ArrayCache',
-    // `public IDictionary<string, object> markets_by_id { get; set; } = null;` — the read's
-    // static type is the interface every writer stores (createSafeDictionary / a sibling
-    // exchange's map / null), so the declaration needs no cast. Tree-wide census: no generated
-    // class declares or hides the property.
+    // markets_by_id is declared IDictionary<string, object>, the interface every writer stores
+    // (createSafeDictionary / another exchange's map / null), so no cast; no generated class
+    // declares or hides it.
     'markets_by_id': 'IDictionary<string, object>',
 };
 
-// `let x: <alias> = undefined` -> nullable C# type (the null initialiser forces `?`)
-// Values are ts/src/base/types.ts aliases; each mapping names the type the C# box ALREADY
-// holds at runtime, and the write scan below still has to accept every later assignment
-// before the annotation is applied (a `let market: Market` still assigned this.market(...),
-// which returns `object`, stays object). Census on master: these added entries on their own
-// move no output line — the locals they cover either take the same type from the
-// later-writes path or keep writes (object returns) the scan rejects; they are the correct
-// spelling to have in place for when a producer's C# signature carries the type.
+// let x: <alias> = undefined -> nullable C# type (the null initialiser forces ?). Each alias
+// maps to the box C# already holds, and the write scan must still accept every later assignment
+// (a Market local assigned this.market(...), which returns object, stays object).
 const CSHARP_LOCAL_ANNOTATION_TYPES = {
     'Str': 'string?',
     'string': 'string?',
@@ -3381,6 +3218,8 @@ const CSHARP_LOCAL_ANNOTATION_TYPES = {
     // string-literal unions (OrderSide includes `| string`, SubType/MarketType are closed)
     'MarketType': 'string?',
     'SubType': 'string?',
+    'DefaultType': 'string?',
+    'DefaultSubType': 'string?',
     'OrderSide': 'string?',
     'OrderType': 'string?',
     // Market / Currency are dictionary shapes. IDictionary<string, object> (not the
@@ -3426,8 +3265,8 @@ const ARRAY_CACHE_BASE_TYPES = [ 'ccxt.pro.ArrayCache', 'ArrayCache' ];
 // the join edge for a local declared from a read of the retyped ws cache members: the later
 // cache-setup writes (`x = new ArrayCacheBySymbolById (limit)`) are subclass -> base
 const CACHE_MEMBER_WIDENING_EDGES = ARRAY_CACHE_SUBTYPES.flatMap ((subtype) => ARRAY_CACHE_BASE_TYPES.map ((base) => [ subtype, base ]));
-// (U45: the same declaration as above -- the edge also covers the this.orderBook (...)
-// / indexedOrderBook / countedOrderBook writes; identical value, one declaration.)
+// (the same declaration as above: the edge also covers the this.orderBook (...) / indexed /
+// counted order book writes; identical value, one declaration.)
 // the same base classes under the nullable spelling a null write produces
 function isArrayCacheBaseType (type) {
     const bare = type.endsWith ('?') ? type.slice (0, -1) : type;
@@ -3655,17 +3494,6 @@ function collectionArmWidening (a, b) {
     return undefined;
 }
 
-// the prediction tier (cs/ccxt/exchanges/prediction/**, PredictionExchange.cs) is a sibling
-// shard's scope: both arm rules below are keyed off this so a prediction declaration is never
-// claimed twice
-function isPredictionTierSource (node) {
-    if (isPredictionSource (node)) {
-        return true;
-    }
-    const fileName = node?.getSourceFile?. ()?.fileName ?? '';
-    return /[\\/]base[\\/]PredictionExchange\.ts$/.test (fileName);
-}
-
 // `cond ? 0 : this.safeInteger (...)` / `cond ? 0 : this.safeFloat (...)` — an `int` arm
 // beside a nullable wide-numeric arm. The C# conditional operator is NOT target-typed here:
 // it computes its own natural type from the two arm types (the int arm converts implicitly
@@ -3700,10 +3528,9 @@ function numericLiteralType (text) {
     }
     return undefined;
 }
-// A LITERAL-INIT declaration is only box-identical as `int` (the object spelling boxes an Int32):
-// naming Int64/Int64?/double CONVERTS the literal (U23/U32 rule), and every later write of a typed
-// numeric expression adds an Int64 box — U38 census of the 71 `object x = <int literal>` sites:
-// 0 provable (write join 47, destructured object element 14, int `-` operand 5, uint literal 3, += 2).
+// a literal-init declaration is only box-identical as int (the object spelling boxes an Int32);
+// naming Int64/Int64?/double would convert the literal, and later typed numeric writes add an
+// Int64 box, so these sites are not retyped.
 
 // C# static type of a decimal integer literal when it stands as an OPERAND of a printed
 // arithmetic call: the compiler types it int, uint (2^31..2^32-1) or long
@@ -3891,18 +3718,9 @@ function csharpArithmeticOperandKind (csharp, node, context) {
     return undefined;
 }
 
-// the C# static type of an emitted `a + b` (printed `add(a, b)`) when the operand kinds select
-// one of the two typed add overloads this unit adds to Exchange.TranspileHelpers.cs (the
-// overload names S57 owns):
-//   add(Int64, Int64)   -> Int64   for int / uint / long / Int64 on both sides
-//   add(double, double) -> double  for a double left with any proven numeric right
-// Both return the same unchecked sum the (object, object) overload's Int64 / double branches
-// compute for those operand boxes — an int / uint operand is normalized to Int64 there, and
-// `Convert.ToDouble(b)` is the implicit widening — so naming the result moves no value, and a
-// non-nullable operand can never take that overload's null-left path. An Int64 / int / uint
-// left with a double right is deliberately rejected: there the object path runs the Int64
-// branch's `(Int64)b` unboxing, which throws on a double box, where the new add(double, double)
-// would return a sum (the same reason the base has no subtract(double, double) twin).
+// C# static type of a printed add(a, b) when operand kinds select a typed overload:
+// add(Int64, Int64) -> Int64 for integer kinds, add(double, double) -> double for a double left;
+// both match the object overload's result. Integer left with double right is rejected.
 function csharpAddExpressionKind (csharp, node, context) {
     const left = csharpArithmeticOperandKind (csharp, node.left, context);
     const right = csharpArithmeticOperandKind (csharp, node.right, context);
@@ -3938,14 +3756,9 @@ function csharpAddExpressionKind (csharp, node, context) {
 function integerOrNullArgumentKind (csharp, node, context) {
     const kind = csharpArithmeticOperandKind (csharp, node, context);
     if (kind !== undefined) {
-        // int / uint / long literals and int / Int64 proven expressions; a double operand can
-        // make the object sum hand back the double itself, so it proves nothing. `Int64?` is
-        // the nullable spelling of the same integer box and is the static C# type of a nested
-        // `a * b` / `a / b` / `a % b` over an Int64? operand (it binds the (Int64?, Int64?)
-        // twin) and of a `parseInt (...)` call (retyped Int64?, Exchange.TranspileHelpers.cs);
-        // sum's object overload maps a null operand to 0 exactly like its Int64? twin, so the
-        // emitted call's own type is Int64 on every path — the declaration needs no cast (cs90
-        // U35; the family's own int/Int64 spelling is unchanged).
+        // integer literals and int / Int64 / Int64? expressions (sum maps a null operand to 0
+        // like its Int64? twin, so the call is Int64 on every path); a double operand can make
+        // the object sum return the double itself, so it proves nothing.
         return (ARITHMETIC_SMALL_INT.includes (kind) || kind === 'Int64?') ? kind : undefined;
     }
     return (csharpTypeOfValue (csharp, node, context) === 'Int64?') ? 'Int64?' : undefined;
@@ -3971,24 +3784,9 @@ function modTwinCallType (csharp, initializer, context) {
     return nullableIntegerArithmeticKind (csharp, initializer, context);
 }
 
-// `Math.min (a, b)` / `Math.max (a, b)` print `mathMin (a, b)` / `mathMax (a, b)`. Unlike the
-// arithmetic twins above, the hand-written (object, object) helper returns ONE OF ITS
-// OPERANDS unchanged (`a == null || b == null -> null`, Exchange.TranspileHelpers.cs), so the
-// result's box is an operand box and only a pair whose every returnable box IS the named box
-// may be declared:
-//   int + int                    -> int      (both operands box Int32; the unbox never throws)
-//   Int64 + Int64                -> Int64    (a `long` literal boxes Int64 as well)
-//   double + double              -> double
-//   Int64 beside Int64 / Int64?  -> Int64?   (the Int64 box, or null when the nullable
-//                                             operand is null — the (Int64?) unbox is exact
-//                                             for both)
-// Every mixed pair is rejected: an int literal beside an Int64 / Int64? operand hands back
-// the Int32 box (the unbox would throw), and a double beside an integer hands back whichever
-// operand won. The typed twins S57 modelled are rejected by its own binding audit — adding
-// mathMin (Int64, Int64) / (int, int) / (double, double) / (Int64?, Int64?) re-binds 101
-// mixed-kind call sites to a DIFFERENT result box (campaigns/cs-strict/tools/S57/
-// audit-numeric-overload-bind.txt: mathMin 101 DIVERGENT, mathMax 1), so this unit adds no
-// overload and every declaration carries its own box-exact cast instead.
+// Math.min/max print mathMin/mathMax, which return one operand box unchanged (or null), so only
+// same-kind pairs are declared (int, Int64, double; Int64 with Int64? -> Int64?); mixed pairs are
+// rejected. Typed overloads would re-bind mixed call sites, so each declaration casts instead.
 function mathMinMaxBoxType (csharp, initializer, context) {
     if (initializer?.kind !== ts.SyntaxKind.CallExpression || initializer.arguments?.length !== 2) {
         return undefined;
@@ -4073,14 +3871,9 @@ function integerBoxCastType (csharp, initializer, context) {
     return undefined;
 }
 
-// `this.sum (a, b)` (the only initializer integerBoxCastType accepts as a CallExpression) now
-// binds the typed twins Exchange.Generic.cs carries beside the hand-written helpers — Int64
-// sum (Int64, Int64) / Int64 sum (Int64?, Int64?) — because every operand kind
-// integerOrNullArgumentKind proves (int / uint / long / Int64 / Int64?) converts implicitly to
-// their parameters, and the twins hand back the (object, object) box's Int64 result unchanged.
-// So the printed call's own C# type IS the box and the declaration needs no cast. Only `sum`
-// is claimed here (the other arithmetic twins and their call sites belong to their own units);
-// `a % b` has no typed twin and keeps its cast.
+// this.sum (a, b) binds the typed twins in Exchange.Generic.cs (Int64 sum over Int64 / Int64?),
+// since every operand kind integerOrNullArgumentKind proves converts to their parameters and the
+// result equals the object overload's Int64; no cast. a % b has no typed twin and keeps its cast.
 function integerOverloadCallType (initializer) {
     if (initializer?.kind !== ts.SyntaxKind.CallExpression || initializer.arguments?.length !== 2) {
         return undefined;
@@ -4137,20 +3930,9 @@ function orderbookMapReadType (initializer) {
     return 'ccxt.pro.IOrderBook';
 }
 
-// The SAME element rule for the other ws member caches whose element box a tree-wide writer
-// census proves (campaigns/cs90/tools/U04/check_writers.py, base d847892a6):
-//   this.trades[key]       -> ccxt.pro.ArrayCache. 84 element writes across cs/**: ArrayCache /
-//     ArrayCacheBy* constructor, null, or a local whose only writes are those two shapes (the
-//     `stored` / `tradesArray` / `tradesCache` null-init idiom); the map itself is only ever
-//     replaced by an empty createSafeDictionary (4 whole-field writes).
-//   this.ohlcvs[sym][tf]   -> ccxt.pro.ArrayCache. The symbol's bucket dict is a
-//     Dictionary<string, object> (53 writers: dict literals and safeValue/safeDict with a dict
-//     default) and all 49 of its element writes store an ArrayCacheByTimestamp or the same
-//     null-init idiom.
-// this.positions[key] is NOT listed: ArrayCacheBySymbolBySide writers sit beside the
-// account-type-keyed `new Dictionary<string, object>()` ones (binance/gate/htx/bitget/toobit).
-// This rule names the box behind the exact cast back (csharpLocalTypeOf), like the string
-// element family; the read itself is unchanged.
+// same element rule for ws member caches whose element box every writer proves:
+// this.trades[key] and this.ohlcvs[sym][tf] -> ccxt.pro.ArrayCache (constructors, null, or
+// null-init locals); this.positions[key] is excluded (some venues write dicts there).
 const CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES = {
     'trades': 'ccxt.pro.ArrayCache',
 };
@@ -4199,17 +3981,11 @@ function wsOhlcvsBucketReadType (node) {
     return wsCacheElementSourceOk (node) ? 'ccxt.pro.ArrayCacheByTimestamp' : undefined;
 }
 
-// ===== U45: pro-tree residuals — ws cache FIELD reads and awaited ws flights =====
+// ===== pro-tree residuals: ws cache FIELD reads and awaited ws flights =====
 //
-// `object cache = this.positions;` — the whole-field read of a hand-written ws cache member.
-// The field is declared `object` (Exchange.Options.cs), so the local can only name its box
-// behind an exact cast, and the box is what EVERY write of that field in the SAME file stores:
-// the venue's own cache-setup methods are the whole writer set for its class, the hand-written
-// base writes only null, and the five dict-writing venues (binance / gate / htx / bitget /
-// toobit for positions) have no whole-field read. A write accepts an ArrayCache-family
-// constructor, undefined / null and a read-back of the same field; an element write (the field
-// is then a map) or any other value rejects the member. Census: tools/U45/member-writer-census.py
-// + the tree-wide `this.<member> =` writer grep in REPORT.md.
+// whole-field read of a hand-written ws cache member (declared object): the local names, behind
+// an exact cast, the box every same-file write stores (ArrayCache-family constructor, null, or a
+// read-back); an element write or any other value rejects the member.
 const WS_CACHE_FIELD_READ_TYPES = [ 'positions', 'liquidations', 'myLiquidations' ];
 const WS_CACHE_FIELD_CAST = 'ccxt.pro.ArrayCache';
 
@@ -4246,8 +4022,8 @@ function wsCacheFieldReadBackWrite (identifier, member) {
     return readBack;
 }
 
-// a write to the ws cache field that stores a cache box (or null): the only producers the census
-// admits beside a constructor are `undefined` / `null` and a read-back of the same field
+// a write to the ws cache field that stores a cache box (or null): the only producers admitted
+// beside a constructor are undefined / null and a read-back of the same field
 function wsCacheFieldWriteIsCacheBox (right, member) {
     if (right === undefined) {
         return false;
@@ -4267,8 +4043,8 @@ function wsCacheFieldWriteIsCacheBox (right, member) {
     return right.kind === ts.SyntaxKind.Identifier && wsCacheFieldReadBackWrite (right, member);
 }
 
-// the census over one source file: does every write of the field store a cache box, and is
-// there at least one ArrayCache constructor (the field's own producer in this file)?
+// scan of one source file: does every write of the field store a cache box, and is there at
+// least one ArrayCache constructor (the field's own producer in this file)?
 function wsCacheFieldFileCensus (source, member) {
     let constructors = 0;
     let ok = true;
@@ -4291,8 +4067,8 @@ function wsCacheFieldFileCensus (source, member) {
     return ok && constructors > 0;
 }
 
-// `this.positions` -> the cache box the file's own writes prove, or undefined. The prediction
-// tier is U44's sweep (its roster owns every prediction-tree local), so this family stays out.
+// this.positions -> the cache box the file's own writes prove, or undefined. Prediction-tree
+// locals are handled by the prediction-tier rules, so this family stays out of them.
 function wsCacheFieldReadType (node) {
     if (node?.kind !== ts.SyntaxKind.PropertyAccessExpression || node.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
         return undefined;
@@ -4701,25 +4477,9 @@ function arrayCacheHashmapReadType (initializer) {
 
 // ===== ws member-cache element reads + the `methods` handler tables =====
 //
-// `object stored = this.safeValue (this.trades, symbol)` — the per-key READ of a ws cache
-// member. The hand-written safeValue hands back the map's `object` box, so the declaration
-// can only name the box behind a cast, and the box is whatever EVERY writer of that member
-// in the SAME FILE stores: each exchange class owns its own cache field, so the file is the
-// whole writer set. The census walks the TS file once per member:
-//   - every `this.<member>[k] = rhs` must store an ArrayCache-family constructor, a dict
-//     literal / dict helper, a read-back of the same map (no new box), or a local whose
-//     every assignment proves one of those; a nested `this.<member>[k][k2] = …` proves the
-//     value at k is a dictionary (that is how the printer spells the write);
-//   - every `this.<member> = rhs` (the map itself) must stay dictionary-shaped: a member
-//     that is the cache itself (lighter's `this.liquidations = new ArrayCache (…)`) or that
-//     is replaced by one disqualifies the member.
-// A file whose element writers agree boxes ArrayCaches / dictionaries, and the read names
-// that box behind an exact cast: `ccxt.pro.ArrayCache` (the declared spelling of the
-// hand-written cache fields, so `ArrayCache` / `ArrayCacheBy*` constructors and read-backs
-// assign into it unchanged) or `IDictionary<string, object>`. Disagreement inside the file
-// leaves the member unproven — the read keeps `object`. Defaulted reads
-// (`this.safeValue (this.trades, sym, {})`) are the dict/list-default families' sites and
-// are left alone here (2 arguments only).
+// per-key read of a ws cache member via this.safeValue (this.member, key): every same-file
+// element writer must store an ArrayCache-family box or a dict, and the map itself must stay a
+// dict; agreement names ccxt.pro.ArrayCache or IDictionary behind a cast (2-argument form only).
 const CSHARP_LOCAL_WS_CACHE_MEMBERS = [
     'trades', 'ohlcvs', 'positions', 'liquidations', 'myLiquidations',
     'orders', 'myTrades', 'triggerOrders',
@@ -4769,8 +4529,8 @@ function bareCsharpType (type) {
     return type.startsWith ('ccxt.pro.') ? type.slice ('ccxt.pro.'.length) : type;
 }
 
-// the declared type for a set of constructor names the census proved, or undefined when the
-// set mixes a dictionary with an ArrayCache
+// the declared type for a set of proven constructor names, or undefined when the set mixes a
+// dictionary with an ArrayCache
 function wsCacheCtorSetType (ctors) {
     const names = [ ...ctors ];
     if (names.every ((name) => ARRAY_CACHE_ARRAY_FAMILY_CTORS.includes (name))) {
@@ -4785,10 +4545,9 @@ function wsCacheCtorSetType (ctors) {
     return undefined;
 }
 
-// the join edges for a cache-element read: every constructor the census can see writes the
-// same cache, so a later cache-setup write (`x = new ArrayCache (limit)`) joins the
-// declaration's own type (equal names join without an edge; the bare spelling is the same
-// class in a `namespace ccxt.pro` / prediction file)
+// join edges for a cache-element read: every visible constructor writes the same cache, so a
+// later cache-setup write joins the declaration's own type (equal names need no edge; the bare
+// spelling is the same class in a ccxt.pro / prediction file)
 function cacheElementWideningEdges (target) {
     return ARRAY_CACHE_ALL_CTORS.flatMap ((ctor) => [ [ ctor, target ], [ 'ccxt.pro.' + ctor, target ] ]);
 }
@@ -4808,7 +4567,7 @@ function wsCacheWriteBoxTypes (csharp, node, member, depth) {
             return undefined;
         }
         if (ARRAY_CACHE_ALL_CTORS.includes (name)) {
-            return new Set ([ name ]); // the constructor names its own box (the census joins the set)
+            return new Set ([ name ]); // the constructor names its own box (the scan joins the set)
         }
         return undefined; // any other constructor boxes something this family cannot name
     }
@@ -5000,17 +4759,9 @@ function wsCacheMemberReadType (csharp, initializer) {
 
 // ===== SPEC-A: ws cache BUCKET reads (`this.<member>[k1]`) =====
 //
-// `const stored = this.safeValue (this.ohlcvs[symbol], timeframe)` prints
-// `object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);`: the receiver is a
-// level-1 read of a ws cache member, which wsCacheMemberReadType rejects (:4921 wants a bare
-// `this.<member>`), so the declaration keeps `object` although the slot's box is the one the
-// wsOhlcvsBucketReadType family already names for the same value. Two arguments only -- the
-// 3-argument spelling carries a caller default (pro/ndax passes `[]`), and an absent slot would
-// then hand back a fresh box the cast throws on. The box is proven over the whole file, one level
-// deeper than the member census: every `this.<member>[k1][k2] = rhs` write stores an
-// ArrayCache-family constructor (or a read-back of the same slot / a null), and every level-1
-// write is dictionary-shaped, so the value at `[k1][k2]` is that cache. Anything unproven leaves
-// the member `object`.
+// this.safeValue (this.ohlcvs[symbol], timeframe): a level-1 read wsCacheMemberReadType rejects,
+// typed like wsOhlcvsBucketReadType when every [k1][k2] write stores an ArrayCache box (or null)
+// and every level-1 write is a dict. Two arguments only: a caller default could break the cast.
 const wsCacheBucketBoxes = new WeakMap ();
 
 // a read of the same SLOT (`this.<member>[k1][k2]`, `this.safeValue (this.<member>[k1], k2)`) --
@@ -5316,18 +5067,12 @@ function handlerTableReadType (csharp, initializer, context) {
     return 'Delegate';
 }
 
-
-// Call results whose runtime box is provably the named type on EVERY return path of every
-// generated definition, so the printed `object` call can carry an exact cast back (the
-// same shape as the element-access string cast below). Keyed on `this.<name>` calls.
-// The value is the DECLARATION spelling: `T?` where a return path can hand back null
-// (the printer cannot prove non-null, so the nullable spelling keeps every use warning-free
-// under the csproj's <Nullable>enable</Nullable>), non-null for the collection boxes.
-// The parseWs* family that used to live here moved to the genuine declaration retype
-// CSHARP_WS_ROW_BUILDER_RETURNS (S19) — a listed name there no longer needs a cast.
+// Call results whose runtime box is the named type on every return path of every definition,
+// so the printed `object` call carries an exact cast back. Keyed on `this.<name>` calls; the
+// value is the declaration spelling (`T?` when a path can return null, non-null for collections).
 export const CSHARP_LOCAL_CAST_CALL_TYPES = {
-    // (this.getMessageHash was the only string entry; S10 retyped its signature to `string?`
-    // via CSHARP_STRING_RETURN_METHODS instead, so the call site no longer carries a cast)
+    // (getMessageHash is typed `string?` via CSHARP_STRING_RETURN_METHODS, so its call
+    // sites need no cast here)
 };
 
 // ===== B-23: `object x = this.parse<X>(...)` — the box the callee's TS return type names =====
@@ -5788,11 +5533,9 @@ function typedRequestIdCall (initializer) {
 
 // ===== per-definition callee boxes (requestId) =====
 //
-// Callees whose generated C# signature is still `object` while every return path of every
-// definition in the tree boxes a concrete type. The proof is per DEFINITION, so the
-// receiving local carries the exact cast back, the same shape as the getMessageHash family
-// above. this.parseOrderBook left this section for the genuine declaration retype
-// (CSHARP_COLLECTION_RETURN_METHODS, S19).
+// Callees whose C# signature is `object` while every return path of every definition boxes a
+// concrete type. The proof is per definition, so the receiving local carries the exact cast
+// back, the same shape as the getMessageHash family above.
 
 // `this.safeOutcome (<one key>)` / `await this.loadOutcome (...)`: every path of the two
 // accessors boxes a row of this.outcomes / this.outcomes_by_id (IDictionary writers only)
@@ -6013,7 +5756,7 @@ function requestIdLocalInitializer (method, name) {
     return (conflict || initializer === undefined) ? undefined : initializer;
 }
 
-// ===== per-definition numeric boxes (U37) =====
+// ===== per-definition numeric boxes =====
 //
 // Venue-local numeric helpers whose same-file definition proves one box while a sibling
 // venue's declaration of the same name boxes something else, so a name-keyed table cannot
@@ -6146,11 +5889,10 @@ function sameFileNumericReturnType (csharp, call, name) {
 // `IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue (response, "data"));`
 //
 // Only an IDENTIFIER receiver qualifies: a `this.<member>` receiver is module state whose
-// shape a caller's option override can change, so its pair is never evidence (census: 12
-// sites, all this.options reads, left `object`).
+// shape a caller's option override can change, so its pair is never evidence (stays `object`).
 //
-// Census (ts/src, 1084 safeValue declaration sites): 973 pairs carry no twin or both shapes,
-// 18 sites are dropped by the use-shape veto — 93 sites name their box.
+// A safeValue site names its box only when its twin pair carries exactly one shape and the
+// use-shape veto passes; everything else stays object.
 const SAFE_VALUE_TWIN_PAIR_CACHE = new WeakMap ();
 
 const SAFE_VALUE_TWIN_DICT_CALLS = [ 'safeDict', 'safeDict2', 'safeDictN' ];
@@ -6430,8 +6172,8 @@ function callReturnType (csharp, initializer) {
         if (perDeclarationString !== undefined) {
             return boundCollectionReturnType (csharp, initializer, methodName, perDeclarationString);
         }
-        // a per-definition numeric helper (U37): same-file proof, no cast (the definition's
-        // own signature carries the type — see CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS)
+        // a per-definition numeric helper: same-file proof, no cast (the definition's
+        // own signature carries the type, see CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS)
         const sameFileNumeric = sameFileNumericReturnType (csharp, initializer, methodName);
         if (sameFileNumeric !== undefined) {
             return sameFileNumeric;
@@ -6450,6 +6192,12 @@ function callReturnType (csharp, initializer) {
         const localType = CSHARP_LOCAL_THIS_RETURN_TYPES[methodName];
         if (localType !== undefined) {
             return localType;
+        }
+        // a venue method whose own body proves a non-null string at this site (its printed
+        // signature stays `string?`, so the candidate starts nullable and the declaration
+        // retry below promotes it with the identity cast)
+        if (sameFileGuardedStringCall (csharp, initializer)) {
+            return 'string?';
         }
         // a prediction-tier local fed by a venue helper whose DECLARATION this module already
         // retypes (installCsharp*Returns): the call's own C# static type IS the table's box, so
@@ -6615,6 +6363,17 @@ function isStringReturningCall (csharp, node) {
     return own === 'string' || own === 'string?';
 }
 
+// `node` (through parentheses) is the right side of a plain `x = <node>` statement write
+function isPlainAssignmentValue (node) {
+    let current = node;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const parent = current.parent;
+    return parent?.kind === ts.SyntaxKind.BinaryExpression && parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken
+        && parent.right === current && parent.parent?.kind === ts.SyntaxKind.ExpressionStatement;
+}
+
 // the C# type of an initializer / assigned value, or undefined when it cannot be proven.
 // 'null' is returned for a literal null/undefined so assignable() can accept it for
 // nullable targets. Falls back to the printer's own classifier for its families.
@@ -6717,6 +6476,13 @@ export function csharpTypeOfValue (csharp, node, context) {
                 }
             }
         }
+        // `x = (a - b)` WRITE printed natively under a dominating null test
+        // (nativeGuardedSubtractExpression): lifted Int64? minus an int-like, the same Int64 box
+        // subtract() returns. Writes only: initialisers and arm types keep their old answer.
+        if (nativeOp === ts.SyntaxKind.MinusToken && isPlainAssignmentValue (node)
+            && nativeGuardedSubtractExpression (csharp, node) !== undefined) {
+            return 'Int64?';
+        }
         break;
     }
     case ts.SyntaxKind.ConditionalExpression: {
@@ -6797,21 +6563,9 @@ export function csharpTypeOfValue (csharp, node, context) {
     return undefined;
 }
 
-// `this.<member>` reads usable as a ternary arm. Each entry is the C# declared type of the
-// property in the hand-written base (cs/ccxt/base/Exchange.Options.cs), which IS the read's
-// static type:
-//   hostname / userAgent / privateKey / secret -> `public string ... { get; set; }`, a
-//     settable property that can hold null at runtime, so the nullable spelling is the
-//     honest one (and keeps the left-operand-of-`+` rule in its conservative regime)
-//   ids -> `public List<object> ids { get; set; } = null;`
-//   tokenBucket -> `public Dictionary<string, object> tokenBucket { get; set; }` (the hand-written
-//     base spells every declared type out; the file-local `dict` alias is expression-position only)
-// ARMS ONLY (conditionalArmType): a `this.<member>` read anywhere else — an argument, a copy,
-// a later write — keeps `object`, so this table cannot move a declaration outside a ternary.
-// Deliberately absent: symbols / orders / myTrades / positions / isSandboxModeEnabled (the ws
-// field family), outcomes (declared `object`), clients
-// (ConcurrentDictionary<string, WebSocketClient>, no spelling in this module's type set),
-// user_agent / userAgents / id (no new site or another unit's table).
+// `this.<member>` reads usable as a ternary arm, typed by the property's declared C# type in the
+// hand-written base (string ones spelled nullable, since a settable property can hold null).
+// Arms only (conditionalArmType): any other read keeps `object`, so no declaration moves.
 const CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES = {
     'hostname': 'string?',
     'userAgent': 'string?',
@@ -7400,6 +7154,11 @@ function resolveLocalReadType (csharp, context, identifier) {
         // static type is the type that classification is computing (see selfReadWriteType)
         return selfRead.type;
     }
+    if (context.depth < MAX_RESOLVE_DEPTH && declaration.initializer && safeNumberSwapMember (declaration)) {
+        // swap ring (`t = a; a = b; b = t`): a member reads as its safeNumber box;
+        // every member re-checks its own writes against that box, so a bad write still fails
+        return 'double?';
+    }
     if (context.stack.has (declaration) || context.depth >= MAX_RESOLVE_DEPTH) {
         return undefined; // cycle (`a = b; b = a;`) or a pathological chain
     }
@@ -7484,7 +7243,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // negation / identity, same return). `!` prints a bool test and stays valid
             // for every type; any other prefix operator prints through prefixUnaryNeg as
             // well, so the numeric families bind there exactly as they do for `object`.
-            if (parent.operator !== ts.SyntaxKind.ExclamationToken && !isInt && !isDouble) {
+            if (parent.operator !== ts.SyntaxKind.ExclamationToken && !isInt && !isDouble
+                && !guardedNullableDoubleNegation (csharp, parent, csharpType)) {
                 return false; // prefixUnaryNeg/Plus(ref x) without a twin for this type
             }
             // The twin returns int / Int64, so if that result is an operand of `-` the
@@ -7540,20 +7300,21 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             if (parent.left === n) {
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // RHS may be another already-typed local / a ternary over such locals (context)
-                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? u17WriteValueType (csharp, declaration, parent.right);
+                    const written = csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right);
                     if (!assignable (csharpType, written)) {
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
                         // against the declaration being checked (see the self-write sections).
                         const selfConcat = (csharpType === 'string') && (selfConcatWriteType (csharp, context, declaration, parent.right) === 'string');
-                        // U21: the same self-read shape where a sibling leaf is unnameable
+                        // the same self-read shape where a sibling leaf is unnameable
                         // but the left spine still selects add(string, …) (see
                         // stringAccumulatorWriteType)
                         const selfStringWrite = (csharpType === 'string') && nonNullStringInit (csharp, context, declaration) && (stringAccumulatorWriteType (csharp, context, declaration, parent.right) === 'string');
                         // a write whose value is a statically-`string`, provably non-null string
                         // (nonNullStringValue): the non-null spelling holds that same box
                         const nonNullWrite = (csharpType === 'string') && nonNullStringValue (csharp, declaration, parent.right, 0);
-                        const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
+                        const selfOmit = ((csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>'))
+                            || (interfaceSelfOmitWriteType (csharp, context, declaration, csharpType, false, parent.right) !== undefined);
 // the same arm as the join's: a write that reads this very declaration
                         // resolves the read to the candidate type it is being checked against
                         const selfRead = (!selfConcat && !selfOmit && safeHelperLocalInitializer (declaration.initializer))
@@ -7803,7 +7564,7 @@ function selfConcatWriteType (csharp, context, declaration, value) {
     return (type === 'string' && state.selfRead) ? 'string' : undefined;
 }
 
-// ==== U21: the string accumulator WRITE proof for a string-literal initialiser ====
+// ==== the string accumulator WRITE proof for a string-literal initialiser ====
 //
 // `let x = 'lit'; … x = <write>` — the declaration's own box is the literal's non-null
 // `string`, so the join's running type is a non-null string; a later write that keeps the
@@ -7996,13 +7757,9 @@ function stringPlusOperandIsProvablyString (csharp, value, csharpType, context) 
     if (right === 'string' || right === 'string?') {
         return true;
     }
-    // U19: an operand the printer types statically `object` whose BOX is provably a string or
-    // null (the `+`-chain leaf proofs) is exactly as safe as the `string?` spelling above:
-    // add(string, object) calls b?.ToString() and add(object, object)'s string branch casts
-    // (string)b — identical for a string box, and a null box concatenates as the empty string
-    // on both paths.
-    // U43: a `this.<member>` read the module types as a string (`thisStringMemberRead`) is
-    // the same string box the leaf proofs above name
+    // An operand typed `object` whose box is provably a string or null (the `+`-chain leaf
+    // proofs, or a thisStringMemberRead) is as safe as `string?`: both add overloads produce
+    // the same string, and a null box concatenates as the empty string on both paths.
     return stringBoxLeafProof (csharp, parent.right) !== undefined || thisStringMemberRead (parent.right);
 }
 
@@ -8230,6 +7987,10 @@ function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, cont
                     proof = candidate;
                     continue;
                 }
+                if (candidate.kind === ts.SyntaxKind.VariableStatement && candidate.declarationList.declarations.includes (declaration) && sliceOfNonNullStringInit (csharp, scope, declaration)) {
+                    proof = candidate;
+                    continue;
+                }
                 if (exitGuardProvesNonNull (candidate, csharp, scope, declaration)) {
                     proof = candidate;
                     continue;
@@ -8253,6 +8014,57 @@ function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, cont
         block = block.parent;
     }
     return false;
+}
+
+// `const x = <recv>.slice (a, b)` holds a non-null string when <recv> is: the helper answers
+// null only for a null receiver. <recv> is a string param or local whose every value is a
+// literal, a `lit + ...` chain or a param an earlier top-level exit guard proved non-null.
+function sliceOfNonNullStringInit (csharp, scope, declaration) {
+    const init = stripParens (declaration.initializer);
+    const callee = (init?.kind === ts.SyntaxKind.CallExpression) ? init.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.name?.text !== 'slice' || callee.expression?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    return nonNullSliceReceiver (csharp, scope, declaration, callee.expression, 0);
+}
+
+function nonNullSliceReceiver (csharp, scope, before, ident, depth) {
+    const binding = resolveReference (csharp, ident);
+    if (depth > 4 || binding?.name?.kind !== ts.SyntaxKind.Identifier || enclosingFunction (binding) !== scope) {
+        return false;
+    }
+    const writes = stringLocalWriteNodes (csharp, scope, binding, binding.name.text);
+    if (binding.kind === ts.SyntaxKind.Parameter) {
+        const typeText = binding.type?.getText ();
+        if (writes.length > 0 || (typeText !== 'Str') || binding.initializer !== undefined) {
+            return false;
+        }
+        const statements = scope.body?.statements ?? [];
+        return statements.some ((statement) => statement.getEnd () <= before.getStart () && exitGuardProvesNonNull (statement, csharp, scope, binding));
+    }
+    if (binding.kind !== ts.SyntaxKind.VariableDeclaration || binding.parent?.declarations?.length !== 1 || binding.initializer === undefined) {
+        return false;
+    }
+    const values = [ binding.initializer ];
+    for (const w of writes) {
+        const assign = w.parent;
+        if (assign.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+            return false;
+        }
+        values.push (assign.right);
+    }
+    return values.every ((value) => nonNullSliceValue (csharp, scope, before, value, depth));
+}
+
+function nonNullSliceValue (csharp, scope, before, node, depth) {
+    const current = stripParens (node);
+    if (isStringLiteral (current) || nonNullStringDefaultCall (csharp, current, undefined)) {
+        return true; // a literal or `this.safeString (x, k, '<literal>')`: never null
+    }
+    if (current.kind === ts.SyntaxKind.BinaryExpression) {
+        return current.operatorToken.kind === ts.SyntaxKind.PlusToken && nonNullSliceValue (csharp, scope, before, current.left, depth + 1);
+    }
+    return current.kind === ts.SyntaxKind.Identifier && nonNullSliceReceiver (csharp, scope, before, current, depth + 1);
 }
 
 // is this statement a direct `x = <non-null string>` write of the binding?
@@ -8303,38 +8115,16 @@ function isLiteralLike (node) {
     return false;
 }
 
-// ---- element-access initialisers -------------------------------------------------------
-// `const x = recv[key]` prints `object x = getValue(recv, key);`. `recv` itself is almost
-// always `object` / `List<object>` / `Dictionary<string, object>`, whose elements carry no
-// provable type — but a handful of producers guarantee strings in the generated C#:
-//   - `Object.keys (x)` -> `new List<object>(((IDictionary<string,object>)x).Keys)` (keys of
-//     a string-keyed dictionary are strings)
-//   - `<expr>.split (...)` -> `((string)expr).Split (...).ToList<object>()`
-//   - `this.stringToCharsArray (x)` -> the hand-written List<string> of one-char strings
-//     (GetValue's List<string> branch returns the boxed element or null)
-//   - `['a', 'b', ...]` of string literals -> `new List<object> { "a", "b" }`
-//   - `this.symbols` -> the Exchange.symbols field (Exchange.Options.cs, `List<object>`); its
-//     elements are strings because every writer of the field writes a string list (census A)
-//   - `this.findMessageHashes (client, element)` -> the generated BaseMethods body adds one
-//     `string?` to its only result list, so every element is a string (census B)
-// The local may only be declared `string?` when nothing else can rewrite, mutate or leak
-// the list, so every other use of the receiver must be a plain read.
+// `const x = recv[key]` prints `object x = getValue(recv, key);`. A few producers guarantee
+// string elements (Object.keys, split, stringToCharsArray, string-literal lists, this.symbols,
+// findMessageHashes); the local is `string?` only if every other use of recv is a plain read.
 //
-// Census A (2026-09-18, `grep -rEn '(this|exchange)\.symbols = |\.symbols\.(Add|AddRange|
-// Insert|Remove)'` over ts/src and cs/):
-//   this.symbols = []                     ts/src/base/Exchange.ts:3122  Exchange.BaseMethods.cs:373
-//   this.symbols = Object.keys (x)        ts/src/base/Exchange.ts:4588  Exchange.BaseMethods.cs:2177
-//   this.symbols = sourceExchange.symbols ts/src/base/Exchange.ts:4670  Exchange.BaseMethods.cs:2273
-// `[]` is empty, `Object.keys` yields the dict's string keys, and the third writer copies a
-// symbols list, i.e. re-asserts the same invariant. No venue writes or overrides the field and
-// nothing mutates the list in place, so every box it holds is a string (or null off the end —
-// GetValue's IList<object> branch hands that box back, the same box the `(string)` cast names).
+// this.symbols holds only strings: its writers assign an empty list, Object.keys of a dict, or
+// another symbols list, nothing mutates it in place, and no venue overrides the field (a read
+// off the end is null, the same box the `(string)` cast names).
 //
-// Census B (`grep -rn findMessageHashes` over ts/src and cs/): one definition,
-// ts/src/base/Exchange.ts:3524 / Exchange.BaseMethods.cs:828, no override. The body builds
-// exactly one `List<object> result` from `Object.keys (client.futures)` and adds exactly one
-// value to it — the `string? messageHash` element read of that Object.keys list — then returns
-// it, so every element of the returned list is a string.
+// findMessageHashes has one definition, no override: it returns a single list built from
+// Object.keys (client.futures) and adds only `string?` elements, so every element is a string.
 
 function stringElementsProducer (initializer) {
     let node = initializer;
@@ -8345,7 +8135,7 @@ function stringElementsProducer (initializer) {
         return false;
     }
     if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
-        // `this.symbols` — string-list field, every writer string (census A in the section header)
+        // `this.symbols` — string-list field, every writer stores strings (see section header)
         return node.expression?.kind === ts.SyntaxKind.ThisKeyword && node.name?.text === 'symbols';
     }
     if (node.kind === ts.SyntaxKind.CallExpression) {
@@ -8364,12 +8154,12 @@ function stringElementsProducer (initializer) {
         if (method === 'stringToCharsArray' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
             return true;
         }
-        // this.marketSymbols (...) adds one `string?` per element (U02 write census)
+        // this.marketSymbols (...) adds one `string?` per element
         if (method === 'marketSymbols' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
             return true;
         }
         // this.findMessageHashes (client, element) — every element of the returned list is the
-        // one `string?` its body adds (census B in the section header)
+        // one `string?` its body adds (see section header)
         if (method === 'findMessageHashes' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword && node.arguments?.length === 2) {
             return true;
         }
@@ -8659,7 +8449,7 @@ function promiseAllElementType (csharp, initializer, context, scope) {
     return built;
 }
 
-// ---- U02: element reads of a narrowed string-list PARAMETER -----------------------------
+// ---- element reads of a narrowed string-list PARAMETER -----------------------------
 //
 // `const symbol = symbols[i]` where `symbols` is a method PARAMETER prints `getValue(symbols, i)`
 // and the receiver IS that parameter -- a list in the emitted C#, but only where the `typeCoreArgs`
@@ -8667,29 +8457,15 @@ function promiseAllElementType (csharp, initializer, context, scope) {
 // the pass left `object` keeps the untyped local, which is the family's reject rule (an `object`
 // receiver proves nothing about its elements).
 //
-// Every element of a narrowed parameter is a string:
-//   * the TS annotation is a string list -- `Strings` (`type Strings = string[] | undefined`,
-//     ts/src/base/types.ts:4, 49 sites) or `string[]` (39 sites), the only two shapes the family
-//     admits (census: campaigns/cs90/tools/U02/param_census.py);
-//   * every write `name = RHS` in the body produces a string list. Census over the emitted tree
-//     (`grep -E '^\s+symbols = ' cs/ccxt` -> 390 writes): 369 `this.marketSymbols (...)` -- its
-//     generated body adds exactly one `string?` per element (`safeString (market, "symbol",
-//     getValue (symbols, i))`, Exchange.BaseMethods.cs:3579) -- 8 `this.symbols` (census A above)
-//     and one `this.getActiveSymbols (...)`; the remaining 12 write an EMPTY `new List<object> ()`,
-//     whose every read is bounded by its own Count (nothing to name). `marketIds`/`messageHashes`/
-//     `topics` are never assigned at all (they are built in the body).
-//   * no in-place mutation: the `(push|unshift|splice|sort|reverse|fill|pop|shift)` census over
-//     ts/src matches only lists BUILT in the method, never a parameter, and the C# twin census
-//     (`((IList<object>)<name>).Add (`) finds nothing either. A parameter is only read, indexed or
-//     handed to a callee that reads it (marketSymbols / marketIds / getMarketFromSymbols /
-//     safeString / isEmpty / watchPublic / ...), so unlike the local-receiver scan above an
-//     argument position stays allowed here -- the callee gets the caller's own array.
+// Every element of a narrowed parameter is a string: the TS annotation is `Strings` or
+// `string[]`, every write in the body yields a string list (or an empty one), and nothing
+// mutates it in place; callees only read it, so passing it as an argument stays allowed.
 //
 // The declaration keeps the existing spelling (`string?` + the `(string)` cast the local-receiver
 // family emits): the call's C# type is `object` either way, and the cast names exactly the box
 // the element read hands back. `csharpLocalIsSafeToRetype` still vets every use of the local.
 
-// the string-list RHS shapes the census allows for a write to a narrowed list parameter
+// the string-list RHS shapes allowed for a write to a narrowed list parameter
 function stringListParameterWriteProducer (right) {
     let node = right;
     // `symbols = this.marketSymbols (symbols, undefined, false) as string[]` is the same list —
@@ -8932,7 +8708,7 @@ function elementAccessElementType (csharp, initializer, context) {
         return undefined;
     }
     if (declaration.kind === ts.SyntaxKind.Parameter) {
-        // U02: a parameter receiver -- the receiver IS a narrowed list parameter (see above)
+        // a parameter receiver -- the receiver IS a narrowed list parameter (see above)
         return (stringListParameterElementType (csharp, scope, declaration) || rewrittenStringListParameter (csharp, scope, declaration, initializer)) ? 'string' : undefined;
     }
     if (declaration.kind !== ts.SyntaxKind.VariableDeclaration) {
@@ -8964,28 +8740,20 @@ function elementAccessElementType (csharp, initializer, context) {
     return producer.elementType;
 }
 
-// `market['symbol']` — a MARKET ROW read by a literal key. The C# printer prints element
-// access as `getValue(market, "symbol")`, which hands back the raw box; naming the value
-// `string?` therefore needs the `(string)` cast back, exactly like elementAccessElementType.
-// The key set, the receiver proof and the value census are in the header (MARKET_ROW_*
-// section). Keys outside the set (booleans / numerics / dicts) keep the local `object`.
+// `market['symbol']` — a MARKET ROW read by a literal key. getValue hands back the raw box, so
+// naming the value `string?` needs the `(string)` cast back (see the MARKET_ROW_* header).
+// Keys outside the set (booleans / numerics / dicts) keep the local `object`.
 export const MARKET_ROW_STRING_KEYS = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type',
     'uppercaseId', 'subType', 'optionType', 'expiryDatetime', 'feeSide' ];
 
-// `market['swap']` — the BOOL keys of a market row: every market-row writer in ts/src (the 157
-// 'symbol'+'base'+'quote' literals plus the skeleton) stores a boolean or nothing at these keys,
-// nothing else (census: tools/S23/market-row-types.mjs, re-run for the added keys with
-// campaigns/cs90/tools/U01/key-value-census.mjs); `(bool?)` is BaseMethods#safeBool*'s shape.
-const MARKET_ROW_BOOL_KEYS = [ 'spot', 'swap', 'contract', 'future', 'option', 'linear',
+// `market['swap']` — the BOOL keys of a market row: every market-row writer stores a boolean
+// or nothing at these keys, so `(bool?)` (BaseMethods#safeBool*'s shape) names the box.
+export const MARKET_ROW_BOOL_KEYS = [ 'spot', 'swap', 'contract', 'future', 'option', 'linear',
     'inverse', 'index', 'stock' ];
 
-// `market['precision']` — the DICT keys: every writer of both keys in a market-row literal is an
-// object literal (census: campaigns/cs90/tools/U01/key-value-census.mjs — 122/122 for precision,
-// 119/120 for limits; the one non-literal is a dict-typed identifier), which the printer boxes as
-// `new Dictionary<string, object>()`, so the `(IDictionary<string, object>)` cast names it
-// exactly. `info` stays object (a string writer on a market row plus 58 any-typed ones), `fees`
-// is not a market-row key at all (0 writers), marginModes is left out (its identifier writers'
-// C# box is not proven).
+// `market['precision']` — the DICT keys: every market-row writer is an object literal or a
+// dict-typed identifier, boxed as Dictionary<string, object>, so the IDictionary cast is exact.
+// `info`, `fees` and marginModes are excluded (non-dict or unproven writers).
 const MARKET_ROW_DICT_KEYS = [ 'precision', 'limits' ];
 
 // `parseTrade (trade, market: Market = undefined)` — a MARKET-ROW PARAMETER. The annotation is
@@ -8997,12 +8765,9 @@ const MARKET_ROW_DICT_KEYS = [ 'precision', 'limits' ];
 // are NOT covered — no annotation, no proof.
 const MARKET_ROW_PARAM_TYPES = [ 'Market', 'MarketInterface' ];
 
-// `const market = this.getMarketFromSymbols (symbols)`: a venue-local helper whose EVERY return
-// path is a market row, so the local that holds the call IS a row. The three names below are the
-// ws handlers' market resolvers; their return paths are the ones CSHARP_COLLECTION_RETURN_METHODS
-// already records for their C# declaration (base `getMarketFromSymbols`: `this.market
-// (firstMarket)` or undefined; weex `getMarketFromClientAndMessage` / aster `getMarketFromOrder`:
-// `this.safeMarket (...)`). A same-name helper elsewhere may be added only with its own census.
+// `const market = this.getMarketFromSymbols (symbols)`: venue market resolvers whose every
+// return path is a market row (or undefined), so the receiving local IS a row. A same-name
+// helper elsewhere must have its return paths proven before it is listed.
 const MARKET_ROW_HELPER_PRODUCERS = [ 'getMarketFromSymbols', 'getMarketFromClientAndMessage', 'getMarketFromOrder' ];
 
 // the parameter's declared market-row type, or undefined
@@ -9022,29 +8787,15 @@ function elementAccessLiteralKey (node) {
     return undefined;
 }
 
-// ==== U06: dictionary ROW element reads (`const rawOrder = orders[i]`) ====
+// ==== dictionary ROW element reads (`const rawOrder = orders[i]`) ====
 //
-// `const rawOrder = orders[i]` prints `object rawOrder = getValue(orders, i);`. The receiver is
-// almost always an untyped box or a `List<object>` (the local-types header's element-read
-// section), so the element carries no nameable type — EXCEPT when the TS checker types the
-// receiver as a list of a ccxt ROW shape: `orders: OrderRequest[]` (the createOrders parameter),
-// `trades = this.parseTrades (...)` (`Trade[]`), `positions = await this.fetchPositions ()`
-// (`Position[]`), `accounts = await this.loadAccounts ()` (`Account[]`), `networkEntries =
-// rawCurrency as Dict[]` (`Dict[]`), ... Every one of those element types is an interface (or an
-// object literal / the `Dict` index-signature shape) declared in ts/src, i.e. a JSON row: the
-// generated C# tree has no class for any of them (census: no `new OrderRequest (` / `new
-// Position (` / `new Trade (` anywhere under cs/), so the box a row can hold is the decoded
-// dictionary JsonHelper.ToObject builds (or the caller's own Dictionary<string, object> — the
-// generated createOrders id-test passes exactly that) or null; naming it `IDictionary<string,
-// object>` is therefore the box the value already is, behind the same `((IDictionary<string,
-// object>)…)` cast the safeValue-twin family emits. `GetValue`'s dict branch and this cast accept
-// every IDictionary implementation, so a caller-supplied ConcurrentDictionary row is named
-// correctly too (Dictionary<string, object> would throw on it), and a null element stays null.
+// An element of a list the TS checker types as a ccxt ROW shape (OrderRequest[], Trade[],
+// Position[], Dict[], ...) is a JSON dictionary or null at runtime (no C# class exists for
+// them), so `((IDictionary<string, object>)…)` names its box exactly, any IDictionary included.
 //
-// The read is keyed on the LOCAL NAME (this unit's family): the receiver-keyed families
-// (U01/U02/U03/U04) own `getValue (recv, key)` sites, so a receiver the checker proves is a
-// string-keyed dictionary (`Tickers`, `Balances`, ...) is left to U04, and only list-shaped
-// receivers reach here.
+// The read is keyed on the LOCAL NAME: a receiver the checker proves is a string-keyed
+// dictionary (`Tickers`, `Balances`, ...) is left to the receiver-keyed families, so only
+// list-shaped receivers reach here.
 //
 // Everything else keeps `object`: `any` / `unknown` elements (234 of the 315 corpus sites — the
 // vast majority), scalar elements (`order = success[i]` on a Strings list is a string, the string
@@ -9100,11 +8851,9 @@ function dictRowElementReadType (csharp, declaration) {
     if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text)) {
         return undefined;
     }
-    // the generated TESTS are not exchange classes: they hold the exchange in a parameter and
-    // call the BaseTest `getValue` bridge shim (cs/tests/BaseTest.Bridge.cs), so the S63 typed
-    // twin this declaration enables (`x["k"]` -> `GetValue (x, "k")`) does not resolve there —
-    // the farm build reports CS0103 "The name 'GetValue' does not exist in the current context"
-    // for cs/tests/Generated/**. The test tree is outside this unit's family, so it stays `object`.
+    // the generated tests hold the exchange in a parameter and call the BaseTest getValue
+    // shim, where the static GetValue twin does not resolve (CS0103), so cs/tests/Generated
+    // keeps `object`.
     const sourceFile = (typeof declaration.getSourceFile === 'function') ? declaration.getSourceFile ().fileName : '';
     if (/(^|[\\/])test[\\/]/.test (sourceFile)) {
         return undefined;
@@ -9149,7 +8898,7 @@ function dictRowElementReadType (csharp, declaration) {
     }
     const receiverType = checker.getTypeAtLocation (initializer.expression);
     if (checker.getIndexTypeOfType (receiverType, ts.IndexKind.String) !== undefined) {
-        return undefined; // a string-keyed receiver belongs to the receiver-keyed families (U04)
+        return undefined; // a string-keyed receiver belongs to the receiver-keyed families
     }
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
     if (scope === undefined || !dictRowUsesAreConsistent (csharp, scope, declaration)) {
@@ -9158,7 +8907,7 @@ function dictRowElementReadType (csharp, declaration) {
     return 'IDictionary<string, object>';
 }
 
-// ==== S63: typed dict element reads -> the static GetValue twin ====
+// ==== typed dict element reads -> the static GetValue twin ====
 //
 // A `recv["k"]` read whose receiver's declaration this module typed as a string-keyed dictionary
 // prints `GetValue(recv, "k")` (the static twin in cs/ccxt/base/Exchange.TranspileHelpers.cs)
@@ -9253,13 +9002,9 @@ function marketRowValueOrNullish (node) {
     return (value.kind === ts.SyntaxKind.Identifier && value.text === 'undefined') || marketRowProducer (value);
 }
 
-// can this use of the receiver change what the local holds, hand the row out, or write INTO
-// the row? Call arguments and returns are allowed: they cannot rebind the local, and the
-// rows live in this.markets, so a corpus write to a row's keys is the census' business (see
-// MARKET_ROW_STRING_KEYS), not this scan's. What is rejected: a rebind to a non-row value,
-// `y = market` / `y += market` aliasing, `market['key'] = ...` / `delete market[...]` index
-// writes, `const alias = market` copies (the alias could be index-written under a name this
-// scan cannot follow), list-mutating method reads, and destructuring / spread / ref sinks.
+// Can this use of the receiver rebind the local, hand the row out, or write INTO the row?
+// Arguments and returns are allowed; rebinds to non-rows, aliasing/copies, index writes or
+// deletes, list-mutating reads and destructuring / spread / ref sinks are rejected.
 function marketRowUseDisqualifies (n) {
     const parent = n.parent;
     if (parent === undefined) {
@@ -9402,19 +9147,9 @@ function marketRowBoolReadType (csharp, initializer) {
     return (key !== undefined && MARKET_ROW_BOOL_KEYS.includes (key)) ? 'bool' : undefined;
 }
 
-// `this.hash (request, algorithm, "hex" | "base64" | "binary")` — Exchange.Crypto.cs#Hash
-// (digest2 ??= "hex") hands back `binaryToHex (signature)` / Exchange.BinaryToBase64 (signature),
-// a string, for every digest but "binary", which returns the signature byte[] itself. The
-// hand-written C# signature stays `object` — a digest VARIABLE could be either box (and the
-// base file's own comment forbids narrowing it) — so the declaration names the box its own
-// digest literal proves, behind the exact cast back:
-//   `object x = this.hash (…)`              -> the parameter default null resolves to "hex"
-//   `object x = this.hash (…, sha256)`      -> "hex"
-//   `object x = this.hash (…, sha256, "hex" | "base64")` -> string
-//   `object x = this.hash (…, sha256, "binary")`         -> byte[]
-// A non-literal digest argument (or any other argument count) proves nothing and keeps `object`.
-// Census (2026-09-18, every `this.hash (` call in cs/ccxt/**): 41 digest-carrying calls, all
-// literal "hex" (29) / "binary" (12), plus 20 two-argument calls — no variable digest anywhere.
+// `this.hash (…, digest)` returns a string for "hex"/"base64" (default "hex") and byte[] for
+// "binary"; the hand-written signature stays `object`, so a literal digest names its box behind
+// the exact cast. A non-literal digest or other argument count keeps `object`.
 function hashDigestLiteralType (initializer) {
     if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
         return undefined;
@@ -9440,7 +9175,7 @@ function hashDigestLiteralType (initializer) {
     return (digest.text === 'binary') ? 'byte[]' : undefined;
 }
 
-// ---- U20: `add` chains over market-row / symbol leaves --------------------------------
+// ---- `add` chains over market-row / symbol leaves --------------------------------
 //
 // `const symbol = base + '/' + quote` prints `object symbol = add(add(bs, "/"), quote)`.
 // The leaves are `object` locals whose VALUE is a string or null (`bs` =
@@ -9494,9 +9229,9 @@ function addChainLeafBoxType (csharp, node, context) {
         return (memberType === 'string' || memberType === 'string?') ? memberType : undefined;
     }
     case ts.SyntaxKind.ElementAccessExpression: {
-        // a market-row read at a string key is a string or null (MARKET_ROW_STRING_KEYS,
-        // value census in the header); an element of a proven string list is a string or
-        // null off the end of the list (elementAccessElementType's own cast proof)
+        // a market-row read at a string key is a string or null (MARKET_ROW_STRING_KEYS);
+        // an element of a proven string list is a string or null off the end of the list
+        // (elementAccessElementType's own cast proof)
         if (marketRowStringReadType (csharp, node) === 'string') {
             return 'string?';
         }
@@ -9634,7 +9369,7 @@ function addChainStringBoxType (csharp, declaration, context) {
     return { type: (leftmost === 'string?') ? 'string?' : 'string', cast: 'string' };
 }
 
-// ---- U19: `+` chains over a proven-string BOX leaf --------------------------------------
+// ---- `+` chains over a proven-string BOX leaf --------------------------------------
 //
 // `object url = add(add(<leaf>, "/"), path)` — the printer takes the leaf's own static type
 // to build the chain, so an `object` leaf binds add(object, object) and the chain's C# type
@@ -9648,15 +9383,9 @@ function addChainStringBoxType (csharp, declaration, context) {
 // write of a `string?` is rejected there: its add would return the right operand for a null
 // left where the object overload returned null).
 //
-// Leaf proofs (each one the landed declaration-form proof, reused on the chain operand):
-//   market['id']       -> MARKET_ROW_STRING_KEYS          (marketRowStringReadType)
-//   this.urls['api']['rest'] -> the describe() literal spells that leaf as a string
-//                        (urlsDescribeStringProducer); a DYNAMIC final key stays out —
-//                        deepExtend(super.describe (), …) can merge a parent key under the
-//                        same section, which the venue's own literal cannot bound
-//   this.getWsUrl (…)  -> the one definition (ts/src/pro/binance.ts, pro/binance.cs:259)
-//                        returns only urls reads and add chains over them, i.e. a string or
-//                        null on every path (census 2026-09-18, 5 return statements)
+// Leaf proofs reuse the declaration-form proofs: market['id'] (marketRowStringReadType), a
+// literal-keyed this.urls string leaf (urlsDescribeStringProducer; dynamic final keys excluded),
+// and this.getWsUrl (…), whose only definition returns a string or null on every path.
 const STRING_BOX_OBJECT_CALLS = [ 'getWsUrl' ];
 
 // is this leaf — printed statically `object` — provably a string-or-null box? Returns the
@@ -9670,7 +9399,7 @@ function stringBoxLeafProof (csharp, node) {
         leaf = leaf.expression;
     }
     if (leaf === undefined || csharpTypeOfValue (csharp, leaf) !== undefined || isProvablyStringOperand (csharp, leaf)) {
-        return undefined; // a proven static type (string included) is no longer this rule's business
+        return undefined; // a proven static type (string included) is not this rule's business
     }
     if (marketRowStringReadType (csharp, leaf) === 'string' || urlsDescribeStringProducer (leaf)) {
         return { type: 'string?', cast: 'string' };
@@ -9735,47 +9464,21 @@ function marketRowDictReadType (csharp, initializer) {
     return (key !== undefined && MARKET_ROW_DICT_KEYS.includes (key)) ? 'dict' : undefined;
 }
 
-// The NUMERIC keys (contractSize / strike / expiry / numericId) have NO table: the TS `Num` /
-// `Int` spellings cover both boxes and the generated C# stores what each writer prints — a
-// `parseNumber`/`safeNumber` double, an int literal, a `safeInteger`/`parse8601` Int64 — so a
-// `(double?)` or `(Int64?)` cast would throw on the writers of the other box (census:
-// campaigns/cs90/tools/U01/key-value-census.mjs, per-key kind table + REPORT.md). They also have
-// zero declaration sites in the generated tree today.
+// The NUMERIC keys (contractSize / strike / expiry / numericId) have no table: writers box
+// either double or Int64, so a `(double?)` or `(Int64?)` cast could throw on the other box.
 
-// The DICT keys that stay `object`: `info` has a STRING writer on a market row (independentreserve)
-// plus 58 any-typed ones, so no dict cast can name its box; `fees` is not a market-row key at all
-// (0 writers); marginModes' identifier writers have no proven C# box — census, proof and reject
-// reasons: REPORT.md + campaigns/cs90/tools/U01/key-value-census.mjs.
+// The DICT keys that stay `object`: `info` has a string writer plus any-typed ones, `fees` is
+// not a market-row key, and marginModes' identifier writers have no proven C# box.
 //
-// ---- U07: a checker-proven string value read off a proven dictionary receiver --------------
-// `const r = signature['r']`, `const symbol = ticker['symbol']` — the receiver's own declaration
-// is a string-keyed dictionary this module typed (S63 above), so the printer binds the static
-// twin `GetValue(recv, "r")`, which hands back the raw box at that key. Where the TS checker
-// resolves the read through the receiver's declared type to a string — `string`, a
-// string-literal union, `Str = string | undefined` — every writer the type system admits at
-// that key hands back a string or nothing, exactly the box the market-row string keys name
-// (MARKET_ROW_STRING_KEYS). The local is then `string?` behind the `(string)` cast: the cast
-// names the box (null off a missing key / a null receiver, `(string)null` -> null, exactly the
-// read GetValue does today), and csharpLocalIsSafeToRetype still vetoes every use shape that
-// would move an overload (a `string?` left `+` operand, a ref sink, a delete key).
+// A checker-proven string read off a typed dictionary receiver binds the static twin
+// GetValue(recv, "k"); every writer admits only a string or nothing, so the local is `string?`
+// behind the `(string)` cast, and csharpLocalIsSafeToRetype still vetoes overload-moving uses.
 //
-// Census (base d847892a6; tools/U07/u07-sites.py + u07-ts-census.mjs): the exchange tree carries
-// 186 `object X = GetValue(recv, "lit")` sites; 167 of them read a literal key the checker types
-// as string/Str (the other 19: 12 `any`, 6 `Bool` — weex firstMarket['contract'] — and 1
-// `Dictionary<any>`, all of which keep `object`). u07-producers.py + u07-producercensus.mjs: the
-// 22 producer methods the accepted receivers come from (parseTicker / parseWsTicker /
-// parseWsBidAsk / parseTrade / parseWsTrade / parseWsMyTrade / parseOrder / parseWsOrder /
-// parseTradingFee / parseFundingRate[Ws] / parseWsPosition / parseCurrency / safeMarket /
-// market / currency / getMarketFromClientAndMessage / parseLedgerComment / orderToTrade /
-// ecdsa) hold 1,278 writes at those keys, 1,268 of them checker-typed string / Str /
-// string-literal / undefined. The 10 non-string-typed values (pro/hitbtc parseWsOrderTrade
-// boxes a market ROW at 'symbol', pro/bitrue `any` symbols, four currency-id / networks `any`s)
-// all sit in (venue, producer, key) groups that NO accepted site reads — 0 of the 137 accepted
-// groups overlap (u07-audit). `signature`'s producer is the hand-written Ecdsa
-// (Exchange.Crypto.cs), whose "r"/"s" are ToHex strings and "v" a recovery int: the read of "v"
-// is a number and stays `object`.
+// Only keys the checker types as string/Str qualify (`any`, `Bool`, `Dictionary<any>` keep
+// `object`); the producers' non-string writes never reach an accepted read. Ecdsa's "r"/"s"
+// are hex strings, while "v" is a number and stays `object`.
 function typedDictStringReadType (csharp, initializer) {
-    // the same receiver proof the printer's S63 twin uses, so this only names reads the emitted
+    // the same receiver proof the printer's typed twin uses, so this only names reads the emitted
     // call already binds to GetValue(IDictionary<string, object>, string)
     if (typedDictElementAccessReceiver (csharp, initializer) === undefined) {
         return undefined;
@@ -9814,11 +9517,9 @@ function typeIsStringOrNullish (type) {
     }
     return false;
 }
-// `recv['k']` on a receiver the declared-local table names a Dictionary: the checker proves
-// the element type, and the keys below are the ones whose every corpus write into the typed
-// row shapes is a string (census in the PR), so the local takes `string?` + `(string)`.
-// Everything else (numeric elements — JSON boxes Int64 OR double, literal writes Int32 —,
-// bool keys, other keys) keeps the local `object`.
+// `recv['k']` on a receiver the declared-local table names a Dictionary: for the keys below every
+// write into the typed row shapes is a string, so the local takes `string?` + `(string)`.
+// Numeric elements, bool keys and other keys keep the local `object`.
 const DICT_ELEMENT_STRING_KEYS_Typed = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type', 'code', 'r', 's', 'uppercaseId', 'referenceId' ];
 
 function checkerElementScalar (csharp, node) {
@@ -9887,54 +9588,20 @@ function elementAccessStringReadType (csharp, initializer) {
 // local can be declared `string?` with the `(string)` cast the printer does not emit — the
 // cast names that box (and null off a missing key / null receiver, exactly as today).
 //
-// Whole-section swaps are the only runtime rewrites of this map: the hand-written base
-// setSandboxMode assigns `urls['api'] = this.clone (urls['test'])`, binance/bybit swap
-// `urls['api'] = urls['demo' | 'demotrading']` in their own describe file — tree-wide census:
-// every write is of that shape (10 sites, no per-key write anywhere in ts/src). Each other
-// root property of the literal is therefore checked at the same suffix key path, and the
-// local stays `object` unless it is
-//   - an object literal whose suffix resolves to a string, null, or a key the literal does
-//     not spell (GetValue returns null -> `(string)null`), or
-//   - a scalar/string/null literal (a `logo` / `www` / `doc`-style section, a string 'test'):
-//     a key read off it throws `Convert.ToInt32` inside GetValue, hands back a one-char
-//     string or falls through to null — never a non-string box, and the throw happens inside
-//     the same call as today, before the added cast can run.
-// A sibling object section resolving to a dictionary / list / number / bool, a non-literal
-// section, and any chain key that is all digits (a numeric index into a list-shaped section
-// would hand back an arbitrary element) keep the local `object`.
+// Whole-section swaps (urls['api'] = urls['test' | 'demo' ...]) are the only runtime rewrites,
+// so every root section is checked at the same suffix path: the local is `string?` only if each
+// resolves to a string, null, a missing key, or a scalar section; anything else keeps `object`.
 //
-// Deliberately left `object` (census in the campaign report):
-//   - a dynamic key (`this.urls['api'][api]`): every sibling section's every value would have
-//     to agree, and the literal's keys are not the map's keys at runtime (setSandboxMode /
-//     binance write whole sections back)
-//   - a chain of length 1 (`this.urls['api']`, the section dictionary itself): every file that
-//     has one also has a list-valued section ('doc'), so a whole-section swap could put a
-//     List<object> box where the literal spells a dictionary
-//   - `this.options['key']` for every key EXCEPT the ones in OPTIONS_LITERAL_STRING_KEYS
-//     below: `options` is a ConcurrentDictionary the whole codebase assigns into
-//     (`this.options['chainId'] = 11155111` in ts/src/dydx.ts, `['requestId']` = Int64
-//     in the ws clients, `['tickerSubs']` = a safe dictionary, user config at construction),
-//     so a describe()-literal type says nothing about the box at the read
+// Deliberately left `object`: a dynamic key (section keys differ at runtime), a length-1 chain
+// (a swap can put a list where a dict is spelled), and this.options reads outside
+// OPTIONS_LITERAL_STRING_KEYS (options is assigned freely, so the literal proves nothing).
 //
-// ---- this.options reads with a per-key writer census (U05) -----------------------------
-// `const chainName = this.options['chainName']` prints `getValue(this.options, "chainName")`.
-// The key is the ONE options key whose whole-corpus writer census is a string on every path:
-//   - ts/src/dydx.ts describe(): options.chainName = 'dydx-mainnet-1' (a string literal);
-//   - ts/src/dydx.ts setSandboxMode(): this.options['chainName'] = 'dydx-testnet-4' (a string).
-// No other `options['chainName']` / `options[<literal>]` writer exists in ts/src (all
-// `this.options['<name>'] = ` sites censused), and the three DYNAMIC write shapes cannot
-// produce that key: `this.options[cacheKey] = cached` with cacheKey = 'tradeMarketsById'
-// (ts/src/prediction/opinion.ts), `this.options[marketType|type] = ...` with a market type
-// (ts/src/pro/binance.ts), and `this.options[helper] = sourceExchange.options[helper]` with
-// helper from a `marketHelperProps` list — the corpus defines exactly three such lists
-// (hyperliquid ['hip3TokensByName','cachedCurrenciesById'], kraken ['marketsByAltname',
-// 'delistedMarketsById'], pacifica []). The base C# has no other options write
-// (Exchange.Options.cs#initializeProperties: describe() + user config). Every value the key
-// can hold is therefore a string, so the read is `string?` behind the `(string)` cast —
-// null only when a file's literal does not spell the key, which the rule requires it to.
+// ---- this.options reads with a per-key writer proof ------------------------------------
+// `this.options['chainName']` is written only as string literals (describe and setSandboxMode),
+// and no dynamic options write can produce that key, so the read is `string?` behind `(string)`.
 const OPTIONS_LITERAL_STRING_KEYS = [ 'chainName' ];
 
-// `this.options['<census key>']` in a file whose own describe() literal spells that key as a
+// `this.options['<listed key>']` in a file whose own describe() literal spells that key as a
 // string. The receiver is the literal `this.options` property (never a copy).
 function optionsLiteralStringProducer (initializer) {
     if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
@@ -9959,11 +9626,9 @@ function optionsLiteralStringProducer (initializer) {
 // base.describe(). Cached per source file: one entry per file the classifier asks about.
 const describeOwnLiterals = new WeakMap ();
 
-// `return this.deepExtend (super.describe (), this.describeData ())`: the urls literal then lives
-// in a SIBLING method of the same file. Resolve it through a zero-argument `this.<name>()` call
-// when the file defines that method exactly once and its body returns an object literal — the
-// merge target is the same object the literal would have been, so the value census is unchanged.
-// A method defined more than once (or not returning a literal) keeps the local `object`.
+// `return this.deepExtend (super.describe (), this.describeData ())`: resolve the urls literal
+// through a zero-argument sibling method defined exactly once that returns an object literal
+// (same merged object); otherwise the local keeps `object`.
 function describeOwnLiteralMethodCall (sourceFile, expression) {
     if (expression?.kind !== ts.SyntaxKind.CallExpression
         || expression.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
@@ -10263,44 +9928,17 @@ function arraySliceCallIsProvenList (csharp, initializer) {
         && (type.objectFlags & ts.ObjectFlags.Reference) !== 0
         && type.getTarget ()?.getSymbol ()?.name === 'Array';
 }
-// ---- `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key,
-//      <literal>)` with a per-key writer census (U41) ---------------------------------------
-// `handleOption` (Exchange.BaseMethods.cs) resolves through handleOptionAndParams with an EMPTY
-// params dict, so no caller input can reach the value: it is `options[method][key]`, else
-// `options[method]['default'+Key]`, else `options[key]`, else `options['default'+Key]`, else the
-// call's own defaultValue — and `safeValue (this.options, key, default)` is that read at the
-// top-level path. The box is therefore the value some writer stored at one of those paths, or the
-// default literal, which is a type token the site already spells.
+// ---- `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key, <literal>)`
+// handleOption reads only options paths (empty params, so no caller input) or the default
+// literal, so the box is a value some writer stored at those paths or the default itself.
 //
-// Census (whole ts/src corpus, writers of the four lookup paths of every path in the table):
-//   bool   watchOrderBook/checksum (7 describe literals), watchPositions/fetchPositionsSnapshot
-//          (12), watchPositions/awaitPositionsSnapshot (12), watchPosition/fetchPositionSnapshot,
-//          watchPosition/awaitPositionSnapshot, watchBalance/fetchBalanceSnapshot (7),
-//          createOrder/quoteOrderQty (5), fetchMarkets/loadAllOptions (2),
-//          fetchMarkets/loadExpiredOptions, fetchMarkets/usePrivateInstrumentsInfo,
-//          createOrder/warnOnSTPForInverse, setMarginMode/throwMarginModeAlreadySet,
-//          transfer/fillResponseFromRequest (6), postActionRequest/builderFee (15 incl. the
-//          `this.options['builderFee'] = false` writes of aster/grvt/hyperliquid/lighter)
-//   string fetchMarkets|fetchBalance|fetchOrdersByStates|createOrder|cancelOrders/method (44
-//          describe literals), fetchOrderBook/precision, code (5), fetchMarketsMethod,
-//          fetchTickerMethod
-// Every writer is a literal of ONE kind (no `null`/`undefined`/expression writer), no writer
-// takes the value from user params (`params` / `parameters` / `omit` / `setOptions`), and the only
-// DYNAMIC `this.options[<expr>] =` shapes in ts/src cannot produce these keys: `options[cacheKey]
-// = cached` with cacheKey = 'tradeMarketsById' (ts/src/prediction/opinion.ts), `options[helper] =
-// sourceExchange.options[helper]` with helper from a `marketHelperProps` list (the corpus defines
-// exactly three such lists: hyperliquid / kraken / pacifica), `options[marketType|type] = this.extend
-// (options, {...})` in ts/src/pro/binance.ts (market-type names only). The hand-written C# base
-// writes options only from describe() and the user config (Exchange.Options.cs#initializeProperties
-// / extendExchangeOptions), and the only test-tree write of one of these keys is
-// `exchange.options['checksum'] = false` (ts/src/test/tests.ts#testMethod, the branch the C# driver
-// takes; cs/tests/Generated/TestMethods.cs carries the same bool write).
+// For every listed path, every writer of the four lookup paths is a literal of one kind
+// (bool or string), none comes from user params, and no dynamic options write can produce the
+// keys, so the declared kind names the box exactly.
 //
-// Rejected with that census: an `int` default (the C# literal boxes as Int32, so an Int64 cast
-// throws — 10 sites, mostly watchOrderBook/snapshotDelay), a default whose key has no writer or
-// disagreeing writers (pacifica defaultSlippage: hyperliquid writes a double at the same key), a
-// collection default (another family's box), and every no-default call (the absent value is a
-// null the site never spells).
+// Rejected: an `int` default (it boxes as Int32, so an Int64 cast throws), a default whose key has
+// no writer or disagreeing writers, a collection default (another family's box), and every
+// no-default call (the absent value is a null the site never spells).
 const OPTIONS_LITERAL_DEFAULT_CAST_KINDS = {
     // this.handleOption (method, key, <literal>)
     'cancelOrders/method': 'string',
@@ -10386,7 +10024,7 @@ function optionsLiteralDefaultParts (initializer) {
     return undefined;
 }
 
-// the default literal's kind as the census table spells it: `true`/`false` -> bool, a NON-EMPTY
+// the default literal's kind as the key table spells it: `true`/`false` -> bool, a NON-EMPTY
 // string literal -> string (the empty string is the "absent" value safeValueN skips)
 function optionsLiteralDefaultKind (node) {
     if (node?.kind === ts.SyntaxKind.TrueKeyword || node?.kind === ts.SyntaxKind.FalseKeyword) {
@@ -10398,8 +10036,8 @@ function optionsLiteralDefaultKind (node) {
     return undefined;
 }
 
-// the C# box of a call whose option key's whole-corpus writer census equals the site's own
-// default literal kind — named behind the exact cast back (the call's C# type is `object`)
+// the C# box of a call whose option key's writers all store the site's own default literal
+// kind, named behind the exact cast back (the call's C# type is `object`)
 function optionsLiteralDefaultCastType (initializer) {
     const parts = optionsLiteralDefaultParts (initializer);
     if (parts === undefined) {
@@ -10695,6 +10333,271 @@ function safeStringFamilyLocal (declaration) {
     return isThisCall && CSHARP_SAFE_STRING_METHODS_TYPED.has (callee.name?.text);
 }
 
+// ===== a venue method whose own body proves a non-null string =====
+//
+// `const messageType = this.getTypeByMarket (market)` prints `object messageType = …` and every
+// `messageType + 'x'` keeps `add (…)`: the TS return annotation is `Str`, so the printed C#
+// signature is `string?`. The BODY proves more than the signature — every `return` hands back a
+// string literal, and the only null return sits behind `if (<param> === undefined) return
+// undefined` — so at a site whose guard argument is a proven non-null reference (a
+// `this.market (…)` local, a dictionary parameter) that path cannot be taken and the call is a
+// non-null string. The declaration then names `string` with the identity `(string)` cast, which
+// is what lets its `+` reads print add(string, string) instead of the helper. Anything else
+// (a loose return shape, a statement this proof cannot follow, an argument whose type the
+// module cannot name) keeps the printer's `object`.
+const GUARDED_STRING_RETURN_CACHE = new WeakMap ();
+
+// the guard parameter names of a method whose every return is a non-null string literal except
+// the null/undefined returns under `if (<param> === undefined)`; undefined when the body has any
+// other shape (an assignment, a loop, a try, a computed return)
+function guardedStringReturnGuards (declaration) {
+    const body = declaration.body;
+    if (body?.kind !== ts.SyntaxKind.Block) {
+        return undefined;
+    }
+    const parameters = new Set ();
+    for (const parameter of (declaration.parameters ?? [])) {
+        if (parameter.name?.kind === ts.SyntaxKind.Identifier) {
+            parameters.add (parameter.name.text);
+        }
+    }
+    const returnsOf = (node) => {
+        const out = [];
+        const visit = (n) => {
+            if (n.kind === ts.SyntaxKind.ReturnStatement) {
+                out.push (n);
+                return;
+            }
+            if (ts.isFunctionLike (n)) {
+                return;
+            }
+            n.forEachChild (visit);
+        };
+        visit (node);
+        return out;
+    };
+    const isNullish = (node) => {
+        const value = stripParens (node);
+        return (value === undefined) || (value.kind === ts.SyntaxKind.NullKeyword)
+            || ((value.kind === ts.SyntaxKind.Identifier) && (value.text === 'undefined'));
+    };
+    const isLiteral = (node) => isStringLiteral (stripParens (node));
+    const guards = new Set ();
+    for (const statement of (body.statements ?? [])) {
+        if (statement.kind === ts.SyntaxKind.ReturnStatement) {
+            if (!isLiteral (statement.expression)) {
+                return undefined;
+            }
+            continue;
+        }
+        if (statement.kind !== ts.SyntaxKind.IfStatement) {
+            return undefined;
+        }
+        if (statement.elseStatement === undefined) {
+            // the null guard: `if (<param> === undefined) return undefined;`
+            const test = nullTestOf (statement.expression);
+            if ((test?.kind !== 'isNull') || (test.identifier === undefined) || !parameters.has (test.identifier.text)) {
+                return undefined;
+            }
+            const returned = returnsOf (statement.thenStatement);
+            if ((returned.length !== 1) || !isNullish (returned[0].expression)) {
+                return undefined;
+            }
+            guards.add (test.identifier.text);
+            continue;
+        }
+        // an if/else chain: every arm returns a string literal
+        const returned = [ ...returnsOf (statement.thenStatement), ...returnsOf (statement.elseStatement) ];
+        if ((returned.length === 0) || !returned.every ((arm) => isLiteral (arm.expression))) {
+            return undefined;
+        }
+    }
+    return (guards.size === 0) ? undefined : guards;
+}
+
+// the C# types whose spelling is a non-null reference: a value of one can never be the
+// undefined/null a guard tests for
+const NON_NULL_REFERENCE_ARGUMENT_TYPES = [
+    'string', 'Dictionary<string, object>', 'IDictionary<string, object>', 'List<object>', 'IList<object>',
+];
+
+// a value this module proves is never null: a call whose own printed return type has no `?`, a
+// constructor, a literal, a non-nullable `this.<member>` read. A conditional, a bare read, a
+// null/undefined literal and every unproven call are rejected (the guard could fire there).
+function nonNullReferenceValue (csharp, node) {
+    const value = stripParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    switch (value.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+    case ts.SyntaxKind.TrueKeyword:
+    case ts.SyntaxKind.FalseKeyword:
+        return 'literal';
+    case ts.SyntaxKind.NumericLiteral:
+        return 'literal';
+    case ts.SyntaxKind.NewExpression:
+    case ts.SyntaxKind.ObjectLiteralExpression:
+    case ts.SyntaxKind.ArrayLiteralExpression:
+        return 'literal';
+    case ts.SyntaxKind.CallExpression: {
+        const own = callReturnType (csharp, value);
+        return NON_NULL_REFERENCE_ARGUMENT_TYPES.includes (own) ? own : undefined;
+    }
+    case ts.SyntaxKind.PropertyAccessExpression: {
+        if (value.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        const member = CSHARP_LOCAL_THIS_MEMBER_TYPES[value.name?.text];
+        return NON_NULL_REFERENCE_ARGUMENT_TYPES.includes (member) ? member : undefined;
+    }
+    }
+    return undefined;
+}
+
+// a local read whose printed declaration IS a non-null reference type AND whose every write
+// stores a value this module proves non-null: the type spelling alone proves nothing (a
+// `IDictionary<string, object> x = null;` declaration carries the same spelling)
+function nonNullReferenceLocal (csharp, node) {
+    const declaration = (typeof csharp.csharpReceiverBinding === 'function') ? csharp.csharpReceiverBinding (node) : undefined;
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const type = localIdentifierType (csharp, node);
+    if (!NON_NULL_REFERENCE_ARGUMENT_TYPES.includes (type)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    if (declaration.initializer === undefined || nonNullReferenceValue (csharp, declaration.initializer) === undefined) {
+        return undefined;
+    }
+    for (const write of stringLocalWriteNodes (csharp, scope, declaration, node.text)) {
+        const parent = write.parent;
+        if ((parent?.operatorToken?.kind !== ts.SyntaxKind.EqualsToken) || (nonNullReferenceValue (csharp, parent.right) === undefined)) {
+            return undefined; // a compound write, or a value this proof cannot name
+        }
+    }
+    return type;
+}
+
+function nonNullReferenceArgument (csharp, argument) {
+    const value = stripParens (argument);
+    if (value?.kind === ts.SyntaxKind.Identifier) {
+        return nonNullReferenceLocal (csharp, value);
+    }
+    return nonNullReferenceValue (csharp, value);
+}
+
+// `this.<method>(…)` of the SAME class whose body proves a non-null string at this site
+function sameFileGuardedStringCall (csharp, node) {
+    const call = stripParens (node);
+    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = callee.name?.text;
+    const declaration = boundCollectionDeclaration (csharp, call, name);
+    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return false;
+    }
+    // the declaration must belong to the class the call is printed in
+    const owner = ts.findAncestor (declaration, (n) => ts.isClassLike (n));
+    const called = ts.findAncestor (call, (n) => ts.isClassLike (n));
+    if ((owner === undefined) || (owner !== called)) {
+        return false;
+    }
+    let guards = GUARDED_STRING_RETURN_CACHE.get (declaration);
+    if (!GUARDED_STRING_RETURN_CACHE.has (declaration)) {
+        guards = guardedStringReturnGuards (declaration);
+        GUARDED_STRING_RETURN_CACHE.set (declaration, guards);
+    }
+    if (guards === undefined) {
+        return nonNullLiteralLocalReturns (declaration);
+    }
+    const parameters = declaration.parameters ?? [];
+    for (const guarded of guards) {
+        const index = parameters.findIndex ((parameter) => parameter.name?.kind === ts.SyntaxKind.Identifier && parameter.name.text === guarded);
+        if (index < 0) {
+            return false;
+        }
+        const argument = call.arguments?.[index];
+        if ((argument === undefined) || (nonNullReferenceArgument (csharp, argument) === undefined)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// A method whose every `return` is a string literal or a `let/const` local that only ever holds
+// one: initialised with a literal / a read of a literal-valued object-literal const, and written
+// only (a) with a literal or (b) with a const element read under `if (x === 'a' || x === 'b')`.
+// Such a return is never null, so the call is a non-null string (getMarketTypeByUrl,
+// getAccountTypeFromSubscriptions).
+function nonNullLiteralLocalReturns (declaration) {
+    const body = declaration.body;
+    if (body?.kind !== ts.SyntaxKind.Block) {
+        return false;
+    }
+    const locals = new Map ();
+    const writes = [];
+    const returns = [];
+    const visit = (n) => {
+        if (ts.isFunctionLike (n) && n !== declaration) {
+            returns.push (undefined);
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier) {
+            locals.set (n.name.text, locals.has (n.name.text) ? null : n);
+        } else if (n.kind === ts.SyntaxKind.ReturnStatement) {
+            returns.push (n.expression);
+        } else if (n.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && n.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            writes.push (n);
+        }
+        n.forEachChild (visit);
+    };
+    visit (body);
+    const literalDict = (d) => {
+        const init = d?.initializer;
+        return init?.kind === ts.SyntaxKind.ObjectLiteralExpression && init.properties.length > 0
+            && init.properties.every ((p) => p.kind === ts.SyntaxKind.PropertyAssignment && isStringLiteral (stripParens (p.initializer)));
+    };
+    const holdsLiteral = (name) => {
+        const d = locals.get (name);
+        if (!d || d.parent?.declarations?.length !== 1 || !d.initializer) {
+            return false;
+        }
+        const init = stripParens (d.initializer);
+        const read = init.kind === ts.SyntaxKind.ElementAccessExpression && init.expression.kind === ts.SyntaxKind.Identifier
+            && locals.get (init.expression.text)?.parent?.flags & ts.NodeFlags.Const && literalDict (locals.get (init.expression.text));
+        if (!isStringLiteral (init) && !read) {
+            return false;
+        }
+        return writes.filter ((w) => w.left.kind === ts.SyntaxKind.Identifier && w.left.text === name).every ((w) => {
+            const v = stripParens (w.right);
+            if (isStringLiteral (v)) {
+                return true;
+            }
+            const guard = ts.findAncestor (w, (a) => a.kind === ts.SyntaxKind.IfStatement && ts.findAncestor (w, (c) => c === a.thenStatement) !== undefined);
+            const parts = [];
+            const flat = (c) => { c = stripParens (c); (c.kind === ts.SyntaxKind.BinaryExpression && c.operatorToken.kind === ts.SyntaxKind.BarBarToken) ? (flat (c.left), flat (c.right)) : parts.push (c); };
+            if (!guard || v.kind !== ts.SyntaxKind.Identifier || w.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !(locals.get (v.text)?.parent?.flags & ts.NodeFlags.Const)) {
+                return false;
+            }
+            flat (guard.expression);
+            return parts.every ((c) => c.kind === ts.SyntaxKind.BinaryExpression && c.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken
+                && c.left.kind === ts.SyntaxKind.Identifier && c.left.text === v.text && isStringLiteral (stripParens (c.right)));
+        });
+    };
+    return returns.length > 0 && returns.every ((r) => r !== undefined && (isStringLiteral (stripParens (r)) || (stripParens (r).kind === ts.SyntaxKind.Identifier && holdsLiteral (stripParens (r).text))));
+}
+
 function nonNullStringDefaultCall (csharp, node, context) {
     let initializer = node;
     while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
@@ -10726,14 +10629,12 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     // family joins; consulted for a collection annotation or a union the table cannot name
     // (the writes then decide the box); a scalar annotation keeps the printer's `object`
     const noInitAnnotation = annotationType (declaration);
-    // a PREDICTION-tier `let x: Num;` / `: Str;` / `: Int;` / `: Bool;` (no initialiser) prints
-    // `object x = null;`: the annotation names the box the later writes all store, and the retype
-    // scan below still rejects a write that box cannot hold (see the scalar-annotation arm in
-    // csharpLocalTypeOf). The crypto/pro trees keep the printer's `object` — their null-declared
-    // families belong to the units that own those tiers.
+    // a prediction-tier `let x: Num;` / `: Str;` / `: Int;` / `: Bool;` (no initialiser) prints `object x = null;`:
+    // the annotation names the box every later write stores, and the retype scan still rejects a write
+    // that box cannot hold. Crypto/pro trees keep `object` for their null-declared locals.
     const noInitScalar = noInitAnnotation !== undefined && !COLLECTION_LOCAL_TYPES.includes (noInitAnnotation) && isPredictionSource (declaration);
     if (declaration.initializer === undefined && !noInitScalar && !(declaration.type !== undefined
-            && (noInitAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitAnnotation) || u17FamilyName (declaration) !== undefined))) {
+            && (noInitAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitAnnotation) || nullInitFamilyName (declaration) !== undefined))) {
         return undefined;
     }
     if (classifyInProgress.has (declaration)) {
@@ -10741,7 +10642,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -10757,13 +10658,10 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
 // two-argument form). Naming the box moves no value, and the identity box goes with the
 // retype (stripObjectBox below).
 //
-// Census (ts/src): 2 sites (btse fetchTrades / fetchPositions). fetchTrades is rejected —
-// a later `rows = response` writes the local the method declares `object` (`let response:
-// NullableDict = undefined`), which can box a Dictionary — and fetchPositions is accepted
-// (its response IS the implicit API's List<object>). Every other `as any` in the tree
-// (pro-luno's safeString read, the prediction market/orderbook template values) is not a
-// safeList* call and keeps its `object`.
-const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN' ];
+// safeList* `as any` receiver copies: accepted only when no later write can store another box
+// (btse fetchPositions: the response is the implicit API's List<object>); other `as any` keeps `object`.
+// toArray (hand-written `IList<object> toArray (object)`, list or null) joins the family
+const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN', 'toArray' ];
 
 function asAnySafeListReceiverCopy (initializer) {
     if (initializer?.kind !== ts.SyntaxKind.AsExpression || initializer.type?.kind !== ts.SyntaxKind.AnyKeyword) {
@@ -10793,10 +10691,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     let cast;
     let castWhole;
     let joinedFallback;
-    // `object rows = this.safeList (response, 'data') as any;` — the receiver copy of a proven
-    // list producer (U03): see asAnySafeListReceiverCopy. The named type replaces the
-    // printer's own `((object)…)` box, so the wrapper drops that identity wrapper
-    // (stripObjectBox). Every later write is still checked by csharpLocalIsSafeToRetype.
+    // `object rows = this.safeList (response, 'data') as any;`: the receiver copy of a proven list
+    // producer (asAnySafeListReceiverCopy). The named type replaces the printer's `((object)…)` box
+    // (stripObjectBox); csharpLocalIsSafeToRetype still checks every later write.
     const asAnyReceiverCopy = asAnySafeListReceiverCopy (declaration.initializer);
     let stripObjectBox;
     if (csharpType === undefined && asAnyReceiverCopy !== undefined) {
@@ -10809,7 +10706,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // the prediction-tier funnel call (predictionFunnelCallType): the box its bound overload
     // returns; the later-write join and the retype scan below then apply as for any candidate
     const predictionFunnel = (csharpType === undefined) ? predictionFunnelCallType (csharp, declaration) : undefined;
-    // `const snapshot = await client.future (hash)` — the resolve-box census over the same file
+    // `const snapshot = await client.future (hash)`: the resolve-box scan over the same file
     // (one walk per site, shared by the arm below)
     const awaitedFutureBox = (csharpType === undefined) ? awaitedClientFutureBox (csharp, declaration.initializer) : undefined;
     let safeValueTwinShape;
@@ -10843,7 +10740,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         const typedListElement = (elementType === undefined) ? typedListElementReadType (csharp, declaration.initializer) : undefined;
         const tupleElement0 = (elementType === undefined && typedListElement === undefined) ? handleTupleElement0ReadType (csharp, declaration.initializer) : undefined;
         // `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key,
-        // <literal>)` whose option key's writer census is the default literal's own kind
+        // <literal>)` whose option key's writers all store the default literal's own kind
         const optionsDefaultType = optionsLiteralDefaultCastType (declaration.initializer);
         // `const x = Math.min (a, b)` / `Math.max (a, b)`: the helper hands back one of its
         // operands unchanged, so only a box-exact operand pair is nameable (mathMinMaxBoxType)
@@ -10898,19 +10795,18 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             cast = mathBox.cast;
         } else if (marketRowStringReadType (csharp, declaration.initializer) === 'string') {
             // `const symbol = market['symbol']`: the market row's value at the string keys is
-            // a string or null (census above), so the `(string)` cast names the box
+            // a string or null (key table above), so the `(string)` cast names the box
             csharpType = 'string?';
             cast = 'string';
         } else if (marketRowBoolReadType (csharp, declaration.initializer) === 'bool') {
-            // `const isSwap = market['swap']`: the row's value at the boolean keys is a bool or
-            // null (census: the key table), so the `(bool?)` cast names the box — the same
-            // null-exact unboxing Exchange.BaseMethods.cs#safeBool* prints
+            // `const isSwap = market['swap']`: the row's value at the boolean keys is a bool or null,
+            // so the `(bool?)` cast names the box: the same null-exact unboxing
+            // Exchange.BaseMethods.cs#safeBool* prints
             csharpType = 'bool?';
             cast = 'bool?';
         } else if (marketRowDictReadType (csharp, declaration.initializer) === 'dict') {
             // `const precision = market['precision']`: the row's value at the dict keys is the
-            // `new Dictionary<string, object>()` its only writers print (census: the key table),
-            // so the interface cast names that box
+            // `new Dictionary<string, object>()` its only writers print, so the interface cast names that box
             csharpType = 'IDictionary<string, object>';
             cast = 'IDictionary<string, object>';
         } else if (typedDictStringReadType (csharp, declaration.initializer) === 'string') {
@@ -10920,18 +10816,16 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             csharpType = 'string?';
             cast = 'string';
         } else if (plusChainStringBoxLeaf (csharp, declaration.initializer) !== undefined) {
-            // U19: `object url = add(add(<string box leaf>, "/"), path)` — the leaf's C# static
-            // type is object, so the printed chain is add(object, object) and only the cast can
-            // name the value the box already holds (family comment above). Nullable: a null leaf
-            // is the null the object overload returns; the scan below still re-checks every use.
+            // `object url = add(add(<string box leaf>, "/"), path)`: the leaf's static type is object, so only
+            // the cast can name the value the box already holds. Nullable: a null leaf is the null the object
+            // overload returns; the scan below still re-checks every use.
             const boxProof = plusChainStringBoxLeaf (csharp, declaration.initializer);
             csharpType = boxProof.type;
             cast = boxProof.cast;
         } else if (addChainStringBoxType (csharp, declaration, ctx) !== undefined) {
-            // `const symbol = base + '/' + quote` prints `add(add(bs, "/"), quote)` over
-            // string-box leaves (bs = safeCurrencyCode's string? box, a market-row read), so
-            // the chain's box is a string or null and the `(string)` cast names exactly that —
-            // U20's family, see addChainStringBoxType
+            // `const symbol = base + '/' + quote` prints `add(add(bs, "/"), quote)` over string-box leaves,
+            // so the chain's box is a string or null and the `(string)` cast names exactly that
+            // (see addChainStringBoxType)
             const chain = addChainStringBoxType (csharp, declaration, ctx);
             csharpType = chain.type;
             cast = chain.cast;
@@ -10959,15 +10853,14 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             csharpType = 'string?';
             cast = 'string';
         } else if (optionsLiteralStringProducer (declaration.initializer)) {
-            // `const x = this.options['chainName']`: the per-key writer census
-            // (OPTIONS_LITERAL_STRING_KEYS above) proves a string box on every path
+            // `const x = this.options['chainName']`: every writer of the key
+            // (OPTIONS_LITERAL_STRING_KEYS above) stores a string box
             csharpType = 'string?';
             cast = 'string';
         } else if (dictRowElementReadType (csharp, declaration) !== undefined) {
-            // `const rawOrder = orders[i]`: the checker proves the receiver's element type is a
-            // ccxt row shape, so the box is the decoded row dictionary and the declaration names
-            // it behind the same interface cast the safeValue-twin family emits (see the U06
-            // section of this file)
+            // `const rawOrder = orders[i]`: the checker proves the receiver's element type is a ccxt row shape,
+            // so the box is the decoded row dictionary, named behind the same interface cast the
+            // safeValue-twin family emits
             csharpType = 'IDictionary<string, object>';
             cast = 'IDictionary<string, object>';
         } else if (memberDictReadCastType (declaration.initializer) !== undefined) {
@@ -10985,8 +10878,8 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             cast = 'List<object>';
         } else if (optionsDefaultType !== undefined) {
             // `const method = this.handleOption ('fetchMarkets', 'method', 'publicGetCommonSymbols')`:
-            // the option key's whole-corpus writer census equals the site's own default literal kind
-            // (see the family comment above), so the value the call hands back already is that box
+            // the option key's writers all store the site's default literal kind (see the family comment
+            // above), so the value the call hands back already is that box
             csharpType = optionsDefaultType;
             cast = optionsDefaultType;
         } else if (clientsMapReadCastType (declaration.initializer) !== undefined) {
@@ -10999,8 +10892,8 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             csharpType = 'Future';
             cast = 'Future';
         } else if (wsCacheFieldReadType (declaration.initializer) !== undefined) {
-            // `const cache = this.positions`: the ws cache field read — the same file's own
-            // writers prove the ArrayCache box, so the cast names it (see the U45 section)
+            // `const cache = this.positions`: the ws cache field read; the same file's own
+            // writers prove the ArrayCache box, so the cast names it
             csharpType = WS_CACHE_FIELD_CAST;
             cast = WS_CACHE_FIELD_CAST;
         } else if (awaitedFutureBox !== undefined) {
@@ -11078,12 +10971,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
                 if (callCastType !== undefined) {
                     csharpType = callCastType;
                     cast = callCastType.endsWith ('?') ? callCastType.slice (0, -1) : callCastType;
-                    // U49: the Int64 counter definitions (requestId) get the typed signature from
-                    // the same per-definition proof (csharpMethodReturnType / sameFileCallBoxType),
-                    // so the call's own C# type IS the box and the cast back is an identity
-                    // conversion. The check must sit in THIS arm: callResultCastType answers
-                    // 'Int64' for exactly these sites, so a check in the else-branch below never
-                    // runs (it was dead code before U49).
+                    // Int64 counter definitions (requestId) get a typed signature from the same per-definition proof,
+                    // so the call's C# type IS the box and the cast back is an identity. Must sit in THIS arm:
+                    // callResultCastType answers 'Int64' for exactly these sites, so the else-branch never sees them.
                     if (typedRequestIdCall (declaration.initializer)) {
                         cast = undefined;
                     }
@@ -11106,10 +10996,17 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     const noInitGateAnnotation = annotationType (declaration);
     if (csharpType === undefined && declaration.initializer === undefined && declaration.type !== undefined
             && (noInitGateAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitGateAnnotation)
-                || u17FamilyName (declaration) !== undefined
+                || nullInitFamilyName (declaration) !== undefined
                 || (isPredictionSource (declaration) && noInitGateAnnotation !== undefined))) {
         // the prediction tier's scalar annotations reach the same join (see the guard above)
         csharpType = 'null';
+    }
+    // `let x: string = <required string param>`: the explicit annotation plus a proven
+    // non-null string param start the join at `string`; the retype scan checks every write
+    const stringParameterCopy = (csharpType === undefined && declaration.type?.kind === ts.SyntaxKind.StringKeyword
+        && declaration.initializer?.kind === ts.SyntaxKind.Identifier && printedStringParameter (csharp, declaration.initializer));
+    if (stringParameterCopy) {
+        csharpType = 'string';
     }
     // a safeString* call with a proven non-null string default is a proven non-null string
     // (nonNullStringDefaultCall), but it is NOT promoted to `string` here: the nullable
@@ -11123,6 +11020,11 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // annotation with every write along the box-identical edges before the scan.
             ? typeFromValueOrWrites (csharp, scope, declaration, sourceName, annotated, ctx, NULL_DECLARED_WIDENING_EDGES)
             : (annotated ?? typeFromValueOrWrites (csharp, scope, declaration, sourceName, 'null', ctx, NULL_DECLARED_WIDENING_EDGES));
+        // `const x = undefined` with no write whose only reads are dict-literal values
+        // holds null on every path: `string?` boxes the same null as the `object` declaration
+        if (csharpType === undefined && annotated === undefined && constNullDictValueOnly (csharp, scope, declaration, sourceName)) {
+            csharpType = 'string?';
+        }
         if (collectionAnnotation && csharpType === undefined) {
             // the annotation disagrees with EVERY later write (a stale `let response: Dict`
             // whose endpoints are all Endpoint<List>, gate#fetchFundingHistory): the writes are
@@ -11152,14 +11054,20 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         const cacheElementType = wsCacheMemberReadType (csharp, declaration.initializer) ?? wsCacheBucketReadType (csharp, declaration.initializer);
         const cacheMemberEdges = (csharpType === 'ccxt.pro.ArrayCache' && wsCacheMemberRead (declaration.initializer)) ? CACHE_MEMBER_WIDENING_EDGES
             : (cacheElementType !== undefined && cacheElementType !== 'IDictionary<string, object>') ? cacheElementWideningEdges (cacheElementType) : undefined;
-        // a read of the ws orderbook map (this.safeOrderBook -> ccxt.pro.IOrderBook): the
-        // later writes store the concrete orderbook constructor, which needs the
-        // implementation -> interface edge to join (see ORDERBOOK_WIDENING_EDGES)
-        // (U45, same declaration: this.orderBook() / indexedOrderBook() / countedOrderBook() writes)
+        // a read of the ws orderbook map (this.safeOrderBook -> ccxt.pro.IOrderBook): later writes store
+        // a concrete orderbook (this.orderBook() / indexedOrderBook() / countedOrderBook()), which needs
+        // the implementation -> interface edge to join (see ORDERBOOK_WIDENING_EDGES)
         const orderbookEdges = (csharpType === 'ccxt.pro.IOrderBook') ? ORDERBOOK_WIDENING_EDGES : undefined;
         // join the initializer with every later write, widening only along box-identical edges
-        const dictionaryLiteral = declaration.initializer?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+        // (e.g. `let account: Dict = this.account ()` (base Dictionary) later stores a safeDict IDictionary)
+        const dictionaryLiteral = declaration.initializer?.kind === ts.SyntaxKind.ObjectLiteralExpression
+            || (csharpType === 'Dictionary<string, object>' && declaration.initializer?.kind === ts.SyntaxKind.CallExpression
+                && declaration.initializer.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && declaration.initializer.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && declaration.initializer.expression.name?.text === 'account');
         csharpType = typeFromValueOrWrites (csharp, scope, declaration, sourceName, csharpType, ctx, copyEdges ?? cacheMemberEdges ?? orderbookEdges ?? (dictionaryLiteral ? DICTIONARY_LITERAL_WIDENING_EDGES : undefined));
+    }
+    if (stringParameterCopy && csharpType !== 'string') {
+        return undefined; // a nullable write joined in: keep the printer's own spelling
     }
     if (csharpType === undefined || csharpType === csharp.VAR_TOKEN) {
         return undefined;
@@ -11181,10 +11089,33 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         csharpType = 'IList<object>';
         safe = true;
     }
+    // a sign/fetch2/request path element takes the identity `(string)` cast too, so its `+` reads bind add(string, *)
+    if (!safe && csharpType === 'string?' && signApiElementInitializer (csharp, declaration.initializer)
+        && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
+        safe = true;
+    }
+    // `const key = keys[i]` over `keys = Object.keys (x)` / `.split (...)` inside the bounding
+    // `for (i < keys.length)`: every element is a non-null string, so the declaration is `string` behind
+    // the identity `(string)` cast and its `+` reads bind add(string, *) (tried only after `string?` fails)
+    if (!safe && csharpType === 'string?' && boundedKeysElementInitializer (csharp, declaration.initializer)
+        && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
+        safe = true;
+    }
     // `object x = this.safeString (obj, key, <default>)`: the proven non-null string default
     // (nonNullStringDefaultCall) lets the scan accept the non-null spelling with its identity
     // `(string)` cast — retried only after `string?` was rejected, never in the prediction tree
     if (!safe && csharpType === 'string?' && nonNullStringDefaultCall (csharp, declaration.initializer, ctx) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
+        safe = true;
+    }
+    // `this.handleOptionStringAndParams (p, m, k, '<literal>')[0]`: checkOptionString hands back the
+    // option string or the literal default, never null — retried only after `string?` was rejected
+    if (!safe && csharpType === 'string?' && tupleElement0LiteralDefault (declaration.initializer) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
         csharpType = 'string';
         cast = 'string';
         safe = true;
@@ -11194,6 +11125,15 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // (see nonNullStringValue)
     if (!safe && csharpType === 'string?' && nonNullStringValue (csharp, declaration, declaration.initializer, 0) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
         csharpType = 'string';
+        safe = true;
+    }
+    // a `this.<venue method> (…)` whose body proves a non-null string when its guard argument is
+    // non-null (sameFileGuardedStringCall): the printed signature is `string?`, so the non-null
+    // spelling takes the identity `(string)` cast — the box does not move, and its `+` reads
+    // print add(string, string)
+    if (!safe && csharpType === 'string?' && sameFileGuardedStringCall (csharp, declaration.initializer) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+        csharpType = 'string';
+        cast = 'string';
         safe = true;
     }
     // the safeValue-twin box is only named when no use of the local treats it as the other
@@ -11239,32 +11179,9 @@ export const DESTRUCTURED_DICT_HELPERS = [
     'createContractOrderRequest',
 ];
 
-// Tuple-returning helpers whose element 0 is provably a string (or null) on EVERY return
-// path — the string twin of DESTRUCTURED_DICT_HELPERS above, and the same mechanism: the
-// printer emits the element load (`<target> = <tmp>[0]` on a typed holder, `((IList<object>)<tmp>)[0]`
-// on an untyped one), installDestructuredCasts rewrites that element load with the `(string)` cast back to the proven type, and only then can a
-// null-initialised declaration (`let marketType: Str = undefined`) be `string?`.
-//   handleMarketTypeAndParams   [string, Dict]: the two paths the file header calls out are
-//     both closed — the `defaultValue: any` argument is gated per call site (a present one
-//     must be a string literal or `undefined`), and `getValue (market, 'type')` is backed by
-//     a census of every market-row 'type' writer in the generated tree (118 entries: 68
-//     string literals, 5 string-literal ternaries, 45 locals whose every write in the method
-//     is a string literal / safeString* / string-literal ternary — no non-string writer).
-//     The remaining five paths are safeString2 / the `typeof … === 'string'` branch / a
-//     string literal default, i.e. strings.
-//   handleNetworkCodeAndParams  [safeString2 (params, 'networkCode', 'network'), params]
-//   handleProductTypeAndParams  bitget — safeString2 + string literals only (throws before
-//     the return when every branch left it undefined)
-//   handleParamString / handleParamString2  [safeString|safeString2 (params, ..., defaultValue), ...]
-//   getMarginMode               gate — safeStringLower2 + string literals only
-//   handleOriginAndSingleAddress  pacifica — [safeString2 (params, 'account', 'address'), params]
-//     or [this.walletAddress, params] (a `string` property on the hand-written base); dydx's
-//     same-named helper is NOT listed: its element 0 comes from handleOptionAndParams
-// `defaultValueArg` is the 1-based position of an argument the helper can hand back as
-// element 0 whose TS type is not a string (handleMarketTypeAndParams's `any`) — a present
-// argument there must be a string literal, `undefined`, the target itself, or an expression
-// whose own proven C# type is string / string? (see destructuredStringElementProof), or the
-// call keeps `object`. 0 = no such argument.
+// Tuple helpers whose element 0 is a string (or null) on EVERY return path: installDestructuredCasts adds the
+// `(string)` cast to the element load, so a null-initialised target can be `string?`. `defaultValueArg` = 1-based
+// position of a non-string-typed argument that can reach element 0 (must be a proven string there; 0 = none).
 export const DESTRUCTURED_STRING_HELPERS = {
     'handleMarketTypeAndParams': 4,
     'handleSubTypeAndParams': 4,
@@ -11278,13 +11195,9 @@ export const DESTRUCTURED_STRING_HELPERS = {
     'handleMarginModeAndParams': 0,
     'getMarginMode': 0,
     'handleOriginAndSingleAddress': 0,
-    // cs90 U13 — venue helpers whose element 0 is one of the audited boxes above:
-    //   getBybitType (bybit)    [type, params] from handleMarketTypeAndParams, or
-    //     [subType, params] from handleSubTypeAndParams — the slot holds that local on
-    //     every return path (the 'option'/'spot' guard only picks which of the two)
-    //   resolveAuthType (pro/binance)  element 0 is `type` from handleMarketTypeAndParams,
-    //     kept for option/stock or rewritten to the 'future' / 'delivery' literals; its
-    //     element 1 is the same `subType` handleSubTypeAndParams boxed (see the slot table)
+    // venue helpers whose element 0 is one of the boxes above: getBybitType (bybit) returns the
+    // handleMarketTypeAndParams / handleSubTypeAndParams local; resolveAuthType (pro/binance) returns
+    // that `type` or the 'future' / 'delivery' literals, element 1 the handleSubTypeAndParams `subType`
     'getBybitType': 0,
     'resolveAuthType': 0,
 };
@@ -11344,8 +11257,7 @@ function isUndefinedLiteral (node) {
 }
 
 // `let x = false` / `= 0` / `= ''` (also a negated numeric literal): a declaration whose own
-// C# box is the literal's (bool / int / Int64 / double / string). This is the literal-init
-// shard of the destructuring family — the null-init declarations above are another unit's.
+// C# box is the literal's (bool / int / Int64 / double / string): the literal-init destructuring shard.
 function isLiteralInit (declaration) {
     const init = declaration?.initializer;
     if (init === undefined) {
@@ -11484,22 +11396,9 @@ function declarationProvesStringElement0 (csharp, declaration) {
     return proven && returns > 0;
 }
 
-// element 0 of `[ value, params ] = this.helper (...)` for the helpers whose generated C#
-// body boxes a CONCRETELY-TYPED local in that slot on EVERY return path (read off
-// Exchange.BaseMethods.cs and kucoin#handleHfAndParams, never off the TS annotation):
-// handleParamString/2 + handleNetworkCodeAndParams + handleTriggerDirectionAndParams box a
-// `string?` local, handleParamBool/2 + handleHfAndParams a `bool?` local, handleParamInteger/2
-// an `Int64?` local, handlePostOnly a bool LITERAL. The value is the helper's own local (or
-// literal), so the cast names the box that already exists; nothing else can reach the slot.
-// Slot 1 is NOT provable for the same helpers: on every path it holds the CALLER's own
-// `parameters` argument, and omit(object,object) / SafeValueN hand an `IList<object>` back
-// unchanged, so an `object query = null` target keeps `object` (cs90/U15 census).
-// U16 (lighter only, the two names below): slot 0 is `this.parseToInt (x)` on the single
-// return path of each definition (`return new List<object> {this.parseToInt (x), parameters}`),
-// and Exchange.BaseMethods.cs#parseToInt is declared `Int64?` — the slot holds a boxed Int64
-// or null, nothing else. The `(Int64?)` read cast names that box; `let x: Int = undefined`
-// targets keep the null-init join's rule (the write join is not consulted for a scalar
-// annotation), so an extra unprovable write of the name still rejects the declaration.
+// element 0 of `[ value, params ] = this.helper (...)` for helpers whose generated C# body boxes a concretely
+// typed local (or literal) in that slot on EVERY path, so the cast names the existing box. Slot 1 is the caller's
+// own `parameters` (possibly an IList), so it keeps `object`; parseToInt pairs hold Int64? (`(Int64?)` cast).
 export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handleParamString': 'string?',
     'handleParamString2': 'string?',
@@ -11527,20 +11426,17 @@ export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handleApiKeyIndex': 'Int64?',
 };
 
-// ===== U14: bool option locals (`object paginate = false`, `object uta = null`, ...) =====
+// ===== bool option locals (`object paginate = false`, `object uta = null`, ...) =====
 //
-// The locals this shard owns (name fence: sibling units never fire on the same declaration).
+// The locals this shard owns (name fence: sibling families never fire on the same declaration).
 export const BOOL_OPTION_LOCALS = [
     'isPortfolioMargin', 'uta', 'paginate', 'returnRateLimits', 'usePrivate',
     'isUnifiedAccount', 'isTrigger', 'createMarketBuyOrderRequiresPrice',
 ];
 
-// The [value, params] helpers whose element 0 is a BOOLEAN OPTION value resolved from params /
-// this.options / the default argument, and the 1-based position of that default argument. The
-// option keys they read (paginate, uta, unifiedAccount, portfolioMargin/papi, returnRateLimits,
-// usePrivate) are documented booleans and every in-corpus writer of them is a bool literal /
-// safeBool result (REPORT.md census), so the slot holds a boxed bool or null — the same box the
-// hand-written safeBool* family names. The default argument is the per-call-site gate.
+// [value, params] helpers whose element 0 is a BOOLEAN option (params / this.options / default arg), and the
+// 1-based position of that default. Every writer of those keys stores a bool literal / safeBool result, so
+// the slot holds a boxed bool or null, as safeBool* names it; the default argument is gated per call site.
 export const BOOL_OPTION_HELPERS = {
     'handleOptionAndParams': 4,
     'handleOptionAndParams2': 5,
@@ -11617,13 +11513,9 @@ function destructuredBoolElementProof (csharp, scope, index, declaration, idNode
     }
     return boolOptionElementProof (declaration, idNode, assignment, name);
 }
-// S28 (+ cs90 U13): element 0 of `[ value, params ] = this.helper (...)` for a LITERAL-initialised
-// target. The helper's own generated C# body boxes a concretely-typed local in slot 0 on every path
-// (DESTRUCTURED_ELEMENT0_TYPES), or the audited string box (DESTRUCTURED_STRING_HELPERS, whose
-// SafeString subset is SAFE_STRING_ELEMENT0_HELPERS), so the injected `(T)` unboxing cast names
-// exactly that box: a literal `false` / `'x'` initialiser keeps its box through the box-identical
-// T -> T? edge (a Nullable<bool> holding a value boxes as the bool), and the join below still
-// rejects every non-box-identical element type.
+// element 0 of `[ value, params ] = this.helper (...)` for a LITERAL-initialised target: the helper boxes
+// a concretely-typed local or the proven string in slot 0, so the `(T)` cast names that box; a literal
+// initialiser keeps it through the box-identical T -> T? edge, and the join rejects any other type.
 function literalInitElement0Type (csharp, declaration, idNode, assignment, name, context) {
     if (!isLiteralInit (declaration) || idNode.parent?.elements?.[0] !== idNode) {
         return undefined;
@@ -11750,13 +11642,9 @@ export function recordDestructuredWriteType (scope, printedName, csharpType, isU
 
 // is `[ ..., x, ... ] = this.helper (...)` a write the cast makes type-correct?
 function destructuredWriteIsCastable (csharp, scope, index, declaration, idNode, assignment, csharpType, context) {
-    // U16: `[ x, params ] = await this.helper (...)` prints the same element reads (`var tmp =
-    // await ...; x = tmp[0];`), so the awaited pair is the same tuple the proof below names.
-    // Every audited helper but handleAccountIndex / handleApiKeyIndex is sync, so no
-    // sync-helper site can newly fire through this unwrap.
-    // U14 bool shard: the awaited venue helper (`[ uta, params ] = await this.handleUTAAndParams
-    // (...)`) is the same destructuring write — every other family keeps the printer's shape.
-    // (0 parenthesized awaited destructuring helpers in the corpus: the two unwraps coincide.)
+    // `[ x, params ] = await this.helper (...)` prints the same element reads (`var tmp = await ...;
+    // x = tmp[0];`), so the awaited pair is the same tuple the proof below names (e.g. handleUTAAndParams);
+    // only handleAccountIndex / handleApiKeyIndex among the proven helpers are async.
     let right = unwrapOptionCall (assignment.right);
     // `[ request, params ] = spot ? this.multiOrderSpotPrepareRequest (...) : this.prepareRequest (...)`
     // prints the same holder and the same element read as a single call, and element 0 of BOTH
@@ -11995,30 +11883,29 @@ function installDestructuredCasts (csharp) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// cs90 U17 — the null-init string/numeric locals of the roster's name lists plus the two write
-// shapes the join cannot name (`symbol = market['symbol']`, `typeof x === 'string'` copies) and
-// the no-initialiser scalar-annotation shard. Keyed on the declaration's own NAME throughout.
-const U17_STRING_NAMES = new Set ([ 'symbol', 'url', 'channel', 'channelName', 'id', 'tag', 'settle', 'settleId', 'timeInForce' ]);
-const U17_NUMERIC_NAMES = new Set ([ 'until', 'timestamp', 'since', 'limit' ]);
+// null-init string/numeric locals keyed on the declaration NAME, plus the write shapes the join cannot name
+// (`symbol = market['symbol']`, `typeof x === 'string'` copies) and the no-initialiser scalar annotations.
+const NULL_INIT_STRING_LOCAL_NAMES = new Set ([ 'symbol', 'url', 'channel', 'channelName', 'id', 'tag', 'settle', 'settleId', 'timeInForce' ]);
+const NULL_INIT_NUMERIC_LOCAL_NAMES = new Set ([ 'until', 'timestamp', 'since', 'limit' ]);
 
-// the U17 family name of a declaration, or undefined (`marketType` is U13's, `currency`/`base`/
-// `quote`/`bs` are U18's: the roster's name split is what keeps the units apart)
-function u17FamilyName (declaration) {
+// the name-keyed string/numeric family of a declaration, or undefined (`marketType`, `currency`, `base`,
+// `quote`, `bs` belong to other families, so the name lists keep them apart)
+function nullInitFamilyName (declaration) {
     const name = declaration?.name?.text;
     if (typeof name !== 'string') {
         return undefined;
     }
-    return (U17_STRING_NAMES.has (name) || U17_NUMERIC_NAMES.has (name)) ? name : undefined;
+    return (NULL_INIT_STRING_LOCAL_NAMES.has (name) || NULL_INIT_NUMERIC_LOCAL_NAMES.has (name)) ? name : undefined;
 }
 
-function isU17NullInitString (declaration) {
-    return u17FamilyName (declaration) !== undefined && U17_STRING_NAMES.has (declaration.name.text) && isNullInit (declaration);
+function isNullInitFamilyString (declaration) {
+    return nullInitFamilyName (declaration) !== undefined && NULL_INIT_STRING_LOCAL_NAMES.has (declaration.name.text) && isNullInit (declaration);
 }
 
 // `x = market['symbol']` as a write: the audited key table (MARKET_ROW_STRING_KEYS) plus the
 // same proven-row receiver scan the declaration shard uses — the box is that string or nothing.
-function u17RowReadWriteType (csharp, declaration, node) {
-    if (!isU17NullInitString (declaration)) {
+function rowReadWriteType (csharp, declaration, node) {
+    if (!isNullInitFamilyString (declaration)) {
         return undefined;
     }
     return (marketRowStringReadType (csharp, node) === 'string') ? 'string' : undefined;
@@ -12027,7 +11914,7 @@ function u17RowReadWriteType (csharp, declaration, node) {
 // `typeof x === 'string'` prints `(x is string)`, so a copy inside that branch assigns that very
 // string box; C# does not narrow the CONVERSION (CS0266), so the write takes the identity
 // `(string)` cast — the guard on the same identifier is what makes it safe.
-function u17TypeofStringGuardName (condition) {
+function typeofStringGuardName (condition) {
     if (condition?.kind !== ts.SyntaxKind.BinaryExpression) {
         return undefined;
     }
@@ -12043,12 +11930,12 @@ function u17TypeofStringGuardName (condition) {
 }
 
 // the identifier a `typeof <id> === 'string'` then-branch narrows, or undefined
-function u17NarrowedCopyNodeName (node) {
+function narrowedCopyNodeName (node) {
     let current = node?.parent;
     while (current !== undefined && current.kind !== ts.SyntaxKind.FunctionLikeDeclaration) {
         if (current.kind === ts.SyntaxKind.IfStatement && current.thenStatement !== undefined
                 && current.thenStatement.getStart () <= node.getStart () && node.getEnd () <= current.thenStatement.getEnd ()) {
-            const name = u17TypeofStringGuardName (current.expression);
+            const name = typeofStringGuardName (current.expression);
             if (name !== undefined) {
                 return name;
             }
@@ -12058,38 +11945,38 @@ function u17NarrowedCopyNodeName (node) {
     return undefined;
 }
 
-function u17NarrowedCopyWriteType (declaration, node) {
-    if (!isU17NullInitString (declaration) || node?.kind !== ts.SyntaxKind.Identifier) {
+function narrowedCopyWriteType (declaration, node) {
+    if (!isNullInitFamilyString (declaration) || node?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
     }
-    return (u17NarrowedCopyNodeName (node) === node.text) ? 'string' : undefined;
+    return (narrowedCopyNodeName (node) === node.text) ? 'string' : undefined;
 }
 
 // the two write shapes this family proves on top of csharpTypeOfValue (see the two comments)
-function u17WriteValueType (csharp, declaration, node) {
-    return u17RowReadWriteType (csharp, declaration, node) ?? u17NarrowedCopyWriteType (declaration, node);
+function nullInitWriteValueType (csharp, declaration, node) {
+    return rowReadWriteType (csharp, declaration, node) ?? narrowedCopyWriteType (declaration, node);
 }
 
-// the write-time record of a retyped U17 local (`scope -> Map<printed name, declaration>`), read
+// the write-time record of a retyped name-keyed local (`scope -> Map<printed name, declaration>`), read
 // by the cast below; the declaration NODE keeps a shadowed same-name binding from taking the cast.
-const u17RowReadWriteTargets = new WeakMap ();
+const rowReadWriteTargets = new WeakMap ();
 
-function recordU17RowReadWriteTarget (scope, printedName, csharpType, declaration) {
-    if (scope === undefined || csharpType !== 'string?' || !isU17NullInitString (declaration)) {
+function recordRowReadWriteTarget (scope, printedName, csharpType, declaration) {
+    if (scope === undefined || csharpType !== 'string?' || !isNullInitFamilyString (declaration)) {
         return;
     }
-    let targets = u17RowReadWriteTargets.get (scope);
+    let targets = rowReadWriteTargets.get (scope);
     if (targets === undefined) {
         targets = new Map ();
-        u17RowReadWriteTargets.set (scope, targets);
+        rowReadWriteTargets.set (scope, targets);
     }
     targets.set (printedName, declaration);
 }
 
-// the RHS of a write into a U17 local this module already declared `string?` whose printed value
-// is object: the proven market-row read or the `(x is string)`-guarded copy — the cast names the
-// box the guard / key census proves, so it cannot throw where the untyped line did not.
-function u17WriteNeedsCast (csharp, node) {
+// the RHS of a write into a name-keyed local this module declared `string?` whose printed value is
+// object: the proven market-row read or the `(x is string)`-guarded copy; the cast names the box the
+// guard / key table proves, so it cannot throw where the untyped line did not.
+function rowReadWriteNeedsCast (csharp, node) {
     if (node?.kind !== ts.SyntaxKind.ElementAccessExpression && node?.kind !== ts.SyntaxKind.Identifier) {
         return false;
     }
@@ -12102,7 +11989,7 @@ function u17WriteNeedsCast (csharp, node) {
         return false;
     }
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
-    const targets = u17RowReadWriteTargets.get (scope);
+    const targets = rowReadWriteTargets.get (scope);
     const declaration = (targets === undefined) ? undefined : targets.get (target.text);
     if (declaration === undefined || resolveReference (csharp, target) !== declaration) {
         return false;
@@ -12110,19 +11997,19 @@ function u17WriteNeedsCast (csharp, node) {
     if (node.kind === ts.SyntaxKind.ElementAccessExpression) {
         return marketRowStringReadType (csharp, node) === 'string';
     }
-    return u17NarrowedCopyNodeName (node) === node.text;
+    return narrowedCopyNodeName (node) === node.text;
 }
 
 // cast-back for the two shapes above, chained on top of every other printElementAccessExpression /
 // printIdentifier override (nothing else is touched). Idempotent.
-function installU17RowReadWriteCasts (csharp) {
-    if (typeof csharp.printElementAccessExpression !== 'function' || csharp._u17RowReadCastsPatched) {
+function installNullInitRowReadWriteCasts (csharp) {
+    if (typeof csharp.printElementAccessExpression !== 'function' || csharp._nullInitRowReadCastsPatched) {
         return;
     }
     const upstreamElement = csharp.printElementAccessExpression.bind (csharp);
     csharp.printElementAccessExpression = (node, identation) => {
         const printed = upstreamElement (node, identation);
-        if (typeof printed !== 'string' || !u17WriteNeedsCast (csharp, node)) {
+        if (typeof printed !== 'string' || !rowReadWriteNeedsCast (csharp, node)) {
             return printed;
         }
         return '((string)' + printed + ')';
@@ -12131,33 +12018,18 @@ function installU17RowReadWriteCasts (csharp) {
         const upstreamIdentifier = csharp.printIdentifier.bind (csharp);
         csharp.printIdentifier = (node) => {
             const printed = upstreamIdentifier (node);
-            if (typeof printed !== 'string' || !u17WriteNeedsCast (csharp, node)) {
+            if (typeof printed !== 'string' || !rowReadWriteNeedsCast (csharp, node)) {
                 return printed;
             }
             return '((string)' + printed + ')';
         };
     }
-    csharp._u17RowReadCastsPatched = true;
+    csharp._nullInitRowReadCastsPatched = true;
 }
 
-// ---------------------------------------------------------------------------------------------
-// A `(string)IDENT` cast the printer wraps around a BARE IDENTIFIER in one of the three
-// positions below is an identity cast once the emitted declaration of that identifier already
-// is `string`: referenceDeclaredType() names the declaration's final C# type (this module's
-// own decision first, the printer's for the shapes it types itself), so the cast's target
-// equals the static type it is applied to. The three positions are the only ones where the
-// printer wraps the operand unconditionally:
-//   `throw new E ((string)x)`      — ast-transpiler printThrowStatement (message argument)
-//   `...Remove((string)k)`         — ast-transpiler printDeleteExpression (a `delete x[k]` key)
-//   `((IDictionary<string,object>)x)[(string)k] = v` — the dictionary indexer write key
-// The indexer rule keeps the key cast whenever the receiver is itself a typed dict local: that
-// receiver cast is S21/S22's family and comes off the SAME line, so the key cast stays with it
-// and one line is only ever rewritten by one unit.
-// Every other spelling keeps its cast: `string?` / `object` locals (the cast is then the only
-// thing naming a non-nullable string, or the only thing that compiles), a parameter, an
-// element read, `x as string` and a non-identifier operand (those are S09/S10's families, or
-// the value itself is not proven). Census on the base tree (campaigns/cs-strict/tools/S05/):
-// 139 throw arguments, 127 `.Remove` keys, 1082 indexer-write keys.
+// A `(string)IDENT` cast the printer always adds (throw message, `.Remove` key, dict indexer-write key) is an
+// identity once referenceDeclaredType() says IDENT is `string`. Kept on a typed-dict receiver line (that cast's
+// family owns the line) and for string?/object locals, params, element reads, `as string`, non-identifiers.
 function referenceDeclaredCSharpType (csharp, node) {
     if (node?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
@@ -12255,8 +12127,8 @@ function installProvenStringCastDrops (csharp) {
             if (typeof printed !== 'string' || !printed.includes ('[(string)')) {
                 return printed;
             }
-            // the receiver's own cast on this line is S21/S22's family — a typed dict receiver
-            // keeps both casts so the line stays theirs alone
+            // the receiver's own cast on this line belongs to the typed-dict family: a typed dict receiver
+            // keeps both casts so only that family rewrites the line
             const receiver = referenceDeclaredCSharpType (csharp, node?.expression);
             if (receiver === 'Dictionary<string, object>' || receiver === 'IDictionary<string, object>') {
                 return printed;
@@ -12298,6 +12170,44 @@ function safeHelperLocalInitializer (node) {
     return SAFE_HELPER_LOCAL_METHODS.has (callee.name?.text);
 }
 
+// A member of a safeNumber swap ring (`let a = this.safeNumber (..); let b = this.safeNumber (..);
+// const t = a; a = b; b = t`): the initialiser is a safeNumber call or a copy of one, and EVERY plain
+// write of the name stores another ring member, so the whole ring is one double? box.
+function safeNumberSwapMember (declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const decls = new Map ();
+    const writes = [];
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.name?.kind === ts.SyntaxKind.Identifier) {
+            decls.set (n.name.text, (decls.has (n.name.text)) ? null : n);
+        }
+        if (n.kind === ts.SyntaxKind.BinaryExpression && ASSIGNMENT_OPERATORS.includes (n.operatorToken.kind) && n.left.kind === ts.SyntaxKind.Identifier) {
+            writes.push (n);
+        }
+        n.forEachChild (visit);
+    };
+    visit (scope);
+    const isSafeNumber = (d) => d && safeHelperLocalInitializer (d.initializer) && d.initializer.expression.name?.text === 'safeNumber';
+    const member = (name, depth) => {
+        const d = decls.get (name);
+        if (!d || depth > 2 || (d.parent?.declarations?.length !== 1)) {
+            return false;
+        }
+        if (isSafeNumber (d)) {
+            return true;
+        }
+        return d.initializer?.kind === ts.SyntaxKind.Identifier && isSafeNumber (decls.get (d.initializer.text));
+    };
+    if (!member (declaration.name.text, 0)) {
+        return false;
+    }
+    return writes.filter ((w) => w.left.text === declaration.name.text)
+        .every ((w) => w.operatorToken.kind === ts.SyntaxKind.EqualsToken && w.right.kind === ts.SyntaxKind.Identifier && member (w.right.text, 0));
+}
+
 // the declaration whose later write is being resolved right now, with the type a read of it
 // will have once the declaration is retyped (see selfReadWriteType)
 const selfReadStack = [];
@@ -12319,6 +12229,28 @@ function selfReadWriteType (csharp, context, declaration, runningType, node) {
     } finally {
         selfReadStack.pop ();
     }
+}
+
+function constNullDictValueOnly (csharp, scope, declaration, varName) {
+    const init = declaration.initializer;
+    if (scope === undefined || init === undefined || declaration.type !== undefined || (declaration.parent?.flags & ts.NodeFlags.Const) === 0
+        || !(init.kind === ts.SyntaxKind.NullKeyword || (init.kind === ts.SyntaxKind.Identifier && init.text === 'undefined'))) {
+        return false;
+    }
+    let reads = 0;
+    for (const n of (indexScope (csharp, scope).identifiers.get (varName) ?? [])) {
+        if (n === declaration.name) {
+            continue;
+        }
+        const parent = n.parent;
+        const isDictValue = parent?.kind === ts.SyntaxKind.PropertyAssignment && parent.initializer === n && parent.parent?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+        const isShorthand = parent?.kind === ts.SyntaxKind.ShorthandPropertyAssignment && parent.name === n && parent.parent?.kind === ts.SyntaxKind.ObjectLiteralExpression;
+        if (!isDictValue && !isShorthand) {
+            return false;
+        }
+        reads++;
+    }
+    return reads > 0;
 }
 
 // the declared type from the initializer (`initial` — a proven type, or 'null' for a
@@ -12368,10 +12300,9 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
                     elementType = literalInitElement0Type (csharp, declaration, n, parent.parent, destructuredName, context);
                 }
                 if (elementType === undefined) {
-                    // U14 bool shard: element 0 of a bool helper is a boxed bool or null on every
-                    // path (per-call-site option proof, or the helper's own bool? local), and
-                    // sawNull below spells the declaration `bool?`. The helper name comes off the
-                    // RHS, so the awaited venue helper and every initialiser shape are covered.
+                    // bool helper element 0 is a boxed bool or null on every path (per-call-site option proof or the
+                    // helper's own bool? local), and sawNull spells the declaration `bool?`. The helper name comes off
+                    // the RHS, so the awaited venue helper and every initialiser shape are covered.
                     const optionHelper = (destructuredName !== undefined) ? destructuredName : destructuredHelperName (parent.parent.right);
                     if (destructuredBoolElementProof (csharp, scope, index, declaration, n, parent.parent, optionHelper)) {
                         elementType = 'bool';
@@ -12392,9 +12323,9 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
         }
         let written = csharpTypeOfValue (csharp, parent.right, context);
         if (written === undefined) {
-            // U17: a MARKET ROW read by an audited string key, or a `typeof x === 'string'`
-            // narrowed copy (see u17RowReadWriteType / u17NarrowedCopyWriteType)
-            written = u17WriteValueType (csharp, declaration, parent.right);
+            // a MARKET ROW read by a proven string key, or a `typeof x === 'string'`
+            // narrowed copy (see rowReadWriteType / narrowedCopyWriteType)
+            written = nullInitWriteValueType (csharp, declaration, parent.right);
         }
         if (written === undefined && type === 'string' && !sawNull) {
             // `x = x + r` accumulator write (see the self-concat section above): the
@@ -12403,9 +12334,8 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             written = selfConcatWriteType (csharp, context, declaration, parent.right);
         }
         if (written === undefined && type === 'string' && !sawNull && nonNullStringInit (csharp, context, declaration)) {
-            // U21: the same self-read shape with a sibling leaf the module cannot name
-            // (`x = x + ':' + symbol`), and the conditional over such values
-            // (`x = cond ? 'a' + x : x`) — the left spine's own static type decides the
+            // the same self-read with a sibling leaf the module cannot name (`x = x + ':' + symbol`) or a
+            // conditional over such values (`x = cond ? 'a' + x : x`): the left spine's static type decides the
             // emitted add(...) chain, so the write keeps the literal's non-null string
             written = stringAccumulatorWriteType (csharp, context, declaration, parent.right);
         }
@@ -12414,6 +12344,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // against the running Dictionary type (see selfOmitWriteType).
             written = selfOmitWriteType (csharp, context, declaration, parent.right);
         }
+        written ??= interfaceSelfOmitWriteType (csharp, context, declaration, type, sawNull, parent.right);
         if (written === undefined && safeHelperLocalInitializer (declaration.initializer)) {
             // `let x = this.safeString (…); … x = <expression reading x>`: the read of x inside
             // the write is statically the declaration's own type, so the expression can only be
@@ -12484,30 +12415,9 @@ export const CSHARP_METHOD_RETURN_TYPES = {
     'safeMarket': 'Dictionary<string, object>',
     'currencyToPrecision': 'string?',
     'parsePrecision': 'string?',
-    // cs/ccxt/base/PredictionExchange.cs — the prediction row builders and their parse*
-    // wrappers. Both families are declared ONLY in the prediction tier (the whole
-    // cs/ccxt/exchanges tree declares none of these names), so the per-NAME table cannot
-    // leak into the crypto/ws trees. Return-path census over every declaration:
-    //   safePredictionOrder / safePredictionTicker / safePredictionTrade — single
-    //     `return result;`, result declared `Dictionary<string, object>` (fresh literal);
-    //     the return cast is an identity on every path.
-    //   parsePredictionOrder / parsePredictionTicker / parsePredictionTrade — base stub
-    //     (throw) plus one venue override each; every real return is
-    //     `this.safePredictionX(new Dictionary<string, object>() {...})`, so once the safe
-    //     builder carries the type the returned box already IS a Dictionary.
-    //   parsePredictionOrders / parsePredictionTrades — `return this.filterByOutcomeSinceLimit (...)`,
-    //     generated `IList<object>` in the same file (the collection-return pass).
-    // The outcome cache accessors: `outcome()` returns ONLY map reads — every value in
-    // this.outcomes / this.outcomes_by_id was recorded as an IDictionary<string, object>
-    // (the base indexMarketOutcomes casts each row to IDictionary before writing it; the
-    // hyperliquid writer stores a safeDict result), so the box is an IDictionary on every
-    // path. `safeOutcome` / `loadOutcome` are retyped by the same proof in
-    // CSHARP_COLLECTION_RETURN_METHODS / CSHARP_ASYNC_CORE_RETURNS: their map reads are the
-    // same rows, their last path is the fresh Dictionary literal, and the 2-arg passthrough
-    // returns the caller's outcomeObj behind the boundary cast — every in-tree 2-arg caller
-    // passes a market row (safeMarket/parseMarket result / `market as any`).
-    // `safeOutcomeSymbol` returns the row's `outcome` handle (string) or null — the
-    // caller-facing TS return type is Str (string|undefined).
+    // PredictionExchange.cs row builders, parse* wrappers and outcome accessors (prediction tier only, so the
+    // per-NAME table cannot leak): every return is a fresh Dictionary, a safePredictionX/filterBy result, an
+    // IDictionary outcome-map read or the caller's market row; safeOutcomeSymbol returns string or null.
     'safePredictionOrder': 'Dictionary<string, object>',
     'safePredictionTicker': 'Dictionary<string, object>',
     'safePredictionTrade': 'Dictionary<string, object>',
@@ -12518,12 +12428,9 @@ export const CSHARP_METHOD_RETURN_TYPES = {
     'parsePredictionTrades': 'IList<object>',
     'outcome': 'IDictionary<string, object>',
     'safeOutcomeSymbol': 'string?',
-    // base + venue helper returning the caller's dictionary (this unit's local family: a
-    // dict-literal declaration whose last write is this call). mergeBalanceAccount: both
-    // return paths are `return result;` and all 10 in-tree callers pass a fresh dict literal
-    // (binance/gate/htx/kucoin/mexc + cs/tests/Generated/Base/test.mergeBalanceAccount.cs).
-    // createSignedRequest: grvt's single declaration, one `return request;` — every caller
-    // passes a dict literal and the body indexes request['signature'] on every path.
+    // helpers returning the caller's dictionary: mergeBalanceAccount and grvt createSignedRequest return
+    // their dict argument on every path, and every in-tree caller passes a fresh dict literal (the
+    // local family: a dict-literal declaration whose last write is this call).
     'mergeBalanceAccount': 'Dictionary<string, object>',
     'createSignedRequest': 'Dictionary<string, object>',
     // bitstamp pro (the only declaration tree-wide): `return newCache;` — the caller's own
@@ -12532,70 +12439,30 @@ export const CSHARP_METHOD_RETURN_TYPES = {
     // installer emits names that box; the retype is what lets the two call sites — the writes
     // into the retyped this.orders / this.myTrades fields — keep compiling.
     'pruneCachedBySymbols': 'ccxt.pro.ArrayCache',
-    // S54 census: prediction helpers whose every return path is `this.safeDict (...)` or a
-    // local proven the same IDictionary box (findOutcomeInMarket's `oc`, resolveOutcomeInput's
-    // `found`) — the box is the found row itself, so the boundary cast only names it.
+    // prediction helpers whose every return path is `this.safeDict (...)` or a local proven the same
+    // IDictionary box (findOutcomeInMarket's `oc`, resolveOutcomeInput's `found`): the boundary cast only names it.
     'findOutcomeInMarket': 'IDictionary<string, object>',
     'resolveOutcomeInput': 'IDictionary<string, object>',
-    // S54 census: string-valued venue helpers whose printed return expression is `object`
-    // (a local the local pass keeps object, or an add chain over one) — the wrapper below
-    // casts every return, null in / null out; the nullable spelling keeps CS8603 out.
+    // string-valued venue helpers whose printed return expression is `object` (an object local or an add
+    // chain over one): the wrapper below casts every return, null in / null out; the nullable spelling keeps CS8603 out.
     'formatNumber': 'string?',
     'opinionWsUrl': 'string?',
     'urlEncodeQuery': 'string?',
     'urlencodeWithArrayBrackets': 'string?',
-    // U33 census: four sync helpers whose TS return type is `any` (a Dict index / a
-    // safeValue chain / an untyped urls-map read), so the CSHARP_STRING_RETURN_METHODS
-    // stringishReturn gate cannot name them — the wrapper below casts every return (null in,
-    // null out) and the nullable spelling keeps CS8603 out.
-    //   getSupportedMapping (base, 1 declaration): `if (key in mapping) return mapping[key];
-    //     else throw NotSupported` — never returns null, and all 9 in-tree call sites pass an
-    //     inline dict literal whose every value is a string (pro/hitbtc 2, pro/gate 6,
-    //     pro/bitget 1), so the `string` spelling is exact at every caller.
-    //   getUrlByMarket (pro/gate, 1 declaration): the three paths are
-    //     `urls['api'][market['type']]['usdt'|'btc']` for a contract market and
-    //     `urls['api'][market['type']]` otherwise; gate's urls['api'] holds 2 string leaves
-    //     ('ws', 'spot') and 3 dict-of-2-string leaves (swap/future/option), and a market
-    //     row's 'type' is one of spot/swap/future/option, so every reachable box is a string.
-    //   convertTypeToAccount (base, 1 declaration): 3 paths — options['accountsByType']
-    //     values (string-valued in every in-tree writer: okx/bigone/poloniex/bydfi/bitget
-    //     option tables), market['id'] (the MARKET_ROW_STRING_KEYS proof), and `account`,
-    //     whose own `((string)account).ToLower()` unbox at the top of the body throws before
-    //     any return for a non-string argument.
-    //   codeFromOptions (deribit, 1 declaration): the value is deribit's
-    //     options['code']/options[methodName]['code'] (string literals in describe()) or the
-    //     caller's params['code']; all 4 call sites immediately unbox the result with
-    //     `this.currency (((string)code))`, so the funnel adds no new failure mode there.
+    // sync helpers with a TS `any` return that stringishReturn cannot name, but every path returns a string (or null):
+    // getSupportedMapping (string-valued dict args), getUrlByMarket (gate string urls), convertTypeToAccount,
+    // codeFromOptions. The wrapper casts every return (null in, null out); the nullable spelling keeps CS8603 out.
     'getSupportedMapping': 'string',
     'getUrlByMarket': 'string?',
     'convertTypeToAccount': 'string?',
     'codeFromOptions': 'string?',
-    // U33 census, 2 declarations (base Exchange.ts + htx's override): every return path of
-    // both boxes a string or null. Base: `undefined`, the `string? networkId` local, the
-    // safeString(networks[networkCode], 'id') read, the recursive call (fixpoint), and the
-    // `return networkCode` fallback — the caller's own argument, and the TS signature is
-    // `(networkCode: Str, …): Str`, with all 56 in-tree call sites passing a string-typed
-    // expression (47 × a handleNetworkCodeAndParams element-0 `string?` local, 6 × `network`,
-    // 1 × the recursion's `oldCodes[networkCode]` from the base default options table's 3
-    // string entries, 1 × defaultNetworkCode, 1 × hashkey's `string? networkId`). htx:
-    // `null`, `base.networkCodeToId (…)` (fixpoint), and the
-    // `options['networkChainIdsByNames'][currencyCode][networkCode]` / safeValue read of the
-    // map whose only writer is `[code][title] = safeString (chainEntry, 'chain')` (string?).
-    // The string-returns table cannot carry it: htx's override has no TS return annotation
-    // and its inferred type is not string-ish, so stringishReturn would keep the override's
-    // signature `object` while printMethodDefinition substitutes the base's `string?` — the
-    // override's four untyped returns would then be CS0266. This wrapper casts every return
-    // of every declaration, so the base + the override stay consistent (CS0508).
+    // networkCodeToId (base + htx override): every return path boxes a string or null. The string-returns table
+    // cannot carry it (htx's untyped override would stay `object` vs the base's `string?`, CS0266/CS0508), so
+    // this wrapper casts every return of every declaration and keeps base + override consistent.
     'networkCodeToId': 'string?',
-    // U37 census: venue-local string helpers whose returns need the boundary cast.
-    //   fromEp / fromEv / fromEr — phemex + its pro override (49 call sites, all in those two
-    //     files; every argument is a safeString* result or a string-only local). Return paths:
-    //     the `ep` param (string-or-null at every call site), or this.fromEn (string?).
-    //   convertToRealAmount — bitmex, 11 call sites, every `amount` argument is a safeString
-    //     result / Precise.string* result / string-only local. Paths: `amount` param, null,
-    //     Precise.stringMul (string?).
-    //   signOrder — nado + derive only; both return their own signHash, whose add chain over
-    //     padHex/intToBase16/string literals boxes a string on every path.
+    // venue string helpers needing the boundary cast: phemex fromEp / fromEv / fromEr (string-or-null param or
+    // fromEn), bitmex convertToRealAmount (string param, null or Precise.string*), nado/derive signOrder (an
+    // add chain over string helpers): every path returns a string or null.
     'fromEp': 'string?',
     'fromEv': 'string?',
     'fromEr': 'string?',
@@ -12634,10 +12501,10 @@ export function installCsharpMethodReturnTypes (csharp) {
         if (retype === undefined || !node.expression) {
             return upstreamReturnStatement (node, identation);
         }
-        // U49: a return path whose expression already carries the retyped box (a call to a
-        // method whose generated signature names it, or a local the local pass declares with it)
-        // needs no boundary cast — `((T)((object)(x)))` is then a box + unbox of the same value
-        if (callReturnIsMapped (csharp, node.expression, retype)) {
+        // a return whose expression already carries the retyped box (a call whose generated
+        // signature names it, or a local declared with it) needs no boundary cast:
+        // `((T)((object)(x)))` would box and unbox the same value
+        if (callReturnIsMapped (csharp, node.expression, retype) || (retype.startsWith ('ccxt.pro.') && (csharp.csharpPrintedParamType (node.expression) ?? '').startsWith (retype))) {
             return upstreamReturnStatement (node, identation);
         }
         // the printed expression is the `object` box the rest of the printer produces;
@@ -12687,6 +12554,14 @@ function destructuredStringHelperElement0 (call, helper, csharp) {
     // or a local the printer declares string / string? (destructuredStringElementProof's rule)
     const local = (csharp !== undefined && argument.kind === ts.SyntaxKind.Identifier) ? localIdentifierType (csharp, argument) : undefined;
     return STRING_TYPES.includes (local) ? 'string?' : undefined;
+}
+
+// `this.handleOptionStringAndParams[2] (…, '<literal>')[0]`: the default is the last argument
+function tupleElement0LiteralDefault (initializer) {
+    const call = initializer?.kind === ts.SyntaxKind.ElementAccessExpression ? initializer.expression : undefined;
+    const name = (call?.kind === ts.SyntaxKind.CallExpression && call.expression?.expression?.kind === ts.SyntaxKind.ThisKeyword) ? call.expression.name?.text : undefined;
+    const arity = (name === 'handleOptionStringAndParams') ? 4 : (name === 'handleOptionStringAndParams2') ? 5 : 0;
+    return arity > 0 && call.arguments?.length === arity && isStringLiteral (call.arguments[arity - 1]);
 }
 
 // `this.<helper> (...)[0]`, or `t[0]` of a local `t` holding that call and never rewritten or
@@ -12779,7 +12654,13 @@ function destructuredSlotType (csharp, scope, declaration, slot, context) {
     }
     context.stack.add (element);
     try {
-        return csharpLocalIsSafeToRetype (csharp, scope, element, target.text, type, { scope, stack: context.stack, depth: context.depth + 1 }) ? type : undefined;
+        const nested = { scope, stack: context.stack, depth: context.depth + 1 };
+        if (csharpLocalIsSafeToRetype (csharp, scope, element, target.text, type, nested)) {
+            return type;
+        }
+        // a `string?` slot whose `+` reads need a non-null left operand takes the non-null
+        // spelling (the `(string)` read cast is the same identity)
+        return (type === 'string?' && csharpLocalIsSafeToRetype (csharp, scope, element, target.text, 'string', nested)) ? 'string' : undefined;
     } finally {
         context.stack.delete (element);
     }
@@ -13383,7 +13264,7 @@ function dropRedundantAddCast (csharp, printed, node, argText, pattern, replacem
 }
 
 // the printed argument this pass wraps in `(string)`: the `add (a, b)` helper call, or the
-// native `(a + b)` the U57 hook prints for the same node. Every other text is rejected.
+// native `(a + b)` the add-to-native hook prints for the same node. Every other text is rejected.
 function concatArgumentText (csharp, node, text) {
     if (typeof text !== 'string' || text.startsWith ('add(')) {
         return text;
@@ -13560,6 +13441,62 @@ const CSHARP_SCALAR_LIST_ELEMENT_TYPES = {
 
 // the scalar element type of `recv[i]` over a receiver whose printed declaration is a scalar list, or
 // undefined. Read-only: it answers the declaration dispatch, the printed read is unchanged.
+function signApiParameterRead (csharp, receiver) {
+    const param = csharp.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+    const method = param?.parent;
+    return param?.kind === ts.SyntaxKind.Parameter && method?.kind === ts.SyntaxKind.MethodDeclaration
+        && [ 'sign', 'fetch2', 'request' ].includes (String (method.name?.text)) && method.parameters.indexOf (param) === 1
+        && String (param.type?.getText () ?? '').replace (/\s+/g, '') === 'string[]';
+}
+
+// `keys[i]` where `keys` is a once-bound local whose only write is `Object.keys (...)` or
+// `.split (...)` (elements are never null) and the read sits in the body of a
+// `for (...; i < keys.length; ...)` that neither moves `i` nor `keys` (csharpIndexIsLoopBounded)
+function boundedKeysElementInitializer (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.ElementAccessExpression || node.expression?.kind !== ts.SyntaxKind.Identifier
+            || node.argumentExpression?.kind !== ts.SyntaxKind.Identifier || typeof csharp.csharpIndexIsLoopBounded !== 'function') {
+        return false;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node);
+    if (scope === undefined) {
+        return false;
+    }
+    const uses = indexScope (csharp, scope).identifiers.get (node.expression.text) ?? [];
+    let declaration;
+    let bindings = 0;
+    for (const n of uses) {
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.VariableDeclaration || parent?.kind === ts.SyntaxKind.Parameter) && parent.name === n) {
+            bindings++;
+            declaration = parent;
+        }
+        if (parent && n !== node.expression && n.parent?.kind !== ts.SyntaxKind.VariableDeclaration && receiverUseIsWrite (n)) {
+            return false;
+        }
+    }
+    if (bindings !== 1 || declaration.kind !== ts.SyntaxKind.VariableDeclaration || declaration.getStart () > node.getStart ()) {
+        return false;
+    }
+    let init = declaration.initializer;
+    while (init?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        init = init.expression;
+    }
+    if (init?.kind !== ts.SyntaxKind.CallExpression || init.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        return false;
+    }
+    const callee = init.expression;
+    const objectKeys = callee.name?.text === 'keys' && callee.expression?.kind === ts.SyntaxKind.Identifier && callee.expression.text === 'Object';
+    if (!objectKeys && callee.name?.text !== 'split') {
+        return false;
+    }
+    return csharp.csharpIndexIsLoopBounded (node, node.expression, node.argumentExpression) === true;
+}
+
+function signApiElementInitializer (csharp, node) {
+    return node?.kind === ts.SyntaxKind.ElementAccessExpression && node.expression?.kind === ts.SyntaxKind.Identifier
+        && signApiParameterRead (csharp, node.expression);
+}
+
 function typedListElementReadType (csharp, node) {
     if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
@@ -13570,6 +13507,10 @@ function typedListElementReadType (csharp, node) {
     }
     if (!wsCacheElementSourceOk (node) || typeof csharp.csharpPrintedLocalType !== 'function') {
         return undefined;
+    }
+    // `api[N]` of sign/fetch2/request (`api: string[]`): every element is a path string
+    if (signApiParameterRead (csharp, receiver)) {
+        return 'string';
     }
     const printed = csharp.csharpPrintedLocalType (receiver);
     if (printed === undefined) {
@@ -13588,7 +13529,7 @@ function installCsharpElementAccessCastSkips (csharp) {
     csharp._elementAccessCastSkipsPatched = true;
 }
 
-// ===== U59: `x[i]` reads on a list receiver the enclosing `for` bounds =====
+// ===== `x[i]` reads on a list receiver the enclosing `for` bounds =====
 //
 // The printer emits `getValue (x, i)` for every element read; the native `x[i]` is equivalent
 // only where the index is provably in range — getValue answers null off the end of a list while
@@ -13600,14 +13541,9 @@ function installCsharpElementAccessCastSkips (csharp) {
 // spellings and an index the classifier leaves `object` keeps the helper (`x[i]` on an object
 // index would not compile).
 //
-// The types are the ones the emitted LINE carries, recorded while it is printed (the same
-// technique the string-equality hook uses): the printer's own table already names some
-// declarations (`const x = this.safeList (…)` prints List<object>), this module's rewrite names
-// the rest (the `object x = ` head it replaces), and an awaited initializer the wrapper skips
-// stays `object` — reading the line back makes all three exact instead of re-deriving the
-// wrapper's guards here. The hook is a separate name on purpose: `csharpLocalTypeOf` has other
-// consumers, and adding the list answers there would also fire the S14 write family this unit
-// does not own.
+// Types are read back from the emitted declaration LINE (printer table, this module's rewrite,
+// or `object` for a skipped awaited initializer), so all three cases are exact. A separate hook
+// name keeps csharpLocalTypeOf's other consumers (and the index-write family) unaffected.
 function installCsharpListIndexReads (csharp) {
     if (csharp._listIndexReadsPatched) {
         return;
@@ -13748,18 +13684,11 @@ function installCsharpNativeLengths (csharp) {
     csharp._nativeLengthsPatched = true;
 }
 
-// ===== S22: dictionary index-write cast elision =====
+// ===== dictionary index-write cast elision =====
 //
-// `((IDictionary<string,object>)x)["k"] = v` — the interface cast the printer wraps around every
-// dictionary-key write exists only because the TS type of the receiver says nothing about the C#
-// declaration the printer emits for it. The cast is redundant exactly when that declaration
-// already names a concrete dictionary, and the declaration line is produced HERE (this module's
-// rewrite) or by the printer's own tables — never by the TS annotation. So the declared type is
-// recorded while the line is printed and queried by the printer hook
-// `csharpDictionaryIndexWriteNeedsNoCast` (ast-transpiler src/csharpTranspiler.ts, called from
-// baseTranspiler's C# element-access branch). A receiver that is not a recorded local — a
-// parameter, a field, `this.x`, a call result, or a local this module left `object` — keeps the
-// cast. `request` is unit S21's receiver family and is excluded by name.
+// `((IDictionary<string,object>)x)["k"] = v`: the cast is redundant when the receiver's emitted
+// declaration (recorded as printed) already names a concrete dictionary; the printer asks via
+// csharpDictionaryIndexWriteNeedsNoCast. Any other receiver, and `request`, keeps the cast.
 const DECLARED_LOCAL_LINE_RE = /^[ \t]*([A-Za-z_][A-Za-z0-9_<>,?.\[\] ]*?) ([A-Za-z_]\w*) = (.*)$/;
 const declaredLocalLines = new WeakMap (); // enclosing function -> Map (name -> { type, value })
 
@@ -13869,7 +13798,7 @@ function csharpDictionaryIndexWriteNeedsNoCast (csharp, node) {
         return false; // `x["a"]["b"]`, a call result, `this.x`: not a named local
     }
     if (receiver.text === 'request') {
-        return false; // S21 owns the `request` receiver family
+        return false; // the `request` receiver family keeps its cast
     }
     if (recordedDictType (declaredLocalOfUse (csharp, node, receiver.text)) !== undefined) {
         return true;
@@ -13930,6 +13859,34 @@ function installCsharpDictionaryIndexWriteCastElision (csharp) {
     csharp.csharpDictionaryIndexWriteNeedsNoCast = (node) => csharpDictionaryIndexWriteNeedsNoCast (csharp, node);
 }
 
+// String-keyed dictionary members of hand-written C# classes (cs/ccxt/ws/Client.cs: futures,
+// subscriptions with null-safe getFuture/getSubscription), keyed on the declaring TS file + member;
+// the printer turns `recv.member[key]` / `this.safeValue (recv.member, key)` into typed reads.
+const CSHARP_DECLARED_DICT_MEMBER_FILE = /(?:^|\/)base\/ws\/Client\.ts$/
+const CSHARP_DECLARED_DICT_MEMBERS = {
+    'futures': { 'getter': 'getFuture' },
+    'subscriptions': { 'getter': 'getSubscription' },
+}
+
+function installCsharpDeclaredDictMembers (csharp) {
+    if (csharp._declaredDictMembersPatched) {
+        return
+    }
+    csharp.csharpDeclaredDictMember = (node) => {
+        if (node?.kind !== ts.SyntaxKind.PropertyAccessExpression || !Object.prototype.hasOwnProperty.call (CSHARP_DECLARED_DICT_MEMBERS, node.name.text)) {
+            return undefined
+        }
+        try {
+            const declarations = (csharp.getChecker ().getSymbolAtLocation (node.name)?.declarations ?? []).map ((handle) => handle.resolve ())
+            const declared = declarations.length > 0 && declarations.every ((d) => CSHARP_DECLARED_DICT_MEMBER_FILE.test (d.getSourceFile ().fileName.replace (/\\/g, '/')))
+            return declared ? CSHARP_DECLARED_DICT_MEMBERS[node.name.text] : undefined
+        } catch (e) {
+            return undefined // no checker (in-memory transpile): the helper stays
+        }
+    }
+    csharp._declaredDictMembersPatched = true
+}
+
 // wrap printVariableDeclarationList on a Transpiler's C# printer. Idempotent. Everything
 // the upstream printer already typed (or printed in another shape) is returned untouched;
 // only an exact `<iden>object <name> = ` prefix is rewritten.
@@ -13938,6 +13895,7 @@ export function installCsharpLocalTypes (transpiler) {
     if (!csharp || typeof csharp.printVariableDeclarationList !== 'function') {
         return;
     }
+    installCsharpDeclaredDictMembers (csharp); // RF-cs-1 c03
     installRedundantAddCasts (csharp);
     installCsharpListCastSkips (csharp);
     installCsharpElementAccessCastSkips (csharp);
@@ -13959,11 +13917,12 @@ export function installCsharpLocalTypes (transpiler) {
         return 'IList<object>';
     };
     installTypedDictElementAccess (csharp);
-    // U02: the C# type `typeCoreArgs` narrows the parameter at (method, position) to, or
-    // undefined; stringListParameterElementType reads it to prove a list receiver's elements.
-    // hasOwnProperty because the table is an object literal (`CORE_LIST_ARGS['toString']` would
-    // answer Object.prototype's). The table is read here, inside the installer -- importing the
-    // module is not enough, the transpiler's own module may still be initialising.
+    // the printer's guarded `-x` hook asks for the declaration's FINAL type (this module retypes
+    // `object x = this.safeNumber(..)` to `double? x` after printing), so `(x = -x)` matches the retype
+    csharp.csharpFinalDeclaredLocalType = (declaration) => referenceDeclaredType (csharp, declaration);
+    // the C# type `typeCoreArgs` narrows the parameter at (method, position) to, or undefined
+    // (read by stringListParameterElementType); hasOwnProperty avoids Object.prototype keys. Read
+    // inside the installer because the transpiler's module may still be initialising at import.
     csharp.csharpListTypedCoreArg = (methodName, position) => {
         if (!Object.prototype.hasOwnProperty.call (CORE_LIST_ARGS, methodName)) {
             return undefined;
@@ -13972,7 +13931,7 @@ export function installCsharpLocalTypes (transpiler) {
         return (type !== undefined && CORE_LIST_TARGET_TYPES.indexOf (type) !== -1) ? type : undefined;
     };
     if (csharp._localTypesPatched) {
-        // record every emitted local declaration line (S22 dictionary index-write cast elision)
+        // record every emitted local declaration line (dictionary index-write cast elision)
         installCsharpDictionaryIndexWriteCastElision (csharp);
         return;
     }
@@ -14021,7 +13980,9 @@ export function installCsharpLocalTypes (transpiler) {
                 value = boxed[1];
             }
         }
-        if (info.cast !== undefined) {
+        // RF-cs-1 c03: the printer printed the initializer as a typed member read (its own type is the
+        // declaration's), so there is no `object` box to cast back
+        if (info.cast !== undefined && !(typeof csharp.csharpIsDeclaredDictMemberRead === 'function' && csharp.csharpIsDeclaredDictMemberRead (declaration.initializer))) {
             // a call whose printed argument list spans lines (a dict-literal argument) would put
             // the cast's closing paren on a second line; the ws row-builder family keeps `object`
             // there, so every retyped declaration stays a single declaration-type-only line
@@ -14039,8 +14000,8 @@ export function installCsharpLocalTypes (transpiler) {
         }
         // the destructuring print (a later statement in the same function) casts back to this
         recordDestructuredWriteType (enclosingFunction (declaration), printedName, info.type, isUTAEnabledAwaitedInit (declaration));
-        // U17: a later `x = market['symbol']` write of this local needs the same cast back
-        recordU17RowReadWriteTarget (enclosingFunction (declaration), printedName, info.type, declaration);
+        // a later `x = market['symbol']` write of this local needs the same cast back
+        recordRowReadWriteTarget (enclosingFunction (declaration), printedName, info.type, declaration);
         // the emitted line carries info.type from here on: the condition-operand hook answers
         // reads of this declaration from it (an awaited initializer has no printer-side name)
         retypedDeclarationTypes.set (declaration, info.type);
@@ -14065,23 +14026,21 @@ export function installCsharpLocalTypes (transpiler) {
         };
     }
     installCsharpStringEquality (csharp);
-    // `add (x, y)` -> native `(x + y)` for the operands the prover above names (U57); the
-    // hook is consulted by the ast printer's `+` branch, so the helper emission is unchanged
-    // wherever this rule cannot prove the left operand's printed type
+    // `add (x, y)` -> native `(x + y)` for the operands the prover above names; the ast
+    // printer's `+` branch consults this hook, so unproven operands keep the helper emission
     installCsharpNativeStringConcat (csharp);
-    // U59: `x[i]` reads the enclosing `for` bounds by the receiver's own length (see the
-    // list-index-reads section above) — the printer's bound proof needs the printed types of
-    // both names, which this hook answers
+    // `x[i]` reads the enclosing `for` bounds by the receiver's own length (see the
+    // list-index-reads section above): the printer's bound proof needs both names' printed types
     installCsharpListIndexReads (csharp);
-    // U60: `k in x` -> ContainsKey for the dict-typed locals THIS module retypes (see
+    // `k in x` -> ContainsKey for the dict-typed locals this module retypes (see
     // installCsharpDictInOp); installed after the rewrite wrapper so it records the final line
     installCsharpDictInOp (csharp);
     installCsharpNullableInOpKeyGuard (csharp);
     csharp._localTypesPatched = true;
-    // S22: the declared-type record has to wrap the rewrite above — it reads the line this
+    // the declared-type record has to wrap the rewrite above: it reads the line this
     // module actually emits, not the printer's `object ... = ` it replaced
     installCsharpDictionaryIndexWriteCastElision (csharp);
-    installU17RowReadWriteCasts (csharp);
+    installNullInitRowReadWriteCasts (csharp);
 }
 
 // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` — ast-transpiler's printer
@@ -14124,23 +14083,9 @@ export function installCsharpStringReceivers (transpiler) {
 
 // ===== receiver declared types (the printer's csharpDeclaredReceiverType hook) =====
 //
-// The C# element-access printer emits `((IDictionary<string,object>)request)["k"] = v` for a
-// write into a dictionary because it cannot name the receiver's C# type on its own: the
-// declaration `Dictionary<string, object> request = ...` is this classifier's rewrite. Answer
-// the printer hook with the type that declaration carries — the record of the line this module
-// actually emitted (the same evidence the S22 index-write hook reads), falling back to
-// csharpLocalType (the rewrite decision) and the printer's own getCSharpLocalType. `request` is
-// S21's family and answers with whatever the declaration carries. Every OTHER receiver shape the
-// printer cannot see is answered here too, and only when the cast is an identity conversion:
-//   - `this.<member>` whose hand-written base declaration already IS a dictionary
-//     (cs/ccxt/base/Exchange.Options.cs): the cast is an implicit upcast to the interface the
-//     member's type implements, both indexers are the same setter;
-//   - a local declared with a ws orderbook type — ccxt.pro.IOrderBook / OrderBook /
-//     IndexedOrderBook / CountedOrderBook all implement IDictionary<string, object>
-//     (cs/ccxt/ws/OrderBook.cs), so the same holds.
-// The printer's gate is generic (any Dictionary/IDictionary receiver), so an `object` receiver
-// (an object local, an `object` parameter, a this.<member> the base declares `object`) keeps the
-// cast: dropping it would not compile, i.e. it is no identity.
+// Answers the printer's dictionary-receiver hook with the emitted declaration's type (recorded
+// line, then csharpLocalType, then getCSharpLocalType), plus `this.<member>` dictionaries and ws
+// orderbook locals, where the cast is an identity upcast; an `object` receiver keeps the cast.
 //
 // localIdentifierType resolves a bare read only while the enclosing function holds exactly one
 // binding of the name; two `request`s in sibling blocks (gate/bigone/aster build one per branch)
@@ -14162,6 +14107,8 @@ const CSHARP_DICT_WRITE_MEMBER_TYPES = {
     'bidsasks': 'IDictionary<string, object>',              // ws cache, cs/ccxt/base/Exchange.Options.cs
     'trades': 'IDictionary<string, object>',                // ws cache, cs/ccxt/base/Exchange.Options.cs
     'ohlcvs': 'IDictionary<string, object>',                // ws cache, cs/ccxt/base/Exchange.Options.cs
+    'urls': 'IDictionary<string, object>',                // cs/ccxt/base/Exchange.Options.cs
+    'headers': 'IDictionary<string, object>',             // cs/ccxt/base/Exchange.Options.cs
 };
 const CSHARP_DICT_WRITE_LOCAL_TYPES = [
     'ccxt.pro.IOrderBook', 'ccxt.pro.OrderBook', 'ccxt.pro.IndexedOrderBook', 'ccxt.pro.CountedOrderBook',
@@ -14178,9 +14125,8 @@ function dictWriteMemberReceiverType (node) {
     if ((name === undefined) || !Object.prototype.hasOwnProperty.call (CSHARP_DICT_WRITE_MEMBER_TYPES, name)) {
         return undefined;
     }
-    // U64: a `delete this.<member>[k]` prints `.Remove(...)`, and ConcurrentDictionary<string, object>
-    // has no Remove(TKey) under netstandard2.0/2.1 (only TryRemove) -- the indexer/Keys/Values it does
-    // have, so the cast stays on that one use shape and the delete keeps `((IDictionary<string,object>)x)`
+    // `delete this.<member>[k]` prints `.Remove(...)`, which ConcurrentDictionary lacks under
+    // netstandard2.0/2.1 (only TryRemove), so that one use shape keeps `((IDictionary<string,object>)x)`
     const use = node.parent;
     if ((use?.kind === ts.SyntaxKind.ElementAccessExpression) && (use.parent?.kind === ts.SyntaxKind.DeleteExpression)
         && (CSHARP_DICT_WRITE_MEMBER_TYPES[name] === 'ConcurrentDictionary<string, object>')) {
@@ -14189,10 +14135,9 @@ function dictWriteMemberReceiverType (node) {
     return 'IDictionary<string, object>';
 }
 
-// U58: a PARAMETER has no declaration line: its C# type exists only in the printed signature,
-// which the printer records (csharpPrintedParamType — `Dict` -> Dictionary<string, object> under
-// INFER_ARG_TYPE). ccxt prints every parameter `object` and retypes the ones its post-print
-// passes own, so those are answered post-print instead (retypeDictReceiverCasts).
+// A PARAMETER has no declaration line: its C# type exists only in the printed signature
+// (csharpPrintedParamType). ccxt prints every parameter `object`; the ones its post-print passes
+// retype are answered post-print instead (retypeDictReceiverCasts).
 function receiverDeclaredType (csharp, node) {
     const member = dictWriteMemberReceiverType (node);
     if (member !== undefined) {
@@ -14210,7 +14155,7 @@ function receiverDeclaredType (csharp, node) {
         return undefined;
     }
     if (node.text === 'request') {
-        return declared; // S21's family: the printer's gate keeps the cast on every non-dictionary answer
+        return declared; // `request`: the printer's gate keeps the cast on every non-dictionary answer
     }
     return CSHARP_DICT_WRITE_LOCAL_TYPES.includes (declared) ? 'IDictionary<string, object>' : undefined;
 }
@@ -14261,20 +14206,16 @@ export function installCsharpReceiverTypes (transpiler) {
     csharp.csharpDeclaredReceiverType = (node) => receiverDeclaredType (csharp, node);
 }
 
-// ===== string-literal equality (S60) + null-literal equality (U55) =====
+// ===== string-literal equality + null-literal equality =====
 //
 // The printer emits `isEqual (x, "lit")` / `!isEqual (x, "lit")` for `x === 'lit'` / `x !== 'lit'`.
 // When the operand's emitted declaration is `string`/`string?` the helper is redundant: a string
 // literal is never null and isEqual's string branch is `((string)a) == ((string)b)`, so the native
 // operator is the same ordinal comparison and a null operand is false in both spellings.
 //
-// The same printer also emits `isEqual (x, null)` / `!isEqual (x, null)` for `x === undefined` /
-// `x !== undefined` (U55). The helper's first two guards are `a == null && b == null` /
-// `a == null || b == null`, so with the null literal on one side it returns exactly the C# null
-// test: reference equality for a reference type and `!x.HasValue` for `T?`. When the operand's
-// emitted declaration is a typed reference (`string`/`IDictionary`/`IList`/`List`/`Dictionary`/
-// `ccxt.pro.*`) or a nullable type, `x == null` is that very test — and it does NOT compile for a
-// non-nullable value scalar (`Int64`/`bool`/`double`/`int`), which is why those stay on the helper.
+// `isEqual (x, null)` (from `x === undefined`) returns exactly the C# null test, so a typed
+// reference or nullable operand prints `x == null`; non-nullable value scalars
+// (`Int64`/`bool`/`double`/`int`) stay on the helper, where `== null` would not compile.
 //
 // The printer asks `csharpLocalTypeOf (operand)` / `csharpNullComparisonTypeOf (operand)`; this
 // installer answers them from the PRINTED declaration text recorded below — the type the emitted
@@ -14328,8 +14269,8 @@ export function installCsharpStringEquality (csharp) {
         }
         return stringEqualityBindingIsProvable (scope, node) ? type : undefined;
     });
-    // U55: the null-comparison hook. A no-op on a printer that has no such method (the base
-    // pin), so the same classifier reproduces the pre-change emission.
+    // the null-comparison hook; a no-op on a printer without that method, which then
+    // reproduces the helper emission.
     if (typeof csharp.csharpNullComparisonTypeOf === 'function') {
         csharp.csharpNullComparisonTypeOf = (node) => {
             if (node?.kind !== ts.SyntaxKind.Identifier) {
@@ -14404,7 +14345,7 @@ function stringEqualityBindingIsProvable (scope, node) {
 // these declarations from this record first -- the recorded type IS the emitted declaration.
 const retypedDeclarationTypes = new WeakMap ();
 
-// ===== `add (x, y)` -> native `(x + y)` (U57) =====
+// ===== `add (x, y)` -> native `(x + y)` =====
 //
 // The printer emits `add (x, y)` for `x + y`. When the LEFT operand's printed C# static type
 // is a string, the call binds add(string, string) (`a + b`) or add(string, object)
@@ -14542,12 +14483,9 @@ function concatInner (node) {
     return value;
 }
 
-// U60: `k in x` -> `(x?.ContainsKey(k) == true)` on a dictionary THIS module retypes. The printer
-// emits ContainsKey itself only for a receiver its own tables name AND the checker proves a
-// dictionary; it asks csharpDeclaredDictReceiverType for the type the PRINTED declaration carries.
-// A `string?` key printed bare into ContainsKey throws ArgumentNullException where `in`/inOp
-// answers false. The printer's native key proof accepts a nullable string local, so guard the
-// call here for exactly those keys; every other shape is returned untouched.
+// `k in x` -> `(x?.ContainsKey(k) == true)` on a dictionary this module retypes. A `string?` key
+// printed bare into ContainsKey throws ArgumentNullException where `in`/inOp answers false, so the
+// call is guarded for exactly those keys; every other shape is returned untouched.
 export function installCsharpNullableInOpKeyGuard (csharp) {
     if (!csharp || csharp._nullableInOpKeyGuardPatched || typeof csharp.csharpNativeInExpression !== 'function') {
         return;
@@ -14706,18 +14644,9 @@ export function installCsharpConditionOperands (transpiler) {
 // be a lie for the concurrent boxes (an `as` funnel would hand back null) — the same
 // spelling mapToSafeMap / safeDict / the ws orderbook map already use.
 //
-// The patch is name-keyed on printFunctionType, and the printer prints every async
-// MethodDeclaration — the hand-written base declaration is the only one it does NOT print
-// (cs/ccxt/base/Exchange.cs is edited by hand in the same change, as is the marketsLoading
-// field in Exchange.Options.cs) — so every venue / ws / prediction override is retyped too
-// and C# override invariance (CS0508) holds. Each `return` inside a retyped method is
-// funnelled through `((IDictionary<string, object>)((object)(<expr>)))`, the same
-// unboxing shape installCsharpMethodReturnTypes uses; returns whose printed form already
-// carries a dictionary (a fresh Dictionary literal, this.parseCurrencies(...)) stay bare.
-// Only the static type of the value moves — the box is the same dictionary object on every
-// path (census: 53 x this.parseCurrencies / 21 x a dictionary literal / 9 x a
-// Dictionary-typed `result` local / 1 x ccxt.BaseExchange.FromCurrencies(...) / 1 x
-// this.currencies / 4 x `markets` from base.loadMarkets, plus the hand-written base).
+// Name-keyed on printFunctionType, so every override is retyped with the hand-written base
+// (CS0508 holds). Returns go through `((IDictionary<string, object>)((object)(<expr>)))` unless
+// already a dictionary; only the static type moves, the box is the same dictionary object.
 //
 // The awaited-locals map below registers the SAME names with the same C# type; keep the
 // two in sync (its scan rejects a typed local wherever the declared type would re-bind an
@@ -14735,22 +14664,12 @@ export const CSHARP_ASYNC_CORE_RETURNS = {
     // this.outcomes_by_id read/super) all preserve that same row, so the funnel cast is an
     // identity on every path.
     'loadOutcome': 'IDictionary<string, object>',
-    // the async REST cores (reduceMargin / addMargin / modifyMarginHelper / closePosition /
-    // the borrow-repay margin family / the account-onboarding & agent-wallet cores) whose
-    // every declaration in the generated tree has every return path proven to box a
-    // dictionary: a fresh `new Dictionary<string, object>` literal, `this.extend(...)`
-    // (declared Dictionary), a dict-returning row builder (parseOrder / parseMarginModification
-    // / parseTransaction / parseTransfer), an api wrapper declared Task<Dictionary<string,
-    // object>>, a Dictionary-typed local, `From*` of a typed-core struct, another listed name
-    // (fixpoint) or null. Census + proof: campaigns/cs-strict/tools/S53/census_returns.py
-    // (34 names, 143 declarations, 0 unproven paths). `closePosition` keeps the IDictionary
-    // spelling: two of its paths return `this.safeDict (...)` — a ConcurrentDictionary is
-    // possible, an exact Dictionary is not provable. The awaited-locals map above registers
-    // the same names with the same spelling; keep the two in sync.
+    // async REST cores whose every declaration's return paths are proven to box a dictionary
+    // (literal, extend, dict row builders, typed api wrappers/locals, listed names, or null).
+    // `closePosition` keeps IDictionary (safeDict paths); keep in sync with the awaited-locals map.
     'reduceMargin': 'Dictionary<string, object>',
     'addMargin': 'Dictionary<string, object>',
     'modifyMarginHelper': 'Dictionary<string, object>',
-    'closePosition': 'IDictionary<string, object>',
     'borrowCrossMargin': 'Dictionary<string, object>',
     'repayCrossMargin': 'Dictionary<string, object>',
     'borrowIsolatedMargin': 'Dictionary<string, object>',
@@ -14781,9 +14700,8 @@ export const CSHARP_ASYNC_CORE_RETURNS = {
     'onboarding': 'Dictionary<string, object>',
     'prepareParadexDomain': 'Dictionary<string, object>',
     'ensureErc20Allowance': 'Dictionary<string, object>',
-    // The async venue url/auth helpers whose every return path boxes a string or null
-    // (pro: bybit/kucoin/xt, rest: bullish/paradex, prediction: opinion). Census per name and
-    // per site: campaigns/cs90/tools/U28/string_returns_census.py + sites.py, proof in REPORT.md.
+    // async venue url/auth helpers whose every return path boxes a string or null
+    // (pro: bybit/kucoin/xt, rest: bullish/paradex, prediction: opinion)
     'getUrlByMarketType': 'string?',
     'getUtaUrl': 'string?',
     'getListenKey': 'string?',
@@ -14821,12 +14739,9 @@ function asyncCoreReturnIsAlreadyTyped (value) {
 
 // ===== awaited same-file cores =====
 //
-// Async methods declared in a venue file whose EVERY return path already hands back one
-// concrete box (the census is the proof itself: awaitedCoreBoxType re-runs per declaration
-// at print time, so a path that stops proving leaves the method `Task<object>` untouched).
-// The generated signature prints `Task<T>` and every `await this.<name>(...)` local takes T.
-// A name may map to a LIST of accepted boxes: the proof still has to produce that exact
-// box for the declaration to move (S52 `authenticate`, see there).
+// Async venue methods whose every return path hands back one concrete box, re-proven per
+// declaration at print time (awaitedCoreBoxType); the signature prints `Task<T>` and awaited
+// locals take T. A list of boxes means the proof must produce one of them exactly.
 export const CSHARP_AWAITED_CORE_RETURNS = {
     // bybit / hyperliquid: `return [ unified, params ]` — one List<object> box
     'isUnifiedEnabled': 'List<object>',
@@ -14836,20 +14751,18 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'estimateTxFee': 'Dictionary<string, object>',
     // paradex: both paths hand back a safeDict() result (the cached config or a fresh {})
     'getSystemConfig': 'IDictionary<string, object>',
+    // paradex: retrieveAccount hands back safeDict(); signOrderRequest returns its Dict local
+    'retrieveAccount': 'IDictionary<string, object>',
+    'signOrderRequest': 'Dictionary<string, object>',
     // modetrade / woofipro: safeNumber() on the only path (double or null)
     'getWithdrawNonce': 'double?',
     // kucoin (pro): the token string getUtaUrl() concatenates, null while unauthenticated
     'authenticateUta': 'string?',
-    // S52 (ws cores). `authenticate` is declared by 35 ws classes and every declaration is
-    // `virtual` (a fresh slot, never an override), so the per-declaration proof decides each
-    // class on its own. Four hand the token / listen key back on every path — deepcoin,
-    // hashkey, mexc (`return listenKey` on a `string? listenKey` + `this.safeString (this.options,
-    // 'listenKey')`) and kraken (`this.safeString (subscription, 'token')` twice) — and
-    // whitebit hands its `authorized` sentinel back (`int authorized = 1;`, three paths), the
-    // value its own handleAuthenticate () resolves the handshake future with. The other 30
-    // stay Task<object>: 24 have a single path the classifier cannot name (22 `await (future as
-    // Future)`, `await this.watch (...)`, a subscriptions read), the rest mix such a path with
-    // a token read.
+    // backpack (pro): `return query` (IDictionary local) or `return this.extend (...)` (Dictionary)
+    'prepareWsStockParams': 'IDictionary<string, object>',
+    // ws `authenticate`: every declaration is `virtual`, so each class is proven on its own.
+    // deepcoin, hashkey, mexc, kraken return a token/listen key and whitebit its `int authorized`
+    // sentinel on every path; the rest have an unnameable path and stay Task<object>.
     'authenticate': [ 'string?', 'int' ],
     // kraken: every path of the private-stream core is
     // `this.filterBySymbolSinceLimit (...)` -> IList<object> (the other 15 ws `watchPrivate`
@@ -14858,10 +14771,8 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     // nado: the loop fills `List<object> results`, the single path returns it (cryptocom's
     // same-named 7-parameter overload is a different declaration and keeps Task<object>)
     'unWatchPublicMultiple': 'List<object>',
-    // U29: paradex's REST authenticateRest has two paths and both hand back a `string?` local
-    // (`cachedToken` = safeString(this.options, 'authToken'), `token` = safeString(response,
-    // 'jwt_token')), so the one `object token = await this.authenticateRest ()` local (pro tree)
-    // takes the string? box; the six other call sites ignore the result
+    // paradex's REST authenticateRest returns a `string?` local on both paths, so the
+    // `object token = await this.authenticateRest ()` local takes the string? box
     'authenticateRest': 'string?',
     // venue helpers whose every path hands back a safeDict() result or a safeDict() local
     // (nado, prediction sxbet/opinion: cached-or-fetched config rows)
@@ -14870,6 +14781,9 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'fetchSxbetBookSnapshot': 'IDictionary<string, object>',
     'fetchSxbetProxy': 'IDictionary<string, object>',
     'loadQuoteToken': 'IDictionary<string, object>',
+    // polymarket: the cached safeDict() local or the freshly built credentials literal local
+    'createProxyCredentials': 'Dictionary<string, object>',
+    'loadProxyCredentials': 'IDictionary<string, object>',
     // a List<object> local or safeList() on every path (grvt, prediction sxbet/kalshi)
     'internalFetchTransfers': 'List<object>',
     'fetchRawMarketsPaged': 'List<object>',
@@ -14879,13 +14793,23 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'fetchSxbetRealtimeToken': 'string?',
     'fetchErc20Name': 'string?',
     'walletEventsTopic': [ 'string', 'string?' ],
+    // bullish: `return this.safeString (this.options, 'tradingAccountId')` — one string? box
+    'loadAccount': 'string?',
+    // coinbase: safeString (account, 'id') or null — one string? box
+    'findAccountId': 'string?',
+    // derive: the single path returns the List<object> allInstruments local
+    'getMarketsPaginated': 'List<object>',
+    // apex: return this.safeString (this.options, 'accountId') — one string? box
+    'getAccountId': 'string?',
 };
+
+// cores whose Dictionary and IDictionary return arms join to the interface (collectionArmWidening)
 
 const awaitedCoreProofs = new WeakMap ();
 const awaitedCoreInProgress = new WeakSet ();
 
 // the printed expression's own static type already IS `mapped`, so the funnel adds nothing
-function awaitedCoreReturnIsAlreadyTyped (value, mapped) {
+function awaitedCoreReturnIsAlreadyTyped (value, mapped, name) {
     if (/^[A-Za-z_]\w*$/.test (value)) {
         return true; // a bare local read: the proof resolved it to `mapped` (a param would not prove)
     }
@@ -14893,7 +14817,7 @@ function awaitedCoreReturnIsAlreadyTyped (value, mapped) {
         return value.startsWith ('new List<object>');
     }
     if (mapped === 'Dictionary<string, object>' || mapped === 'IDictionary<string, object>') {
-        return value.startsWith ('new Dictionary<string, object>') || /^this\.safeDict2?N?\s*\(/.test (value);
+        return value.startsWith ('new Dictionary<string, object>') || /^this\.safeDict2?N?\s*\(/.test (value) || (AWAITED_CORE_ARM_WIDENING.has (name) && /^this\.extend\s*\(/.test (value)) || (mapped === 'IDictionary<string, object>' && /^await this\.createProxyCredentials\s*\(/.test (value));
     }
     if (mapped === 'double?') {
         return /^this\.safeNumber(N|2)?\s*\(/.test (value);
@@ -14906,6 +14830,7 @@ function awaitedCoreReturnIsAlreadyTyped (value, mapped) {
 
 // every `return` of the method proves one type: a return with no expression boxes null,
 // an unprovable or conflicting path fails the whole proof (the conservative direction)
+const AWAITED_CORE_ARM_WIDENING = new Set ([ 'prepareWsStockParams', 'loadProxyCredentials' ]); // Dictionary + IDictionary returns -> IDictionary
 function awaitedCoreBoxType (csharp, declaration) {
     if (!declaration.body) {
         return undefined;
@@ -14920,8 +14845,12 @@ function awaitedCoreBoxType (csharp, declaration) {
         }
         if (node.kind === ts.SyntaxKind.ReturnStatement) {
             found = true;
-            const value = (node.expression === undefined) ? 'null' : csharpTypeOfValue (csharp, node.expression, context);
-            const joined = (proven === undefined) ? value : unifyArms (proven, value);
+            let value = (node.expression === undefined) ? 'null' : csharpTypeOfValue (csharp, node.expression, context);
+            if (value === undefined && AWAITED_CORE_ARM_WIDENING.has (declaration.name?.text) && node.expression?.kind === ts.SyntaxKind.Identifier) {
+                // the params slot of a handle*AndParams destructuring prints IDictionary (element1ParamsBinding)
+                value = element1ParamsBinding (csharp, resolveReference (csharp, node.expression)) ? CSHARP_ELEMENT_1_TYPE : undefined;
+            }
+            const joined = (proven === undefined) ? value : unifyArms (proven, value, AWAITED_CORE_ARM_WIDENING.has (declaration.name?.text));
             if (joined === undefined) {
                 failed = true;
             } else {
@@ -14955,7 +14884,7 @@ function awaitedCoreReturnType (csharp, node) {
     try {
         const table = CSHARP_AWAITED_CORE_RETURNS[name];
         const proven = awaitedCoreBoxType (csharp, node);
-        // a listed box (the string form) or one of the listed boxes (the array form, S52
+        // a listed box (the string form) or one of the listed boxes (the array form, e.g.
         // `authenticate`): either way the declaration has to prove the box it prints
         const matches = Array.isArray (table) ? table.includes (proven) : (proven === table);
         mapped = matches ? proven : undefined;
@@ -14989,7 +14918,8 @@ export function installCsharpAsyncCoreReturns (transpiler) {
     csharp.printReturnStatement = (node, identation) => {
         // nearest function-like: a `return` inside an arrow/function expression belongs
         // to that callback, never to the enclosing async core
-        const retype = asyncCoreReturnType (csharp, ts.findAncestor (node.parent, ts.isFunctionLike));
+        const owner = ts.findAncestor (node.parent, ts.isFunctionLike);
+        const retype = asyncCoreReturnType (csharp, owner);
         if (retype === undefined || !node.expression) {
             return upstreamReturnStatement (node, identation);
         }
@@ -14997,7 +14927,7 @@ export function installCsharpAsyncCoreReturns (transpiler) {
         let trailingComment = csharp.printTraillingComment (node, identation);
         trailingComment = trailingComment ? ' ' + trailingComment : trailingComment;
         const value = csharp.printNode (node.expression, identation).trim ();
-        const already = (retype.awaited ? awaitedCoreReturnIsAlreadyTyped (value, retype.type) : asyncCoreReturnIsAlreadyTyped (value)) || callReturnIsMapped (csharp, node.expression, retype.type);
+        const already = (retype.awaited ? awaitedCoreReturnIsAlreadyTyped (value, retype.type, owner.name?.text) : asyncCoreReturnIsAlreadyTyped (value)) || callReturnIsMapped (csharp, node.expression, retype.type);
         if (already) {
             return upstreamReturnStatement (node, identation);
         }
@@ -15056,37 +14986,9 @@ export const CSHARP_NUMERIC_RETURN_TYPES = {
     'safeNumberOmitZero': 'double?',
     // Exchange.BaseMethods.cs — see the safeIntegerOmitZero proof in the name list above
     'safeIntegerOmitZero': 'Int64?',
-    // Generated venue helpers (non-async) whose every return path of every declaration
-    // already boxes the named type. The proof is a per-name census of the generated tree
-    // (cs/ccxt/exchanges/**, the pro and prediction trees, + the generated base): a name is
-    // listed only when EVERY declaration's every return is a call to a helper whose C#
-    // signature is the same box, a null path (only with the nullable spelling — a
-    // non-nullable Int64/double must not unbox a null), or a same-kind expression:
-    //   convertFromRealAmount  bitmex             double?  parseNumber (finalAmount)
-    //   fromWei                prediction/myriad  double?  null | parseNumber (Precise.stringDiv …)
-    //   parseX18               nado               double?  null | parseNumber (Precise.stringDiv …)
-    //   parseWsTimestamp       pro/nado           Int64?   null | parseToInt (slice …) | safeInteger
-    //   encodeAccountType      hashkey            Int64?   safeInteger (types, (type as string), type)
-    //   encodeFlowType         hashkey            Int64?   safeInteger (types, (type as string), type)
-    //   parseExpiryDate        bitflyer           Int64?   parse8601 (a date string)
-    //   timeInForceToInt       grvt               Int64?   safeInteger (timeInForces, timeInForce, 0)
-    // Rejected with the same census (each keeps `object`): getCacheIndex (the base `-1` /
-    // getArrayLength(int) paths box Int32, bitstamp's `add (i, 1)` path boxes Int64 —
-    // add(int, int) does not exist, so one declaration has no nameable box), parseSafeNumber
-    // (`return value` returns the object parameter — its null-ness depends on isEqual, not
-    // on the value's box), calculatePricePrecision (parseToNumeric is a mixed Int64/double
-    // box), convertFromRawQuantity (pro/bitrue returns multiply (rawQuantity, contractSize)),
-    // toEn (parseToNumeric), outcomeEncoding / outcomeAssetId (sum), getTimestamp
-    //   (subtract with an object operand), feeAmountMultiplier (its single return path is
-    //   this.convertToBigIntCustom, so it is provable — but no declaration in the corpus is
-    //   fed by it, so naming it would move the signature for 0 sites), getClosestLimit /
-    //   getAccountId / getOrderBookLimitByMarketType / parsePolyTimestamp
-    //   (identifier/parameter passthrough).
-    // convertToBigIntCustom (grvt, 1 definition) was in that rejected list while `parseInt`
-    // was declared `object`; cs90 U35 retyped parseInt to Int64? (Exchange.TranspileHelpers.cs),
-    // so the definition's only return path — `return parseInt (x);` — is now the same
-    // Int64-or-null box the signature names, and its 4 `object x = this.convertToBigIntCustom (…)`
-    // declarations become Int64? with no cast.
+    // Non-async venue helpers whose every return path of every declaration already boxes the
+    // named type (a same-signature helper call, a same-kind expression, or null only with the
+    // nullable spelling); names with a mixed, unnameable or passthrough box stay `object`.
     'convertFromRealAmount': 'double?',
     'convertToBigIntCustom': 'Int64?',
     'encodeAccountType': 'Int64?',
@@ -15105,12 +15007,9 @@ function csharpMethodReturnType (csharp, node, own) {
         return undefined;
     }
     const name = node.name?.text;
-    // `requestId`: one definition per venue file and the box differs between venues, so a
-    // name-keyed table cannot express it — the same per-definition proof the call sites use
-    // (sameFileCallBoxType) retypes the Int64 counter definitions, which is what lets their
-    // call-site casts go; the string-box definitions keep the printer's `object`
-    // U37: the same per-definition route for a numeric helper whose sibling venue's
-    // declaration does not prove (CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS).
+    // `requestId`: the box differs per venue, so the per-definition proof (sameFileCallBoxType)
+    // retypes the Int64 counter definitions and the string-box ones keep `object`; numeric
+    // helpers with a non-proving sibling use the same route (CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS).
     const sameFileMapped = (CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS[name] !== undefined)
         ? sameFileNumericDeclarationType (csharp, node, CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS[name])
         : undefined;
@@ -15153,10 +15052,9 @@ function needsUnboxingWrap (csharp, expression, mapped) {
     if (typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (expression) === mapped) {
         return false;
     }
-    // U49: the expression is a bare local read (or a call whose generated signature already
-    // names the box) that the local pass declares with exactly `mapped` — `return x;` in a
-    // method declared `mapped` is the same conversion the box + unbox performs, so the
-    // boundary cast names a type the value already has
+    // the expression is a bare local read (or a call whose signature already names the box)
+    // declared with exactly `mapped`: `return x;` in a method declared `mapped` is the same
+    // conversion the box + unbox performs, so the boundary cast names a type the value already has
     if (expression.kind === ts.SyntaxKind.Identifier && identifierType (csharp, expression) === mapped) {
         return false;
     }
@@ -15625,11 +15523,18 @@ export function installCsharpNumericComparisons (transpiler) {
 // build/csharpTranspiler.ts, no shadow: every body write is a literal or a same-typed producer).
 // `sign` headers (4) stay object: prediction overrides write an `object existingHeaders` into it.
 // `path` (0) of sign/fetch2/request: ts/src declares `path: string` and no body writes it.
+// `api` (1) of sign/fetch2/request: ts/src declares `api: string[] = [ 'public' ]` on the base
+// and on every override (coinbaseinternational's `string[] | string` is the one union, narrowed
+// there), every body write is the `??= new List<object>()` prologue or a list producer, and the
+// three intra-tier call sites forward a same-typed parameter. The runtime box is `List<object>`
+// (hand-written transformApi) so no element read needs a cast.
 export const SIGNATURE_ARG_TYPES = {
-    'fetch2': { 0: 'string' },
-    'request': { 0: 'string' },
-    'sign': { 0: 'string', 2: 'string' },
-    'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
+    'fetch2': { 0: 'string', 1: 'IList<object>' },
+    'request': { 0: 'string', 1: 'IList<object>' },
+    'sign': { 0: 'string', 1: 'IList<object>', 2: 'string' },
+    // position 0 is `int` on every generated declaration (code / httpCode / statusCode), never written by a
+    // body, and the only hand-written caller (Exchange.cs) passes an `int`: `Int64?` is its own type
+    'handleErrors': { 0: 'Int64?', 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
@@ -15769,7 +15674,7 @@ function coreArgParamType (csharp, node) {
 
 // the parameter is the target of a write anywhere in the method body: its own symbol, an
 // assignment (or compound assignment) left side -- through parens and array/object patterns, so
-// a `[ tag, params ] = this.handleWithdrawTagAndParams (…)` destructure counts -- or ++/--
+// a `[ type, params ] = this.handleMarketTypeAndParams (…)` destructure counts -- or ++/--
 function csharpParameterIsWritten (csharp, owner, declaration) {
     if (owner.body === undefined) {
         return false;
@@ -15863,30 +15768,24 @@ export function installCsharpParameterTypes (transpiler) {
 
 // ===== typed parameter declarations (D-17) =====
 //
-// The printer declares every method parameter `object`. A parameter whose ts/src annotation
-// names a native-carriable alias prints that type instead -- the same value in the same box
-// (a reference copy, or a Nullable<T> that boxes as T) -- and is published to the printer's
-// member rules through csharpDeclaredLocalTypeResolver, which is what makes the body's typed
-// reads of the parameter fire (getValue(k)/ContainsKey families). The proof, all of it:
-//   1. the owner is a non-async, non-static MethodDeclaration without `override` (D8: an
-//      override must match its base declaration -- another unit's family);
-//   2. the parameter's annotation names Dict/List/Str/Int/Num/Bool and the checker's own type
-//      for the parameter still spells that alias (never a name heuristic);
-//   3. the body never writes the parameter (D2, the shared write scan);
-//   4. the (method, position) is not one of B-17's narrowed core arguments (its tables own
-//      those positions and their call-site conversions);
-//   5. every call site proves: no `.name(` occurrence in any OTHER ts/src file (a call site in
-//      a file the current program does not hold -- the pro tier of a scoped run -- is still
-//      type-checked by the C# compiler, so only a name the corpus nowhere else calls is
-//      safe), and every call site the checker DOES resolve passes an argument the module's
-//      type oracle proves assignable to the target (a literal, null/undefined, a same-typed
-//      admitted parameter of the caller, a local the local-typing table declares with that
-//      type, or a call whose typed C# return the module's tables name).
-// Anything else keeps the `object` box (D1: no opt-ins, no casts).
+// A parameter annotated Dict/List/Str/Int/Num/Bool (non-async, non-static, non-override owner,
+// never written, not a narrowed core position, every call site proven assignable, no other ts/src
+// caller) prints that type, the same box; anything else keeps `object` (no opt-ins, no casts).
 
 const CSHARP_PARAMETER_ALIAS_TYPES = {
     'Dict': { 'type': 'IDictionary<string, object>', 'value': false },
+    'Dict|undefined': { 'type': 'IDictionary<string, object>', 'value': false },
+    'NullableDict': { 'type': 'IDictionary<string, object>', 'value': false },
+    'Market': { 'type': 'IDictionary<string, object>', 'value': false },
+    'MarketInterface': { 'type': 'IDictionary<string, object>', 'value': false },
+    'Currency': { 'type': 'IDictionary<string, object>', 'value': false },
     'List': { 'type': 'IList<object>', 'value': false },
+    'Strings': { 'type': 'IList<object>', 'value': false },
+    'string[]': { 'type': 'IList<object>', 'value': false },
+    'any[]': { 'type': 'IList<object>', 'value': false },
+    'object[]': { 'type': 'IList<object>', 'value': false },
+    'Dict[]': { 'type': 'IList<object>', 'value': false },
+    'Dict[]|undefined': { 'type': 'IList<object>', 'value': false },
     'Str': { 'type': 'string', 'value': false },
     'Int': { 'type': 'Int64', 'value': true },
     'Num': { 'type': 'double', 'value': true },
@@ -16050,6 +15949,23 @@ function csharpIdentifierDeclaration (csharp, node) {
     }
 }
 
+// the C# type of `x` where x is a slot binding of an audited destructured tuple
+function destructuredSlotArgumentType (csharp, declaration, argument) {
+    const pattern = declaration?.parent;
+    const holder = pattern?.parent;
+    if (declaration?.kind !== ts.SyntaxKind.BindingElement || pattern?.kind !== ts.SyntaxKind.ArrayBindingPattern
+            || holder?.kind !== ts.SyntaxKind.VariableDeclaration || holder.name !== pattern) {
+        return undefined;
+    }
+    try {
+        const scope = csharp.csharpEnclosingFunction (argument);
+        const slot = pattern.elements.indexOf (declaration);
+        return (slot < 0) ? undefined : destructuredSlotType (csharp, scope, holder, slot, { scope, 'stack': new Set (), 'depth': 0 });
+    } catch (e) {
+        return undefined;
+    }
+}
+
 // the C# static type of a call-site argument, or undefined when nothing proves it
 function csharpArgumentType (csharp, argument, expected) {
     if (argument === undefined) {
@@ -16071,6 +15987,12 @@ function csharpArgumentType (csharp, argument, expected) {
             const reference = referenceDeclaredType (csharp, declaration);
             if (reference !== undefined) {
                 return reference;
+            }
+            // a slot of `const [ type, params ] = this.handleMarketTypeAndParams (...)`
+            // that the destructuring hook prints `string` / `string?`
+            const slotType = destructuredSlotArgumentType (csharp, declaration, argument);
+            if (slotType !== undefined) {
+                return slotType;
             }
         }
     }
@@ -16105,6 +16027,9 @@ function csharpArgumentAssignable (target, source, argument) {
 // every call site of the parameter's method must prove: the name occurs in no other corpus
 // file, and each checker-resolved site passes a provable argument at this position
 function csharpParameterCallSitesProve (csharp, parameter, target) {
+    const stringAlias = asyncParameterStringAlias (parameter.type?.getText?.(), parameter);
+    const literalOnly = stringAlias?.literalOnly === true;
+    const printedOnly = stringAlias?.literalOnly === false;
     const owner = parameter.parent;
     const name = owner.name.text;
     const position = owner.parameters.indexOf (parameter);
@@ -16155,7 +16080,7 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
     const related = (rel) => rel.startsWith ('ts/src/base/') || (corpus.imports.get (rel)?.has (moduleBase) ?? false)
         || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false)
         || declaringChain.has (rel) || ancestors (rel).has (declaringRel);
-    if ((target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type)
+    if ((literalOnly || printedOnly || target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type || calledParameterCollectionTarget (target))
         && ((declared === undefined) || [ ...declared ].some ((rel) => (rel !== declaringRel) && related (rel)))) {
         return false;
     }
@@ -16164,11 +16089,25 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
         if (site.declarations.indexOf (owner) < 0) {
             continue; // a site binding another class's method
         }
-        if (target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type) {
-            return false; // a called method's non-Dict parameters are not this rule's
+        if (!literalOnly && !printedOnly && target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type && !calledParameterCollectionTarget (target)) {
+            return false; // a called method's value-type parameters are not this rule's
         }
         resolved++;
         const argument = site.call.arguments[position];
+        if (literalOnly) {
+            if (!ts.isStringLiteralLike (argument)) {
+                return false; // only a string literal is a provably non-null string
+            }
+            continue;
+        }
+        if (printedOnly) {
+            // a TS `string` argument (never undefined) that also prints as a C# string
+            const printed = tsStringTypedArgument (csharp, argument) ? csharpArgumentType (csharp, argument, target) : undefined;
+            if (printed !== 'string' && printed !== 'string?') {
+                return false;
+            }
+            continue;
+        }
         if (argument === undefined) {
             if (!csharpParameterDefaultPrintsNull (parameter.initializer)) {
                 return false; // a call omits the argument and the emitted parameter has no default
@@ -16184,6 +16123,41 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
     return resolved >= (occurrences?.get (declaringRel) ?? 0);
 }
 
+// a required `string` parameter of an exchange-local helper prints `string` (non-null), so
+// `add (add (p, "@"), x)` on it prints native concatenation. Async: every call site passes a string
+// literal; sync: every caller passes a TS `string` that prints as C# string/string?.
+function asyncParameterStringAlias (alias, parameter) {
+    if ((alias !== 'string') || (parameter?.initializer !== undefined) || (parameter?.questionToken !== undefined)
+        || (parameter?.dotDotDotToken !== undefined)) {
+        return undefined;
+    }
+    const isAsync = (parameter.parent?.kind === ts.SyntaxKind.MethodDeclaration) && csharpMethodHasModifier (parameter.parent, ts.SyntaxKind.AsyncKeyword);
+    return { 'type': 'string', 'value': false, 'literalOnly': isAsync };
+}
+
+function tsStringTypedArgument (csharp, argument) {
+    try {
+        return (argument !== undefined) && (csharp.getChecker ().typeToString (csharp.getChecker ().getTypeAtLocation (argument)) === 'string');
+    } catch (e) {
+        return false;
+    }
+}
+
+// a required, never-written `string` parameter whose printed signature type is `string`
+function printedStringParameter (csharp, identifier) {
+    const declaration = csharpIdentifierDeclaration (csharp, identifier);
+    return (declaration?.kind === ts.SyntaxKind.Parameter) && (declaration.type?.kind === ts.SyntaxKind.StringKeyword)
+        && (declaration.initializer === undefined) && (declaration.questionToken === undefined) && (declaration.dotDotDotToken === undefined)
+        && (parameterArithmeticType (csharp, identifier) === 'string') && !csharpParameterIsWritten (csharp, declaration.parent, declaration);
+}
+
+// the parameter is a proven non-null `string` (the caller rules above)
+function nonNullStringParameter (csharp, identifier) {
+    const declaration = csharpIdentifierDeclaration (csharp, identifier);
+    return (declaration?.kind === ts.SyntaxKind.Parameter) && (asyncParameterStringAlias (declaration.type?.getText?.(), declaration) !== undefined)
+        && (csharpParameterDecision (csharp, declaration) === 'string');
+}
+
 const csharpParameterTypeDecisions = new WeakMap (); // ParameterDeclaration -> string | null
 const csharpParameterDecisionsInProgress = new Set ();
 
@@ -16197,7 +16171,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return (cached === null) ? undefined : cached;
     }
     const alias = (parameter.type?.getText !== undefined) ? parameter.type.getText () : undefined;
-    const mapped = (alias === undefined) ? undefined : CSHARP_PARAMETER_ALIAS_TYPES[alias];
+    const mapped = (alias === undefined) ? undefined : (CSHARP_PARAMETER_ALIAS_TYPES[alias] ?? asyncParameterStringAlias (alias, parameter));
     if (mapped === undefined) {
         csharpParameterTypeDecisions.set (parameter, null);
         return undefined;
@@ -16212,7 +16186,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return undefined;
     }
     if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
-        || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict'))
+        || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict') && (mapped.literalOnly !== true))
         || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
         return undefined;
     }
@@ -16302,15 +16276,11 @@ export function installCsharpParameterDeclarations (transpiler) {
 
 export default installCsharpLocalTypes;
 
-// ===== U02: list-typed core arguments (moved here from build/csharpTranspiler.ts) =====
+// ===== list-typed core arguments =====
 //
-// The narrowing table `typeCoreArgs` reads. Kept in this module so BOTH the narrowing pass
-// and this file's element-read proof read ONE copy: a parameter that pass narrowed to a list
-// is a list receiver in the emitted C#, which is exactly what stringListParameterElementType
-// has to know (and the reason a position added there can never be typed here by accident).
-// Method names (C# spelling) whose trailing `params` prints `Dictionary<string, object> parameters = null`
-// (build/csharpTranspiler.ts#retypeParameterArgs). Admitted only when every declaration, body write
-// and call-site argument is a dictionary (fixpoint census over the whole generated tree).
+// The narrowing table `typeCoreArgs` reads, kept here so the narrowing pass and the element-read
+// proof share ONE copy. Below: methods whose trailing `params` prints `Dictionary<string, object>
+// parameters = null`, admitted only when every declaration, body write and call-site argument is a dictionary.
 export const PARAMETERS_ARG_TYPED_METHODS = [ 'FetchMyBuys', 'FetchMySells', 'WatchPosition', 'isUTAEnabled', 'redeem' ];
 
 // the retyped trailing `params` of an admitted method, read inside its own body and never written
@@ -16328,16 +16298,9 @@ function dictionaryParameterType (csharp, declaration) {
     return csharpParameterIsWritten (csharp, owner, declaration) ? undefined : 'Dictionary<string, object>';
 }
 
-// Generated C# core parameters that can be narrowed from `object` to a list type: the C#
-// spelling of the TS `Strings` parameter (every array the printer builds is a `List<object>`,
-// the bodies only read it as a list, and the dominant writer `symbols = this.marketSymbols
-// (symbols)` returns IList<object>). Same positional keying and all-declarations-must-agree
-// gate as CORE_STRING_ARGS, but NO call-site wrap is emitted for a list target -- unlike a
-// `((string)x)` wrap, `((IList<object>)x)` on an `object` argument is a new runtime type
-// check, so a position is admitted only when every caller already passes a list / `null` /
-// nothing (census + per-site proof: campaigns/cs-strict/tools/S39/admission3.py).
-// Read in this file by stringListParameterElementType (a narrowed list parameter's element
-// reads) and by build/csharpTranspiler.ts#typeCoreArgs (the narrowing itself) -- one table.
+// Core `Strings` parameters narrowed from `object` to a list (same keying/agreement gate as
+// CORE_STRING_ARGS). No call-site wrap is emitted (an IList cast would add a runtime check), so a
+// position is admitted only when every caller passes a list, `null` or nothing. One shared table.
 export const CORE_LIST_ARGS = {
     'cancelOrders': { 0: 'IList<object>' },
     'cancelOrdersRequest': { 0: 'IList<object>' },
@@ -16437,9 +16400,8 @@ export const CORE_LIST_ARGS = {
 // body write cannot be attributed to a list producer (see bodyWritesAreListTyped there).
 export const CORE_LIST_TARGET_TYPES = [ 'IList<object>' ];
 
-// Venue list parameters read through `.length`: every declaration of the name prints `object` at
-// that position and every caller in the generated tree (tests and hand-written base included)
-// passes a list or null (census research/r16/cs-arrlen/famadmit.py); merged into CORE_LIST_ARGS.
+// Venue list parameters read through `.length`: every declaration prints `object` at that position
+// and every caller (tests and hand-written base included) passes a list or null; merged into CORE_LIST_ARGS.
 const CORE_LIST_ARGS_LENGTH_READS = {
     'parseFeeTiers': 0,
     'parseBorrowRateHistories': 0,
@@ -16490,7 +16452,8 @@ for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LENGTH_READS)) {
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
 //
 // `Math.min (limit, 1000)` with `limit` a narrowed `Int64?` parameter proven non-null by a
-// dominating null test prints `Math.Min(limit.Value, 1000)`: same value as mathMin, which only
+// dominating null test prints `Math.Min(limit.Value, 1000)` (`Math.max (since - 1, 0)` ->
+// `Math.Max((since.Value - 1), 0)`): same value as mathMin, which only
 // differs by returning the literal's Int32 box. Only request-field writes take the result, and
 // urlencode / json print both boxes identically.
 function minMaxGuardedNullableOperand (csharp, call, node) {
@@ -16498,6 +16461,19 @@ function minMaxGuardedNullableOperand (csharp, call, node) {
         return false;
     }
     return (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (call, node);
+}
+
+// `x ± n` (parenthesised or not) on a guarded `Int64?` parameter: `(x.Value ± n)`, else undefined
+function minMaxGuardedShiftedText (csharp, call, node) {
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    const op = node?.operatorToken?.kind;
+    if ((node?.kind !== ts.SyntaxKind.BinaryExpression) || ((op !== ts.SyntaxKind.MinusToken) && (op !== ts.SyntaxKind.PlusToken))
+        || !minMaxIntLiteral (node.right) || !minMaxGuardedNullableOperand (csharp, call, node.left)) {
+        return undefined;
+    }
+    return '(' + csharp.printNode (node.left, 0) + '.Value ' + ((op === ts.SyntaxKind.MinusToken) ? '-' : '+') + ' ' + node.right.text + ')';
 }
 
 function minMaxIntLiteral (node) {
@@ -16530,6 +16506,10 @@ export function installCsharpGuardedMinMax (transpiler) {
         }
         if (minMaxIntLiteral (args[0]) && minMaxGuardedNullableOperand (csharp, node, args[1])) {
             return 'Math.' + name + '(' + parsedArg1 + ', ' + parsedArg2 + '.Value)';
+        }
+        const shifted = minMaxIntLiteral (args[1]) ? minMaxGuardedShiftedText (csharp, node, args[0]) : undefined;
+        if (shifted !== undefined) {
+            return 'Math.' + name + '(' + shifted + ', ' + parsedArg2 + ')';
         }
         return native;
     };
@@ -16676,11 +16656,11 @@ export const CSHARP_STRING_PARAMS = {
     'handleTickerAndBidAsk': { 0: 'string' },
     'handleTickersAndBidsAsks': { 2: 'string' },
     'handleTypePostOnlyAndTimeInForce': { 0: 'string?' },
-    'handleUnSubscriptionTrades': { 1: 'string?' },
+    'handleUnSubscriptionTrades': { 1: 'string?', 2: 'string' },
     'handleUnsubscriptionCache': { 0: 'string?' },
     'handleUnsubscriptionOHLCV': { 1: 'string?', 2: 'string?' },
-    'handleUnsubscriptionOrderBook': { 1: 'string?' },
-    'handleUnsubscriptionTicker': { 1: 'string?' },
+    'handleUnsubscriptionOrderBook': { 1: 'string?', 2: 'string' },
+    'handleUnsubscriptionTicker': { 1: 'string?', 2: 'string' },
     'handleUntilOption': { 0: 'string?' },
     'handleUntilOptionString': { 0: 'string' },
     'helperForWatchMultipleConstruct': { 0: 'string' },
@@ -16706,6 +16686,7 @@ export const CSHARP_STRING_PARAMS = {
     'padHexToEven': { 0: 'string?' },
     'parseAccountId': { 0: 'string?' },
     'parseBorrowRates': { 1: 'string?' },
+    'parseContractOrderSide': { 0: 'string?' },
     'parseCreateEditOrderArgs': { 0: 'string?', 1: 'string?' },
     'parseDepositWithdrawFees': { 2: 'string?' },
     'parseExpiryDate': { 0: 'string?' },
@@ -16756,7 +16737,6 @@ export const CSHARP_STRING_PARAMS = {
     'safeSymbol': { 2: 'string?' },
     'seedOrderBook': { 0: 'string?', 1: 'string?' },
     'seedPositionBalances': { 0: 'string?' },
-    'selectNetworkIdFromRawNetworks': { 0: 'string?' },
     'sendEvmTransaction': { 0: 'string?', 2: 'string?', 3: 'string?', 4: 'string?', 5: 'string?', 6: 'string?' },
     'setAgentAbstraction': { 0: 'string' },
     'setContractLeverage': { 1: 'string?' },
@@ -16805,6 +16785,7 @@ export const CSHARP_STRING_PARAMS = {
     'watchExecuteRequest': { 0: 'string?' },
     'watchMany': { 0: 'string?', 2: 'string?' },
     'watchMultiHelper': { 0: 'string' },
+    'pro/upbit.watchPrivate': { 1: 'string', 2: 'string' },
     'watchPrivateSubscribe': { 0: 'string?' },
     'watchRequest': { 0: 'string?' },
     'watchSpotPrivate': { 0: 'string?', 1: 'string?' },
@@ -16819,8 +16800,10 @@ function csharpStringParamType (csharp, node) {
     if ((node?.kind !== ts.SyntaxKind.Parameter) || (owner?.kind !== ts.SyntaxKind.MethodDeclaration)) {
         return undefined;
     }
-    const wanted = CSHARP_STRING_PARAMS[owner.name?.text]?.[owner.parameters.indexOf (node)];
     const file = owner.getSourceFile ().fileName.replace (/\\/g, '/');
+    // `pro/upbit.watchPrivate` keys one exchange file (same-name methods elsewhere differ)
+    const scoped = file.replace (/^.*\/ts\/src\/(.*)\.ts$/, '$1') + '.' + owner.name?.text;
+    const wanted = (CSHARP_STRING_PARAMS[scoped] ?? CSHARP_STRING_PARAMS[owner.name?.text])?.[owner.parameters.indexOf (node)];
     if ((wanted === undefined) || file.includes ('/test/') || !/(^|\/)ts\/src\//.test (file)) {
         return undefined;
     }
@@ -16866,6 +16849,7 @@ export function installCsharpStringParams (transpiler) {
 export const CSHARP_BOOLEAN_PARAMS = {
     'adapterAddress': { 0: 'bool?' },
     'applyScale': { 1: 'bool?' },
+    'checkRequiredCredentials': { 0: 'bool?' },
     'checkRequiredUid': { 0: 'bool?' },
     'cleanUnsubscription': { 3: 'bool?' },
     'conditionalTokensAddress': { 0: 'bool?', 1: 'bool?' },
@@ -16900,12 +16884,14 @@ export const CSHARP_BOOLEAN_PARAMS = {
     'getSymbolsForMarketType': { 2: 'bool?', 3: 'bool?' },
     'handleParamBool': { 2: 'bool?' },
     'handleParamBool2': { 3: 'bool?' },
+    'handlePostOnly': { 0: 'bool', 1: 'bool?' },
     'handleTradeType': { 2: 'bool?' },
     'handleTriggerDirectionAndParams': { 2: 'bool?' },
     'handleTriggerOptionAndParams': { 2: 'bool?' },
     'handleTriggerPricesAndParams': { 2: 'bool?' },
     'handleUTAAndParams': { 2: 'bool?' },
     'isLeveragedCurrency': { 1: 'bool?' },
+    'isPostOnly': { 0: 'bool' },
     'loadAccountSettings': { 0: 'bool?' },
     'loadAccounts': { 0: 'bool?' },
     'loadEvents': { 0: 'bool?' },
@@ -16916,7 +16902,7 @@ export const CSHARP_BOOLEAN_PARAMS = {
     'loadOutcome': { 1: 'bool?' },
     'loadOutcomes': { 1: 'bool?' },
     'loadTradingLimits': { 1: 'bool?' },
-    'marketSymbols': { 3: 'bool?', 4: 'bool?' },
+    'marketSymbols': { 2: 'bool?', 3: 'bool?', 4: 'bool?' },
     'multiOrderSpotPrepareRequest': { 1: 'bool?' },
     'negotiate': { 0: 'bool' },
     'opinionOrderRawAmounts': { 0: 'bool' },
@@ -16929,6 +16915,7 @@ export const CSHARP_BOOLEAN_PARAMS = {
     'prepareParadexDomain': { 0: 'bool?' },
     'prioritizedNetworkAliases': { 2: 'bool?' },
     'removeRepeatedElementsFromArray': { 1: 'bool?' },
+    'requestWs': { 2: 'bool?' },
     'safeBool2': { 3: 'bool?' },
     'safeBoolN': { 2: 'bool?' },
     'selectNetworkKeyFromNetworks': { 3: 'bool?' },
@@ -16936,6 +16923,7 @@ export const CSHARP_BOOLEAN_PARAMS = {
     'setSandboxMode': { 0: 'bool?' },
     'signPredictfunOrder': { 1: 'bool?', 2: 'bool?' },
     'spotOrderPrepareRequest': { 1: 'bool?' },
+    'unsubscribeAllWs': { 0: 'bool?' },
     'watchMultiTickerHelper': { 4: 'bool?' },
     'watchMultipleSubscription': { 3: 'bool?' },
 };
@@ -17082,7 +17070,32 @@ function nativeComparisonOperand (csharp, node, symbol, comparison) {
     if (!numeric || (nullable && !nativeComparisonOperandIsIdentifier (node, symbol))) {
         return undefined;
     }
-    return { nullable, text: csharp.printNode (node, 0).trim () };
+    return { nullable, text: csharp.printNode (node, 0).trim (), viaParameter: nullable && retypeNullableCompareIsParameter (csharp, node),
+        admitted: nullable && (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (comparison, nativeComparisonUnwrap (node)) };
+}
+
+// ===== retype-cs-nullable-compare =====
+// A nullable narrowed core PARAMETER (`Int64? since`) compares like the TS source (`undefined <op> x`
+// is false): an explicit `x != null &&` per nullable side, scoped to those CORE_NUMERIC_ARGS pairs.
+const RETYPE_NULLABLE_COMPARE_METHODS = [ 'fetchMarginAdjustmentHistory', 'handleTradingStatisticsWindow' ];
+
+function retypeNullableCompareIsParameter (csharp, node) {
+    const inner = nativeComparisonUnwrap (node);
+    if (inner?.kind !== ts.SyntaxKind.Identifier || coreArgParamType (csharp, inner) === undefined) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = csharp.getChecker ().getSymbolAtLocation (inner)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return RETYPE_NULLABLE_COMPARE_METHODS.includes (declaration?.parent?.name?.text);
+}
+
+function retypeNullableCompareTsForm (left, right, core) {
+    const guards = [ left, right ].filter ((side) => side.nullable && !side.admitted).map ((side) => side.text + ' != null');
+    return '(' + guards.concat ([ core ]).join (' && ') + ')';
 }
 
 function nativeComparisonExpression (csharp, node) {
@@ -17100,6 +17113,9 @@ function nativeComparisonExpression (csharp, node) {
     const core = L + ' ' + symbol + ' ' + R;
     if (!left.nullable && !right.nullable) {
         return '(' + core + ')';
+    }
+    if ((left.viaParameter && left.nullable) || (right.viaParameter && right.nullable)) {
+        return retypeNullableCompareTsForm (left, right, core);
     }
     // the lifted operator is false when either side is null; the helper's answer differs only
     // for (value, null) under `>`/`>=` and (null, *) under `<`/`<=`
@@ -17800,6 +17816,10 @@ function nonNullStringValue (csharp, declaration, node, depth) {
         if (binding?.kind !== ts.SyntaxKind.VariableDeclaration || binding.name?.kind !== ts.SyntaxKind.Identifier) {
             return false;
         }
+        // `const o = this.handleOptionStringAndParams (…, '<literal>')[0]` never holds null
+        if (binding.parent?.flags & ts.NodeFlags.Const && tupleElement0LiteralDefault (binding.initializer)) {
+            return true;
+        }
         const scope = enclosingFunction (binding);
         return stringValueIsNonNullAtUse (csharp, scope, binding, binding.name.text, current, { scope, stack: new Set (), depth: 0 });
     }
@@ -17919,3 +17939,679 @@ function integerLiteralArithmeticLocal (csharp, declaration, context) {
     }
     return (reads > 0) ? { type: 'Int64' } : undefined;
 }
+
+// ===== emitted collection declarations for the printer's indexer reads =====
+// The printer's literal-key/row reads emit `(x != null && x.ContainsKey("k") ? x["k"] : null)` /
+// `(x != null && N < x.Count ? x[N] : null)` only for a nameable EMITTED type: record the final line.
+function emittedCollectionDeclarationType (printed, printedName) {
+    const line = (printed ?? '').split ('\n').find ((l) => l.trim () !== '');
+    const match = (line === undefined) ? null : DECLARED_LOCAL_LINE_RE.exec (line);
+    if (match === null || match[2] !== printedName) {
+        return undefined;
+    }
+    let type = match[1].trim ();
+    if (type === 'var') {
+        const value = match[3].trim ();
+        type = value.startsWith ('new Dictionary<string, object>(') ? 'Dictionary<string, object>'
+            : (value.startsWith ('new List<object>(') ? 'List<object>' : undefined);
+    }
+    const collections = [ 'List<object>', 'IList<object>', 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+    return collections.includes (type) ? type : undefined;
+}
+
+export function installCsharpDeclaredCollectionLocals (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printVariableDeclarationList !== 'function' || csharp._emittedCollectionTypesPatched) {
+        return;
+    }
+    // keyed by file + position: the worker batch hands back fresh node handles from resolve ()
+    const recorded = new Map ();
+    const keyOf = (n) => `${n.getSourceFile?.()?.fileName ?? ''}:${n.pos}:${n.end}`;
+    const upstreamPrint = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamPrint (node, identation);
+        const declarations = node?.declarations;
+        if (typeof printed === 'string' && declarations?.length === 1 && declarations[0].name?.kind === ts.SyntaxKind.Identifier) {
+            const type = emittedCollectionDeclarationType (printed, csharp.printNode (declarations[0].name, 0));
+            if (type !== undefined) {
+                recorded.set (keyOf (declarations[0]), type);
+            } else {
+                recorded.delete (keyOf (declarations[0]));
+            }
+        }
+        return printed;
+    };
+    const upstreamResolver = csharp.csharpDeclaredLocalTypeResolver;
+    if (typeof csharp.printParameter === 'function') {
+        const upstreamParameter = csharp.printParameter.bind (csharp);
+        csharp.printParameter = (node, defaultValue = true) => {
+            const printed = upstreamParameter (node, defaultValue);
+            const head = (typeof printed === 'string') ? printed.trim ().split (' = ')[0] : '';
+            const match = /^(.+) ([A-Za-z_]\w*)$/s.exec (head);
+            const type = (match === null) ? undefined : match[1].trim ();
+            const collections = [ 'List<object>', 'IList<object>', 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+            if (node?.name?.kind === ts.SyntaxKind.Identifier && collections.includes (type)) {
+                recorded.set (keyOf (node), type);
+            }
+            return printed;
+        };
+    }
+    csharp.csharpDeclaredLocalTypeResolver = (declaration) => {
+        const upstream = (typeof upstreamResolver === 'function') ? upstreamResolver (declaration) : undefined;
+        if (upstream !== undefined) {
+            return upstream;
+        }
+        return (declaration === undefined) ? undefined : recorded.get (keyOf (declaration));
+    };
+    csharp._emittedCollectionTypesPatched = true;
+}
+
+// `+` on Int64 operands the native arithmetic rule leaves on add().
+// (a) an `Int64?` operand proven non-null (null guard / non-null default) is the Int64 branch;
+// (b) `int + <int literal>` statically binds add(Int64, Int64): printed `(x + NL)`, same Int64 sum.
+function nativeAddNonNullOperandKind (csharp, node, plus) {
+    let operand = node;
+    while (operand?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        operand = operand.expression;
+    }
+    const kind = nativeArithmeticOperandKind (csharp, operand);
+    if (kind !== 'Int64?') {
+        return { kind, demoted: false };
+    }
+    if (nativeInt64ValueIsNonNull (csharp, operand, 0)) {
+        return { kind: 'Int64', demoted: true };
+    }
+    const guarded = (operand.kind === ts.SyntaxKind.Identifier) && !nativeSubtractOperandIsRebound (csharp, operand)
+        && (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (plus, operand);
+    return { kind: guarded ? 'Int64' : kind, demoted: guarded };
+}
+
+function nativeInt64Add (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    const leftLiteral = intLiteralText (node.left);
+    const rightLiteral = intLiteralText (node.right);
+    if ((leftLiteral === undefined) !== (rightLiteral === undefined)) {
+        const other = (leftLiteral === undefined) ? node.left : node.right;
+        if (nativeArithmeticOperandKind (csharp, other) === 'int') {
+            const L = leftLiteral ?? csharp.printNode (node.left, 0);
+            const R = rightLiteral ?? csharp.printNode (node.right, 0);
+            return '(' + L + ' + ' + R + ')';
+        }
+    }
+    const left = nativeAddNonNullOperandKind (csharp, node.left, node);
+    const right = nativeAddNonNullOperandKind (csharp, node.right, node);
+    if (!left.demoted && !right.demoted) {
+        return undefined; // nativeArithmeticIsProven's decision
+    }
+    const small = (k) => NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (k);
+    if (!small (left.kind) || !small (right.kind) || (left.kind !== 'Int64' && right.kind !== 'Int64')) {
+        return undefined;
+    }
+    return '(' + csharp.printNode (node.left, 0) + ' + ' + csharp.printNode (node.right, 0) + ')';
+}
+
+export function installCsharpNativeInt64Add (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || csharp._nativeInt64AddPatched) {
+        return;
+    }
+    const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => nativeInt64Add (csharp, node) ?? upstream (node, identation);
+    csharp._nativeInt64AddPatched = true;
+}
+
+// ===== integer-literal counters (`let n = 0; n += 1; if (n < max)`) =====
+// Widens integerLiteralArithmeticLocal: writes may also be `n += <int lit>`, `n = n + <int lit>`,
+// `n++` / `n--` (add(object, object) and the ref twins box Int64 for these), reads may be integer `===`/`!==` and numberToString.
+function int64CounterLocal (csharp, declaration, context) {
+    const intKinds = [ 'int', 'uint', 'Int64', 'Int64?' ];
+    const consumers = [ ts.SyntaxKind.MinusToken, ts.SyntaxKind.PlusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken ];
+    const equalities = [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken ];
+    if (!integerLiteralArithmeticLiteral (declaration.initializer) || !isBlockScopedDeclaration (declaration)
+            || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined || typeNameIsShadowed (csharp, scope, declaration, 'Int64')) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    const isSelf = (node) => {
+        let current = node;
+        while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            current = current.expression;
+        }
+        return current?.kind === ts.SyntaxKind.Identifier && current.text === name;
+    };
+    const intOperand = (node) => integerLiteralArithmeticLiteral (stripParens (node)) || intKinds.includes (nativeArithmeticOperandKind (csharp, node));
+    let reads = 0;
+    let counterWrites = 0;
+    for (const n of (indexScope (csharp, scope).identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)
+                && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken))) {
+            // statement / for-incrementor position only: a value-position `n++` hands out the box
+            const holder = parent.parent;
+            if (!(holder?.kind === ts.SyntaxKind.ExpressionStatement || (holder?.kind === ts.SyntaxKind.ForStatement && holder.incrementor === parent))) {
+                return undefined;
+            }
+            counterWrites++;
+            continue;
+        }
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)) {
+            const op = parent.operatorToken.kind;
+            if (op === ts.SyntaxKind.PlusEqualsToken && integerLiteralArithmeticLiteral (stripParens (parent.right))) {
+                counterWrites++;
+                continue;
+            }
+            if (op === ts.SyntaxKind.EqualsToken) {
+                const value = stripParens (parent.right);
+                if (integerLiteralArithmeticLiteral (value)) {
+                    continue;
+                }
+                if (value?.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken
+                        && isSelf (value.left) && integerLiteralArithmeticLiteral (stripParens (value.right))) {
+                    counterWrites++;
+                    continue;
+                }
+                return undefined;
+            }
+        }
+        let operand = n;
+        while (operand.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            operand = operand.parent;
+        }
+        const consumer = operand.parent;
+        // the `n` read inside the self write `n = n + 1` was accepted with that write
+        if (consumer?.kind === ts.SyntaxKind.BinaryExpression && consumer.left === operand && consumer.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && consumer.parent?.kind === ts.SyntaxKind.BinaryExpression && stripParens (consumer.parent.right) === consumer
+                && consumer.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && isSelf (consumer.parent.left)
+                && integerLiteralArithmeticLiteral (stripParens (consumer.right))) {
+            reads++;
+            continue;
+        }
+        // this.numberToString (n): numberToString(object) prints the same digits for an Int32 / Int64 box
+        if (consumer?.kind === ts.SyntaxKind.CallExpression && consumer.arguments.length === 1 && consumer.arguments[0] === operand
+                && consumer.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && consumer.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && consumer.expression.name?.text === 'numberToString') {
+            reads++;
+            continue;
+        }
+        if (consumer?.kind !== ts.SyntaxKind.BinaryExpression) {
+            return undefined;
+        }
+        const op = consumer.operatorToken.kind;
+        const sibling = (consumer.left === operand) ? consumer.right : consumer.left;
+        if (NATIVE_COMPARISON_SYMBOLS[op] !== undefined) {
+            reads++; // (object, object) helpers only: they normalise both boxes
+            continue;
+        }
+        // isEqual compares two integer boxes by Convert.ToInt64 whatever their widths
+        if (equalities.includes (op) || consumers.includes (op)) {
+            if (!intOperand (sibling)) {
+                return undefined;
+            }
+            reads++;
+            continue;
+        }
+        return undefined;
+    }
+    return (reads > 0 && counterWrites > 0) ? { type: 'Int64' } : undefined;
+}
+
+// ===== `x = this.omit (x, k)` on an IDictionary<string, object> local (the safeDict* family) =====
+// The 2-argument call binds omit(IDictionary<string, object>, string|object), which always returns the
+// fresh Dictionary outDict; Dictionary converts implicitly into the IDictionary declaration (same box).
+function interfaceSelfOmitWriteType (csharp, context, declaration, running, sawNull, value) {
+    if (running !== 'IDictionary<string, object>' || sawNull) {
+        return undefined;
+    }
+    return (selfOmitWriteType (csharp, context, declaration, value) === 'Dictionary<string, object>') ? 'Dictionary<string, object>' : undefined;
+}
+
+// called exchange-local `List` parameters (IList<object>, a reference target): every call
+// site's proven argument is a List / IList / null, so the box each caller passes is unchanged.
+function calledParameterCollectionTarget (target) {
+    return target === CSHARP_PARAMETER_ALIAS_TYPES['List'].type;
+}
+
+// ===== `add (a, b)` -> `(a + b)` on a left operand proven a NON-NULL string =====
+// add on a non-null string left equals C# concatenation; for an `object`-printed left the right
+// must print a static string (object + string is string.Concat; a null right reads "").
+function nonNullConcatDeclaration (csharp, identifier) {
+    try {
+        return resolveReference (csharp, identifier); // scope index first (cached), checker fallback
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// top-level verdicts per declaration key (a nested verdict may be cut by the cycle guard)
+const nonNullLocalVerdicts = new Map ();
+
+function concatNonNullStringValue (csharp, node, self, seen, depth) {
+    const value = stripParens (node);
+    if (value === undefined || depth > 12) {
+        return false;
+    }
+    if (isStringLiteral (value)) {
+        return true;
+    }
+    switch (value.kind) {
+    case ts.SyntaxKind.Identifier: {
+        const declaration = nonNullConcatDeclaration (csharp, value);
+        if (declaration !== undefined && self !== undefined && nonNullConcatKey (declaration) === self) {
+            return true; // the running value of the local being proven
+        }
+        if (nonNullStringParameter (csharp, value)) {
+            return true;
+        }
+        return concatNonNullStringLocal (csharp, value, seen, depth + 1);
+    }
+    case ts.SyntaxKind.AsExpression:
+        return concatNonNullStringValue (csharp, value.expression, self, seen, depth + 1);
+    case ts.SyntaxKind.BinaryExpression:
+        // add(<non-null string>, b) returns a non-null string (or throws), as does the native concat
+        return (value.operatorToken.kind === ts.SyntaxKind.PlusToken) && concatNonNullStringValue (csharp, value.left, self, seen, depth + 1);
+    case ts.SyntaxKind.ConditionalExpression:
+        return concatNonNullStringValue (csharp, value.whenTrue, self, seen, depth + 1) && concatNonNullStringValue (csharp, value.whenFalse, self, seen, depth + 1);
+    case ts.SyntaxKind.CallExpression: {
+        const callee = value.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+            const name = callee.name?.text;
+            // SafeString* returns `defaultValue as string` when the key is missing: a literal default is never null
+            const arity = NON_NULL_DEFAULT_SAFE_STRING_ARITY[name];
+            if (arity !== undefined && value.arguments?.length === arity && isStringLiteral (stripParens (value.arguments[arity - 1]))) {
+                return true;
+            }
+            // implodeParams / implodeHostname return null only for a null path
+            if (NON_NULL_PATH_STRING_CALLS.includes (name) && value.arguments?.length >= 1) {
+                return concatNonNullStringValue (csharp, value.arguments[0], self, seen, depth + 1);
+            }
+        }
+        return nonNullStringWriteLeaf (csharp, value);
+    }
+    }
+    return false;
+}
+
+// a single-declarator local whose initializer and EVERY write (closures included) is a non-null string
+function concatNonNullStringLocal (csharp, identifier, seen, depth) {
+    const declaration = nonNullConcatDeclaration (csharp, identifier);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || declaration.initializer === undefined || declaration.parent?.declarations?.length !== 1) {
+        return false;
+    }
+    try {
+        if (declaration.getEnd () > identifier.getStart ()) {
+            return false;
+        }
+    } catch (e) {
+        return false;
+    }
+    const key = nonNullConcatKey (declaration);
+    if (key === undefined || seen.has (key)) {
+        return false;
+    }
+    const top = (seen.size === 0);
+    if (top && nonNullLocalVerdicts.has (key)) {
+        return nonNullLocalVerdicts.get (key);
+    }
+    seen.add (key);
+    const verdict = concatNonNullStringLocalScan (csharp, declaration, key, seen, depth);
+    seen.delete (key);
+    if (top) {
+        nonNullLocalVerdicts.set (key, verdict);
+    }
+    return verdict;
+}
+
+function concatNonNullStringLocalScan (csharp, declaration, key, seen, depth) {
+    {
+        if (!concatNonNullStringValue (csharp, declaration.initializer, key, seen, depth + 1)) {
+            return false;
+        }
+        let scope = declaration.parent;
+        while (scope !== undefined && !isFunctionScope (scope) && scope.kind !== ts.SyntaxKind.SourceFile) {
+            scope = scope.parent;
+        }
+        if (scope === undefined) {
+            return false;
+        }
+        let ok = true;
+        const visit = (n) => {
+            if (!ok || n === undefined) {
+                return;
+            }
+            const loopTarget = (n.kind === ts.SyntaxKind.ForOfStatement || n.kind === ts.SyntaxKind.ForInStatement) && stripParens (n.initializer)?.kind === ts.SyntaxKind.Identifier
+                && stripParens (n.initializer).text === declaration.name.text;
+            if (loopTarget) {
+                ok = false;
+                return;
+            }
+            if (n.kind === ts.SyntaxKind.Identifier && n !== declaration.name && n.text === declaration.name.text && csharpWriteTarget (n)) {
+                const target = nonNullConcatDeclaration (csharp, n);
+                if (target === undefined || nonNullConcatKey (target) === key) {
+                    const parent = n.parent;
+                    const plain = parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n;
+                    const op = plain ? parent.operatorToken.kind : undefined;
+                    if (op === ts.SyntaxKind.PlusEqualsToken) {
+                        return; // add(<non-null string>, v): non-null string again
+                    }
+                    if (op !== ts.SyntaxKind.EqualsToken || !concatNonNullStringValue (csharp, parent.right, key, seen, depth + 1)) {
+                        ok = false;
+                        return;
+                    }
+                }
+            }
+            n.forEachChild (visit);
+        };
+        scope.forEachChild (visit);
+        return ok;
+    }
+}
+
+// the printed static type of an operand when provably a C# string ('string'), else undefined
+function staticStringType (csharp, node) {
+    const value = stripParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (isStringLiteral (value)) {
+        return 'string';
+    }
+    switch (value.kind) {
+    case ts.SyntaxKind.AsExpression:
+        return (value.type?.kind === ts.SyntaxKind.StringKeyword) ? 'string' : undefined;
+    case ts.SyntaxKind.ConditionalExpression:
+        return (staticStringType (csharp, value.whenTrue) === 'string' && staticStringType (csharp, value.whenFalse) === 'string') ? 'string' : undefined;
+    case ts.SyntaxKind.Identifier:
+        return (printedStringLocal (csharp, value) || nonNullStringParameter (csharp, value)) ? 'string' : undefined;
+    case ts.SyntaxKind.PropertyAccessExpression: {
+        if (value.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[value.name?.text];
+        return (memberType === 'string' || memberType === 'string?') ? 'string' : undefined;
+    }
+    case ts.SyntaxKind.CallExpression: {
+        const callee = value.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.text === 'toString') {
+            return 'string';
+        }
+        const own = callReturnType (csharp, value);
+        return (own === 'string' || own === 'string?') ? 'string' : undefined;
+    }
+    case ts.SyntaxKind.BinaryExpression:
+        // a `+` the hook prints native is a C# string concatenation
+        return ((value.operatorToken.kind === ts.SyntaxKind.PlusToken) && concatPrintsNativeString (csharp, value)) ? 'string' : undefined;
+    }
+    return undefined;
+}
+
+// the `+` node prints a native concat (the add-to-native verdict, else this rule's), memoized per node
+const nativeConcatVerdicts = new WeakMap ();
+
+function concatPrintsNativeString (csharp, plus) {
+    if (nativeConcatVerdicts.has (plus)) {
+        return nativeConcatVerdicts.get (plus);
+    }
+    nativeConcatVerdicts.set (plus, false); // a cycle reads unproven
+    const native = (typeof csharp.csharpNativeStringConcat === 'function') && csharp.csharpNativeStringConcat (plus.left, plus.right, 'l', 'r') !== undefined;
+    nativeConcatVerdicts.set (plus, native);
+    return native;
+}
+
+// declarations printed `string x = ` / `string? x = `, keyed by position (worker programs hand out fresh nodes)
+const printedStringLocalKeys = new Set ();
+// fileName -> the text its keys were minted for (an in-memory re-transpile of the same name gets new keys)
+const nonNullConcatFiles = new Map ();
+let nonNullConcatFileGeneration = 0;
+
+function nonNullConcatKey (declaration) {
+    try {
+        const file = declaration.getSourceFile ();
+        let entry = nonNullConcatFiles.get (file.fileName);
+        if (entry === undefined || entry.text !== file.text) {
+            entry = { text: file.text, id: ++nonNullConcatFileGeneration };
+            nonNullConcatFiles.set (file.fileName, entry);
+        }
+        return file.fileName + '#' + entry.id + ':' + declaration.pos + ':' + declaration.end;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// a read of a single-binding local whose PRINTED declaration is `string` / `string?`
+function printedStringLocal (csharp, identifier) {
+    const declaration = nonNullConcatDeclaration (csharp, identifier);
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const key = nonNullConcatKey (declaration);
+    const scope = enclosingFunctionScopeOf (csharp, identifier);
+    return key !== undefined && printedStringLocalKeys.has (key) && scope !== undefined && stringEqualityBindingIsProvable (scope, identifier);
+}
+
+function concatLeftIsNonNull (csharp, plus, left) {
+    const value = stripParens (left);
+    if (value?.kind === ts.SyntaxKind.Identifier) {
+        if (concatNonNullStringLocal (csharp, value, new Set (), 0)) {
+            return true;
+        }
+        // a `string?` local under a dominating null guard (binds add(string, *))
+        return printedStringLocal (csharp, value) && (typeof csharp.csharpNullGuardAdmitsRead === 'function')
+            && csharp.csharpNullGuardAdmitsRead (plus, value);
+    }
+    if (value?.kind === ts.SyntaxKind.BinaryExpression) {
+        return (value.operatorToken.kind === ts.SyntaxKind.PlusToken) && (staticStringType (csharp, value) === 'string')
+            && concatNonNullStringValue (csharp, value.left, undefined, new Set (), 0);
+    }
+    return concatNonNullStringValue (csharp, value, undefined, new Set (), 0);
+}
+
+// per `+` node verdict: chains re-ask every prefix, unmemoized the proof is exponential in chain length
+const nonNullConcatVerdicts = new WeakMap ();
+
+function nonNullConcatProven (csharp, plus, left, right) {
+    if (plus !== undefined && nonNullConcatVerdicts.has (plus)) {
+        return nonNullConcatVerdicts.get (plus);
+    }
+    const verdict = proveNonNullConcat (csharp, plus, left, right);
+    if (plus !== undefined) {
+        nonNullConcatVerdicts.set (plus, verdict);
+    }
+    return verdict;
+}
+
+function proveNonNullConcat (csharp, plus, left, right) {
+    if (!concatLeftIsNonNull (csharp, plus, left)) {
+        return false;
+    }
+    // an `object`-printed left needs a static string right (object + object does not compile)
+    return (staticStringType (csharp, left) === 'string') || (staticStringType (csharp, right) === 'string');
+}
+
+export function installCsharpNonNullConcat (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || csharp._nonNullConcatPatched || typeof csharp.csharpNativeStringConcat !== 'function' || typeof csharp.printCustomBinaryExpressionIfAny !== 'function'
+            || typeof csharp.printVariableDeclarationList !== 'function') {
+        return;
+    }
+    const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamDeclaration (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (typeof printed === 'string' && node.declarations.length === 1 && declaration?.name?.kind === ts.SyntaxKind.Identifier
+                && new RegExp ('^\\s*string\\??\\s+' + csharp.printNode (declaration.name, 0) + '\\s*=').test (printed)) {
+            const key = nonNullConcatKey (declaration);
+            if (key !== undefined) {
+                printedStringLocalKeys.add (key);
+            }
+        }
+        return printed;
+    };
+    const upstreamConcat = csharp.csharpNativeStringConcat.bind (csharp);
+    csharp.csharpNativeStringConcat = (left, right, leftText, rightText) => {
+        if (process.env.C06_DEBUG) console.error ('[c06w] ', JSON.stringify (leftText), JSON.stringify (rightText));
+        const native = upstreamConcat (left, right, leftText, rightText);
+        if (native !== undefined || typeof leftText !== 'string' || typeof rightText !== 'string' || leftText === '' || rightText === '') {
+            return native;
+        }
+        const plus = left?.parent;
+        try {
+            return nonNullConcatProven (csharp, plus, left, right) ? '(' + leftText + ' + ' + rightText + ')' : undefined;
+        } catch (e) {
+            return undefined;
+        }
+    };
+    // `x += v` prints `x = add(x, v)` before the hook: same proof on the identifier
+    const upstreamBinary = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        if (node?.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken?.kind === ts.SyntaxKind.PlusEqualsToken && node.left?.kind === ts.SyntaxKind.Identifier) {
+            let proven = false;
+            try {
+                proven = nonNullConcatProven (csharp, node, node.left, node.right);
+            } catch (e) {
+                proven = false;
+            }
+            const printed = upstreamBinary (node, identation);
+            const leftText = csharp.printNode (node.left, 0);
+            const prefix = leftText + ' = add(' + leftText + ', ';
+            if (proven && typeof printed === 'string' && printed.startsWith (prefix) && printed.endsWith (')')) {
+                return leftText + ' = (' + leftText + ' + (' + printed.slice (prefix.length, -1) + '))';
+            }
+            return printed;
+        }
+        return upstreamBinary (node, identation);
+    };
+    csharp._nonNullConcatPatched = true;
+}
+
+// ===== TS annotations -> C# return / string-parameter types =====
+// Sync, non-override, exchange-local names (every declaration prints `object`) whose every return
+// path boxes the listed type; installCsharpMethodReturnTypes' boundary cast names it, callers follow.
+const CSHARP_EXCHANGE_LOCAL_RETURN_TYPES = {
+    'fixCommaNumber': 'string?', 'getStockWsUrl': 'string?', 'hashMessage': 'string?', 'hashOrderMessage': 'string?',
+    'parseTransactionStatusByType': 'string?', 'getTimestamp': 'Int64?',
+    'getExceptionsByUrl': 'IDictionary<string, object>', 'getCurrentPosition': 'IDictionary<string, object>',
+    'findSubscription': 'IDictionary<string, object>', 'indexByStringifiedNumericId': 'Dictionary<string, object>',
+    'parseBalanceHelper': 'Dictionary<string, object>', 'parseOrderFlags': 'List<object>',
+    'parseSbeAccount': 'Dictionary<string, object>', 'parseSbeFill': 'Dictionary<string, object>',
+    'parseSbeFundingData': 'Dictionary<string, object>', 'parseSbeMarketSummary': 'Dictionary<string, object>',
+    'parseSbeOrder': 'Dictionary<string, object>', 'parseSbeOrderBook': 'Dictionary<string, object>',
+    'parseSbePosition': 'Dictionary<string, object>', 'parseSbeTrade': 'Dictionary<string, object>',
+};
+for (const [ name, type ] of Object.entries (CSHARP_EXCHANGE_LOCAL_RETURN_TYPES)) {
+    if (CSHARP_METHOD_RETURN_TYPES[name] === undefined) {
+        CSHARP_METHOD_RETURN_TYPES[name] = type;
+    }
+    if (CSHARP_LOCAL_THIS_RETURN_TYPES[name] === undefined) {
+        CSHARP_LOCAL_THIS_RETURN_TYPES[name] = type;
+    }
+}
+// `Str`/`string` positions every caller feeds a string or null and no body writes or uses as an add() left
+const CSHARP_EXCHANGE_LOCAL_STRING_PARAMS = {
+    'constructCurrencyObject': { 1: 'string?' }, 'createAuthToken': { 2: 'string?' }, 'createContractOrderRequest': { 0: 'string?' },
+    'getCurrencyName': { 0: 'string?' }, 'getDexFromSymbols': { 0: 'string?' }, 'getMarketType': { 0: 'string?' },
+    'handleOrder': { 2: 'string?' },
+    'parseLedgerEntryType': { 0: 'string?' }, 'parseLedgerType': { 0: 'string?' }, 'parseOrderStatus': { 0: 'string?' },
+    'parseStatus': { 0: 'string?' }, 'parseTransactionStatus': { 1: 'string?' }, 'parseTransactionStatusByType': { 1: 'string?' },
+    'parseTransactionWithType': { 2: 'string?' }, 'parseTransferStatus': { 0: 'string?' }, 'pow': { 0: 'string?' },
+    'verifyOrderActionSuccess': { 1: 'string?' },
+};
+for (const [ name, positions ] of Object.entries (CSHARP_EXCHANGE_LOCAL_STRING_PARAMS)) {
+    CSHARP_STRING_PARAMS[name] = Object.assign ({}, positions, CSHARP_STRING_PARAMS[name] ?? {});
+}
+
+// ===== `const x = this.omit (params, …)` on the method's own optional `params = {}` =====
+// `params = {}` prints `parameters ??= new Dictionary<string, object>()` and omit returns a fresh
+// Dictionary, so the cast names that box. Implicit-API list bodies only reach sign/request/fetch2.
+const CSHARP_OMIT_LIST_PARAMS_METHODS = [ 'sign', 'request', 'fetch2' ];
+
+function omitParamsLocal (csharp, declaration, context) {
+    const initializer = stripParens (declaration.initializer);
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration) || initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'omit' || (initializer.arguments?.length ?? 0) < 2) {
+        return undefined;
+    }
+    const receiver = stripParens (initializer.arguments[0]);
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || receiver.text !== 'params') {
+        return undefined;
+    }
+    const parameter = resolveReference (csharp, receiver);
+    const owner = parameter?.parent;
+    if (parameter?.kind !== ts.SyntaxKind.Parameter || owner?.kind !== ts.SyntaxKind.MethodDeclaration
+            || owner.parameters[owner.parameters.length - 1] !== parameter || enclosingFunction (declaration) !== owner) {
+        return undefined;
+    }
+    const defaultValue = stripParens (parameter.initializer);
+    if (defaultValue?.kind !== ts.SyntaxKind.ObjectLiteralExpression || defaultValue.properties.length !== 0
+            || CSHARP_OMIT_LIST_PARAMS_METHODS.includes (owner.name?.text) || paramsParameterWritten (csharp, owner, parameter)) {
+        return undefined;
+    }
+    const type = 'IDictionary<string, object>';
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : owner);
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type } : undefined;
+}
+
+// per-method verdict: any `params` write target in the method (closures included)
+const paramsParameterWrittenCache = new WeakMap ();
+
+function paramsParameterWritten (csharp, owner, parameter) {
+    if (paramsParameterWrittenCache.has (owner)) {
+        return paramsParameterWrittenCache.get (owner);
+    }
+    let written = false;
+    for (const n of (indexScope (csharp, owner).identifiers.get ('params') ?? [])) {
+        // a write of any same-name binding in the method keeps object
+        if (n !== parameter.name && csharpWriteTarget (n)) {
+            written = true;
+            break;
+        }
+    }
+    paramsParameterWrittenCache.set (owner, written);
+    return written;
+}
+
+// `-x` on a `double?` local (safeNumber read) inside a dominating non-null guard on x: the
+// printer emits the helper's in-place body `(x = -x)` (lifted negation of a non-null double), so the
+// local may keep `double?`. Unguarded negations keep `object` + prefixUnaryNeg (null would NRE).
+function guardedNullableDoubleNegation (csharp, node, csharpType) {
+    return (csharpType === 'double?')
+        && (node?.kind === ts.SyntaxKind.PrefixUnaryExpression)
+        && (node.operator === ts.SyntaxKind.MinusToken)
+        && (node.operand?.kind === ts.SyntaxKind.Identifier)
+        && (typeof csharp?.csharpNullGuardAdmitsRead === 'function')
+        && csharp.csharpNullGuardAdmitsRead (node, node.operand);
+}
+
+// Return-path-proven list producers: single-definition names (getSettlementCurrencies,
+// outcomesByMarketId, sbeReadVarStrings) whose every return boxes a List<object> or null, plus the
+// hand-written `List<string> unique`; retyped locals still pass csharpLocalIsSafeToRetype.
+function registerListProducerReturnTypes () {
+    const methods = { 'getSettlementCurrencies': 'List<object>', 'outcomesByMarketId': 'List<object>', 'sbeReadVarStrings': 'List<object>' };
+    for (const [ name, type ] of Object.entries (methods)) {
+        if (!Object.prototype.hasOwnProperty.call (CSHARP_METHOD_RETURN_TYPES, name)) {
+            CSHARP_METHOD_RETURN_TYPES[name] = type;
+        }
+        if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name)) {
+            CSHARP_LOCAL_THIS_RETURN_TYPES[name] = type;
+        }
+    }
+    if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, 'unique')) {
+        CSHARP_LOCAL_THIS_RETURN_TYPES['unique'] = 'List<string>';
+    }
+}
+registerListProducerReturnTypes ();

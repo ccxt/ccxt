@@ -1,6 +1,6 @@
 import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     sxbetPublicGetMetadataObv3(params?: {}): Promise<Dict>;
     sxbetPublicGetOrderbookV3Snapshot(params?: {}): Promise<Dict>;
     sxbetPublicGetTradesV3Public(params?: {}): Promise<Dict>;
@@ -35,7 +35,5 @@ interface Exchange {
     sxbetPrivatePostUserDeployProxy(params?: {}): Promise<Dict | List>;
     sxbetPrivatePostUserTransferToProxy(params?: {}): Promise<Dict>;
     sxbetPrivatePostHeartbeatV3(params?: {}): Promise<Dict | List>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

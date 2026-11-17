@@ -5,7 +5,7 @@ import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, O
  * @augments Exchange
  */
 export default class btcturk extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name btcturk#fetchMarkets
@@ -16,7 +16,7 @@ export default class btcturk extends Exchange {
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
     parseMarket(entry: Dict): Market;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name btcturk#fetchBalance
@@ -150,7 +150,7 @@ export default class btcturk extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    nonce(): int;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

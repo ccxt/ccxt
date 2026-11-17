@@ -32,11 +32,6 @@
 * [transfer](#transfer)
 * [setLeverage](#setleverage)
 * [setMargin](#setmargin)
-* [watchBalance](#watchbalance)
-* [watchOrders](#watchorders)
-* [watchTrades](#watchtrades)
-* [watchOHLCV](#watchohlcv)
-* [watchTicker](#watchticker)
 
 <a name="fetchStatus" id="fetchstatus"></a>
 
@@ -587,12 +582,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-bitrue.withdraw (code, amount, address, tag, params?)
+bitrue.withdraw (code, amount, address, params?)
 ```
 
 
@@ -723,116 +718,5 @@ Either adds or reduces margin in an isolated position in order to set the margin
 
 ```javascript
 bitrue.setMargin (symbol, amount, params?)
-```
-
-
-<a name="watchBalance" id="watchbalance"></a>
-
-### watchBalance{docsify-ignore}
-watch balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitrue.watchBalance (params?)
-```
-
-
-<a name="watchOrders" id="watchorders"></a>
-
-### watchOrders{docsify-ignore}
-watches information on user orders
-
-**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - A dictionary of [order structure](https://docs.ccxt.com/?id=order-structure) indexed by market symbols
-
-**See**: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes |  |
-| since | <code>int</code> | No | timestamp in ms of the earliest order |
-| limit | <code>int</code> | No | the maximum amount of orders to return |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitrue.watchOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="watchTrades" id="watchtrades"></a>
-
-### watchTrades{docsify-ignore}
-watches public trades for a swap (futures) market
-
-**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitrue.watchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="watchOHLCV" id="watchohlcv"></a>
-
-### watchOHLCV{docsify-ignore}
-watches OHLCV candles for a swap (futures) market
-
-**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitrue.watchOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
-
-<a name="watchTicker" id="watchticker"></a>
-
-### watchTicker{docsify-ignore}
-watches a 24h ticker for a swap (futures) market
-
-**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitrue.watchTicker (symbol, params?)
 ```
 

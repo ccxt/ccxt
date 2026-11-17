@@ -227,6 +227,7 @@
             "liquidationPrice": null,
             "markPrice": null,
             "lastPrice": 0.13579,
+            "positionMargin": null,
             "collateral": null,
             "marginMode": null,
             "side": "long",
@@ -1201,7 +1202,7 @@
                   }
                 }
               },
-              "ETH": {
+              "ERC20": {
                 "info": {
                   "chainType": "Ethereum",
                   "confirmation": "6",
@@ -1217,7 +1218,7 @@
                   "safeConfirmNumber": "64"
                 },
                 "id": "ETH",
-                "network": "ETH",
+                "network": "ERC20",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -4601,8 +4602,8 @@
             "lastUpdateTimestamp": 1770811200032,
             "initialMargin": 101.1025483,
             "initialMarginPercentage": 0.44017568226926046,
-            "maintenanceMargin": null,
-            "maintenanceMarginPercentage": null,
+            "maintenanceMargin": 4.4079259,
+            "maintenanceMarginPercentage": 0.0191910275561753,
             "entryPrice": 0.01961459,
             "notional": 229.68681,
             "leverage": 2,
@@ -4614,6 +4615,7 @@
             "liquidationPrice": 0.04102339,
             "markPrice": 0.017203,
             "lastPrice": null,
+            "positionMargin": null,
             "collateral": 0,
             "marginMode": null,
             "side": "short",
@@ -4739,6 +4741,7 @@
             "liquidationPrice": null,
             "markPrice": 0.14235,
             "lastPrice": null,
+            "positionMargin": null,
             "collateral": 0,
             "marginMode": null,
             "side": "short",
@@ -4855,11 +4858,12 @@
             "realizedPnl": null,
             "contracts": 1.2,
             "contractSize": 1,
-            "marginRatio": 0.0692,
+            "marginRatio": 0.0415,
             "liquidationPrice": null,
             "markPrice": 71.1,
             "lastPrice": null,
-            "collateral": 11.699649,
+            "positionMargin": 11.699649,
+            "collateral": 19.500274,
             "marginMode": null,
             "side": "long",
             "percentage": 60.21,
@@ -4976,6 +4980,7 @@
           "liquidationPrice": null,
           "markPrice": 68,
           "lastPrice": null,
+          "positionMargin": null,
           "collateral": 0,
           "marginMode": null,
           "side": null,
@@ -5081,19 +5086,20 @@
           "lastUpdateTimestamp": 1768898436202,
           "initialMargin": 1.1e-07,
           "initialMarginPercentage": 0.010208583000000422,
-          "maintenanceMargin": 0,
-          "maintenanceMarginPercentage": 0,
+          "maintenanceMargin": 0.00005,
+          "maintenanceMarginPercentage": 4.640265000000192,
           "entryPrice": 92850.51067781,
-          "notional": 1.0775246672334e-05,
+          "notional": 0.000010775246672334,
           "leverage": 10,
           "unrealizedPnl": null,
           "realizedPnl": -1e-08,
           "contracts": 1,
           "contractSize": 1,
-          "marginRatio": 0,
+          "marginRatio": 45.8715,
           "liquidationPrice": 100,
           "markPrice": 92805.3,
           "lastPrice": null,
+          "positionMargin": 1.09e-06,
           "collateral": 1.09e-06,
           "marginMode": null,
           "side": "long",
@@ -5967,6 +5973,96 @@
       }
     ],
     "fetchTickers": [
+      {
+        "description": "spot tickers skip pairs that only resolve to a contract market with the same id",
+        "method": "fetchTickers",
+        "input": [
+          null,
+          {
+            "type": "spot"
+          }
+        ],
+        "httpResponse": {
+          "retCode": 0,
+          "retMsg": "OK",
+          "result": {
+            "category": "spot",
+            "list": [
+              {
+                "symbol": "ETHUSDT",
+                "bid1Price": "2242.07",
+                "bid1Size": "5.59119",
+                "ask1Price": "2242.08",
+                "ask1Size": "5.24558",
+                "lastPrice": "2242.08",
+                "prevPrice24h": "2239.23",
+                "price24hPcnt": "0.0013",
+                "highPrice24h": "2254.49",
+                "lowPrice24h": "2209.11",
+                "turnover24h": "201192048.6159983",
+                "volume24h": "90053.27116",
+                "usdIndexPrice": "2239.345394"
+              },
+              {
+                "symbol": "BTCUSD",
+                "bid1Price": "75717.4",
+                "bid1Size": "0.000015",
+                "ask1Price": "76882.7",
+                "ask1Size": "0.001695",
+                "lastPrice": "76128.3",
+                "prevPrice24h": "76217",
+                "price24hPcnt": "-0.0012",
+                "highPrice24h": "76217",
+                "lowPrice24h": "75449.3",
+                "turnover24h": "2275.0419078",
+                "volume24h": "0.030031"
+              }
+            ]
+          },
+          "retExtInfo": {},
+          "time": 1794047441435
+        },
+        "parsedResponse": {
+          "ETH/USDT": {
+            "symbol": "ETH/USDT",
+            "timestamp": null,
+            "datetime": null,
+            "high": 2254.49,
+            "low": 2209.11,
+            "bid": 2242.07,
+            "bidVolume": 5.59119,
+            "ask": 2242.08,
+            "askVolume": 5.24558,
+            "vwap": 2234.1448125580596,
+            "open": 2239.23,
+            "close": 2242.08,
+            "last": 2242.08,
+            "previousClose": null,
+            "change": 2.85,
+            "percentage": 0.13,
+            "average": 2240.65,
+            "baseVolume": 90053.27116,
+            "quoteVolume": 201192048.6159983,
+            "markPrice": null,
+            "indexPrice": null,
+            "info": {
+              "symbol": "ETHUSDT",
+              "bid1Price": "2242.07",
+              "bid1Size": "5.59119",
+              "ask1Price": "2242.08",
+              "ask1Size": "5.24558",
+              "lastPrice": "2242.08",
+              "prevPrice24h": "2239.23",
+              "price24hPcnt": "0.0013",
+              "highPrice24h": "2254.49",
+              "lowPrice24h": "2209.11",
+              "turnover24h": "201192048.6159983",
+              "volume24h": "90053.27116",
+              "usdIndexPrice": "2239.345394"
+            }
+          }
+        }
+      },
       {
         "description": "Fetch tickers for a BTC option symbol",
         "method": "fetchTickers",
@@ -6882,6 +6978,7 @@
             "liquidationPrice": null,
             "markPrice": null,
             "lastPrice": 55563,
+            "positionMargin": null,
             "collateral": null,
             "marginMode": null,
             "side": "long",

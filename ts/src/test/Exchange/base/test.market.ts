@@ -171,7 +171,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         assert ((contract !== true) && (linear === undefined) && (inverse === undefined) && (option !== true) && (swap !== true) && (future !== true), 'for spot market, none of contract/linear/inverse/option/swap/future should be set' + logText);
     } else {
         // if not spot, any of the below should be true
-        assert ((contract === true) && ((future === true) || (swap === true) || (option === true) || (isIndex === true)), 'for non-spot markets, any of (future/swap/option/index) should be set' + logText);
+        assert ((contract === true) && ((future === true) || (swap === true) || (option === true) || (isIndex)), 'for non-spot markets, any of (future/swap/option/index) should be set' + logText);
     }
 
     const contractSize = exchange.safeString (market, 'contractSize');
@@ -203,7 +203,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
 
     // future, swap and option should be mutually exclusive
     if (market['future'] === true) {
-        assert ((market['swap'] !== true) && (market['option'] !== true) && (isIndex !== true), 'market swap and option must be false when "future" is true' + logText);
+        assert ((market['swap'] !== true) && (market['option'] !== true) && (!isIndex), 'market swap and option must be false when "future" is true' + logText);
     } else if (market['swap'] === true) {
         assert ((future !== true) && (option !== true), 'market future and option must be false when "swap" is true' + logText);
     } else if (market['option'] === true) {

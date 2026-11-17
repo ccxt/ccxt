@@ -10,7 +10,7 @@ import ccxt.async_support.bybiteu as bybiteuRest
 
 class bybiteu(bybit):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         # eslint-disable-next-line new-cap
         restInstance = bybiteuRest()
         restDescribe = restInstance.describe()

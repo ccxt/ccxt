@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\upbit as Exchange;
 
 class upbit extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'upbit',
             'name' => 'Upbit',
@@ -346,13 +346,13 @@ class upbit extends Exchange {
         $walletLocked = $this->safe_bool($memberInfo, 'wallet_locked');
         $locked = $this->safe_bool($memberInfo, 'locked');
         $active = true;
-        if (($canWithdraw !== null) && ($canWithdraw !== true)) {
+        if (($canWithdraw !== null) && (!$canWithdraw)) {
             $active = false;
         } elseif ($walletState !== 'working') {
             $active = false;
-        } elseif (($walletLocked !== null) && ($walletLocked === true)) {
+        } elseif (($walletLocked !== null) && ($walletLocked)) {
             $active = false;
-        } elseif (($locked !== null) && ($locked === true)) {
+        } elseif (($locked !== null) && ($locked)) {
             $active = false;
         }
         $maxOnetimeWithdrawal = $this->safe_string($withdrawLimits, 'onetime');
@@ -528,12 +528,16 @@ class upbit extends Exchange {
         if ($id === null) {
             throw new ExchangeError($this->id . ' parseMarket() missing id');
         }
-        list($quoteId, $baseId) = explode('-', $id);
+        $parts = explode('-', $id);
+        $quoteId = $this->safe_string($parts, 0);
+        $baseId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         if (($base === null) || ($quote === null)) {
             return null;
         }
+        $tradingFeesByQuoteCurrency = $this->safe_dict($this->options, 'tradingFeesByQuoteCurrency', array());
+        $tradingFees = $this->safe_dict($this->fees, 'trading', array());
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -553,8 +557,8 @@ class upbit extends Exchange {
             'contract' => false,
             'linear' => null,
             'inverse' => null,
-            'taker' => $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['taker']),
-            'maker' => $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['maker']),
+            'taker' => $this->safe_number($tradingFeesByQuoteCurrency, $quote, $this->safe_number($tradingFees, 'taker')),
+            'maker' => $this->safe_number($tradingFeesByQuoteCurrency, $quote, $this->safe_number($tradingFees, 'maker')),
             'contractSize' => null,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -587,7 +591,7 @@ class upbit extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -633,7 +637,7 @@ class upbit extends Exchange {
         //         "avg_krw_buy_price": "250000",
         //                  "modified":  false    }   ]
         //
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array()): array {
@@ -653,9 +657,8 @@ class upbit extends Exchange {
         }
         $ids = null;
         if ($symbols === null) {
-            $allIds = $this->ids;
-            if ($allIds !== null) {
-                $ids = implode(',', $allIds);
+            if ($this->ids !== null) {
+                $ids = implode(',', $this->ids);
             }
         } else {
             $marketIds = $this->market_ids($symbols);
@@ -700,7 +703,7 @@ class upbit extends Exchange {
         $result = array();
         $orderbooks = $this->to_array($response);
         for ($i = 0; $i < count($orderbooks); $i++) {
-            $orderbook = $orderbooks[$i];
+            $orderbook = $this->safe_dict($orderbooks, $i, array());
             $marketId = $this->safe_string($orderbook, 'market');
             $symbol = $this->safe_symbol($marketId, null, '-');
             $timestamp = $this->safe_integer($orderbook, 'timestamp');
@@ -829,7 +832,7 @@ class upbit extends Exchange {
                 if ($quoteCurrencies !== '') {
                     $quoteCurrencies = $quoteCurrencies . ',';
                 }
-                $quoteCurrencies = $quoteCurrencies . $sortedQuoteIds[$i];
+                $quoteCurrencies = $quoteCurrencies . $this->safe_string($sortedQuoteIds, $i, '');
             }
             $request = array(
                 'quote_currencies' => $quoteCurrencies,
@@ -838,10 +841,9 @@ class upbit extends Exchange {
         } else {
             $ids = $this->market_ids($symbolsNormalized);
             $promises = array();
-            $queries = $this->ids_query_strings($ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            $queries = $this->ids_query_strings($ids); // the url is limited to about 8000 characters once the commas are percent-encoded
             for ($i = 0; $i < count($queries); $i++) {
-                $idsQuery = $queries[$i];
-                $promises[] = $this->publicGetTicker($this->extend(array( 'markets' => $idsQuery ), $params));
+                $promises[] = $this->publicGetTicker($this->extend(array( 'markets' => $this->safe_string($queries, $i, '') ), $params));
             }
             $responses = $promises;
             $tickers = $this->arrays_concat($responses);
@@ -877,19 +879,15 @@ class upbit extends Exchange {
         return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
-    public function ids_query_strings(?array $ids, float $maxQueryLength): array {
-        if ($ids === null) {
-            return array();
-        }
+    public function ids_query_strings(array $ids): array {
         $idsString = '';
         $queries = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
             if ($idsString !== '') {
                 $idsString = $idsString . ',';
             }
-            $idsString = $idsString . $id;
-            if (strlen($idsString) >= $maxQueryLength) {
+            $idsString = $idsString . $this->safe_string($ids, $i, '');
+            if (strlen($idsString) >= 4000) {
                 $queries[] = $idsString;
                 $idsString = '';
             }
@@ -952,7 +950,7 @@ class upbit extends Exchange {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         }
         $side = null;
-        $askOrBid = $this->safe_string_lower_2($trade, 'ask_bid', 'side');
+        $askOrBid = $this->safe_string_lower_2($trade, 'ask_bid', 'side', '');
         if ($askOrBid === 'ask') {
             $side = 'sell';
         } elseif ($askOrBid === 'bid') {
@@ -1117,14 +1115,15 @@ class upbit extends Exchange {
         $fetchMarketResponse = $this->fetch_markets($params);
         $response = array();
         for ($i = 0; $i < count($fetchMarketResponse); $i++) {
+            $item = $this->safe_dict($fetchMarketResponse, $i);
             $element = array();
-            $element['maker'] = $this->safe_number($fetchMarketResponse[$i], 'maker');
-            $element['taker'] = $this->safe_number($fetchMarketResponse[$i], 'taker');
-            $element['symbol'] = $this->safe_string($fetchMarketResponse[$i], 'symbol');
+            $element['maker'] = $this->safe_number($item, 'maker');
+            $element['taker'] = $this->safe_number($item, 'taker');
+            $element['symbol'] = $this->safe_string($item, 'symbol');
             $element['percentage'] = true;
             $element['tierBased'] = false;
-            $element['info'] = $fetchMarketResponse[$i];
-            $feeSymbol = $this->safe_string($fetchMarketResponse[$i], 'symbol');
+            $element['info'] = $item;
+            $feeSymbol = $this->safe_string($item, 'symbol');
             if ($feeSymbol !== null) {
                 $response[$feeSymbol] = $element;
             }
@@ -1229,13 +1228,13 @@ class upbit extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limitResolved);
     }
 
-    public function calc_order_price(string $symbol, ?float $amount, ?float $price = null, $params = array()): ?string {
+    public function calc_order_price(string $symbol, ?float $amount = null, ?float $price = null, $params = array()): ?string {
         $quoteAmount = null;
-        $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice');
+        $createMarketBuyOrderRequiresPrice = $this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice', false);
         $cost = $this->safe_string($params, 'cost');
         if ($cost !== null) {
             $quoteAmount = $this->cost_to_precision($symbol, $cost);
-        } elseif ($createMarketBuyOrderRequiresPrice === true) {
+        } elseif ($createMarketBuyOrderRequiresPrice) {
             if ($price === null || $amount === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument');
             }
@@ -1356,7 +1355,7 @@ class upbit extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a timeInForce parameter for best type orders');
         }
         $paramsRequest = $this->omit($paramsOrdType, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
-        if ($test === true) {
+        if ($test) {
             $response = $this->privatePostOrdersTest($this->extend($request, $paramsRequest));
         } else {
             $response = $this->privatePostOrders($this->extend($request, $paramsRequest));
@@ -1736,7 +1735,7 @@ class upbit extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'submitting' => 'pending', // 처리 중
             'submitted' => 'pending', // 처리 완료
@@ -1818,7 +1817,7 @@ class upbit extends Exchange {
         );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',
@@ -1928,15 +1927,15 @@ class upbit extends Exchange {
         $feeCost = $this->safe_string($order, 'paid_fee');
         $marketId = $this->safe_string($order, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
-        $trades = $this->safe_list($order, 'trades', array());
-        $trades = $this->parse_trades($trades, $marketResolved, null, null, array(
+        $trades = $this->parse_trades($this->safe_list($order, 'trades', array()), $marketResolved, null, null, array(
             'order' => $id,
             'type' => $type,
         ));
         $numTrades = count($trades);
         if ($numTrades > 0) {
             // the timestamp in fetchOrder trades is missing
-            $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
+            $lastTrade = $this->safe_dict($trades, $numTrades - 1, array());
+            $lastTradeTimestamp = $lastTrade['timestamp'];
             $getFeesFromTrades = false;
             if ($feeCost === null) {
                 $getFeesFromTrades = true;
@@ -1947,7 +1946,7 @@ class upbit extends Exchange {
                 $trade = $this->safe_dict($trades, $i);
                 $cost = Precise::string_add($cost, $this->safe_string($trade, 'cost'));
                 if ($getFeesFromTrades) {
-                    $tradeFee = $this->safe_dict($trades[$i], 'fee', array());
+                    $tradeFee = $this->safe_dict($trade, 'fee', array());
                     $tradeFeeCost = $this->safe_string($tradeFee, 'cost');
                     if ($tradeFeeCost !== null) {
                         $feeCost = Precise::string_add($feeCost, $tradeFeeCost);
@@ -2360,7 +2359,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          *
          * @see https://docs.upbit.com/kr/reference/withdraw
@@ -2370,11 +2369,11 @@ class upbit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagResolved, $paramsTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagResolved, $paramsTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2383,7 +2382,7 @@ class upbit extends Exchange {
             'amount' => $amount,
         );
         if ($code !== 'KRW') {
-            $this->check_address($address);
+            $this->check_address($address, $code, $tagResolved);
             // 2023-05-23 Change to required parameters for digital assets
             $network = $this->safe_string_upper_2($paramsTag, 'network', 'net_type');
             if ($network === null) {
@@ -2417,12 +2416,13 @@ class upbit extends Exchange {
         return $this->parse_transaction($response);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2431,31 +2431,30 @@ class upbit extends Exchange {
         ));
         $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $numQueryKeys = count($query);
         if ($method !== 'POST') {
-            if (count($query) > 0) {
+            if ($numQueryKeys > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $hasBody = ($api === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
-        $requestBody = $body;
+        $hasBody = ($apiName === 'private') && ($method !== 'GET') && ($method !== 'DELETE');
+        $requestBody = null;
         if ($hasBody) {
             $requestBody = $this->json($params);
         }
-        $privateHeaders = null;
-        if ($api === 'private') {
+        $headers = array();
+        if ($apiName === 'private') {
             $this->check_required_credentials();
-            $privateHeaders = array();
             $nonce = $this->uuid();
             $request = array(
                 'access_key' => $this->apiKey,
                 'nonce' => $nonce,
             );
-            $hasQuery = count($query);
             $auth = null;
             if ($hasBody) {
-                $privateHeaders['Content-Type'] = 'application/json';
+                $headers['Content-Type'] = 'application/json';
             }
-            if ($hasQuery !== 0) {
+            if ($numQueryKeys !== 0) {
                 $auth = $this->rawencode($query);
             }
             if ($auth !== null) {
@@ -2464,13 +2463,13 @@ class upbit extends Exchange {
                 $request['query_hash_alg'] = 'SHA512';
             }
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
-            $privateHeaders['Authorization'] = 'Bearer ' . $token;
+            $headers['Authorization'] = 'Bearer ' . $token;
         }
-        $requestHeaders = ($api === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $headers : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

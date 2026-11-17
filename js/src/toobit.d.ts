@@ -5,12 +5,11 @@ import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress,
  * @augments Exchange
  */
 export default class toobit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name toobit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -84,6 +83,8 @@ export default class toobit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
@@ -105,7 +106,7 @@ export default class toobit extends Exchange {
      * @name toobit#fetchLastPrices
      * @description fetches the last price for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
@@ -117,13 +118,13 @@ export default class toobit extends Exchange {
      * @name toobit#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    parseBidsAsksCustom(tickers: Dict[], symbols?: Strings, params?: Dict): Tickers;
+    parseBidsAsksCustom(tickers: Dict[], symbols: Strings, params: Dict): Tickers;
     parseBidAskCustom(ticker: Dict): Dict;
     /**
      * @method
@@ -161,7 +162,7 @@ export default class toobit extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: any): Balances;
     /**
      * @method
      * @name toobit#createOrder
@@ -181,8 +182,8 @@ export default class toobit extends Exchange {
     createOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
     createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): [Dict, Dict];
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string | undefined;
-    parseOrderType(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
+    parseOrderType(status: Str): Str;
     /**
      * @method
      * @name toobit#cancelOrder
@@ -346,8 +347,9 @@ export default class toobit extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     fetchDepositsOrWithdrawalsHelper(type: Str, code: Str, since: Int, limit: Int, params?: Dict): Promise<Transaction[]>;
+    parseTransactionWithType(transaction: Dict, currency?: Currency, transactType?: Str): Transaction;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str, type?: Str): Str;
     /**
      * @method
      * @name toobit#fetchDepositAddress
@@ -367,12 +369,12 @@ export default class toobit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name toobit#setMarginMode
@@ -417,6 +419,6 @@ export default class toobit extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

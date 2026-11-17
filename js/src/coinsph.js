@@ -632,7 +632,7 @@ export default class coinsph extends Exchange {
     parseCurrency(rawCurrency) {
         const id = this.safeString(rawCurrency, 'coin');
         const code = this.safeCurrencyCode(id);
-        const isFiat = this.safeBool(rawCurrency, 'isLegalMoney');
+        const isFiat = this.safeBool(rawCurrency, 'isLegalMoney', false);
         const networkList = this.safeList(rawCurrency, 'networkList', []);
         const networks = {};
         for (let j = 0; j < networkList.length; j++) {
@@ -666,7 +666,7 @@ export default class coinsph extends Exchange {
             'id': id,
             'name': this.safeString(rawCurrency, 'name'),
             'code': code,
-            'type': (isFiat === true) ? 'fiat' : 'crypto',
+            'type': isFiat ? 'fiat' : 'crypto',
             'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': undefined,
@@ -679,30 +679,34 @@ export default class coinsph extends Exchange {
         });
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        if (('noSymbol' in config) && !('symbol' in params)) {
+        const hasSymbolParam = ('symbol' in params);
+        const hasSymbolsParam = ('symbols' in params);
+        const limit = this.safeInteger(params, 'limit');
+        if (('noSymbol' in config) && !hasSymbolParam) {
             return config['noSymbol'];
         }
-        else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
+        else if (('noSymbolAndNoSymbols' in config) && !hasSymbolParam && !hasSymbolsParam) {
             return config['noSymbolAndNoSymbols'];
         }
-        else if (('byNumberOfSymbols' in config) && ('symbols' in params)) {
-            const symbols = params['symbols'];
+        else if (('byNumberOfSymbols' in config) && hasSymbolsParam) {
+            const symbols = this.safeList(params, 'symbols', []);
             const symbolsAmount = symbols.length;
             const byNumberOfSymbols = this.safeList(config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
-                if (symbolsAmount >= entry[0]) {
-                    return entry[1];
+                const threshold = this.safeInteger(entry, 0);
+                if (threshold !== undefined && symbolsAmount >= threshold) {
+                    return this.safeInteger(entry, 1);
                 }
             }
         }
-        else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+        else if (('byLimit' in config) && (limit !== undefined)) {
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit >= entry[0]) {
-                    return entry[1];
+                const threshold = this.safeInteger(entry, 0);
+                if (threshold !== undefined && limit >= threshold) {
+                    return this.safeInteger(entry, 1);
                 }
             }
         }
@@ -1104,8 +1108,7 @@ export default class coinsph extends Exchange {
                 request['endTime'] = until;
             }
             else {
-                const duration = this.parseTimeframe(timeframe) * 1000;
-                const endTimeByLimit = this.sum(since, duration * (limitResolved - 1));
+                const endTimeByLimit = this.sum(since, this.parseTimeframe(timeframe) * 1000 * (limitResolved - 1));
                 const now = this.milliseconds();
                 request['endTime'] = Math.min(endTimeByLimit, now);
             }
@@ -1113,8 +1116,7 @@ export default class coinsph extends Exchange {
         else if (until !== undefined) {
             request['endTime'] = until;
             // since work properly only when it is "younger" than last "limit" candle
-            const duration = this.parseTimeframe(timeframe) * 1000;
-            request['startTime'] = until - (duration * (limitResolved - 1));
+            request['startTime'] = until - (this.parseTimeframe(timeframe) * 1000 * (limitResolved - 1));
         }
         request['limit'] = limitResolved;
         const paramsOmitted = this.omit(params, 'until');
@@ -1306,7 +1308,7 @@ export default class coinsph extends Exchange {
         const isBuyer = this.safeBool2(trade, 'isBuyer', 'isBuyerMaker');
         let side = undefined;
         if (isBuyer !== undefined) {
-            side = (isBuyer === true) ? 'buy' : 'sell';
+            side = (isBuyer) ? 'buy' : 'sell';
         }
         const isMaker = this.safeString(trade, 'isMaker');
         let takerOrMaker = undefined;
@@ -1423,13 +1425,14 @@ export default class coinsph extends Exchange {
             'side': orderSide,
         };
         const options = this.safeDict(this.options, 'createOrder', {});
-        let newOrderRespType = this.safeValue(options, 'newOrderRespType', {});
+        const newOrderRespTypes = this.safeValue(options, 'newOrderRespType', {});
+        let newOrderRespType = 'FULL';
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             if (price === undefined) {
                 throw new ArgumentsRequired(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            newOrderRespType = this.safeString(newOrderRespType, 'limit', 'FULL');
+            newOrderRespType = this.safeString(newOrderRespTypes, 'limit', 'FULL');
             request['price'] = this.priceToPrecision(symbol, price);
             request['quantity'] = this.amountToPrecision(symbol, amount);
             if (orderType !== 'LIMIT_MAKER') {
@@ -1438,7 +1441,7 @@ export default class coinsph extends Exchange {
             // if market order
         }
         else if (orderType === 'MARKET' || orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT') {
-            newOrderRespType = this.safeString(newOrderRespType, 'market', 'FULL');
+            newOrderRespType = this.safeString(newOrderRespTypes, 'market', 'FULL');
             if (orderSide === 'SELL') {
                 request['quantity'] = this.amountToPrecision(symbol, amount);
             }
@@ -1478,7 +1481,7 @@ export default class coinsph extends Exchange {
         const paramsBase = (paramsQuote !== undefined) ? paramsQuote : paramsType;
         const paramsRequest = this.omit(paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response = {};
-        if (testOrder === true) {
+        if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));
         }
         else {
@@ -1764,9 +1767,7 @@ export default class coinsph extends Exchange {
             'buy': 'BUY',
             'sell': 'SELL',
         };
-        if (status === undefined) {
-            return undefined;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
     parseOrderType(status) {
@@ -1794,9 +1795,7 @@ export default class coinsph extends Exchange {
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         };
-        if (status === undefined) {
-            return undefined;
-        }
+        // safeString returns the status itself when it is absent, so no early return
         return this.safeString(statuses, status, status);
     }
     parseOrderStatus(status) {
@@ -1920,17 +1919,18 @@ export default class coinsph extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address not used by withdraw ()
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         const options = this.safeDict(this.options, 'withdraw');
         const warning = this.safeBool(options, 'warning', true);
-        if (warning === true) {
+        if (warning) {
             throw new InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
-        const networkCode = this.safeString(params, 'network');
+        const networkCode = this.safeString(paramsWithdrawTag, 'network');
         const networkId = (networkCode === undefined) ? undefined : this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest(this.id + ' withdraw() require network parameter');
@@ -1948,7 +1948,7 @@ export default class coinsph extends Exchange {
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        const paramsOmitted = this.omit(params, 'network');
+        const paramsOmitted = this.omit(paramsWithdrawTag, 'network');
         const response = await this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted));
         return this.parseTransaction(response, currency);
     }
@@ -2143,15 +2143,15 @@ export default class coinsph extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const network = this.safeString(transaction, 'network');
-        const internal = network === 'Internal';
+        const networkId = this.safeString(transaction, 'network');
+        const internal = networkId === 'Internal';
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': network,
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2264,15 +2264,16 @@ export default class coinsph extends Exchange {
         const urlEncodedParam = key + '=' + stringifiedArray;
         return urlEncodedParam;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend({}, this.omit(params, this.extractParams(path)));
         const endpoint = this.implodeParams(path, params);
         let url = apiUrl + '/' + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             query['timestamp'] = this.milliseconds();
             const recvWindow = this.safeInteger(query, 'recvWindow');
@@ -2284,17 +2285,17 @@ export default class coinsph extends Exchange {
             }
             const signedQuery = this.urlEncodeQuery(query);
             const signature = this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256);
-            url = url + '?' + signedQuery + '&signature=' + signature;
+            url = apiUrl + '/' + endpoint + '?' + signedQuery + '&signature=' + signature;
             const signedHeaders = {
                 'X-COINS-APIKEY': this.apiKey,
             };
-            return { 'url': url, 'method': method, 'body': body, 'headers': signedHeaders };
+            return { 'url': url, 'method': method, 'body': undefined, 'headers': signedHeaders };
         }
         const encodedQuery = this.urlEncodeQuery(query);
         if (encodedQuery.length !== 0) {
-            url += '?' + encodedQuery;
+            url = apiUrl + '/' + endpoint + '?' + encodedQuery;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

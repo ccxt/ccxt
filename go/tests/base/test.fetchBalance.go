@@ -19,7 +19,10 @@ func testFetchBalanceBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExch
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
+	}
 	TestBalance(exchange, skippedProperties, method, response)
 
 	ch <- ccxt.AsyncResult[any]{Value: true}

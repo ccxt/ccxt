@@ -34,7 +34,7 @@ public class Onetrading extends OnetradingApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "onetrading" );
@@ -48,7 +48,7 @@ public class Onetrading extends OnetradingApi
                 put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
-                put( "future", false );
+                put( "future", true );
                 put( "option", false );
                 put( "addMargin", false );
                 put( "borrowCrossMargin", false );
@@ -624,6 +624,25 @@ public class Onetrading extends OnetradingApi
         //      "state": "ACTIVE"
         //  }
         //
+        //  {
+        //      "base": { "code": "BTC", "precision": 8 },
+        //      "quote": { "code": "USD", "precision": 8 },
+        //      "amount_precision": 5,
+        //      "market_precision": 2,
+        //      "min_size": "10.0",
+        //      "min_price": "1000",
+        //      "max_price": "10000000",
+        //      "id": "BTC_USD_P",
+        //      "price_collar_percentage": "10",
+        //      "type": "DATED_FUTURE", // or EQUITY_FUTURE
+        //      "state": "ACTIVE",
+        //      "funding_period": 240,
+        //      "market_offset": 0,
+        //      "funding_schedule": { "type": "FIXED_INTERVAL", "period_minutes": 240 },
+        //      "contract_expiry_date": "2031-04-20",
+        //      "contract_duration": "5Y"
+        //  }
+        //
         Map<String, Object> baseAsset = (Map<String, Object>) this.safeDict(market, "base", new HashMap<String, Object>() {{}});
         Map<String, Object> quoteAsset = (Map<String, Object>) this.safeDict(market, "quote", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(baseAsset, "code");
@@ -638,33 +657,53 @@ public class Onetrading extends OnetradingApi
         String state = this.safeString(market, "state");
         String type = this.safeString(market, "type");
         Boolean isPerp = java.util.Objects.equals(type, "PERP");
+        Boolean isFuture = (java.util.Objects.equals(type, "DATED_FUTURE")) || (java.util.Objects.equals(type, "EQUITY_FUTURE"));
+        Boolean isContract = Boolean.TRUE.equals(isPerp) || Boolean.TRUE.equals(isFuture);
+        Long expiry = null;
+        String expiryDate = this.safeString(market, "contract_expiry_date");
+        if (!java.util.Objects.equals(expiryDate, null))
+        {
+            expiry = this.parse8601((expiryDate + "T00:00:00Z"));
+        }
         String symbol = ((base + "/") + quote);
-        if (Boolean.TRUE.equals(isPerp))
+        if (Boolean.TRUE.equals(isContract))
         {
             symbol = ((symbol + ":") + quote);
+            if (Boolean.TRUE.equals(isFuture) && (!java.util.Objects.equals(expiry, null)))
+            {
+                symbol = ((symbol + "-") + this.yymmdd(expiry));
+            }
+        }
+        String marketType = "spot";
+        if (Boolean.TRUE.equals(isPerp))
+        {
+            marketType = "swap";
+        } else if (Boolean.TRUE.equals(isFuture))
+        {
+            marketType = "future";
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
         mapLiteral1.put("symbol", symbol);
         mapLiteral1.put("base", base);
         mapLiteral1.put("quote", quote);
-        mapLiteral1.put("settle", ((Boolean.TRUE.equals(isPerp))) ? quote : null);
+        mapLiteral1.put("settle", ((Boolean.TRUE.equals(isContract))) ? quote : null);
         mapLiteral1.put("baseId", baseId);
         mapLiteral1.put("quoteId", quoteId);
-        mapLiteral1.put("settleId", ((Boolean.TRUE.equals(isPerp))) ? quoteId : null);
-        mapLiteral1.put("type", ((Boolean.TRUE.equals(isPerp))) ? "swap" : "spot");
-        mapLiteral1.put("spot", !Boolean.TRUE.equals(isPerp));
+        mapLiteral1.put("settleId", ((Boolean.TRUE.equals(isContract))) ? quoteId : null);
+        mapLiteral1.put("type", marketType);
+        mapLiteral1.put("spot", !Boolean.TRUE.equals(isContract));
         mapLiteral1.put("margin", false);
         mapLiteral1.put("swap", isPerp);
-        mapLiteral1.put("future", false);
+        mapLiteral1.put("future", isFuture);
         mapLiteral1.put("option", false);
-        mapLiteral1.put("active", (java.util.Objects.equals(state, "ACTIVE")));
-        mapLiteral1.put("contract", isPerp);
-        mapLiteral1.put("linear", ((Boolean.TRUE.equals(isPerp))) ? true : null);
-        mapLiteral1.put("inverse", ((Boolean.TRUE.equals(isPerp))) ? false : null);
-        mapLiteral1.put("contractSize", ((Boolean.TRUE.equals(isPerp))) ? this.parseNumber("1") : null);
-        mapLiteral1.put("expiry", null);
-        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("active", (java.util.Objects.equals(state, "ACTIVE")) || (java.util.Objects.equals(state, "POST_ONLY")));
+        mapLiteral1.put("contract", isContract);
+        mapLiteral1.put("linear", ((Boolean.TRUE.equals(isContract))) ? true : null);
+        mapLiteral1.put("inverse", ((Boolean.TRUE.equals(isContract))) ? false : null);
+        mapLiteral1.put("contractSize", ((Boolean.TRUE.equals(isContract))) ? this.parseNumber("1") : null);
+        mapLiteral1.put("expiry", expiry);
+        mapLiteral1.put("expiryDatetime", this.iso8601(expiry));
         mapLiteral1.put("strike", null);
         mapLiteral1.put("optionType", null);
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
@@ -796,7 +835,7 @@ public class Onetrading extends OnetradingApi
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                Map<String, Object> tierObject = (((java.util.Objects.equals(market.get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
+                Map<String, Object> tierObject = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? firstSpotTier : firstFuturesTier;
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
@@ -872,8 +911,8 @@ public class Onetrading extends OnetradingApi
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                String makerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotMakerFee : futuresMakerFee;
-                String takerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotTakerFee : futuresTakerFee;
+                String makerFee = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? spotMakerFee : futuresMakerFee;
+                String takerFee = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? spotTakerFee : futuresTakerFee;
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -1194,7 +1233,8 @@ public class Onetrading extends OnetradingApi
         {
             throw new ExchangeError((this.id + " parseOHLCV() missing timestamp")) ;
         }
-        Object alignedTimestamp = Helpers.multiply(duration, this.parseToInt((((double) timestamp) / ((double) duration))));
+        Long periods = this.parseToInt((((double) timestamp) / ((double) duration)));
+        Long alignedTimestamp = (duration * periods);
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
         String volumeField = this.safeString(options, "volume", "total_amount");
         return new ArrayList<Object>(Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, volumeField, (Object) null)));
@@ -1227,9 +1267,9 @@ public class Onetrading extends OnetradingApi
             {
                 throw new ExchangeError((this.id + " fetchOHLCV() missing periodUnit")) ;
             }
-            var periodunitVariable = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
-            var period = ((List<Object>) periodunitVariable).get(0);
-            var unit = ((List<Object>) periodunitVariable).get(1);
+            List<Object> periodUnitParts = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
+            String period = (String) (periodUnitParts == null || 0 >= periodUnitParts.size() ? null : periodUnitParts.get(0));
+            String unit = (String) (periodUnitParts == null || 1 >= periodUnitParts.size() ? null : periodUnitParts.get(1));
             int durationInSeconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long duration = (((long) durationInSeconds) * 1000L);
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500L : limit;
@@ -1323,11 +1363,13 @@ public class Onetrading extends OnetradingApi
             String feeCurrencyId = this.safeString(feeInfo, "fee_currency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
             String feeRateString = this.safeString(feeInfo, "fee_percentage");
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode,
-                "rate", feeRateString
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                hx4NewMap0.put("rate", feeRateString);
+                fee = hx4NewMap0;
+            }
             takerOrMaker = this.safeStringLower(feeInfo, "fee_type");
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
@@ -1347,7 +1389,7 @@ public class Onetrading extends OnetradingApi
         return this.safeTrade(mapLiteral2, market);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         List<Object> balances = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -2121,35 +2163,36 @@ public class Onetrading extends OnetradingApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
                 put( "Authorization", ("Bearer " + Onetrading.this.apiKey) );
             }};
-            String bodyJson = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? this.json(query) : body;
+            String bodyJson = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? this.json(query) : null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 headersSigned.put("Content-Type", "application/json");
             } else
             {
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -2167,13 +2210,13 @@ public class Onetrading extends OnetradingApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
-            h2kMap1.put("headers", headers);
+            h2kMap1.put("body", null);
+            h2kMap1.put("headers", null);
             return h2kMap1;
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2188,8 +2231,8 @@ public class Onetrading extends OnetradingApi
         if (!java.util.Objects.equals(message, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

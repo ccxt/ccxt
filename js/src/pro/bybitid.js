@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import bybit from './bybit.js';
+import bybit from '../abstract/pro/bybitid.js';
 import bybitidRest from '../bybitid.js';
 // ---------------------------------------------------------------------------
 export default class bybitid extends bybit {

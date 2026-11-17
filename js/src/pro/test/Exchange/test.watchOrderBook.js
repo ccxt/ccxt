@@ -34,7 +34,7 @@ async function testWatchOrderBook(exchange, skippedProperties, symbol) {
         // refresh the deadline on every path, otherwise a stream of temporary
         // failures would loop forever
         now = exchange.milliseconds();
-        if ((success === true) && (response !== undefined)) {
+        if ((success) && (response !== undefined)) {
             testOrderBook(exchange, skippedProperties, method, response, symbol);
             const elapsed = now - startTime;
             if (elapsed > maxIdleTime) {

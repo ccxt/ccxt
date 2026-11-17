@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\lbank as Exchange;
 
 class lbank extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'lbank',
             'name' => 'LBank',
@@ -247,13 +247,10 @@ class lbank extends Exchange {
                 ),
                 'networks' => array(
                     'ERC20' => 'erc20',
-                    'ETH' => 'erc20',
                     'TRC20' => 'trc20',
-                    'TRX' => 'trc20',
                     'OMNI' => 'omni',
                     'ASA' => 'asa',
                     'BEP20' => 'bep20(bsc)',
-                    'BSC' => 'bep20(bsc)',
                     'HT' => 'heco',
                     'BNB' => 'bep2',
                     'BTC' => 'btc',
@@ -457,12 +454,11 @@ class lbank extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $id = $this->safe_string($rawCurrency[0], 'assetCode'); // first member is guaranteed
+        $id = $this->safe_string($this->safe_dict($rawCurrency, 0, array()), 'assetCode'); // first member is guaranteed
         $code = $this->safe_currency_code($id);
-        $networksRaw = $rawCurrency;
         $networks = array();
-        for ($j = 0; $j < count($networksRaw); $j++) {
-            $networkEntry = $this->safe_dict($networksRaw, $j);
+        for ($j = 0; $j < count($rawCurrency); $j++) {
+            $networkEntry = $this->safe_dict($rawCurrency, $j);
             $networkId = $this->safe_string($networkEntry, 'chain');
             if ($networkId === null) {
                 $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type as fallback if networkId is not present
@@ -512,7 +508,7 @@ class lbank extends Exchange {
                 ),
             ),
             'networks' => $networks,
-            'info' => $networksRaw,
+            'info' => $rawCurrency,
         ));
     }
 
@@ -531,7 +527,9 @@ class lbank extends Exchange {
             $this->fetch_swap_markets($params),
         );
         $resolvedMarkets = $marketsPromises;
-        return $this->array_concat($resolvedMarkets[0], $resolvedMarkets[1]);
+        $spotMarkets = $this->safe_value($resolvedMarkets, 0);
+        $swapMarkets = $this->safe_value($resolvedMarkets, 1);
+        return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
     public function fetch_spot_markets($params = array()): array {
@@ -664,14 +662,13 @@ class lbank extends Exchange {
             if (($base === null) || ($quote === null)) {
                 continue;
             }
-            $settle = $this->safe_currency_code($settleId);
-            $symbol = $base . '/' . $quote . ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $quote;
             $result[] = array(
                 'id' => $marketId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'settle' => $settle,
+                'settle' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
@@ -763,7 +760,7 @@ class lbank extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $tickerData = $this->safe_dict($ticker, 'ticker', array());
         $marketResolved = $this->safe_market($marketId, $market);
-        $data = ($marketResolved['contract'] === true) ? $ticker : $tickerData;
+        $data = ($this->safe_bool($marketResolved, 'contract', false)) ? $ticker : $tickerData;
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -802,7 +799,7 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             $responseForSwap = $this->fetch_tickers(array( $market['symbol'] ), $params);
             $swapTicker = $this->safe_dict($responseForSwap, $market['symbol']);
             return $swapTicker;
@@ -995,7 +992,7 @@ class lbank extends Exchange {
         //
         $orderbook = $this->safe_dict($response, 'data', array());
         $timestamp = $this->milliseconds();
-        if ($market['swap'] === true) {
+        if ($this->safe_bool($market, 'swap', false)) {
             return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks');
@@ -1201,10 +1198,16 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $limitResolved = ($limit === null) ? 100 : min($limit, 2000);
+        $limitResolved = $this->parse_to_int(($limit === null) ? 100 : min($limit, 2000));
         $duration = $this->parse_timeframe($timeframe);
-        $sinceResolved = ($since === null) ? ($this->milliseconds() - ($duration * 1000 * $limitResolved)) : $since;
-        $parsedSince = $this->parse_to_int($sinceResolved / 1000);
+        $now = $this->milliseconds();
+        $defaultSince = $now - ($duration * 1000 * $limitResolved);
+        $sinceResolved = $defaultSince;
+        $parsedSince = $this->parse_to_int($defaultSince / 1000);
+        if ($since !== null) {
+            $sinceResolved = $since;
+            $parsedSince = $this->parse_to_int($since / 1000);
+        }
         $parsedLimit = min($limitResolved + 1, 2000); // max 2000;
         $request = array(
             'symbol' => $market['id'],
@@ -1238,7 +1241,7 @@ class lbank extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $sinceResolved, $limitResolved);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // spotPrivatePostUserInfo
         //
@@ -1324,7 +1327,7 @@ class lbank extends Exchange {
         );
         $data = $this->safe_dict($response, 'data');
         // from spotPrivatePostUserInfo
-        $toBtc = $this->safe_value($data, 'toBtc');
+        $toBtc = $this->safe_dict($data, 'toBtc');
         if ($toBtc !== null) {
             $used = $this->safe_dict($data, 'freeze', array());
             $free = $this->safe_dict($data, 'free', array());
@@ -1359,7 +1362,7 @@ class lbank extends Exchange {
         }
         // from spotPrivatePostSupplementUserInfo
         $isArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
-        if ($isArray === true) {
+        if ($isArray) {
             for ($i = 0; $i < count($data); $i++) {
                 $item = $this->safe_dict($data, $i);
                 $currencyId = $this->safe_string($item, 'coin');
@@ -1605,7 +1608,9 @@ class lbank extends Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
             $symbol = $fee['symbol'];
-            $result[$symbol] = $fee;
+            if ($symbol !== null) {
+                $result[$symbol] = $fee;
+            }
         }
         return $result;
     }
@@ -1626,7 +1631,7 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1661,7 +1666,7 @@ class lbank extends Exchange {
         );
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
-        $maker = (($postOnly === true) || ($timeInForce === 'PO'));
+        $maker = (($postOnly) || ($timeInForce === 'PO'));
         if (($type === 'market') && ($ioc || $fok || $maker)) {
             throw new InvalidOrder($this->id . ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
@@ -1735,7 +1740,7 @@ class lbank extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '-1' => 'canceled', // canceled
             '0' => 'open', // not traded
@@ -1994,7 +1999,7 @@ class lbank extends Exchange {
         $result = $this->safe_list($response, 'data', array());
         $numOrders = count($result);
         if ($numOrders === 1) {
-            return $this->parse_order($result[0]);
+            return $this->parse_order($this->safe_dict($result, 0, array()));
         } else {
             // const parsedOrders = [];
             // for (let i = 0; i < numOrders; i++) {
@@ -2025,7 +2030,7 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $sinceValue = $this->safe_value($params, 'start_date', $since);
+        $sinceValue = $this->safe_integer($params, 'start_date', $since);
         $paramsOmitted = $this->omit($params, 'start_date');
         $request = array(
             'symbol' => $market['id'],
@@ -2278,9 +2283,9 @@ class lbank extends Exchange {
         $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks');
         $defaultNetwork = $this->safe_string_upper($defaultNetworks, $currencyCode);
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        return $network;
+        $networkParam = $this->safe_string_upper($params, 'network', $defaultNetwork); // accepts unified codes and aliases
+        $networkCode = ($networkParam !== null) ? $this->safe_string($this->networkAliases, $networkParam, $networkParam) : null;
+        return $this->safe_string($networks, $networkCode, $networkCode);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): array {
@@ -2359,6 +2364,9 @@ class lbank extends Exchange {
         );
         $networks = $this->safe_dict($this->options, 'networks');
         $network = $this->safe_string_upper($params, 'network');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
+        }
         $network = $this->safe_string($networks, $network, $network);
         $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         if ($network !== null) {
@@ -2389,7 +2397,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2398,12 +2406,12 @@ class lbank extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2428,6 +2436,9 @@ class lbank extends Exchange {
             $request['memo'] = $tagWithdrawTag;
         }
         $network = $this->safe_string_upper_2($paramsOmitted, 'network', 'networkName');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
+        }
         $paramsOmitted2 = $this->omit($paramsOmitted, array( 'network', 'networkName' ));
         $networks = $this->safe_dict($this->options, 'networks');
         $networkId = $this->safe_string($networks, $network, $network);
@@ -2684,20 +2695,17 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $isAuthorized = $this->check_required_credentials(false);
-        if ($isAuthorized === true) {
+        if ($isAuthorized) {
             $options = $this->safe_dict($this->options, 'fetchTransactionFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicTransactionFees') {
-                $result = $this->fetch_public_transaction_fees($paramsOmitted);
-            } else {
-                $result = $this->fetch_private_transaction_fees($paramsOmitted);
+                return $this->fetch_public_transaction_fees($paramsOmitted);
             }
-        } else {
-            $result = $this->fetch_public_transaction_fees($params);
+            return $this->fetch_private_transaction_fees($paramsOmitted);
         }
-        return $result;
+        return $this->fetch_public_transaction_fees($params);
     }
 
     public function fetch_private_transaction_fees($params = array()): array {
@@ -2741,8 +2749,7 @@ class lbank extends Exchange {
         $withdrawFees = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $this->safe_dict($result, $i);
-            $currencyId = $this->safe_string($entry, 'coin');
-            $code = $this->safe_currency_code($currencyId);
+            $code = $this->safe_currency_code($this->safe_string($entry, 'coin'));
             $networkList = $this->safe_list($entry, 'networkList', array());
             if ($code !== null) {
                 $withdrawFees[$code] = array();
@@ -2754,7 +2761,9 @@ class lbank extends Exchange {
                     $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
                     if ($networkCode !== null) {
                         if (($code !== null) && ($networkCode !== null)) {
-                            $withdrawFees[$code][$networkCode] = $fee;
+                            $feesForCode = array();
+                            $feesForCode[$networkCode] = $fee;
+                            $withdrawFees[$code] = $this->extend($this->safe_dict($withdrawFees, $code, array()), $feesForCode);
                         }
                     }
                 }
@@ -2808,20 +2817,16 @@ class lbank extends Exchange {
             $item = $this->safe_dict($result, $i);
             $canWithdraw = $this->safe_string($item, 'canWithDraw');
             if ($canWithdraw === 'true') {
-                $currencyId = $this->safe_string($item, 'assetCode');
-                $codeInner = $this->safe_currency_code($currencyId);
+                $codeInner = $this->safe_currency_code($this->safe_string($item, 'assetCode'));
                 $network = $this->network_id_to_code($this->safe_string($item, 'chain'), $codeInner);
                 if ($network === null) {
                     $network = $codeInner;
                 }
                 $fee = $this->safe_string($item, 'fee');
-                if ($this->safe_value($withdrawFees, $codeInner) === null) {
-                    if ($codeInner !== null) {
-                        $withdrawFees[$codeInner] = array();
-                    }
-                }
                 if (($codeInner !== null) && ($network !== null)) {
-                    $withdrawFees[$codeInner][$network] = $this->parse_number($fee);
+                    $feesForCode = array();
+                    $feesForCode[$network] = $this->parse_number($fee);
+                    $withdrawFees[$codeInner] = $this->extend($this->safe_dict($withdrawFees, $codeInner, array()), $feesForCode);
                 }
             }
         }
@@ -2847,20 +2852,17 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $isAuthorized = $this->check_required_credentials(false);
-        if ($isAuthorized === true) {
+        if ($isAuthorized) {
             $options = $this->safe_dict($this->options, 'fetchDepositWithdrawFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicDepositWithdrawFees') {
-                $response = $this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted);
-            } else {
-                $response = $this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted);
+                return $this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted);
             }
-        } else {
-            $response = $this->fetch_public_deposit_withdraw_fees($codes, $params);
+            return $this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted);
         }
-        return $response;
+        return $this->fetch_public_deposit_withdraw_fees($codes, $params);
     }
 
     public function fetch_private_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
@@ -2957,10 +2959,9 @@ class lbank extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $fee = $response[$i];
-            $canWithdraw = $this->safe_bool($fee, 'canWithDraw');
-            if ($canWithdraw === true) {
-                $currencyId = $this->safe_string($fee, 'assetCode');
-                $code = $this->safe_currency_code($currencyId);
+            $canWithdraw = $this->safe_bool($fee, 'canWithDraw', false);
+            if ($canWithdraw) {
+                $code = $this->safe_currency_code($this->safe_string($fee, 'assetCode'));
                 if (($code !== null) && ($codes === null || $this->in_array($code, $codes))) {
                     $withdrawFee = $this->safe_number($fee, 'fee');
                     if ($withdrawFee !== null) {
@@ -2968,12 +2969,13 @@ class lbank extends Exchange {
                         if ($resultValue === null) {
                             $result[$code] = $this->deposit_withdraw_fee(array( $fee ));
                         } else {
-                            $resultCodeInfo = $result[$code]['info'];
-                            $resultCodeInfo[] = $fee;
+                            $infoList = $this->array_concat($resultValue['info'], array( $fee ));
+                            $result[$code] = $this->extend($resultValue, array( 'info' => $infoList ));
                         }
                         $networkCode = $this->network_id_to_code($this->safe_string($fee, 'chain'), $code);
                         if ($networkCode !== null) {
-                            $result[$code]['networks'][$networkCode] = array(
+                            $networkFees = array();
+                            $networkFees[$networkCode] = array(
                                 'withdraw' => array(
                                     'fee' => $withdrawFee,
                                     'percentage' => null,
@@ -2983,11 +2985,15 @@ class lbank extends Exchange {
                                     'percentage' => null,
                                 ),
                             );
+                            $networks = $this->extend($this->safe_dict($this->safe_dict($result, $code, array()), 'networks', array()), $networkFees);
+                            $result[$code] = $this->extend($this->safe_dict($result, $code, array()), array( 'networks' => $networks ));
                         } else {
-                            $result[$code]['withdraw'] = array(
-                                'fee' => $withdrawFee,
-                                'percentage' => null,
-                            );
+                            $result[$code] = $this->extend($this->safe_dict($result, $code, array()), array(
+                                'withdraw' => array(
+                                    'fee' => $withdrawFee,
+                                    'percentage' => null,
+                                ),
+                            ));
                         }
                     }
                 }
@@ -2996,7 +3002,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //
@@ -3030,16 +3036,17 @@ class lbank extends Exchange {
             $networkEntry = $this->safe_dict($networkList, $j);
             $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'name'), $code);
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
-            $isDefault = $this->safe_bool($networkEntry, 'isDefault');
+            $isDefault = $this->safe_bool($networkEntry, 'isDefault', false);
             if ($withdrawFee !== null) {
-                if ($isDefault === true) {
+                if ($isDefault) {
                     $result['withdraw'] = array(
                         'fee' => $withdrawFee,
                         'percentage' => null,
                     );
                 }
                 if ($networkCode !== null) {
-                    $result['networks'][$networkCode] = array(
+                    $networkFees = array();
+                    $networkFees[$networkCode] = array(
                         'withdraw' => array(
                             'fee' => $withdrawFee,
                             'percentage' => null,
@@ -3049,14 +3056,15 @@ class lbank extends Exchange {
                             'percentage' => null,
                         ),
                     );
+                    $result['networks'] = $this->extend($this->safe_dict($result, 'networks', array()), $networkFees);
                 }
             }
         }
         return $result;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $query = $this->omit($params, $this->extract_params($path));
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $paramsOmitted = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -3073,16 +3081,16 @@ class lbank extends Exchange {
             $url = $contractUrl . '/' . $this->implode_params($path, $params);
         }
         if ($api[1] === 'public') {
-            if (count($query) > 0) {
-                $url .= '?' . $this->urlencode($this->keysort($query));
+            if (count($paramsOmitted) > 0) {
+                $url .= '?' . $this->urlencode($this->keysort($paramsOmitted));
             }
         } else {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             $echostr = $this->uuid22() . $this->uuid16();
-            $query = $this->extend(array(
+            $signedQuery = $this->extend(array(
                 'api_key' => $this->apiKey,
-            ), $query);
+            ), $paramsOmitted);
             $signatureMethod = null;
             if (strlen($this->secret) > 32) {
                 $signatureMethod = 'RSA';
@@ -3094,19 +3102,20 @@ class lbank extends Exchange {
                 'echostr' => $echostr,
                 'signature_method' => $finalSig,
                 'timestamp' => $timestamp,
-            ), $query)));
+            ), $signedQuery)));
             $encoded = $this->encode($auth);
-            $hash = $this->hash($encoded, 'md5');
-            $uppercaseHash = strtoupper($hash);
-            $sign = null;
+            $uppercaseHash = strtoupper($this->hash($encoded, 'md5'));
+            $sign = '';
             if ($signatureMethod === 'RSA') {
                 $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
-                if ($cacheSecretAsPem === true) {
-                    $pem = $this->safe_string($this->options, 'pem');
-                    if ($pem === null) {
+                if ($cacheSecretAsPem) {
+                    $cachedPem = $this->safe_string($this->options, 'pem');
+                    if ($cachedPem === null) {
                         $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                         $this->options['pem'] = $pem;
+                    } else {
+                        $pem = $cachedPem;
                     }
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
@@ -3115,8 +3124,8 @@ class lbank extends Exchange {
             } elseif ($signatureMethod === 'HmacSHA256') {
                 $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret), 'sha256');
             }
-            $query['sign'] = $sign;
-            $bodySigned = $this->urlencode($this->keysort($query));
+            $signedQuery['sign'] = $sign;
+            $bodySigned = $this->urlencode($this->keysort($signedQuery));
             $headersSigned = array(
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'timestamp' => $timestamp,
@@ -3125,29 +3134,27 @@ class lbank extends Exchange {
             );
             return array( 'url' => $url, 'method' => $method, 'body' => $bodySigned, 'headers' => $headersSigned );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function convert_secret_to_pem(mixed $secret) {
-        $lineLength = 64;
-        $secretLength = strlen($secret) - 0;
-        $numLines = $this->parse_to_int($secretLength / $lineLength);
-        $numLines = $this->sum($numLines, 1);
+    public function convert_secret_to_pem(mixed $secret): string {
+        $secretLength = count($secret);
+        $fullLines = $this->parse_to_int($secretLength / 64);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
-        for ($i = 0; $i < $numLines; $i++) {
-            $start = $i * $lineLength;
-            $end = $this->sum($start, $lineLength);
+        for ($i = 0; $i <= $fullLines; $i++) {
+            $start = $i * 64;
+            $end = $this->sum($start, 64);
             $pem .= mb_substr($this->secret, $start, $end - $start) . "\n"; // eslint-disable-line
         }
         return $pem . '-----END PRIVATE KEY-----';
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             throw new NullResponse($this->id . ' parseBalance() returned empty response');
         }
-        $success = $this->safe_value($response, 'result');
-        if (($success === 'false') || ($success === null) || ($success === null) || ($success === false)) {
+        $success = $this->safe_string($response, 'result');
+        if (($success === 'false') || ($success === null)) {
             $errorCode = $this->safe_string($response, 'error_code');
             $message = $this->safe_string(array(
                 '10000' => 'Internal error',

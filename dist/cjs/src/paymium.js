@@ -165,12 +165,11 @@ class paymium extends paymium$1["default"] {
             const code = currencies[i];
             const currency = this.currency(code);
             const currencyId = currency['id'];
-            const free = 'balance_' + currencyId;
-            if (free in response) {
+            const freeAmount = this.safeString(response, 'balance_' + currencyId);
+            if (freeAmount !== undefined) {
                 const account = this.account();
-                const used = 'locked_' + currencyId;
-                account['free'] = this.safeString(response, free);
-                account['used'] = this.safeString(response, used);
+                account['free'] = freeAmount;
+                account['used'] = this.safeString(response, 'locked_' + currencyId);
                 result[code] = account;
             }
         }
@@ -304,7 +303,8 @@ class paymium extends paymium$1["default"] {
         const marketResolved = this.safeMarket(undefined, market);
         const side = this.safeString(trade, 'side');
         const price = this.safeString(trade, 'price');
-        const amountField = 'traded_' + marketResolved['base'].toLowerCase();
+        const baseId = this.safeString(marketResolved, 'base', '');
+        const amountField = 'traded_' + baseId.toLowerCase();
         const amount = this.safeString(trade, amountField);
         return this.safeTrade({
             'info': trade,
@@ -618,7 +618,7 @@ class paymium extends paymium$1["default"] {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const baseApiUrl = this.safeString(this.urls['api'], 'rest');
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -626,8 +626,9 @@ class paymium extends paymium$1["default"] {
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
-            if (Object.keys(query).length > 0) {
+        const hasQuery = Object.keys(query).length > 0;
+        if (api[0] === 'public') {
+            if (hasQuery) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -640,8 +641,7 @@ class paymium extends paymium$1["default"] {
                 'Api-Key': this.apiKey,
                 'Api-Nonce': nonce,
             };
-            const hasQuery = Object.keys(query).length > 0;
-            let signedBody = body;
+            let signedBody = '';
             if (method === 'POST' && hasQuery) {
                 signedBody = this.json(query);
             }
@@ -654,16 +654,16 @@ class paymium extends paymium$1["default"] {
             else {
                 if (hasQuery) {
                     const queryString = this.urlencode(query);
-                    auth += queryString;
+                    auth = nonce + url + queryString;
                     url += '?' + queryString;
                 }
             }
             signedHeaders['Api-Signature'] = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

@@ -19,7 +19,10 @@ func testFetchAccountsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExc
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	accounts := r.Value
+	var accounts any = nil
+	if r.Value != nil {
+		accounts = ccxt.AccountsToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, accounts)
 	for i := 0; i < GetArrayLength(accounts); i++ {
 		TestAccount(exchange, skippedProperties, method, GetValue(accounts, i))

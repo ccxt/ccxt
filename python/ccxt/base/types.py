@@ -71,6 +71,8 @@ Int = int | None
 Bool = bool | None
 MarketType = Literal['spot', 'margin', 'swap', 'future', 'option']
 SubType = Literal['linear', 'inverse']
+DefaultType = Literal['spot', 'margin', 'option', 'swap', 'future']
+DefaultSubType = Literal['linear', 'inverse']
 
 
 class FeeInterface(TypedDict):
@@ -97,11 +99,16 @@ class DepositWithdrawFeeNetwork(TypedDict):
     percentage: NotRequired[Bool]
 
 
+class DepositWithdrawFeeNetworkEntry(TypedDict):
+    deposit: NotRequired[DepositWithdrawFeeNetwork]
+    withdraw: NotRequired[DepositWithdrawFeeNetwork]
+
+
 class DepositWithdrawFee(TypedDict):
     info: dict[str, Any]
     withdraw: NotRequired[DepositWithdrawFeeNetwork]
     deposit: NotRequired[DepositWithdrawFeeNetwork]
-    networks: NotRequired[dict[str, DepositWithdrawFeeNetwork]]
+    networks: NotRequired[dict[str, DepositWithdrawFeeNetworkEntry]]
 
 
 class Balance(TypedDict):
@@ -158,6 +165,7 @@ class Position(TypedDict):
     leverage: Num
     unrealizedPnl: Num
     realizedPnl: Num
+    positionMargin: Num
     collateral: Num
     entryPrice: Num
     markPrice: Num
@@ -266,6 +274,15 @@ class Balances(dict[str, Balance]):
 
 
 class OrderBook(TypedDict):
+    asks: list[list[Num]]
+    bids: list[list[Num]]
+    datetime: Str
+    timestamp: Int
+    nonce: Int
+    symbol: Str
+
+
+class OrderBookL3(TypedDict):
     asks: list[list[Num]]
     bids: list[list[Num]]
     datetime: Str
@@ -457,15 +474,15 @@ class MarketInterface(TypedDict):
     active: Bool
     type: Str
     subType: Str
-    spot: Bool
+    spot: bool
     margin: Bool
-    swap: Bool
-    future: Bool
-    option: Bool
+    swap: bool
+    future: bool
+    option: bool
     index: Bool
     stock: Bool
     prediction: Bool
-    contract: Bool
+    contract: bool
     settle: Str
     settleId: Str
     contractSize: Num

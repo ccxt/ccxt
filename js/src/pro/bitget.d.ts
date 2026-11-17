@@ -7,7 +7,7 @@ import Client from '../base/ws/Client.js';
  * @description watching delivery future markets is not yet implemented (perpertual future & swap is implemented)
  */
 export default class bitget extends bitgetRest {
-    describe(): any;
+    describe(): Dict;
     getInstType(methodName: Str, market: Market, uta?: boolean, params?: Dict): [Str, Dict];
     /**
      * @method
@@ -141,7 +141,7 @@ export default class bitget extends bitgetRest {
     handleOrderBook(client: Client, message: Dict): void;
     handleCheckSumError(client: Client, symbol: string, messageHash: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name bitget#watchTrades
@@ -259,18 +259,21 @@ export default class bitget extends bitgetRest {
      * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock balances, defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
     handleBalance(client: Client, message: Dict): void;
     watchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
     unWatchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
+    unWatchPrivate(uta: any, messageHash: any, args: any, params?: Dict): Promise<any>;
     watchPublicMultiple(uta: boolean, messageHashes: string[], argsArray: any[], params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<any>;
     watchPrivate(uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params?: Dict): Promise<any>;
     handleAuthenticate(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;

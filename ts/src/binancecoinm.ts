@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import binance from './binance.js';
+import binance from './abstract/binancecoinm.js';
 import type { Dict, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class binancecoinm extends binance {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',

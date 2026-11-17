@@ -2,7 +2,7 @@ import ndaxRest from '../ndax.js';
 import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class ndax extends ndaxRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): number;
     /**
      * @method

@@ -23,7 +23,7 @@ public class Bybiteu extends io.github.ccxt.exchanges.Bybiteu
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         // eslint-disable-next-line new-cap
         var restInstance = new io.github.ccxt.exchanges.Bybiteu();

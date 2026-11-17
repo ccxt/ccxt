@@ -1,12 +1,13 @@
 
 // ---------------------------------------------------------------------------
 
-import okx from './okx.js';
+import okx from './abstract/okxus.js';
+import type { Dict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class okxus extends okx {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'okxus',
             'name': 'OKX (US)',

@@ -237,7 +237,7 @@ class coinspot extends coinspot$1["default"] {
                 'DRK': 'DASH',
             },
             'options': {
-                'fetchBalance': 'private_post_my_balances',
+                'fetchBalance': 'privatePostMyBalances',
             },
             'features': {
                 'spot': {
@@ -294,11 +294,13 @@ class coinspot extends coinspot$1["default"] {
         const result = { 'info': response };
         const balances = this.safeValue2(response, 'balance', 'balances');
         if (Array.isArray(balances)) {
-            for (let i = 0; i < balances.length; i++) {
-                const currencies = balances[i];
-                const currencyIds = Object.keys(currencies);
-                for (let j = 0; j < currencyIds.length; j++) {
-                    const currencyId = currencyIds[j];
+            const rows = this.toArray(balances);
+            const numRows = rows.length;
+            for (let i = 0; i < numRows; i++) {
+                const currencies = this.safeDict(rows, i, {});
+                const currencyIdsList = Object.keys(currencies);
+                for (let j = 0; j < currencyIdsList.length; j++) {
+                    const currencyId = currencyIdsList[j];
                     const balance = this.safeDict(currencies, currencyId);
                     const code = this.safeCurrencyCode(currencyId);
                     const account = this.account();
@@ -310,9 +312,9 @@ class coinspot extends coinspot$1["default"] {
             }
         }
         else {
-            const currencyIds = Object.keys(balances);
-            for (let i = 0; i < currencyIds.length; i++) {
-                const currencyId = currencyIds[i];
+            const currencyIdsMap = Object.keys(balances);
+            for (let i = 0; i < currencyIdsMap.length; i++) {
+                const currencyId = currencyIdsMap[i];
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['total'] = this.safeString(balances, currencyId);
@@ -335,7 +337,7 @@ class coinspot extends coinspot$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const method = this.safeString(this.options, 'fetchBalance', 'private_post_my_balances');
+        const method = this.safeString(this.options, 'fetchBalance', 'privatePostMyBalances');
         let response = undefined;
         if ((method === 'private_post_ro_my_balances') || (method === 'privatePostRoMyBalances')) {
             response = await this.privatePostRoMyBalances(params);
@@ -487,7 +489,7 @@ class coinspot extends coinspot$1["default"] {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket(id);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 const symbol = market['symbol'];
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker(ticker, market);
@@ -736,7 +738,7 @@ class coinspot extends coinspot$1["default"] {
             'info': response,
         });
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -751,16 +753,19 @@ class coinspot extends coinspot$1["default"] {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
-        const isVersionedApi = Array.isArray(api);
-        const version = isVersionedApi ? api[0] : undefined;
-        const accessType = isVersionedApi ? api[1] : api;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
+        const apiLength = api.length;
+        const isVersionedApi = apiLength > 1;
+        let accessType = api[0];
+        if (isVersionedApi) {
+            accessType = api[1];
+        }
         const endpoint = '/' + this.implodeParams(path, params);
         let fullPath = endpoint;
-        if (version !== undefined) {
-            fullPath = '/' + version + endpoint;
+        if (isVersionedApi) {
+            fullPath = '/' + api[0] + endpoint;
         }
         const apiUrl = this.safeString(this.urls['api'], accessType);
         if (apiUrl === undefined) {

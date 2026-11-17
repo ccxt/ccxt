@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class alpaca(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(alpaca, self).describe(), {
             'id': 'alpaca',
             'name': 'Alpaca',
@@ -639,7 +639,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocTrades')
         request = {
@@ -712,7 +712,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        id = market['id']
+        id = self.safe_string(market, 'id')
         loc = self.safe_string(params, 'loc', 'us')
         request = {
             'symbols': id,
@@ -783,14 +783,14 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         loc = self.safe_string(params, 'loc', 'us')
         method = self.safe_string(params, 'method', 'marketPublicGetV1beta3CryptoLocBars')
         paginate = False
         query = None
         paginate, query = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
-        paginationCalls = 10
-        paginationCalls, query = self.handle_option_integer_and_params(query, 'fetchOHLCV', 'paginationCalls', 10)
+        paginationCalls, queryPagination = self.handle_option_integer_and_params(query, 'fetchOHLCV', 'paginationCalls', 10)
+        query = queryPagination
         request = {
             'symbols': marketId,
             'loc': loc,
@@ -1035,7 +1035,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'quoteVolume': Precise.string_mul(self.safe_string(dailyBar, 'v'), self.safe_string(dailyBar, 'vw')),
             }, market)
             results.append(ticker)
-        return self.filter_by_array(results, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
 
     def generate_client_order_id(self, params: dict) -> Str:
         clientOrderIdprefix = self.safe_string(self.options, 'clientOrderId')
@@ -1121,7 +1121,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        id = market['id']
+        id = self.safe_string(market, 'id')
         request = {
             'symbol': id,
             'side': side,
@@ -1453,7 +1453,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         alpacaStatus = self.safe_string(order, 'status')
         status = self.parse_order_status(alpacaStatus)
         feeValue = self.safe_string(order, 'commission')
@@ -1494,7 +1494,7 @@ class alpaca(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'pending_new': 'open',
             'accepted': 'open',
@@ -1517,7 +1517,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'day': 'Day',  # equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
             'gtc': 'GTC',
@@ -1683,7 +1683,7 @@ class alpaca(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1692,18 +1692,19 @@ class alpaca(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag: a memo for the transaction
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
         addressValue = address
-        if (tagWithdrawTag is not None) and (tagWithdrawTag != ''):
-            addressValue = address + ':' + tagWithdrawTag
+        tagSuffix = self.safe_string(params, 'tag', '')
+        if tagSuffix != '':
+            addressValue = address + ':' + tagSuffix
         request = {
             'asset': currency['id'],
             'address': addressValue,
@@ -1733,14 +1734,14 @@ class alpaca(Exchange, ImplicitAPI):
         super(alpaca, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    async def fetch_transactions_helper(self, type: str, code: Str, since: object, limit: object, params: object) -> list[Transaction]:
+    async def fetch_transactions_helper(self, type: str, code: Str, since: Int, limit: Int, params: object) -> list[Transaction]:
         if self.markets is None:
             await self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
         sandboxMode = self.isSandboxModeEnabled or self.safe_bool(self.options, 'sandboxMode', False)
-        if sandboxMode is True:
+        if sandboxMode:
             # paper-trading hosts do not serve the crypto wallets api at all, so route
             # through the account activities ledger instead, filtered to transfer-like
             # entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1817,7 +1818,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('BOTH', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('BOTH', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1831,7 +1833,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('INCOMING', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('INCOMING', code, since, limit, params)
+        return self.to_array(transactions)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1845,7 +1848,8 @@ class alpaca(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        return await self.fetch_transactions_helper('OUTGOING', code, since, limit, params)
+        transactions = await self.fetch_transactions_helper('OUTGOING', code, since, limit, params)
+        return self.to_array(transactions)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -1895,7 +1899,8 @@ class alpaca(Exchange, ImplicitAPI):
         if activityType is not None:
             netAmount = self.safe_string(transaction, 'net_amount')
             isIncoming = (activityType == 'CSD') or ((activityType == 'TRANS') and not Precise.string_lt(netAmount, '0'))
-            timestamp = self.parse8601(self.safe_string(transaction, 'date') + 'T00:00:00Z')
+            date = self.safe_string(transaction, 'date', '')
+            timestamp = self.parse8601(date + 'T00:00:00Z')
             datetime = self.iso8601(timestamp)
             type = 'deposit' if isIncoming else 'withdrawal'
             amount = self.parse_number(Precise.string_abs(netAmount))
@@ -1916,14 +1921,14 @@ class alpaca(Exchange, ImplicitAPI):
             txid = self.safe_string(transaction, 'tx_hash')
             datetime = self.safe_string(transaction, 'created_at')
             timestamp = self.parse8601(datetime)
-            network = self.safe_string(transaction, 'chain')
             address = self.safe_string(transaction, 'to_address')
             addressTo = self.safe_string(transaction, 'to_address')
             addressFrom = self.safe_string(transaction, 'from_address')
             type = self.parse_transaction_type(self.safe_string(transaction, 'direction'))
-            amount = self.safe_number(transaction, 'amount')
+            amount = self.parse_number(self.safe_string(transaction, 'amount'))
             currencyId = self.safe_string(transaction, 'asset')
             code = self.safe_currency_code(currencyId, currency)
+            network = self.network_id_to_code(self.safe_string(transaction, 'chain'), code)
             status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
             fees = self.safe_string(transaction, 'fees')
             networkFee = self.safe_string(transaction, 'network_fee')
@@ -1955,7 +1960,7 @@ class alpaca(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # crypto wallets api
             'PROCESSING': 'pending',
@@ -2047,7 +2052,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.parse_balance(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         # crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
         #
@@ -2084,8 +2089,8 @@ class alpaca(Exchange, ImplicitAPI):
             result[code] = cashAccount
         for i in range(0, len(positions)):
             position = self.safe_dict(positions, i)
-            positionSymbol = self.safe_string(position, 'symbol')
-            if positionSymbol is None:
+            positionSymbol = self.safe_string(position, 'symbol', '')
+            if positionSymbol == '':
                 continue
             baseId = None
             if positionSymbol.find('/') >= 0:
@@ -2094,7 +2099,7 @@ class alpaca(Exchange, ImplicitAPI):
             else:
                 # crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 baseLength = len(positionSymbol) - 3
-                if (baseLength > 0) and (positionSymbol[baseLength:] == 'USD'):
+                if (baseLength > 0) and positionSymbol.endswith('USD'):
                     baseId = positionSymbol[0:baseLength]
             if baseId is None:
                 continue  # an unrecognized position symbol shape must not break the whole balance
@@ -2106,14 +2111,12 @@ class alpaca(Exchange, ImplicitAPI):
                 result[positionCode] = positionAccount
         return self.safe_balance(result)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         endpoint = '/' + self.implode_params(path, params)
         baseApiUrl = self.safe_string(self.urls['api'], api[0])
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         headersValue = {}
-        if headers is not None:
-            headersValue = headers
         if api[1] == 'private':
             self.check_required_credentials()
             headersValue['APCA-API-KEY-ID'] = self.apiKey
@@ -2127,10 +2130,10 @@ class alpaca(Exchange, ImplicitAPI):
                 bodyJson = self.json(query)
                 headersValue['Content-Type'] = 'application/json'
         url = self.implode_hostname(baseApiUrl) + endpoint
-        bodyResolved = body if (bodyJson is None) else bodyJson
+        bodyResolved = bodyJson
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # default error handler
         # {
@@ -2139,14 +2142,15 @@ class alpaca(Exchange, ImplicitAPI):
         # }
         feedback = self.id + ' ' + body
         errorCode = self.safe_string(response, 'code')
-        if code is not None:
-            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        # code is an int: it is never undefined, the guard was dead
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         message = self.safe_string(response, 'message')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             codeAsString = str(code)
-            if (code < 400) or not (codeAsString in self.httpExceptions):
+            statusCode = self.parse_to_int(code)
+            if (statusCode < 400) or not (codeAsString in self.httpExceptions):
                 # an error envelope must always throw — also for statuses the http-status handler has no entry for
                 raise ExchangeError(feedback)
             # unmapped messages on the remaining error statuses fall through to the default http-status handler

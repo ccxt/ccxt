@@ -2,7 +2,7 @@ import hyperliquidRest from '../hyperliquid.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, Liquidation } from '../base/types.js';
 export default class hyperliquid extends hyperliquidRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name hyperliquid#createOrdersWs
@@ -267,7 +267,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    unWatchBalance(params?: {}): Promise<any>;
+    unWatchBalance(params?: Dict): Promise<any>;
     handleBalance(client: Client, message: Dict): void;
     parseWsBalance(balance: Dict, accountType?: Str): void;
     /**
@@ -342,6 +342,7 @@ export default class hyperliquid extends hyperliquidRest {
     handlePositionsUnsubscription(client: Client, subscription: Dict): void;
     handleSpotBalanceUnsubscription(client: Client, subscription: Dict): void;
     handleSubscriptionResponse(client: Client, message: Dict): void;
+    handleUnsubscription(client: Client, subscription: Dict): void;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;

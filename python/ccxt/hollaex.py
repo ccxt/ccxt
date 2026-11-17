@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class hollaex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hollaex, self).describe(), {
             'id': 'hollaex',
             'name': 'HollaEx',
@@ -285,12 +285,10 @@ class hollaex(Exchange, ImplicitAPI):
             },
             'options': {
                 # how many seconds before the authenticated request expires
-                'api-expires': self.parse_to_int(self.timeout / 1000),
+                'api-expires': self.parse_to_int(self.parse_to_int(self.timeout) / 1000),
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
@@ -370,13 +368,13 @@ class hollaex(Exchange, ImplicitAPI):
             market = self.safe_dict(pairs, key)
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            baseCode = self.common_currency_code(baseId.upper())
+            quoteCode = self.common_currency_code(quoteId.upper())
             result.append({
                 'id': self.safe_string(market, 'name'),
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
+                'symbol': baseCode + '/' + quoteCode,
+                'base': baseCode,
+                'quote': quoteCode,
                 'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
@@ -691,7 +689,7 @@ class hollaex(Exchange, ImplicitAPI):
         keys = list(tickers.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            ticker = tickers[key]
+            ticker = self.safe_value(tickers, key)
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']
@@ -889,8 +887,9 @@ class hollaex(Exchange, ImplicitAPI):
         makerFees = self.safe_dict(fees, 'maker', {})
         takerFees = self.safe_dict(fees, 'taker', {})
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             makerString = self.safe_string(makerFees, market['id'])
             takerString = self.safe_string(takerFees, market['id'])
@@ -930,15 +929,14 @@ class hollaex(Exchange, ImplicitAPI):
         paginateOption, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', paginate)
         if paginateOption:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
-        until = self.safe_integer(paramsPaginate, 'until')
-        timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
-        start = since
         now = self.milliseconds()
-        if until is None:
-            until = now  # the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        if start is None:
-            start = until - timeDelta
-        request['from'] = self.parse_to_int(start / 1000)  # convert to seconds
+        # the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        until = self.safe_integer(paramsPaginate, 'until', now)
+        timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
+        if since is None:
+            request['from'] = self.parse_to_int((until - timeDelta) / 1000)  # convert to seconds
+        else:
+            request['from'] = self.parse_to_int(since / 1000)  # convert to seconds
         request['to'] = self.parse_to_int(until / 1000)  # convert to seconds
         paramsOmitted = self.omit(paramsPaginate, 'until')
         response = self.publicGetChart(self.extend(request, paramsOmitted))
@@ -978,19 +976,19 @@ class hollaex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         timestamp = self.parse8601(self.safe_string(response, 'updated_at'))
         result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        currenciesById = self.currencies_by_id
-        if currenciesById is None:
+        if self.currencies_by_id is None:
             raise ExchangeError(self.id + ' currencies not loaded')
+        currenciesById = self.currencies_by_id
         currencyIds = list(currenciesById.keys())
         for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+            currencyId = self.safe_string(currencyIds, i, '')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(response, currencyId + '_available')
@@ -1025,7 +1023,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
+    def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetch an open order by it's id
 
@@ -1141,10 +1139,9 @@ class hollaex(Exchange, ImplicitAPI):
         #                     "exchange_id": 176
         #                 }
         #             }
-        order = response
-        if order is None:
+        if response is None:
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
-        return self.parse_order(order)
+        return self.parse_order(response)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1213,7 +1210,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'new': 'open',
             'pfilled': 'open',
@@ -1490,11 +1487,11 @@ class hollaex(Exchange, ImplicitAPI):
         self.check_address(address)
         currencyId = self.safe_string(depositAddress, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
-        network = self.safe_string(depositAddress, 'network')
+        networkId = self.safe_string(depositAddress, 'network')
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': network,
+            'network': self.network_id_to_code(networkId, currencyResolved['code']),
             'address': address,
             'tag': tag,
         }
@@ -1564,7 +1561,7 @@ class hollaex(Exchange, ImplicitAPI):
         if network is None:
             addresses = wallet
         else:
-            addresses = self.filter_by(wallet, 'network', network)
+            addresses = self.filter_by(wallet, 'network', self.network_code_to_id(network))
         return self.parse_deposit_addresses(addresses, codes, False)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -1625,7 +1622,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
+    def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1783,14 +1780,15 @@ class hollaex(Exchange, ImplicitAPI):
             tagTo = tag
         currencyId = self.safe_string(transaction, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
-        status = self.safe_value(transaction, 'status')
-        dismissed = self.safe_bool(transaction, 'dismissed')
-        rejected = self.safe_bool(transaction, 'rejected')
-        if status is True:
+        completed = self.safe_bool(transaction, 'status', False)
+        dismissed = self.safe_bool(transaction, 'dismissed', False)
+        rejected = self.safe_bool(transaction, 'rejected', False)
+        status = None
+        if completed:
             status = 'ok'
-        elif dismissed is True:
+        elif dismissed:
             status = 'canceled'
-        elif rejected is True:
+        elif rejected:
             status = 'failed'
         else:
             status = 'pending'
@@ -1826,7 +1824,7 @@ class hollaex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1835,12 +1833,12 @@ class hollaex(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -1850,14 +1848,13 @@ class hollaex(Exchange, ImplicitAPI):
         network = self.safe_string(paramsWithdrawTag, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter')
-        paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         request = {
             'currency': currency['id'],
             'amount': amount,
             'address': addressWithTag,
             'network': self.network_code_to_id(network, code),
         }
-        response = self.privatePostUserWithdrawal(self.extend(request, paramsOmitted))
+        response = self.privatePostUserWithdrawal(self.extend(request, self.omit(paramsWithdrawTag, 'network')))
         #
         #     {
         #         "message": "Withdrawal request is in the queue and will be processed.",
@@ -1870,7 +1867,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    "bch":{
         #        "id":4,
@@ -1911,10 +1908,10 @@ class hollaex(Exchange, ImplicitAPI):
                 'fee': None,
                 'percentage': None,
             },
-            'networks': {},
         }
-        allowWithdrawal = self.safe_bool(fee, 'allow_withdrawal')
-        if allowWithdrawal is True:
+        networks = {}
+        allowWithdrawal = self.safe_bool(fee, 'allow_withdrawal', False)
+        if allowWithdrawal:
             result['withdraw'] = {'fee': self.safe_number(fee, 'withdrawal_fee'), 'percentage': False}
         withdrawalFees = self.safe_dict(fee, 'withdrawal_fees')
         if withdrawalFees is not None:
@@ -1930,10 +1927,11 @@ class hollaex(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' requires a networkCode argument')
                 networkCodeUpper = networkCode.upper()  # default to the upper case network code
                 withdrawalFee = self.safe_number(value, 'value')
-                result['networks'][networkCodeUpper] = {
+                networks[networkCodeUpper] = {
                     'deposit': None,
                     'withdraw': withdrawalFee,
                 }
+        result['networks'] = networks
         return result
 
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params: dict = {}) -> DepositWithdrawFees:
@@ -1985,7 +1983,7 @@ class hollaex(Exchange, ImplicitAPI):
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
@@ -1997,11 +1995,12 @@ class hollaex(Exchange, ImplicitAPI):
         url = apiUrl + requestPath
         requestBody = None
         requestHeaders = None
-        if api == 'private':
+        if api[0] == 'private':
             self.check_required_credentials()
-            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(self.timeout / 1000))
+            timeoutMs = self.parse_to_int(self.timeout)
+            defaultExpires = self.safe_integer_2(self.options, 'api-expires', 'expires', self.parse_to_int(timeoutMs / 1000))
             expires = self.sum(self.seconds(), defaultExpires)
-            expiresString = str(expires)
+            expiresString = self.number_to_string(expires)
             auth = method + requestPath + expiresString
             requestHeaders = {
                 'api-key': self.apiKey,
@@ -2014,15 +2013,16 @@ class hollaex(Exchange, ImplicitAPI):
                     auth += requestBody
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             requestHeaders['api-signature'] = signature
-        bodyResult = body if (requestBody is None) else requestBody
-        headersResult = headers if (requestHeaders is None) else requestHeaders
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # { "message": "Invalid token" }
         if response is None:
             return None
-        if (code >= 400) and (code <= 503):
+        statusCode = self.parse_to_int(code)
+        if (statusCode >= 400) and (statusCode <= 503):
             #
             #  { "message": "Invalid token" }
             #

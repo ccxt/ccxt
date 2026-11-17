@@ -11,6 +11,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.OrderBookL3;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -34,7 +35,7 @@ public class Blockchaincom extends BlockchaincomApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "blockchaincom" );
@@ -396,17 +397,17 @@ public class Blockchaincom extends BlockchaincomApi
                 // price precision
                 String minPriceIncrementString = this.safeString(market, "min_price_increment");
                 String minPriceIncrementScaleString = this.safeString(market, "min_price_increment_scale");
-                Object minPriceScalePrecisionString = this.parsePrecision(minPriceIncrementScaleString);
+                String minPriceScalePrecisionString = (String) this.parsePrecision(minPriceIncrementScaleString);
                 String pricePrecisionString = Precise.stringMul(minPriceIncrementString, minPriceScalePrecisionString);
                 // amount precision
                 String lotSizeString = this.safeString(market, "lot_size");
                 String lotSizeScaleString = this.safeString(market, "lot_size_scale");
-                Object lotSizeScalePrecisionString = this.parsePrecision(lotSizeScaleString);
+                String lotSizeScalePrecisionString = (String) this.parsePrecision(lotSizeScaleString);
                 String amountPrecisionString = Precise.stringMul(lotSizeString, lotSizeScalePrecisionString);
                 // minimum order size
                 String minOrderSizeString = this.safeString(market, "min_order_size");
                 String minOrderSizeScaleString = this.safeString(market, "min_order_size_scale");
-                Object minOrderSizeScalePrecisionString = this.parsePrecision(minOrderSizeScaleString);
+                String minOrderSizeScalePrecisionString = (String) this.parsePrecision(minOrderSizeScaleString);
                 String minOrderSizePreciseString = Precise.stringMul(minOrderSizeString, minOrderSizeScalePrecisionString);
                 Double minOrderSize = this.parseNumber(minOrderSizePreciseString);
                 // maximum order size
@@ -415,60 +416,60 @@ public class Blockchaincom extends BlockchaincomApi
                 if (!java.util.Objects.equals(maxOrderSizeRaw, "0"))
                 {
                     String maxOrderSizeScaleString = this.safeString(market, "max_order_size_scale");
-                    Object maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
+                    String maxOrderSizeScalePrecisionString = (String) this.parsePrecision(maxOrderSizeScaleString);
                     String maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
                     maxOrderSize = this.parseNumber(maxOrderSizeValueString);
                 }
-                ((List<Object>)result).add(Helpers.newMap(
-                    "info", market,
-                    "id", marketId,
-                    "numericId", numericId,
-                    "symbol", ((base + "/") + quote),
-                    "base", base,
-                    "quote", quote,
-                    "settle", null,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", null,
-                    "type", "spot",
-                    "spot", true,
-                    "margin", false,
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "active", active,
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("info", market);
+                j39v3.put("id", marketId);
+                j39v3.put("numericId", numericId);
+                j39v3.put("symbol", ((base + "/") + quote));
+                j39v3.put("base", base);
+                j39v3.put("quote", quote);
+                j39v3.put("settle", null);
+                j39v3.put("baseId", baseId);
+                j39v3.put("quoteId", quoteId);
+                j39v3.put("settleId", null);
+                j39v3.put("type", "spot");
+                j39v3.put("spot", true);
+                j39v3.put("margin", false);
+                j39v3.put("swap", false);
+                j39v3.put("future", false);
+                j39v3.put("option", false);
+                j39v3.put("active", active);
+                j39v3.put("contract", false);
+                j39v3.put("linear", null);
+                j39v3.put("inverse", null);
+                j39v3.put("contractSize", null);
+                j39v3.put("expiry", null);
+                j39v3.put("expiryDatetime", null);
+                j39v3.put("strike", null);
+                j39v3.put("optionType", null);
+                j39v3.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Blockchaincom.this.parseNumber(amountPrecisionString) );
                         put( "price", Blockchaincom.this.parseNumber(pricePrecisionString) );
-                    }},
-                    "limits", Helpers.newMap(
-                        "leverage", new HashMap<String, Object>() {{
+                    }});
+                j39v3.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                        j39v2.put("leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
-                        }},
-                        "amount", Helpers.newMap(
-                            "min", minOrderSize,
-                            "max", maxOrderSize
-                        ),
-                        "price", new HashMap<String, Object>() {{
+                        }});
+                        j39v2.put("amount", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                            j39v1.put("min", minOrderSize);
+                            j39v1.put("max", maxOrderSize);
+                            yield j39v1; } }));
+                        j39v2.put("price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
-                        }},
-                        "cost", new HashMap<String, Object>() {{
+                        }});
+                        j39v2.put("cost", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
-                        }}
-                    ),
-                    "created", null
-                ));
+                        }});
+                        yield j39v2; } }));
+                j39v3.put("created", null);
+                ((List<Object>)result).add(j39v3);
             }
             return result;
         });
@@ -490,7 +491,7 @@ public class Blockchaincom extends BlockchaincomApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchL3OrderBook(symbol, limit, parameters)).join();
+            return (this.fetchL2OrderBook(((String)symbol), limit, parameters)).join();
         }).thenApply(OrderBook::new);
 
     }
@@ -505,7 +506,7 @@ public class Blockchaincom extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBookL3> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -523,8 +524,8 @@ public class Blockchaincom extends BlockchaincomApi
                 request.put("depth", limit);
             }
             Map<String, Object> response = (this.publicGetL3Symbol(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", "px", "qty", 2);
-        }).thenApply(OrderBook::new);
+            return this.parseOrderBookL3(response, (String) (market.get("symbol")), (Long) null, "bids", "asks", "px", "qty", "num");
+        }).thenApply(OrderBookL3::new);
 
     }
 
@@ -965,7 +966,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByState(Object state, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByState(String state, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1014,16 +1015,18 @@ public class Blockchaincom extends BlockchaincomApi
         Long timestamp = this.safeInteger(trade, "timestamp");
         String datetime = this.iso8601(timestamp);
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol", "");
         Map<String, Object> fee = null;
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            String feeCurrency = (String) marketResolved.get("quote");
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrency
-            );
+            String feeCurrency = this.safeString(marketResolved, "quote", "");
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", feeCurrency);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", tradeId);
@@ -1171,23 +1174,27 @@ public class Blockchaincom extends BlockchaincomApi
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         String state = this.safeString(transaction, "state");
-        if (transaction.containsKey("depositId"))
+        String depositId = this.safeString(transaction, "depositId");
+        String withdrawalId = this.safeString(transaction, "withdrawalId");
+        if (!java.util.Objects.equals(depositId, null))
         {
             type = "deposit";
-            id = this.safeString(transaction, "depositId");
-        } else if (transaction.containsKey("withdrawalId"))
+            id = depositId;
+        } else if (!java.util.Objects.equals(withdrawalId, null))
         {
             type = "withdrawal";
-            id = this.safeString(transaction, "withdrawalId");
+            id = withdrawalId;
         }
         Double feeCost = (((java.util.Objects.equals(type, "withdrawal")))) ? this.safeNumber(transaction, "fee", (Object) null) : null;
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("currency", code);
+                hx4NewMap1.put("cost", feeCost);
+                fee = hx4NewMap1;
+            }
         }
         String address = this.safeString(transaction, "address");
         String txid = this.safeString(transaction, "txhash");
@@ -1225,11 +1232,11 @@ public class Blockchaincom extends BlockchaincomApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1257,7 +1264,7 @@ public class Blockchaincom extends BlockchaincomApi
             //         "timestamp": "1634218452595"
             //     },
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -1321,7 +1328,7 @@ public class Blockchaincom extends BlockchaincomApi
                 put( "withdrawalId", id );
             }};
             Map<String, Object> response = (this.privateGetWithdrawalsWithdrawalId(this.extend(request, parameters))).join();
-            return this.parseTransaction((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseTransaction(response, (Map<String, Object>) null);
         });
 
     }
@@ -1386,7 +1393,7 @@ public class Blockchaincom extends BlockchaincomApi
                 put( "depositId", depositId );
             }};
             Map<String, Object> deposit = (this.privateGetDepositsDepositId(this.extend(request, parameters))).join();
-            return this.parseTransaction((Map<String, Object>) (deposit), (Map<String, Object>) null);
+            return this.parseTransaction(deposit, (Map<String, Object>) null);
         });
 
     }
@@ -1500,34 +1507,35 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String requestPath = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean isPrivate = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"));
+        Boolean isPrivate = (java.util.Objects.equals(apiName, "private"));
         Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
             put( "X-API-Token", Blockchaincom.this.secret );
         }};
-        Object requestHeaders = headers;
+        Map<String, Object> requestHeaders = null;
         if (Boolean.TRUE.equals(isPrivate))
         {
             requestHeaders = privateHeaders;
         }
         Boolean isPrivatePost = Boolean.TRUE.equals(isPrivate) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"));
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isPrivatePost))
         {
             requestBody = this.json(query);
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1536,7 +1544,7 @@ public class Blockchaincom extends BlockchaincomApi
             this.checkRequiredCredentials(true);
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
             {
-                if (Helpers.objectKeys(query).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -1555,7 +1563,7 @@ public class Blockchaincom extends BlockchaincomApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if (java.util.Objects.equals(response, null))
@@ -1572,12 +1580,10 @@ public class Blockchaincom extends BlockchaincomApi
         }
         String errorCode = this.safeString(response, "status");
         String errorMessage = this.safeString(response, "error");
-        if (!java.util.Objects.equals(code, null))
-        {
-            String feedback = ((this.id + " ") + this.json(response));
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), errorMessage, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        String feedback = ((this.id + " ") + this.json(response));
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
         return null;
     }
 }

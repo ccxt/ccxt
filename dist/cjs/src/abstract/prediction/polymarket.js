@@ -6,6 +6,390 @@ var PredictionExchange = require('../../base/PredictionExchange.js');
 
 // ----------------------------------------------------------------------------
 class Exchange extends PredictionExchange["default"] {
+    gammaPublicGetStatus(params = {}) {
+        return this.request('status', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetComments(params = {}) {
+        return this.request('comments', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetCommentsId(params = {}) {
+        return this.request('comments/{id}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetCommentsUserAddressUserAddress(params = {}) {
+        return this.request('comments/user_address/{user_address}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEvents(params = {}) {
+        return this.request('events', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsCreators(params = {}) {
+        return this.request('events/creators', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsCreatorsId(params = {}) {
+        return this.request('events/creators/{id}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsKeyset(params = {}) {
+        return this.request('events/keyset', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsPagination(params = {}) {
+        return this.request('events/pagination', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsResults(params = {}) {
+        return this.request('events/results', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsSlugSlug(params = {}) {
+        return this.request('events/slug/{slug}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsId(params = {}) {
+        return this.request('events/{id}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsIdCommentsCount(params = {}) {
+        return this.request('events/{id}/comments/count', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsIdTags(params = {}) {
+        return this.request('events/{id}/tags', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetEventsIdTweetCount(params = {}) {
+        return this.request('events/{id}/tweet-count', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetMarkets(params = {}) {
+        return this.request('markets', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetMarketsKeyset(params = {}) {
+        return this.request('markets/keyset', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetMarketsSlugSlug(params = {}) {
+        return this.request('markets/slug/{slug}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetMarketsId(params = {}) {
+        return this.request('markets/{id}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetMarketsIdDescription(params = {}) {
+        return this.request('markets/{id}/description', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetMarketsIdTags(params = {}) {
+        return this.request('markets/{id}/tags', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetProfilesUserAddressUserAddress(params = {}) {
+        return this.request('profiles/user_address/{user_address}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetPublicProfile(params = {}) {
+        return this.request('public-profile', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetPublicSearch(params = {}) {
+        return this.request('public-search', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetSeries(params = {}) {
+        return this.request('series', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetSeriesSummarySlugSlug(params = {}) {
+        return this.request('series-summary/slug/{slug}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetSeriesSummaryId(params = {}) {
+        return this.request('series-summary/{id}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetSeriesId(params = {}) {
+        return this.request('series/{id}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetSeriesIdCommentsCount(params = {}) {
+        return this.request('series/{id}/comments/count', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetSports(params = {}) {
+        return this.request('sports', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetSportsMarketTypes(params = {}) {
+        return this.request('sports/market-types', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetTags(params = {}) {
+        return this.request('tags', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetTagsSlugSlug(params = {}) {
+        return this.request('tags/slug/{slug}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetTagsSlugSlugRelatedTags(params = {}) {
+        return this.request('tags/slug/{slug}/related-tags', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetTagsSlugSlugRelatedTagsTags(params = {}) {
+        return this.request('tags/slug/{slug}/related-tags/tags', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetTagsId(params = {}) {
+        return this.request('tags/{id}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetTagsIdRelatedTags(params = {}) {
+        return this.request('tags/{id}/related-tags', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetTagsIdRelatedTagsTags(params = {}) {
+        return this.request('tags/{id}/related-tags/tags', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetTeams(params = {}) {
+        return this.request('teams', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicGetTeamsId(params = {}) {
+        return this.request('teams/{id}', ['gamma', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    gammaPublicPostMarketsAbridged(params = {}) {
+        return this.request('markets/abridged', ['gamma', 'public'], 'POST', params, { 'cost': 1 });
+    }
+    gammaPublicPostMarketsInformation(params = {}) {
+        return this.request('markets/information', ['gamma', 'public'], 'POST', params, { 'cost': 1 });
+    }
+    clobPublicGetBook(params = {}) {
+        return this.request('book', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetBooks(params = {}) {
+        return this.request('books', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetBuilderTrades(params = {}) {
+        return this.request('builder/trades', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetClobMarketsConditionId(params = {}) {
+        return this.request('clob-markets/{condition_id}', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetFeeRate(params = {}) {
+        return this.request('fee-rate', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetFeeRateTokenId(params = {}) {
+        return this.request('fee-rate/{token_id}', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetLastTradePrice(params = {}) {
+        return this.request('last-trade-price', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetLastTradesPrices(params = {}) {
+        return this.request('last-trades-prices', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetMarketsByTokenTokenId(params = {}) {
+        return this.request('markets-by-token/{token_id}', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetMarketsLiveActivityConditionId(params = {}) {
+        return this.request('markets/live-activity/{condition_id}', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetMidpoint(params = {}) {
+        return this.request('midpoint', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetMidpoints(params = {}) {
+        return this.request('midpoints', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetNegRisk(params = {}) {
+        return this.request('neg-risk', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetNegRiskTokenId(params = {}) {
+        return this.request('neg-risk/{token_id}', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetPrice(params = {}) {
+        return this.request('price', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetPrices(params = {}) {
+        return this.request('prices', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetPricesHistory(params = {}) {
+        return this.request('prices-history', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetRebatesCurrent(params = {}) {
+        return this.request('rebates/current', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetRewardsMarketsCurrent(params = {}) {
+        return this.request('rewards/markets/current', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetRewardsMarketsMulti(params = {}) {
+        return this.request('rewards/markets/multi', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetRewardsMarketsConditionId(params = {}) {
+        return this.request('rewards/markets/{condition_id}', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetSamplingMarkets(params = {}) {
+        return this.request('sampling-markets', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetSamplingSimplifiedMarkets(params = {}) {
+        return this.request('sampling-simplified-markets', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetSimplifiedMarkets(params = {}) {
+        return this.request('simplified-markets', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetSpread(params = {}) {
+        return this.request('spread', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetTickSize(params = {}) {
+        return this.request('tick-size', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetTickSizeTokenId(params = {}) {
+        return this.request('tick-size/{token_id}', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicGetTime(params = {}) {
+        return this.request('time', ['clob', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    clobPublicPostBatchPricesHistory(params = {}) {
+        return this.request('batch-prices-history', ['clob', 'public'], 'POST', params, { 'cost': 1 });
+    }
+    clobPublicPostBooks(params = {}) {
+        return this.request('books', ['clob', 'public'], 'POST', params, { 'cost': 1 });
+    }
+    clobPublicPostLastTradesPrices(params = {}) {
+        return this.request('last-trades-prices', ['clob', 'public'], 'POST', params, { 'cost': 1 });
+    }
+    clobPublicPostMarketsLiveActivity(params = {}) {
+        return this.request('markets/live-activity', ['clob', 'public'], 'POST', params, { 'cost': 1 });
+    }
+    clobPublicPostMidpoints(params = {}) {
+        return this.request('midpoints', ['clob', 'public'], 'POST', params, { 'cost': 1 });
+    }
+    clobPublicPostPrices(params = {}) {
+        return this.request('prices', ['clob', 'public'], 'POST', params, { 'cost': 1 });
+    }
+    clobPublicPostSpreads(params = {}) {
+        return this.request('spreads', ['clob', 'public'], 'POST', params, { 'cost': 1 });
+    }
+    clobPrivateGetAuthApiKeys(params = {}) {
+        return this.request('auth/api-keys', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetAuthBanStatusClosedOnly(params = {}) {
+        return this.request('auth/ban-status/closed-only', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetAuthBuilderApiKey(params = {}) {
+        return this.request('auth/builder-api-key', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetAuthDeriveApiKey(params = {}) {
+        return this.request('auth/derive-api-key', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetBalanceAllowance(params = {}) {
+        return this.request('balance-allowance', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetBalanceAllowanceUpdate(params = {}) {
+        return this.request('balance-allowance/update', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetDataOrderId(params = {}) {
+        return this.request('data/order/{id}', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetDataOrders(params = {}) {
+        return this.request('data/orders', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetDataTrades(params = {}) {
+        return this.request('data/trades', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetNotifications(params = {}) {
+        return this.request('notifications', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetOrderScoring(params = {}) {
+        return this.request('order-scoring', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetOrdersScoring(params = {}) {
+        return this.request('orders-scoring', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetRewardsUser(params = {}) {
+        return this.request('rewards/user', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetRewardsUserMarkets(params = {}) {
+        return this.request('rewards/user/markets', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetRewardsUserPercentages(params = {}) {
+        return this.request('rewards/user/percentages', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivateGetRewardsUserTotal(params = {}) {
+        return this.request('rewards/user/total', ['clob', 'private'], 'GET', params, { 'cost': 1 });
+    }
+    clobPrivatePostAuthApiKey(params = {}) {
+        return this.request('auth/api-key', ['clob', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    clobPrivatePostAuthBuilderApiKey(params = {}) {
+        return this.request('auth/builder-api-key', ['clob', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    clobPrivatePostHeartbeats(params = {}) {
+        return this.request('heartbeats', ['clob', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    clobPrivatePostOrder(params = {}) {
+        return this.request('order', ['clob', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    clobPrivatePostOrders(params = {}) {
+        return this.request('orders', ['clob', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    clobPrivatePostV1Heartbeats(params = {}) {
+        return this.request('v1/heartbeats', ['clob', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    clobPrivateDeleteAuthApiKey(params = {}) {
+        return this.request('auth/api-key', ['clob', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    clobPrivateDeleteAuthBuilderApiKey(params = {}) {
+        return this.request('auth/builder-api-key', ['clob', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    clobPrivateDeleteCancelAll(params = {}) {
+        return this.request('cancel-all', ['clob', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    clobPrivateDeleteCancelMarketOrders(params = {}) {
+        return this.request('cancel-market-orders', ['clob', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    clobPrivateDeleteNotifications(params = {}) {
+        return this.request('notifications', ['clob', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    clobPrivateDeleteOrder(params = {}) {
+        return this.request('order', ['clob', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    clobPrivateDeleteOrders(params = {}) {
+        return this.request('orders', ['clob', 'private'], 'DELETE', params, { 'cost': 1 });
+    }
+    dataPublicGetActivity(params = {}) {
+        return this.request('activity', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetClosedPositions(params = {}) {
+        return this.request('closed-positions', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetHolders(params = {}) {
+        return this.request('holders', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetLiveVolume(params = {}) {
+        return this.request('live-volume', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetOi(params = {}) {
+        return this.request('oi', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetOther(params = {}) {
+        return this.request('other', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetPositions(params = {}) {
+        return this.request('positions', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetRevisions(params = {}) {
+        return this.request('revisions', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetTraded(params = {}) {
+        return this.request('traded', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetTrades(params = {}) {
+        return this.request('trades', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetV1AccountingSnapshot(params = {}) {
+        return this.request('v1/accounting/snapshot', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetV1ActivityCombos(params = {}) {
+        return this.request('v1/activity/combos', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetV1BuildersLeaderboard(params = {}) {
+        return this.request('v1/builders/leaderboard', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetV1BuildersVolume(params = {}) {
+        return this.request('v1/builders/volume', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetV1Leaderboard(params = {}) {
+        return this.request('v1/leaderboard', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetV1MarketPositions(params = {}) {
+        return this.request('v1/market-positions', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetV1PositionsCombos(params = {}) {
+        return this.request('v1/positions/combos', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    dataPublicGetValue(params = {}) {
+        return this.request('value', ['data', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    combosPublicGetV1RfqComboMarkets(params = {}) {
+        return this.request('v1/rfq/combo-markets', ['combos', 'public'], 'GET', params, { 'cost': 1 });
+    }
+    combosPrivatePostV1MakerConfirmations(params = {}) {
+        return this.request('v1/maker/confirmations', ['combos', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    combosPrivatePostV1MakerQuotes(params = {}) {
+        return this.request('v1/maker/quotes', ['combos', 'private'], 'POST', params, { 'cost': 1 });
+    }
+    combosPrivatePostV1MakerQuotesCancel(params = {}) {
+        return this.request('v1/maker/quotes/cancel', ['combos', 'private'], 'POST', params, { 'cost': 1 });
+    }
 }
 
 exports["default"] = Exchange;

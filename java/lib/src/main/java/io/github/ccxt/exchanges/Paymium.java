@@ -32,7 +32,7 @@ public class Paymium extends PaymiumApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "paymium" );
@@ -232,24 +232,23 @@ public class Paymium extends PaymiumApi
         }});
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> currencies = Helpers.objectKeys(this.currencies);
+        List<Object> currencies = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
             Object code = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
             Map<String, Object> currency = this.currency((String) (code));
             String currencyId = (String) currency.get("id");
-            String free = ("balance_" + currencyId);
-            if (Helpers.inOp(response, free))
+            String freeAmount = this.safeString(response, ("balance_" + currencyId));
+            if (!java.util.Objects.equals(freeAmount, null))
             {
                 Map<String, Object> account = this.account();
-                String used = ("locked_" + currencyId);
-                account.put("free", this.safeString(response, free));
-                account.put("used", this.safeString(response, used));
+                account.put("free", freeAmount);
+                account.put("used", this.safeString(response, ("locked_" + currencyId)));
                 result.put((String)code, account);
             }
         }
@@ -411,7 +410,8 @@ public class Paymium extends PaymiumApi
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         String side = this.safeString(trade, "side");
         String price = this.safeString(trade, "price");
-        String amountField = ("traded_" + ((String)marketResolved.get("base")).toLowerCase());
+        String baseId = this.safeString(marketResolved, "base", "");
+        String amountField = ("traded_" + baseId.toLowerCase());
         String amount = this.safeString(trade, amountField);
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
@@ -487,7 +487,7 @@ public class Paymium extends PaymiumApi
             //         "label": "Savings"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseDepositAddress(response, (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -522,7 +522,7 @@ public class Paymium extends PaymiumApi
             //         "label": "Savings"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), (Map<String, Object>) null);
+            return this.parseDepositAddress(response, (Map<String, Object>) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -757,7 +757,7 @@ public class Paymium extends PaymiumApi
         //
         String currencyId = this.safeString(transfer, "currency");
         String updatedAt = this.safeString(transfer, "updated_at");
-        Object timetstamp = this.parseDate(updatedAt);
+        Long timetstamp = this.parseDate(updatedAt);
         List<Object> accountOperations = (List<Object>) this.safeList(transfer, "account_operations", (Object) null);
         Map<String, Object> firstOperation = (Map<String, Object>) this.safeDict(accountOperations, 0, new HashMap<String, Object>() {{}});
         String status = this.safeString(transfer, "state");
@@ -788,7 +788,7 @@ public class Paymium extends PaymiumApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(baseApiUrl, null))
@@ -798,9 +798,10 @@ public class Paymium extends PaymiumApi
         String baseUrl = baseApiUrl;
         String url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        Boolean hasQuery = ((Map<String, Object>)query).size() > 0;
+        if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "public"))
         {
-            if (Helpers.objectKeys(query).size() > 0)
+            if (Boolean.TRUE.equals(hasQuery))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -813,8 +814,7 @@ public class Paymium extends PaymiumApi
             Map<String, Object> signedHeaders = new HashMap<String, Object>();
             signedHeaders.put("Api-Key", this.apiKey);
             signedHeaders.put("Api-Nonce", nonce);
-            Boolean hasQuery = Helpers.objectKeys(query).size() > 0;
-            String signedBody = body;
+            String signedBody = "";
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && Boolean.TRUE.equals(hasQuery))
             {
                 signedBody = this.json(query);
@@ -831,7 +831,7 @@ public class Paymium extends PaymiumApi
                 if (Boolean.TRUE.equals(hasQuery))
                 {
                     String queryString = this.urlencode(query);
-                    auth = (auth + queryString);
+                    auth = ((nonce + url) + queryString);
                     url = (url + ("?" + queryString));
                 }
             }
@@ -849,13 +849,13 @@ public class Paymium extends PaymiumApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
-            h2kMap1.put("headers", headers);
+            h2kMap1.put("body", null);
+            h2kMap1.put("headers", null);
             return h2kMap1;
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {

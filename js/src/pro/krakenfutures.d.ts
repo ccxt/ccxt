@@ -2,7 +2,7 @@ import krakenfuturesRest from '../krakenfutures.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class krakenfutures extends krakenfuturesRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method
@@ -120,7 +120,7 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
-    parseWsPosition(position: Dict, market?: Market): Position;
+    parseWsPosition(position: Dict, market?: Market, timestamp?: Int): Position;
     /**
      * @method
      * @name krakenfutures#watchOrders
@@ -154,7 +154,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure} of the account type the message updated ('cash', 'futures' margin, or 'flex_futures')
      */
     watchBalance(params?: Dict): Promise<Balances>;
     handleTrade(client: Client, message: Dict): void;
@@ -169,9 +169,18 @@ export default class krakenfutures extends krakenfuturesRest {
     handleOrderBookSnapshot(client: Client, message: Dict): void;
     handleOrderBook(client: Client, message: Dict): void;
     handleBalance(client: Client, message: Dict): void;
+    /**
+     * @ignore
+     * @method
+     * @description removes currency/symbol keys that disappeared from a full-state balance message, keeping the cached object itself alive for consumers holding a reference to it
+     * @param {object} balanceObject the cached per-account balance object, mutated in place
+     * @param {object} seenKeys the currency codes / symbols present in the current message
+     * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
+     */
+    pruneStaleBalanceKeys(balanceObject: Dict, seenKeys: Dict): Dict;
     handleMyTrades(client: Client, message: Dict): void;
     parseWsMyTrade(trade: Dict, market?: Market): Trade;
-    watchMultiHelper(unifiedName: string, channelName: string, symbols?: any, subscriptionArgs?: any, params?: Dict): Promise<any>;
+    watchMultiHelper(unifiedName: string, channelName: string, symbols?: any, subscriptionArgs?: Dict | undefined, params?: Dict): Promise<any>;
     subscriptionExistsForHash(url: string, hash: string): boolean;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleErrorMessage(client: Client, message: Dict): Bool;

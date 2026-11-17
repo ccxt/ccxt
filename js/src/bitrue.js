@@ -861,8 +861,8 @@ export default class bitrue extends Exchange {
         }
         const promises = await Promise.all(promisesRaw);
         const spotMarkets = this.safeList(this.safeDict(promises, 0), 'symbols', []);
-        const futureMarkets = this.safeValue(promises, 1);
-        const deliveryMarkets = this.safeValue(promises, 2);
+        const futureMarkets = this.safeList(promises, 1, []);
+        const deliveryMarkets = this.safeList(promises, 2, []);
         let markets = spotMarkets;
         markets = this.arrayConcat(markets, futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
@@ -979,6 +979,8 @@ export default class bitrue extends Exchange {
         const filters = this.safeList(market, 'filters', []);
         const filtersByType = this.indexBy(filters, 'filterType');
         const status = this.safeString(market, 'status');
+        // spot markets say TRADING, futures contracts 1 (0 when offline)
+        const active = (status === 'TRADING') || (status === '1');
         const priceFilter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict(filtersByType, 'LOT_SIZE', {});
         const defaultPricePrecision = this.safeString(market, 'pricePrecision');
@@ -1011,7 +1013,7 @@ export default class bitrue extends Exchange {
             'swap': isContract,
             'future': false,
             'option': false,
-            'active': (status === 'TRADING'),
+            'active': active,
             'contract': isContract,
             'linear': isLinear,
             'inverse': isInverse,
@@ -1244,21 +1246,21 @@ export default class bitrue extends Exchange {
         }
         const market = this.market(symbol);
         let response = {};
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'contractName': market['id'],
             };
             if (limit !== undefined) {
                 request['limit'] = Math.min(limit, 100); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV1PublicGetDepth(this.extend(request, params));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetDepth(this.extend(request, params));
             }
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id'],
             };
@@ -1387,19 +1389,19 @@ export default class bitrue extends Exchange {
         const market = this.market(symbol);
         let response = undefined;
         let data = {};
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'contractName': market['id'],
             };
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV1PublicGetTicker(this.extend(request, params));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetTicker(this.extend(request, params));
             }
             data = response;
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id'],
             };
@@ -1471,7 +1473,7 @@ export default class bitrue extends Exchange {
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         let response = undefined;
         let data = [];
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const timeframesFuture = this.safeDict(timeframes, 'future', {});
             const request = {
                 'contractName': market['id'],
@@ -1481,15 +1483,15 @@ export default class bitrue extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV1PublicGetKlines(this.extend(request, params));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetKlines(this.extend(request, params));
             }
             data = response;
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             const timeframesSpot = this.safeDict(timeframes, 'spot', {});
             const request = {
                 'symbol': market['id'],
@@ -1601,18 +1603,18 @@ export default class bitrue extends Exchange {
         const first = this.safeString(symbolsNormalized, 0);
         const market = this.market(first);
         let response = undefined;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'contractName': market['id'],
             };
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV1PublicGetTicker(this.extend(request, params));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetTicker(this.extend(request, params));
             }
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id'],
             };
@@ -1671,10 +1673,10 @@ export default class bitrue extends Exchange {
         if (symbolsNormalized !== undefined) {
             const first = this.safeString(symbolsNormalized, 0);
             const market = this.market(first);
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 throw new NotSupported(this.id + ' fetchTickers does not support swap markets, please use fetchTicker instead');
             }
-            else if (market['spot'] === true) {
+            else if (this.safeBool(market, 'spot', false)) {
                 response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
                 data = this.toArray(response);
             }
@@ -1855,7 +1857,7 @@ export default class bitrue extends Exchange {
         }
         const market = this.market(symbol);
         let response = [];
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id'],
                 // 'limit': 100, // default 100, max = 1000
@@ -2033,7 +2035,7 @@ export default class bitrue extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports swap orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -2086,7 +2088,7 @@ export default class bitrue extends Exchange {
             }
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const isMarket = uppercaseType === 'MARKET';
             const timeInForce = this.safeStringLower(params, 'timeInForce');
             const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -2133,18 +2135,18 @@ export default class bitrue extends Exchange {
             const leverage = this.safeString(paramsNoCost, 'leverage', '1');
             request['leverage'] = this.parseToNumeric(leverage);
             const paramsSwap = this.omit(paramsNoCost, ['leverage', 'reduceOnly', 'reduce_only', 'timeInForce']);
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivatePostOrder(this.extend(request, paramsSwap));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivatePostOrder(this.extend(request, paramsSwap));
             }
             data = this.safeDict(response, 'data', {});
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision(symbol, amount);
-            const validOrderTypes = this.safeValue(market['info'], 'orderTypes');
+            const validOrderTypes = this.safeList(market['info'], 'orderTypes', []);
             if (!this.inArray(uppercaseType, validOrderTypes)) {
                 throw new InvalidOrder(this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
             }
@@ -2215,24 +2217,24 @@ export default class bitrue extends Exchange {
             request['orderId'] = id;
         }
         else {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 request['clientOrderId'] = origClientOrderId;
             }
             else {
                 request['origClientOrderId'] = origClientOrderId;
             }
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['contractName'] = market['id'];
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivateGetOrder(this.extend(request, paramsOmitted));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivateGetOrder(this.extend(request, paramsOmitted));
             }
             data = this.safeDict(response, 'data', {});
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             request['orderId'] = id; // spot market id is mandatory
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOrder(this.extend(request, paramsOmitted));
@@ -2305,7 +2307,7 @@ export default class bitrue extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new NotSupported(this.id + ' fetchClosedOrders only support spot markets');
         }
         const request = {
@@ -2369,17 +2371,17 @@ export default class bitrue extends Exchange {
         let response = undefined;
         let data = [];
         const request = {};
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['contractName'] = market['id'];
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivateGetOpenOrders(this.extend(request, params));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivateGetOpenOrders(this.extend(request, params));
             }
             data = this.safeList(response, 'data', []);
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOpenOrders(this.extend(request, params));
             data = response;
@@ -2464,24 +2466,24 @@ export default class bitrue extends Exchange {
             request['orderId'] = id;
         }
         else {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 request['clientOrderId'] = origClientOrderId;
             }
             else {
                 request['origClientOrderId'] = origClientOrderId;
             }
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['contractName'] = market['id'];
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivatePostCancel(this.extend(request, paramsOmitted));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivatePostCancel(this.extend(request, paramsOmitted));
             }
             data = this.safeDict(response, 'data', {});
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateDeleteOrder(this.extend(request, paramsOmitted));
             data = response;
@@ -2529,14 +2531,14 @@ export default class bitrue extends Exchange {
         const market = this.market(symbol);
         let response = undefined;
         let data = [];
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             const request = {
                 'contractName': market['id'],
             };
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivatePostAllOpenOrders(this.extend(request, params));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivatePostAllOpenOrders(this.extend(request, params));
             }
             data = this.safeList(response, 'data', []);
@@ -2581,21 +2583,22 @@ export default class bitrue extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const limitResolved = (limit === undefined) ? undefined : Math.min(limit, 1000);
-        if (limitResolved !== undefined) {
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = (limit > 1000) ? 1000 : limit;
             request['limit'] = limitResolved;
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             request['contractName'] = market['id'];
-            if (market['linear'] === true) {
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiV2PrivateGetMyTrades(this.extend(request, params));
             }
-            else if (market['inverse'] === true) {
+            else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV2PrivateGetMyTrades(this.extend(request, params));
             }
             data = this.safeList(response, 'data', []);
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             request['symbol'] = market['id'];
             response = await this.spotV2PrivateGetMyTrades(this.extend(request, params));
             data = response;
@@ -2897,7 +2900,7 @@ export default class bitrue extends Exchange {
             currencyId = this.safeString(parts, 0);
             const networkId = this.safeString(parts, 1);
             if (networkId !== undefined) {
-                network = networkId.toUpperCase();
+                network = this.networkIdToCode(networkId.toUpperCase());
             }
         }
         const code = this.safeCurrencyCode(currencyId, currency);
@@ -2937,13 +2940,13 @@ export default class bitrue extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2994,6 +2997,7 @@ export default class bitrue extends Exchange {
         //
         const chainDetails = this.safeList(fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
+        const networks = {};
         const result = {
             'info': fee,
             'withdraw': {
@@ -3004,7 +3008,6 @@ export default class bitrue extends Exchange {
                 'fee': undefined,
                 'percentage': undefined,
             },
-            'networks': {},
         };
         if (chainDetailLength !== 0) {
             for (let i = 0; i < chainDetailLength; i++) {
@@ -3013,17 +3016,17 @@ export default class bitrue extends Exchange {
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': { 'fee': undefined, 'percentage': undefined },
                         'withdraw': { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false },
                     };
                 }
                 if (chainDetailLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber(chainDetail, 'withdrawFee');
-                    result['withdraw']['percentage'] = false;
+                    result['withdraw'] = { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false };
                 }
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -3110,8 +3113,9 @@ export default class bitrue extends Exchange {
         if (since !== undefined) {
             request['beginTime'] = since;
         }
-        const limitResolved = (limit === undefined) ? undefined : Math.min(limit, 200);
-        if (limitResolved !== undefined) {
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = (limit > 200) ? 200 : limit;
             request['limit'] = limitResolved;
         }
         const until = this.safeInteger(params, 'until');
@@ -3200,13 +3204,13 @@ export default class bitrue extends Exchange {
             'contractName': market['id'],
             'leverage': leverage,
         };
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' setLeverage only support swap markets');
         }
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiV2PrivatePostLevelEdit(this.extend(request, params));
         }
-        else if (market['inverse'] === true) {
+        else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiV2PrivatePostLevelEdit(this.extend(request, params));
         }
         return response;
@@ -3250,7 +3254,7 @@ export default class bitrue extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' setMargin only support swap markets');
         }
         let response = undefined;
@@ -3258,10 +3262,10 @@ export default class bitrue extends Exchange {
             'contractName': market['id'],
             'amount': this.parseToNumeric(amount),
         };
-        if (market['linear'] === true) {
+        if (this.safeBool(market, 'linear', false)) {
             response = await this.fapiV2PrivatePostPositionMargin(this.extend(request, params));
         }
-        else if (market['inverse'] === true) {
+        else if (this.safeBool(market, 'inverse', false)) {
             response = await this.dapiV2PrivatePostPositionMargin(this.extend(request, params));
         }
         //
@@ -3273,21 +3277,21 @@ export default class bitrue extends Exchange {
         //
         return this.parseMarginModification(response, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
-        const type = this.safeString(api, 0);
-        const version = this.safeString(api, 1);
-        const access = this.safeString(api, 2);
+        const type = api[0];
+        const version = api[1];
+        const access = api[2];
         const apiUrl = this.safeString(this.urls['api'], type);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
+        const endpointPath = this.implodeParams(path, params);
+        let url = apiUrl + '/' + endpointPath;
         if (!((type === 'api' && version === 'kline') || (type === 'open' && path.indexOf('listenKey') >= 0))) {
-            url += '/' + version;
+            url = apiUrl + '/' + version + '/' + endpointPath;
         }
-        url += '/' + this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
         if (access === 'private') {
             this.checkRequiredCredentials();
@@ -3299,32 +3303,32 @@ export default class bitrue extends Exchange {
                 }, paramsOmitted));
                 const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
                 query += '&' + 'signature=' + signature;
-                requestHeaders = {
-                    'X-MBX-APIKEY': this.apiKey,
-                };
                 if ((method === 'GET') || (method === 'DELETE')) {
                     url += '?' + query;
+                    requestHeaders = {
+                        'X-MBX-APIKEY': this.apiKey,
+                    };
                 }
                 else {
                     requestBody = query;
-                    requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
+                    requestHeaders = {
+                        'X-MBX-APIKEY': this.apiKey,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
                 }
             }
             else {
                 const timestamp = this.nonce().toString();
-                let signPath = undefined;
+                let signPrefix = '';
                 if (type === 'fapi') {
-                    signPath = '/fapi';
+                    signPrefix = '/fapi';
                 }
                 else if (type === 'dapi') {
-                    signPath = '/dapi';
+                    signPrefix = '/dapi';
                 }
-                signPath = signPath + '/' + version + '/' + path;
-                let signMessage = timestamp + method + signPath;
+                let signMessage = timestamp + method + (signPrefix + '/' + version + '/' + path);
                 if (method === 'GET') {
-                    const keys = Object.keys(paramsOmitted);
-                    const keysLength = keys.length;
-                    if (keysLength > 0) {
+                    if (Object.keys(paramsOmitted).length > 0) {
                         signMessage += '?' + this.urlencode(paramsOmitted);
                     }
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
@@ -3356,18 +3360,19 @@ export default class bitrue extends Exchange {
                 url += '?' + this.urlencode(paramsOmitted);
             }
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
-            throw new DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + ' ' + body);
+            throw new DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + (' ' + body));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (code >= 400) {
+        const statusCode = this.parseToInt(code);
+        if (statusCode >= 400) {
             if (body.indexOf('Price * QTY is zero or less') >= 0) {
                 throw new InvalidOrder(this.id + ' order cost = amount * price is zero or less ' + body);
             }
@@ -3385,16 +3390,10 @@ export default class bitrue extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
         let parsedMessage = undefined;
-        if (success !== true) {
+        if (!success) {
             const messageInner = this.safeString(response, 'msg');
             if (messageInner !== undefined) {
-                try {
-                    parsedMessage = JSON.parse(messageInner);
-                }
-                catch (e) {
-                    // do nothing
-                    parsedMessage = undefined;
-                }
+                parsedMessage = this.parseJson(messageInner);
             }
         }
         const errorResponse = (parsedMessage !== undefined) ? parsedMessage : response;
@@ -3421,7 +3420,7 @@ export default class bitrue extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             throw new ExchangeError(feedback);
         }
-        if (success !== true) {
+        if (!success) {
             throw new ExchangeError(this.id + ' ' + body);
         }
         return undefined;
@@ -3431,12 +3430,13 @@ export default class bitrue extends Exchange {
             return config['noSymbol'];
         }
         else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger(params, 'limit');
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
-                    return entry[1];
+                const threshold = this.safeInteger(entry, 0);
+                if (limit !== undefined && threshold !== undefined && limit <= threshold) {
+                    return this.safeNumber(entry, 1);
                 }
             }
         }

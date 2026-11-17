@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import kucoin from './kucoin.js';
+import kucoin from './abstract/kucoinfutures.js';
 import { BadRequest } from './base/errors.js';
 import type { Dict, Str, Strings, TransferEntry, Tickers } from './base/types.js';
 
@@ -12,7 +12,7 @@ import type { Dict, Str, Strings, TransferEntry, Tickers } from './base/types.js
  * @augments kucoin
  */
 export default class kucoinfutures extends kucoin {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -28,6 +28,7 @@ export default class kucoinfutures extends kucoin {
                 'swap': true,
                 'future': true,
                 'option': undefined,
+                'editOrder': false,
                 'fetchBidsAsks': true,
                 'transfer': true,
             },

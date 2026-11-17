@@ -44,7 +44,7 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
                 $success = false;
             }
             $now = $exchange->milliseconds();
-            if (($success === true) && ($response !== null)) {
+            if (($success) && ($response !== null)) {
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
                 for ($i = 0; $i < count($response); $i++) {
                     test_ohlcv($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);

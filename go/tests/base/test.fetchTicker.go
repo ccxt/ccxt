@@ -20,8 +20,8 @@ func testFetchTickerBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		panic(r.Err)
 	}
 	var ticker any = nil
-	if r.Value != nil {
-		ticker = r.Value
+	if !ccxt.StructAbsent(r.Value) {
+		ticker = ccxt.StructBox(r.Value, ccxt.TickerToMap)
 	}
 	TestTicker(exchange, skippedProperties, method, ticker, symbol)
 

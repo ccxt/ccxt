@@ -8,34 +8,110 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetOrderBookPair (params?: {}): Promise<Dict>;
-    publicGetTickers (params?: {}): Promise<Dict>;
-    publicGetTickersPair (params?: {}): Promise<Dict>;
-    publicGetTradesPair (params?: {}): Promise<Dict>;
-    publicGetProvisioningCurrencies (params?: {}): Promise<Dict>;
-    publicGetProvisioningTradingPairs (params?: {}): Promise<Dict>;
-    publicGetProvisioningLimitationsAndFees (params?: {}): Promise<Dict>;
-    publicGetTradingHistoryPair (params?: {}): Promise<Dict>;
-    publicGetPriceOtcCurrency (params?: {}): Promise<Dict>;
-    privateGetAccountsBalance (params?: {}): Promise<Dict>;
-    privateGetOrdersHistory (params?: {}): Promise<Dict>;
-    privateGetOrdersAllPair (params?: {}): Promise<Dict>;
-    privateGetOrdersTradesPair (params?: {}): Promise<Dict>;
-    privateGetOrdersPairOrderId (params?: {}): Promise<Dict>;
-    privateGetWalletWithdrawCurrencySerial (params?: {}): Promise<Dict>;
-    privateGetWalletWithdrawCurrencyIdId (params?: {}): Promise<Dict>;
-    privateGetWalletDepositHistoryCurrency (params?: {}): Promise<Dict>;
-    privateGetWalletWithdrawHistoryCurrency (params?: {}): Promise<Dict>;
-    privateGetOrdersOpen (params?: {}): Promise<Dict>;
-    privatePostOrdersPair (params?: {}): Promise<Dict>;
-    privatePostOrdersBatch (params?: {}): Promise<Dict>;
-    privatePostWalletWithdrawCurrency (params?: {}): Promise<Dict>;
-    privatePutOrders (params?: {}): Promise<Dict>;
-    privateDeleteOrdersPairId (params?: {}): Promise<Dict>;
-    privateDeleteOrdersAll (params?: {}): Promise<Dict>;
-    privateDeleteOrdersPair (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetOrderBookPair (params = {}): Promise<Dict> {
+        return this.request ('order-book/{pair}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetTickers (params = {}): Promise<Dict> {
+        return this.request ('tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTickersPair (params = {}): Promise<Dict> {
+        return this.request ('tickers/{pair}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTradesPair (params = {}): Promise<Dict> {
+        return this.request ('trades/{pair}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetProvisioningCurrencies (params = {}): Promise<Dict> {
+        return this.request ('provisioning/currencies', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetProvisioningTradingPairs (params = {}): Promise<Dict> {
+        return this.request ('provisioning/trading-pairs', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetProvisioningLimitationsAndFees (params = {}): Promise<Dict> {
+        return this.request ('provisioning/limitations-and-fees', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTradingHistoryPair (params = {}): Promise<Dict> {
+        return this.request ('trading-history/{pair}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetPriceOtcCurrency (params = {}): Promise<Dict> {
+        return this.request ('price/otc/{currency}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccountsBalance (params = {}): Promise<Dict> {
+        return this.request ('accounts/balance', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ('orders/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersAllPair (params = {}): Promise<Dict> {
+        return this.request ('orders/all/{pair}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersTradesPair (params = {}): Promise<Dict> {
+        return this.request ('orders/trades/{pair}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersPairOrderId (params = {}): Promise<Dict> {
+        return this.request ('orders/{pair}/{orderId}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletWithdrawCurrencySerial (params = {}): Promise<Dict> {
+        return this.request ('wallet/withdraw/{currency}/{serial}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletWithdrawCurrencyIdId (params = {}): Promise<Dict> {
+        return this.request ('wallet/withdraw/{currency}/id/{id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletDepositHistoryCurrency (params = {}): Promise<Dict> {
+        return this.request ('wallet/depositHistory/{currency}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletWithdrawHistoryCurrency (params = {}): Promise<Dict> {
+        return this.request ('wallet/withdrawHistory/{currency}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersOpen (params = {}): Promise<Dict> {
+        return this.request ('orders/open', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostOrdersPair (params = {}): Promise<Dict> {
+        return this.request ('orders/{pair}', [ 'private' ], 'POST', params, { 'cost': 0.5 });
+    }
+
+    privatePostOrdersBatch (params = {}): Promise<Dict> {
+        return this.request ('orders/batch', [ 'private' ], 'POST', params, { 'cost': 6.666666666666667 });
+    }
+
+    privatePostWalletWithdrawCurrency (params = {}): Promise<Dict> {
+        return this.request ('wallet/withdraw/{currency}', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    privatePutOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'PUT', params, { 'cost': 5 });
+    }
+
+    privateDeleteOrdersPairId (params = {}): Promise<Dict> {
+        return this.request ('orders/{pair}/{id}', [ 'private' ], 'DELETE', params, { 'cost': 0.6666666666666666 });
+    }
+
+    privateDeleteOrdersAll (params = {}): Promise<Dict> {
+        return this.request ('orders/all', [ 'private' ], 'DELETE', params, { 'cost': 5 });
+    }
+
+    privateDeleteOrdersPair (params = {}): Promise<Dict> {
+        return this.request ('orders/{pair}', [ 'private' ], 'DELETE', params, { 'cost': 5 });
+    }
+}
+
+export default Exchange;

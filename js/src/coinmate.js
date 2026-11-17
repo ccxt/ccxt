@@ -613,12 +613,12 @@ export default class coinmate extends Exchange {
             'ask': this.safeNumber(ticker, 'ask'),
             'vwap': undefined,
             'askVolume': undefined,
-            'open': undefined,
+            'open': this.safeNumber(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeNumber(ticker, 'change'),
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'amount'),
             'quoteVolume': undefined,
@@ -719,7 +719,7 @@ export default class coinmate extends Exchange {
             'txid': this.safeString(transaction, 'txid'),
             'type': this.safeStringLower(transaction, 'transferType'),
             'currency': code,
-            'network': this.safeString(transaction, 'walletType'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'walletType'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(this.safeString(transaction, 'transferStatus')),
             'timestamp': timestamp,
@@ -753,13 +753,13 @@ export default class coinmate extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -822,7 +822,7 @@ export default class coinmate extends Exchange {
         const data = this.safeDict(response, 'data', {});
         const transaction = this.parseTransaction(data, currency);
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
@@ -1271,7 +1271,8 @@ export default class coinmate extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
         const apiUrl = this.safeString(this.urls['api'], 'rest');
@@ -1279,9 +1280,10 @@ export default class coinmate extends Exchange {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + path;
-        if (api === 'public') {
-            if (Object.keys(params).length > 0) {
-                url += '?' + this.urlencode(params);
+        if (apiName === 'public') {
+            const publicQuery = this.extend({}, params);
+            if (Object.keys(publicQuery).length > 0) {
+                url += '?' + this.urlencode(publicQuery);
             }
         }
         else {
@@ -1300,8 +1302,8 @@ export default class coinmate extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

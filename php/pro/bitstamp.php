@@ -15,7 +15,7 @@ use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheBySymbolById;
 
 class bitstamp extends \ccxt\async\bitstamp {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -75,14 +75,13 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orderbook:' . $symbolValue;
-        $channel = 'diff_order_book_' . $market['id'];
         $url = $this->urls['api']['ws'];
         $request = array(
             'event' => 'bts:subscribe',
             'data' => array(
-                'channel' => $channel,
+                'channel' => 'diff_order_book_' . $this->safe_string($market, 'id', ''),
             ),
         );
         $message = $this->extend($request, $params);
@@ -108,8 +107,8 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $channel = 'diff_order_book_' . $market['id'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $channel = 'diff_order_book_' . $this->safe_string($market, 'id', '');
         $subHash = 'orderbook:' . $symbolValue;
         return Async\await($this->un_watch_channel($channel, $subHash, 'orderbook', array( $symbolValue ), $params));
     }
@@ -185,10 +184,10 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
         $messageHash = 'orderbook:' . $symbol;
         if ($nonce === null) {
-            $cacheLength = count($storedOrderBook->cache);
+            $cacheLength = $this->parse_to_int(strlen($storedOrderBook->cache));
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
-            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 6);
+            $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 6));
             if ($cacheLength === $snapshotDelay) {
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
             }
@@ -208,10 +207,8 @@ class bitstamp extends \ccxt\async\bitstamp {
         $orderbook['nonce'] = $this->safe_integer($delta, 'microtimestamp');
         $bids = $this->safe_list($delta, 'bids', array());
         $asks = $this->safe_list($delta, 'asks', array());
-        $storedBids = $orderbook['bids'];
-        $storedAsks = $orderbook['asks'];
-        $this->handle_bid_asks($storedBids, $bids);
-        $this->handle_bid_asks($storedAsks, $asks);
+        $this->handle_bid_asks($orderbook['bids'], $bids);
+        $this->handle_bid_asks($orderbook['asks'], $asks);
     }
 
     public function handle_bid_asks(mixed $bookSide, array $bidAsks) {
@@ -221,7 +218,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
     }
 
-    public function get_cache_index(mixed $orderbook, mixed $deltas): float {
+    public function get_cache_index(?array $orderbook, array $deltas): float {
         // we will consider it a fail
         $firstElement = $this->safe_dict($deltas, 0);
         $firstElementNonce = $this->safe_integer($firstElement, 'microtimestamp');
@@ -259,14 +256,13 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trades:' . $symbolValue;
         $url = $this->urls['api']['ws'];
-        $channel = 'live_trades_' . $market['id'];
         $request = array(
             'event' => 'bts:subscribe',
             'data' => array(
-                'channel' => $channel,
+                'channel' => 'live_trades_' . $this->safe_string($market, 'id', ''),
             ),
         );
         $message = $this->extend($request, $params);
@@ -296,8 +292,8 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $channel = 'live_trades_' . $market['id'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $channel = 'live_trades_' . $this->safe_string($market, 'id', '');
         $subHash = 'trades:' . $symbolValue;
         return Async\await($this->un_watch_channel($channel, $subHash, 'trades', array( $symbolValue ), $params));
     }
@@ -323,7 +319,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
         $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $sideRaw = $this->safe_integer($trade, 'type');
         $side = 'sell';
         if ($sideRaw === 0) {
@@ -374,7 +370,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 2);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trades:' . $symbol;
         $data = $this->safe_dict($message, 'data');
         $trade = $this->parse_ws_trade($data, $market);
@@ -406,14 +402,13 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'fundingRate:' . $symbolValue;
         $url = $this->urls['api']['ws'];
-        $channel = 'funding_rate_' . $market['id'];
         $request = array(
             'event' => 'bts:subscribe',
             'data' => array(
-                'channel' => $channel,
+                'channel' => 'funding_rate_' . $this->safe_string($market, 'id', ''),
             ),
         );
         $message = $this->extend($request, $params);
@@ -442,7 +437,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 2);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $data = $this->safe_dict($message, 'data', array());
         $fundingRate = $this->parse_funding_rate($data, $market);
         $this->fundingRates[$symbol] = $fundingRate;
@@ -469,16 +464,15 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $channel = 'private-my_orders';
-        $messageHash = $channel . '_' . $market['id'];
         $subscription = array(
             'symbol' => $symbolValue,
             'limit' => $limit,
             'type' => $channel,
             'params' => $params,
         );
-        $orders = Async\await($this->subscribe_private($subscription, $messageHash, $params));
+        $orders = Async\await($this->subscribe_private($subscription, $channel . '_' . $this->safe_string($market, 'id', ''), $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $orders->getLimit($symbolValue, $limit);
@@ -507,13 +501,13 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         Async\await($this->authenticate());
         $userId = $this->safe_string($this->options, 'userId');
         if ($userId === null) {
             throw new AuthenticationError($this->id . ' unWatchOrders() requires a userId from authenticate()');
         }
-        $channel = 'private-my_orders_' . $market['id'] . '-' . $userId;
+        $channel = 'private-my_orders_' . $this->safe_string($market, 'id', '') . '-' . $userId;
         return Async\await($this->un_watch_channel($channel, $channel, 'orders', array( $symbolValue ), $params));
     }
 
@@ -540,9 +534,9 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $channel = 'private-my_trades';
-        $messageHash = $channel . '_' . $market['id'];
+        $messageHash = $channel . '_' . $this->safe_string($market, 'id', '');
         $subscription = array(
             'symbol' => $symbolValue,
             'limit' => $limit,
@@ -578,13 +572,13 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         Async\await($this->authenticate());
         $userId = $this->safe_string($this->options, 'userId');
         if ($userId === null) {
             throw new AuthenticationError($this->id . ' unWatchMyTrades() requires a userId from authenticate()');
         }
-        $channel = 'private-my_trades_' . $market['id'] . '-' . $userId;
+        $channel = 'private-my_trades_' . $this->safe_string($market, 'id', '') . '-' . $userId;
         return Async\await($this->un_watch_channel($channel, $channel, 'myTrades', array( $symbolValue ), $params));
     }
 
@@ -647,7 +641,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $microtimestamp = $this->safe_integer($trade, 'microtimestamp', 0);
         $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $feeCost = $this->safe_string($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
@@ -790,7 +784,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $triggerPrice = $this->safe_string($order, 'stop_price');
         $timestamp = $this->safe_timestamp($order, 'datetime');
         $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -825,7 +819,12 @@ class bitstamp extends \ccxt\async\bitstamp {
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 3);
         $symbol = $this->safe_symbol($marketId);
-        $this->orderbooks[$symbol] = $this->order_book();
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
+        }
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook['nonce'] = null;
+        $orderbook->cache = array();
     }
 
     public function handle_subscription_status(Client $client, array $message) {
@@ -888,7 +887,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $this->clean_unsubscription($client, $subHash, $unsubHash);
     }
 
-    public function prune_cached_by_symbols(mixed $newCache, mixed $cache, array $symbols) {
+    public function prune_cached_by_symbols(ArrayCacheBySymbolById $newCache, ArrayCache $cache, array $symbols): ArrayCache {
         /**
          * @ignore
          * refills a fresh ArrayCacheBySymbolById with the $entries of the old $cache except the given $symbols, so unsubscribing one market keeps the cached $entries of the others
@@ -977,7 +976,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         if ($event === 'bts:error') {
             $feedback = $this->id . ' ' . $this->json($message);
             $data = $this->safe_dict($message, 'data', array());
-            $code = $this->safe_number($data, 'code');
+            $code = $this->safe_string($data, 'code');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
         }
         return true;
@@ -1109,7 +1108,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             'event' => 'bts:subscribe',
             'data' => array(
                 'channel' => $messageHashValue,
-                'auth' => $this->options['wsSessionToken'],
+                'auth' => $this->safe_string($this->options, 'wsSessionToken'),
             ),
         );
         $subscription['messageHash'] = $messageHashValue;

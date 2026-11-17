@@ -17,11 +17,6 @@ impl CryptomusCore {
         self.call_method(Value::Str("public_get_v2_user_api_exchange_markets".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicGetV2UserApiExchangeMarketPrice` implicit endpoint.
-    pub async fn public_get_v2_user_api_exchange_market_price(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v2_user_api_exchange_market_price".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `publicGetV2UserApiExchangeMarketsPrice` implicit endpoint.
     pub async fn public_get_v2_user_api_exchange_markets_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v2_user_api_exchange_markets_price".into()), optional_args).await
@@ -35,11 +30,6 @@ impl CryptomusCore {
     /// Auto-generated wrapper for the `publicGetV1ExchangeMarketOrderBookCurrencyPair` implicit endpoint.
     pub async fn public_get_v1_exchange_market_order_book_currency_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v1_exchange_market_order_book_currency_pair".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicGetV1ExchangeMarketTickers` implicit endpoint.
-    pub async fn public_get_v1_exchange_market_tickers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_v1_exchange_market_tickers".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetV1ExchangeMarketTradesCurrencyPair` implicit endpoint.

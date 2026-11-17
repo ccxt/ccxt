@@ -15,7 +15,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class zaif extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'zaif',
             'name' => 'Zaif',
@@ -277,7 +277,9 @@ class zaif extends Exchange {
         if ($name === null) {
             throw new ExchangeError($this->id . ' parseMarket() missing name');
         }
-        list($baseId, $quoteId) = explode('/', $name);
+        $nameParts = explode('/', $name);
+        $baseId = $this->safe_string($nameParts, 0);
+        $quoteId = $this->safe_string($nameParts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         if (($base === null) || ($quote === null)) {
@@ -335,7 +337,7 @@ class zaif extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $balances = $this->safe_dict($response, 'return', array());
         $deposit = $this->safe_dict($balances, 'deposit');
         $result = array(
@@ -607,7 +609,7 @@ class zaif extends Exchange {
         $data = $this->safe_dict($response, 'return', array());
         return $this->safe_order(array(
             'info' => $response,
-            'id' => (string) $data['order_id'],
+            'id' => $this->number_to_string($data['order_id']),
         ), $market);
     }
 
@@ -782,11 +784,11 @@ class zaif extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
@@ -795,12 +797,12 @@ class zaif extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -886,28 +888,28 @@ class zaif extends Exchange {
         );
     }
 
-    public function custom_nonce() {
-        $num = $this->number_to_string($this->milliseconds() / 1000);
-        $nonce = floatval($num);
+    public function custom_nonce(): string {
+        $nonce = $this->milliseconds() / 1000;
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/';
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
-        } elseif ($api === 'fapi') {
+        } elseif ($apiName === 'fapi') {
             $url .= 'fapi/' . $this->version . '/' . $this->implode_params($path, $params);
         } else {
             $this->check_required_credentials();
-            if ($api === 'ecapi') {
+            if ($apiName === 'ecapi') {
                 $url .= 'ecapi';
-            } elseif ($api === 'tlapi') {
+            } elseif ($apiName === 'tlapi') {
                 $url .= 'tlapi';
             } else {
                 $url .= 'tapi';
@@ -924,10 +926,10 @@ class zaif extends Exchange {
             );
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyEncoded, 'headers' => $headersSigned );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -942,7 +944,7 @@ class zaif extends Exchange {
             throw new ExchangeError($feedback); // unknown message
         }
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             throw new ExchangeError($feedback);
         }
         return null;

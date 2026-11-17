@@ -19,7 +19,10 @@ func testFetchLedgerEntryBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	items := r.Value
+	var items any = nil
+	if r.Value != nil {
+		items = ccxt.LedgerEntriesToList(r.Value)
+	}
 	var length int = GetArrayLength(items)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
 	if length > 0 {
@@ -32,8 +35,8 @@ func testFetchLedgerEntryBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 				panic(r1.Err)
 			}
 			var item any = nil
-			if r1.Value != nil {
-				item = r1.Value
+			if !ccxt.StructAbsent(r1.Value) {
+				item = ccxt.StructBox(r1.Value, ccxt.LedgerEntryToMap)
 			}
 			var now int64 = exchange.Milliseconds()
 			TestLedgerEntry(exchange, skippedProperties, method, item, code, now)

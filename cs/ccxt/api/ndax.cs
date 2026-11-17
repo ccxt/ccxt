@@ -320,10 +320,10 @@ public partial class ndax : Exchange
     }
 
     /// <summary>Calls the privateGetGetAccountPositions endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privateGetGetAccountPositions (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetGetAccountPositions (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privateGetGetAccountPositions",parameters);
+        return await this.callAsync<List<object>> ("privateGetGetAccountPositions",parameters);
     }
 
     /// <summary>Calls the privateGetGetAllAccountConfigs endpoint.</summary>

@@ -17,7 +17,7 @@ import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, O
  * @augments Exchange
  */
 export default class btcturk extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'btcturk',
             'name': 'BTCTurk',
@@ -393,7 +393,7 @@ export default class btcturk extends Exchange {
         });
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const data: Dict[] = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
@@ -735,26 +735,35 @@ export default class btcturk extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
         const until = this.safeInteger (params, 'until', this.milliseconds ());
-        request['to'] = this.parseToInt ((until / 1000));
+        const untilSeconds = this.parseToInt ((until / 1000));
+        request['to'] = untilSeconds;
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
         }
-        let limitDefaulted = limit;
-        if ((since === undefined) && (limit === undefined)) {
-            limitDefaulted = 100; // default value
+        let limitResolved: Int = undefined;
+        if (limit !== undefined) {
+            limitResolved = limit;
+            if (limit > 11000) {
+                limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
+        } else if (since === undefined) {
+            limitResolved = 100; // default value
         }
-        const limitResolved = (limitDefaulted !== undefined) ? Math.min (limitDefaulted, 11000) : undefined; // max 11000 candles diapason can be covered
-        if (limitResolved !== undefined) {
+        if ((limit !== undefined) || (since === undefined)) {
             if (timeframe === '1y') { // difficult with leap years
                 throw new BadRequest (this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe (timeframe);
-            const limitSeconds = seconds * (limitResolved - 1);
+            const limitCount: Int = (limit === undefined) ? 100 : Math.min (limit, 11000);
+            const limitSeconds: int = this.parseToInt (seconds * (limitCount - 1));
             if (since !== undefined) {
-                const to = this.parseToInt (since / 1000) + limitSeconds;
-                request['to'] = Math.min (request['to'], to);
+                const sinceSeconds: int = this.parseToInt (since / 1000);
+                const to: int = sinceSeconds + limitSeconds;
+                if (to < untilSeconds) {
+                    request['to'] = to;
+                }
             } else {
-                request['from'] = this.parseToInt (0 / 1000) - limitSeconds;
+                request['from'] = 0 - limitSeconds;
             }
         }
         const response = await this.graphGetKlinesHistory (this.extend (request, params));
@@ -962,7 +971,7 @@ export default class btcturk extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'Untouched': 'open',
             'Partial': 'open',
@@ -1088,33 +1097,35 @@ export default class btcturk extends Exchange {
         return this.parseTrades (dataList, market, since, limit);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + path;
         const isQueryMethod = (method === 'GET') || (method === 'DELETE');
         if (isQueryMethod) {
-            if (Object.keys (params).length > 0) {
-                url += '?' + this.urlencode (params);
+            const query = this.urlencode (params);
+            if (query.length > 0) {
+                url += '?' + query;
             }
         }
-        let requestBody = undefined;
+        let requestBody: Str = undefined;
         if (isQueryMethod) {
-            requestBody = body;
+            requestBody = undefined;
         } else {
             requestBody = this.json (params);
         }
         let privateHeaders: NullableDict = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const secret = this.base64ToBinary (this.secret);
@@ -1126,20 +1137,19 @@ export default class btcturk extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         const errorCode = this.safeString (response, 'code', '0');
         const message = this.safeString (response, 'message');
-        let output: Str = message;
-        if (message === undefined) {
-            output = body;
+        let feedback = this.id + ' ' + body;
+        if (message !== undefined) {
+            feedback = this.id + ' ' + message;
         }
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + output);
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
-            throw new ExchangeError (this.id + ' ' + output);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }

@@ -42,6 +42,9 @@ export function registerFundsTools (server: McpServer, ctx: ServerContext): void
             if (args.network !== undefined) {
                 requestParams['network'] = args.network;
             }
+            if (args.tag !== undefined) {
+                requestParams['tag'] = args.tag;
+            }
             const payload = { 'tool': 'withdraw', 'account': account.name, 'code': args.code, 'amount': args.amount, 'address': args.address, 'tag': args.tag ?? null, 'network': args.network ?? null, 'params': requestParams };
             const preview = {
                 'currency': args.code,
@@ -66,7 +69,7 @@ export function registerFundsTools (server: McpServer, ctx: ServerContext): void
                 'method': 'withdraw',
                 'params': payload,
                 'computed': { 'orderValue': valuation.value },
-            }, () => exchange.withdraw (args.code, args.amount, args.address, args.tag, requestParams));
+            }, () => exchange.withdraw (args.code, args.amount, args.address, requestParams));
             if (dispatch.error !== undefined) {
                 return dispatch.error;
             }

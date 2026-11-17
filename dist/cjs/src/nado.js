@@ -91,11 +91,29 @@ class nado extends nado$1["default"] {
                     'public': {
                         'get': {
                             'symbols': { 'cost': 2 },
-                            'query': { 'cost': 1 },
+                            'query': {
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2,
+                                },
+                            },
                             'edge/query': { 'cost': 1 },
                         },
                         'post': {
-                            'query': { 'cost': 1 },
+                            'query': {
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2,
+                                },
+                            },
                             'edge/query': { 'cost': 1 },
                         },
                     },
@@ -109,23 +127,33 @@ class nado extends nado$1["default"] {
                     'public': {
                         'get': {
                             'assets': { 'cost': 2 },
-                            'pairs': { 'cost': 1 },
+                            'pairs': { 'cost': 2 },
                             'orderbook': { 'cost': 1 },
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': { 'cost': 1 },
+                        '': {
+                            'cost': 2,
+                            // [ base weight, rows per extra weight unit ]
+                            'byQuery': {
+                                'candlesticks': [2, 100],
+                                'events': [2, 10],
+                                'matches': [2, 10],
+                                'orders': [2, 20],
+                                'interest_and_funding': [5],
+                            },
+                        },
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': { 'cost': 1 },
-                            'contracts': { 'cost': 1 },
-                            'trades': { 'cost': 1 },
-                            'symbols': { 'cost': 1 },
+                            'tickers': { 'cost': 2 },
+                            'contracts': { 'cost': 2 },
+                            'trades': { 'cost': 4, 'byRows': [2, 50] },
+                            'symbols': { 'cost': 2 },
                         },
                     },
                 },
@@ -175,7 +203,93 @@ class nado extends nado$1["default"] {
                 '1w': 604800,
                 '4w': 2419200,
             },
-            'features': {},
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        // the trigger service documents spot product ids, but a spot
+                        // trigger order has not been confirmed against the venue yet
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '1000': errors.RateLimitExceeded,
@@ -441,8 +555,7 @@ class nado extends nado$1["default"] {
         const isTriggerOrder = isStopOrder || isStopLossOrder || isTakeProfitOrder;
         if (isStopOrder) {
             // the final omit drops triggerDirection from the request
-            const triggerDirectionAndParams = this.handleTriggerDirectionAndParams(paramsRecvWindow);
-            const triggerDirection = triggerDirectionAndParams[0];
+            const triggerDirection = this.safeString(this.handleTriggerDirectionAndParams(paramsRecvWindow), 0);
             let directionSuffix = 'below';
             if (triggerDirection === 'ascending') {
                 directionSuffix = 'above';
@@ -481,8 +594,9 @@ class nado extends nado$1["default"] {
             };
             placeOrder['trigger'] = trigger;
         }
-        let appendix = this.safeString(paramsRecvWindow, 'appendix');
-        if (appendix === undefined) {
+        const rawAppendix = this.safeString(paramsRecvWindow, 'appendix');
+        let appendix = rawAppendix;
+        if (rawAppendix === undefined) {
             appendix = this.createOrderAppendix(isTriggerOrder, paramsRecvWindow);
         }
         order['appendix'] = appendix;
@@ -584,8 +698,9 @@ class nado extends nado$1["default"] {
         const [recvWindow, paramsRecvWindow] = this.handleOptionIntegerAndParams(paramsExpiration, 'editOrder', 'recvWindow', 5000);
         const cancelNonce = this.createOrderNonce(recvWindow);
         const orderNonce = Precise["default"].stringAdd(cancelNonce, '1');
-        let appendix = this.safeString(paramsRecvWindow, 'appendix');
-        if (appendix === undefined) {
+        const rawAppendix = this.safeString(paramsRecvWindow, 'appendix');
+        let appendix = rawAppendix;
+        if (rawAppendix === undefined) {
             appendix = this.createOrderAppendix(false, paramsRecvWindow);
         }
         const requestId = this.safeInteger(paramsRecvWindow, 'id');
@@ -959,7 +1074,7 @@ class nado extends nado$1["default"] {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            productIds.push(this.parseToInt(market['id']));
+            productIds.push(this.parseToInt(this.safeString(market, 'id')));
         }
         const [subaccount, paramsSubaccount] = this.handleOptionStringAndParams(params, 'fetchOrders', 'subaccount', 'default');
         const sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -971,7 +1086,7 @@ class nado extends nado$1["default"] {
         const [recvWindow, paramsRecvWindow] = this.handleOptionIntegerAndParams(paramsOmitted, 'fetchOrders', 'recvWindow', 5000);
         const tx = {
             'sender': sender,
-            'recvTime': this.numberToString(this.milliseconds() + recvWindow),
+            'recvTime': this.numberToString(this.sum(this.milliseconds(), recvWindow)),
         };
         const request = {
             'tx': tx,
@@ -1130,12 +1245,12 @@ class nado extends nado$1["default"] {
             ],
         };
         if (market !== undefined) {
-            ordersRequest['product_ids'] = [this.parseToInt(market['id'])];
+            ordersRequest['product_ids'] = [this.parseToInt(this.safeString(market, 'id'))];
+        }
+        if (limit !== undefined) {
+            ordersRequest['limit'] = Math.min(limit, 500);
         }
         const [ordersRequestUntil, paramsUntil] = this.handleUntilOption('max_time', ordersRequest, paramsSubaccount, 0.001);
-        if (limit !== undefined) {
-            ordersRequestUntil['limit'] = Math.min(limit, 500);
-        }
         const request = {
             'orders': ordersRequestUntil,
         };
@@ -1236,12 +1351,12 @@ class nado extends nado$1["default"] {
             ],
         };
         if (market !== undefined) {
-            matchesRequest['product_ids'] = [this.parseToInt(market['id'])];
+            matchesRequest['product_ids'] = [this.parseToInt(this.safeString(market, 'id'))];
+        }
+        if (limit !== undefined) {
+            matchesRequest['limit'] = Math.min(limit, 500);
         }
         const [matchesRequestUntil, paramsUntil] = this.handleUntilOption('max_time', matchesRequest, paramsSubaccount, 0.001);
-        if (limit !== undefined) {
-            matchesRequestUntil['limit'] = Math.min(limit, 500);
-        }
         const request = {
             'matches': matchesRequestUntil,
         };
@@ -1370,6 +1485,12 @@ class nado extends nado$1["default"] {
             currency = this.currency(code);
         }
         const [subaccount, paramsSubaccount] = this.handleOptionStringAndParams(params, methodName, 'subaccount', 'default');
+        const limitRequest = {
+            'raw': 100,
+        };
+        if (limit !== undefined) {
+            limitRequest['raw'] = Math.min(limit, 500);
+        }
         const eventsRequest = {
             'subaccounts': [
                 this.createSubaccount(this.walletAddress, subaccount),
@@ -1377,9 +1498,7 @@ class nado extends nado$1["default"] {
             'event_types': [
                 eventType,
             ],
-            'limit': {
-                'raw': (limit === undefined) ? 100 : Math.min(limit, 500),
-            },
+            'limit': limitRequest,
         };
         if (currency !== undefined) {
             eventsRequest['product_ids'] = [
@@ -1624,7 +1743,7 @@ class nado extends nado$1["default"] {
                 const previousWithdraw = this.safeBool(previous, 'can_withdraw', false);
                 const currentDeposit = this.safeBool(rawAsset, 'can_deposit', false);
                 const currentWithdraw = this.safeBool(rawAsset, 'can_withdraw', false);
-                if ((previousDeposit !== true) && (previousWithdraw !== true) && ((currentDeposit === true) || (currentWithdraw === true))) {
+                if ((!previousDeposit) && (!previousWithdraw) && ((currentDeposit) || (currentWithdraw))) {
                     assetsByCode[assetCode] = rawAsset;
                 }
             }
@@ -1660,7 +1779,7 @@ class nado extends nado$1["default"] {
             const settle = contract ? quote : undefined;
             let symbol = base + '/' + quote;
             if (contract) {
-                symbol += ':' + settle;
+                symbol = base + '/' + quote + ':' + quote;
             }
             const tradingStatus = this.safeString(market, 'trading_status');
             const active = (tradingStatus !== 'not_tradable');
@@ -1740,7 +1859,7 @@ class nado extends nado$1["default"] {
         const result = {};
         const assets = this.toArray(response);
         for (let i = 0; i < assets.length; i++) {
-            const currency = assets[i];
+            const currency = this.safeValue(assets, i);
             const parsed = this.parseCurrency(currency);
             const code = this.safeString(parsed, 'code');
             if (code === undefined) {
@@ -1755,7 +1874,7 @@ class nado extends nado$1["default"] {
             else {
                 const previousDeposit = this.safeBool(previous, 'deposit', false);
                 const previousWithdraw = this.safeBool(previous, 'withdraw', false);
-                if ((previousDeposit !== true) && (previousWithdraw !== true) && ((canDeposit === true) || (canWithdraw === true))) {
+                if ((!previousDeposit) && (!previousWithdraw) && ((canDeposit) || (canWithdraw))) {
                     result[code] = parsed;
                 }
             }
@@ -1804,7 +1923,7 @@ class nado extends nado$1["default"] {
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const tickers = await this.fetchTickers([symbolValue], params);
         const ticker = this.safeDict(tickers, symbolValue);
         if (ticker === undefined) {
@@ -1825,7 +1944,7 @@ class nado extends nado$1["default"] {
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const tickerId = this.safeString(market['info'], 'ticker_id');
@@ -1877,18 +1996,22 @@ class nado extends nado$1["default"] {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const [subaccount, paramsSubaccount] = this.handleOptionStringAndParams(params, 'fetchFundingHistory', 'subaccount', 'default');
+        const fundingRequest = {
+            'subaccount': this.createSubaccount(this.walletAddress, subaccount),
+            'product_ids': [
+                this.parseToInt(market['id']),
+            ],
+            'limit': 100,
+        };
+        if (limit !== undefined) {
+            fundingRequest['limit'] = Math.min(limit, 100);
+        }
         const request = {
-            'interest_and_funding': {
-                'subaccount': this.createSubaccount(this.walletAddress, subaccount),
-                'product_ids': [
-                    this.parseToInt(market['id']),
-                ],
-                'limit': (limit === undefined) ? 100 : Math.min(limit, 100),
-            },
+            'interest_and_funding': fundingRequest,
         };
         const response = await this.archivePost(this.deepExtend(request, paramsSubaccount));
         //
@@ -1974,7 +2097,7 @@ class nado extends nado$1["default"] {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.BadSymbol(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const tickerId = this.safeString(market['info'], 'ticker_id');
@@ -2144,18 +2267,19 @@ class nado extends nado$1["default"] {
         const market = this.market(symbol);
         const until = this.safeInteger(params, 'until');
         const paramsOmitted = this.omit(params, 'until');
-        const request = {
-            'candlesticks': {
-                'product_id': this.parseToInt(market['id']),
-                'granularity': this.safeInteger(this.timeframes, timeframe, this.parseTimeframe(timeframe)),
-            },
+        const candlesticks = {
+            'product_id': this.parseToInt(market['id']),
+            'granularity': this.safeInteger(this.timeframes, timeframe, this.parseTimeframe(timeframe)),
         };
         if (limit !== undefined) {
-            request['candlesticks']['limit'] = Math.min(limit, 500);
+            candlesticks['limit'] = Math.min(limit, 500);
         }
         if (until !== undefined) {
-            request['candlesticks']['max_time'] = this.parseToInt(until / 1000);
+            candlesticks['max_time'] = this.parseToInt(until / 1000);
         }
+        const request = {
+            'candlesticks': candlesticks,
+        };
         const response = await this.archivePost(this.deepExtend(request, paramsOmitted));
         //
         //     {
@@ -2248,10 +2372,13 @@ class nado extends nado$1["default"] {
                 side = 'buy';
             }
         }
-        let price = this.safeString(trade, 'price');
-        if (price === undefined) {
-            const parsedPrice = this.parseX18(this.safeString(order, 'priceX18'));
-            price = (parsedPrice === undefined) ? undefined : this.numberToString(parsedPrice);
+        const tradePrice = this.safeString(trade, 'price');
+        let price = tradePrice;
+        if (tradePrice === undefined) {
+            const orderPriceX18 = this.safeString(order, 'priceX18');
+            if (orderPriceX18 !== undefined) {
+                price = this.numberToString(this.parseX18(orderPriceX18));
+            }
         }
         let takerOrMaker = undefined;
         const isTaker = this.safeBool(trade, 'is_taker');
@@ -2833,8 +2960,9 @@ class nado extends nado$1["default"] {
                 }
             }
             else {
-                status = this.safeString(order, 'status', 'rejected');
-                if ((status === 'success') || (status.indexOf('waiting') >= 0)) {
+                const rawStatus = this.safeString(order, 'status', 'rejected');
+                status = rawStatus;
+                if ((rawStatus === 'success') || (rawStatus.indexOf('waiting') >= 0)) {
                     status = 'open';
                 }
             }
@@ -2920,17 +3048,17 @@ class nado extends nado$1["default"] {
         if (orderType !== 0) {
             appendix = Precise["default"].stringAdd(appendix, Precise["default"].stringMul(this.numberToString(orderType), '512'));
         }
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             appendix = Precise["default"].stringAdd(appendix, '2048');
         }
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (buildFee === true) {
+        if (buildFee) {
             const builder = this.safeString(this.options, 'builder', '4500');
             const builderFeeRate = this.safeString(this.options, 'feeRate', '10'); // 10 units = 0.01%
             appendix = Precise["default"].stringAdd(appendix, Precise["default"].stringMul(builder, '281474976710656')); // 1<<48
             appendix = Precise["default"].stringAdd(appendix, Precise["default"].stringMul(builderFeeRate, '274877906944')); // 1<<32
         }
-        if (isTriggerOrder === true) {
+        if (isTriggerOrder) {
             appendix = Precise["default"].stringAdd(appendix, '4096');
         }
         return appendix;
@@ -2951,38 +3079,28 @@ class nado extends nado$1["default"] {
         return '0x' + address + this.padHex(encoded, 24, false);
     }
     async queryContracts(params = {}) {
-        const cachedContracts = this.safeDict(this.options, 'gatewayContracts');
-        if (cachedContracts !== undefined) {
-            return cachedContracts;
+        const gatewayContracts = this.safeDict(this.options, 'gatewayContracts');
+        if (gatewayContracts === undefined) {
+            const request = {
+                'type': 'contracts',
+            };
+            const response = await this.gatewayPublicGetQuery(this.extend(request, params));
+            this.options['gatewayContracts'] = this.safeDict(response, 'data', {});
         }
-        const request = {
-            'type': 'contracts',
-        };
-        const response = await this.gatewayPublicGetQuery(this.extend(request, params));
-        const data = this.safeDict(response, 'data', {});
-        this.options['gatewayContracts'] = data;
-        return data;
+        return this.safeDict(this.options, 'gatewayContracts', {});
     }
     orderVerifyingContract(productId) {
         return '0x' + this.padHex(this.intToBase16(productId), 40);
     }
     padHex(value, length, left = true) {
-        if (length === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' padHex() requires length');
-        }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-        let padded = undefined;
         if (left) {
-            padded = (zeros + value);
+            const paddedLeft = zeros + value;
+            const start = paddedLeft.length - this.parseToInt(length);
+            return paddedLeft.slice(start, paddedLeft.length);
         }
-        else {
-            padded = (value + zeros);
-        }
-        if (left) {
-            const start = padded.length - length;
-            return padded.slice(start, padded.length);
-        }
-        return padded.slice(0, length);
+        const paddedRight = value + zeros;
+        return paddedRight.slice(0, length);
     }
     signOrder(order, productId, chainId) {
         const domain = {
@@ -3002,8 +3120,7 @@ class nado extends nado$1["default"] {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        const hash = '0x' + this.hash(encoded, sha3_js.keccak_256, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, sha3_js.keccak_256, 'hex'), this.privateKey);
     }
     signCancellation(cancellation, chainId, endpointAddress) {
         const domain = {
@@ -3021,8 +3138,7 @@ class nado extends nado$1["default"] {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash(encoded, sha3_js.keccak_256, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, sha3_js.keccak_256, 'hex'), this.privateKey);
     }
     signCancellationProducts(cancellation, chainId, endpointAddress) {
         const domain = {
@@ -3039,8 +3155,7 @@ class nado extends nado$1["default"] {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        const hash = '0x' + this.hash(encoded, sha3_js.keccak_256, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, sha3_js.keccak_256, 'hex'), this.privateKey);
     }
     signFetchTriggerOrders(tx, chainId, endpointAddress) {
         const domain = {
@@ -3056,16 +3171,15 @@ class nado extends nado$1["default"] {
             ],
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        const hash = '0x' + this.hash(encoded, sha3_js.keccak_256, 'hex');
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, sha3_js.keccak_256, 'hex'), this.privateKey);
     }
     signHash(hash, privateKey) {
         if (privateKey === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' signHash() requires privateKey');
         }
-        const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const signature = crypto.ecdsa(hash, privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v'])).toLowerCase();
         return '0x' + this.padHex(r, 64) + this.padHex(s, 64) + v;
     }
@@ -3078,20 +3192,60 @@ class nado extends nado$1["default"] {
         }
         return marketId;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestBody = undefined;
-        let endpoint = api[0];
-        if (typeof api === 'string') {
-            endpoint = api;
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        if (('byType' in config) && ('type' in params)) {
+            const queryType = params['type'];
+            const byType = config['byType'];
+            if (queryType in byType) {
+                return byType[queryType];
+            }
         }
+        const byQuery = this.safeDict(config, 'byQuery');
+        if (byQuery !== undefined) {
+            const queryNames = Object.keys(byQuery);
+            for (let i = 0; i < queryNames.length; i++) {
+                const queryName = queryNames[i];
+                if (queryName in params) {
+                    const weights = this.safeList(byQuery, queryName, []);
+                    const baseWeight = this.safeInteger(weights, 0, 2);
+                    const rowsPerWeight = this.safeInteger(weights, 1);
+                    if (rowsPerWeight === undefined) {
+                        return baseWeight;
+                    }
+                    const query = this.safeDict(params, queryName, {});
+                    let rows = this.safeInteger(query, 'limit', 100); // the archive default page
+                    const nestedLimit = this.safeDict(query, 'limit'); // the events query sends { 'raw': 100 }
+                    if (nestedLimit !== undefined) {
+                        rows = this.safeInteger(nestedLimit, 'raw', 100);
+                    }
+                    return this.sum(baseWeight, this.parseToInt(rows / rowsPerWeight));
+                }
+            }
+        }
+        const byRows = this.safeList(config, 'byRows');
+        if (byRows !== undefined) {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            const rowsBaseWeight = this.safeInteger(byRows, 0, 2);
+            const rowsDivisor = this.safeInteger(byRows, 1, 50);
+            const rowCount = this.safeInteger(params, 'limit', 100); // the v2 default page
+            return this.sum(rowsBaseWeight, this.parseToInt(rowCount / rowsDivisor));
+        }
+        return this.safeValue(config, 'cost', 1);
+    }
+    sign(path, api = [], method = 'GET', params = {}) {
+        let requestBody = undefined;
+        const endpoint = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], endpoint);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = baseApiUrl;
+        let pathSuffix = '';
         if (path !== '') {
-            url += '/' + this.implodeParams(path, params);
+            pathSuffix = '/' + this.implodeParams(path, params);
         }
+        let url = baseApiUrl + pathSuffix;
         const query = this.omit(params, this.extractParams(path));
         const headersValue = {};
         if ((endpoint === 'gateway') || (endpoint === 'archive')) {
@@ -3099,17 +3253,17 @@ class nado extends nado$1["default"] {
         }
         if (method === 'GET') {
             if (Object.keys(query).length > 0) {
-                url += '?' + this.urlencode(query);
+                url = baseApiUrl + pathSuffix + '?' + this.urlencode(query);
             }
         }
         else {
             headersValue['Content-Type'] = 'application/json';
             requestBody = this.json(query);
         }
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

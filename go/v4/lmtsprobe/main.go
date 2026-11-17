@@ -49,7 +49,7 @@ func main() {
 	markets, _ := ex.LoadMarkets()
 	var outcome, slug string
 	for _, m := range markets {
-		info := m.Info
+		info, _ := m.Info.(map[string]any)
 		if info == nil || m.Symbol == nil {
 			continue
 		}

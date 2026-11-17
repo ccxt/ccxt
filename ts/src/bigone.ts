@@ -16,7 +16,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class bigone extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bigone',
             'name': 'BigONE',
@@ -249,7 +249,7 @@ export default class bigone extends Exchange {
                     'DOGE': 'Dogecoin',
                     'XEC': 'ECash',
                     'EOS': 'EOS',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'ETC': 'EthereumClassic',
                     'ETHW': 'EthereumPow',
                     'FTM': 'Fantom',
@@ -619,7 +619,7 @@ export default class bigone extends Exchange {
         const promises = [ this.publicGetAssetPairs (params), this.contractPublicGetSymbols (params) ];
         const promisesResult = await Promise.all (promises);
         const response = this.safeDict (promisesResult, 0);
-        const contractResponse = promisesResult[1];
+        const contractResponse = this.safeValue (promisesResult, 1);
         //
         //     {
         //         "code":0,
@@ -850,7 +850,7 @@ export default class bigone extends Exchange {
         //    }
         //
         let marketType: Str = 'swap';
-        if ('asset_pair_name' in ticker) {
+        if (this.safeString (ticker, 'asset_pair_name') !== undefined) {
             marketType = 'spot';
         }
         const marketId = this.safeString2 (ticker, 'asset_pair_name', 'symbol');
@@ -1060,7 +1060,7 @@ export default class bigone extends Exchange {
         }
         const market = this.market (symbol);
         let response: Dict;
-        if (market['contract'] === true) {
+        if (this.safeBool (market, 'contract', false)) {
             const request: Dict = {
                 'symbol': market['id'],
             };
@@ -1120,7 +1120,7 @@ export default class bigone extends Exchange {
         }
     }
 
-    parseContractBidsAsks (bidsAsks: any) {
+    parseContractBidsAsks (bidsAsks: Dict) {
         const bidsAsksKeys = Object.keys (bidsAsks);
         const result: Dict[] = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
@@ -1132,8 +1132,8 @@ export default class bigone extends Exchange {
     }
 
     parseContractOrderBook (orderbook: Dict, symbol: string, limit: Int = undefined): OrderBook {
-        const responseBids = this.safeDict (orderbook, 'bids');
-        const responseAsks = this.safeDict (orderbook, 'asks');
+        const responseBids = this.safeDict (orderbook, 'bids', {});
+        const responseAsks = this.safeDict (orderbook, 'asks', {});
         const bids = this.parseContractBidsAsks (responseBids);
         const asks = this.parseContractBidsAsks (responseAsks);
         return {
@@ -1300,7 +1300,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool (market, 'contract', false)) {
             throw new NotSupported (this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request: Dict = {
@@ -1371,7 +1371,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool (market, 'contract', false)) {
             throw new NotSupported (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger (params, 'until');
@@ -1388,16 +1388,16 @@ export default class bigone extends Exchange {
             'period': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         };
-        if (sinceIsDefined) {
+        if (since !== undefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
-            const endByLimit = this.sum (since, limitResolved * duration * 1000);
-            if (untilIsDefined) {
+            const endByLimit = this.parseToInt (this.sum (since, limitResolved * duration * 1000));
+            if (until !== undefined) {
                 request['time'] = this.iso8601 (Math.min (endByLimit, until + 1));
             } else {
                 request['time'] = this.iso8601 (endByLimit);
             }
-        } else if (untilIsDefined) {
+        } else if (until !== undefined) {
             request['time'] = this.iso8601 (until + 1);
         }
         const paramsOmitted: Dict = this.omit (params, 'until');
@@ -1429,7 +1429,7 @@ export default class bigone extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limitResolved);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1484,7 +1484,7 @@ export default class bigone extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseType (type: Str) {
+    parseType (type: Str): Str {
         const types: Dict = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
@@ -1528,9 +1528,9 @@ export default class bigone extends Exchange {
         if (Precise.stringEq (triggerPrice, '0')) {
             triggerPrice = undefined;
         }
-        const immediateOrCancel = this.safeBool (order, 'immediate_or_cancel');
+        const immediateOrCancel = this.safeBool (order, 'immediate_or_cancel', false);
         let timeInForce: Str = undefined;
-        if (immediateOrCancel === true) {
+        if (immediateOrCancel) {
             timeInForce = 'IOC';
         }
         const type = this.parseType (this.safeString (order, 'type'));
@@ -1584,7 +1584,7 @@ export default class bigone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1627,7 +1627,7 @@ export default class bigone extends Exchange {
         const exchangeSpecificParam = this.safeBool (params, 'post_only', false);
         let postOnly: Bool = undefined;
         let query = undefined;
-        [ postOnly, query ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
+        [ postOnly, query ] = this.handlePostOnly (uppercaseType === 'MARKET', exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (query, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request: Dict = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
@@ -1645,7 +1645,7 @@ export default class bigone extends Exchange {
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
-                if (postOnly === true) {
+                if (postOnly) {
                     request['post_only'] = true;
                 }
             }
@@ -1931,7 +1931,7 @@ export default class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING': 'open',
             'FILLED': 'closed',
@@ -1976,28 +1976,30 @@ export default class bigone extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    override nonce (): number {
-        const exchangeTimeCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+    override nonce (): int {
+        const exchangeMillisecondsCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0);
+        const exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000;
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let bodySigned: Str = undefined;
         const query = this.omit (params, this.extractParams (path));
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = this.implodeHostname (apiUrl);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const headersValue: NullableDict = {};
-        if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
+        if (apiName === 'public' || apiName === 'webExchange' || apiName === 'contractPublic') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
+            const nonce = this.numberToString (this.nonce ());
             const request: Dict = {
                 'type': 'OpenAPIV2',
                 'sub': this.apiKey,
@@ -2016,7 +2018,7 @@ export default class bigone extends Exchange {
             }
         }
         headersValue['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
-        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        const bodyResolved: Str = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
 
@@ -2062,7 +2064,7 @@ export default class bigone extends Exchange {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');
         }
         const chainsIndexedById = this.indexBy (data, 'chain');
-        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
+        const selectedNetworkId = this.selectNetworkKeyFromNetworks (code, networkCode, chainsIndexedById, false);
         const addressObject = this.safeDict (chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString (addressObject, 'value');
         const tag = this.safeString (addressObject, 'memo');
@@ -2076,7 +2078,7 @@ export default class bigone extends Exchange {
         } as DepositAddress;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // what are other statuses here?
             'WITHHOLD': 'ok', // deposits
@@ -2151,7 +2153,7 @@ export default class bigone extends Exchange {
         const address = this.safeString (transaction, 'target_address');
         const tag = this.safeString (transaction, 'memo');
         let type: Str = 'deposit';
-        if ('customer_id' in transaction) {
+        if (this.safeString (transaction, 'customer_id') !== undefined) {
             type = 'withdrawal';
         }
         const internal = this.safeBool (transaction, 'is_internal');
@@ -2329,7 +2331,7 @@ export default class bigone extends Exchange {
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2374,12 +2376,13 @@ export default class bigone extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2423,7 +2426,7 @@ export default class bigone extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2431,12 +2434,12 @@ export default class bigone extends Exchange {
         //      {"code":10013,"message":"Resource not found"}
         //      {"code":40004,"message":"invalid jwt"}
         //
-        const code = this.safeString (response, 'code');
+        const codeError = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') && (code !== undefined)) {
+        if ((codeError !== '0') && (codeError !== undefined)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

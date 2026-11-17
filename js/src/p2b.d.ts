@@ -5,7 +5,7 @@ import type { Balances, Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str,
  * @augments Exchange
  */
 export default class p2b extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name p2b#fetchMarkets
@@ -89,7 +89,7 @@ export default class p2b extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name p2b#createOrder
@@ -179,6 +179,6 @@ export default class p2b extends Exchange {
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

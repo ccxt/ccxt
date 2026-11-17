@@ -13,7 +13,7 @@ from ccxt.base.errors import ExchangeError
 
 class bitopro(ccxt.async_support.bitopro):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitopro, self).describe(), {
             'has': {
                 'ws': True,
@@ -76,11 +76,12 @@ class bitopro(ccxt.async_support.bitopro):
         market = self.market(symbol)
         symbolValue = market['symbol']
         messageHash = 'ORDER_BOOK' + ':' + symbolValue
+        marketIdValue = self.safe_string(market, 'id', '')
         endPart = None
         if limit is None:
-            endPart = market['id']
+            endPart = marketIdValue
         else:
-            endPart = market['id'] + ':' + self.number_to_string(limit)
+            endPart = marketIdValue + ':' + self.number_to_string(limit)
         orderbook = await self.watch_public('order-books', messageHash, endPart)
         return orderbook.limit()
 
@@ -174,7 +175,8 @@ class bitopro(ccxt.async_support.bitopro):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             tradesCache = ArrayCache(limit)
         for i in range(0, len(trades)):
-            tradesCache.append(trades[i])
+            trade = trades[i]
+            tradesCache.append(trade)
         self.trades[symbol] = tradesCache
         if event is not None:
             messageHash = event + ':' + symbol
@@ -198,7 +200,8 @@ class bitopro(ccxt.async_support.bitopro):
         messageHash = 'USER_TRADE'
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = messageHash + ':' + market['symbol']
+            symbolValue = market['symbol']
+            messageHash = messageHash + ':' + symbolValue
         wsUrl = self.safe_string(self.urls['ws'], 'private')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchMyTrades() has no private websocket url')
@@ -304,7 +307,7 @@ class bitopro(ccxt.async_support.bitopro):
         isMaker = self.safe_bool(trade, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
-            if isMaker is True:
+            if isMaker:
                 takerOrMaker = 'maker'
             else:
                 takerOrMaker = 'taker'
@@ -397,17 +400,19 @@ class bitopro(ccxt.async_support.bitopro):
         }
         # this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(defaultOptions)
-        originalHeaders = self.options['ws']['options']['headers']
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        wsInnerOptions = self.safe_dict(wsOptions, 'options', {})
+        originalHeaders = wsInnerOptions['headers']
         headers = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': self.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
             'X-BITOPRO-SIGNATURE': signature,
         }
-        self.options['ws']['options']['headers'] = headers
+        wsInnerOptions['headers'] = headers
         # instantiate client
         self.client(url)
-        self.options['ws']['options']['headers'] = originalHeaders
+        wsInnerOptions['headers'] = originalHeaders
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """
@@ -451,11 +456,17 @@ class bitopro(ccxt.async_support.bitopro):
         timestamp = self.safe_integer(message, 'timestamp')
         datetime = self.safe_string(message, 'datetime')
         currencies = list(data.keys())
-        result = {
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': datetime,
-        }
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a
+        # reference to this.balance, and Client.resolve is a no-op while
+        # nobody is awaiting, so a replaced object would make updates landing
+        # in that window invisible to the consumer forever (same class as
+        # issue #26773)
+        if self.balance is None:
+            self.balance = {}
+        self.balance['info'] = data
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = datetime
         for i in range(0, len(currencies)):
             currency = self.safe_string(currencies, i)
             balance = self.safe_dict(data, currency, {})
@@ -465,8 +476,8 @@ class bitopro(ccxt.async_support.bitopro):
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'amount')
             if code is not None:
-                result[code] = account
-        self.balance = self.safe_balance(result)
+                self.balance[code] = account
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, event)
 
     def handle_message(self, client: Client, message: dict):

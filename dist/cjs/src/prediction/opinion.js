@@ -180,9 +180,9 @@ class opinion extends opinion$1["default"] {
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         const seenEvents = {};
         const eventsList = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
+        // every raw (unflattened) row fetched so far, so its length is the raw fetched count
+        const fetchedRawRows = [];
+        for (let page = 1; page <= maxPages; page++) {
             const request = {
                 'marketType': 2, // all - both standalone binaries and categorical parents
                 'limit': pageLimit,
@@ -192,17 +192,17 @@ class opinion extends opinion$1["default"] {
             const result = this.safeDict(response, 'result', {});
             const rawMarkets = this.safeList(result, 'list', []);
             const rawMarketsLength = rawMarkets.length;
-            fetchedRawCount = this.sum(fetchedRawCount, rawMarketsLength);
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
             const total = this.safeInteger(result, 'total');
             for (let i = 0; i < rawMarketsLength; i++) {
                 const raw = rawMarkets[i];
+                fetchedRawRows.push(raw);
                 const marketType = this.safeInteger(raw, 'marketType');
                 if (marketType === 1) {
                     const event = this.parseEvent(raw);
-                    const childMarkets = event['markets'];
+                    const childMarkets = this.safeList(event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
                         flatMarkets.push(childMarkets[ci]);
@@ -218,10 +218,10 @@ class opinion extends opinion$1["default"] {
                 }
             }
             const collectedLength = flatMarkets.length;
+            const fetchedRawCount = fetchedRawRows.length;
             if ((rawMarketsLength < pageLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
                 break;
             }
-            page = this.sum(page, 1);
         }
         this.setEvents(eventsList);
         const flatMarketsLength = flatMarkets.length;
@@ -307,8 +307,8 @@ class opinion extends opinion$1["default"] {
         const outcomes = [];
         let resolvedOutcome = undefined;
         for (let i = 0; i < outcomeLabels.length; i++) {
-            const label = outcomeLabels[i];
-            const tokenId = outcomeTokenIds[i];
+            const label = this.safeString(outcomeLabels, i);
+            const tokenId = this.safeString(outcomeTokenIds, i);
             const outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, slug, label);
             let winner = undefined;
             let settleFraction = undefined;
@@ -368,8 +368,8 @@ class opinion extends opinion$1["default"] {
             'expiryDatetime': this.iso8601(expiryTimestamp),
             'strike': undefined,
             'optionType': undefined,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': this.safeNumber(this.fees['trading'], 'taker'),
+            'maker': this.safeNumber(this.fees['trading'], 'maker'),
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
@@ -419,25 +419,17 @@ class opinion extends opinion$1["default"] {
             return this.applyEventFetchParams([single], params, queries);
         }
         const rest = this.omit(params, ['query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit']);
-        const pageLimit = this.safeInteger(this.options, 'defaultFetchEventsLimit', 20);
-        const userLimit = this.safeInteger(params, 'limit');
+        const pageLimit = this.parseToInt(this.safeInteger(this.options, 'defaultFetchEventsLimit', 20));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
-        let fetchCap = this.safeInteger(this.options, 'maxFetchEventsResults', 100);
-        if (userLimit !== undefined) {
-            fetchCap = userLimit;
-        }
+        const fetchCap = this.safeInteger(params, 'limit', this.safeInteger(this.options, 'maxFetchEventsResults', 100));
         const maxPages = this.safeInteger(this.options, 'maxEventsPages', 50);
         const rawEvents = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
-            let reqLimit = pageLimit;
-            const remaining = fetchCap - fetchedRawCount;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+        for (let page = 1; page <= maxPages; page++) {
+            const fetchedSoFar = rawEvents.length;
+            const remaining = this.parseToInt(fetchCap - fetchedSoFar);
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -450,15 +442,15 @@ class opinion extends opinion$1["default"] {
             const result = this.safeDict(response, 'result', {});
             const pageEvents = this.safeList(result, 'list', []);
             const pageEventsLength = pageEvents.length;
-            fetchedRawCount = this.sum(fetchedRawCount, pageEventsLength);
             for (let i = 0; i < pageEventsLength; i++) {
                 rawEvents.push(pageEvents[i]);
             }
+            // rawEvents holds every row fetched so far, so its length is the raw fetched count
+            const fetchedRawCount = rawEvents.length;
             const total = this.safeInteger(result, 'total');
             if ((pageEventsLength < reqLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || (fetchedRawCount >= fetchCap)) {
                 break;
             }
-            page = this.sum(page, 1);
         }
         const rawEventsLength = rawEvents.length;
         const parsedEvents = [];
@@ -656,7 +648,7 @@ class opinion extends opinion$1["default"] {
      */
     async fetchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const promises = [
             this.opinionPublicGetTokenLatestPrice(this.extend({ 'token_id': tokenId }, params)),
             this.opinionPublicGetTokenOrderbook(this.extend({ 'token_id': tokenId }, params)),
@@ -745,7 +737,7 @@ class opinion extends opinion$1["default"] {
         const promises = [];
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
-            const tokenId = outcomeObj['outcomeId'];
+            const tokenId = this.safeString(outcomeObj, 'outcomeId');
             promises.push(this.opinionPublicGetTokenLatestPrice(this.extend({ 'token_id': tokenId }, params)));
             promises.push(this.opinionPublicGetTokenOrderbook(this.extend({ 'token_id': tokenId }, params)));
         }
@@ -754,8 +746,8 @@ class opinion extends opinion$1["default"] {
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             const priceIndex = i * 2;
-            const priceResponse = responses[priceIndex];
-            const bookResponse = responses[this.sum(priceIndex, 1)];
+            const priceResponse = this.safeValue(responses, priceIndex);
+            const bookResponse = this.safeValue(responses, this.sum(priceIndex, 1));
             const response = { 'price': priceResponse, 'book': bookResponse };
             const ticker = this.parsePredictionTicker(response, outcomeObj);
             const symbolKey = this.safeString(ticker, 'outcome');
@@ -777,7 +769,7 @@ class opinion extends opinion$1["default"] {
      */
     async fetchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const request = {
             'token_id': tokenId,
         };
@@ -815,13 +807,13 @@ class opinion extends opinion$1["default"] {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(outcome, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
-        if (!(timeframe in this.timeframes)) {
+        const interval = this.safeString(this.timeframes, timeframe);
+        if (interval === undefined) {
             const supportedKeys = Object.keys(this.timeframes);
             throw new errors.BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join(', '));
         }
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
-        const interval = this.safeString(this.timeframes, timeframe);
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const response = await this.opinionPublicGetTokenPriceHistory(this.extend({
             'token_id': tokenId,
             'interval': interval,
@@ -949,12 +941,15 @@ class opinion extends opinion$1["default"] {
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         const sig = this.signMessage(encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix(sig['r']) + this.remove0xPrefix(sig['s']) + this.intToBase16(sig['v']);
+        return '0x' + this.remove0xPrefix(this.safeString(sig, 'r')) + this.remove0xPrefix(this.safeString(sig, 's')) + this.intToBase16(this.safeInteger(sig, 'v'));
     }
     opinionOrderRawAmounts(isMarket, side, amount, price, decimals) {
         let decimalsStr = '1';
-        for (let i = 0; i < decimals; i++) {
-            decimalsStr = decimalsStr + '0';
+        if (decimals !== undefined) {
+            const decimalsCount = this.parseToInt(decimals);
+            for (let i = 0; i < decimalsCount; i++) {
+                decimalsStr = decimalsStr + '0';
+            }
         }
         const amountStr = this.numberToString(amount);
         if (isMarket && (side === 'BUY')) {
@@ -1007,7 +1002,7 @@ class opinion extends opinion$1["default"] {
         await this.loadApiKey();
         this.checkRequiredCredentials();
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const isMarket = (type === 'market');
         const sideStr = side.toUpperCase();
         if (price === undefined) {
@@ -1027,9 +1022,7 @@ class opinion extends opinion$1["default"] {
         const topicId = this.safeInteger(info, 'marketId');
         const quoteTokenAddress = this.safeString(info, 'quoteToken');
         const quoteToken = await this.loadQuoteToken(quoteTokenAddress);
-        const exchangeAddress = this.safeString(quoteToken, 'ctfExchangeAddress', '');
-        const decimals = this.safeInteger(quoteToken, 'decimal', 18);
-        const amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
+        const amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, this.safeInteger(quoteToken, 'decimal', 18));
         const makerAmount = this.safeString(amounts, 'makerAmount');
         const takerAmount = this.safeString(amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
@@ -1057,7 +1050,7 @@ class opinion extends opinion$1["default"] {
             'side': sideInt,
             'signatureType': signatureType,
         };
-        const signature = this.signOpinionOrder(order, exchangeAddress);
+        const signature = this.signOpinionOrder(order, this.safeString(quoteToken, 'ctfExchangeAddress', ''));
         const signatureNo0x = this.remove0xPrefix(signature);
         const orderBody = this.extend({
             'salt': salt,
@@ -1108,7 +1101,7 @@ class opinion extends opinion$1["default"] {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        const status = (canceled === true) ? 'canceled' : undefined;
+        const status = (canceled) ? 'canceled' : undefined;
         return this.safePredictionOrder({ 'id': id, 'status': status, 'info': response });
     }
     /**
@@ -1317,9 +1310,6 @@ class opinion extends opinion$1["default"] {
      * @returns {object} the parsed market
      */
     async loadTradeMarket(marketId) {
-        if (marketId === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' loadTradeMarket() requires a marketId');
-        }
         const cacheKey = 'tradeMarketsById';
         const cached = this.safeDict(this.options, cacheKey, {});
         const idStr = marketId.toString();
@@ -1445,10 +1435,10 @@ class opinion extends opinion$1["default"] {
         const response = await this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, params));
         const result = this.safeDict(response, 'result', {});
         const positions = this.safeList(result, 'list', []);
-        const parsed = this.parsePredictionPositions(positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(positions);
         }
+        const parsed = this.parsePredictionPositions(positions);
         const wantedTokenIds = {};
         // copy to a plain list so the strict null checks see one shape
         const outcomesList = (outcomes === undefined) ? [] : outcomes;
@@ -1501,8 +1491,8 @@ class opinion extends opinion$1["default"] {
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
         // assign before padStart so the PHP str_pad regex matches
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString(signature, 'r', '');
+        const sRaw = this.safeString(signature, 's', '');
         const r = rRaw.padStart(64, '0');
         const s = sRaw.padStart(64, '0');
         return {
@@ -1535,7 +1525,7 @@ class opinion extends opinion$1["default"] {
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         const sig = this.signMessage(encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix(sig['r']) + this.remove0xPrefix(sig['s']) + this.intToBase16(sig['v']);
+        return '0x' + this.remove0xPrefix(this.safeString(sig, 'r')) + this.remove0xPrefix(this.safeString(sig, 's')) + this.intToBase16(this.safeInteger(sig, 'v'));
     }
     /**
      * @method
@@ -1626,7 +1616,8 @@ class opinion extends opinion$1["default"] {
         this.options['apiKey'] = creds['apiKey'];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = creds['apiKey'];
+        // an empty string, not undefined: the strict base types the credential as string
+        this.apiKey = this.safeString(creds, 'apiKey', '');
         return creds;
     }
     /**
@@ -1662,12 +1653,12 @@ class opinion extends opinion$1["default"] {
     async subscribeOpinionChannel(messageHash, channel, marketId) {
         await this.loadApiKey();
         const url = this.opinionWsUrl();
-        const subscriptionKey = channel + ':' + this.numberToString(marketId);
         const subscribeMsg = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString(subscribeMsg, 'marketId', '');
         return await this.watch(url, messageHash, subscribeMsg, subscriptionKey);
     }
     handleMessage(client, message) {
@@ -1739,16 +1730,16 @@ class opinion extends opinion$1["default"] {
         await this.loadApiKey();
         const url = this.opinionWsUrl();
         const client = this.client(url);
-        const subscriptionKey = channel + ':' + this.numberToString(marketId);
-        const isNewSubscription = this.safeValue(client.subscriptions, subscriptionKey) === undefined;
-        if (isNewSubscription) {
-            await this.seedOrderBook(outcome, sym, limit);
-        }
         const subscribeMsg = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString(subscribeMsg, 'marketId', '');
+        const isNewSubscription = this.safeValue(client.subscriptions, subscriptionKey) === undefined;
+        if (isNewSubscription) {
+            await this.seedOrderBook(outcome, sym, limit);
+        }
         const future = this.watch(url, messageHash, subscribeMsg, subscriptionKey);
         if (isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
@@ -1782,7 +1773,7 @@ class opinion extends opinion$1["default"] {
         if (sym === undefined) {
             return;
         }
-        if (this.safeValue(this.orderbooks, sym) === undefined) {
+        if (!(sym in this.orderbooks)) {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
         }
@@ -1841,7 +1832,9 @@ class opinion extends opinion$1["default"] {
             'last': last,
             'info': message,
         }, outcomeObj);
-        this.tickers[sym] = ticker;
+        const cachedTickers = this.safeDict(this.options, 'wsTickers', {});
+        cachedTickers[sym] = ticker;
+        this.options['wsTickers'] = cachedTickers;
         client.resolve(ticker, 'ticker::' + sym);
     }
     /**
@@ -2129,21 +2122,19 @@ class opinion extends opinion$1["default"] {
      * @name opinion#sign
      * @description builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path, api = 'opinion', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
-        const access = typeof api === 'string' ? 'public' : api[1];
+    sign(path, api = ['opinion'], method = 'GET', params = {}) {
+        const apiGroup = api[0];
+        const access = api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['opinion']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersExtended = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -2155,10 +2146,9 @@ class opinion extends opinion$1["default"] {
                     throw new errors.ArgumentsRequired(this.id + ' ' + path + ' requires a walletAddress and privateKey');
                 }
                 const actionByMethod = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
-                const action = this.safeString(actionByMethod, method, 'get');
                 const timestamp = this.numberToString(this.seconds());
                 headersExtended['OPINION_ADDRESS'] = this.walletAddress;
-                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
+                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, this.safeString(actionByMethod, method, 'get'), timestamp);
                 headersExtended['OPINION_TIMESTAMP'] = timestamp;
             }
             else {
@@ -2172,7 +2162,7 @@ class opinion extends opinion$1["default"] {
                 headersExtended['apikey'] = apiKey;
             }
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (method === 'GET') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);

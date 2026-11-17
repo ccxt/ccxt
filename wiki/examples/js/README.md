@@ -25,6 +25,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Arbitrage Pairs](./examples/js/arbitrage-pairs.md)
 
+- [Backpack Stocks](./examples/js/backpack-stocks.md)
+
 - [Basic Chart](./examples/js/basic-chart.md)
 
 - [Basic Orderbook Polling](./examples/js/basic-orderbook-polling.md)
@@ -56,8 +58,6 @@ node path/to/example.js # substitute for actual filename here
 - [Binance Watch Ticker Many Symbols](./examples/js/binance-watch-ticker-many-symbols.md)
 
 - [Bitfinex Fetch Trades](./examples/js/bitfinex-fetch-trades.md)
-
-- [Bitmex Browser Cors Proxy](./examples/js/bitmex-browser-cors-proxy.md)
 
 - [Bitpanda FetchMyTrades Reduce](./examples/js/bitpanda-fetchMyTrades-reduce.md)
 

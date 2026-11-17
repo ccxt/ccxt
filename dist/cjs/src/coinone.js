@@ -1008,14 +1008,8 @@ class coinone extends coinone$1["default"] {
         const id = this.safeString2(order, 'orderId', 'order_id');
         const baseId = this.safeString2(order, 'baseCurrency', 'target_currency');
         const quoteId = this.safeString2(order, 'targetCurrency', 'quote_currency');
-        let base = undefined;
-        let quote = undefined;
-        if (baseId !== undefined) {
-            base = this.safeCurrencyCode(baseId);
-        }
-        if (quoteId !== undefined) {
-            quote = this.safeCurrencyCode(quoteId);
-        }
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
@@ -1253,20 +1247,15 @@ class coinone extends coinone$1["default"] {
             const currencyId = this.safeString(parts, 0);
             const secondPart = this.safeString(parts, 1);
             const code = this.safeCurrencyCode(currencyId);
-            let depositAddress = this.safeDict(result, code);
-            if (depositAddress === undefined) {
-                depositAddress = {
-                    'info': value,
-                    'currency': code,
-                    'network': undefined,
-                    'address': undefined,
-                    'tag': undefined,
-                };
-            }
-            const address = this.safeString(depositAddress, 'address', value);
+            const address = this.safeString(this.safeValue(result, code), 'address', value);
             this.checkAddress(address);
-            depositAddress['address'] = address;
-            depositAddress['info'] = address;
+            const depositAddress = {
+                'info': address,
+                'currency': code,
+                'network': undefined,
+                'address': address,
+                'tag': this.safeString(this.safeValue(result, code), 'tag'),
+            };
             if ((secondPart === 'tag' || secondPart === 'memo')) {
                 depositAddress['tag'] = value;
                 depositAddress['info'] = [address, value];
@@ -1275,9 +1264,10 @@ class coinone extends coinone$1["default"] {
                 result[code] = depositAddress;
             }
         }
-        return result;
+        return this.toArray(result);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const request = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const apiUrl = this.safeString(this.urls['api'], 'rest');
@@ -1285,22 +1275,22 @@ class coinone extends coinone$1["default"] {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/';
-        const isPublic = (api === 'public') || (api === 'v2Public');
-        if (api === 'v2Public') {
+        const isPublic = (apiName === 'public') || (apiName === 'v2Public');
+        if (apiName === 'v2Public') {
             const apiUrl2 = this.safeString(this.urls['api'], 'v2Public');
             if (apiUrl2 === undefined) {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }
             url = apiUrl2 + '/';
         }
-        else if (api === 'v2Private') {
+        else if (apiName === 'v2Private') {
             const apiUrl3 = this.safeString(this.urls['api'], 'v2Private');
             if (apiUrl3 === undefined) {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }
             url = apiUrl3 + '/';
         }
-        else if (api === 'v2_1Private') {
+        else if (apiName === 'v2_1Private') {
             const apiUrl4 = this.safeString(this.urls['api'], 'v2_1Private');
             if (apiUrl4 === undefined) {
                 throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -1320,11 +1310,11 @@ class coinone extends coinone$1["default"] {
             url += request;
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             let nonce = undefined;
-            if (api === 'v2_1Private') {
+            if (apiName === 'v2_1Private') {
                 nonce = this.uuid();
             }
             else {
-                nonce = this.nonce().toString();
+                nonce = this.numberToString(this.nonce());
             }
             const json = this.json(this.extend({
                 'access_token': this.apiKey,
@@ -1340,8 +1330,8 @@ class coinone extends coinone$1["default"] {
                 'X-COINONE-SIGNATURE': signature,
             };
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

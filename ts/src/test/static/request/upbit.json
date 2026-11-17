@@ -20,11 +20,10 @@
                     "USDT",
                     1,
                     "1234",
-                    null,
                     {
-                        "network": "TRX"
+                      "network": "TRX"
                     }
-                ],
+                  ],
                 "output": { "amount": 1, "net_type": "TRX", "address": "1234", "currency": "USDT" }
             },
             {

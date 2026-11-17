@@ -91,6 +91,7 @@ public class OrderRouterTest
         Run("a fee the router already subtracted is not subtracted a second time", FeeIsNotDoubleSubtracted);
         RunAsync("a router that ignored the balances is caught, including when the wallet is empty", BalancesEchoIsVerified);
         RunAsync("a caller-chosen audit id travels as x-request-id", RequestIdHeader);
+        Run("userAgent is parsed from config, empty by default", UserAgentConfig);
         Run("streamUrl upgrades the scheme, and close codes keep the REST vocabulary", StreamUrlAndCloseCodes);
         Run("buildUnwindPlan is never automatic and never nets across venues", UnwindNeverNetsAcrossVenues);
         Run("a buy-side unwind order never spends more quote than the residual actually holds", UnwindBuyIsFundable);
@@ -1232,6 +1233,16 @@ public class OrderRouterTest
         await recorder.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 10.0 }, { "requestId", "caller-chosen-id" } });
         EqualString(recorder.lastRequestId, "caller-chosen-id", "the audit id reaches Request");
         Ok(recorder.lastUrl.IndexOf("requestId", StringComparison.Ordinal) < 0, "and is not a query parameter");
+    }
+
+    private static void UserAgentConfig()
+    {
+        //  Request() owns a private HttpClient and the suite stubs Request wholesale, so the
+        //  outgoing header is not observable here; what IS asserted is that the option is
+        //  parsed from config with an empty default, which is the value Request branches on
+        EqualString(new OrderRouter(new dict()).userAgent, "", "no User-Agent override by default");
+        var configured = new OrderRouter(new dict() { { "userAgent", "ccxt-mcp/1.0.0 (ccxt 4.0.0)" } });
+        EqualString(configured.userAgent, "ccxt-mcp/1.0.0 (ccxt 4.0.0)", "the configured userAgent is stored");
     }
 
     private static void FeeIsNotDoubleSubtracted()

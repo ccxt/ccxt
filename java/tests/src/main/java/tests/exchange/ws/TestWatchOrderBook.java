@@ -48,7 +48,7 @@ public class TestWatchOrderBook extends BaseTest {
             // refresh the deadline on every path, otherwise a stream of temporary
             // failures would loop forever
             now = exchange.milliseconds();
-            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
+            if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, symbol);
                 Object elapsed = Helpers.subtract(now, startTime);

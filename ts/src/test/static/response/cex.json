@@ -218,9 +218,9 @@
                                     "depositConfirmations": "1"
                                 }
                             },
-                            "BSC20": {
+                            "BEP20": {
                                 "id": "binancesmartchain",
-                                "network": "BSC20",
+                                "network": "BEP20",
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,

@@ -641,7 +641,7 @@ class alpaca extends alpaca$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id');
         const loc = this.safeString(params, 'loc', 'us');
         const method = this.safeString(params, 'method', 'marketPublicGetV1beta3CryptoLocTrades');
         const request = {
@@ -721,7 +721,7 @@ class alpaca extends alpaca$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const id = market['id'];
+        const id = this.safeString(market, 'id');
         const loc = this.safeString(params, 'loc', 'us');
         const request = {
             'symbols': id,
@@ -793,14 +793,14 @@ class alpaca extends alpaca$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id');
         const loc = this.safeString(params, 'loc', 'us');
         const method = this.safeString(params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         let paginate = false;
         let query = undefined;
         [paginate, query] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
-        let paginationCalls = 10;
-        [paginationCalls, query] = this.handleOptionIntegerAndParams(query, 'fetchOHLCV', 'paginationCalls', 10);
+        const [paginationCalls, queryPagination] = this.handleOptionIntegerAndParams(query, 'fetchOHLCV', 'paginationCalls', 10);
+        query = queryPagination;
         const request = {
             'symbols': marketId,
             'loc': loc,
@@ -1058,7 +1058,7 @@ class alpaca extends alpaca$1["default"] {
             }, market);
             results.push(ticker);
         }
-        return this.filterByArray(results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(results, 'symbol', symbolsNormalized);
     }
     generateClientOrderId(params) {
         const clientOrderIdprefix = this.safeString(this.options, 'clientOrderId');
@@ -1148,7 +1148,7 @@ class alpaca extends alpaca$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const id = market['id'];
+        const id = this.safeString(market, 'id');
         const request = {
             'symbol': id,
             'side': side,
@@ -1502,7 +1502,7 @@ class alpaca extends alpaca$1["default"] {
         //
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const alpacaStatus = this.safeString(order, 'status');
         const status = this.parseOrderStatus(alpacaStatus);
         const feeValue = this.safeString(order, 'commission');
@@ -1752,20 +1752,21 @@ class alpaca extends alpaca$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
         let addressValue = address;
-        if ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) {
-            addressValue = address + ':' + tagWithdrawTag;
+        const tagSuffix = this.safeString(params, 'tag', '');
+        if (tagSuffix !== '') {
+            addressValue = address + ':' + tagSuffix;
         }
         const request = {
             'asset': currency['id'],
@@ -1805,7 +1806,7 @@ class alpaca extends alpaca$1["default"] {
             currency = this.currency(code);
         }
         const sandboxMode = this.isSandboxModeEnabled || this.safeBool(this.options, 'sandboxMode', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1891,7 +1892,8 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('BOTH', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('BOTH', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1905,7 +1907,8 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('INCOMING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('INCOMING', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1919,7 +1922,8 @@ class alpaca extends alpaca$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('OUTGOING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('OUTGOING', code, since, limit, params);
+        return this.toArray(transactions);
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -1969,7 +1973,8 @@ class alpaca extends alpaca$1["default"] {
         if (activityType !== undefined) {
             const netAmount = this.safeString(transaction, 'net_amount');
             const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise["default"].stringLt(netAmount, '0'));
-            timestamp = this.parse8601(this.safeString(transaction, 'date') + 'T00:00:00Z');
+            const date = this.safeString(transaction, 'date', '');
+            timestamp = this.parse8601(date + 'T00:00:00Z');
             datetime = this.iso8601(timestamp);
             type = isIncoming ? 'deposit' : 'withdrawal';
             amount = this.parseNumber(Precise["default"].stringAbs(netAmount));
@@ -1994,14 +1999,14 @@ class alpaca extends alpaca$1["default"] {
             txid = this.safeString(transaction, 'tx_hash');
             datetime = this.safeString(transaction, 'created_at');
             timestamp = this.parse8601(datetime);
-            network = this.safeString(transaction, 'chain');
             address = this.safeString(transaction, 'to_address');
             addressTo = this.safeString(transaction, 'to_address');
             addressFrom = this.safeString(transaction, 'from_address');
             type = this.parseTransactionType(this.safeString(transaction, 'direction'));
-            amount = this.safeNumber(transaction, 'amount');
+            amount = this.parseNumber(this.safeString(transaction, 'amount'));
             const currencyId = this.safeString(transaction, 'asset');
             code = this.safeCurrencyCode(currencyId, currency);
+            network = this.networkIdToCode(this.safeString(transaction, 'chain'), code);
             status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
             const fees = this.safeString(transaction, 'fees');
             const networkFee = this.safeString(transaction, 'network_fee');
@@ -2165,8 +2170,8 @@ class alpaca extends alpaca$1["default"] {
         }
         for (let i = 0; i < positions.length; i++) {
             const position = this.safeDict(positions, i);
-            const positionSymbol = this.safeString(position, 'symbol');
-            if (positionSymbol === undefined) {
+            const positionSymbol = this.safeString(position, 'symbol', '');
+            if (positionSymbol === '') {
                 continue;
             }
             let baseId = undefined;
@@ -2177,7 +2182,7 @@ class alpaca extends alpaca$1["default"] {
             else {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 const baseLength = positionSymbol.length - 3;
-                if ((baseLength > 0) && (positionSymbol.slice(baseLength) === 'USD')) {
+                if ((baseLength > 0) && positionSymbol.endsWith('USD')) {
                     baseId = positionSymbol.slice(0, baseLength);
                 }
             }
@@ -2194,16 +2199,13 @@ class alpaca extends alpaca$1["default"] {
         }
         return this.safeBalance(result);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let endpoint = '/' + this.implodeParams(path, params);
         const baseApiUrl = this.safeString(this.urls['api'], api[0]);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let headersValue = {};
-        if (headers !== undefined) {
-            headersValue = headers;
-        }
+        const headersValue = {};
         if (api[1] === 'private') {
             this.checkRequiredCredentials();
             headersValue['APCA-API-KEY-ID'] = this.apiKey;
@@ -2221,7 +2223,7 @@ class alpaca extends alpaca$1["default"] {
             }
         }
         const url = this.implodeHostname(baseApiUrl) + endpoint;
-        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
+        const bodyResolved = bodyJson;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -2234,15 +2236,15 @@ class alpaca extends alpaca$1["default"] {
         // }
         const feedback = this.id + ' ' + body;
         const errorCode = this.safeString(response, 'code');
-        if (code !== undefined) {
-            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         const message = this.safeString(response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             const codeAsString = code.toString();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            const statusCode = this.parseToInt(code);
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new errors.ExchangeError(feedback);
             }

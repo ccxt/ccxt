@@ -18,11 +18,11 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestWatchOHLCVForSymbols extends BaseTest {
-    public CompletableFuture<Object> testWatchOHLCVForSymbols(Exchange exchange, Object skippedProperties, Object symbol2)
+    public CompletableFuture<Object> testWatchOHLCVForSymbols(Exchange exchange, Object skippedProperties, String symbol2)
     {
-        final Object symbol3 = symbol2;
+        final String symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
+            String symbol = symbol3;
         String method = "watchOHLCVForSymbols";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
@@ -46,7 +46,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = (exchange.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, chosenTimeframeKey)))), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}})).join();
+                response = (exchange.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, chosenTimeframeKey)))), Helpers.toLongOrNull(since), Long.valueOf(limit), new HashMap<String, Object>() {{}})).join();
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
@@ -60,7 +60,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
+            if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 String AssertionMessage = ((((((((exchange.id + " ") + method) + " ") + symbol) + " ") + chosenTimeframeKey) + " | ") + exchange.json(response));
                 Assert(exchange.isDictionary(response), ("Response must be a dictionary. " + AssertionMessage));
@@ -72,7 +72,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
                 Assert((ohlcvs instanceof List), ("Response.symbol.timeframe should be an array. " + AssertionMessage));
                 for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
                 {
-                    TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), symbol, now);
+                    TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), (String) (symbol), now);
                 }
                 if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {

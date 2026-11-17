@@ -1,12 +1,12 @@
 import Exchange from '../abstract/prediction/predictfun.js';
-import type { Dict, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
+import type { Dict, fetchEventsParams, Int, int, Market, Num, NullableDict, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class predictfun
  * @augments Exchange
  */
 export default class predictfun extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name predictfun#fetchMarkets
@@ -72,7 +72,7 @@ export default class predictfun extends Exchange {
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    parseEvent(rawTopic: Dict): any;
+    parseEvent(rawTopic: Dict): Dict;
     /**
      * @ignore
      * @method
@@ -383,18 +383,18 @@ export default class predictfun extends Exchange {
      * @method
      * @name predictfun#handleErrors
      * @description maps the venue's error slugs and messages onto the unified exceptions
-     * @param {int} statusCode the http status code
-     * @param {string} statusText the http status text
+     * @param {int} code the http status code
+     * @param {string} reason the http status text
      * @param {string} url the request url
      * @param {string} method the http method
-     * @param {object} responseHeaders the response headers
-     * @param {string} responseBody the raw response body
+     * @param {object} headers the response headers
+     * @param {string} body the raw response body
      * @param {object} response the parsed response
      * @param {object} requestHeaders the request headers
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    handleErrors(statusCode: Int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @ignore
      * @method
@@ -663,7 +663,7 @@ export default class predictfun extends Exchange {
      * @param {object} details the event's details block
      * @returns {object} the outcome object, or a stub when the market is not cached
      */
-    walletEventOutcome(details: Dict): any;
+    walletEventOutcome(details: Dict): Dict;
     /**
      * @ignore
      * @method
@@ -710,24 +710,22 @@ export default class predictfun extends Exchange {
      * @param {object} message the raw message
      */
     handleMessage(client: Client, message: Dict): void;
-    nonce(): number;
+    nonce(): int;
     /**
      * @ignore
      * @method
      * @name predictfun#sign
      * @description builds the request URL and attaches the API key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the API group and access level
+     * @param {string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
-        body: any;
+        body: Str;
         headers: any;
     };
 }

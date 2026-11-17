@@ -6,7 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NetworkError, NotSupported, OrderNotFound } from '../base/errors.js';
-import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
+import type { Bool, Dict, Endpoint, fetchEventsParams, Fee, Int, int, Market, Num, NullableDict, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 
 // ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ import type Client from '../base/ws/Client.js';
  * @augments Exchange
  */
 export default class predictfun extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'predictfun',
             'name': 'predict.fun',
@@ -297,11 +297,7 @@ export default class predictfun extends Exchange {
     override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
         // overrides it so a caller can pass the slug the same way fetchEvents () takes it
-        const paramSlug = this.safeString (params, 'slug');
-        let slug = id;
-        if (paramSlug !== undefined) {
-            slug = paramSlug;
-        }
+        const slug = this.safeString (params, 'slug', id);
         if (slug === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchEvent() requires the "id" argument or the "slug" parameter');
         }
@@ -342,7 +338,7 @@ export default class predictfun extends Exchange {
             fetchCap = userLimit;
         }
         const slug = this.safeString2 (paramsValue, 'slug', 'eventId');
-        const rest = this.omit (paramsValue, [ 'status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant' ]);
+        const rest: Dict = this.omit (paramsValue, [ 'status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant' ]);
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
@@ -359,14 +355,12 @@ export default class predictfun extends Exchange {
         } else {
             const request: Dict = {};
             const tags = this.safeList (paramsValue, 'tags', []);
-            const tagsLength = tags.length;
-            if (tagsLength > 0) {
-                const tagsString = tags.join (',');
-                request['tagIds'] = tagsString;
+            if (tags.length > 0) {
+                request['tagIds'] = tags.join (',');
             }
             postOmitKeys.push ('limit');
-            const paramsCategories = this.omit (paramsValue, [ 'limit', 'tags' ]);
-            const extendedRequest = this.extend (request, paramsCategories);
+            const paramsCategories: Dict = this.omit (paramsValue, [ 'limit', 'tags' ]);
+            const extendedRequest: Dict = this.extend (request, paramsCategories);
             let rawTopicsResponse = await this.predictfunGetV1Categories (extendedRequest);
             //
             //     {
@@ -571,7 +565,7 @@ export default class predictfun extends Exchange {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let postParams = this.omit (paramsValue, postOmitKeys);
+        let postParams: Dict = this.omit (paramsValue, postOmitKeys);
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
         const rawStatus = this.safeString (paramsValue, 'status');
@@ -606,7 +600,7 @@ export default class predictfun extends Exchange {
             includeResolved = 'true';
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-        const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'status', 'eventId', 'slug', 'tags', 'marketVariant' ]);
+        const rest: Dict = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'status', 'eventId', 'slug', 'tags', 'marketVariant' ]);
         const queriesLength = queries.length;
         const result: any[] = [];
         // the venue answers every term separately and the same category comes back for each term
@@ -618,7 +612,7 @@ export default class predictfun extends Exchange {
         const orphanSlugs: string[] = [];
         for (let i = 0; i < queriesLength; i++) {
             const request: Dict = {
-                'query': queries[i],
+                'query': this.safeString (queries, i, ''),
                 'limit': limit,
                 'includeResolved': includeResolved,
             };
@@ -671,7 +665,7 @@ export default class predictfun extends Exchange {
             //         "success": true
             //     }
             //
-            const data = this.safeDict (response, 'data', {});
+            const data: Dict = this.safeDict (response, 'data', {});
             const categories = this.safeList (data, 'categories', []) as any[];
             const categoriesLength = categories.length;
             for (let ci = 0; ci < categoriesLength; ci++) {
@@ -715,7 +709,7 @@ export default class predictfun extends Exchange {
             if (!(orphanSlug in seenSlugs)) {
                 seenSlugs[orphanSlug] = true;
                 const markets = orphanMarkets[orphanSlug];
-                const first = this.safeDict (markets, 0, {});
+                const first: Dict = this.safeDict (markets, 0, {});
                 // the market row's 'status' is the registration enum ('REGISTERED' /
                 // 'DEREGISTERED'), while parseEvent () reads the topic vocabulary ('OPEN' /
                 // 'RESOLVED') - copying it verbatim would report resolved: false for a resolved hit
@@ -761,7 +755,7 @@ export default class predictfun extends Exchange {
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    parseEvent (rawTopic: Dict): any {
+    parseEvent (rawTopic: Dict): Dict {
         //
         //     {
         //         "createdAt": "2026-08-26T14:00:02.000Z",
@@ -983,9 +977,8 @@ export default class predictfun extends Exchange {
         }
         const digits = '0123456789';
         const chars = this.stringToCharsArray (text);
-        const charsLength = chars.length;
         let stripped = '';
-        for (let i = 0; i < charsLength; i++) {
+        for (let i = 0; i < chars.length; i++) {
             const ch = chars[i];
             let keep = true;
             if (ch === '$') {
@@ -995,7 +988,7 @@ export default class predictfun extends Exchange {
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
                 const prevIsDigit = (i > 0) && (digits.indexOf (chars[i - 1]) >= 0);
-                const nextIsDigit = ((i + 1) < charsLength) && (digits.indexOf (chars[i + 1]) >= 0);
+                const nextIsDigit = ((i + 1) < chars.length) && (digits.indexOf (chars[i + 1]) >= 0);
                 keep = !(prevIsDigit && nextIsDigit);
             }
             if (keep) {
@@ -1261,7 +1254,7 @@ export default class predictfun extends Exchange {
     override async fetchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const info = this.safeDict (outcomeObj, 'info', {});
+        const info: Dict = this.safeDict (outcomeObj, 'info', {});
         const request: Dict = {
             'id': this.safeString (info, 'marketId'),
         };
@@ -1283,7 +1276,7 @@ export default class predictfun extends Exchange {
         //         "success":true
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'updateTimestampMs');
         // The outcome lables are not the same as the outcome indexSet values, so we need to check the indexSet to determine which outcome is being requested
         const indexSet = this.safeInteger (info, 'indexSet');
@@ -1335,7 +1328,7 @@ export default class predictfun extends Exchange {
     override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const info = this.safeDict (outcomeObj, 'info', {});
+        const info: Dict = this.safeDict (outcomeObj, 'info', {});
         const request: Dict = {
             'id': this.safeString (info, 'marketId'),
         };
@@ -1373,7 +1366,7 @@ export default class predictfun extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         return this.parsePredictionTicker (data, outcomeObj);
     }
 
@@ -1414,15 +1407,16 @@ export default class predictfun extends Exchange {
         //         ]
         //     }
         //
-        const info = this.safeDict (market, 'info', {});
+        const info: Dict = this.safeDict (market, 'info', {});
         const indexSet = this.safeInteger (info, 'indexSet');
-        const rawOutcomes = this.safeList (ticker, 'outcomes', []);
+        const rawOutcomes: Dict[] = this.safeList (ticker, 'outcomes', []);
         const rawOutcomesLength = rawOutcomes.length;
         let rawOutcome: Dict = {};
         let outcomeFound = false;
         for (let i = 0; i < rawOutcomesLength; i++) {
             const candidate = rawOutcomes[i];
-            if (this.safeInteger (candidate, 'indexSet') === indexSet) {
+            const candidateIndexSet = this.safeInteger (candidate, 'indexSet');
+            if (candidateIndexSet === indexSet) {
                 rawOutcome = candidate;
                 outcomeFound = true;
                 break;
@@ -1432,12 +1426,12 @@ export default class predictfun extends Exchange {
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
-            const requested = this.safeOutcomeSymbol (undefined, market);
+            const requested = this.safeString (market, 'outcome', '');
             throw new BadSymbol (this.id + ' fetchTicker() did not find ' + requested + ' among the outcomes of its market');
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
-        const bestBid = this.safeDict (rawOutcome, 'bestBid', {});
-        const bestAsk = this.safeDict (rawOutcome, 'bestAsk', {});
+        const bestBid: Dict = this.safeDict (rawOutcome, 'bestBid', {});
+        const bestAsk: Dict = this.safeDict (rawOutcome, 'bestAsk', {});
         return this.safePredictionTicker ({
             'outcome': this.safeOutcomeSymbol (undefined, market),
             'outcomeId': this.safeString (market, 'outcomeId'),
@@ -1490,10 +1484,10 @@ export default class predictfun extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             outcomeObj = this.outcome (outcome);
-            const info = this.safeDict (outcomeObj, 'info', {});
+            const info: Dict = this.safeDict (outcomeObj, 'info', {});
             request['marketId'] = this.safeString (info, 'marketId');
         }
-        const query = this.omit (params, 'signerAddress');
+        const query: Dict = this.omit (params, 'signerAddress');
         // the endpoint carries no time filter, it pages back from the most recent match, so
         // since is applied client side by parsePredictionTrades
         const response = await this.predictfunGetV1OrdersMatches (this.extend (request, query));
@@ -1506,7 +1500,7 @@ export default class predictfun extends Exchange {
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const entry = data[i];
-            const taker = this.safeDict (entry, 'taker', {});
+            const taker: Dict = this.safeDict (entry, 'taker', {});
             const takerSigner = this.safeStringLower (taker, 'signer');
             if (takerSigner === wallet) {
                 const takerParty = this.extend (taker, {
@@ -1516,7 +1510,7 @@ export default class predictfun extends Exchange {
                 });
                 flattenTrades.push (this.extend (entry, { 'partyToParse': takerParty }));
             }
-            const makers = this.safeList (entry, 'makers', []);
+            const makers: Dict[] = this.safeList (entry, 'makers', []);
             const makersLength = makers.length;
             for (let j = 0; j < makersLength; j++) {
                 const maker = makers[j];
@@ -1550,7 +1544,7 @@ export default class predictfun extends Exchange {
     override async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const info = this.safeDict (outcomeObj, 'info', {});
+        const info: Dict = this.safeDict (outcomeObj, 'info', {});
         const request: Dict = {
             'marketId': this.safeString (info, 'marketId'),
         };
@@ -1598,11 +1592,11 @@ export default class predictfun extends Exchange {
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const entry = this.safeDict (data, i);
-            const taker = this.safeDict (entry, 'taker', {});
-            const takerOutcome = this.safeDict (taker, 'outcome', {});
+            const taker: Dict = this.safeDict (entry, 'taker', {});
+            const takerOutcome: Dict = this.safeDict (taker, 'outcome', {});
             const takerIndexSet = this.safeInteger (takerOutcome, 'indexSet');
             const outcomeIndexSet = this.safeInteger (info, 'indexSet');
-            let partyToParse = this.safeDict (entry, 'taker', {});
+            let partyToParse: Dict = this.safeDict (entry, 'taker', {});
             if (takerIndexSet === outcomeIndexSet) {
                 // a public print carries no takerOrMaker: the unified fetchTrades contract allows
                 // only 'taker' or nothing there, and the leg that matches the requested outcome is
@@ -1615,7 +1609,7 @@ export default class predictfun extends Exchange {
                 partyToParse = this.extend (partyToParse, takerParty);
                 flattenTrades.push (this.extend (entry, { 'partyToParse': partyToParse }));
             } else {
-                const makers = this.safeList (entry, 'makers', []);
+                const makers: Dict[] = this.safeList (entry, 'makers', []);
                 const makersLength = makers.length;
                 const makerParty: Dict = {
                     'role': 'maker',
@@ -1623,7 +1617,7 @@ export default class predictfun extends Exchange {
                 };
                 for (let j = 0; j < makersLength; j++) {
                     const maker = makers[j];
-                    const makerOutcome = this.safeDict (maker, 'outcome', {});
+                    const makerOutcome: Dict = this.safeDict (maker, 'outcome', {});
                     const makerIndexSet = this.safeInteger (makerOutcome, 'indexSet');
                     if (makerIndexSet === outcomeIndexSet) {
                         partyToParse = maker;
@@ -1646,10 +1640,10 @@ export default class predictfun extends Exchange {
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
-        const party = this.safeDict (trade, 'partyToParse', {});
+        const party: Dict = this.safeDict (trade, 'partyToParse', {});
         // fetchMyTrades spans several markets at once, so the row's identity comes from the party
         // it carries rather than from the outcome the caller asked for
-        const partyOutcome = this.safeDict (party, 'outcome', {});
+        const partyOutcome: Dict = this.safeDict (party, 'outcome', {});
         const tokenId = this.safeString (partyOutcome, 'onChainId');
         const outcomeObj = this.outcomeForToken (tokenId, market);
         const role = this.safeString (party, 'role');
@@ -1665,7 +1659,7 @@ export default class predictfun extends Exchange {
         amountStr = Precise.stringDiv (amountStr, '1000000000000000000');
         let side: Str = undefined;
         let order: Str = undefined;
-        let fee: any = undefined;
+        let fee: Fee = undefined;
         const quoteType = this.safeStringLower (party, 'quoteType');
         if (quoteType === 'bid') {
             side = 'buy';
@@ -1805,7 +1799,7 @@ export default class predictfun extends Exchange {
         //
         //     { "data": { "message": "Sign this message to authenticate ..." }, "success": true }
         //
-        const messageData = this.safeDict (messageResponse, 'data', {});
+        const messageData: Dict = this.safeDict (messageResponse, 'data', {});
         const message = this.safeString (messageData, 'message');
         if (message === undefined) {
             throw new AuthenticationError (this.id + ' authenticate() got an auth reply without the "message" field to sign');
@@ -1820,7 +1814,7 @@ export default class predictfun extends Exchange {
         //
         //     { "data": { "token": "eyJhbGciOi..." }, "success": true }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         const token = this.safeString (data, 'token');
         if (token === undefined) {
             throw new AuthenticationError (this.id + ' authenticate() did not return a token');
@@ -1970,14 +1964,14 @@ export default class predictfun extends Exchange {
         // row - signing with the wrong pair places the order under a different verifying contract
         // and the venue answers create_order_hash_mismatch
         const marketSymbol = this.safeString (outcomeObj, 'market');
-        const marketObj = this.safeDict (this.markets, marketSymbol, {});
-        const marketRow = this.safeDict (marketObj, 'info', {});
+        const marketObj: Dict = this.safeDict (this.markets, marketSymbol, {});
+        const marketRow: Dict = this.safeDict (marketObj, 'info', {});
         const marketFeeRateBps = this.safeString (marketRow, 'feeRateBps', '200');  // should be at least 200
         const feeRateBps = this.safeString (paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', marketFeeRateBps);
         const marketIsNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
-        const isNegRisk = this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk);
+        const isNegRisk = (this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', marketIsNegRisk) === true);
         const marketIsYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
-        const isYieldBearing = this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing);
+        const isYieldBearing = (this.safeBool (paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', marketIsYieldBearing) === true);
         const defaultExpiration = this.safeInteger (this.options, 'defaultExpiration', 3600); // 1 hour
         let expirationDelta = defaultExpiration;
         let expiration = this.safeInteger (paramsWarnOnMarketOrderWithoutPrice, 'expiration');
@@ -2049,7 +2043,7 @@ export default class predictfun extends Exchange {
         //         "success ": true
         //     }
         //
-        const result = this.safeDict (response, 'data', {});
+        const result: Dict = this.safeDict (response, 'data', {});
         // the venue answers with an id and a hash and nothing else - no price, size, side or
         // status - so the returned order is built from what was requested and signed, with only
         // the identifiers taken from the response
@@ -2107,7 +2101,7 @@ export default class predictfun extends Exchange {
             const request: Dict = {
                 'address': address,
             };
-            const rest = this.omit (params, 'address');
+            const rest: Dict = this.omit (params, 'address');
             response = await this.predictfunGetV1PositionsAddress (this.extend (request, rest));
         } else {
             // the JWT is what names the wallet whose positions come back
@@ -2139,15 +2133,15 @@ export default class predictfun extends Exchange {
         //     }
         //
         const rows = this.safeList (response, 'data', []);
-        const parsed = this.parsePredictionPositions (rows);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions (rows);
         }
+        const parsed = this.parsePredictionPositions (rows);
         // the venue filters by marketId only, so a set of outcome handles is applied here
         const wanted: Dict = {};
         const wantedOutcomes = this.toArray (outcomes);
         for (let i = 0; i < outcomesLength; i++) {
-            const outcomeObj = this.outcome (wantedOutcomes[i]);
+            const outcomeObj = this.outcome (this.safeString (wantedOutcomes, i));
             const wantedId = this.safeString (outcomeObj, 'outcomeId', '');
             wanted[wantedId] = true;
         }
@@ -2176,7 +2170,7 @@ export default class predictfun extends Exchange {
     override async fetchPosition (outcome: string, params: Dict = {}): Promise<PredictionPosition> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const info = this.safeDict (outcomeObj, 'info', {});
+        const info: Dict = this.safeDict (outcomeObj, 'info', {});
         // scope the call to the outcome's market so the wallet's other positions are not paged through
         const request: Dict = {
             'marketId': this.safeString (info, 'marketId'),
@@ -2197,8 +2191,8 @@ export default class predictfun extends Exchange {
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
     override parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
-        const rawOutcome = this.safeDict (position, 'outcome', {});
-        const rawMarket = this.safeDict (position, 'market', {});
+        const rawOutcome: Dict = this.safeDict (position, 'outcome', {});
+        const rawMarket: Dict = this.safeDict (position, 'market', {});
         const tokenId = this.safeString (rawOutcome, 'onChainId');
         const outcomeObj = this.outcomeForToken (tokenId, market);
         // shares are collateral wei, the usd figures come back already scaled
@@ -2333,8 +2327,8 @@ export default class predictfun extends Exchange {
         }
         // the venue reports hashes only, so each one becomes a row the shared order parser can
         // read: it takes the hash off orderHash and the status through parseOrderStatus
-        const removed = this.safeList (response, 'removed', []);
-        const noop = this.safeList (response, 'noop', []);
+        const removed: string[] = this.safeList (response, 'removed', []);
+        const noop: string[] = this.safeList (response, 'noop', []);
         const rows: Dict[] = [];
         const removedLength = removed.length;
         for (let i = 0; i < removedLength; i++) {
@@ -2403,7 +2397,7 @@ export default class predictfun extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data: Dict = this.safeDict (response, 'data', {});
         return this.parsePredictionOrder (data, outcomeObj);
     }
 
@@ -2644,18 +2638,18 @@ export default class predictfun extends Exchange {
      * @method
      * @name predictfun#handleErrors
      * @description maps the venue's error slugs and messages onto the unified exceptions
-     * @param {int} statusCode the http status code
-     * @param {string} statusText the http status text
+     * @param {int} code the http status code
+     * @param {string} reason the http status text
      * @param {string} url the request url
      * @param {string} method the http method
-     * @param {object} responseHeaders the response headers
-     * @param {string} responseBody the raw response body
+     * @param {object} headers the response headers
+     * @param {string} body the raw response body
      * @param {object} response the parsed response
      * @param {object} requestHeaders the request headers
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    override handleErrors (statusCode: Int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -2663,7 +2657,7 @@ export default class predictfun extends Exchange {
         if (success) {
             return undefined;
         }
-        const feedback = this.id + ' ' + responseBody;
+        const feedback = this.id + ' ' + body;
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -2673,7 +2667,7 @@ export default class predictfun extends Exchange {
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if (statusCode === 401) {
+        if (code === 401) {
             this.options['jwtToken'] = undefined;
             this.options['jwtTokenExpiresAt'] = 0;
         }
@@ -2681,7 +2675,7 @@ export default class predictfun extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if (statusCode === 400) {
+        if (code === 400) {
             throw new BadRequest (feedback);
         }
         throw new ExchangeError (feedback);
@@ -2698,8 +2692,8 @@ export default class predictfun extends Exchange {
      */
     exchangeAddress (isNegRisk: boolean, isYieldBearing: boolean): Str {
         const chainIdValue = this.safeInteger (this.options, 'chainId', 56);
-        const exchanges = this.safeDict (this.options, 'exchanges', {});
-        const byChain = this.safeDict (exchanges, this.numberToString (chainIdValue), {});
+        const exchanges: Dict = this.safeDict (this.options, 'exchanges', {});
+        const byChain: Dict = this.safeDict (exchanges, this.numberToString (chainIdValue), {});
         let identifier = 'CTF_EXCHANGE';
         if (isNegRisk && isYieldBearing) {
             identifier = 'YIELD_BEARING_NEG_RISK_CTF_EXCHANGE';
@@ -2722,8 +2716,8 @@ export default class predictfun extends Exchange {
      */
     conditionalTokensAddress (isNegRisk: boolean, isYieldBearing: boolean): Str {
         const chainIdValue = this.safeInteger (this.options, 'chainId', 56);
-        const tokens = this.safeDict (this.options, 'conditionalTokens', {});
-        const byChain = this.safeDict (tokens, this.numberToString (chainIdValue), {});
+        const tokens: Dict = this.safeDict (this.options, 'conditionalTokens', {});
+        const byChain: Dict = this.safeDict (tokens, this.numberToString (chainIdValue), {});
         let identifier = 'CONDITIONAL_TOKENS';
         if (isNegRisk && isYieldBearing) {
             identifier = 'YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS';
@@ -2745,8 +2739,8 @@ export default class predictfun extends Exchange {
      */
     adapterAddress (isYieldBearing: boolean): Str {
         const chainIdValue = this.safeInteger (this.options, 'chainId', 56);
-        const adapters = this.safeDict (this.options, 'adapters', {});
-        const byChain = this.safeDict (adapters, this.numberToString (chainIdValue), {});
+        const adapters: Dict = this.safeDict (this.options, 'adapters', {});
+        const byChain: Dict = this.safeDict (adapters, this.numberToString (chainIdValue), {});
         let identifier = 'NEG_RISK_ADAPTER';
         if (isYieldBearing) {
             identifier = 'YIELD_BEARING_NEG_RISK_ADAPTER';
@@ -2784,13 +2778,7 @@ export default class predictfun extends Exchange {
         rHex = this.padHexToEven (rHex);
         sHex = this.padHexToEven (sHex);
         const yParity = this.safeInteger (signature, 'v');
-        const signedFields: string[] = [];
-        for (let i = 0; i < fields.length; i++) {
-            signedFields.push (fields[i]);
-        }
-        signedFields.push (this.rlpEncodeBytes (this.intToRlpHex (yParity)));
-        signedFields.push (this.rlpEncodeBytes (rHex));
-        signedFields.push (this.rlpEncodeBytes (sHex));
+        const signedFields: string[] = this.arrayConcat (fields, [ this.rlpEncodeBytes (this.intToRlpHex (yParity)), this.rlpEncodeBytes (rHex), this.rlpEncodeBytes (sHex) ]);
         return '0x02' + this.rlpEncodeList (signedFields);
     }
 
@@ -2818,7 +2806,7 @@ export default class predictfun extends Exchange {
         const side = this.safeStringLower (params, 'side', 'buy');
         const chainId = this.safeInteger (this.options, 'chainId', 56);
         const chainKey = this.numberToString (chainId);
-        const rpcUrls = this.safeDict (this.options, 'rpcUrls', {});
+        const rpcUrls: Dict = this.safeDict (this.options, 'rpcUrls', {});
         const rpcUrl = this.safeString (params, 'rpcUrl', this.safeString (rpcUrls, chainKey));
         let owner = this.safeString (params, 'owner', this.walletAddress);
         if (owner === undefined) {
@@ -2833,10 +2821,10 @@ export default class predictfun extends Exchange {
             await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
             const marketSymbol = this.safeString (outcomeObj, 'market');
-            const marketObj = this.safeDict (this.markets, marketSymbol, {});
-            const marketRow = this.safeDict (marketObj, 'info', {});
-            isNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
-            isYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
+            const marketObj: Dict = this.safeDict (this.markets, marketSymbol, {});
+            const marketRow: Dict = this.safeDict (marketObj, 'info', {});
+            isNegRisk = (this.safeBool (marketRow, 'isNegRisk', false) === true);
+            isYieldBearing = (this.safeBool (marketRow, 'isYieldBearing', false) === true);
         }
         if (side === 'sell') {
             const ctfToken = this.safeString (params, 'token', this.conditionalTokensAddress (isNegRisk, isYieldBearing));
@@ -2865,7 +2853,7 @@ export default class predictfun extends Exchange {
             const receipts: any[] = [];
             const operatorsLength = operators.length;
             for (let i = 0; i < operatorsLength; i++) {
-                const operatorAddress = operators[i];
+                const operatorAddress = this.safeString (operators, i);
                 if (operatorAddress === undefined) {
                     throw new ArgumentsRequired (this.id + ' approve() could not resolve the operator to approve for chain ' + chainKey);
                 }
@@ -2879,7 +2867,7 @@ export default class predictfun extends Exchange {
             }
             return receipts;
         }
-        const collaterals = this.safeDict (this.options, 'collateral', {});
+        const collaterals: Dict = this.safeDict (this.options, 'collateral', {});
         const token = this.safeString (params, 'token', this.safeString (collaterals, chainKey));
         let spender = this.safeString (params, 'spender');
         if (spender === undefined) {
@@ -2920,7 +2908,7 @@ export default class predictfun extends Exchange {
     override async watchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const info = this.safeDict (outcomeObj, 'info', {});
+        const info: Dict = this.safeDict (outcomeObj, 'info', {});
         const marketId = this.safeString (info, 'marketId');
         if (marketId === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrderBook() could not resolve the market id of ' + outcome);
@@ -2963,7 +2951,7 @@ export default class predictfun extends Exchange {
     override async unWatchOrderBook (outcome: string, params: Dict = {}): Promise<any> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const info = this.safeDict (outcomeObj, 'info', {});
+        const info: Dict = this.safeDict (outcomeObj, 'info', {});
         const marketId = this.safeString (info, 'marketId');
         if (marketId === undefined) {
             throw new ArgumentsRequired (this.id + ' unWatchOrderBook() could not resolve the market id of ' + outcome);
@@ -3035,7 +3023,7 @@ export default class predictfun extends Exchange {
      * @param {object} subscription the subscription that request registered, empty when it cannot be attributed
      */
     handleSubscriptionError (client: Client, message: Dict, subscription: Dict) {
-        const rawError = this.safeDict (message, 'error', {});
+        const rawError: Dict = this.safeDict (message, 'error', {});
         const error = new ExchangeError (this.id + ' subscribe request rejected ' + this.json (rawError));
         // watch () registers a subscription before it sends and only sends while the hash is still
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
@@ -3044,7 +3032,7 @@ export default class predictfun extends Exchange {
         if ((subscribeHash !== undefined) && (subscribeHash in client.subscriptions)) {
             delete client.subscriptions[subscribeHash];
         }
-        let messageHashes = this.safeList (subscription, 'messageHashes', []);
+        let messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
         if (this.safeString (subscription, 'topic') === 'walletEvents') {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
@@ -3059,7 +3047,7 @@ export default class predictfun extends Exchange {
             throw error;
         }
         for (let i = 0; i < messageHashesLength; i++) {
-            client.reject (error, messageHashes[i]);
+            client.reject (error, this.safeString (messageHashes, i, ''));
         }
     }
 
@@ -3099,7 +3087,7 @@ export default class predictfun extends Exchange {
         // silently leaving those two languages with a stale cache
         const subMessageHashesLength = subMessageHashes.length;
         for (let i = 0; i < subMessageHashesLength; i++) {
-            const subHash = subMessageHashes[i];
+            const subHash = this.safeString (subMessageHashes, i);
             if ((subHash === 'orders') || (subHash === 'myTrades')) {
                 this.cleanCache ({
                     'topic': subHash,
@@ -3122,7 +3110,7 @@ export default class predictfun extends Exchange {
     override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let messageHash = 'orders';
         let outcomeResolved: Str = outcome;
-        if (outcomeResolved !== undefined) {
+        if (outcome !== undefined) {
             await this.loadOutcome (outcomeResolved);
             const outcomeObj = this.outcome (outcomeResolved);
             outcomeResolved = this.safeOutcomeSymbol (undefined, outcomeObj);
@@ -3157,7 +3145,7 @@ export default class predictfun extends Exchange {
     override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         let messageHash = 'myTrades';
         let outcomeResolved: Str = outcome;
-        if (outcomeResolved !== undefined) {
+        if (outcome !== undefined) {
             await this.loadOutcome (outcomeResolved);
             const outcomeObj = this.outcome (outcomeResolved);
             outcomeResolved = this.safeOutcomeSymbol (undefined, outcomeObj);
@@ -3379,15 +3367,15 @@ export default class predictfun extends Exchange {
      */
     outcomesByMarketId (marketId: Str): any[] {
         const result: any[] = [];
-        const cached = this.outcomes;
-        if ((marketId === undefined) || (cached === undefined)) {
+        if ((marketId === undefined) || (this.outcomes === undefined)) {
             return result;
         }
+        const cached = this.outcomes;
         const handles = Object.keys (cached);
         const handlesLength = handles.length;
         for (let i = 0; i < handlesLength; i++) {
             const outcomeObj = cached[handles[i]];
-            const info = this.safeDict (outcomeObj, 'info', {});
+            const info: Dict = this.safeDict (outcomeObj, 'info', {});
             if (this.safeString (info, 'marketId') === marketId) {
                 result.push (outcomeObj);
             }
@@ -3438,7 +3426,7 @@ export default class predictfun extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data: Dict = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'marketId');
         const timestamp = this.safeInteger (data, 'updateTimestampMs');
         const rawAsks = this.safeList (data, 'asks', []) as any[];
@@ -3470,7 +3458,7 @@ export default class predictfun extends Exchange {
         const outcomesLength = outcomes.length;
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.safeDict (outcomes, i);
-            const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+            const outcomeInfo: Dict = this.safeDict (outcomeObj, 'info', {});
             const isYesOutcome = this.safeInteger (outcomeInfo, 'indexSet') === 1;
             const outcomeHandle = this.safeString (outcomeObj, 'outcome');
             if (outcomeHandle !== undefined) {
@@ -3549,7 +3537,7 @@ export default class predictfun extends Exchange {
         // sends but does not document), orderTransactionSubmitted, orderTransactionSuccess and
         // orderCancelled - the latter arrives with the same envelope and no fill
         //
-        const data = this.safeDict (message, 'data', {});
+        const data: Dict = this.safeDict (message, 'data', {});
         const order = this.parseWalletEventOrder (data);
         this.handleWalletEventOrder (client, order);
         // only a confirmed on-chain settlement is a trade: a submitted transaction has not landed
@@ -3614,15 +3602,16 @@ export default class predictfun extends Exchange {
      * @param {object} details the event's details block
      * @returns {object} the outcome object, or a stub when the market is not cached
      */
-    walletEventOutcome (details: Dict): any {
+    walletEventOutcome (details: Dict): Dict {
         const marketId = this.safeString (details, 'marketId');
         const outcomeIndex = this.safeInteger (details, 'outcomeIndex');
         const outcomes = this.outcomesByMarketId (marketId);
         const outcomesLength = outcomes.length;
         for (let i = 0; i < outcomesLength; i++) {
             const candidate = outcomes[i];
-            const info = this.safeDict (candidate, 'info', {});
-            if (this.safeInteger (info, 'indexSet') === outcomeIndex) {
+            const info: Dict = this.safeDict (candidate, 'info', {});
+            const candidateIndexSet = this.safeInteger (info, 'indexSet');
+            if (candidateIndexSet === outcomeIndex) {
                 return candidate;
             }
         }
@@ -3691,7 +3680,7 @@ export default class predictfun extends Exchange {
         //         }
         //     }
         //
-        const details = this.safeDict (event, 'details', {});
+        const details: Dict = this.safeDict (event, 'details', {});
         const outcomeObj = this.walletEventOutcome (details);
         const eventType = this.safeString (event, 'type');
         const amount = this.safeString (details, 'quantity');
@@ -3767,7 +3756,7 @@ export default class predictfun extends Exchange {
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     parseWalletEventTrade (event: Dict, order: PredictionOrder): PredictionTrade {
-        const fill = this.safeDict (event, 'fill', {});
+        const fill: Dict = this.safeDict (event, 'fill', {});
         // the fill is quoted in wei while the details block is quoted in units, so only these three
         // fields are scaled down
         const price = Precise.stringDiv (this.safeString (fill, 'executedPriceWei'), '1000000000000000000');
@@ -3779,7 +3768,7 @@ export default class predictfun extends Exchange {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         const rawFee = this.safeDict (event, 'fee');
-        let fee: any = undefined;
+        let fee: Fee = undefined;
         if (rawFee !== undefined) {
             const feeType = this.safeString (rawFee, 'type');
             fee = {
@@ -3862,7 +3851,7 @@ export default class predictfun extends Exchange {
             // by it - see handleSubscriptionStatus in pro/binance.ts
             const id = this.safeString (message, 'requestId');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeDict (subscriptionsById, id, {});
+            const subscription: Dict = this.safeDict (subscriptionsById, id, {});
             const success = this.safeBool (message, 'success', false);
             if (!success) {
                 this.handleSubscriptionError (client, message, subscription);
@@ -3890,7 +3879,7 @@ export default class predictfun extends Exchange {
         }
     }
 
-    override nonce (): number {
+    override nonce (): int {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
         return this.milliseconds ();
@@ -3902,14 +3891,12 @@ export default class predictfun extends Exchange {
      * @name predictfun#sign
      * @description builds the request URL and attaches the API key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the API group and access level
+     * @param {string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: string, api: any = 'predictfun', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: string[] = [ 'predictfun' ], method: string = 'GET', params: Dict = {}) {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all
@@ -3918,17 +3905,17 @@ export default class predictfun extends Exchange {
         if ((apiKey === undefined) && !sandboxMode) {
             throw new AuthenticationError (this.id + ' sign() requires the "apiKey" credential for all endpoints');
         }
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
+        const apiGroup = api[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['predictfun'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersValue: any = existingHeaders;
         const authHeaders: Dict = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
@@ -3964,7 +3951,7 @@ export default class predictfun extends Exchange {
         if ((jwtToken !== undefined) && this.inArray (path, walletPaths)) {
             authHeaders['Authorization'] = 'Bearer ' + jwtToken;
         }
-        let bodyValue: any = body;
+        let bodyValue: Str = undefined;
         if (method !== 'GET') {
             if (!sandboxMode) {
                 this.checkRequiredCredentials ();

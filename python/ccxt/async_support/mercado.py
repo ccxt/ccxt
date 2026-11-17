@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class mercado(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mercado, self).describe(), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
@@ -311,7 +311,7 @@ class mercado(Exchange, ImplicitAPI):
         amountLimits = self.safe_dict(self.options, 'limits', {})
         coins = self.to_array(response)
         for i in range(0, len(coins)):
-            coin = coins[i]
+            coin = self.safe_string(coins, i, '')
             baseId = coin
             quoteId = 'BRL'
             base = self.safe_currency_code(baseId)
@@ -515,7 +515,7 @@ class mercado(Exchange, ImplicitAPI):
             response = await self.publicGetCoinTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         data = self.safe_dict(response, 'response_data', {})
         balances = self.safe_dict(data, 'balance', {})
         result = {'info': response}
@@ -583,7 +583,7 @@ class mercado(Exchange, ImplicitAPI):
         # TODO: replace this with a call to parseOrder for unification
         return self.safe_order({
             'info': response,
-            'id': str(response['response_data']['order']['order_id']),
+            'id': self.safe_string(self.safe_value(self.safe_value(response, 'response_data'), 'order'), 'order_id'),
         }, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -631,7 +631,7 @@ class mercado(Exchange, ImplicitAPI):
         order = self.safe_dict(responseData, 'order', {})
         return self.parse_order(order, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             '2': 'open',
             '3': 'canceled',
@@ -668,7 +668,7 @@ class mercado(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'order_id')
         order_type = self.safe_string(order, 'order_type')
         side = None
-        if 'order_type' in order:
+        if order_type is not None:
             side = 'buy' if (order_type == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'coin_pair')
@@ -725,25 +725,25 @@ class mercado(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'coin_pair': market['id'],
-            'order_id': int(id),
+            'order_id': self.parse_to_int(id),
         }
         response = await self.privatePostGetOrder(self.extend(request, params))
         responseData = self.safe_dict(response, 'response_data', {})
         order = self.safe_dict(responseData, 'order')
         return self.parse_order(order, market)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -763,7 +763,7 @@ class mercado(Exchange, ImplicitAPI):
             if code == 'XRP':
                 if tagWithdrawTag is None:
                     if not ('destination_tag' in paramsWithdrawTag):
-                        raise ArgumentsRequired(self.id + ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' + code)
+                        raise ArgumentsRequired(self.id + ' withdraw() requires a tag or destination_tag parameter to withdraw ' + code)
                 else:
                     request['destination_tag'] = tagWithdrawTag
         response = await self.privatePostWithdrawCoin(self.extend(request, paramsWithdrawTag))
@@ -853,7 +853,7 @@ class mercado(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
-            'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
+            'symbol': self.safe_string(market, 'base', '') + '-' + self.safe_string(market, 'quote', ''),  # exceptional endpoint, that needs custom symbol syntax
         }
         # set some default limit, as it's required if user doesn't provide it
         limitResolved = 100 if (limit is None) else limit
@@ -942,23 +942,24 @@ class mercado(Exchange, ImplicitAPI):
     def orders_to_trades(self, orders: list[Order]) -> list[Trade]:
         result = []
         for i in range(0, len(orders)):
-            trades = self.safe_list(orders[i], 'trades', [])
+            trades = self.safe_list(self.safe_value(orders, i), 'trades', [])
             for y in range(0, len(trades)):
                 result.append(trades[y])
         return result
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/'
         query = self.omit(params, self.extract_params(path))
-        isPublic = (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet')
-        privateBody = None
+        isPublic = (apiName == 'public') or (apiName == 'v4Public') or (apiName == 'v4PublicNet')
+        privateBody = ''
         privateHeaders = None
         if isPublic:
             url += self.implode_params(path, params)
@@ -981,13 +982,13 @@ class mercado(Exchange, ImplicitAPI):
             }
         requestBody = privateBody
         if isPublic:
-            requestBody = body
+            requestBody = None
         requestHeaders = privateHeaders
         if isPublic:
-            requestHeaders = headers
+            requestHeaders = None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #

@@ -49,6 +49,10 @@ pub mod bingx_api;
 pub mod bit2c;
 #[cfg(feature = "bit2c")]
 pub mod bit2c_api;
+#[cfg(feature = "bit2me")]
+pub mod bit2me;
+#[cfg(feature = "bit2me")]
+pub mod bit2me_api;
 #[cfg(feature = "bitbank")]
 pub mod bitbank;
 #[cfg(feature = "bitbank")]
@@ -141,10 +145,6 @@ pub mod bybiteu_api;
 pub mod bybitid;
 #[cfg(feature = "bybitid")]
 pub mod bybitid_api;
-#[cfg(feature = "bydfi")]
-pub mod bydfi;
-#[cfg(feature = "bydfi")]
-pub mod bydfi_api;
 #[cfg(feature = "cex")]
 pub mod cex;
 #[cfg(feature = "cex")]
@@ -369,6 +369,10 @@ pub mod phemex_api;
 pub mod poloniex;
 #[cfg(feature = "poloniex")]
 pub mod poloniex_api;
+#[cfg(feature = "polymarket")]
+pub mod polymarket;
+#[cfg(feature = "polymarket")]
+pub mod polymarket_api;
 #[cfg(feature = "revolutx")]
 pub mod revolutx;
 #[cfg(feature = "revolutx")]

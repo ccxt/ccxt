@@ -54,6 +54,8 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			return
 		}
 		this.UpdateProxySettings() // for now this needs to be here
+		// sign() may return a typed nil pointer (*string) as body; unwrap it, otherwise `body != nil` is true and a literal "null" body is sent (rejected with 403 by cloudfront on GET)
+		body = derefScalar(body)
 
 		// Convert url to string
 		urlStr, ok := url.(string)
@@ -68,17 +70,23 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 		}
 
 		// Convert headers to map[string]string
-		headersMap, ok := headers.(map[string]any)
-		if !ok {
+		// unsigned requests carry no headers (sign returns undefined)
+		headersStrMap := make(map[string]string)
+		switch h := headers.(type) {
+		case nil:
+		case map[string]any:
+			for k, v := range h {
+				headersStrMap[k] = fmt.Sprintf("%v", v)
+			}
+		case map[string]string:
+			for k, v := range h {
+				headersStrMap[k] = v
+			}
+		default:
 			panic("headers must be a map[string]any")
 		}
 
-		headersStrMap := make(map[string]string)
-		for k, v := range headersMap {
-			headersStrMap[k] = fmt.Sprintf("%v", v)
-		}
-
-		headersOptions, ok := this.Options.Load("headers")
+		headersOptions, ok := this.Options["headers"]
 		if ok {
 			if headersOptions != nil {
 				for key, value := range headersOptions.(map[string]any) {
@@ -90,6 +98,17 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 				panic("headersOptions should be a map[string]any")
 			}
 
+		}
+
+		// sign() may hand the body over as a *string (a typed nil when there is no body):
+		// a nil pointer boxed in an interface is not nil, so it would be marshalled as
+		// the JSON literal null, and a non-nil pointer would be encoded a second time
+		if bodyPtr, ok := body.(*string); ok {
+			if bodyPtr == nil {
+				body = nil
+			} else {
+				body = *bodyPtr
+			}
 		}
 
 		// check content type for multipart/form-data, used in lighter
@@ -200,12 +219,9 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			panic(networkError)
 		}
 		respHeadersMap := HeaderToMap(resp.Header)
-		// guard the shared bookkeeping fields: concurrent requests on the same
-		// *Exchange would otherwise data-race on these writes
-		this.lastMu.Lock()
-		this.Last_response_headers = respHeadersMap
-		this.LastResponseHeaders = respHeadersMap
-		this.lastMu.Unlock()
+		// hand the response headers to the request book's owner; the request
+		// goroutine never writes the shared bookkeeping fields
+		this.handOffRequestBook(requestBookOp{kind: requestBookResponse, headers: respHeadersMap})
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {
@@ -254,7 +270,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 
 		statusText := http.StatusText(resp.StatusCode)
 		// handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
-		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
+		handleErrorResult := this.DerivedExchange.HandleErrors(int64(resp.StatusCode), statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
 		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {

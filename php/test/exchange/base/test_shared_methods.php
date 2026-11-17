@@ -311,6 +311,17 @@ function assert_equal($exchange, $skipped_properties, $method, $entry, $key, $co
 }
 
 
+function assert_unified_network_code($exchange, $skipped_properties, $method, $entry, $network_code) {
+    // returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+    if ((is_array($skipped_properties) && array_key_exists('network', $skipped_properties)) || ($network_code === null)) {
+        return;
+    }
+    $log_text = log_template($exchange, $method, $entry);
+    $unified_code = $exchange->safe_string($exchange->networkAliases, $network_code, $network_code);
+    assert($unified_code === $network_code, 'network code ' . $network_code . ' is an alias, expected the unified code ' . $unified_code . $log_text);
+}
+
+
 function assert_non_equal($exchange, $skipped_properties, $method, $entry, $key, $compare_to, $allow_null = true) {
     if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
         return;

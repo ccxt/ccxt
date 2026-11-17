@@ -5,7 +5,8 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
+import type { OrderSide, OrderType, Balances, Bool, Dict, Endpoint, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, int } from '../base/types.js';
 import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, PermissionDenied } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -15,7 +16,7 @@ import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, 
  * @augments Exchange
  */
 export default class opinion extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'opinion',
             'name': 'Opinion',
@@ -178,9 +179,9 @@ export default class opinion extends Exchange {
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         const seenEvents: Dict = {};
         const eventsList: any[] = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
+        // every raw (unflattened) row fetched so far, so its length is the raw fetched count
+        const fetchedRawRows: Dict[] = [];
+        for (let page = 1; page <= maxPages; page++) {
             const request: Dict = {
                 'marketType': 2, // all - both standalone binaries and categorical parents
                 'limit': pageLimit,
@@ -190,17 +191,17 @@ export default class opinion extends Exchange {
             const result = this.safeDict (response, 'result', {});
             const rawMarkets: Dict[] = this.safeList (result, 'list', []);
             const rawMarketsLength = rawMarkets.length;
-            fetchedRawCount = this.sum (fetchedRawCount, rawMarketsLength);
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
             const total = this.safeInteger (result, 'total');
             for (let i = 0; i < rawMarketsLength; i++) {
                 const raw = rawMarkets[i];
+                fetchedRawRows.push (raw);
                 const marketType = this.safeInteger (raw, 'marketType');
                 if (marketType === 1) {
                     const event: any = this.parseEvent (raw);
-                    const childMarkets = event['markets'];
+                    const childMarkets = this.safeList (event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
                         flatMarkets.push (childMarkets[ci] as unknown as Market);
@@ -215,10 +216,10 @@ export default class opinion extends Exchange {
                 }
             }
             const collectedLength = flatMarkets.length;
+            const fetchedRawCount = fetchedRawRows.length;
             if ((rawMarketsLength < pageLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
                 break;
             }
-            page = this.sum (page, 1);
         }
         this.setEvents (eventsList);
         const flatMarketsLength = flatMarkets.length;
@@ -304,13 +305,13 @@ export default class opinion extends Exchange {
             this.safeString (raw, 'noTokenId'),
         ];
         const outcomes: any[] = [];
-        let resolvedOutcome = undefined;
+        let resolvedOutcome: Str = undefined;
         for (let i = 0; i < outcomeLabels.length; i++) {
-            const label = outcomeLabels[i];
-            const tokenId = outcomeTokenIds[i];
+            const label = this.safeString (outcomeLabels, i);
+            const tokenId = this.safeString (outcomeTokenIds, i);
             const outcomeHandle = this.slugToOutcomeSymbol (effectiveEventSlug, slug, label);
-            let winner = undefined;
-            let settleFraction = undefined;
+            let winner: Bool = undefined;
+            let settleFraction: Num = undefined;
             if (hasResult) {
                 winner = (tokenId === resultTokenId);
                 settleFraction = winner ? 1 : 0;
@@ -333,7 +334,7 @@ export default class opinion extends Exchange {
         const marketResolvedOutcome = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
-        let expiryTimestamp = undefined;
+        let expiryTimestamp: Int = undefined;
         if (this.safeInteger (raw, 'cutoffAt', 0) !== 0) {
             expiryTimestamp = this.safeTimestamp (raw, 'cutoffAt');
         }
@@ -367,8 +368,8 @@ export default class opinion extends Exchange {
             'expiryDatetime': this.iso8601 (expiryTimestamp),
             'strike': undefined,
             'optionType': undefined,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': this.safeNumber (this.fees['trading'], 'taker'),
+            'maker': this.safeNumber (this.fees['trading'], 'maker'),
             'percentage': true,
             'tierBased': false,
             'feeSide': 'get',
@@ -418,25 +419,17 @@ export default class opinion extends Exchange {
             return this.applyEventFetchParams ([ single ], params, queries);
         }
         const rest = this.omit (params, [ 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
-        const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 20);
-        const userLimit = this.safeInteger (params, 'limit');
+        const pageLimit = this.parseToInt (this.safeInteger (this.options, 'defaultFetchEventsLimit', 20));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
-        let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
-        if (userLimit !== undefined) {
-            fetchCap = userLimit;
-        }
+        const fetchCap = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'maxFetchEventsResults', 100));
         const maxPages = this.safeInteger (this.options, 'maxEventsPages', 50);
         const rawEvents: any[] = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
-            let reqLimit = pageLimit;
-            const remaining = fetchCap - fetchedRawCount;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+        for (let page = 1; page <= maxPages; page++) {
+            const fetchedSoFar = rawEvents.length;
+            const remaining = this.parseToInt (fetchCap - fetchedSoFar);
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -449,15 +442,15 @@ export default class opinion extends Exchange {
             const result = this.safeDict (response, 'result', {});
             const pageEvents = this.safeList (result, 'list', []);
             const pageEventsLength = pageEvents.length;
-            fetchedRawCount = this.sum (fetchedRawCount, pageEventsLength);
             for (let i = 0; i < pageEventsLength; i++) {
                 rawEvents.push (pageEvents[i]);
             }
+            // rawEvents holds every row fetched so far, so its length is the raw fetched count
+            const fetchedRawCount = rawEvents.length;
             const total = this.safeInteger (result, 'total');
             if ((pageEventsLength < reqLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || (fetchedRawCount >= fetchCap)) {
                 break;
             }
-            page = this.sum (page, 1);
         }
         const rawEventsLength = rawEvents.length;
         const parsedEvents: any[] = [];
@@ -511,7 +504,7 @@ export default class opinion extends Exchange {
      * @param {object} rawEvent the raw opinion categorical market object
      * @returns {object} an event structure
      */
-    parseEvent (rawEvent: Dict): any {
+    parseEvent (rawEvent: Dict): PredictionEvent {
         // {
         //     "chainId": "56",
         //     "childMarkets": [
@@ -618,7 +611,7 @@ export default class opinion extends Exchange {
         const statusEnum = this.safeString (rawEvent, 'statusEnum');
         const active = (statusEnum === 'Activated');
         const resolved = (statusEnum === 'Resolved');
-        let end = undefined;
+        let end: Int = undefined;
         if (this.safeInteger (rawEvent, 'cutoffAt', 0) !== 0) {
             end = this.safeTimestamp (rawEvent, 'cutoffAt');
         }
@@ -656,7 +649,7 @@ export default class opinion extends Exchange {
      */
     override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const promises = [
             this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)),
             this.opinionPublicGetTokenOrderbook (this.extend ({ 'token_id': tokenId }, params)),
@@ -747,7 +740,7 @@ export default class opinion extends Exchange {
         const promises: any[] = [];
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
-            const tokenId = outcomeObj['outcomeId'] as string;
+            const tokenId = this.safeString (outcomeObj, 'outcomeId');
             promises.push (this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)));
             promises.push (this.opinionPublicGetTokenOrderbook (this.extend ({ 'token_id': tokenId }, params)));
         }
@@ -756,8 +749,8 @@ export default class opinion extends Exchange {
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const priceIndex = i * 2;
-            const priceResponse = responses[priceIndex];
-            const bookResponse = responses[this.sum (priceIndex, 1)];
+            const priceResponse = this.safeValue (responses, priceIndex);
+            const bookResponse = this.safeValue (responses, this.sum (priceIndex, 1));
             const response: Dict = { 'price': priceResponse, 'book': bookResponse };
             const ticker = this.parsePredictionTicker (response, outcomeObj as any);
             const symbolKey = this.safeString (ticker, 'outcome');
@@ -780,7 +773,7 @@ export default class opinion extends Exchange {
      */
     override async fetchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const request: Dict = {
             'token_id': tokenId,
         };
@@ -819,13 +812,13 @@ export default class opinion extends Exchange {
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (outcome: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        if (!(timeframe in this.timeframes)) {
+        const interval = this.safeString (this.timeframes, timeframe);
+        if (interval === undefined) {
             const supportedKeys = Object.keys (this.timeframes);
             throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join (', '));
         }
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
-        const interval = this.safeString (this.timeframes, timeframe);
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const response = await this.opinionPublicGetTokenPriceHistory (this.extend ({
             'token_id': tokenId,
             'interval': interval,
@@ -957,13 +950,16 @@ export default class opinion extends Exchange {
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, order);
         const sig = this.signMessage (encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
+        return '0x' + this.remove0xPrefix (this.safeString (sig, 'r')) + this.remove0xPrefix (this.safeString (sig, 's')) + this.intToBase16 (this.safeInteger (sig, 'v'));
     }
 
-    opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: number): Dict {
+    opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: Int): Dict {
         let decimalsStr = '1';
-        for (let i = 0; i < decimals; i++) {
-            decimalsStr = decimalsStr + '0';
+        if (decimals !== undefined) {
+            const decimalsCount = this.parseToInt (decimals);
+            for (let i = 0; i < decimalsCount; i++) {
+                decimalsStr = decimalsStr + '0';
+            }
         }
         const amountStr = this.numberToString (amount);
         if (isMarket && (side === 'BUY')) {
@@ -1016,7 +1012,7 @@ export default class opinion extends Exchange {
         await this.loadApiKey ();
         this.checkRequiredCredentials ();
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'] as string;
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const isMarket = (type === 'market');
         const sideStr = (side as string).toUpperCase ();
         if (price === undefined) {
@@ -1036,9 +1032,7 @@ export default class opinion extends Exchange {
         const topicId = this.safeInteger (info, 'marketId');
         const quoteTokenAddress = this.safeString (info, 'quoteToken');
         const quoteToken = await this.loadQuoteToken (quoteTokenAddress);
-        const exchangeAddress = this.safeString (quoteToken, 'ctfExchangeAddress', '');
-        const decimals = this.safeInteger (quoteToken, 'decimal', 18);
-        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, price, decimals);
+        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, price, this.safeInteger (quoteToken, 'decimal', 18));
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
@@ -1066,7 +1060,7 @@ export default class opinion extends Exchange {
             'side': sideInt,
             'signatureType': signatureType,
         };
-        const signature = this.signOpinionOrder (order, exchangeAddress);
+        const signature = this.signOpinionOrder (order, this.safeString (quoteToken, 'ctfExchangeAddress', ''));
         const signatureNo0x = this.remove0xPrefix (signature);
         const orderBody: Dict = this.extend ({
             'salt': salt,
@@ -1118,7 +1112,7 @@ export default class opinion extends Exchange {
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        const status = (canceled === true) ? 'canceled' : undefined;
+        const status = (canceled) ? 'canceled' : undefined;
         return this.safePredictionOrder ({ 'id': id, 'status': status, 'info': response }) as PredictionOrder;
     }
 
@@ -1216,7 +1210,7 @@ export default class opinion extends Exchange {
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         await this.loadApiKey ();
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         const request: Dict = {};
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -1241,7 +1235,7 @@ export default class opinion extends Exchange {
      */
     async fetchOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadApiKey ();
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
         }
@@ -1301,7 +1295,7 @@ export default class opinion extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress');
         }
         await this.loadApiKey ();
-        let outcomeObj: any = undefined;
+        let outcomeObj: Market = undefined;
         const request: Dict = { 'walletAddress': this.walletAddress };
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
@@ -1334,12 +1328,9 @@ export default class opinion extends Exchange {
      * @param {int} marketId the numeric market id
      * @returns {object} the parsed market
      */
-    async loadTradeMarket (marketId: Int): Promise<Market> {
-        if (marketId === undefined) {
-            throw new ArgumentsRequired (this.id + ' loadTradeMarket() requires a marketId');
-        }
+    async loadTradeMarket (marketId: int): Promise<Market> {
         const cacheKey = 'tradeMarketsById';
-        const cached = this.safeDict (this.options, cacheKey, {});
+        const cached: Dict = this.safeDict (this.options, cacheKey, {});
         const idStr = marketId.toString ();
         const existing = this.safeDict (cached, idStr);
         if (existing !== undefined) {
@@ -1427,7 +1418,7 @@ export default class opinion extends Exchange {
      * @param {object} response the raw user-balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const data = this.safeDict (response, 'result', {});
         const balances: Dict[] = this.safeList (data, 'balances', []);
@@ -1467,10 +1458,10 @@ export default class opinion extends Exchange {
         const response = await this.opinionPrivateGetPositionsUserWalletAddress (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
         const positions = this.safeList (result, 'list', []);
-        const parsed = this.parsePredictionPositions (positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions (positions);
         }
+        const parsed = this.parsePredictionPositions (positions);
         const wantedTokenIds: Dict = {};
         // copy to a plain list so the strict null checks see one shape
         const outcomesList: string[] = (outcomes === undefined) ? [] : outcomes;
@@ -1526,8 +1517,8 @@ export default class opinion extends Exchange {
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         // assign before padStart so the PHP str_pad regex matches
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString (signature, 'r', '');
+        const sRaw = this.safeString (signature, 's', '');
         const r = rRaw.padStart (64, '0');
         const s = sRaw.padStart (64, '0');
         return {
@@ -1562,7 +1553,7 @@ export default class opinion extends Exchange {
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, messageData);
         const sig = this.signMessage (encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
+        return '0x' + this.remove0xPrefix (this.safeString (sig, 'r')) + this.remove0xPrefix (this.safeString (sig, 's')) + this.intToBase16 (this.safeInteger (sig, 'v'));
     }
 
     /**
@@ -1635,7 +1626,7 @@ export default class opinion extends Exchange {
         if ((this.walletAddress === undefined) || (this.privateKey === undefined)) {
             throw new AuthenticationError (this.id + ' private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one');
         }
-        let creds = undefined;
+        let creds: NullableDict = undefined;
         try {
             creds = await this.fetchApiKey ();
         } catch (e) {
@@ -1657,7 +1648,8 @@ export default class opinion extends Exchange {
         this.options['apiKey'] = creds['apiKey'];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = creds['apiKey'] as string;
+        // an empty string, not undefined: the strict base types the credential as string
+        this.apiKey = this.safeString (creds, 'apiKey', '') as string;
         return creds;
     }
 
@@ -1696,16 +1688,16 @@ export default class opinion extends Exchange {
     async subscribeOpinionChannel (messageHash: string, channel: string, marketId: Int): Promise<any> {
         await this.loadApiKey ();
         const url = this.opinionWsUrl ();
-        const subscriptionKey = channel + ':' + this.numberToString (marketId);
         const subscribeMsg: Dict = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString (subscribeMsg, 'marketId', '');
         return await this.watch (url, messageHash, subscribeMsg, subscriptionKey);
     }
 
-    override handleMessage (client: any, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         // every data payload carries its channel name in msgType; frames without one -
         // subscribe acks and heartbeat echoes - carry nothing to route
         const msgType = this.safeString (message, 'msgType');
@@ -1734,7 +1726,7 @@ export default class opinion extends Exchange {
      * @param {int} outcomeSide 1 for the yes token, 2 for the no token
      * @returns {object} the outcome object, or undefined
      */
-    opinionOutcomeByMarketIdSide (marketId: Int, outcomeSide: Int): any {
+    opinionOutcomeByMarketIdSide (marketId: Int, outcomeSide: Int): NullableDict {
         if ((marketId === undefined) || (this.markets === undefined)) {
             return undefined;
         }
@@ -1772,16 +1764,16 @@ export default class opinion extends Exchange {
         await this.loadApiKey ();
         const url = this.opinionWsUrl ();
         const client = this.client (url);
-        const subscriptionKey = channel + ':' + this.numberToString (marketId);
-        const isNewSubscription = this.safeValue (client.subscriptions, subscriptionKey) === undefined;
-        if (isNewSubscription) {
-            await this.seedOrderBook (outcome, sym, limit);
-        }
         const subscribeMsg: Dict = {
             'action': 'SUBSCRIBE',
             'channel': channel,
             'marketId': marketId,
         };
+        const subscriptionKey = channel + ':' + this.safeString (subscribeMsg, 'marketId', '');
+        const isNewSubscription = this.safeValue (client.subscriptions, subscriptionKey) === undefined;
+        if (isNewSubscription) {
+            await this.seedOrderBook (outcome, sym, limit);
+        }
         const future = this.watch (url, messageHash, subscribeMsg, subscriptionKey);
         if (isNewSubscription) {
             // return the freshly-seeded book immediately instead of blocking until the next delta
@@ -1799,7 +1791,7 @@ export default class opinion extends Exchange {
         this.orderbooks[sym as string] = orderbook;
     }
 
-    handleOrderBook (client: any, message: Dict) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "marketId": 2764,
@@ -1817,7 +1809,7 @@ export default class opinion extends Exchange {
         if (sym === undefined) {
             return;
         }
-        if (this.safeValue (this.orderbooks, sym) === undefined) {
+        if (!(sym in this.orderbooks)) {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
         }
@@ -1850,7 +1842,7 @@ export default class opinion extends Exchange {
         return await this.subscribeOpinionChannel (messageHash, 'market.last.price', marketId);
     }
 
-    handleTicker (client: any, message: Dict) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -1878,7 +1870,9 @@ export default class opinion extends Exchange {
             'last': last,
             'info': message,
         }, outcomeObj);
-        this.tickers[sym] = ticker as any;
+        const cachedTickers = this.safeDict (this.options, 'wsTickers', {});
+        cachedTickers[sym] = ticker;
+        this.options['wsTickers'] = cachedTickers;
         client.resolve (ticker, 'ticker::' + sym);
     }
 
@@ -1903,7 +1897,7 @@ export default class opinion extends Exchange {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleTrades (client: any, message: Dict) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -2004,7 +1998,7 @@ export default class opinion extends Exchange {
         return undefined;
     }
 
-    handleOrder (client: any, message: Dict) {
+    handleOrder (client: Client, message: Dict) {
         //
         //     {
         //         "orderUpdateType": "orderConfirm",
@@ -2097,7 +2091,7 @@ export default class opinion extends Exchange {
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleMyTrade (client: any, message: Dict) {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //     {
         //         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",
@@ -2154,7 +2148,7 @@ export default class opinion extends Exchange {
         client.resolve (stored, 'myTrades');
     }
 
-    override handleErrors (code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -2175,21 +2169,19 @@ export default class opinion extends Exchange {
      * @name opinion#sign
      * @description builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: any = 'opinion', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
-        const access: string = typeof api === 'string' ? 'public' : api[1];
+    override sign (path: string, api: string[] = [ 'opinion' ], method: string = 'GET', params: Dict = {}) {
+        const apiGroup = api[0];
+        const access = api[1];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['opinion'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersExtended: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -2201,10 +2193,9 @@ export default class opinion extends Exchange {
                     throw new ArgumentsRequired (this.id + ' ' + path + ' requires a walletAddress and privateKey');
                 }
                 const actionByMethod: Dict = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
-                const action = this.safeString (actionByMethod, method, 'get');
                 const timestamp = this.numberToString (this.seconds ());
                 headersExtended['OPINION_ADDRESS'] = this.walletAddress;
-                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, action, timestamp);
+                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth (this.walletAddress, this.safeString (actionByMethod, method, 'get'), timestamp);
                 headersExtended['OPINION_TIMESTAMP'] = timestamp;
             } else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
@@ -2217,7 +2208,7 @@ export default class opinion extends Exchange {
                 headersExtended['apikey'] = apiKey;
             }
         }
-        let bodyValue: any = body;
+        let bodyValue: any = undefined;
         if (method === 'GET') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);

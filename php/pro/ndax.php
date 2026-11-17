@@ -11,7 +11,7 @@ use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 
 class ndax extends \ccxt\async\ndax {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -62,9 +62,10 @@ class ndax extends \ccxt\async\ndax {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $marketId = $this->safe_string($market, 'id', '');
         $name = 'SubscribeLevel1';
-        $messageHash = $name . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
+        $messageHash = $name . ':' . $marketId;
+        $url = $this->safe_string($this->safe_dict($this->urls, 'api', array()), 'ws');
         $requestId = $this->request_id();
         $payload = array(
             'OMSId' => $omsId,
@@ -109,13 +110,14 @@ class ndax extends \ccxt\async\ndax {
         //     }
         //
         $ticker = $this->parse_ticker($payload);
-        $symbol = $ticker['symbol'];
+        $symbol = $this->safe_string($ticker, 'symbol');
         $market = $this->market($symbol);
         if ($symbol !== null) {
             $this->tickers[$symbol] = $ticker;
         }
+        $marketId = $this->safe_string($market, 'id', '');
         $name = 'SubscribeLevel1';
-        $messageHash = $name . ':' . $market['id'];
+        $messageHash = $name . ':' . $marketId;
         $client->resolve($ticker, $messageHash);
     }
 
@@ -140,10 +142,11 @@ class ndax extends \ccxt\async\ndax {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
         $name = 'SubscribeTrades';
-        $messageHash = $name . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
+        $messageHash = $name . ':' . $marketId;
+        $url = $this->safe_string($this->safe_dict($this->urls, 'api', array()), 'ws');
         $requestId = $this->request_id();
         $payload = array(
             'OMSId' => $omsId,
@@ -190,7 +193,7 @@ class ndax extends \ccxt\async\ndax {
         $updates = array();
         for ($i = 0; $i < count($payload); $i++) {
             $trade = $this->parse_trade($payload[$i]);
-            $symbol = $trade['symbol'];
+            $symbol = $this->safe_string($trade, 'symbol');
             $tradesArray = ($symbol === null) ? null : $this->safe_value($this->trades, $symbol);
             if ($tradesArray === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -208,7 +211,8 @@ class ndax extends \ccxt\async\ndax {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $messageHash = $name . ':' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $messageHash = $name . ':' . $marketId;
             $tradesArray = $this->safe_value($this->trades, $symbol);
             $client->resolve($tradesArray, $messageHash);
         }
@@ -236,15 +240,16 @@ class ndax extends \ccxt\async\ndax {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
         $name = 'SubscribeTicker';
-        $messageHash = $name . ':' . $timeframe . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
+        $messageHash = $name . ':' . $timeframe . ':' . $marketId;
+        $url = $this->safe_string($this->safe_dict($this->urls, 'api', array()), 'ws');
         $requestId = $this->request_id();
         $payload = array(
             'OMSId' => $omsId,
             'InstrumentId' => $this->safe_integer($market, 'id'), // conditionally optional
-            'Interval' => intval($this->safe_string($this->timeframes, $timeframe, $timeframe)),
+            'Interval' => $this->parse_to_int($this->safe_string($this->timeframes, $timeframe, $timeframe)),
             'IncludeLastCount' => 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         );
         $request = array(
@@ -293,22 +298,21 @@ class ndax extends \ccxt\async\ndax {
             $ohlcv = $this->safe_list($payload, $i);
             $marketId = $this->safe_string($ohlcv, 8);
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
-            if ($marketId !== null) {
-                $updates[$marketId] = array();
-            }
+            $symbol = $this->safe_string($market, 'symbol', '');
+            $marketUpdates = array();
             $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
             for ($j = 0; $j < count($keys); $j++) {
                 $timeframe = $keys[$j];
                 $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-                $duration = intval($interval) * 1000;
+                $duration = $this->parse_to_int($interval) * 1000;
                 $timestamp = $this->safe_integer($ohlcv, 0);
                 if ($timestamp === null) {
                     continue;
                 }
+                $candleTimestamp = $this->parse_to_int(($timestamp / $duration) * $duration);
                 $parsed = array(
-                    $this->parse_to_int(($timestamp / $duration) * $duration),
+                    $candleTimestamp,
                     $this->safe_float($ohlcv, 3),
                     $this->safe_float($ohlcv, 1),
                     $this->safe_float($ohlcv, 2),
@@ -317,46 +321,57 @@ class ndax extends \ccxt\async\ndax {
                 );
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
                 $length = count($stored);
-                if (($length > 0) && ($parsed[0] === $stored[$length - 1][0])) {
-                    $previous = $stored[$length - 1];
-                    $high = $parsed[1];
-                    if ($parsed[1] === null) {
-                        $high = $previous[1];
-                    } elseif ($previous[1] !== null) {
-                        $high = max($parsed[1], $previous[1]);
+                $previous = $this->safe_value($stored, $length - 1);
+                $previousTimestamp = $this->safe_integer($previous, 0);
+                if (($length > 0) && ($previousTimestamp !== null) && ($previousTimestamp === $candleTimestamp)) {
+                    $parsedHigh = $this->safe_float($ohlcv, 1);
+                    $previousHigh = $this->safe_float($previous, 1);
+                    $high = $previousHigh;
+                    if ($parsedHigh !== null) {
+                        $high = $parsedHigh;
+                        if (($previousHigh !== null) && ($previousHigh > $parsedHigh)) {
+                            $high = $previousHigh;
+                        }
                     }
-                    $low = $parsed[2];
-                    if ($parsed[2] === null) {
-                        $low = $previous[2];
-                    } elseif ($previous[2] !== null) {
-                        $low = min($parsed[2], $previous[2]);
+                    $parsedLow = $this->safe_float($ohlcv, 2);
+                    $previousLow = $this->safe_float($previous, 2);
+                    $low = $previousLow;
+                    if ($parsedLow !== null) {
+                        $low = $parsedLow;
+                        if (($previousLow !== null) && ($parsedLow > $previousLow)) {
+                            $low = $previousLow;
+                        }
                     }
                     $stored[$length - 1] = array(
-                        $parsed[0],
-                        $previous[1],
+                        $candleTimestamp,
+                        $this->safe_float($previous, 1),
                         $high,
                         $low,
-                        $parsed[4],
-                        $this->sum($parsed[5], $previous[5]),
+                        $this->safe_float($ohlcv, 4),
+                        $this->sum($this->safe_float($ohlcv, 5), $this->safe_float($previous, 5)),
                     );
                     if ($marketId !== null) {
-                        $updates[$marketId][$timeframe] = true;
+                        $marketUpdates[$timeframe] = true;
                     }
                 } else {
-                    if (($length > 0) && ($this->parse_to_int($parsed[0]) < $this->parse_to_int($stored[$length - 1][0]))) {
-                        continue;
-                    } else {
-                        $stored[] = $parsed;
-                        $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                        if ($length >= $limit) {
-                            array_shift($stored);
+                    if ($length > 0) {
+                        if (($previousTimestamp !== null) && ($previousTimestamp > $candleTimestamp)) {
+                            continue;
                         }
-                        if ($marketId !== null) {
-                            $updates[$marketId][$timeframe] = true;
-                        }
+                    }
+                    $stored[] = $parsed;
+                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                    if ($length >= $limit) {
+                        array_shift($stored);
+                    }
+                    if ($marketId !== null) {
+                        $marketUpdates[$timeframe] = true;
                     }
                 }
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
+            }
+            if ($marketId !== null) {
+                $updates[$marketId] = $marketUpdates;
             }
         }
         $name = 'SubscribeTicker';
@@ -368,8 +383,8 @@ class ndax extends \ccxt\async\ndax {
                 $timeframe = $timeframes[$j];
                 $messageHash = $name . ':' . $timeframe . ':' . $marketId;
                 $market = $this->safe_market($marketId);
-                $symbol = $market['symbol'];
-                $stored = $this->safe_list($this->ohlcvs[$symbol], $timeframe, array());
+                $symbol = $this->safe_string($market, 'symbol', '');
+                $stored = $this->safe_list($this->safe_value($this->ohlcvs, $symbol), $timeframe, array());
                 $client->resolve($stored, $messageHash);
             }
         }
@@ -395,10 +410,11 @@ class ndax extends \ccxt\async\ndax {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
         $name = 'SubscribeLevel2';
-        $messageHash = $name . ':' . $market['id'];
-        $url = $this->urls['api']['ws'];
+        $messageHash = $name . ':' . $marketId;
+        $url = $this->safe_string($this->safe_dict($this->urls, 'api', array()), 'ws');
         $requestId = $this->request_id();
         $limitValue = ($limit === null) ? 100 : $limit;
         $payload = array(
@@ -458,30 +474,31 @@ class ndax extends \ccxt\async\ndax {
             return;
         }
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             return;
         }
-        $timestamp = null;
-        $nonce = null;
+        // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
+        $timestamp = $this->safe_integer($firstBidAsk, 2);
+        $nonce = $this->safe_integer($firstBidAsk, 0);
         for ($i = 0; $i < count($payload); $i++) {
             $bidask = $this->safe_list($payload, $i);
             if ($timestamp === null) {
                 $timestamp = $this->safe_integer($bidask, 2);
             } else {
                 $newTimestamp = $this->safe_integer($bidask, 2);
-                $currentTimestampValue = ($timestamp === null) ? 0 : $timestamp;
-                $newTimestampValue = ($newTimestamp === null) ? 0 : $newTimestamp;
-                $timestamp = max($currentTimestampValue, $newTimestampValue);
+                if (($newTimestamp !== null) && ($newTimestamp > $timestamp)) {
+                    $timestamp = $newTimestamp;
+                }
             }
             if ($nonce === null) {
                 $nonce = $this->safe_integer($bidask, 0);
             } else {
                 $newNonce = $this->safe_integer($bidask, 0);
-                $currentNonceValue = ($nonce === null) ? 0 : $nonce;
-                $newNonceValue = ($newNonce === null) ? 0 : $newNonce;
-                $nonce = max($currentNonceValue, $newNonceValue);
+                if (($newNonce !== null) && ($newNonce > $nonce)) {
+                    $nonce = $newNonce;
+                }
             }
             // 0 new, 1 update, 2 remove
             $type = $this->safe_integer($bidask, 3);
@@ -535,12 +552,19 @@ class ndax extends \ccxt\async\ndax {
         //     ]
         //
         $symbol = $this->safe_string($subscription, 'symbol');
+        if ($symbol === null) {
+            return;
+        }
         $snapshot = $this->parse_order_book($payload, $symbol);
         $limit = $this->safe_integer($subscription, 'limit');
-        $orderbook = $this->order_book($snapshot, $limit);
-        if ($symbol !== null) {
-            $this->orderbooks[$symbol] = $orderbook;
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook->reset($snapshot);
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $client->resolve($orderbook, $messageHash);
     }
@@ -604,7 +628,7 @@ class ndax extends \ccxt\async\ndax {
             'TickerDataUpdateEvent' => array($this, 'handle_ohlcv'),
         );
         $event = $this->safe_string($message, 'n');
-        $method = ($event === null) ? null : $this->safe_value($methods, $event);
+        $method = $this->safe_value($methods, $event);
         if ($method !== null) {
             $method($client, $message);
         }

@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class blockchaincom(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(blockchaincom, self).describe(), {
             'id': 'blockchaincom',
             'secret': None,
@@ -435,9 +435,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.fetch_l3_order_book(symbol, limit, params)
+        return self.fetch_l2_order_book(symbol, limit, params)
 
-    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
+    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBookL3:
         """
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -457,9 +457,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         if limit is not None:
             request['depth'] = limit
         response = self.publicGetL3Symbol(self.extend(request, params))
-        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book_l3(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty', 'num')
 
-    def fetch_l2_order_book(self, symbol: str, limit: Int = None, params: dict = {}):
+    def fetch_l2_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -833,11 +833,11 @@ class blockchaincom(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'timestamp')
         datetime = self.iso8601(timestamp)
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
-            feeCurrency = marketResolved['quote']
+            feeCurrency = self.safe_string(marketResolved, 'quote', '')
             fee = {'cost': feeCostString, 'currency': feeCurrency}
         return self.safe_trade({
             'id': tradeId,
@@ -955,12 +955,14 @@ class blockchaincom(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         state = self.safe_string(transaction, 'state')
-        if 'depositId' in transaction:
+        depositId = self.safe_string(transaction, 'depositId')
+        withdrawalId = self.safe_string(transaction, 'withdrawalId')
+        if depositId is not None:
             type = 'deposit'
-            id = self.safe_string(transaction, 'depositId')
-        elif 'withdrawalId' in transaction:
+            id = depositId
+        elif withdrawalId is not None:
             type = 'withdrawal'
-            id = self.safe_string(transaction, 'withdrawalId')
+            id = withdrawalId
         feeCost = self.safe_number(transaction, 'fee') if (type == 'withdrawal') else None
         fee = None
         if feeCost is not None:
@@ -990,7 +992,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -999,8 +1001,8 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -1202,25 +1204,26 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestPath = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + requestPath
         query = self.omit(params, self.extract_params(path))
-        isPrivate = (api == 'private')
+        isPrivate = (apiName == 'private')
         privateHeaders = {
             'X-API-Token': self.secret,
         }
-        requestHeaders = headers
+        requestHeaders = None
         if isPrivate:
             requestHeaders = privateHeaders
         isPrivatePost = isPrivate and (method != 'GET')
-        requestBody = body
+        requestBody = None
         if isPrivatePost:
             requestBody = self.json(query)
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif isPrivate:
@@ -1232,7 +1235,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 privateHeaders['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if response is None:
             return None
@@ -1242,8 +1245,8 @@ class blockchaincom(Exchange, ImplicitAPI):
                 raise InsufficientFunds(self.id + ' ' + body)
         errorCode = self.safe_string(response, 'status')
         errorMessage = self.safe_string(response, 'error')
-        if code is not None:
-            feedback = self.id + ' ' + self.json(response)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+        # code is an int: it is never undefined, the guard was dead
+        feedback = self.id + ' ' + self.json(response)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
         return None

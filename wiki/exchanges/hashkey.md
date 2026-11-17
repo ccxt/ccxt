@@ -343,7 +343,7 @@ fetch the deposit address for a currency associated with this account
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code (default is 'USDT') |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.network | <code>string</code> | No | network for fetch deposit address (default is 'ETH') |
+| params.network | <code>string</code> | No | network for fetch deposit address (default is 'ERC20') |
 
 
 ```javascript
@@ -415,15 +415,15 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.network | <code>string</code> | No | network for withdraw |
 | params.clientOrderId | <code>string</code> | No | client order id |
 | params.platform | <code>string</code> | No | the platform to withdraw to (hashkey, HashKey HK) |
 
 
 ```javascript
-hashkey.withdraw (code, amount, address, tag, params?)
+hashkey.withdraw (code, amount, address, params?)
 ```
 
 

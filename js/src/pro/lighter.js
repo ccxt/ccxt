@@ -161,7 +161,7 @@ export default class lighter extends lighterRest {
         const data = this.safeDict(message, 'order_book', {});
         const channel = this.safeString(message, 'channel', '');
         const parts = channel.split(':');
-        const marketId = parts[1];
+        const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'timestamp');
@@ -198,7 +198,7 @@ export default class lighter extends lighterRest {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const request = {
-            'channel': 'order_book/' + market['id'],
+            'channel': 'order_book/' + this.safeString(market, 'id', ''),
         };
         const messageHash = this.getMessageHash('orderbook', symbolValue);
         const orderbook = await this.subscribePublic(messageHash, this.extend(request, params));
@@ -220,7 +220,7 @@ export default class lighter extends lighterRest {
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
         const request = {
-            'channel': 'order_book/' + market['id'],
+            'channel': 'order_book/' + this.safeString(market, 'id', ''),
         };
         const subMessageHash = this.getMessageHash('orderbook', symbolValue);
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -316,11 +316,11 @@ export default class lighter extends lighterRest {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' watchTicker() is only supported for swap markets');
         }
         const request = {
-            'channel': 'market_stats/' + market['id'],
+            'channel': 'market_stats/' + this.safeString(market, 'id', ''),
         };
         const messageHash = this.getMessageHash('ticker', symbolValue);
         return await this.subscribePublic(messageHash, this.extend(request, params));
@@ -340,11 +340,11 @@ export default class lighter extends lighterRest {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' unWatchTicker() is only supported for swap markets');
         }
         const request = {
-            'channel': 'market_stats/' + market['id'],
+            'channel': 'market_stats/' + this.safeString(market, 'id', ''),
         };
         const subMessageHash = this.getMessageHash('ticker', symbolValue);
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -365,7 +365,7 @@ export default class lighter extends lighterRest {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
+        if ((firstMarket !== undefined) && (!this.safeBool(firstMarket, 'swap', false))) {
             throw new NotSupported(this.id + ' watchTickers() is only supported for swap markets');
         }
         const request = {
@@ -411,7 +411,7 @@ export default class lighter extends lighterRest {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
-        if ((firstMarket !== undefined) && (firstMarket['swap'] !== true)) {
+        if ((firstMarket !== undefined) && (!this.safeBool(firstMarket, 'swap', false))) {
             throw new NotSupported(this.id + ' unWatchTickers() is only supported for swap markets');
         }
         const request = {
@@ -502,9 +502,9 @@ export default class lighter extends lighterRest {
         const tradeId = this.safeString(trade, 'trade_id');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
-        const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
+        const isMakerAsk = this.safeBool(trade, 'is_maker_ask', false);
         let side = 'sell';
-        if (isMakerAsk === true) {
+        if (isMakerAsk) {
             side = 'buy';
         }
         return this.safeTrade({
@@ -568,7 +568,7 @@ export default class lighter extends lighterRest {
         const data = this.safeList(message, 'trades', []);
         const channel = this.safeString(message, 'channel', '');
         const parts = channel.split(':');
-        const marketId = parts[1];
+        const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue(this.trades, symbol);
@@ -579,7 +579,7 @@ export default class lighter extends lighterRest {
         }
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const iReversed = dataLength - 1 - i;
+            const iReversed = this.parseToInt(dataLength - 1 - i);
             const trade = this.parseWsTrade(data[iReversed], market);
             stored.append(trade);
         }
@@ -603,7 +603,7 @@ export default class lighter extends lighterRest {
         }
         const market = this.market(symbol);
         const request = {
-            'channel': 'trade/' + market['id'],
+            'channel': 'trade/' + this.safeString(market, 'id', ''),
         };
         const messageHash = this.getMessageHash('trade', this.safeString(market, 'symbol'));
         const trades = await this.subscribePublic(messageHash, this.extend(request, params));
@@ -624,7 +624,7 @@ export default class lighter extends lighterRest {
         }
         const market = this.market(symbol);
         const request = {
-            'channel': 'trade/' + market['id'],
+            'channel': 'trade/' + this.safeString(market, 'id', ''),
         };
         const subMessageHash = this.getMessageHash('trade', this.safeString(market, 'symbol'));
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -664,7 +664,7 @@ export default class lighter extends lighterRest {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const costString = this.safeString(trade, 'usd_amount');
-        const isMakerAsk = this.safeBool(trade, 'is_maker_ask');
+        const isMakerAsk = this.safeBool(trade, 'is_maker_ask', false);
         const accountIndex = this.safeInteger(trade, 'accountIndex');
         const bidAccountId = this.safeInteger(trade, 'bid_account_id');
         const askAccountId = this.safeInteger(trade, 'ask_account_id');
@@ -676,17 +676,17 @@ export default class lighter extends lighterRest {
                 // Own trades should use the account's order side
                 side = 'buy';
                 order = this.safeString(trade, 'bid_id');
-                takerOrMaker = (isMakerAsk === true) ? 'taker' : 'maker';
+                takerOrMaker = isMakerAsk ? 'taker' : 'maker';
             }
             else if (askAccountId === accountIndex) {
                 side = 'sell';
                 order = this.safeString(trade, 'ask_id');
-                takerOrMaker = (isMakerAsk === true) ? 'maker' : 'taker';
+                takerOrMaker = isMakerAsk ? 'maker' : 'taker';
             }
         }
         // public trades use Lighter's taker-side convention
         if (side === undefined) {
-            side = (isMakerAsk === true) ? 'buy' : 'sell';
+            side = isMakerAsk ? 'buy' : 'sell';
         }
         let fee = undefined;
         if (takerOrMaker !== undefined) {
@@ -758,7 +758,7 @@ export default class lighter extends lighterRest {
         //
         const channel = this.safeString(message, 'channel', '');
         const parts = channel.split(':');
-        const accountIndex = parts[1];
+        const accountIndex = this.safeString(parts, 1);
         const data = this.safeDict(message, 'trades', {});
         const marketIds = Object.keys(data);
         const idsLength = marketIds.length;
@@ -778,11 +778,11 @@ export default class lighter extends lighterRest {
             const tradesLength = trades.length;
             for (let j = 0; j < tradesLength; j++) {
                 const jReversed = tradesLength - 1 - j;
-                const tradeRaw = trades[jReversed];
+                const tradeRaw = this.safeDict(trades, jReversed, {});
                 tradeRaw['accountIndex'] = accountIndex;
                 const trade = this.parseWsOrderTrade(tradeRaw, market);
                 stored.append(trade);
-                const symbol = trade['symbol'];
+                const symbol = this.safeString(trade, 'symbol');
                 if (symbol !== undefined) {
                     const symbolSpecificMessageHash = this.getMessageHash('myTrades', symbol);
                     client.resolve(stored, symbolSpecificMessageHash);
@@ -877,9 +877,9 @@ export default class lighter extends lighterRest {
         //     }
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
-        const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask');
+        const isMakerAsk = this.safeBool(liquidation, 'is_maker_ask', false);
         let side = 'sell';
-        if (isMakerAsk === true) {
+        if (isMakerAsk) {
             side = 'buy';
         }
         const contracts = this.safeString(liquidation, 'size');
@@ -943,7 +943,7 @@ export default class lighter extends lighterRest {
         const data = this.safeList(message, 'liquidation_trades', []);
         const channel = this.safeString(message, 'channel', '');
         const parts = channel.split(':');
-        const marketId = parts[1];
+        const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue(this.liquidations, symbol);
@@ -954,7 +954,7 @@ export default class lighter extends lighterRest {
         }
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const iReversed = dataLength - 1 - i;
+            const iReversed = this.parseToInt(dataLength - 1 - i);
             const liquidation = this.parseWsLiquidation(data[iReversed], market);
             stored.append(liquidation);
         }
@@ -978,7 +978,7 @@ export default class lighter extends lighterRest {
         }
         const market = this.market(symbol);
         const request = {
-            'channel': 'trade/' + market['id'],
+            'channel': 'trade/' + this.safeString(market, 'id', ''),
         };
         const messageHash = this.getMessageHash('liquidations', symbol);
         return await this.subscribePublic(messageHash, this.extend(request, params));
@@ -1123,7 +1123,7 @@ export default class lighter extends lighterRest {
         if (symbol !== undefined) {
             const market = this.market(symbol);
             messageHash = this.getMessageHash('orders', this.safeString(market, 'symbol'));
-            request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString(accountIndex);
+            request['channel'] = 'account_orders/' + this.safeString(market, 'id', '') + '/' + this.numberToString(accountIndex);
         }
         else {
             messageHash = this.getMessageHash('orders');
@@ -1155,7 +1155,7 @@ export default class lighter extends lighterRest {
         if (symbol !== undefined) {
             const market = this.market(symbol);
             subMessageHash = this.getMessageHash('orders', this.safeString(market, 'symbol'));
-            request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString(accountIndex);
+            request['channel'] = 'account_orders/' + this.safeString(market, 'id', '') + '/' + this.numberToString(accountIndex);
         }
         else {
             subMessageHash = this.getMessageHash('orders');

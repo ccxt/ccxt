@@ -303,7 +303,7 @@ class independentreserve extends independentreserve$1["default"] {
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'BCH': 'BitcoinCash',
                     'LTC': 'Litecoin',
                     'XRP': 'XrpLedger',
@@ -315,7 +315,7 @@ class independentreserve extends independentreserve$1["default"] {
                     'DOT': 'Polkadot',
                     'ADA': 'Cardano',
                     'SOL': 'Solana',
-                    'TRX': 'Tron',
+                    'TRC20': 'Tron',
                 },
             },
         });
@@ -333,7 +333,8 @@ class independentreserve extends independentreserve$1["default"] {
         const quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes(params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         const limitsPromise = this.publicGetGetOrderMinimumVolumes(params);
-        const [baseCurrencies, quoteCurrencies, limits] = await Promise.all([baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise]);
+        const responses = await Promise.all([baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise]);
+        const limits = this.safeValue(responses, 2);
         //
         //     {
         //         "Xbt": 0.0001,
@@ -343,14 +344,14 @@ class independentreserve extends independentreserve$1["default"] {
         //     }
         //
         const result = [];
-        const baseCurrencyIds = this.toArray(baseCurrencies);
-        const quoteCurrencyIds = this.toArray(quoteCurrencies);
+        const baseCurrencyIds = this.toArray(this.safeValue(responses, 0));
+        const quoteCurrencyIds = this.toArray(this.safeValue(responses, 1));
         for (let i = 0; i < baseCurrencyIds.length; i++) {
-            const baseId = baseCurrencyIds[i];
+            const baseId = this.safeString(baseCurrencyIds, i, '');
             const base = this.safeCurrencyCode(baseId);
             const minAmount = this.safeNumber(limits, baseId);
             for (let j = 0; j < quoteCurrencyIds.length; j++) {
-                const quoteId = quoteCurrencyIds[j];
+                const quoteId = this.safeString(quoteCurrencyIds, j, '');
                 const quote = this.safeCurrencyCode(quoteId);
                 if ((base === undefined) || (quote === undefined)) {
                     continue;
@@ -403,16 +404,17 @@ class independentreserve extends independentreserve$1["default"] {
                         },
                     },
                     'created': undefined,
-                    'info': id,
+                    'info': { 'primaryCurrencyCode': baseId, 'secondaryCurrencyCode': quoteId },
                 });
             }
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+        const accounts = this.toArray(response);
+        for (let i = 0; i < accounts.length; i++) {
+            const balance = this.safeDict(accounts, i);
             const currencyId = this.safeString(balance, 'CurrencyCode');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -436,7 +438,7 @@ class independentreserve extends independentreserve$1["default"] {
             await this.loadMarkets();
         }
         const response = await this.privatePostGetAccounts(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method
@@ -603,8 +605,8 @@ class independentreserve extends independentreserve$1["default"] {
             }
         }
         else if (market !== undefined) {
-            symbol = market['symbol'];
-            base = market['base'];
+            symbol = this.safeString(market, 'symbol');
+            base = this.safeString(market, 'base');
             quote = this.safeString(market, 'quote');
         }
         let orderType = this.safeString2(order, 'Type', 'OrderType');
@@ -723,10 +725,7 @@ class independentreserve extends independentreserve$1["default"] {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 50;
-        }
+        const limitResolved = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
         request['pageSize'] = limitResolved;
         const response = await this.privatePostGetOpenOrders(this.extend(request, params));
@@ -754,10 +753,7 @@ class independentreserve extends independentreserve$1["default"] {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 50;
-        }
+        const limitResolved = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
         request['pageSize'] = limitResolved;
         const response = await this.privatePostGetClosedOrders(this.extend(request, params));
@@ -796,7 +792,7 @@ class independentreserve extends independentreserve$1["default"] {
         return this.parseTrades(data, market, since, limitResolved);
     }
     parseTrade(trade, market = undefined) {
-        const timestamp = this.parse8601(trade['TradeTimestampUtc']);
+        const timestamp = this.parse8601(this.safeString(trade, 'TradeTimestampUtc'));
         const id = this.safeString(trade, 'TradeGuid');
         const orderId = this.safeString(trade, 'OrderGuid');
         const priceString = this.safeString2(trade, 'Price', 'SecondaryCurrencyTradePrice');
@@ -947,7 +943,7 @@ class independentreserve extends independentreserve$1["default"] {
         }
         return this.safeOrder({
             'info': response,
-            'id': response['OrderGuid'],
+            'id': this.safeString(response, 'OrderGuid'),
         }, market);
     }
     /**
@@ -1040,15 +1036,16 @@ class independentreserve extends independentreserve$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1141,13 +1138,14 @@ class independentreserve extends independentreserve$1["default"] {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + path;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
@@ -1155,16 +1153,18 @@ class independentreserve extends independentreserve$1["default"] {
         else {
             this.checkRequiredCredentials();
             // independentreserve requires an increasing nonce
-            const nonce = this.incrementingNonce();
+            const rawNonce = this.incrementingNonce();
+            const nonce = this.parseToInt(rawNonce);
             const auth = [
                 url,
                 'apiKey=' + this.apiKey,
                 'nonce=' + nonce.toString(),
             ];
-            const keys = Object.keys(params);
+            const paramsDict = this.extend({}, params);
+            const keys = Object.keys(paramsDict);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                const value = params[key].toString();
+                const value = this.safeString(paramsDict, key, '');
                 auth.push(key + '=' + value);
             }
             const message = auth.join(',');
@@ -1175,13 +1175,14 @@ class independentreserve extends independentreserve$1["default"] {
             query['signature'] = signature.toUpperCase();
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                query[key] = params[key];
+                query[key] = paramsDict[key];
             }
             const signedBody = this.json(query);
             const signedHeaders = { 'Content-Type': 'application/json' };
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headers = {};
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': headers };
     }
 }
 

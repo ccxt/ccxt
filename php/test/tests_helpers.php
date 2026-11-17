@@ -259,7 +259,7 @@ function set_exchange_prop ($exchange, $prop, $value) {
 }
 function create_dynamic_class ($exchangeId, $originalClass, $args) {
     $async_suffix = IS_SYNCHRONOUS ? '_async' : '_sync';
-    $filePath = sys_get_temp_dir() . '/temp_dynamic_class_' . $exchangeId . $async_suffix . '.php';
+    $filePath = sys_get_temp_dir() . '/temp_dynamic_class_' . $exchangeId . $async_suffix . '_' . getmypid() . '.php';
     $newClassName = $exchangeId . '_mock' . $async_suffix ;
     if (IS_SYNCHRONOUS) {
         $content = '<?php if (!class_exists("'.$newClassName.'"))  {
@@ -323,8 +323,8 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
     }
     file_put_contents ($filePath, $content);
     include_once $filePath;
+    unlink ($filePath);
     $initedClass = new $newClassName($args);
-    // unlink ($filePath);
     return $initedClass;
 }
 
@@ -479,7 +479,7 @@ function inject_ws_message($exchange, $url, $message) {
     // feed one already-json-parsed frame into the exchange's ws message
     // handler - the same entry point the real transport invokes
     $client = $exchange->client($url);
-    $exchange->handle_message($client, $message);
+    $exchange->route_message($client, $message);
 }
 
 function get_ws_sent_messages($exchange, $url) {

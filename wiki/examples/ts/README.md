@@ -8,6 +8,8 @@
 
 - [Arbitrage Pairs](./examples/ts/arbitrage-pairs.md)
 
+- [Backpack Stocks](./examples/ts/backpack-stocks.md)
+
 - [Basic Chart](./examples/ts/basic-chart.md)
 
 - [Basic Orderbook Polling](./examples/ts/basic-orderbook-polling.md)
@@ -39,8 +41,6 @@
 - [Binance Watch Ticker Many Symbols](./examples/ts/binance-watch-ticker-many-symbols.md)
 
 - [Bitfinex Fetch Trades](./examples/ts/bitfinex-fetch-trades.md)
-
-- [Bitmex Browser Cors Proxy](./examples/ts/bitmex-browser-cors-proxy.md)
 
 - [Bitpanda FetchMyTrades Reduce](./examples/ts/bitpanda-fetchMyTrades-reduce.md)
 

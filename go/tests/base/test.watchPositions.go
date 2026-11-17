@@ -41,16 +41,15 @@ func testWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 				}()
 				// try block:
 
-				r := <-exchange.WatchPositionsAsync([]any{symbol})
+				r := <-exchange.(ccxt.IWatchPositions).WatchPositionsAsync([]any{symbol})
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				var rValueBox any = nil
-				if r.Value != nil {
-					rValueBox = r.Value
+				if r.Value == nil {
+					response = nil
+				} else {
+					response = ccxt.PositionsToList(r.Value)
 				}
-				response = (UnWrapType(rValueBox))
-				PanicOnError(response)
 				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}
@@ -58,7 +57,7 @@ func testWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 			}()
 
 		}
-		if success == true {
+		if success {
 			if IsEqual(response, nil) {
 				panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 			}
@@ -96,21 +95,20 @@ func testWatchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 				}()
 				// try block:
 
-				r1 := <-exchange.WatchPositionsAsync([]any{symbol})
+				r1 := <-exchange.(ccxt.IWatchPositions).WatchPositionsAsync([]any{symbol})
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
-				var r1ValueBox any = nil
-				if r1.Value != nil {
-					r1ValueBox = r1.Value
+				if r1.Value == nil {
+					positionsForSymbols = nil
+				} else {
+					positionsForSymbols = ccxt.PositionsToList(r1.Value)
 				}
-				positionsForSymbols = (UnWrapType(r1ValueBox))
-				PanicOnError(positionsForSymbols)
 				return nil
 			}()
 
 		}
-		if success2 == true {
+		if success2 {
 			Assert(IsArray(positionsForSymbols), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbols)))
 			// max theoretical 4 positions: two for one-way-mode and two for two-way mode
 			Assert((GetArrayLength(positionsForSymbols) <= 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbols)))

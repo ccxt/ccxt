@@ -14,7 +14,7 @@ import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, 
  * @augments Exchange
  */
 export default class bitteam extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bitteam',
             'name': 'BIT.TEAM',
@@ -232,10 +232,10 @@ export default class bitteam extends Exchange {
                     'ethereum': 'ERC20',
                     'Tron': 'TRC20',
                     'tron': 'TRC20',
-                    'Binance': 'BSC',
-                    'binance': 'BSC',
-                    'Binance Smart Chain': 'BSC',
-                    'bscscan': 'BSC',
+                    'Binance': 'BEP20',
+                    'binance': 'BEP20',
+                    'Binance Smart Chain': 'BEP20',
+                    'bscscan': 'BEP20',
                     'Bitcoin': 'BTC',
                     'bitcoin': 'BTC',
                     'Litecoin': 'LTC',
@@ -475,7 +475,7 @@ export default class bitteam extends Exchange {
         let minCost: Num = undefined;
         const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
-        if (quoteInUsd === true) {
+        if (quoteInUsd) {
             const settings = this.safeDict (market, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
         }
@@ -682,7 +682,7 @@ export default class bitteam extends Exchange {
             fee = this.parseNumber (withdrawCommissionFixed);
             feesByNetworkId[blockChain] = fee;
         } else {
-            feesByNetworkId = withdrawCommissionFixed;
+            feesByNetworkId = this.extend (withdrawCommissionFixed, {});
         }
         const statuses = this.safeDict (statusesResponse, numericId, {});
         const deposit = this.safeBool (statuses, 'depositStatus');
@@ -1386,7 +1386,7 @@ export default class bitteam extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'accepted': 'open',
             'executed': 'closed',
@@ -1408,7 +1408,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string) {
+    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string): Str {
         const valueRawString = this.safeString (valueObject, valueKey);
         const precisionRawString = this.safeString (preciseObject, precisionKey);
         if (valueRawString === undefined || precisionRawString === undefined) {
@@ -1770,7 +1770,7 @@ export default class bitteam extends Exchange {
         let bestAskVolume: Str = undefined;
         const bids = this.safeList (ticker, 'bids');
         const asks = this.safeList (ticker, 'asks');
-        if ((bids !== undefined) && (Array.isArray (bids)) && (asks !== undefined) && (Array.isArray (asks))) {
+        if ((bids !== undefined) && (asks !== undefined)) {
             const bestBid = this.safeDict (bids, 0, {});
             bestBidPrice = this.safeString (bestBid, 'price');
             bestBidVolume = this.safeString (bestBid, 'quantity');
@@ -2126,7 +2126,7 @@ export default class bitteam extends Exchange {
 
     /**
      * @method
-     * @name betteam#fetchBalance
+     * @name bitteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2140,7 +2140,7 @@ export default class bitteam extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         //     {
         //         "ok": true,
@@ -2425,7 +2425,7 @@ export default class bitteam extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'approving': 'pending',
             'success': 'ok',
@@ -2433,10 +2433,11 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2444,7 +2445,7 @@ export default class bitteam extends Exchange {
         const query = this.urlencode (request);
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'POST') {
                 requestBody = this.json (request);
@@ -2461,12 +2462,12 @@ export default class bitteam extends Exchange {
         } else if (query.length !== 0) {
             url += '?' + query;
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -2474,12 +2475,12 @@ export default class bitteam extends Exchange {
             if (code === 404) {
                 if ((url.indexOf ('/ccxt/order/') >= 0) && (method === 'GET')) {
                     const parts = url.split ('/order/');
-                    const orderId = this.safeString (parts, 1);
+                    const orderId = this.safeString (parts, 1, '');
                     throw new OrderNotFound (this.id + ' order ' + orderId + ' not found');
                 }
                 if (url.indexOf ('/cmc/orderbook/') >= 0) {
                     const parts = url.split ('/cmc/orderbook/');
-                    const symbolId = this.safeString (parts, 1);
+                    const symbolId = this.safeString (parts, 1, '');
                     throw new BadSymbol (this.id + ' symbolId ' + symbolId + ' not found');
                 }
             }

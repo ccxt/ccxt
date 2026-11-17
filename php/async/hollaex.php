@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class hollaex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'hollaex',
             'name' => 'HollaEx',
@@ -280,12 +280,10 @@ class hollaex extends Exchange {
             ),
             'options' => array(
                 // how many seconds before the authenticated request expires
-                'api-expires' => $this->parse_to_int($this->timeout / 1000),
+                'api-expires' => $this->parse_to_int($this->parse_to_int($this->timeout) / 1000),
                 'networks' => array(
                     'BTC' => 'btc',
-                    'ETH' => 'eth',
                     'ERC20' => 'eth',
-                    'TRX' => 'trx',
                     'TRC20' => 'trx',
                     'XRP' => 'xrp',
                     'XLM' => 'xlm',
@@ -370,13 +368,13 @@ class hollaex extends Exchange {
             $market = $this->safe_dict($pairs, $key);
             $baseId = $this->safe_string($market, 'pair_base');
             $quoteId = $this->safe_string($market, 'pair_2');
-            $base = $this->common_currency_code(strtoupper($baseId));
-            $quote = $this->common_currency_code(strtoupper($quoteId));
+            $baseCode = $this->common_currency_code(strtoupper($baseId));
+            $quoteCode = $this->common_currency_code(strtoupper($quoteId));
             $result[] = array(
                 'id' => $this->safe_string($market, 'name'),
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
+                'symbol' => $baseCode . '/' . $quoteCode,
+                'base' => $baseCode,
+                'quote' => $quoteCode,
                 'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
@@ -727,7 +725,7 @@ class hollaex extends Exchange {
         $keys = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $ticker = $tickers[$key];
+            $ticker = $this->safe_value($tickers, $key);
             $marketId = $this->safe_string($ticker, 'symbol', $key);
             $market = $this->safe_market($marketId, null, '-');
             $symbol = $market['symbol'];
@@ -902,7 +900,7 @@ class hollaex extends Exchange {
          * @see https://apidocs.hollaex.com/#tiers
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market $symbols
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -941,8 +939,9 @@ class hollaex extends Exchange {
         $makerFees = $this->safe_dict($fees, 'maker', array());
         $takerFees = $this->safe_dict($fees, 'taker', array());
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $makerString = $this->safe_string($makerFees, $market['id']);
             $takerString = $this->safe_string($takerFees, $market['id']);
@@ -990,17 +989,15 @@ class hollaex extends Exchange {
         if ($paginateOption) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
         }
-        $until = $this->safe_integer($paramsPaginate, 'until');
-        $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
-        $start = $since;
         $now = $this->milliseconds();
-        if ($until === null) {
-            $until = $now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        $until = $this->safe_integer($paramsPaginate, 'until', $now);
+        $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
+        if ($since === null) {
+            $request['from'] = $this->parse_to_int(($until - $timeDelta) / 1000); // convert to seconds
+        } else {
+            $request['from'] = $this->parse_to_int($since / 1000); // convert to seconds
         }
-        if ($start === null) {
-            $start = $until - $timeDelta;
-        }
-        $request['from'] = $this->parse_to_int($start / 1000); // convert to seconds
         $request['to'] = $this->parse_to_int($until / 1000); // convert to seconds
         $paramsOmitted = $this->omit($paramsPaginate, 'until');
         $response = Async\await($this->publicGetChart($this->extend($request, $paramsOmitted)));
@@ -1042,20 +1039,20 @@ class hollaex extends Exchange {
         );
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $timestamp = $this->parse8601($this->safe_string($response, 'updated_at'));
         $result = array(
             'info' => $response,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-        $currenciesById = $this->currencies_by_id;
-        if ($currenciesById === null) {
+        if ($this->currencies_by_id === null) {
             throw new ExchangeError($this->id . ' currencies not loaded');
         }
+        $currenciesById = $this->currencies_by_id;
         $currencyIds = is_array($currenciesById) ? array_keys($currenciesById) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
+            $currencyId = $this->safe_string($currencyIds, $i, '');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($response, $currencyId . '_available');
@@ -1198,14 +1195,14 @@ class hollaex extends Exchange {
 
     private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * fetches information on an $order made by the user
+         * fetches information on an order made by the user
          *
-         * @see https://apidocs.hollaex.com/#get-$order
+         * @see https://apidocs.hollaex.com/#get-order
          *
          * @param {string} $id
-         * @param {string} $symbol unified $symbol of the market the $order was made in
+         * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1236,11 +1233,10 @@ class hollaex extends Exchange {
         //                     "exchange_id": 176
         //                 }
         //             }
-        $order = $response;
-        if ($order === null) {
+        if ($response === null) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find order id ' . $id);
         }
-        return $this->parse_order($order);
+        return $this->parse_order($response);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1319,7 +1315,7 @@ class hollaex extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'new' => 'open',
             'pfilled' => 'open',
@@ -1630,11 +1626,11 @@ class hollaex extends Exchange {
         $this->check_address($address);
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $network = $this->safe_string($depositAddress, 'network');
+        $networkId = $this->safe_string($depositAddress, 'network');
         return array(
             'info' => $depositAddress,
             'currency' => $currencyResolved['code'],
-            'network' => $network,
+            'network' => $this->network_id_to_code($networkId, $currencyResolved['code']),
             'address' => $address,
             'tag' => $tag,
         );
@@ -1710,7 +1706,7 @@ class hollaex extends Exchange {
         if ($network === null) {
             $addresses = $wallet;
         } else {
-            $addresses = $this->filter_by($wallet, 'network', $network);
+            $addresses = $this->filter_by($wallet, 'network', $this->network_code_to_id($network));
         }
         return $this->parse_deposit_addresses($addresses, $codes, false);
     }
@@ -1957,14 +1953,15 @@ class hollaex extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $status = $this->safe_value($transaction, 'status');
-        $dismissed = $this->safe_bool($transaction, 'dismissed');
-        $rejected = $this->safe_bool($transaction, 'rejected');
-        if ($status === true) {
+        $completed = $this->safe_bool($transaction, 'status', false);
+        $dismissed = $this->safe_bool($transaction, 'dismissed', false);
+        $rejected = $this->safe_bool($transaction, 'rejected', false);
+        $status = null;
+        if ($completed) {
             $status = 'ok';
-        } elseif ($dismissed === true) {
+        } elseif ($dismissed) {
             $status = 'canceled';
-        } elseif ($rejected === true) {
+        } elseif ($rejected) {
             $status = 'failed';
         } else {
             $status = 'pending';
@@ -2003,11 +2000,11 @@ class hollaex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2016,12 +2013,12 @@ class hollaex extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2034,14 +2031,13 @@ class hollaex extends Exchange {
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
         }
-        $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $addressWithTag,
             'network' => $this->network_code_to_id($network, $code),
         );
-        $response = Async\await($this->privatePostUserWithdrawal($this->extend($request, $paramsOmitted)));
+        $response = Async\await($this->privatePostUserWithdrawal($this->extend($request, $this->omit($paramsWithdrawTag, 'network'))));
         //
         //     {
         //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -2055,7 +2051,7 @@ class hollaex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //    "bch":{
         //        "id":4,
@@ -2096,10 +2092,10 @@ class hollaex extends Exchange {
                 'fee' => null,
                 'percentage' => null,
             ),
-            'networks' => array(),
         );
-        $allowWithdrawal = $this->safe_bool($fee, 'allow_withdrawal');
-        if ($allowWithdrawal === true) {
+        $networks = array();
+        $allowWithdrawal = $this->safe_bool($fee, 'allow_withdrawal', false);
+        if ($allowWithdrawal) {
             $result['withdraw'] = array( 'fee' => $this->safe_number($fee, 'withdrawal_fee'), 'percentage' => false );
         }
         $withdrawalFees = $this->safe_dict($fee, 'withdrawal_fees');
@@ -2117,12 +2113,13 @@ class hollaex extends Exchange {
                 }
                 $networkCodeUpper = strtoupper($networkCode); // default to the upper case network code
                 $withdrawalFee = $this->safe_number($value, 'value');
-                $result['networks'][$networkCodeUpper] = array(
+                $networks[$networkCodeUpper] = array(
                     'deposit' => null,
                     'withdraw' => $withdrawalFee,
                 );
             }
         }
+        $result['networks'] = $networks;
         return $result;
     }
 
@@ -2180,7 +2177,7 @@ class hollaex extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $query = $this->omit($params, $this->extract_params($path));
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {
@@ -2195,11 +2192,12 @@ class hollaex extends Exchange {
         $url = $apiUrl . $requestPath;
         $requestBody = null;
         $requestHeaders = null;
-        if ($api === 'private') {
+        if ($api[0] === 'private') {
             $this->check_required_credentials();
-            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', $this->parse_to_int($this->timeout / 1000));
+            $timeoutMs = $this->parse_to_int($this->timeout);
+            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', $this->parse_to_int($timeoutMs / 1000));
             $expires = $this->sum($this->seconds(), $defaultExpires);
-            $expiresString = (string) $expires;
+            $expiresString = $this->number_to_string($expires);
             $auth = $method . $requestPath . $expiresString;
             $requestHeaders = array(
                 'api-key' => $this->apiKey,
@@ -2215,17 +2213,18 @@ class hollaex extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $requestHeaders['api-signature'] = $signature;
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // { "message": "Invalid token" }
         if ($response === null) {
             return null;
         }
-        if (($code >= 400) && ($code <= 503)) {
+        $statusCode = $this->parse_to_int($code);
+        if (($statusCode >= 400) && ($statusCode <= 503)) {
             //
             //  { "message": "Invalid token" }
             //

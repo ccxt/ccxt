@@ -16,7 +16,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class coincheck(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coincheck, self).describe(), {
             'id': 'coincheck',
             'name': 'Coincheck',
@@ -267,17 +267,18 @@ class coincheck(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currency(code)
             currencyId = currency['id']
-            if currencyId in response:
+            free = self.safe_string(response, currencyId)
+            if free is not None:
                 account = self.account()
                 reserved = currencyId + '_reserved'
-                account['free'] = self.safe_string(response, currencyId)
+                account['free'] = free
                 account['used'] = self.safe_string(response, reserved)
                 result[code] = account
         return self.safe_balance(result)
@@ -549,10 +550,11 @@ class coincheck(Exchange, ImplicitAPI):
         side = None
         fee = None
         orderId = None
-        if 'liquidity' in trade:
-            if self.safe_string(trade, 'liquidity') == 'T':
+        liquidity = self.safe_string(trade, 'liquidity')
+        if liquidity is not None:
+            if liquidity == 'T':
                 takerOrMaker = 'taker'
-            elif self.safe_string(trade, 'liquidity') == 'M':
+            elif liquidity == 'M':
                 takerOrMaker = 'maker'
             funds = self.safe_dict(trade, 'funds', {})
             amountString = self.safe_string(funds, baseId)
@@ -866,7 +868,7 @@ class coincheck(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # withdrawals
             'pending': 'pending',
@@ -944,10 +946,11 @@ class coincheck(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         bodySigned = None
         headersSigned = None
         apiUrl = self.safe_string(self.urls['api'], 'rest')
@@ -955,20 +958,21 @@ class coincheck(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if len(query) > 0:
+        hasQuery = len(query) > 0
+        if apiName == 'public':
+            if hasQuery:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
             queryString = ''
             if method == 'GET':
-                if len(query) > 0:
+                if hasQuery:
                     url += '?' + self.urlencode(self.keysort(query))
             else:
-                if len(query) > 0:
-                    bodySigned = self.urlencode(self.keysort(query))
-                    queryString = bodySigned
+                if hasQuery:
+                    queryString = self.urlencode(self.keysort(query))
+                    bodySigned = queryString
             auth = nonce + url + queryString
             headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -976,11 +980,11 @@ class coincheck(Exchange, ImplicitAPI):
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
-        headersResolved = headers if (headersSigned is None) else headersSigned
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        headersResolved = headersSigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #
@@ -988,10 +992,10 @@ class coincheck(Exchange, ImplicitAPI):
         #     {"success":false,"error":"invalid authentication"}
         #
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             error = self.safe_string(response, 'error')
             feedback = self.id + ' ' + self.json(response)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-            raise ExchangeError(self.id + ' ' + self.json(response))
+            raise ExchangeError(feedback)
         return None

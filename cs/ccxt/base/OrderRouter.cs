@@ -10,7 +10,7 @@
 //      python/ccxt/base/order_router.py
 //      php/OrderRouter.php
 //      go/v4/exchange_order_router.go
-//      rust/ccxt-base/src/order_router.rs
+//      rust/ccxt-common/src/order_router.rs
 //
 //  Every construct below is deliberately one that TypeScript, Python, PHP, Go and
 //  Rust can express the same way. The rules that keep the six ports honest:
@@ -46,7 +46,7 @@
 //  (RoundHalfUp below); Uri.EscapeDataString escapes characters that
 //  encodeURIComponent leaves alone (EncodeUriComponent below); and JavaScript's
 //  single thread makes concurrent report mutation free, where parallel legs here
-//  really do run on several threads (reportLock below).
+//  really do run on several threads (each leg writes its own report, merged at the join).
 //
 //  This class never moves funds between venues. There is no call to any
 //  funds-transfer endpoint anywhere in it, deliberately and permanently.
@@ -164,6 +164,10 @@ public class OrderRouter
     //  properties are named
     public string apiKey { get; private set; }
 
+    //  sent as the User-Agent header when non-empty, so the router service can attribute
+    //  traffic to the integration that made it
+    public string userAgent { get; private set; }
+
     public string baseUrl { get; private set; }
 
     //  exchangeId -> ccxt exchange instance, optional. See the constructor.
@@ -206,12 +210,6 @@ public class OrderRouter
 
     private readonly HttpClient httpClient = new HttpClient();
 
-    //  JavaScript is single threaded, so the reference mutates its report from
-    //  concurrently pending legs for free. Parallel legs here really do resume
-    //  on several thread-pool threads, so every write to the shared report goes
-    //  through this lock.
-    private readonly object reportLock = new object();
-
     /// <summary>
     /// Creates a client for the CCXT order-router service.
     /// </summary>
@@ -219,7 +217,9 @@ public class OrderRouter
     /// apiKey (optional; the service is public and rate-limits by IP, but a key supplied here is still sent as the x-api-key header), baseUrl (defaults to
     /// https://docs.ccxt.com/router/api), timeoutMs (defaults to 30000) and
     /// maxNotionalUsd (an opt-in guardrail honoured exactly at whatever value
-    /// you choose; omit it, or pass 0, for no cap).
+    /// you choose; omit it, or pass 0, for no cap), userAgent (optional User-Agent header
+    /// sent with every router request so the service can attribute traffic, e.g.
+    /// 'ccxt-mcp/1.2.3 (ccxt 4.5.6)'; omitted or "" keeps HttpClient's default).
     /// </param>
     public OrderRouter(dict config = null)
     {
@@ -227,6 +227,7 @@ public class OrderRouter
         //  the normal case and must not throw. A key supplied anyway is CARRIED rather than
         //  ignored, so the same client works against both servers.
         this.apiKey = this.StringAt(config, "apiKey", "");
+        this.userAgent = this.StringAt(config, "userAgent", "");
         var url = this.StringAt(config, "baseUrl", DefaultBaseUrl);
         while (url.Length > 0 && url[url.Length - 1] == '/')
         {
@@ -1010,6 +1011,10 @@ public class OrderRouter
             {
                 socket.Options.SetRequestHeader("x-request-id", requestId);
             }
+            if (this.userAgent != "")
+            {
+                socket.Options.SetRequestHeader("User-Agent", this.userAgent);
+            }
             try
             {
                 //  the timeout guards the HANDSHAKE only. A stream that has opened is meant to
@@ -1279,6 +1284,13 @@ public class OrderRouter
                         //  the service caps this at 200 characters and mints its own when
                         //  absent, so a longer one is dropped rather than sent and rejected
                         message.Headers.TryAddWithoutValidation("x-request-id", requestId);
+                    }
+                    if (this.userAgent != "")
+                    {
+                        //  only when configured: an empty value keeps HttpClient's own default
+                        //  rather than sending a blank one. (Browsers forbid setting User-Agent,
+                        //  so the TS port silently drops it there; no such restriction here.)
+                        message.Headers.TryAddWithoutValidation("User-Agent", this.userAgent);
                     }
                     if (method == "POST")
                     {
@@ -3223,7 +3235,12 @@ public class OrderRouter
                     groupedIndices[groupIndex].Add(i);
                 }
             }
+            //  Each venue group writes into its own leg report and its own leg results, so a
+            //  running leg holds no reference to anything another leg can touch; the awaiting
+            //  coordinator merges both once every leg has finished.
             var pending = new List<Task>();
+            var legReports = new List<dict>();
+            var legResultLists = new List<list>();
             for (var g = 0; g < groupedIndices.Count; g++)
             {
                 //  PlaceStep contains its own failures and never throws, so
@@ -3232,11 +3249,24 @@ public class OrderRouter
                 //  sibling orders are still live, and Go's promiseAll waits for
                 //  every one — the same source abandoning in-flight orders
                 //  differently per language.
-                pending.Add(this.PlaceVenueGroup(groupedIndices[g], steps, venues, options, usdRates, report, results));
+                var legReport = this.NewLegReport();
+                var legResult = this.NewLegResults(results.Count);
+                legReports.Add(legReport);
+                legResultLists.Add(legResult);
+                pending.Add(this.PlaceVenueGroup(groupedIndices[g], steps, venues, options, usdRates, legReport, legResult));
             }
             for (var i = 0; i < pending.Count; i++)
             {
                 await pending[i];
+            }
+            for (var g = 0; g < legReports.Count; g++)
+            {
+                for (var i = 0; i < groupedIndices[g].Count; i++)
+                {
+                    var legPosition = groupedIndices[g][i];
+                    results[legPosition] = legResultLists[g][legPosition];
+                }
+                this.MergeLegReport(report, legReports[g]);
             }
             for (var i = cursor; i < end; i++)
             {
@@ -3601,15 +3631,8 @@ public class OrderRouter
                 //  recoverable, sizing the next hop from an invented number is not.
                 result["status"] = "outcome_unknown";
                 this.RecordOpenOrder(report, exchangeId, symbol, this.StringAt(result, "orderId", ""), "fill_unconfirmed");
-                //  Read-modify-write on the shared report. The sibling increment on the success
-                //  path below takes the lock; this one did not, so two parallel legs finishing on
-                //  different thread-pool threads could both read the same count and both write
-                //  back one more than it — losing a placement from the tally on exactly the path
-                //  where an order is known to exist and its fill is not.
-                lock (this.reportLock)
-                {
-                    report["ordersPlaced"] = this.NumberAt(report, "ordersPlaced", 0) + 1;
-                }
+                //  This report belongs to one leg; the coordinator sums the counts at the join.
+                report["ordersPlaced"] = this.NumberAt(report, "ordersPlaced", 0) + 1;
                 return result;
             }
             if (filled <= 0)
@@ -3642,10 +3665,7 @@ public class OrderRouter
                 result["status"] = "outcome_unknown";
                 this.RecordOpenOrder(report, exchangeId, symbol, this.StringAt(result, "orderId", ""), "still_open");
             }
-            lock (this.reportLock)
-            {
-                report["ordersPlaced"] = this.NumberAt(report, "ordersPlaced", 0) + 1;
-            }
+            report["ordersPlaced"] = this.NumberAt(report, "ordersPlaced", 0) + 1;
             return result;
         }
         catch (Exception e)
@@ -3756,28 +3776,22 @@ public class OrderRouter
     /// </summary>
     public void RecordUnconfirmedPlacement(dict report, string exchangeId, string symbol, string reason)
     {
-        //  Same list, same lock as RecordOpenOrder. This one was writing to report["openOrders"]
-        //  without it: List<T>.Add is a resize plus a Count increment, so two parallel legs
-        //  appending at once can lose an entry outright or throw out of List's own internals. The
-        //  scan and the append must also be ATOMIC together, or the duplicate check races the
-        //  append it is meant to guard.
-        lock (this.reportLock)
+        //  The report handed in is this caller's alone — the coordinator's, or one leg's —
+        //  so the duplicate scan and the append need no lock.
+        var openOrders = this.ListAt(report, "openOrders");
+        foreach (var entryObject in openOrders)
         {
-            var openOrders = this.ListAt(report, "openOrders");
-            foreach (var entryObject in openOrders)
+            var entry = this.AsDict(entryObject);
+            if (this.StringAt(entry, "exchangeId", "") == exchangeId
+                && this.StringAt(entry, "symbol", "") == symbol
+                && this.StringAt(entry, "reason", "") == reason)
             {
-                var entry = this.AsDict(entryObject);
-                if (this.StringAt(entry, "exchangeId", "") == exchangeId
-                    && this.StringAt(entry, "symbol", "") == symbol
-                    && this.StringAt(entry, "reason", "") == reason)
-                {
-                    return;
-                }
+                return;
             }
-            ((list)report["openOrders"]).Add(new dict() {
-                { "exchangeId", exchangeId }, { "symbol", symbol }, { "orderId", "" }, { "reason", reason },
-            });
         }
+        ((list)report["openOrders"]).Add(new dict() {
+            { "exchangeId", exchangeId }, { "symbol", symbol }, { "orderId", "" }, { "reason", reason },
+        });
     }
 
     public void RecordOpenOrder(dict report, string exchangeId, string symbol, string orderId, string reason)
@@ -3787,18 +3801,92 @@ public class OrderRouter
             //  nothing to point an operator at
             return;
         }
-        lock (this.reportLock)
+        var openOrders = this.ListAt(report, "openOrders");
+        for (var i = 0; i < openOrders.Count; i++)
         {
-            var openOrders = this.ListAt(report, "openOrders");
-            for (var i = 0; i < openOrders.Count; i++)
+            if (this.StringAt(openOrders[i], "orderId", "") == orderId && this.StringAt(openOrders[i], "exchangeId", "") == exchangeId)
+            {
+                return;
+            }
+        }
+        openOrders.Add(new dict() { { "exchangeId", exchangeId }, { "symbol", symbol }, { "orderId", orderId }, { "reason", reason } });
+    }
+
+    /// <summary>
+    /// A leg's own report: the three fields every Record* call writes. The leg that owns it
+    /// is its only writer, and the coordinator merges it when the leg finishes.
+    /// </summary>
+    private dict NewLegReport()
+    {
+        return new dict() {
+            { "ordersPlaced", 0.0 }, { "openOrders", new list() }, { "errors", new list() },
+        };
+    }
+
+    /// <summary>
+    /// A leg's own results list, pre-sized so a leg only ever writes the positions it owns.
+    /// </summary>
+    private list NewLegResults(int size)
+    {
+        var legResults = new list();
+        for (var i = 0; i < size; i++)
+        {
+            legResults.Add(null);
+        }
+        return legResults;
+    }
+
+    /// <summary>
+    /// Folds a finished leg's report into the shared one on the coordinator: the placement
+    /// count sums, and openOrders keeps the union the per-leg duplicate checks would have
+    /// produced, in leg order.
+    /// </summary>
+    private void MergeLegReport(dict report, dict legReport)
+    {
+        var openOrders = this.ListAt(report, "openOrders");
+        var legOpenOrders = this.ListAt(legReport, "openOrders");
+        for (var i = 0; i < legOpenOrders.Count; i++)
+        {
+            if (this.HasOpenOrder(openOrders, legOpenOrders[i]))
+            {
+                continue;
+            }
+            openOrders.Add(legOpenOrders[i]);
+        }
+        var errors = this.ListAt(report, "errors");
+        var legErrors = this.ListAt(legReport, "errors");
+        for (var i = 0; i < legErrors.Count; i++)
+        {
+            errors.Add(legErrors[i]);
+        }
+        report["ordersPlaced"] = this.NumberAt(report, "ordersPlaced", 0) + this.NumberAt(legReport, "ordersPlaced", 0);
+    }
+
+    /// <summary>
+    /// True when this openOrders list already carries the entry — by id when it has one, by
+    /// venue/symbol/reason when it does not, exactly as the two Record* checks do.
+    /// </summary>
+    private bool HasOpenOrder(list openOrders, object candidate)
+    {
+        var orderId = this.StringAt(candidate, "orderId", "");
+        var exchangeId = this.StringAt(candidate, "exchangeId", "");
+        for (var i = 0; i < openOrders.Count; i++)
+        {
+            if (orderId != "")
             {
                 if (this.StringAt(openOrders[i], "orderId", "") == orderId && this.StringAt(openOrders[i], "exchangeId", "") == exchangeId)
                 {
-                    return;
+                    return true;
                 }
             }
-            openOrders.Add(new dict() { { "exchangeId", exchangeId }, { "symbol", symbol }, { "orderId", orderId }, { "reason", reason } });
+            else if (this.StringAt(openOrders[i], "exchangeId", "") == exchangeId
+                && this.StringAt(openOrders[i], "symbol", "") == this.StringAt(candidate, "symbol", "")
+                && this.StringAt(openOrders[i], "reason", "") == this.StringAt(candidate, "reason", ""))
+            {
+                return true;
+            }
         }
+        return false;
     }
 
     /// <summary>
@@ -4171,10 +4259,8 @@ public class OrderRouter
     /// <summary>Appends one error to the report.</summary>
     public void RecordError(dict report, double stepIndex, string exchangeId, string symbol, string code)
     {
-        lock (this.reportLock)
-        {
-            this.ListAt(report, "errors").Add(new dict() { { "stepIndex", stepIndex }, { "exchangeId", exchangeId }, { "symbol", symbol }, { "code", code } });
-        }
+        //  The report is this caller's own: the coordinator's, or the leg it belongs to.
+        this.ListAt(report, "errors").Add(new dict() { { "stepIndex", stepIndex }, { "exchangeId", exchangeId }, { "symbol", symbol }, { "code", code } });
     }
 
     /// <summary>

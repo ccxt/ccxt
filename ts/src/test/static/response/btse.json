@@ -317,6 +317,7 @@
                         "takeProfitPrice": 2500,
                         "stopLossPrice": 1000,
                         "notional": 3.93867999,
+                        "positionMargin": null,
                         "collateral": null,
                         "unrealizedPnl": 0.00112,
                         "realizedPnl": null,
@@ -328,14 +329,14 @@
                         "lastUpdateTimestamp": null,
                         "hedged": false,
                         "maintenanceMargin": 0.02197247,
-                        "maintenanceMarginPercentage": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": 0.005578638035023505,
+                        "initialMargin": 19.69339995,
+                        "initialMarginPercentage": 5,
                         "leverage": 0.2,
                         "liquidationPrice": 0,
                         "marginRatio": null,
                         "marginMode": "cross",
-                        "percentage": null
+                        "percentage": 0
                     }
                 ]
             },

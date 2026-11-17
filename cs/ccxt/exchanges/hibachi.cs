@@ -12,7 +12,7 @@ public partial class hibachi : Exchange
             { "name", "Hibachi" },
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 100 },
-            { "userAgent", getValue(this.userAgents, "chrome") },
+            { "userAgent", (this.userAgents != null && this.userAgents.ContainsKey("chrome") ? this.userAgents["chrome"] : null) },
             { "certified", false },
             { "pro", false },
             { "dex", true },
@@ -123,6 +123,7 @@ public partial class hibachi : Exchange
                     { "private", "https://api.hibachi.xyz" },
                 } },
                 { "www", "https://www.hibachi.xyz/" },
+                { "doc", "https://api-doc.hibachi.xyz/" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://hibachi.xyz/r/ZBL2YFWIHU" },
                 } },
@@ -337,12 +338,12 @@ public partial class hibachi : Exchange
         string? quoteId = this.safeString(market, "settlementSymbol");
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        if (((bs == null)) || ((quote == null)))
-        {
-            return ccxt.BaseExchange.ToDict(null);
-        }
         string? settleId = this.safeString(market, "settlementSymbol");
         string? settle = this.safeCurrencyCode(settleId);
+        if (((bs == null)) || ((quote == null)) || ((settle == null)))
+        {
+            return null;
+        }
         string symbol = ((((bs + "/") + quote) + ":") + settle);
         Int64? created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -372,7 +373,7 @@ public partial class hibachi : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "underlyingDecimals"))) },
-                { "price", (this.parseNumber(this.safeValue(this.safeList(market, "orderbookGranularities", new List<object>() {}), 0)) / 10000) },
+                { "price", this.parseNumber(Precise.stringDiv(this.safeString(this.safeList(market, "orderbookGranularities", new List<object>() {}), 0), "10000")) },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -721,9 +722,10 @@ public partial class hibachi : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        List<object> rawPromises = new List<object> {this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))};
-        List<object> promises = await promiseAll(rawPromises);
-        object pricesResponse = (promises != null && 0 < promises.Count ? promises[0] : null);
+        List<Task<Dictionary<string, object>>> rawPromises = new List<Task<Dictionary<string, object>>> {this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))};
+        var pricesResponsestatsResponseVariable = new List<object>(await Task.WhenAll(rawPromises));
+        var pricesResponse = pricesResponsestatsResponseVariable[0];
+        var statsResponse = pricesResponsestatsResponseVariable[1];
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -736,7 +738,6 @@ public partial class hibachi : Exchange
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        object statsResponse = (promises != null && 1 < promises.Count ? promises[1] : null);
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",
@@ -918,14 +919,6 @@ public partial class hibachi : Exchange
 
     public virtual object orderMessage(IDictionary<string, object> market, object nonce, object feeRate, string? type, string? side, object amount, object price = null)
     {
-        if ((type == null))
-        {
-            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
-        }
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
-        }
         int sideInternal = 0;
         if ((side == "sell"))
         {
@@ -941,8 +934,7 @@ public partial class hibachi : Exchange
         string? amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
         string? feeRateStr = this.numberToString(feeRate);
         IDictionary<string, object> info = this.safeDict(market, "info");
-        string underlying = ("1e" + this.safeString(info, "underlyingDecimals"));
-        string settlement = ("1e" + this.safeString(info, "settlementDecimals"));
+        string underlying = ("1e" + this.safeString(info, "underlyingDecimals", ""));
         string one = "1";
         string feeRateFactor = "100000000"; // 10^8
         string priceFactor = "4294967296"; // 2^32
@@ -968,7 +960,7 @@ public partial class hibachi : Exchange
         if ((type == "limit"))
         {
             string? priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
-            string? priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
+            string? priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), ("1e" + this.safeString(info, "settlementDecimals", ""))), underlying), one, 0);
             string price16 = this.intToBase16(this.parseToInt(priceInternal));
             string pricePadded = (price16 as String).PadLeft(Convert.ToInt32(16), Convert.ToChar("0"));
             // @ts-expect-error
@@ -994,7 +986,7 @@ public partial class hibachi : Exchange
         double? makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
         double? takerFeeValue = ((takerFee == null)) ? 0 : takerFee;
         double? makerFeeValue = ((makerFee == null)) ? 0 : makerFee;
-        double? feeRate = ((double?)mathMax(takerFeeValue, makerFeeValue));
+        double? feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         string sideInternal = "";
         if ((side == "sell"))
         {
@@ -1038,7 +1030,7 @@ public partial class hibachi : Exchange
         {
             request["triggerPrice"] = triggerPrice;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"}));
         return this.extend(request, paramsOmitted);
     }
 
@@ -1090,7 +1082,8 @@ public partial class hibachi : Exchange
         {
             await this.loadMarkets();
         }
-        Int64? nonce = this.incrementingNonce();
+        Int64? nonceValue = this.incrementingNonce();
+        Int64? nonce = this.parseToInt(nonceValue);
         List<object> requestOrders = new List<object>() {};
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -1143,7 +1136,7 @@ public partial class hibachi : Exchange
         double? makerFee = this.safeNumber(market, "maker", 0);
         double? takerFeeValue = ((takerFee == null)) ? 0 : takerFee;
         double? makerFeeValue = ((makerFee == null)) ? 0 : makerFee;
-        double? feeRate = ((double?)mathMax(takerFeeValue, makerFeeValue));
+        double? feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         string signature = this.signMessage(message, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1205,7 +1198,8 @@ public partial class hibachi : Exchange
         {
             await this.loadMarkets();
         }
-        Int64? nonce = this.incrementingNonce();
+        Int64? nonceValue = this.incrementingNonce();
+        Int64? nonce = this.parseToInt(nonceValue);
         List<object> requestOrders = new List<object>() {};
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -1295,7 +1289,7 @@ public partial class hibachi : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            Dictionary<string, object> orderRequest = this.cancelOrderRequest((ids != null && i < ids.Count ? ids[i] : null));
+            Dictionary<string, object> orderRequest = this.cancelOrderRequest(this.safeString(ids, i, ""));
             orderRequest["action"] = "cancel";
             orders.Add(orderRequest);
         }
@@ -1396,11 +1390,11 @@ public partial class hibachi : Exchange
      * @param {string} code unified currency code, only support USDT
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? withdrawAddress = ((address == null) ? null : address.Substring(Math.Max(address.Length - 40, 0)));
@@ -1443,7 +1437,7 @@ public partial class hibachi : Exchange
         return this.milliseconds();
     }
 
-    public virtual string signMessage(object message, object privateKey)
+    public virtual string? signMessage(object message, object privateKey)
     {
         if ((((string)privateKey).Length == 44))
         {
@@ -1454,10 +1448,10 @@ public partial class hibachi : Exchange
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             string hash = ((string)this.hash(message, sha256, "hex"));
             Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
-            string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
-            string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
+            string? r = this.safeString(signature, "r", "");
+            string? s = this.safeString(signature, "s", "");
             string v = this.intToBase16((signature != null && signature.ContainsKey("v") ? signature["v"] : null));
-            return add(add((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0")));
+            return ((string?)((object)(((((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0")))))));
         }
     }
 
@@ -1753,7 +1747,7 @@ public partial class hibachi : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersByStatus("filled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersByStatus("filled", symbol, since, limit, parameters));
         List<object> filtered = this.filterBy(orders, "status", "closed");
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(filtered, since, limit));
     }
@@ -1774,7 +1768,7 @@ public partial class hibachi : Exchange
     public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersByStatus(null, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersByStatus(null, symbol, since, limit, parameters));
         List<object> filtered = this.filterBy(orders, "status", "canceled");
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(filtered, since, limit));
     }
@@ -1852,7 +1846,7 @@ public partial class hibachi : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
         };
@@ -1928,11 +1922,11 @@ public partial class hibachi : Exchange
             { "info", position },
             { "id", null },
             { "symbol", symbol },
-            { "entryPrice", this.safeString(position, "average_entry_price") },
+            { "entryPrice", this.safeNumber(position, "average_entry_price") },
             { "markPrice", null },
-            { "notional", this.safeString(position, "notionalValue") },
+            { "notional", this.safeNumber(position, "notionalValue") },
             { "collateral", null },
-            { "unrealizedPnl", unrealizedPnl },
+            { "unrealizedPnl", this.parseNumber(unrealizedPnl) },
             { "side", side },
             { "contracts", this.parseNumber(quantity) },
             { "contractSize", null },
@@ -1951,13 +1945,14 @@ public partial class hibachi : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string endpoint = ("/" + this.implodeParams(path, parameters));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1980,12 +1975,12 @@ public partial class hibachi : Exchange
         {
             headersValue["Content-Type"] = "application/json";
         }
-        object bodyResult = body;
+        string? bodyResult = null;
         if (hasJsonBody)
         {
             bodyResult = this.json(parameters);
         }
-        if ((api is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             headersValue["Authorization"] = this.apiKey;
@@ -1998,26 +1993,26 @@ public partial class hibachi : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
             return null;  // fallback to default error handler
         }
-        if (inOp(response, "status"))
+        string? status = this.safeString(response, "status");
+        //
+        //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
+        //
+        if ((status != null))
         {
-            //
-            //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
-            //
-            string? status = this.safeString(response, "status");
             if (status == "failed")
             {
-                string? code = this.safeString(response, "errorCode");
+                string? codeError = this.safeString(response, "errorCode");
                 string feedback = ((this.id + " ") + (body));
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
                 string? message = this.safeString(response, "message");
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
                 throw new ExchangeError (feedback) ;
             }
         }
@@ -2135,8 +2130,8 @@ public partial class hibachi : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
         };
-        List<object> rawPromises = new List<object> {this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))};
-        List<object> promises = await promiseAll(rawPromises);
+        List<Task<Dictionary<string, object>>> rawPromises = new List<Task<Dictionary<string, object>>> {this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))};
+        List<object> promises = new List<object>(await Task.WhenAll(rawPromises));
         IDictionary<string, object> responseCapitalHistory = this.safeDict(promises, 0);
         //
         // {
@@ -2349,7 +2344,7 @@ public partial class hibachi : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchDepositsWithdrawals(code, since, null, parameters));
         List<object> deposits = this.filterBy(transactions, "type", "deposit");
         return ccxt.BaseExchange.ToTransactionList(this.filterBySinceLimit(deposits, since, limit, "timestamp"));
     }
@@ -2368,12 +2363,12 @@ public partial class hibachi : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchDepositsWithdrawals(code, since, null, parameters));
         List<object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
         return ccxt.BaseExchange.ToTransactionList(this.filterBySinceLimit(withdrawals, since, limit, "timestamp"));
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -2397,7 +2392,7 @@ public partial class hibachi : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object> market = null)
+    public virtual List<object> parseSettlements(IList<object> settlements, IDictionary<string, object>? market = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
@@ -2486,7 +2481,7 @@ public partial class hibachi : Exchange
         //
         //     { "timestampMs":1754077574040 }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "timestampMs"));
+        return this.safeInteger(response, "timestampMs") ?? 0;
     }
 
     /**

@@ -12,10 +12,10 @@ const MARKET_TOOLS = [
     'list_exchanges', 'describe_exchange', 'describe_method', 'search_markets',
     'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events',
     'call_read_method', 'call_implicit_get', 'get_safety_status',
-    'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list',
+    'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list', 'fetch_route',
 ];
 const READ_TOOLS = [ 'list_accounts', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions' ];
-const TRADE_TOOLS = [ 'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method' ];
+const TRADE_TOOLS = [ 'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method', 'execute_route' ];
 const FUNDS_TOOLS = [ 'withdraw', 'transfer', 'get_deposit_address' ];
 const IMPLICIT_WRITE_TOOLS = [ 'call_implicit_write' ];
 
@@ -95,9 +95,14 @@ test ('annotations: reads are readOnly, writes are destructive, cancel is the ex
     }
     assert.equal (byName.get ('watch_unsubscribe')?.annotations?.destructiveHint, false);
     assert.equal (byName.get ('watch_unsubscribe')?.annotations?.idempotentHint, true);
-    for (const name of [ 'create_order', 'edit_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method', 'withdraw', 'transfer', 'call_implicit_write' ]) {
+    for (const name of [ 'create_order', 'edit_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method', 'execute_route', 'withdraw', 'transfer', 'call_implicit_write' ]) {
         assert.equal (byName.get (name)?.annotations?.destructiveHint, true, name + ' must be destructive');
     }
+    // fetch_route reaches the public order-router service: read-only, but open-world
+    assert.equal (byName.get ('fetch_route')?.annotations?.openWorldHint, true);
+    // fetch_route never takes the user's holdings — balances belong in a POST body from a
+    // configured account, not a model-supplied parameter
+    assert.ok (!('balances' in (byName.get ('fetch_route')?.inputSchema?.properties ?? {})), 'fetch_route must not expose balances');
     // cancel_order is deliberately non-destructive (risk-reducing) and idempotent
     assert.equal (byName.get ('cancel_order')?.annotations?.destructiveHint, false);
     assert.equal (byName.get ('cancel_order')?.annotations?.idempotentHint, true);

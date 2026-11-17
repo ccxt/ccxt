@@ -5,7 +5,7 @@ import type { Balances, BorrowInterest, CancellationRequest, CrossBorrowRate, Cr
  * @augments Exchange
  */
 export default class digifinex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name digifinex#fetchCurrencies
@@ -30,7 +30,7 @@ export default class digifinex extends Exchange {
     fetchMarkets(params?: Dict): Promise<Market[]>;
     fetchMarketsV2(params?: Dict): Promise<Market[]>;
     fetchMarketsV1(params?: Dict): Promise<Market[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name digifinex#fetchBalance
@@ -335,11 +335,11 @@ export default class digifinex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     /**
@@ -520,7 +520,7 @@ export default class digifinex extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    modifyMarginHelper(symbol: string, amount: Num, type: any, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: Num, type: Int, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -547,6 +547,6 @@ export default class digifinex extends Exchange {
      * @returns {object} response from the exchange
      */
     setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

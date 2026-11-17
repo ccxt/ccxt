@@ -109,6 +109,27 @@ public partial class backpack : Exchange
         return await this.callAsync<List<object>> ("publicGetApiV1MarketHolidays",parameters);
     }
 
+    /// <summary>Calls the publicGetApiV1StockSessions endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetApiV1StockSessions (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetApiV1StockSessions",parameters);
+    }
+
+    /// <summary>Calls the publicGetApiV1StockHolidays endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetApiV1StockHolidays (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetApiV1StockHolidays",parameters);
+    }
+
+    /// <summary>Calls the publicGetApiV1StockIndicativeQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetApiV1StockIndicativeQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetApiV1StockIndicativeQuote",parameters);
+    }
+
     /// <summary>Calls the publicGetApiV1Securities endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> publicGetApiV1Securities (object parameters = null)
@@ -450,13 +471,6 @@ public partial class backpack : Exchange
     public async Task<Dictionary<string, object>> privatePostApiV1RfqAccept (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1RfqAccept",parameters);
-    }
-
-    /// <summary>Calls the privatePostApiV1RfqRefresh endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostApiV1RfqRefresh (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostApiV1RfqRefresh",parameters);
     }
 
     /// <summary>Calls the privatePostApiV1RfqCancel endpoint.</summary>

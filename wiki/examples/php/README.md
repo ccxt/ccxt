@@ -42,8 +42,6 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Bitfinex Fetch Trades Since](./examples/php/bitfinex-fetch-trades-since.md)
 
-- [Bitmex Create Order](./examples/php/bitmex-create-order.md)
-
 - [Build Ohlcv Bars](./examples/php/build-ohlcv-bars.md)
 
 - [Built In Rate Limiting Poller](./examples/php/built-in-rate-limiting-poller.md)

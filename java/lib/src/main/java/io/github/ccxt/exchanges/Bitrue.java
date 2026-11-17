@@ -14,6 +14,7 @@ import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -38,7 +39,7 @@ public class Bitrue extends BitrueApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bitrue" );
@@ -998,11 +999,11 @@ public class Bitrue extends BitrueApi
             }
             Object promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> spotMarkets = (List<Object>) this.safeList(this.safeDict(promises, 0, (Object) null), "symbols", new ArrayList<Object>(Arrays.asList()));
-            Object futureMarkets = this.safeValue(promises, 1);
-            Object deliveryMarkets = this.safeValue(promises, 2);
-            Object markets = spotMarkets;
-            markets = this.arrayConcat(markets, futureMarkets);
-            markets = this.arrayConcat(markets, deliveryMarkets);
+            List<Object> futureMarkets = (List<Object>) this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> deliveryMarkets = (List<Object>) this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = spotMarkets;
+            markets = (List<Object>) this.arrayConcat(markets, futureMarkets);
+            markets = (List<Object>) this.arrayConcat(markets, deliveryMarkets);
             //
             // spot
             //
@@ -1126,6 +1127,8 @@ public class Bitrue extends BitrueApi
         List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
         String status = this.safeString(market, "status");
+        // spot markets say TRADING, futures contracts 1 (0 when offline)
+        Boolean active = (java.util.Objects.equals(status, "TRADING")) || (java.util.Objects.equals(status, "1"));
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
         Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
         String defaultPricePrecision = this.safeString(market, "pricePrecision");
@@ -1160,7 +1163,7 @@ public class Bitrue extends BitrueApi
         mapLiteral2.put("swap", isContract);
         mapLiteral2.put("future", false);
         mapLiteral2.put("option", false);
-        mapLiteral2.put("active", (java.util.Objects.equals(status, "TRADING")));
+        mapLiteral2.put("active", active);
         mapLiteral2.put("contract", isContract);
         mapLiteral2.put("linear", isLinear);
         mapLiteral2.put("inverse", isInverse);
@@ -1196,7 +1199,7 @@ public class Bitrue extends BitrueApi
         return this.safeMarketStructure(mapLiteral2);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         // spot
@@ -1288,10 +1291,10 @@ public class Bitrue extends BitrueApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> response = null;
@@ -1340,7 +1343,7 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "contractName", market.get("id") );
@@ -1349,14 +1352,14 @@ public class Bitrue extends BitrueApi
                 {
                     request.put("limit", Math.min(limit, 100)); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
                 }
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV1PublicGetDepth(this.extend(request, parameters))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV1PublicGetDepth(this.extend(request, parameters))).join();
                 }
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
@@ -1498,20 +1501,20 @@ public class Bitrue extends BitrueApi
             Map<String, Object> market = this.market(symbol);
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "contractName", market.get("id") );
                 }};
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV1PublicGetTicker(this.extend(request, parameters))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV1PublicGetTicker(this.extend(request, parameters))).join();
                 }
                 data = response;
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
@@ -1592,7 +1595,7 @@ public class Bitrue extends BitrueApi
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Object response = null;
             Object data = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Map<String, Object> timeframesFuture = (Map<String, Object>) this.safeDict(timeframes, "future", new HashMap<String, Object>() {{}});
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1603,15 +1606,15 @@ public class Bitrue extends BitrueApi
                 {
                     request.put("limit", limit);
                 }
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV1PublicGetKlines(this.extend(request, parameters))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV1PublicGetKlines(this.extend(request, parameters))).join();
                 }
                 data = response;
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 Map<String, Object> timeframesSpot = (Map<String, Object>) this.safeDict(timeframes, "spot", new HashMap<String, Object>() {{}});
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1729,19 +1732,19 @@ public class Bitrue extends BitrueApi
             String first = this.safeString(symbolsNormalized, 0);
             Map<String, Object> market = this.market(first);
             Object response = null;
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "contractName", market.get("id") );
                 }};
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV1PublicGetTicker(this.extend(request, parameters))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV1PublicGetTicker(this.extend(request, parameters))).join();
                 }
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
@@ -1810,10 +1813,10 @@ public class Bitrue extends BitrueApi
             {
                 String first = this.safeString(symbolsNormalized, 0);
                 Map<String, Object> market = this.market(first);
-                if (java.util.Objects.equals(market.get("swap"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
                     throw new NotSupported((this.id + " fetchTickers does not support swap markets, please use fetchTicker instead")) ;
-                } else if (java.util.Objects.equals(market.get("spot"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     response = (this.spotV1PublicGetTicker24hr(this.extend(request, parameters))).join();
                     data = this.toArray(response);
@@ -1823,7 +1826,7 @@ public class Bitrue extends BitrueApi
                 }
             } else
             {
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (String) null);
+                Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (String) null);
                 String marketType = marketTypeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
                 if (!java.util.Objects.equals(marketType, "spot"))
@@ -2014,7 +2017,7 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> market = this.market(symbol);
             List<Object> response = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
@@ -2209,7 +2212,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports swap orders only")) ;
             }
@@ -2267,11 +2270,11 @@ public class Bitrue extends BitrueApi
                 }
                 request.put("price", this.priceToPrecision(symbol, price));
             }
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Boolean isMarket = java.util.Objects.equals(uppercaseType, "MARKET");
                 String timeInForce = this.safeStringLower(parameters, "timeInForce");
-                Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
+                Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), parameters);
                 if (Boolean.TRUE.equals(postOnly))
                 {
                     request.put("type", "POST_ONLY");
@@ -2283,7 +2286,7 @@ public class Bitrue extends BitrueApi
                     request.put("type", "IOC");
                 }
                 request.put("contractName", market.get("id"));
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                 Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 Boolean isMarketBuyWithPrice = Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")) && Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice);
@@ -2322,19 +2325,19 @@ public class Bitrue extends BitrueApi
                 String leverage = this.safeString(paramsNoCost, "leverage", "1");
                 request.put("leverage", this.parseToNumeric(leverage));
                 Map<String, Object> paramsSwap = this.omit(paramsNoCost, new ArrayList<Object>(Arrays.asList("leverage", "reduceOnly", "reduce_only", "timeInForce")));
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV2PrivatePostOrder(this.extend(request, paramsSwap))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV2PrivatePostOrder(this.extend(request, paramsSwap))).join();
                 }
                 data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("symbol", market.get("id"));
                 request.put("quantity", this.amountToPrecision(symbol, amount));
-                Object validOrderTypes = this.safeValue(market.get("info"), "orderTypes");
+                List<Object> validOrderTypes = (List<Object>) this.safeList(market.get("info"), "orderTypes", new ArrayList<Object>(Arrays.asList()));
                 if (!this.inArray(uppercaseType, validOrderTypes))
                 {
                     throw new InvalidOrder(((((this.id + " ") + type) + " is not a valid order type in market ") + symbol)) ;
@@ -2418,7 +2421,7 @@ public class Bitrue extends BitrueApi
                 request.put("orderId", id);
             } else
             {
-                if (java.util.Objects.equals(market.get("swap"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
                     request.put("clientOrderId", origClientOrderId);
                 } else
@@ -2426,18 +2429,18 @@ public class Bitrue extends BitrueApi
                     request.put("origClientOrderId", origClientOrderId);
                 }
             }
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 request.put("contractName", market.get("id"));
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV2PrivateGetOrder(this.extend(request, paramsOmitted))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV2PrivateGetOrder(this.extend(request, paramsOmitted))).join();
                 }
                 data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("orderId", id); // spot market id is mandatory
                 request.put("symbol", market.get("id"));
@@ -2520,7 +2523,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " fetchClosedOrders only support spot markets")) ;
             }
@@ -2592,18 +2595,18 @@ public class Bitrue extends BitrueApi
             Map<String, Object> response = null;
             Object data = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 request.put("contractName", market.get("id"));
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV2PrivateGetOpenOrders(this.extend(request, parameters))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV2PrivateGetOpenOrders(this.extend(request, parameters))).join();
                 }
                 data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("symbol", market.get("id"));
                 response = (this.spotV1PrivateGetOpenOrders(this.extend(request, parameters))).join();
@@ -2699,7 +2702,7 @@ public class Bitrue extends BitrueApi
                 request.put("orderId", id);
             } else
             {
-                if (java.util.Objects.equals(market.get("swap"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
                 {
                     request.put("clientOrderId", origClientOrderId);
                 } else
@@ -2707,18 +2710,18 @@ public class Bitrue extends BitrueApi
                     request.put("origClientOrderId", origClientOrderId);
                 }
             }
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 request.put("contractName", market.get("id"));
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV2PrivatePostCancel(this.extend(request, paramsOmitted))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV2PrivatePostCancel(this.extend(request, paramsOmitted))).join();
                 }
                 data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("symbol", market.get("id"));
                 response = (this.spotV1PrivateDeleteOrder(this.extend(request, paramsOmitted))).join();
@@ -2775,15 +2778,15 @@ public class Bitrue extends BitrueApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = null;
             List<Object> data = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "contractName", market.get("id") );
                 }};
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV2PrivatePostAllOpenOrders(this.extend(request, parameters))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV2PrivatePostAllOpenOrders(this.extend(request, parameters))).join();
                 }
@@ -2839,23 +2842,24 @@ public class Bitrue extends BitrueApi
             {
                 request.put("startTime", since);
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
-            if (!java.util.Objects.equals(limitResolved, null))
+            Long limitResolved = null;
+            if (!java.util.Objects.equals(limit, null))
             {
+                limitResolved = ((((limit > 1000)))) ? 1000L : limit;
                 request.put("limit", limitResolved);
             }
-            if (java.util.Objects.equals(market.get("swap"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 request.put("contractName", market.get("id"));
-                if (java.util.Objects.equals(market.get("linear"), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     response = (this.fapiV2PrivateGetMyTrades(this.extend(request, parameters))).join();
-                } else if (java.util.Objects.equals(market.get("inverse"), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     response = (this.dapiV2PrivateGetMyTrades(this.extend(request, parameters))).join();
                 }
                 data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            } else if (java.util.Objects.equals(market.get("spot"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 request.put("symbol", market.get("id"));
                 response = (this.spotV2PrivateGetMyTrades(this.extend(request, parameters))).join();
@@ -3182,7 +3186,7 @@ public class Bitrue extends BitrueApi
             String networkId = this.safeString(parts, 1);
             if (!java.util.Objects.equals(networkId, null))
             {
-                network = networkId.toUpperCase();
+                network = this.networkIdToCode(networkId.toUpperCase(), (String) null);
             }
         }
         String code = this.safeCurrencyCode(currencyId, currency);
@@ -3190,10 +3194,12 @@ public class Bitrue extends BitrueApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("currency", code);
+                hx4NewMap0.put("cost", feeCost);
+                fee = hx4NewMap0;
+            }
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -3229,19 +3235,19 @@ public class Bitrue extends BitrueApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3297,6 +3303,7 @@ public class Bitrue extends BitrueApi
         //
         List<Object> chainDetails = (List<Object>) this.safeList(fee, "chainDetail", new ArrayList<Object>(Arrays.asList()));
         Integer chainDetailLength = ((List<?>)chainDetails).size();
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new HashMap<String, Object>() {{
@@ -3307,7 +3314,6 @@ public class Bitrue extends BitrueApi
                 put( "fee", null );
                 put( "percentage", null );
             }} );
-            put( "networks", new HashMap<String, Object>() {{}} );
         }};
         if (!java.util.Objects.equals(chainDetailLength, 0))
         {
@@ -3319,7 +3325,7 @@ public class Bitrue extends BitrueApi
                 String networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+                    networks.put(networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
@@ -3332,11 +3338,14 @@ public class Bitrue extends BitrueApi
                 }
                 if (java.util.Objects.equals(chainDetailLength, 1))
                 {
-                    Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(chainDetail, "withdrawFee", (Object) null));
-                    Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
+                    result.put("withdraw", new HashMap<String, Object>() {{
+    put( "fee", Bitrue.this.safeNumber(chainDetail, "withdrawFee", (Object) null) );
+    put( "percentage", false );
+}});
                 }
             }
         }
+        result.put("networks", networks);
         return result;
     }
 
@@ -3444,9 +3453,10 @@ public class Bitrue extends BitrueApi
             {
                 request.put("beginTime", since);
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 200);
-            if (!java.util.Objects.equals(limitResolved, null))
+            Long limitResolved = null;
+            if (!java.util.Objects.equals(limit, null))
             {
+                limitResolved = ((((limit > 200)))) ? 200L : limit;
                 request.put("limit", limitResolved);
             }
             Long until = this.safeInteger(parameters, "until");
@@ -3539,7 +3549,7 @@ public class Bitrue extends BitrueApi
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            if ((Helpers.isLessThan(leverage, 1)) || (Helpers.isGreaterThan(leverage, 125)))
+            if (((leverage == null || !(((Number) leverage).doubleValue() >= 1))) || ((leverage != null && ((Number) leverage).doubleValue() > 125)))
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 125")) ;
             }
@@ -3552,14 +3562,14 @@ public class Bitrue extends BitrueApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("contractName", market.get("id"));
             request.put("leverage", leverage);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " setLeverage only support swap markets")) ;
             }
-            if (java.util.Objects.equals(market.get("linear"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 response = (this.fapiV2PrivatePostLevelEdit(this.extend(request, parameters))).join();
-            } else if (java.util.Objects.equals(market.get("inverse"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
                 response = (this.dapiV2PrivatePostLevelEdit(this.extend(request, parameters))).join();
             }
@@ -3614,7 +3624,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 throw new NotSupported((this.id + " setMargin only support swap markets")) ;
             }
@@ -3623,10 +3633,10 @@ public class Bitrue extends BitrueApi
                 put( "contractName", market.get("id") );
                 put( "amount", Bitrue.this.parseToNumeric(amount) );
             }};
-            if (java.util.Objects.equals(market.get("linear"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 response = (this.fapiV2PrivatePostPositionMargin(this.extend(request, parameters))).join();
-            } else if (java.util.Objects.equals(market.get("inverse"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
                 response = (this.dapiV2PrivatePostPositionMargin(this.extend(request, parameters))).join();
             }
@@ -3637,29 +3647,29 @@ public class Bitrue extends BitrueApi
             //         "data": null
             //     }
             //
-            return this.parseMarginModification((Map<String, Object>) (response), market);
+            return this.parseMarginModification(response, market);
         }).thenApply(MarginModification::new);
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object requestBody = null;
         Map<String, Object> requestHeaders = null;
-        String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 2);
+        String type = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String version = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
+        String access = (String) (api == null || 2 >= ((List<?>)api).size() ? null : ((List<?>)api).get(2));
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = apiUrl;
+        String endpointPath = (String) this.implodeParams(path, parameters);
+        String url = ((apiUrl + "/") + endpointPath);
         if (!((java.util.Objects.equals(type, "api") && java.util.Objects.equals(version, "kline")) || (java.util.Objects.equals(type, "open") && ((String)path).indexOf("listenKey") >= 0)))
         {
-            url = (url + ("/" + version));
+            url = ((((apiUrl + "/") + version) + "/") + endpointPath);
         }
-        url = (url + ("/" + this.implodeParams(path, parameters)));
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "private"))
         {
@@ -3673,59 +3683,63 @@ public class Bitrue extends BitrueApi
                 }}, paramsOmitted));
                 String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
                 query = (query + (("&" + "signature=") + signature));
-                requestHeaders = new HashMap<String, Object>() {{
-                    put( "X-MBX-APIKEY", Bitrue.this.apiKey );
-                }};
                 if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
                 {
                     url = (url + ("?" + query));
+                    requestHeaders = new HashMap<String, Object>() {{
+                        put( "X-MBX-APIKEY", Bitrue.this.apiKey );
+                    }};
                 } else
                 {
                     requestBody = query;
-                    requestHeaders.put("Content-Type", "application/x-www-form-urlencoded");
+                    requestHeaders = new HashMap<String, Object>() {{
+                        put( "X-MBX-APIKEY", Bitrue.this.apiKey );
+                        put( "Content-Type", "application/x-www-form-urlencoded" );
+                    }};
                 }
             } else
             {
                 String timestamp = String.valueOf(this.nonce());
-                String signPath = null;
+                String signPrefix = "";
                 if (java.util.Objects.equals(type, "fapi"))
                 {
-                    signPath = "/fapi";
+                    signPrefix = "/fapi";
                 } else if (java.util.Objects.equals(type, "dapi"))
                 {
-                    signPath = "/dapi";
+                    signPrefix = "/dapi";
                 }
-                signPath = ((((signPath + "/") + version) + "/") + path);
-                String signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + signPath);
+                String signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + (((((signPrefix + "/") + version) + "/") + path)));
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    List<String> keys = new ArrayList<String>(((Map<String, Object>)paramsOmitted).keySet());
-                    Integer keysLength = ((List<?>)keys).size();
-                    if ((keysLength != null && keysLength > 0))
+                    if (((Map<String, Object>)paramsOmitted).size() > 0)
                     {
                         signMessage = (signMessage + ("?" + this.urlencode(paramsOmitted)));
                     }
                     String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
-                    requestHeaders = Helpers.newMap(
-                        "X-CH-APIKEY", this.apiKey,
-                        "X-CH-SIGN", signature,
-                        "X-CH-TS", timestamp
-                    );
+                    {
+                        HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                        hx4NewMap1.put("X-CH-APIKEY", this.apiKey);
+                        hx4NewMap1.put("X-CH-SIGN", signature);
+                        hx4NewMap1.put("X-CH-TS", timestamp);
+                        requestHeaders = hx4NewMap1;
+                    }
                     url = (url + ("?" + this.urlencode(paramsOmitted)));
                 } else
                 {
-                    Object query = this.extend(new HashMap<String, Object>() {{
+                    Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                         put( "recvWindow", recvWindow );
                     }}, paramsOmitted);
                     requestBody = this.json(query);
                     signMessage = (signMessage + requestBody);
                     String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
-                    requestHeaders = Helpers.newMap(
-                        "Content-Type", "application/json",
-                        "X-CH-APIKEY", this.apiKey,
-                        "X-CH-SIGN", signature,
-                        "X-CH-TS", timestamp
-                    );
+                    {
+                        HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                        hx4NewMap2.put("Content-Type", "application/json");
+                        hx4NewMap2.put("X-CH-APIKEY", this.apiKey);
+                        hx4NewMap2.put("X-CH-SIGN", signature);
+                        hx4NewMap2.put("X-CH-TS", timestamp);
+                        requestHeaders = hx4NewMap2;
+                    }
                 }
             }
         } else
@@ -3735,8 +3749,8 @@ public class Bitrue extends BitrueApi
                 url = (url + ("?" + this.urlencode(paramsOmitted)));
             }
         }
-        Object bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        Object bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);
@@ -3747,16 +3761,17 @@ public class Bitrue extends BitrueApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
-        if ((Helpers.isEqual(code, 418)) || (Helpers.isEqual(code, 429)))
+        if (((code != null && ((Number) code).doubleValue() == 418)) || ((code != null && ((Number) code).doubleValue() == 429)))
         {
-            throw new DDoSProtection(((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + " ") + body)) ;
+            throw new DDoSProtection((((((this.id + " ") + String.valueOf(code)) + " ") + reason) + ((" " + body)))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (Helpers.isGreaterThanOrEqual(code, 400))
+        Long statusCode = this.parseToInt(code);
+        if (((statusCode != null && statusCode >= 400)))
         {
             if (((String)body).indexOf("Price * QTY is zero or less") >= 0)
             {
@@ -3779,27 +3794,20 @@ public class Bitrue extends BitrueApi
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         Boolean success = (Boolean) this.safeBool(response, "success", true);
         Object parsedMessage = null;
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String messageInner = this.safeString(response, "msg");
             if (!java.util.Objects.equals(messageInner, null))
             {
-                try
-                {
-                    parsedMessage = Helpers.parseJson(messageInner);
-                } catch(Exception e)
-                {
-                    // do nothing
-                    parsedMessage = null;
-                }
+                parsedMessage = this.parseJson(messageInner);
             }
         }
         Object errorResponse = (((!java.util.Objects.equals(parsedMessage, null)))) ? parsedMessage : response;
         String message = this.safeString(errorResponse, "msg");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, ((this.id + " ") + message));
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, ((this.id + " ") + message));
         }
         // checks against error codes
         String error = this.safeString(errorResponse, "code");
@@ -3819,10 +3827,10 @@ public class Bitrue extends BitrueApi
                 throw new DDoSProtection(((this.id + " temporary banned: ") + body)) ;
             }
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
             throw new ExchangeError(feedback) ;
         }
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
@@ -3831,19 +3839,20 @@ public class Bitrue extends BitrueApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+        if ((config.containsKey("noSymbol")) && !((switch ((Object)(parameters)) { case List<?> j39v4 -> j39v4.contains("symbol"); case Map<?, ?> j39v3 -> j39v3.containsKey("symbol"); case null, default -> false; })))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
+        } else if ((config.containsKey("byLimit")) && ((switch ((Object)(parameters)) { case List<?> j39v2 -> j39v2.contains("limit"); case Map<?, ?> j39v1 -> j39v1.containsKey("limit"); case null, default -> false; })))
         {
-            Object limit = Helpers.GetValue(parameters, "limit");
+            Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
-                if (Helpers.isLessThanOrEqual(limit, Helpers.GetValue(entry, 0)))
+                Long threshold = this.safeInteger(entry, 0);
+                if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(threshold, null) && (limit == null || (threshold != null && limit <= threshold)))
                 {
-                    return Helpers.GetValue(entry, 1);
+                    return this.safeNumber(entry, 1, (Object) null);
                 }
             }
         }

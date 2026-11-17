@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     indexerGetAddressesAddress(params?: {}): Promise<Dict>;
     indexerGetAddressesAddressParentSubaccountNumberNumber(params?: {}): Promise<Dict>;
     indexerGetAddressesAddressSubaccountNumberSubaccountNumber(params?: {}): Promise<Dict>;
@@ -61,7 +61,5 @@ interface Exchange {
     nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(params?: {}): Promise<Dict>;
     nodeRestPostCosmosTxV1beta1Encode(params?: {}): Promise<Dict>;
     nodeRestPostCosmosTxV1beta1Simulate(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

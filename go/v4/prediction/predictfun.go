@@ -9,7 +9,6 @@ import "strings"
 
 type Predictfun struct {
 	ccxt.PredictionExchange
-	exchangeTyped *ccxt.BaseExchangeTyped
 }
 
 func newPredictfun() *Predictfun {
@@ -17,7 +16,7 @@ func newPredictfun() *Predictfun {
 	return p
 }
 
-func (this *Predictfun) Describe() any {
+func (this *Predictfun) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "predictfun",
 		"name":      "predict.fun",
@@ -297,12 +296,12 @@ func (this *Predictfun) Describe() any {
  * @param {int} [params.limit] the maximum number of events to collect markets from
  * @returns {ccxt.Market[]} array of market structures
  */
-func (this *Predictfun) FetchMarketsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchMarketsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.MarketInterface] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchMarketsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -312,23 +311,18 @@ func (this *Predictfun) fetchMarketsBody(ch chan ccxt.AsyncResult[any], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var events []any = ccxt.ListTyped(r.Value)
+	var events []any = ccxt.PredictionEventsToList(r.Value)
 	var eventsLength int = len(events)
 	var markets []any = []any{}
 	for ei := 0; ei < eventsLength; ei++ {
-		var eventMarkets []any = ccxt.SafeListTyped(ccxt.GetValue(events, ei), "markets")
+		var eventMarkets []any = ccxt.SafeListTyped(events[ei], "markets")
 		var eventMarketsLength int = len(eventMarkets)
 		for mi := 0; mi < eventMarketsLength; mi++ {
-			markets = append(markets, func() any {
-				if mi >= 0 && mi < len(eventMarkets) {
-					return ccxt.DerefScalar(eventMarkets[mi])
-				}
-				return nil
-			}())
+			markets = append(markets, eventMarkets[mi])
 		}
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: markets}
+	ch <- ccxt.AsyncResult[[]ccxt.MarketInterface]{Value: ccxt.MarketInterfacesFromList(markets)}
 	return nil
 }
 
@@ -342,24 +336,20 @@ func (this *Predictfun) fetchMarketsBody(ch chan ccxt.AsyncResult[any], optional
  * @param {string} [params.slug] event slug, overrides the id argument when both are given
  * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-func (this *Predictfun) FetchEventAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchEventAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionEvent] {
+	ch := make(chan ccxt.AsyncResult[ccxt.PredictionEvent], 1)
 	go this.fetchEventBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchEventBody(ch chan ccxt.AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Predictfun) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
 	// overrides it so a caller can pass the slug the same way fetchEvents () takes it
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var paramSlug *string = this.SafeString(params, "slug")
-	var slug any = id
-	if paramSlug != nil {
-		slug = paramSlug
-	}
-	if ccxt.IsEqual(slug, nil) {
+	var slug *string = this.SafeString(params, "slug", id)
+	if slug == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchEvent() requires the \"id\" argument or the \"slug\" parameter"))
 	}
 
@@ -369,9 +359,9 @@ func (this *Predictfun) fetchEventBody(ch chan ccxt.AsyncResult[any], id any, op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var events []any = ccxt.ListTyped(r.Value)
+	var events []any = ccxt.PredictionEventsToList(r.Value)
 
-	ch <- ccxt.AsyncResult[any]{Value: this.SafeDict(events, 0)}
+	ch <- ccxt.AsyncResult[ccxt.PredictionEvent]{Value: ccxt.PredictionEventFromMap(this.SafeDictMap(events, 0))}
 	return nil
 }
 
@@ -392,12 +382,12 @@ func (this *Predictfun) fetchEventBody(ch chan ccxt.AsyncResult[any], id any, op
  * @param {string} [params.marketVariant] predictfun enum value ('SPORTS_MATCH', 'CRYPTO_UP_DOWN' etc.)
  * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-func (this *Predictfun) FetchEventsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchEventsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionEvent] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionEvent], 1)
 	go this.fetchEventsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEvent], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -419,7 +409,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 	var slug *string = this.SafeString2(paramsValue, "slug", "eventId")
 	var rest map[string]any = this.OmitDict(paramsValue, []any{"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"})
 	if this.Markets == nil {
-		this.Markets = this.CreateSafeDictionary()
+		this.Markets = map[string]any{}
 	}
 	var rawTopics any = []any{}
 	if slug != nil {
@@ -430,7 +420,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var response map[string]any = ccxt.MapTyped(r1.Raw)
+		var response map[string]any = r1.Value
 		var data map[string]any = ccxt.SafeMapTyped(response, "data")
 		rawTopics = []any{data}
 	} else if queriesLength > 0 {
@@ -445,15 +435,13 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 		if r2.Value == nil {
 			rawTopics = nil
 		} else {
-			rawTopics = r2.Value
+			rawTopics = ccxt.MapSliceToList(r2.Value)
 		}
 	} else {
 		var request map[string]any = map[string]any{}
 		var tags any = this.SafeList(paramsValue, "tags", []any{})
-		var tagsLength int = ccxt.GetArrayLength(tags)
-		if tagsLength > 0 {
-			var tagsString string = ccxt.Join(tags, ",")
-			request["tagIds"] = tagsString
+		if ccxt.GetArrayLength(tags) > 0 {
+			request["tagIds"] = ccxt.Join(tags, ",")
 		}
 		postOmitKeys = append(postOmitKeys, "limit")
 		var paramsCategories map[string]any = this.OmitDict(paramsValue, []any{"limit", "tags"})
@@ -632,7 +620,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 		var data any = this.SafeList(rawTopicsResponse, "data", []any{})
 		rawTopics = this.ArrayConcat(rawTopics, data)
 		var topicsLength int = ccxt.GetArrayLength(rawTopics)
-		for ccxt.IsLessThan(topicsLength, fetchCap) {
+		for fetchCap != nil && int64(topicsLength) < *fetchCap {
 			var nextPageToken *string = this.SafeString(rawTopicsResponse, "cursor")
 			if nextPageToken == nil {
 				break
@@ -648,28 +636,23 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 			rawTopics = this.ArrayConcat(rawTopics, data)
 			topicsLength = ccxt.GetArrayLength(rawTopics)
 		}
-		if ccxt.IsGreaterThan(topicsLength, fetchCap) {
+		if fetchCap == nil || int64(topicsLength) > *fetchCap {
 			rawTopics = this.ArraySlice(rawTopics, 0, fetchCap)
 		}
 	}
 	var rawTopicsLength int = ccxt.GetArrayLength(rawTopics)
 	var result []any = []any{}
 	for i := 0; i < rawTopicsLength; i++ {
-		var parsedEvent any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
+		var parsedEvent map[string]any = this.ParseEvent(ccxt.GetValue(rawTopics, i))
 		result = append(result, parsedEvent)
 		var parsedMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
 		var parsedMarketsLength int = len(parsedMarkets)
 		for mi := 0; mi < parsedMarketsLength; mi++ {
-			var m any = func() any {
-				if mi >= 0 && mi < len(parsedMarkets) {
-					return ccxt.DerefScalar(parsedMarkets[mi])
-				}
-				return nil
-			}()
+			var m any = parsedMarkets[mi]
 			// prediction market rows are keyed by the unified 'market' handle
 			var handle *string = this.SafeString(m, "market")
 			if handle != nil {
-				ccxt.AddElementToObject(this.Markets, handle, m)
+				this.AddMarketsEntry(handle, m)
 			}
 		}
 	}
@@ -691,7 +674,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
 		})
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ApplyEventFetchParams(result, postParams, queries)}
+	ch <- ccxt.AsyncResult[[]ccxt.PredictionEvent]{Value: ccxt.PredictionEventsFromList(this.ApplyEventFetchParams(result, postParams, queries))}
 	return nil
 }
 
@@ -706,12 +689,12 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[any], optionalA
  * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
  * @returns {object[]} an array of raw market topics, each with a nested markets list
  */
-func (this *Predictfun) FetchRawTopicsByQueriesAsync(queries any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Predictfun) FetchRawTopicsByQueriesAsync(queries any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchRawTopicsByQueriesBody(ch, queries, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]any], queries any, optionalArgs ...any) any {
+func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]map[string]any], queries any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// always ask for the venue's maximum page size - this is the per-type page size of the
@@ -739,7 +722,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]a
 	var orphanSlugs []any = []any{}
 	for i := 0; i < queriesLength; i++ {
 		var request map[string]any = map[string]any{
-			"query":           ccxt.GetValue(queries, i),
+			"query":           this.SafeString(queries, i, ""),
 			"limit":           limit,
 			"includeResolved": includeResolved,
 		}
@@ -825,21 +808,10 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]a
 		var rawMarkets []any = ccxt.SafeListTyped(data, "markets")
 		var rawMarketsLength int = len(rawMarkets)
 		for mi := 0; mi < rawMarketsLength; mi++ {
-			var rawMarket any = func() any {
-				if mi >= 0 && mi < len(rawMarkets) {
-					return ccxt.DerefScalar(rawMarkets[mi])
-				}
-				return nil
-			}()
+			var rawMarket any = rawMarkets[mi]
 			var marketSlug *string = this.SafeString(rawMarket, "categorySlug")
 			if marketSlug != nil {
-				if func() bool {
-					if marketSlug == nil {
-						return false
-					}
-					_, ok := orphanMarkets[*marketSlug]
-					return ok
-				}() {
+				if _, ok := orphanMarkets[*marketSlug]; ok {
 					// push through a local and write the slice back - the go transpiler's
 					// ccxt.AppendToArray reassigns only a local copy of a map-stored array
 					var bucket any = func() any {
@@ -851,7 +823,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]a
 					ccxt.AppendToArray(&bucket, rawMarket)
 					ccxt.AddElementToObject(orphanMarkets, marketSlug, bucket)
 				} else {
-					ccxt.AddElementToObject(orphanMarkets, marketSlug, []any{rawMarket})
+					orphanMarkets[*marketSlug] = []any{rawMarket}
 					orphanSlugs = append(orphanSlugs, marketSlug)
 				}
 			}
@@ -861,12 +833,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]a
 	// topic from the market rows themselves, without spending a request per slug
 	var orphanSlugsLength int = len(orphanSlugs)
 	for i := 0; i < orphanSlugsLength; i++ {
-		var orphanSlug *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(orphanSlugs) {
-				return ccxt.DerefScalar(orphanSlugs[i])
-			}
-			return nil
-		}())
+		var orphanSlug *string = ccxt.SafeStringPtr(ccxt.DerefScalar(orphanSlugs[i]))
 		if !(func() bool {
 			if orphanSlug == nil {
 				return false
@@ -912,7 +879,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]a
 		}
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: result}
+	ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(result)}
 	return nil
 }
 
@@ -924,7 +891,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]a
  * @param {object} rawTopic the raw market topic object
  * @returns {object} an event structure
  */
-func (this *Predictfun) ParseEvent(rawTopic any) any {
+func (this *Predictfun) ParseEvent(rawTopic any) map[string]any {
 	//
 	//     {
 	//         "createdAt": "2026-08-26T14:00:02.000Z",
@@ -1089,12 +1056,7 @@ func (this *Predictfun) ParseEvent(rawTopic any) any {
 	var anyActive bool = false
 	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
-		var parsed any = this.ParseTopicMarket(func() any {
-			if i >= 0 && i < len(rawMarkets) {
-				return ccxt.DerefScalar(rawMarkets[i])
-			}
-			return nil
-		}(), rawTopic)
+		var parsed any = this.ParseTopicMarket(rawMarkets[i], rawTopic)
 		marketsList = append(marketsList, parsed)
 		if *this.SafeBool(parsed, "active", false) {
 			anyActive = true
@@ -1146,29 +1108,28 @@ func (this *Predictfun) ParseEvent(rawTopic any) any {
  * @param {string} [text] the raw title or outcome label
  * @returns {string} the same text with '$' removed and thousands separators closed up
  */
-func (this *Predictfun) StripPriceFormatting(text any) any {
-	if ccxt.IsEqual(text, nil) {
+func (this *Predictfun) StripPriceFormatting(text *string) any {
+	if text == nil {
 		return nil
 	}
 	var digits string = "0123456789"
 	var chars []string = this.StringToCharsArray(text)
-	var charsLength int = len(chars)
 	var stripped string = ""
-	for i := 0; i < charsLength; i++ {
-		var ch *string = ccxt.SafeStringPtr(chars[i])
+	for i := 0; i < len(chars); i++ {
+		var ch string = chars[i]
 		var keep bool = true
-		if ch != nil && *ch == "$" {
+		if ch == "$" {
 			keep = false
-		} else if ch != nil && *ch == "," {
+		} else if ch == "," {
 			// only a comma between two digits is a thousands separator: "1,500" has to close
 			// up to "1500" to match the venue's comma-free slug. a comma anywhere else is
 			// ordinary punctuation and stays, so it still separates words
 			var prevIsDigit bool = (i > 0) && (ccxt.GetIndexOf(digits, ccxt.GetValue(chars, i-1)) >= 0)
-			var nextIsDigit bool = ((i + 1) < charsLength) && (ccxt.GetIndexOf(digits, ccxt.GetValue(chars, i+1)) >= 0)
+			var nextIsDigit bool = ((i + 1) < len(chars)) && (ccxt.GetIndexOf(digits, ccxt.GetValue(chars, i+1)) >= 0)
 			keep = !(prevIsDigit && nextIsDigit)
 		}
 		if keep {
-			stripped = stripped + *ch
+			stripped = stripped + ch
 		}
 	}
 	return stripped
@@ -1184,7 +1145,7 @@ func (this *Predictfun) StripPriceFormatting(text any) any {
  * @param {int} [marketCount] how many markets the topic carries
  * @returns {string} the title to append, or the slug itself when the topic holds a single market
  */
-func (this *Predictfun) TitleForMarketSymbol(topicSlug any, title any, optionalArgs ...any) any {
+func (this *Predictfun) TitleForMarketSymbol(topicSlug *string, title *string, optionalArgs ...any) any {
 	// a topic holding one market needs nothing to tell its markets apart, and the title there
 	// only restates the slug in another spelling - the venue writes the same window as
 	// btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
@@ -1192,7 +1153,7 @@ func (this *Predictfun) TitleForMarketSymbol(topicSlug any, title any, optionalA
 	// inside a multi-market topic the title is what keeps the handles apart, so it stays
 	var marketCount *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = marketCount
-	if (marketCount != nil && *marketCount == 1) && (!ccxt.IsEqual(topicSlug, nil)) {
+	if (marketCount != nil && *marketCount == 1) && (topicSlug != nil) {
 		return topicSlug
 	}
 	return this.StripPriceFormatting(title)
@@ -1315,15 +1276,9 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolved bool = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	var endDate *string = this.SafeString(rawTopic, "endsAt")
 	var feeRateBps *string = this.SafeString(rawMarket, "feeRateBps", "200") // todo check
-	var feeRate *float64
-	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")).(float64); isNum {
-		feeRate = &derefNum
-	}
+	var feeRate *float64 = this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000"))
 	var decimalPrecision *string = this.SafeString(rawMarket, "decimalPrecision", "2")
-	var pricePrecision *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(decimalPrecision)).(float64); isNum {
-		pricePrecision = &derefNum
-	}
+	var pricePrecision *float64 = this.ParseNumber(this.ParsePrecision(decimalPrecision))
 	var precision map[string]any = map[string]any{
 		"amount": 0.01,
 		"price":  pricePrecision,
@@ -1333,12 +1288,7 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolvedOutcomeRaw any = nil
 	var rawOutcomesLength int = len(rawOutcomes)
 	for oi := 0; oi < rawOutcomesLength; oi++ {
-		var rawOutcome any = func() any {
-			if oi >= 0 && oi < len(rawOutcomes) {
-				return ccxt.DerefScalar(rawOutcomes[oi])
-			}
-			return nil
-		}()
+		var rawOutcome any = rawOutcomes[oi]
 		// a label can carry a formatted price ("$1,800+"), and it goes into the outcome
 		// handle verbatim - strip the same formatting the title gets
 		var rawLabel *string = this.SafeStringUpper(rawOutcome, "name")
@@ -1452,12 +1402,12 @@ func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-func (this *Predictfun) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Predictfun) FetchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrderBook] {
+	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrderBook], 1)
 	go this.fetchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, optionalArgs ...any) any {
+func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrderBook], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1507,7 +1457,7 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[map[string]a
 	if isYesOutcome {
 		var yesOrderbook map[string]any = this.ParseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1)
 
-		ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrderBook(yesOrderbook, outcomeObj)}
+		ch <- ccxt.AsyncResult[ccxt.PredictionOrderBook]{Value: ccxt.PredictionOrderBookFromMap(this.SafePredictionOrderBook(yesOrderbook, outcomeObj))}
 		return nil
 	} else {
 		var bids []any = ccxt.SafeListTyped(data, "bids")
@@ -1517,27 +1467,15 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[map[string]a
 		for i := 0; i < len(bids); i++ {
 			var bid []any = ccxt.SafeListTyped(bids, i)
 			var bidPrice *string = this.SafeString(bid, 0)
-			var bidSize *float64
-			if derefNum, isNum := this.ParseNumber(this.SafeString(bid, 1)).(float64); isNum {
-				bidSize = &derefNum
-			}
-			var complementPrice *float64
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)).(float64); isNum {
-				complementPrice = &derefNum
-			}
+			var bidSize *float64 = this.ParseNumber(this.SafeString(bid, 1))
+			var complementPrice *float64 = this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice))
 			noAsks = append(noAsks, []any{complementPrice, bidSize})
 		}
 		for i := 0; i < len(asks); i++ {
 			var ask []any = ccxt.SafeListTyped(asks, i)
 			var askPrice *string = this.SafeString(ask, 0)
-			var askSize *float64
-			if derefNum, isNum := this.ParseNumber(this.SafeString(ask, 1)).(float64); isNum {
-				askSize = &derefNum
-			}
-			var complementPrice *float64
-			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)).(float64); isNum {
-				complementPrice = &derefNum
-			}
+			var askSize *float64 = this.ParseNumber(this.SafeString(ask, 1))
+			var complementPrice *float64 = this.ParseNumber(ccxt.Precise.StringSub("1", askPrice))
 			noBids = append(noBids, []any{complementPrice, askSize})
 		}
 		var noOrderbook map[string]any = map[string]any{
@@ -1548,7 +1486,7 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[map[string]a
 			"nonce":     nil,
 		}
 
-		ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrderBook(noOrderbook, outcomeObj)}
+		ch <- ccxt.AsyncResult[ccxt.PredictionOrderBook]{Value: ccxt.PredictionOrderBookFromMap(this.SafePredictionOrderBook(noOrderbook, outcomeObj))}
 		return nil
 	}
 }
@@ -1562,12 +1500,12 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[map[string]a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Predictfun) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Predictfun) FetchTickerAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionTicker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.PredictionTicker], 1)
 	go this.fetchTickerBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, optionalArgs ...any) any {
+func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicker], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1623,7 +1561,7 @@ func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[map[string]any]
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParsePredictionTicker(data, outcomeObj)}
+	ch <- ccxt.AsyncResult[ccxt.PredictionTicker]{Value: ccxt.PredictionTickerFromMap(this.ParsePredictionTicker(data, outcomeObj))}
 	return nil
 }
 
@@ -1673,13 +1611,9 @@ func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) m
 	var rawOutcome any = map[string]any{}
 	var outcomeFound bool = false
 	for i := 0; i < rawOutcomesLength; i++ {
-		var candidate any = func() any {
-			if i >= 0 && i < len(rawOutcomes) {
-				return ccxt.DerefScalar(rawOutcomes[i])
-			}
-			return nil
-		}()
-		if ccxt.IsEqual(this.SafeInteger(candidate, "indexSet"), indexSet) {
+		var candidate any = rawOutcomes[i]
+		var candidateIndexSet *int64 = this.SafeInteger(candidate, "indexSet")
+		if candidateIndexSet == indexSet || (candidateIndexSet != nil && indexSet != nil && *candidateIndexSet == *indexSet) {
 			rawOutcome = candidate
 			outcomeFound = true
 			break
@@ -1689,8 +1623,8 @@ func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) m
 		// an unmatched indexSet would otherwise return a ticker whose every quote is
 		// undefined, which reads as an empty book rather than as a market that never
 		// carried this outcome
-		var requested any = this.SafeOutcomeSymbol(nil, market)
-		panic(ccxt.BadSymbol(ccxt.Add(ccxt.Add(this.Id+" fetchTicker() did not find ", requested), " among the outcomes of its market")))
+		var requested string = *this.SafeString(market, "outcome", "")
+		panic(ccxt.BadSymbol(this.Id + " fetchTicker() did not find " + requested + " among the outcomes of its market"))
 	}
 	// the venue quotes each outcome on its own side of the book, so no complement is needed
 	var bestBid map[string]any = ccxt.SafeMapTyped(rawOutcome, "bestBid")
@@ -1735,12 +1669,12 @@ func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) m
  * @param {string} [params.signerAddress] read another wallet's matches instead of the configured one
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Predictfun) FetchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1786,12 +1720,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[any], optiona
 	var flattenTrades []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(data) {
-				return ccxt.DerefScalar(data[i])
-			}
-			return nil
-		}()
+		var entry any = data[i]
 		var taker map[string]any = this.SafeDictMap(entry, "taker", map[string]any{})
 		var takerSigner *string = this.SafeStringLower(taker, "signer")
 		if takerSigner != nil && *takerSigner == wallet {
@@ -1807,12 +1736,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[any], optiona
 		var makers []any = ccxt.SafeListTyped(entry, "makers")
 		var makersLength int = len(makers)
 		for j := 0; j < makersLength; j++ {
-			var maker any = func() any {
-				if j >= 0 && j < len(makers) {
-					return ccxt.DerefScalar(makers[j])
-				}
-				return nil
-			}()
+			var maker any = makers[j]
 			var makerSigner *string = this.SafeStringLower(maker, "signer")
 			if makerSigner != nil && *makerSigner == wallet {
 				var makerParty map[string]any = this.Extend(maker, map[string]any{
@@ -1827,7 +1751,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[any], optiona
 		}
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionTrades(flattenTrades, outcomeObj, since, limit)}
+	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.ParsePredictionTrades(flattenTrades, outcomeObj, since, limit))}
 	return nil
 }
 
@@ -1844,12 +1768,12 @@ func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[any], optiona
  * @param {string} [params.minValueUsdtWei] only return matches worth at least this many wei
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Predictfun) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.fetchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchTradesBody(ch chan ccxt.AsyncResult[any], outcome any, optionalArgs ...any) any {
+func (this *Predictfun) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1943,12 +1867,7 @@ func (this *Predictfun) fetchTradesBody(ch chan ccxt.AsyncResult[any], outcome a
 				"type": "limit",
 			}
 			for j := 0; j < makersLength; j++ {
-				var maker any = func() any {
-					if j >= 0 && j < len(makers) {
-						return ccxt.DerefScalar(makers[j])
-					}
-					return nil
-				}()
+				var maker any = makers[j]
 				var makerOutcome map[string]any = ccxt.SafeMapTyped(maker, "outcome")
 				var makerIndexSet *int64 = this.SafeInteger(makerOutcome, "indexSet")
 				if makerIndexSet == outcomeIndexSet || (makerIndexSet != nil && outcomeIndexSet != nil && *makerIndexSet == *outcomeIndexSet) {
@@ -1962,7 +1881,7 @@ func (this *Predictfun) fetchTradesBody(ch chan ccxt.AsyncResult[any], outcome a
 		}
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionTrades(flattenTrades, outcomeObj, since, limit)}
+	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.ParsePredictionTrades(flattenTrades, outcomeObj, since, limit))}
 	return nil
 }
 
@@ -2047,35 +1966,35 @@ func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any
  * @param {bool} enable whether to use the testnet
  * @returns {undefined}
  */
-func (this *Predictfun) SetSandboxMode(enable any) {
+func (this *Predictfun) SetSandboxMode(enable bool) {
 	// read before the flag is overwritten: only an actual switch touches the token, so calling
 	// this twice with the same value is a no-op rather than a forced re-authentication
 	var wasSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	this.BaseExchange.SetSandboxMode(enable)
 	// the testnet is a different chain, so the EIP-712 chainId and every verifying contract
 	// change with it - and the venue serves the testnet without an api key
-	this.Options.Store("sandboxMode", enable)
-	this.Options.Store("chainId", func() int {
-		if ccxt.EvalTruthy((enable)) {
+	this.Options["sandboxMode"] = enable
+	this.Options["chainId"] = func() int {
+		if enable {
 			return 97
 		}
 		return 56
-	}())
-	this.RequiredCredentials["apiKey"] = !ccxt.EvalTruthy(enable)
-	if !ccxt.IsEqual(wasSandbox, enable) {
+	}()
+	this.RequiredCredentials["apiKey"] = !enable
+	if wasSandbox == nil || *wasSandbox != enable {
 		// a token minted for one host is not valid on the other, so the live one is set aside
 		// on the way in and taken back on the way out - a round trip through the sandbox then
 		// costs no re-authentication. the sandbox token is not kept: it dies with the switch
-		if ccxt.EvalTruthy(enable) {
-			this.Options.Store("backupJwtToken", this.SafeString(this.Options, "jwtToken"))
-			this.Options.Store("backupJwtTokenExpiresAt", this.SafeInteger(this.Options, "jwtTokenExpiresAt", 0))
-			this.Options.Store("jwtToken", nil)
-			this.Options.Store("jwtTokenExpiresAt", 0)
+		if enable {
+			this.Options["backupJwtToken"] = ccxt.DerefScalar(this.SafeString(this.Options, "jwtToken"))
+			this.Options["backupJwtTokenExpiresAt"] = ccxt.DerefScalar(this.SafeInteger(this.Options, "jwtTokenExpiresAt", 0))
+			this.Options["jwtToken"] = nil
+			this.Options["jwtTokenExpiresAt"] = 0
 		} else {
-			this.Options.Store("jwtToken", this.SafeString(this.Options, "backupJwtToken"))
-			this.Options.Store("jwtTokenExpiresAt", this.SafeInteger(this.Options, "backupJwtTokenExpiresAt", 0))
-			this.Options.Store("backupJwtToken", nil)
-			this.Options.Store("backupJwtTokenExpiresAt", 0)
+			this.Options["jwtToken"] = ccxt.DerefScalar(this.SafeString(this.Options, "backupJwtToken"))
+			this.Options["jwtTokenExpiresAt"] = ccxt.DerefScalar(this.SafeInteger(this.Options, "backupJwtTokenExpiresAt", 0))
+			this.Options["backupJwtToken"] = nil
+			this.Options["backupJwtTokenExpiresAt"] = 0
 		}
 	}
 }
@@ -2088,7 +2007,7 @@ func (this *Predictfun) SetSandboxMode(enable any) {
  * @param {string} message the message to hash
  * @returns {string} the 0x prefixed hash
  */
-func (this *Predictfun) HashMessage(message any) any {
+func (this *Predictfun) HashMessage(message string) any {
 	var binaryMessage string = this.Encode(message)
 	var binaryMessageLength int = this.BinaryLength(binaryMessage)
 	var x19 []byte = this.Base16ToBinary("19")
@@ -2106,8 +2025,8 @@ func (this *Predictfun) HashMessage(message any) any {
  * @param {string} privateKey the wallet private key
  * @returns {string} the 65 byte signature, 0x prefixed
  */
-func (this *Predictfun) SignHash(hash any, privateKey any) string {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), ccxt.Slice(privateKey, int64(-64), nil), ccxt.Secp256k1, nil)
+func (this *Predictfun) SignHash(hash any, privateKey string) string {
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign before padStart so the php str_pad regex matches, it only handles a bare identifier
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
 	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
@@ -2130,17 +2049,17 @@ func (this *Predictfun) SignHash(hash any, privateKey any) string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {string} the JWT
  */
-func (this *Predictfun) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if (ccxt.IsEqual(this.WalletAddress, nil)) || (ccxt.IsEqual(this.PrivateKey, nil)) {
+	if (this.WalletAddress == "") || (this.PrivateKey == "") {
 		panic(ccxt.ArgumentsRequired(this.Id + " authenticate() requires a walletAddress and a privateKey"))
 	}
 	var now int64 = this.Milliseconds()
@@ -2150,7 +2069,7 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[any], optional
 	// it lapses, so re-issue before that rather than after the first failure
 	if (cached != nil) && (expiresAt != nil && now < *expiresAt) {
 
-		ch <- ccxt.AsyncResult[any]{Value: cached}
+		ch <- ccxt.AsyncResult[*string]{Value: cached}
 		return nil
 	}
 
@@ -2167,7 +2086,7 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[any], optional
 	if message == nil {
 		panic(ccxt.AuthenticationError(this.Id + " authenticate() got an auth reply without the \"message\" field to sign"))
 	}
-	var signature string = this.SignHash(this.HashMessage(message), this.PrivateKey)
+	var signature string = this.SignHash(this.HashMessage(*message), this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"signer":    this.WalletAddress,
 		"message":   message,
@@ -2187,13 +2106,13 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[any], optional
 	if token == nil {
 		panic(ccxt.AuthenticationError(this.Id + " authenticate() did not return a token"))
 	}
-	this.Options.Store("jwtToken", token)
+	this.Options["jwtToken"] = ccxt.DerefScalar(token)
 	// measured from before the round trip, so the cached window closes a little early rather
 	// than a little late
 	var tokenExpiresIn *int64 = this.SafeInteger(this.Options, "tokenExpiresIn", 86400000)
-	this.Options.Store("jwtTokenExpiresAt", this.Sum(now, tokenExpiresIn))
+	this.Options["jwtTokenExpiresAt"] = this.Sum(now, tokenExpiresIn)
 
-	ch <- ccxt.AsyncResult[any]{Value: token}
+	ch <- ccxt.AsyncResult[*string]{Value: token}
 	return nil
 }
 
@@ -2207,11 +2126,11 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[any], optional
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {object} a dictionary with the order hash and the signature
  */
-func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBearing any) map[string]any {
+func (this *Predictfun) SignPredictfunOrder(order map[string]any, isNegRisk bool, isYieldBearing bool) map[string]any {
 	// chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
 	// inside the domain literal to a local var, which would corrupt the domain type hash
 	var chainIdValue *int64 = this.SafeInteger(this.Options, "chainId", 56)
-	var verifyingContract any = this.ExchangeAddress(isNegRisk, isYieldBearing)
+	var verifyingContract *string = this.ExchangeAddress(isNegRisk, isYieldBearing)
 	var domain map[string]any = map[string]any{
 		"name":              "predict.fun CTF Exchange",
 		"version":           "1",
@@ -2257,7 +2176,7 @@ func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBea
 	}}
 	// ccxt.EthEncodeStructuredData returns the EIP-712 digest, which is both what gets signed and
 	// the order hash the venue indexes the order by
-	var encoded any = this.EthEncodeStructuredData(domain, map[string]any{
+	var encoded []uint8 = this.EthEncodeStructuredData(domain, map[string]any{
 		"Order": orderStruct,
 	}, order)
 	// ccxt.EthEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
@@ -2293,12 +2212,12 @@ func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBea
  * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Predictfun) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2388,9 +2307,9 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[map[string]any]
 	var marketFeeRateBps *string = this.SafeString(marketRow, "feeRateBps", "200") // should be at least 200
 	var feeRateBps *string = this.SafeString(paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", marketFeeRateBps)
 	var marketIsNegRisk *bool = this.SafeBool(marketRow, "isNegRisk", false)
-	var isNegRisk *bool = this.SafeBool(paramsWarnOnMarketOrderWithoutPrice, "isNegRisk", marketIsNegRisk)
+	var isNegRisk bool = (this.SafeBool(paramsWarnOnMarketOrderWithoutPrice, "isNegRisk", marketIsNegRisk) != nil && *this.SafeBool(paramsWarnOnMarketOrderWithoutPrice, "isNegRisk", marketIsNegRisk) == true)
 	var marketIsYieldBearing *bool = this.SafeBool(marketRow, "isYieldBearing", false)
-	var isYieldBearing *bool = this.SafeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing)
+	var isYieldBearing bool = (this.SafeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing) != nil && *this.SafeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing) == true)
 	var defaultExpiration *int64 = this.SafeInteger(this.Options, "defaultExpiration", 3600) // 1 hour
 	var expirationDelta *int64 = defaultExpiration
 	var expiration any = ccxt.DerefScalar(this.SafeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration"))
@@ -2401,7 +2320,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[map[string]any]
 		var now int64 = this.Seconds()
 		expiration = this.Sum(now, expirationDelta)
 	}
-	var nonce any = this.IncrementingNonce()
+	var nonce int64 = this.IncrementingNonce()
 	var salt *string = this.SafeString(paramsWarnOnMarketOrderWithoutPrice, "salt", this.NumberToString(nonce))
 	var taker string = "0x0000000000000000000000000000000000000000"
 	var takerOptionparamsTakerVariable []any = this.HandleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker)
@@ -2426,7 +2345,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[map[string]any]
 		}(),
 		"signatureType": 0,
 	}
-	var signed map[string]any = ccxt.MapTyped(this.SignPredictfunOrder(contractOrder, isNegRisk, isYieldBearing))
+	var signed map[string]any = this.SignPredictfunOrder(contractOrder, isNegRisk, isYieldBearing)
 	var orderPayload map[string]any = this.Extend(contractOrder, map[string]any{
 		"hash":      this.SafeString(signed, "hash"),
 		"signature": this.SafeString(signed, "signature"),
@@ -2438,8 +2357,8 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[map[string]any]
 	}
 	var postOnly *bool = this.SafeBool(paramsTaker, "isPostOnly", false)
 	var postOnlyOptionparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, postOnly, paramsTaker)
-	var postOnlyOption bool = ccxt.GetValueBool(postOnlyOptionparamsPostOnlyVariable, 0, false)
-	var paramsPostOnly map[string]any = ccxt.MapTyped(postOnlyOptionparamsPostOnlyVariable[1])
+	var postOnlyOption bool = postOnlyOptionparamsPostOnlyVariable[0].(bool)
+	var paramsPostOnly map[string]any = postOnlyOptionparamsPostOnlyVariable[1].(map[string]any)
 	if postOnlyOption {
 		data["isPostOnly"] = postOnlyOption
 	}
@@ -2481,7 +2400,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[map[string]any]
 	// the venue answers with an id and a hash and nothing else - no price, size, side or
 	// status - so the returned order is built from what was requested and signed, with only
 	// the identifiers taken from the response
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.SafePredictionOrder(map[string]any{
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString2(result, "orderHash", "hash"),
 		"clientOrderId": nil,
 		"info":          response,
@@ -2502,7 +2421,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[map[string]any]
 		"cost":          nil,
 		"fee":           nil,
 		"trades":        []any{},
-	})}
+	}))}
 	return nil
 }
 
@@ -2522,12 +2441,12 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[map[string]any]
  * @param {string} [params.after] cursor from a previous response
  * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Predictfun) FetchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionPosition] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionPosition], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionPosition], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	outcomes := ccxt.GetArg(optionalArgs, 0, nil)
@@ -2596,44 +2515,33 @@ func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[any], option
 	//     }
 	//
 	var rows any = this.SafeList(response, "data", []any{})
-	var parsed any = this.ParsePredictionPositions(rows)
 	if outcomesLength == 0 {
 
-		ch <- ccxt.AsyncResult[any]{Value: parsed}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(rows))}
 		return nil
 	}
+	var parsed []any = ccxt.ArrayTyped(this.ParsePredictionPositions(rows))
 	// the venue filters by marketId only, so a set of outcome handles is applied here
 	var wanted map[string]any = map[string]any{}
 	var wantedOutcomes []any = this.ToArray(outcomes)
 	for i := 0; i < outcomesLength; i++ {
-		var outcomeObj map[string]any = this.Outcome(func() any {
-			if i >= 0 && i < len(wantedOutcomes) {
-				return ccxt.DerefScalar(wantedOutcomes[i])
-			}
-			return nil
-		}())
-		var wantedId *string = this.SafeString(outcomeObj, "outcomeId", "")
-		if wantedId != nil {
-			wanted[*wantedId] = true
-		}
+		var outcomeObj map[string]any = this.Outcome(this.SafeString(wantedOutcomes, i))
+		var wantedId string = *this.SafeString(outcomeObj, "outcomeId", "")
+		wanted[wantedId] = true
 	}
 	var result []any = []any{}
-	var parsedLength int = ccxt.GetArrayLength(parsed)
+	var parsedLength int = len(parsed)
 	for i := 0; i < parsedLength; i++ {
-		var position any = ccxt.GetValue(parsed, i)
+		var position any = parsed[i]
 		var outcomeId *string = this.SafeString(position, "outcomeId")
-		if (outcomeId != nil) && (func() bool {
-			if outcomeId == nil {
-				return false
+		if outcomeId != nil {
+			if _, ok := wanted[*outcomeId]; ok {
+				result = append(result, position)
 			}
-			_, ok := wanted[*outcomeId]
-			return ok
-		}()) {
-			result = append(result, position)
 		}
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: result}
+	ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(result)}
 	return nil
 }
 
@@ -2647,12 +2555,12 @@ func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[any], option
  * @param {string} [params.address] read another wallet's position, which needs no JWT
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Predictfun) FetchPositionAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchPositionAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionPosition] {
+	ch := make(chan ccxt.AsyncResult[ccxt.PredictionPosition], 1)
 	go this.fetchPositionBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchPositionBody(ch chan ccxt.AsyncResult[any], outcome any, optionalArgs ...any) any {
+func (this *Predictfun) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionPosition], outcome any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2673,11 +2581,11 @@ func (this *Predictfun) fetchPositionBody(ch chan ccxt.AsyncResult[any], outcome
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var positions []any = ccxt.ListTyped(r1.Value)
+	var positions []any = ccxt.PredictionPositionsToList(r1.Value)
 
 	// holding none of an outcome is an ordinary read, so the empty slot is returned rather
 	// than raised - the same shape polymarket and binance answer with
-	ch <- ccxt.AsyncResult[any]{Value: this.SafeDict(positions, 0)}
+	ch <- ccxt.AsyncResult[ccxt.PredictionPosition]{Value: ccxt.PredictionPositionFromMap(this.SafeDictMap(positions, 0))}
 	return nil
 }
 
@@ -2783,12 +2691,12 @@ func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Predictfun) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2800,13 +2708,13 @@ func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ccxt.ListTyped(r.Value)
+	var orders []any = ccxt.PredictionOrdersToList(r.Value)
 	var order map[string]any = ccxt.SafeMapTyped(orders, 0)
 	if order == nil {
 		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" cancelOrder() could not remove ", id)))
 	}
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: order}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(order)}
 	return nil
 }
 
@@ -2820,12 +2728,12 @@ func (this *Predictfun) cancelOrderBody(ch chan ccxt.AsyncResult[map[string]any]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[any], ids any, optionalArgs ...any) any {
+func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2887,13 +2795,8 @@ func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[any], ids any,
 	var removedLength int = len(removed)
 	for i := 0; i < removedLength; i++ {
 		rows = append(rows, this.Extend(response, map[string]any{
-			"orderHash": func() any {
-				if i >= 0 && i < len(removed) {
-					return ccxt.DerefScalar(removed[i])
-				}
-				return nil
-			}(),
-			"status": "CANCELLED",
+			"orderHash": removed[i],
+			"status":    "CANCELLED",
 		}))
 	}
 	var noopLength int = len(noop)
@@ -2901,16 +2804,11 @@ func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[any], ids any,
 		// accepted, but nothing was resting to pull: the order had already filled, expired,
 		// was never booked, or had been removed before - so the status is left unknown
 		rows = append(rows, this.Extend(response, map[string]any{
-			"orderHash": func() any {
-				if i >= 0 && i < len(noop) {
-					return ccxt.DerefScalar(noop[i])
-				}
-				return nil
-			}(),
+			"orderHash": noop[i],
 		}))
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionOrders(rows, outcomeObj)}
+	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(rows, outcomeObj))}
 	return nil
 }
 
@@ -2924,12 +2822,12 @@ func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[any], ids any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) FetchOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Predictfun) FetchOrderAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchOrderBody(ch chan ccxt.AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Predictfun) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2994,7 +2892,7 @@ func (this *Predictfun) fetchOrderBody(ch chan ccxt.AsyncResult[map[string]any],
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- ccxt.AsyncResult[map[string]any]{Value: this.ParsePredictionOrder(data, outcomeObj)}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.ParsePredictionOrder(data, outcomeObj))}
 	return nil
 }
 
@@ -3010,12 +2908,12 @@ func (this *Predictfun) fetchOrderBody(ch chan ccxt.AsyncResult[map[string]any],
  * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) FetchOpenOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchOpenOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -3034,11 +2932,11 @@ func (this *Predictfun) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[any], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes242515 []any = ccxt.ListTyped(r.Value)
-	if retRes242515 == nil {
-		ch <- ccxt.AsyncResult[any]{Value: nil}
+	var retRes241915 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes241915 == nil {
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[any]{Value: retRes242515}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes241915)}
 	}
 	return nil
 }
@@ -3055,12 +2953,12 @@ func (this *Predictfun) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[any], optio
  * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) FetchClosedOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchClosedOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the venue's status filter is an enum of OPEN and FILLED only - expired and cancelled
@@ -3081,11 +2979,11 @@ func (this *Predictfun) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[any], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes244615 []any = ccxt.ListTyped(r.Value)
-	if retRes244615 == nil {
-		ch <- ccxt.AsyncResult[any]{Value: nil}
+	var retRes244015 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes244015 == nil {
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[any]{Value: retRes244615}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes244015)}
 	}
 	return nil
 }
@@ -3104,12 +3002,12 @@ func (this *Predictfun) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[any], opt
  * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
  * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Predictfun) FetchOrdersHelperAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) FetchOrdersHelperAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.fetchOrdersHelperBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchOrdersHelperBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) fetchOrdersHelperBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -3182,7 +3080,7 @@ func (this *Predictfun) fetchOrdersHelperBody(ch chan ccxt.AsyncResult[any], opt
 
 	// since is deliberately not forwarded: the rows carry no timestamp, so the shared
 	// since filter would drop every one of them
-	ch <- ccxt.AsyncResult[any]{Value: this.ParsePredictionOrders(data, outcomeObj, since, limit)}
+	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(data, outcomeObj, since, limit))}
 	return nil
 }
 
@@ -3319,18 +3217,18 @@ func (this *Predictfun) ParseOrderStatus(status *string) *string {
  * @method
  * @name predictfun#handleErrors
  * @description maps the venue's error slugs and messages onto the unified exceptions
- * @param {int} statusCode the http status code
- * @param {string} statusText the http status text
+ * @param {int} code the http status code
+ * @param {string} reason the http status text
  * @param {string} url the request url
  * @param {string} method the http method
- * @param {object} responseHeaders the response headers
- * @param {string} responseBody the raw response body
+ * @param {object} headers the response headers
+ * @param {string} body the raw response body
  * @param {object} response the parsed response
  * @param {object} requestHeaders the request headers
  * @param {object} requestBody the request body
  * @returns {undefined} nothing, it throws when the venue reported a failure
  */
-func (this *Predictfun) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {
+func (this *Predictfun) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -3338,7 +3236,7 @@ func (this *Predictfun) HandleErrors(statusCode any, statusText any, url any, me
 	if success != nil && *success {
 		return nil
 	}
-	var feedback string = this.Id + " " + responseBody
+	var feedback string = this.Id + " " + body
 	// the message is matched first because it is the more specific of the two: several
 	// distinct failures share a generic slug, notably 'unauthorized', which the venue also
 	// returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -3348,15 +3246,15 @@ func (this *Predictfun) HandleErrors(statusCode any, statusText any, url any, me
 	// order - that case is matched above and has already thrown, so reaching here with a 401
 	// means the credential itself was refused. drop the cached JWT, otherwise a token revoked
 	// or aged out before its window closes is replayed for the life of the process
-	if ccxt.IsEqual(statusCode, 401) {
-		this.Options.Store("jwtToken", nil)
-		this.Options.Store("jwtTokenExpiresAt", 0)
+	if code == 401 {
+		this.Options["jwtToken"] = nil
+		this.Options["jwtTokenExpiresAt"] = 0
 	}
 	var error *string = this.SafeString(response, "error")
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 	// a 400 is a rejected request or a business rule, not a transport outage - the base would
 	// otherwise map the bare status onto a retryable network error
-	if ccxt.IsEqual(statusCode, 400) {
+	if code == 400 {
 		panic(ccxt.BadRequest(feedback))
 	}
 	panic(ccxt.ExchangeError(feedback))
@@ -3371,16 +3269,16 @@ func (this *Predictfun) HandleErrors(statusCode any, statusText any, url any, me
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {string} the contract address on the active chain
  */
-func (this *Predictfun) ExchangeAddress(isNegRisk any, isYieldBearing any) any {
+func (this *Predictfun) ExchangeAddress(isNegRisk bool, isYieldBearing bool) *string {
 	var chainIdValue *int64 = this.SafeInteger(this.Options, "chainId", 56)
 	var exchanges map[string]any = ccxt.SafeMapTyped(this.Options, "exchanges")
 	var byChain map[string]any = ccxt.SafeMapTyped(exchanges, this.NumberToString(chainIdValue))
 	var identifier string = "CTF_EXCHANGE"
-	if ccxt.EvalTruthy(isNegRisk) && ccxt.EvalTruthy(isYieldBearing) {
+	if isNegRisk && isYieldBearing {
 		identifier = "YIELD_BEARING_NEG_RISK_CTF_EXCHANGE"
-	} else if ccxt.EvalTruthy(isNegRisk) {
+	} else if isNegRisk {
 		identifier = "NEG_RISK_CTF_EXCHANGE"
-	} else if ccxt.EvalTruthy(isYieldBearing) {
+	} else if isYieldBearing {
 		identifier = "YIELD_BEARING_CTF_EXCHANGE"
 	}
 	return this.SafeString(byChain, identifier)
@@ -3395,16 +3293,16 @@ func (this *Predictfun) ExchangeAddress(isNegRisk any, isYieldBearing any) any {
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {string} the contract address on the active chain
  */
-func (this *Predictfun) ConditionalTokensAddress(isNegRisk any, isYieldBearing any) any {
+func (this *Predictfun) ConditionalTokensAddress(isNegRisk bool, isYieldBearing bool) *string {
 	var chainIdValue *int64 = this.SafeInteger(this.Options, "chainId", 56)
 	var tokens map[string]any = ccxt.SafeMapTyped(this.Options, "conditionalTokens")
 	var byChain map[string]any = ccxt.SafeMapTyped(tokens, this.NumberToString(chainIdValue))
 	var identifier string = "CONDITIONAL_TOKENS"
-	if ccxt.EvalTruthy(isNegRisk) && ccxt.EvalTruthy(isYieldBearing) {
+	if isNegRisk && isYieldBearing {
 		identifier = "YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS"
-	} else if ccxt.EvalTruthy(isNegRisk) {
+	} else if isNegRisk {
 		identifier = "NEG_RISK_CONDITIONAL_TOKENS"
-	} else if ccxt.EvalTruthy(isYieldBearing) {
+	} else if isYieldBearing {
 		identifier = "YIELD_BEARING_CONDITIONAL_TOKENS"
 	}
 	return this.SafeString(byChain, identifier)
@@ -3418,12 +3316,12 @@ func (this *Predictfun) ConditionalTokensAddress(isNegRisk any, isYieldBearing a
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {string} the contract address on the active chain
  */
-func (this *Predictfun) AdapterAddress(isYieldBearing any) any {
+func (this *Predictfun) AdapterAddress(isYieldBearing bool) *string {
 	var chainIdValue *int64 = this.SafeInteger(this.Options, "chainId", 56)
 	var adapters map[string]any = ccxt.SafeMapTyped(this.Options, "adapters")
 	var byChain map[string]any = ccxt.SafeMapTyped(adapters, this.NumberToString(chainIdValue))
 	var identifier string = "NEG_RISK_ADAPTER"
-	if ccxt.EvalTruthy(isYieldBearing) {
+	if isYieldBearing {
 		identifier = "YIELD_BEARING_NEG_RISK_ADAPTER"
 	}
 	return this.SafeString(byChain, identifier)
@@ -3455,18 +3353,7 @@ func (this *Predictfun) SignEvmTransaction(tx any, privateKey any) any {
 	rHex = this.PadHexToEven(rHex)
 	sHex = this.PadHexToEven(sHex)
 	var yParity *int64 = this.SafeInteger(signature, "v")
-	var signedFields []any = []any{}
-	for i := 0; i < len(fields); i++ {
-		signedFields = append(signedFields, func() any {
-			if i >= 0 && i < len(fields) {
-				return ccxt.DerefScalar(fields[i])
-			}
-			return nil
-		}())
-	}
-	signedFields = append(signedFields, this.RlpEncodeBytes(this.IntToRlpHex(yParity)))
-	signedFields = append(signedFields, this.RlpEncodeBytes(rHex))
-	signedFields = append(signedFields, this.RlpEncodeBytes(sHex))
+	var signedFields []any = this.ArrayConcat(fields, []any{this.RlpEncodeBytes(this.IntToRlpHex(yParity)), this.RlpEncodeBytes(rHex), this.RlpEncodeBytes(sHex)})
 	return ccxt.Add("0x02", this.RlpEncodeList(signedFields))
 }
 
@@ -3499,23 +3386,24 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.PrivateKey, nil) {
+	if this.PrivateKey == "" {
 		panic(ccxt.ArgumentsRequired(this.Id + " approve() requires a privateKey to sign the on-chain transaction"))
 	}
-	var side *string = this.SafeStringLower(params, "side", "buy")
+	var side string = *this.SafeStringLower(params, "side", "buy")
 	var chainId *int64 = this.SafeInteger(this.Options, "chainId", 56)
 	var chainKey *string = this.NumberToString(chainId)
 	var rpcUrls map[string]any = ccxt.SafeMapTyped(this.Options, "rpcUrls")
 	var rpcUrl *string = this.SafeString(params, "rpcUrl", this.SafeString(rpcUrls, chainKey))
 	var owner *string = this.SafeString(params, "owner", this.WalletAddress)
 	if owner == nil {
-		owner = ccxt.SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey))
+		ethGetAddressFromPrivateKeyText := this.EthGetAddressFromPrivateKey(this.PrivateKey)
+		owner = &ethGetAddressFromPrivateKeyText
 	}
 	var gasLimit *string = this.SafeString(params, "gasLimit", "0x186a0")
 	// which of the four exchanges settles a market is a property of the market, so an
 	// approval granted for one of them is worth nothing on the others
-	var isNegRisk any = false
-	var isYieldBearing any = false
+	var isNegRisk bool = false
+	var isYieldBearing bool = false
 	if outcome != nil {
 
 		r := <-this.LoadOutcomeAsync(outcome)
@@ -3526,10 +3414,10 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		var marketSymbol *string = this.SafeString(outcomeObj, "market")
 		var marketObj map[string]any = ccxt.SafeMapTyped(this.Markets, marketSymbol)
 		var marketRow map[string]any = ccxt.SafeMapTyped(marketObj, "info")
-		isNegRisk = ccxt.DerefScalar(this.SafeBool(marketRow, "isNegRisk", false))
-		isYieldBearing = ccxt.DerefScalar(this.SafeBool(marketRow, "isYieldBearing", false))
+		isNegRisk = (this.SafeBool(marketRow, "isNegRisk", false) != nil && *this.SafeBool(marketRow, "isNegRisk", false) == true)
+		isYieldBearing = (this.SafeBool(marketRow, "isYieldBearing", false) != nil && *this.SafeBool(marketRow, "isYieldBearing", false) == true)
 	}
-	if side != nil && *side == "sell" {
+	if side == "sell" {
 		var ctfToken *string = this.SafeString(params, "token", this.ConditionalTokensAddress(isNegRisk, isYieldBearing))
 		var operators []any = []any{}
 		var explicitOperator *string = this.SafeString(params, "spender")
@@ -3541,7 +3429,7 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 			operators = append(operators, this.ExchangeAddress(isNegRisk, isYieldBearing))
 			// a neg risk match mints and merges through the adapter, which moves the seller's
 			// shares itself, so approving the exchange alone leaves the sell side half open
-			if ccxt.EvalTruthy(isNegRisk) {
+			if isNegRisk {
 				operators = append(operators, this.AdapterAddress(isYieldBearing))
 			}
 		}
@@ -3556,13 +3444,8 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		var receipts []any = []any{}
 		var operatorsLength int = len(operators)
 		for i := 0; i < operatorsLength; i++ {
-			var operatorAddress any = func() any {
-				if i >= 0 && i < len(operators) {
-					return ccxt.DerefScalar(operators[i])
-				}
-				return nil
-			}()
-			if ccxt.IsEqual(operatorAddress, nil) {
+			var operatorAddress *string = this.SafeString(operators, i)
+			if operatorAddress == nil {
 				panic(ccxt.ArgumentsRequired(this.Id + " approve() could not resolve the operator to approve for chain " + *chainKey))
 			}
 			// setApprovalForAll(operator, approved) -> selector 0xa22cb465
@@ -3580,7 +3463,10 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			receipt := r2.Value
+			var receipt any = nil
+			if r2.Value != nil {
+				receipt = r2.Value
+			}
 			receipts = append(receipts, receipt)
 		}
 
@@ -3589,14 +3475,14 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 	}
 	var collaterals map[string]any = ccxt.SafeMapTyped(this.Options, "collateral")
 	var token *string = this.SafeString(params, "token", this.SafeString(collaterals, chainKey))
-	var spender any = ccxt.DerefScalar(this.SafeString(params, "spender"))
-	if ccxt.IsEqual(spender, nil) {
+	var spender *string = this.SafeString(params, "spender")
+	if spender == nil {
 		if outcome == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " approve() requires an \"outcome\" to resolve the exchange to approve, or an explicit \"spender\" parameter"))
 		}
 		spender = this.ExchangeAddress(isNegRisk, isYieldBearing)
 	}
-	if (rpcUrl == nil) || (token == nil) || (ccxt.IsEqual(spender, nil)) {
+	if (rpcUrl == nil) || (token == nil) || (spender == nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain " + *chainKey))
 	}
 	var amountHex string = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -3622,7 +3508,11 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 	if r4.Err != nil {
 		panic(r4.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r4.Value}
+	if r4.Value == nil {
+		ch <- ccxt.AsyncResult[any]{Value: nil}
+	} else {
+		ch <- ccxt.AsyncResult[any]{Value: r4.Value}
+	}
 	return nil
 }
 
@@ -3678,9 +3568,9 @@ func (this *Predictfun) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 		"id":            this.NumberToString(requestId),
 		"topic":         topic,
 		"subscribeHash": topic,
-		"messageHashes": this.OrderBookMessageHashes(marketId),
+		"messageHashes": this.OrderBookMessageHashes(*marketId),
 	}
-	var url any = this.SocketUrl()
+	var url string = this.SocketUrl()
 
 	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), topic, subscription)
 	if r1.Err != nil {
@@ -3701,12 +3591,12 @@ func (this *Predictfun) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} the venue's acknowledgement
  */
-func (this *Predictfun) UnWatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) UnWatchOrderBookAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOrderBookBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], outcome string, optionalArgs ...any) any {
+func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3729,12 +3619,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], outc
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
-		var handle *string = this.SafeString(func() any {
-			if i >= 0 && i < len(outcomes) {
-				return ccxt.DerefScalar(outcomes[i])
-			}
-			return nil
-		}(), "outcome")
+		var handle *string = this.SafeString(outcomes[i], "outcome")
 		if handle != nil {
 			handles = append(handles, handle)
 			subMessageHashes = append(subMessageHashes, "orderbook::"+*handle)
@@ -3759,13 +3644,25 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], outc
 		"subscribeHash":    topic,
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::orderbook::", this.SafeOutcomeSymbol(nil, outcomeObj)))
-	var url any = this.SocketUrl()
+	var url string = this.SocketUrl()
 
 	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 
@@ -3777,17 +3674,12 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[any], outc
  * @param {string} [marketId] the venue market id
  * @returns {string[]} the message hashes
  */
-func (this *Predictfun) OrderBookMessageHashes(marketId any) any {
-	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(marketId))
+func (this *Predictfun) OrderBookMessageHashes(marketId string) []any {
+	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(ccxt.SafeStringPtr(marketId)))
 	var outcomesLength int = len(outcomes)
 	var hashes []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
-		var handle *string = this.SafeString(func() any {
-			if i >= 0 && i < len(outcomes) {
-				return ccxt.DerefScalar(outcomes[i])
-			}
-			return nil
-		}(), "outcome")
+		var handle *string = this.SafeString(outcomes[i], "outcome")
 		if handle != nil {
 			hashes = append(hashes, "orderbook::"+*handle)
 		}
@@ -3804,15 +3696,15 @@ func (this *Predictfun) OrderBookMessageHashes(marketId any) any {
  * @param {object} message the raw rejection
  * @param {object} subscription the subscription that request registered, empty when it cannot be attributed
  */
-func (this *Predictfun) HandleSubscriptionError(client any, message any, subscription any) {
+func (this *Predictfun) HandleSubscriptionError(client any, message map[string]any, subscription any) {
 	var rawError map[string]any = this.SafeDictMap(message, "error", map[string]any{})
 	error := ccxt.ExchangeError(this.Id + " subscribe request rejected " + this.Json(rawError))
 	// watch () registers a subscription before it sends and only sends while the hash is still
 	// unregistered, so a rejected request has to take its own entry down - otherwise a retry
 	// would skip the send and wait forever on a topic the venue never accepted
 	var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
-	if (subscribeHash != nil) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+	if (subscribeHash != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
+		client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 	}
 	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
 	if this.SafeString(subscription, "topic") != nil && *this.SafeString(subscription, "topic") == "walletEvents" {
@@ -3827,7 +3719,7 @@ func (this *Predictfun) HandleSubscriptionError(client any, message any, subscri
 		panic(error)
 	}
 	for i := 0; i < messageHashesLength; i++ {
-		client.(ccxt.ClientInterface).Reject(error, ccxt.GetValue(messageHashes, i))
+		client.(ccxt.ClientInterface).Reject(error, this.SafeString(messageHashes, i, ""))
 	}
 }
 
@@ -3851,22 +3743,17 @@ func (this *Predictfun) HandleUnSubscription(client any, subscription any) {
 	for i := 0; i < messageHashesLength; i++ {
 		this.CleanUnsubscription(ccxt.AsClient(client), func() any {
 			if i >= 0 && i < len(subMessageHashes) {
-				return ccxt.DerefScalar(subMessageHashes[i])
+				return subMessageHashes[i]
 			}
 			return nil
-		}(), func() any {
-			if i >= 0 && i < len(messageHashes) {
-				return ccxt.DerefScalar(messageHashes[i])
-			}
-			return nil
-		}(), isWalletTopic)
+		}(), messageHashes[i], isWalletTopic)
 	}
 	this.CleanCache(subscription)
 	// the subscription itself is keyed by the topic, which is what watchOrderBook registered -
 	// leaving it behind would make a later watch believe it is still subscribed
 	var subscribeHash *string = this.SafeString(subscription, "subscribeHash")
-	if (subscribeHash != nil) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+	if (subscribeHash != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
+		client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 	}
 	// cleanCache drops a cache only when the subscription names that one topic, and the wallet
 	// topic backs two of them - so the caches it cannot reach are dropped here by the hashes
@@ -3877,13 +3764,8 @@ func (this *Predictfun) HandleUnSubscription(client any, subscription any) {
 	// silently leaving those two languages with a stale cache
 	var subMessageHashesLength int = len(subMessageHashes)
 	for i := 0; i < subMessageHashesLength; i++ {
-		var subHash any = func() any {
-			if i >= 0 && i < len(subMessageHashes) {
-				return ccxt.DerefScalar(subMessageHashes[i])
-			}
-			return nil
-		}()
-		if (ccxt.IsEqual(subHash, "orders")) || (ccxt.IsEqual(subHash, "myTrades")) {
+		var subHash *string = this.SafeString(subMessageHashes, i)
+		if (subHash != nil && *subHash == "orders") || (subHash != nil && *subHash == "myTrades") {
 			this.CleanCache(map[string]any{
 				"topic": subHash,
 			})
@@ -3902,12 +3784,12 @@ func (this *Predictfun) HandleUnSubscription(client any, subscription any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Predictfun) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Predictfun) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -3920,7 +3802,7 @@ func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optiona
 	_ = params
 	var messageHash any = "orders"
 	var outcomeResolved any = outcome
-	if !ccxt.IsEqual(outcomeResolved, nil) {
+	if outcome != nil {
 
 		r := <-this.LoadOutcomeAsync(outcomeResolved)
 		if r.Err != nil {
@@ -3952,17 +3834,7 @@ func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optiona
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(outcomeResolved, limitResolved)
 	}
 
-	var resolved []any
-	switch resolvedBox := this.FilterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true).(type) {
-	case []any:
-		resolved = resolvedBox
-	case ccxt.IArrayCache:
-		resolved = resolvedBox.ToArray()
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not []any"))
-	}
-	ch <- ccxt.AsyncResult[[]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true))}
 	return nil
 }
 
@@ -3977,12 +3849,12 @@ func (this *Predictfun) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Predictfun) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Predictfun) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Predictfun) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -3995,7 +3867,7 @@ func (this *Predictfun) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optio
 	_ = params
 	var messageHash any = "myTrades"
 	var outcomeResolved any = outcome
-	if !ccxt.IsEqual(outcomeResolved, nil) {
+	if outcome != nil {
 
 		r := <-this.LoadOutcomeAsync(outcomeResolved)
 		if r.Err != nil {
@@ -4024,17 +3896,7 @@ func (this *Predictfun) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optio
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(outcomeResolved, limitResolved)
 	}
 
-	var resolved1 []any
-	switch resolved1Box := this.FilterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true).(type) {
-	case []any:
-		resolved1 = resolved1Box
-	case ccxt.IArrayCache:
-		resolved1 = resolved1Box.ToArray()
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not []any"))
-	}
-	ch <- ccxt.AsyncResult[[]any]{Value: resolved1}
+	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true))}
 	return nil
 }
 
@@ -4047,12 +3909,12 @@ func (this *Predictfun) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} the venue's acknowledgement
  */
-func (this *Predictfun) UnWatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) UnWatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) unWatchOrdersBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -4064,7 +3926,7 @@ func (this *Predictfun) unWatchOrdersBody(ch chan ccxt.AsyncResult[any], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -4077,12 +3939,12 @@ func (this *Predictfun) unWatchOrdersBody(ch chan ccxt.AsyncResult[any], optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} the venue's acknowledgement
  */
-func (this *Predictfun) UnWatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) UnWatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) unWatchMyTradesBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Predictfun) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -4094,7 +3956,7 @@ func (this *Predictfun) unWatchMyTradesBody(ch chan ccxt.AsyncResult[any], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
 
@@ -4105,12 +3967,12 @@ func (this *Predictfun) unWatchMyTradesBody(ch chan ccxt.AsyncResult[any], optio
  * @description the wallet topic, which carries the jwt inside the topic string itself
  * @returns {string} the topic to subscribe to
  */
-func (this *Predictfun) WalletEventsTopicAsync() <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) WalletEventsTopicAsync() <-chan ccxt.AsyncResult[*string] {
+	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.walletEventsTopicBody(ch)
 	return ch
 }
-func (this *Predictfun) walletEventsTopicBody(ch chan ccxt.AsyncResult[any]) any {
+func (this *Predictfun) walletEventsTopicBody(ch chan ccxt.AsyncResult[*string]) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// authenticate () serves the cached token until it expires, so subscribe and unsubscribe
@@ -4126,7 +3988,16 @@ func (this *Predictfun) walletEventsTopicBody(ch chan ccxt.AsyncResult[any]) any
 	}
 	walletToken := r.Value
 
-	ch <- ccxt.AsyncResult[any]{Value: ccxt.Add("predictWalletEvents/", walletToken)}
+	var resolved *string
+	switch resolvedBox := ccxt.Add("predictWalletEvents/", walletToken).(type) {
+	case *string:
+		resolved = resolvedBox
+	case string:
+		resolved = &resolvedBox
+	default:
+		_ = resolvedBox
+	}
+	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
 
@@ -4161,7 +4032,7 @@ func (this *Predictfun) watchWalletEventsBody(ch chan ccxt.AsyncResult[any], mes
 		"requestId": requestId,
 		"params":    []any{topic},
 	}
-	var url any = this.SocketUrl()
+	var url string = this.SocketUrl()
 	var client any = this.Client(url)
 	var subscription map[string]any = map[string]any{
 		"id":            this.NumberToString(requestId),
@@ -4187,7 +4058,7 @@ func (this *Predictfun) watchWalletEventsBody(ch chan ccxt.AsyncResult[any], mes
  * @param {string} [messageHash] the hash this call is about to park on, not registered yet
  * @returns {string[]} the message hashes
  */
-func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any) any {
+func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any) []any {
 	// handleSubscriptionError rejects exactly this list, so a hash missing from it belongs to a
 	// caller the venue's refusal never reaches - watchOrders (outcome) would sit forever on a
 	// topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
@@ -4195,21 +4066,11 @@ func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any
 	messageHash := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = messageHash
 	var hashes []any = []any{"orders", "myTrades"}
-	var futures []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
+	var futures []string = client.(ccxt.ClientInterface).FutureKeys()
 	var futuresLength int = len(futures)
 	for i := 0; i < futuresLength; i++ {
-		var future *string = ccxt.SafeStringPtr(futures[i])
-		if (func() int {
-			if future == nil {
-				return -1
-			}
-			return strings.Index(*future, "orders::")
-		}() == 0) || (func() int {
-			if future == nil {
-				return -1
-			}
-			return strings.Index(*future, "myTrades::")
-		}() == 0) {
+		var future string = futures[i]
+		if (strings.Index(future, "orders::") == 0) || (strings.Index(future, "myTrades::") == 0) {
 			hashes = append(hashes, future)
 		}
 	}
@@ -4228,12 +4089,12 @@ func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} the venue's acknowledgement
  */
-func (this *Predictfun) UnWatchWalletEventsAsync(channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) UnWatchWalletEventsAsync(channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchWalletEventsBody(ch, channel, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) unWatchWalletEventsBody(ch chan ccxt.AsyncResult[any], channel string, optionalArgs ...any) any {
+func (this *Predictfun) unWatchWalletEventsBody(ch chan ccxt.AsyncResult[bool], channel string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4260,13 +4121,25 @@ func (this *Predictfun) unWatchWalletEventsBody(ch chan ccxt.AsyncResult[any], c
 		"subscribeHash":    "walletEvents",
 	}
 	var messageHash string = "unsubscribe::" + channel
-	var url any = this.SocketUrl()
+	var url string = this.SocketUrl()
 
 	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 
@@ -4277,18 +4150,18 @@ func (this *Predictfun) unWatchWalletEventsBody(ch chan ccxt.AsyncResult[any], c
  * @description the socket endpoint carrying the api key the venue demands on the handshake
  * @returns {string} the url to connect to
  */
-func (this *Predictfun) SocketUrl() any {
+func (this *Predictfun) SocketUrl() string {
 	var urls map[string]any = ccxt.MapTyped(this.Urls["api"])
 	var base *string = this.SafeString(urls, "ws")
 	if base == nil {
 		panic(ccxt.NotSupported(this.Id + " does not have a sandbox websocket endpoint"))
 	}
-	if ccxt.IsEqual(this.ApiKey, nil) {
+	if this.ApiKey == "" {
 		panic(ccxt.AuthenticationError(this.Id + " requires an apiKey for all methods - the venue answers the socket handshake with a 401 without one"))
 	}
 	// the key rides in the query string rather than a header: a browser cannot set headers on
 	// a websocket handshake, and the venue documents both forms
-	return ccxt.Add(*base+"?apiKey=", this.ApiKey)
+	return *base + "?apiKey=" + this.ApiKey
 }
 
 /**
@@ -4299,11 +4172,7 @@ func (this *Predictfun) SocketUrl() any {
  * @returns {int} the next request id
  */
 func (this *Predictfun) RequestId() int64 {
-	this.LockId()
-	var previous *int64 = this.SafeInteger(this.Options, "requestId", 0)
-	var next int64 = this.Sum(previous, 1).(int64)
-	this.Options.Store("requestId", next)
-	this.UnlockId()
+	var next int64 = this.NextRequestId("requestId")
 	return next
 }
 
@@ -4316,7 +4185,7 @@ func (this *Predictfun) RequestId() int64 {
  * @param {object} [market] the outcome the caller asked about
  * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
  */
-func (this *Predictfun) OutcomeForToken(tokenId any, optionalArgs ...any) any {
+func (this *Predictfun) OutcomeForToken(tokenId *string, optionalArgs ...any) any {
 	// the list endpoints (orders, matches, positions) answer for the whole wallet rather than
 	// for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
 	// back to it on any cache miss, which stamped the requested outcome onto rows from other
@@ -4324,7 +4193,7 @@ func (this *Predictfun) OutcomeForToken(tokenId any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var hintId *string = this.SafeString(market, "outcomeId")
-	if (ccxt.IsEqual(tokenId, nil)) || (ccxt.IsEqual(hintId, tokenId)) {
+	if (tokenId == nil) || (hintId == tokenId || (hintId != nil && tokenId != nil && *hintId == *tokenId)) {
 		return this.SafeOutcome(tokenId, market)
 	}
 	return this.SafeOutcome(tokenId)
@@ -4338,18 +4207,18 @@ func (this *Predictfun) OutcomeForToken(tokenId any, optionalArgs ...any) any {
  * @param {string} [marketId] the venue market id
  * @returns {object[]} the outcome objects
  */
-func (this *Predictfun) OutcomesByMarketId(marketId any) any {
+func (this *Predictfun) OutcomesByMarketId(marketId *string) []any {
 	var result []any = []any{}
-	var cached any = this.Outcomes
-	if (ccxt.IsEqual(marketId, nil)) || (ccxt.IsEqual(cached, nil)) {
+	if (marketId == nil) || (this.Outcomes == nil) {
 		return result
 	}
+	var cached any = this.Outcomes
 	var handles []string = ccxt.ObjectKeys(cached)
 	var handlesLength int = len(handles)
 	for i := 0; i < handlesLength; i++ {
 		var outcomeObj any = ccxt.GetValue(cached, handles[i])
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
-		if ccxt.IsEqual(this.SafeString(info, "marketId"), marketId) {
+		if this.SafeString(info, "marketId") == marketId || (this.SafeString(info, "marketId") != nil && marketId != nil && *this.SafeString(info, "marketId") == *marketId) {
 			result = append(result, outcomeObj)
 		}
 	}
@@ -4364,7 +4233,7 @@ func (this *Predictfun) OutcomesByMarketId(marketId any) any {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw message
  */
-func (this *Predictfun) HandleOrderBook(client any, message any) {
+func (this *Predictfun) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "M",
@@ -4414,10 +4283,7 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 	for i := 0; i < bidsLength; i++ {
 		var bid []any = ccxt.SafeListTyped(rawBids, i)
 		var bidPrice *string = this.SafeString(bid, 0)
-		var bidSize *float64
-		if derefNum, isNum := this.ParseNumber(this.SafeString(bid, 1)).(float64); isNum {
-			bidSize = &derefNum
-		}
+		var bidSize *float64 = this.ParseNumber(this.SafeString(bid, 1))
 		yesBids = append(yesBids, []any{this.ParseNumber(bidPrice), bidSize})
 		// a bid for yes at p is an offer of no at 1 - p
 		noAsks = append(noAsks, []any{this.ParseNumber(ccxt.Precise.StringSub("1", bidPrice)), bidSize})
@@ -4426,10 +4292,7 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 	for i := 0; i < asksLength; i++ {
 		var ask []any = ccxt.SafeListTyped(rawAsks, i)
 		var askPrice *string = this.SafeString(ask, 0)
-		var askSize *float64
-		if derefNum, isNum := this.ParseNumber(this.SafeString(ask, 1)).(float64); isNum {
-			askSize = &derefNum
-		}
+		var askSize *float64 = this.ParseNumber(this.SafeString(ask, 1))
 		yesAsks = append(yesAsks, []any{this.ParseNumber(askPrice), askSize})
 		noBids = append(noBids, []any{this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)), askSize})
 	}
@@ -4438,20 +4301,20 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = ccxt.SafeMapTyped(outcomes, i)
 		var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
-		var isYesOutcome bool = ccxt.IsEqual(this.SafeInteger(outcomeInfo, "indexSet"), 1)
+		var isYesOutcome bool = (this.SafeInteger(outcomeInfo, "indexSet") != nil && *this.SafeInteger(outcomeInfo, "indexSet") == 1)
 		var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
 		if outcomeHandle != nil {
-			if !(ccxt.InOp(this.Orderbooks, outcomeHandle)) {
-				ccxt.AddElementToObject(this.Orderbooks, outcomeHandle, this.OrderBook(map[string]any{}))
+			if !(outcomeHandle != nil && this.Orderbooks[*outcomeHandle] != nil) {
+				this.Orderbooks[*outcomeHandle] = this.OrderBook(map[string]any{})
 			}
-			var orderbook any = ccxt.GetValue(this.Orderbooks, outcomeHandle)
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*outcomeHandle]
 			var bids []any = yesBids
 			var asks []any = yesAsks
 			if !isYesOutcome {
 				bids = this.SortBy(noBids, 0, true)
 				asks = this.SortBy(noAsks, 0)
 			}
-			orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{
+			orderbook.Reset(map[string]any{
 				"bids":      bids,
 				"asks":      asks,
 				"timestamp": timestamp,
@@ -4474,7 +4337,7 @@ func (this *Predictfun) HandleOrderBook(client any, message any) {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw message
  */
-func (this *Predictfun) HandleWalletEvent(client any, message any) {
+func (this *Predictfun) HandleWalletEvent(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "M",
@@ -4540,8 +4403,8 @@ func (this *Predictfun) HandleWalletEventOrder(client any, order any) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
-	var stored any = this.Orders
-	stored.(ccxt.Appender).Append(order)
+	var stored ccxt.WsArrayCache = this.Orders
+	stored.Append(order)
 	client.(ccxt.ClientInterface).Resolve(stored, "orders")
 	var outcomeHandle *string = this.SafeString(order, "outcome")
 	if outcomeHandle != nil {
@@ -4564,8 +4427,8 @@ func (this *Predictfun) HandleWalletEventTrade(client any, event any, order any)
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
-	var stored any = this.MyTrades
-	stored.(ccxt.Appender).Append(trade)
+	var stored ccxt.WsArrayCache = this.MyTrades
+	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 	var outcomeHandle *string = this.SafeString(trade, "outcome")
 	if outcomeHandle != nil {
@@ -4581,20 +4444,16 @@ func (this *Predictfun) HandleWalletEventTrade(client any, event any, order any)
  * @param {object} details the event's details block
  * @returns {object} the outcome object, or a stub when the market is not cached
  */
-func (this *Predictfun) WalletEventOutcome(details any) any {
+func (this *Predictfun) WalletEventOutcome(details map[string]any) any {
 	var marketId *string = this.SafeString(details, "marketId")
 	var outcomeIndex *int64 = this.SafeInteger(details, "outcomeIndex")
 	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(marketId))
 	var outcomesLength int = len(outcomes)
 	for i := 0; i < outcomesLength; i++ {
-		var candidate any = func() any {
-			if i >= 0 && i < len(outcomes) {
-				return ccxt.DerefScalar(outcomes[i])
-			}
-			return nil
-		}()
+		var candidate any = outcomes[i]
 		var info map[string]any = ccxt.SafeMapTyped(candidate, "info")
-		if ccxt.IsEqual(this.SafeInteger(info, "indexSet"), outcomeIndex) {
+		var candidateIndexSet *int64 = this.SafeInteger(info, "indexSet")
+		if candidateIndexSet == outcomeIndex || (candidateIndexSet != nil && outcomeIndex != nil && *candidateIndexSet == *outcomeIndex) {
 			return candidate
 		}
 	}
@@ -4798,7 +4657,7 @@ func (this *Predictfun) ParseWalletEventTrade(event any, order any) any {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw message
  */
-func (this *Predictfun) HandleHeartbeat(client any, message any) {
+func (this *Predictfun) HandleHeartbeat(client any, message map[string]any) {
 	// client.send () is a coroutine in the python port, so firing it from this synchronous
 	// handler would drop it unsent and the venue would close the socket on its next probe
 	this.Spawn(this.PongAsync, client, message)
@@ -4812,12 +4671,12 @@ func (this *Predictfun) HandleHeartbeat(client any, message any) {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw probe
  */
-func (this *Predictfun) PongAsync(client any, message any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Predictfun) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[any], client any, message any) any {
+func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the server probes every fifteen seconds and drops the connection on the next probe unless
@@ -4863,14 +4722,14 @@ func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[any], client any, mess
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw message
  */
-func (this *Predictfun) HandleMessage(client any, message any) {
+func (this *Predictfun) HandleMessage(client any, message map[string]any) {
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "R" {
 		// a subscription reply - the venue reports a rejected topic here instead of closing.
 		// it carries only the request id, so the subscription that request registered is found
 		// by it - see handleSubscriptionStatus in pro/binance.ts
 		var id *string = this.SafeString(message, "requestId")
-		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 		var success *bool = this.SafeBool(message, "success", false)
 		if !(success != nil && *success) {
@@ -4898,7 +4757,7 @@ func (this *Predictfun) HandleMessage(client any, message any) {
 		this.HandleWalletEvent(client, message)
 	}
 }
-func (this *Predictfun) Nonce() any {
+func (this *Predictfun) Nonce() int64 {
 	// the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
 	// unique when two identical orders are signed within the same millisecond
 	return this.Milliseconds()
@@ -4910,54 +4769,38 @@ func (this *Predictfun) Nonce() any {
  * @name predictfun#sign
  * @description builds the request URL and attaches the API key header required by every endpoint
  * @param {string} path the endpoint path
- * @param {string|string[]} [api] the API group and access level
+ * @param {string[]} [api] the API group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
- * @param {object} [headers] request headers
- * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
-func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
+func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 	// the venue authenticates every endpoint, so the key is required up front rather than
 	// per access level - a key-less request is answered with a 401 by the API gateway.
 	// the testnet is the exception, it is served without an API key at all
-	api := ccxt.GetArg(optionalArgs, 0, "predictfun")
+	var api []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{"predictfun"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := ccxt.GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := ccxt.GetArg(optionalArgs, 4, nil)
-	_ = body
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var apiKey any = this.ApiKey
 	if (apiKey == nil) && !(sandboxMode != nil && *sandboxMode) {
 		panic(ccxt.AuthenticationError(this.Id + " sign() requires the \"apiKey\" credential for all endpoints"))
 	}
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
+	var apiGroup string = api[0]
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "predictfun"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
-		if len(ccxt.ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var existingHeaders any = func() any {
-		if !ccxt.IsEqual(headers, nil) {
-			return headers
-		}
-		return map[string]any{}
-	}()
-	var headersValue any = existingHeaders
+	var existingHeaders map[string]any = map[string]any{}
+	var headersValue map[string]any = existingHeaders
 	var authHeaders map[string]any = map[string]any{}
 	if (apiKey != nil) && (!(sandboxMode != nil && *sandboxMode)) {
 		// the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -4978,13 +4821,14 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 	if (jwtToken != nil) && this.InArray(path, walletPaths) {
 		authHeaders["Authorization"] = "Bearer " + *jwtToken
 	}
-	var bodyValue any = body
+	var bodyValue *string = nil
 	if method != "GET" {
 		if !(sandboxMode != nil && *sandboxMode) {
 			this.CheckRequiredCredentials()
 		}
 		authHeaders["Content-Type"] = "application/json"
-		bodyValue = this.Json(params)
+		jsonText := this.Json(params)
+		bodyValue = &jsonText
 	}
 	var headersExtended map[string]any = this.Extend(headersValue, authHeaders)
 	return map[string]any{
@@ -5004,8 +4848,7 @@ func NewPredictfun(userConfig map[string]any) *Predictfun {
 func (this *Predictfun) Init(userConfig map[string]any) {
 	this.BaseExchange = ccxt.BaseExchange{}
 	this.BaseExchange.DerivedExchange = this
-	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = ccxt.NewBaseExchangeTyped(&this.BaseExchange)
+	this.BaseExchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -5030,7 +4873,7 @@ func (this *Predictfun) FetchMarkets(params ...any) ([]ccxt.MarketInterface, err
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.MarketInterface = ccxt.NewMarketInterfaceArray(r.Value)
+	var res []ccxt.MarketInterface = r.Value
 	return res, nil
 }
 
@@ -5055,7 +4898,7 @@ func (this *Predictfun) FetchEvent(id string, options ...FetchEventOptions) (ccx
 	if r.Err != nil {
 		return ccxt.PredictionEvent{}, r.Err
 	}
-	var res ccxt.PredictionEvent = ccxt.NewPredictionEvent(r.Value)
+	var res ccxt.PredictionEvent = r.Value
 	return res, nil
 }
 
@@ -5081,7 +4924,7 @@ func (this *Predictfun) FetchEvents(params map[string]interface{}) ([]ccxt.Predi
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionEvent = ccxt.NewPredictionEventArray(r.Value)
+	var res []ccxt.PredictionEvent = r.Value
 	return res, nil
 }
 
@@ -5107,7 +4950,7 @@ func (this *Predictfun) FetchRawTopicsByQueries(queries []string, options ...Fet
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []map[string]any = ccxt.NewMapArray(r.Value)
+	var res []map[string]any = r.Value
 	return res, nil
 }
 
@@ -5132,7 +4975,7 @@ func (this *Predictfun) FetchOrderBook(outcome string, options ...ccxt.FetchOrde
 	if r.Err != nil {
 		return ccxt.PredictionOrderBook{}, r.Err
 	}
-	var res ccxt.PredictionOrderBook = ccxt.NewPredictionOrderBook(r.Value)
+	var res ccxt.PredictionOrderBook = r.Value
 	return res, nil
 }
 
@@ -5156,7 +4999,7 @@ func (this *Predictfun) FetchTicker(outcome string, options ...ccxt.FetchTickerO
 	if r.Err != nil {
 		return ccxt.PredictionTicker{}, r.Err
 	}
-	var res ccxt.PredictionTicker = ccxt.NewPredictionTicker(r.Value)
+	var res ccxt.PredictionTicker = r.Value
 	return res, nil
 }
 
@@ -5185,7 +5028,7 @@ func (this *Predictfun) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.P
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
+	var res []ccxt.PredictionTrade = r.Value
 	return res, nil
 }
 
@@ -5213,7 +5056,7 @@ func (this *Predictfun) FetchTrades(outcome string, options ...ccxt.FetchTradesO
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
+	var res []ccxt.PredictionTrade = r.Value
 	return res, nil
 }
 
@@ -5252,7 +5095,7 @@ func (this *Predictfun) CreateOrder(outcome string, typeVar string, side string,
 	if r.Err != nil {
 		return ccxt.PredictionOrder{}, r.Err
 	}
-	var res ccxt.PredictionOrder = ccxt.NewPredictionOrder(r.Value)
+	var res ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 
@@ -5283,7 +5126,7 @@ func (this *Predictfun) FetchPositions(options ...FetchPositionsOptions) ([]ccxt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionPosition = ccxt.NewPredictionPositionArray(r.Value)
+	var res []ccxt.PredictionPosition = r.Value
 	return res, nil
 }
 
@@ -5308,7 +5151,7 @@ func (this *Predictfun) FetchPosition(outcome string, options ...ccxt.FetchPosit
 	if r.Err != nil {
 		return ccxt.PredictionPosition{}, r.Err
 	}
-	var res ccxt.PredictionPosition = ccxt.NewPredictionPosition(r.Value)
+	var res ccxt.PredictionPosition = r.Value
 	return res, nil
 }
 
@@ -5333,7 +5176,7 @@ func (this *Predictfun) CancelOrder(id string, options ...CancelOrderOptions) (c
 	if r.Err != nil {
 		return ccxt.PredictionOrder{}, r.Err
 	}
-	var res ccxt.PredictionOrder = ccxt.NewPredictionOrder(r.Value)
+	var res ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 
@@ -5358,7 +5201,7 @@ func (this *Predictfun) CancelOrders(ids []string, options ...CancelOrdersOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
+	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 
@@ -5383,7 +5226,7 @@ func (this *Predictfun) FetchOrder(id string, options ...FetchOrderOptions) (ccx
 	if r.Err != nil {
 		return ccxt.PredictionOrder{}, r.Err
 	}
-	var res ccxt.PredictionOrder = ccxt.NewPredictionOrder(r.Value)
+	var res ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 
@@ -5410,7 +5253,7 @@ func (this *Predictfun) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]cc
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
+	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 
@@ -5437,7 +5280,7 @@ func (this *Predictfun) FetchClosedOrders(options ...FetchClosedOrdersOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
+	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 
@@ -5466,7 +5309,7 @@ func (this *Predictfun) FetchOrdersHelper(options ...FetchOrdersHelperOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
+	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 
@@ -5540,7 +5383,7 @@ func (this *Predictfun) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.Predi
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
+	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 
@@ -5566,7 +5409,7 @@ func (this *Predictfun) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.P
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
+	var res []ccxt.PredictionTrade = r.Value
 	return res, nil
 }
 
@@ -5663,29 +5506,13 @@ func (this *Predictfun) UnWatchWalletEvents(channel string, options ...UnWatchWa
 	return r.Value, nil
 }
 
-// missing typed methods from base
-// nolint
-func (this *Predictfun) LoadMarkets(params ...any) (map[string]ccxt.MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Predictfun) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Predictfun) CancelOrdersForSymbols(orders []ccxt.CancellationRequest, options ...ccxt.CancelOrdersForSymbolsOptions) ([]ccxt.Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Predictfun) CreateConvertTrade(id string, fromCode string, toCode string, options ...ccxt.CreateConvertTradeOptions) (ccxt.Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Predictfun) CreateDepositAddress(code string, options ...ccxt.CreateDepositAddressOptions) (ccxt.DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
+// prediction-typed methods from base
 func (this *Predictfun) CreateMarketBuyOrderWithCost(outcome string, cost float64, params map[string]any) (ccxt.PredictionOrder, error) {
 	r := <-this.CreateMarketBuyOrderWithCostAsync(outcome, cost, params)
 	if r.Err != nil {
 		return ccxt.PredictionOrder{}, r.Err
 	}
-	var res ccxt.PredictionOrder = ccxt.NewPredictionOrder(r.Value)
+	var res ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 func (this *Predictfun) CreateMarketSellOrderWithCost(outcome string, cost float64, params map[string]any) (ccxt.PredictionOrder, error) {
@@ -5693,7 +5520,7 @@ func (this *Predictfun) CreateMarketSellOrderWithCost(outcome string, cost float
 	if r.Err != nil {
 		return ccxt.PredictionOrder{}, r.Err
 	}
-	var res ccxt.PredictionOrder = ccxt.NewPredictionOrder(r.Value)
+	var res ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 func (this *Predictfun) CreateOrders(orders []ccxt.PredictionOrderRequest, params map[string]any) ([]ccxt.PredictionOrder, error) {
@@ -5701,143 +5528,8 @@ func (this *Predictfun) CreateOrders(orders []ccxt.PredictionOrderRequest, param
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
+	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
-}
-func (this *Predictfun) FetchAccounts(params ...any) ([]ccxt.Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Predictfun) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Predictfun) FetchBalance(params ...any) (ccxt.Balances, error) {
-	return this.exchangeTyped.FetchBalance(params...)
-}
-func (this *Predictfun) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Predictfun) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Predictfun) FetchConvertCurrencies(params ...any) (ccxt.Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Predictfun) FetchConvertQuote(fromCode string, toCode string, options ...ccxt.FetchConvertQuoteOptions) (ccxt.Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Predictfun) FetchConvertTrade(id string, options ...ccxt.FetchConvertTradeOptions) (ccxt.Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Predictfun) FetchConvertTradeHistory(options ...ccxt.FetchConvertTradeHistoryOptions) ([]ccxt.Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Predictfun) FetchCrossBorrowRate(code string, options ...ccxt.FetchCrossBorrowRateOptions) (ccxt.CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Predictfun) FetchCrossBorrowRates(params ...any) (ccxt.CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Predictfun) FetchCurrencies(params ...any) (ccxt.Currencies, error) {
-	return this.exchangeTyped.FetchCurrencies(params...)
-}
-func (this *Predictfun) FetchDepositAddress(code string, options ...ccxt.FetchDepositAddressOptions) (ccxt.DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddress(code, options...)
-}
-func (this *Predictfun) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Predictfun) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Predictfun) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {
-	return this.exchangeTyped.FetchDeposits(options...)
-}
-func (this *Predictfun) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Predictfun) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Predictfun) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
-}
-func (this *Predictfun) FetchFreeBalance(params ...any) (ccxt.Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Predictfun) FetchFundingHistory(options ...ccxt.FetchFundingHistoryOptions) ([]ccxt.FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
-}
-func (this *Predictfun) FetchFundingInterval(symbol string, options ...ccxt.FetchFundingIntervalOptions) (ccxt.FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Predictfun) FetchFundingIntervals(options ...ccxt.FetchFundingIntervalsOptions) (ccxt.FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Predictfun) FetchFundingRate(symbol string, options ...ccxt.FetchFundingRateOptions) (ccxt.FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Predictfun) FetchFundingRateHistory(options ...ccxt.FetchFundingRateHistoryOptions) ([]ccxt.FundingRateHistory, error) {
-	return this.exchangeTyped.FetchFundingRateHistory(options...)
-}
-func (this *Predictfun) FetchFundingRates(options ...ccxt.FetchFundingRatesOptions) (ccxt.FundingRates, error) {
-	return this.exchangeTyped.FetchFundingRates(options...)
-}
-func (this *Predictfun) FetchGreeks(symbol string, options ...ccxt.FetchGreeksOptions) (ccxt.Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Predictfun) FetchIndexOHLCV(symbol string, options ...ccxt.FetchIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Predictfun) FetchIsolatedBorrowRate(symbol string, options ...ccxt.FetchIsolatedBorrowRateOptions) (ccxt.IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Predictfun) FetchIsolatedBorrowRates(params ...any) (ccxt.IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Predictfun) FetchLastPrices(options ...ccxt.FetchLastPricesOptions) (ccxt.LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Predictfun) FetchLedger(options ...ccxt.FetchLedgerOptions) ([]ccxt.LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedger(options...)
-}
-func (this *Predictfun) FetchLedgerEntry(id string, options ...ccxt.FetchLedgerEntryOptions) (ccxt.LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Predictfun) FetchLeverage(symbol string, options ...ccxt.FetchLeverageOptions) (ccxt.Leverage, error) {
-	return this.exchangeTyped.FetchLeverage(symbol, options...)
-}
-func (this *Predictfun) FetchLeverages(options ...ccxt.FetchLeveragesOptions) (ccxt.Leverages, error) {
-	return this.exchangeTyped.FetchLeverages(options...)
-}
-func (this *Predictfun) FetchLeverageTiers(options ...ccxt.FetchLeverageTiersOptions) (ccxt.LeverageTiers, error) {
-	return this.exchangeTyped.FetchLeverageTiers(options...)
-}
-func (this *Predictfun) FetchLiquidations(symbol string, options ...ccxt.FetchLiquidationsOptions) ([]ccxt.Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Predictfun) FetchLongShortRatio(symbol string, options ...ccxt.FetchLongShortRatioOptions) (ccxt.LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Predictfun) FetchLongShortRatioHistory(options ...ccxt.FetchLongShortRatioHistoryOptions) ([]ccxt.LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Predictfun) FetchMarginAdjustmentHistory(options ...ccxt.FetchMarginAdjustmentHistoryOptions) ([]ccxt.MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Predictfun) FetchMarginMode(symbol string, options ...ccxt.FetchMarginModeOptions) (ccxt.MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Predictfun) FetchMarginModes(options ...ccxt.FetchMarginModesOptions) (ccxt.MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Predictfun) FetchMarketLeverageTiers(symbol string, options ...ccxt.FetchMarketLeverageTiersOptions) ([]ccxt.LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Predictfun) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLCVOptions) ([]ccxt.OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Predictfun) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
 func (this *Predictfun) FetchOHLCV(outcome string, params map[string]any, options ...ccxt.FetchOHLCVOptions) ([]ccxt.OHLCV, error) {
 
@@ -5850,7 +5542,7 @@ func (this *Predictfun) FetchOHLCV(outcome string, params map[string]any, option
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
+	var res []ccxt.OHLCV = r.Value
 	return res, nil
 }
 func (this *Predictfun) FetchOpenInterest(outcome string, params map[string]any) (ccxt.PredictionOpenInterest, error) {
@@ -5858,23 +5550,8 @@ func (this *Predictfun) FetchOpenInterest(outcome string, params map[string]any)
 	if r.Err != nil {
 		return ccxt.PredictionOpenInterest{}, r.Err
 	}
-	var res ccxt.PredictionOpenInterest = ccxt.NewPredictionOpenInterest(r.Value)
+	var res ccxt.PredictionOpenInterest = r.Value
 	return res, nil
-}
-func (this *Predictfun) FetchOpenInterestHistory(symbol string, options ...ccxt.FetchOpenInterestHistoryOptions) ([]ccxt.OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Predictfun) FetchOpenInterests(options ...ccxt.FetchOpenInterestsOptions) (ccxt.OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Predictfun) FetchOption(symbol string, options ...ccxt.FetchOptionOptions) (ccxt.Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Predictfun) FetchOptionChain(code string, options ...ccxt.FetchOptionChainOptions) (ccxt.OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Predictfun) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
 }
 func (this *Predictfun) FetchOrders(params map[string]any, options ...FetchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
@@ -5887,7 +5564,7 @@ func (this *Predictfun) FetchOrders(params map[string]any, options ...FetchOrder
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionOrder = ccxt.NewPredictionOrderArray(r.Value)
+	var res []ccxt.PredictionOrder = r.Value
 	return res, nil
 }
 func (this *Predictfun) FetchOrderTrades(id string, params map[string]any, options ...FetchOrderTradesOptions) ([]ccxt.PredictionTrade, error) {
@@ -5901,20 +5578,8 @@ func (this *Predictfun) FetchOrderTrades(id string, params map[string]any, optio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
+	var res []ccxt.PredictionTrade = r.Value
 	return res, nil
-}
-func (this *Predictfun) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Predictfun) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (ccxt.PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Predictfun) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Predictfun) FetchStatus(params ...any) (ccxt.Status, error) {
-	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Predictfun) FetchTickers(params map[string]any, options ...FetchTickersOptions) (ccxt.PredictionTickers, error) {
 
@@ -5927,118 +5592,16 @@ func (this *Predictfun) FetchTickers(params map[string]any, options ...FetchTick
 	if r.Err != nil {
 		return ccxt.PredictionTickers{}, r.Err
 	}
-	var res ccxt.PredictionTickers = ccxt.NewPredictionTickers(r.Value)
+	var res ccxt.PredictionTickers = ccxt.PredictionTickers{Tickers: r.Value}
 	return res, nil
-}
-func (this *Predictfun) FetchTime(params ...any) (int64, error) {
-	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Predictfun) FetchTradingFee(outcome string, params map[string]any) (ccxt.PredictionTradingFee, error) {
 	r := <-this.FetchTradingFeeAsync(outcome, params)
 	if r.Err != nil {
 		return ccxt.PredictionTradingFee{}, r.Err
 	}
-	var res ccxt.PredictionTradingFee = ccxt.NewPredictionTradingFee(r.Value)
+	var res ccxt.PredictionTradingFee = r.Value
 	return res, nil
-}
-func (this *Predictfun) FetchTradingFees(params ...any) (ccxt.TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
-}
-func (this *Predictfun) FetchTradingLimits(options ...ccxt.FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Predictfun) FetchTransactionFee(code string, options ...ccxt.FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Predictfun) FetchTransactionFees(options ...ccxt.FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Predictfun) FetchTransactions(options ...ccxt.FetchTransactionsOptions) ([]ccxt.Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Predictfun) FetchTransfer(id string, options ...ccxt.FetchTransferOptions) (ccxt.TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Predictfun) FetchTransfers(options ...ccxt.FetchTransfersOptions) ([]ccxt.TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Predictfun) FetchWithdrawals(options ...ccxt.FetchWithdrawalsOptions) ([]ccxt.Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawals(options...)
-}
-func (this *Predictfun) SetMargin(symbol string, amount float64, options ...ccxt.SetMarginOptions) (ccxt.MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Predictfun) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Predictfun) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Predictfun) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...ccxt.TransferOptions) (ccxt.TransferEntry, error) {
-	return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)
-}
-func (this *Predictfun) Withdraw(code string, amount float64, address string, options ...ccxt.WithdrawOptions) (ccxt.Transaction, error) {
-	return this.exchangeTyped.Withdraw(code, amount, address, options...)
-}
-func (this *Predictfun) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Predictfun) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) ([]ccxt.Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Predictfun) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Predictfun) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOrdersByStatusWsOptions) ([]ccxt.Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Predictfun) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Predictfun) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Predictfun) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Predictfun) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Predictfun) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Predictfun) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Predictfun) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Predictfun) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Predictfun) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Predictfun) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Predictfun) WatchBalance(params ...any) (ccxt.Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Predictfun) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Predictfun) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Predictfun) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Predictfun) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Predictfun) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.WatchOHLCVForSymbolsOptions) (map[string]map[string][]ccxt.OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
 func (this *Predictfun) WatchPositions(params map[string]any, options ...WatchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
@@ -6051,7 +5614,7 @@ func (this *Predictfun) WatchPositions(params map[string]any, options ...WatchPo
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionPosition = ccxt.NewPredictionPositionArray(r.Value)
+	var res []ccxt.PredictionPosition = r.Value
 	return res, nil
 }
 func (this *Predictfun) WatchTicker(outcome string, params map[string]any) (ccxt.PredictionTicker, error) {
@@ -6059,7 +5622,7 @@ func (this *Predictfun) WatchTicker(outcome string, params map[string]any) (ccxt
 	if r.Err != nil {
 		return ccxt.PredictionTicker{}, r.Err
 	}
-	var res ccxt.PredictionTicker = ccxt.NewPredictionTicker(r.Value)
+	var res ccxt.PredictionTicker = r.Value
 	return res, nil
 }
 func (this *Predictfun) WatchTickers(params map[string]any, options ...WatchTickersOptions) (ccxt.PredictionTickers, error) {
@@ -6073,7 +5636,7 @@ func (this *Predictfun) WatchTickers(params map[string]any, options ...WatchTick
 	if r.Err != nil {
 		return ccxt.PredictionTickers{}, r.Err
 	}
-	var res ccxt.PredictionTickers = ccxt.NewPredictionTickers(r.Value)
+	var res ccxt.PredictionTickers = ccxt.PredictionTickers{Tickers: r.Value}
 	return res, nil
 }
 func (this *Predictfun) WatchTrades(outcome string, params map[string]any, options ...ccxt.WatchTradesOptions) ([]ccxt.PredictionTrade, error) {
@@ -6087,9 +5650,6 @@ func (this *Predictfun) WatchTrades(outcome string, params map[string]any, optio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.PredictionTrade = ccxt.NewPredictionTradeArray(r.Value)
+	var res []ccxt.PredictionTrade = r.Value
 	return res, nil
-}
-func (this *Predictfun) WithdrawWs(code string, amount float64, address string, options ...ccxt.WithdrawWsOptions) (ccxt.Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

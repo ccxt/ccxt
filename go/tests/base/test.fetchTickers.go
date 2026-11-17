@@ -58,7 +58,10 @@ func fetchTickersHelperTestBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		response = ccxt.StructBox(r.Value, ccxt.TickerMapToMap)
+	}
 	AssertDictionaryResponse(exchange, method, response, exchange.Json(argSymbols))
 	var values []any = ObjectValues(response)
 	var checkedSymbol any = nil
@@ -68,12 +71,7 @@ func fetchTickersHelperTestBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICo
 	AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
 	for i := 0; i < len(values); i++ {
 		// todo: symbol check here
-		var ticker any = func() any {
-			if i >= 0 && i < len(values) {
-				return DerefScalar(values[i])
-			}
-			return nil
-		}()
+		var ticker any = values[i]
 
 		{
 			func() (ret_ any) {
@@ -88,11 +86,15 @@ func fetchTickersHelperTestBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICo
 							var tickerSymbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 							if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
-								r1 := <-exchange.FetchOHLCVAsync(*tickerSymbol, "1d", nil, 5)
+								r1 := <-exchange.(ccxt.IFetchOHLCV).FetchOHLCVAsync(*tickerSymbol, "1d", nil, 5)
 								if r1.Err != nil {
 									panic(r1.Err)
 								}
-								ohlcv = r1.Value
+								if r1.Value == nil {
+									ohlcv = nil
+								} else {
+									ohlcv = ccxt.OHLCVsToList(r1.Value)
+								}
 							}
 							ValidateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv)
 							return nil
@@ -120,7 +122,7 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		var notInactiveSymbolsLength int = GetArrayLength(nonInactiveMarkets)
 		var obtainedTickersLength int = len(tickersValues)
 		var minRatio float64 = 0.99 // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
-		Assert(IsGreaterThanOrEqual(obtainedTickersLength, Multiply(notInactiveSymbolsLength, minRatio)), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), strconv.Itoa(obtainedTickersLength)), " tickers, "), strconv.Itoa(notInactiveSymbolsLength)), " active markets"))
+		Assert((float64(obtainedTickersLength) >= float64(notInactiveSymbolsLength)*minRatio), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), strconv.Itoa(obtainedTickersLength)), " tickers, "), strconv.Itoa(notInactiveSymbolsLength)), " active markets"))
 		//
 		// ensure tickers length is less than markets length
 		//
@@ -128,7 +130,8 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		if IsEqual(allMarkets, nil) {
 			return
 		}
-		var allMarketsLength int = len(ObjectKeys(allMarkets))
+		allMarketsMap, _ := allMarkets.(map[string]any)
+		var allMarketsLength int = len(allMarketsMap)
 		Assert((obtainedTickersLength <= allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), strconv.Itoa(obtainedTickersLength)), " tickers, "), strconv.Itoa(allMarketsLength)), " markets"))
 	}
 }

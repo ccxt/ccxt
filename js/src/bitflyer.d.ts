@@ -5,7 +5,7 @@ import type { Balances, Currency, Dict, FundingRate, Int, Market, MarketInterfac
  * @augments Exchange
  */
 export default class bitflyer extends Exchange {
-    describe(): any;
+    describe(): Dict;
     parseExpiryDate(expiry: string): Int;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**
@@ -17,7 +17,7 @@ export default class bitflyer extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name bitflyer#fetchBalance
@@ -176,11 +176,11 @@ export default class bitflyer extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name bitflyer#fetchDeposits
@@ -219,6 +219,6 @@ export default class bitflyer extends Exchange {
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

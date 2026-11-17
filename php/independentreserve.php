@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\independentreserve as Exchange;
 
 class independentreserve extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'independentreserve',
             'name' => 'Independent Reserve',
@@ -297,7 +297,7 @@ class independentreserve extends Exchange {
                 ),
                 'networks' => array(
                     'BTC' => 'Bitcoin',
-                    'ETH' => 'Ethereum',
+                    'ERC20' => 'Ethereum',
                     'BCH' => 'BitcoinCash',
                     'LTC' => 'Litecoin',
                     'XRP' => 'XrpLedger',
@@ -309,7 +309,7 @@ class independentreserve extends Exchange {
                     'DOT' => 'Polkadot',
                     'ADA' => 'Cardano',
                     'SOL' => 'Solana',
-                    'TRX' => 'Tron',
+                    'TRC20' => 'Tron',
                 ),
             ),
         ));
@@ -326,7 +326,8 @@ class independentreserve extends Exchange {
         $quoteCurrenciesPromise = $this->publicGetGetValidSecondaryCurrencyCodes($params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         $limitsPromise = $this->publicGetGetOrderMinimumVolumes($params);
-        list($baseCurrencies, $quoteCurrencies, $limits) = array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise );
+        $responses = array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise );
+        $limits = $this->safe_value($responses, 2);
         //
         //     {
         //         "Xbt": 0.0001,
@@ -336,14 +337,14 @@ class independentreserve extends Exchange {
         //     }
         //
         $result = array();
-        $baseCurrencyIds = $this->to_array($baseCurrencies);
-        $quoteCurrencyIds = $this->to_array($quoteCurrencies);
+        $baseCurrencyIds = $this->to_array($this->safe_value($responses, 0));
+        $quoteCurrencyIds = $this->to_array($this->safe_value($responses, 1));
         for ($i = 0; $i < count($baseCurrencyIds); $i++) {
-            $baseId = $baseCurrencyIds[$i];
+            $baseId = $this->safe_string($baseCurrencyIds, $i, '');
             $base = $this->safe_currency_code($baseId);
             $minAmount = $this->safe_number($limits, $baseId);
             for ($j = 0; $j < count($quoteCurrencyIds); $j++) {
-                $quoteId = $quoteCurrencyIds[$j];
+                $quoteId = $this->safe_string($quoteCurrencyIds, $j, '');
                 $quote = $this->safe_currency_code($quoteId);
                 if (($base === null) || ($quote === null)) {
                     continue;
@@ -396,17 +397,18 @@ class independentreserve extends Exchange {
                         ),
                     ),
                     'created' => null,
-                    'info' => $id,
+                    'info' => array( 'primaryCurrencyCode' => $baseId, 'secondaryCurrencyCode' => $quoteId ),
                 );
             }
         }
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array( 'info' => $response );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+        $accounts = $this->to_array($response);
+        for ($i = 0; $i < count($accounts); $i++) {
+            $balance = $this->safe_dict($accounts, $i);
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -429,7 +431,7 @@ class independentreserve extends Exchange {
             $this->load_markets();
         }
         $response = $this->privatePostGetAccounts($params);
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -595,8 +597,8 @@ class independentreserve extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
         } elseif ($market !== null) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
+            $symbol = $this->safe_string($market, 'symbol');
+            $base = $this->safe_string($market, 'base');
             $quote = $this->safe_string($market, 'quote');
         }
         $orderType = $this->safe_string_2($order, 'Type', 'OrderType');
@@ -649,7 +651,7 @@ class independentreserve extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'Open' => 'open',
             'PartiallyFilled' => 'open',
@@ -663,7 +665,7 @@ class independentreserve extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'Gtc' => 'GTC',
             'Moc' => 'PO',
@@ -713,10 +715,7 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        $limitResolved = $limit;
-        if ($limitResolved === null) {
-            $limitResolved = 50;
-        }
+        $limitResolved = ($limit === null) ? 50 : $limit;
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limitResolved;
         $response = $this->privatePostGetOpenOrders($this->extend($request, $params));
@@ -743,10 +742,7 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        $limitResolved = $limit;
-        if ($limitResolved === null) {
-            $limitResolved = 50;
-        }
+        $limitResolved = ($limit === null) ? 50 : $limit;
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limitResolved;
         $response = $this->privatePostGetClosedOrders($this->extend($request, $params));
@@ -785,7 +781,7 @@ class independentreserve extends Exchange {
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
-        $timestamp = $this->parse8601($trade['TradeTimestampUtc']);
+        $timestamp = $this->parse8601($this->safe_string($trade, 'TradeTimestampUtc'));
         $id = $this->safe_string($trade, 'TradeGuid');
         $orderId = $this->safe_string($trade, 'OrderGuid');
         $priceString = $this->safe_string_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
@@ -930,7 +926,7 @@ class independentreserve extends Exchange {
         }
         return $this->safe_order(array(
             'info' => $response,
-            'id' => $response['OrderGuid'],
+            'id' => $this->safe_string($response, 'OrderGuid'),
         ), $market);
     }
 
@@ -1019,7 +1015,7 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1028,14 +1024,15 @@ class independentreserve extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {array} [$params->comment] withdrawal comment, should not exceed 500 characters
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1126,34 +1123,37 @@ class independentreserve extends Exchange {
         );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return $this->milliseconds();
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $path;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
             // independentreserve requires an increasing nonce
-            $nonce = $this->incrementing_nonce();
+            $rawNonce = $this->incrementing_nonce();
+            $nonce = $this->parse_to_int($rawNonce);
             $auth = array(
                 $url,
                 'apiKey=' . $this->apiKey,
                 'nonce=' . (string) $nonce,
             );
-            $keys = is_array($params) ? array_keys($params) : array();
+            $paramsDict = $this->extend(array(), $params);
+            $keys = is_array($paramsDict) ? array_keys($paramsDict) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
-                $value = (string) $params[$key];
+                $value = $this->safe_string($paramsDict, $key, '');
                 $auth[] = $key . '=' . $value;
             }
             $message = implode(',', $auth);
@@ -1164,12 +1164,13 @@ class independentreserve extends Exchange {
             $query['signature'] = strtoupper($signature);
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
-                $query[$key] = $params[$key];
+                $query[$key] = $paramsDict[$key];
             }
             $signedBody = $this->json($query);
             $signedHeaders = array( 'Content-Type' => 'application/json' );
             return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headers = array();
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $headers );
     }
 }

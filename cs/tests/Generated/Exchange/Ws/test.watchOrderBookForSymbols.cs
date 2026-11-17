@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
                 succeeded = false;
             }
             currentTime = exchange.milliseconds();
-            if (((succeeded == true)) && ((response != null)))
+            if ((succeeded) && ((response != null)))
             {
                 testOrderBook(exchange, skippedProperties, method, response, null);
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);

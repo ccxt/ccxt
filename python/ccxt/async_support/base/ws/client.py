@@ -21,6 +21,11 @@ from ccxt.async_support.base.ws.functions import gunzip, inflate, is_json_encode
 from typing import Dict
 
 from aiohttp import WSMsgType
+try:
+    # aiohttp >= 3.14.4 charges a fixed overhead per queued message
+    from aiohttp._websocket.reader_py import MSG_SIZE_OVERHEAD
+except ImportError:
+    MSG_SIZE_OVERHEAD = 0
 
 
 class Client(object):
@@ -191,7 +196,7 @@ class Client(object):
                 size_delta = 0
                 while len(self.buffer) > 1:
                     message, size = self.buffer.popleft()
-                    size_delta += size
+                    size_delta += size + MSG_SIZE_OVERHEAD
                     self.handle_message(message)
                 # we must update the size of the last message inside WebSocketDataQueue
                 # self.receive() calls WebSocketDataQueue.read() that calls WebSocketDataQueue._read_from_buffer()
@@ -210,8 +215,10 @@ class Client(object):
                     return
                 exception = resolved.exception()
                 if exception is None:
-                    self.handle_message(resolved.result())
-                    self.asyncio_loop.call_soon(self.receive_loop)
+                    message = resolved.result()
+                    self.handle_message(message)
+                    if message.type != WSMsgType.CLOSE:
+                        self.asyncio_loop.call_soon(self.receive_loop)
                 else:
                     error = NetworkError(str(exception))
                     if self.verbose:

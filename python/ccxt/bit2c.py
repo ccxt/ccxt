@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bit2c(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bit2c, self).describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
@@ -216,7 +216,7 @@ class bit2c(Exchange, ImplicitAPI):
             },
             'options': {
                 'fetchTrades': {
-                    'method': 'public_get_exchanges_pair_trades',
+                    'method': 'publicGetExchangesPairTrades',
                 },
             },
             'features': {
@@ -293,7 +293,7 @@ class bit2c(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -304,8 +304,9 @@ class bit2c(Exchange, ImplicitAPI):
             code = codes[i]
             account = self.account()
             currency = self.currency(code)
-            uppercase = currency['id'].upper()
-            if uppercase in response:
+            currencyId = self.safe_string(currency, 'id', '')
+            uppercase = currencyId.upper()
+            if self.safe_string(response, uppercase) is not None:
                 account['free'] = self.safe_string(response, 'AVAILABLE_' + uppercase)
                 account['total'] = self.safe_string(response, uppercase)
             result[code] = account
@@ -473,7 +474,7 @@ class bit2c(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         optionValue = self.safe_string(self.options, 'fetchTradesMethod')  # kept here for backward compatibility #29154
-        method = self.handle_option('fetchTrades', 'method', optionValue)  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        method = self.safe_string(self.handle_option_and_params({}, 'fetchTrades', 'method', optionValue), 0)  # publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         request = {
             'pair': market['id'],
         }
@@ -482,7 +483,7 @@ class bit2c(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # max 100000
         responseList = []
-        if method == 'public_get_exchanges_pair_trades':
+        if (method == 'publicGetExchangesPairTrades') or (method == 'public_get_exchanges_pair_trades'):
             response = self.publicGetExchangesPairTrades(self.extend(request, params))
             #
             #     [
@@ -696,8 +697,9 @@ class bit2c(Exchange, ImplicitAPI):
         #
         orderUnified = None
         isNewOrder = False
-        if 'NewOrder' in order:
-            orderUnified = order['NewOrder']
+        newOrder = self.safe_value(order, 'NewOrder')
+        if newOrder is not None:
+            orderUnified = newOrder
             isNewOrder = True
         else:
             orderUnified = order
@@ -833,12 +835,10 @@ class bit2c(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        responseList = []
-        if response is not None:
-            responseList = self.to_array(response)
+        responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    def remove_comma_from_value(self, str: str):
+    def remove_comma_from_value(self, str: str) -> str:
         newString = ''
         strParts = str.split(',')
         for i in range(0, len(strParts)):
@@ -899,9 +899,9 @@ class bit2c(Exchange, ImplicitAPI):
             marketId = self.safe_string(trade, 'pair')
             marketByPair = self.safe_market(marketId, market)
             tradeMarket = self.safe_market(reference_parts[0], marketByPair)
-            isMaker = self.safe_bool(trade, 'isMaker')
-            makerOrTaker = 'maker' if (isMaker is True) else 'taker'
-            orderId = reference_parts[2] if (isMaker is True) else reference_parts[1]
+            isMaker = self.safe_bool(trade, 'isMaker', False)
+            makerOrTaker = 'maker' if isMaker else 'taker'
+            orderId = reference_parts[2] if isMaker else reference_parts[1]
             action = self.safe_integer(trade, 'action')
             if action == 0:
                 side = 'buy'
@@ -921,10 +921,8 @@ class bit2c(Exchange, ImplicitAPI):
             tradeMarket = self.safe_market(None, market)
             side = self.safe_value(trade, 'isBid')
             if side is not None:
-                if (side is not None) and (side != ''):
-                    side = 'buy'
-                else:
-                    side = 'sell'
+                # safeValue already drops an empty string, so a present isBid is a buy here
+                side = 'buy'
         marketResolved = self.safe_market(None, tradeMarket)
         return self.safe_trade({
             'info': trade,
@@ -990,17 +988,17 @@ class bit2c(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.implode_params(path, params)
         requestBody = None
         requestHeaders = None
-        if api == 'public':
+        if api[0] == 'public':
             url += '.json'
         else:
             self.check_required_credentials()
@@ -1021,11 +1019,11 @@ class bit2c(Exchange, ImplicitAPI):
                 'key': self.apiKey,
                 'sign': signature,
             }
-        bodyResult = body if (requestBody is None) else requestBody
-        headersResult = headers if (requestHeaders is None) else requestHeaders
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #

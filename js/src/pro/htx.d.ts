@@ -3,7 +3,7 @@ import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Positi
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class htx extends htxRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): string;
     /**
      * @method
@@ -114,7 +114,7 @@ export default class htx extends htxRest {
     handleOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): void;
     watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict): void;
     handleOrderBook(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;

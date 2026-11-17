@@ -20,6 +20,19 @@ test ('isImplicitMethod excludes unified methods and non-functions', () => {
     assert.equal (isImplicitMethod (exchange, 'doesNotExist'), false);
 });
 
+test ('isImplicitMethod sees generated prototype methods and skips verb-shaped helpers', () => {
+    class Generated {
+        api = { 'sapi': { 'get': { 'system/status': 1 } } };
+        sapiGetSystemStatus () { return {}; }
+        handlePostOnly () { return {}; }
+    }
+    class Venue extends Generated {}
+    const exchange = new Venue ();
+    assert.equal (isImplicitMethod (exchange, 'sapiGetSystemStatus'), true);
+    assert.equal (isImplicitMethod (exchange, 'handlePostOnly'), false);
+    assert.deepEqual (listImplicitMethods (exchange, 'Get'), [ 'sapiGetSystemStatus' ]);
+});
+
 test ('listImplicitMethods filters by verb', () => {
     const exchange = new FakeExchange ();
     assert.deepEqual (listImplicitMethods (exchange, 'Get'), [ 'publicGetTime' ]);

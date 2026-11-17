@@ -1,6 +1,6 @@
 Every endpoint in `cryptomus`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/cryptomus) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetV2UserApiExchangeMarkets`); the snake_case alias (`public_get_v2_user_api_exchange_markets`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetV2UserApiExchangeMarkets`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetV2UserApiExchangeMarkets`); Python and PHP use the snake_case form (`public_get_v2_user_api_exchange_markets`), and Go uses the PascalCase form (`PublicGetV2UserApiExchangeMarkets`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official cryptomus API documentation:** [doc.cryptomus.com](https://doc.cryptomus.com/personal)
 
-> 31 implicit endpoints across 2 access groups.
+> 29 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -64,11 +64,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `publicGetV2UserApiExchangeMarkets` | GET | `v2/user-api/exchange/markets` | 1 |
-| `publicGetV2UserApiExchangeMarketPrice` | GET | `v2/user-api/exchange/market/price` | 1 |
 | `publicGetV2UserApiExchangeMarketsPrice` | GET | `v2/user-api/exchange/markets/price` | 1 |
 | `publicGetV1ExchangeMarketAssets` | GET | `v1/exchange/market/assets` | 1 |
 | `publicGetV1ExchangeMarketOrderBookCurrencyPair` | GET | `v1/exchange/market/order-book/{currencyPair}` | 1 |
-| `publicGetV1ExchangeMarketTickers` | GET | `v1/exchange/market/tickers` | 1 |
 | `publicGetV1ExchangeMarketTradesCurrencyPair` | GET | `v1/exchange/market/trades/{currencyPair}` | 1 |
 
 ## private

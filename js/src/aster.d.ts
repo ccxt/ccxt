@@ -5,7 +5,7 @@ import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Fun
  * @augments Exchange
  */
 export default class aster extends Exchange {
-    describe(): any;
+    describe(): Dict;
     isInverse(type: string, subType?: Str): boolean;
     isLinear(type: string, subType?: Str): boolean;
     /**
@@ -208,7 +208,7 @@ export default class aster extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name aster#setMarginMode
@@ -534,11 +534,11 @@ export default class aster extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -558,7 +558,7 @@ export default class aster extends Exchange {
     parseTransferStatus(status: Str): Str;
     hashMessage(binaryMessage: any): string;
     signHash(hash: string, privateKey: string): string;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     encodeValuesWithJson(values: Dict): string;
     capitalizeKeys(dict: Dict): Dict;
     loadMarketsAndSignIn(): Promise<void>;
@@ -572,5 +572,5 @@ export default class aster extends Exchange {
      */
     signIn(params?: Dict): Promise<boolean>;
     initializeClient(params?: Dict): Promise<Bool>;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

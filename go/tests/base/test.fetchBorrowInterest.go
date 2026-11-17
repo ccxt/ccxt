@@ -21,7 +21,7 @@ func testFetchBorrowInterestBody(ch chan ccxt.AsyncResult[any], exchange ccxt.IC
 	}
 	var borrowInterest any = nil
 	if r.Value != nil {
-		borrowInterest = r.Value
+		borrowInterest = ccxt.BorrowInterestsToList(r.Value)
 	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, borrowInterest, code)
 	for i := 0; i < GetArrayLength(borrowInterest); i++ {

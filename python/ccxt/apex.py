@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class apex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(apex, self).describe(), {
             'id': 'apex',
             'name': 'Apex',
@@ -58,7 +58,7 @@ class apex(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': False,
-                'fetchAccounts': True,
+                'fetchAccounts': False,
                 'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
@@ -118,8 +118,8 @@ class apex(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
-                'fetchTransfer': True,
-                'fetchTransfers': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
@@ -334,7 +334,7 @@ class apex(Exchange, ImplicitAPI):
         # }
         return self.safe_integer(data, 'time')
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         # {
         #     "totalEquityValue": "100.000000",
@@ -514,7 +514,7 @@ class apex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(currency, 'displayName')
         networks = {}
-        chains = self.options['_temp_currencies_chains']
+        chains = self.safe_list(self.options, '_temp_currencies_chains', [])
         for j in range(0, len(chains)):
             chain = self.safe_dict(chains, j)
             tokens = self.safe_list(chain, 'tokens', [])
@@ -826,7 +826,7 @@ class apex(Exchange, ImplicitAPI):
             'symbol': self.safe_string(market, 'id2'),
         }
         # default is 200 when requested with `since`, max 200
-        limitResolved = 200 if (limit is None) else min(limit, 200)
+        limitResolved = 200 if (limit is None or limit > 200) else limit
         request['limit'] = limitResolved
         requestUntil, paramsUntil = self.handle_until_option('end', request, params, 0.001)
         if since is not None:
@@ -1015,7 +1015,7 @@ class apex(Exchange, ImplicitAPI):
         rawTicker = self.safe_dict(tickers, 0, {})
         return self.parse_open_interest(rawTicker, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         # {
         #     "symbol": "BTCUSDT",
@@ -1209,7 +1209,7 @@ class apex(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'GOOD_TIL_CANCEL': 'GOOD_TIL_CANCEL',
             'FILL_OR_KILL': 'FILL_OR_KILL',
@@ -1218,7 +1218,7 @@ class apex(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is not None:
             statuses = {
                 'PENDING': 'open',
@@ -1231,7 +1231,7 @@ class apex(Exchange, ImplicitAPI):
             return self.safe_string(statuses, status, status)
         return None
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1243,35 +1243,31 @@ class apex(Exchange, ImplicitAPI):
         return self.safe_string(types, type, type)
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
-        marketResolved = None
+        marketResolved = market
         if market is None and marketId is not None:
-            marketsMap = self.markets
-            marketsById = self.markets_by_id
-            if (marketsMap is not None) and (marketId in marketsMap):
-                marketResolved = marketsMap[marketId]
-            elif (marketsById is not None) and (marketId in marketsById):
-                marketResolved = marketsById[marketId]
+            if (self.markets is not None) and (marketId in self.markets):
+                marketResolved = self.markets[marketId]
+            elif (self.markets_by_id is not None) and (marketId in self.markets_by_id):
+                marketResolved = self.markets_by_id[marketId]
             else:
                 newMarketId = self.add_hyphen_before_usdt(marketId)
-                if (marketsById is not None) and (newMarketId in marketsById):
-                    markets = marketsById[newMarketId]
+                if (self.markets_by_id is not None) and (newMarketId in self.markets_by_id):
+                    markets = self.markets_by_id[newMarketId]
                     numMarkets = len(markets)
                     if numMarkets > 0:
-                        if marketsById[newMarketId][0]['id2'] == marketId:
-                            marketResolved = marketsById[newMarketId][0]
-        marketValue = market if (marketResolved is None) else marketResolved
-        return super(apex, self).safe_market(marketId, marketValue, delimiter, marketType)
+                        if markets[0]['id2'] == marketId:
+                            marketResolved = markets[0]
+        return super(apex, self).safe_market(marketId, marketResolved, delimiter, marketType)
 
-    def generate_random_client_id_omni(self, _accountId: Str):
-        hasAccountId = (_accountId is not None) and (_accountId != '')
-        accountId = None
-        if hasAccountId:
+    def generate_random_client_id_omni(self, _accountId: Str) -> str:
+        accountId = ''
+        if (_accountId is not None) and (_accountId != ''):
             accountId = _accountId
         else:
             accountId = str(self.rand_number(12))
         return 'apexomni-' + accountId + '-' + str(self.milliseconds()) + '-' + str(self.rand_number(6))
 
-    def add_hyphen_before_usdt(self, symbol: str):
+    def add_hyphen_before_usdt(self, symbol: str) -> str:
         uppercaseSymbol = symbol.upper()
         index = uppercaseSymbol.find('USDT')
         symbolChar = self.safe_string(symbol, index - 1)
@@ -1279,18 +1275,18 @@ class apex(Exchange, ImplicitAPI):
             return symbol[0:index] + '-' + symbol[index:]
         return symbol
 
-    def get_seeds(self):
+    def get_seeds(self) -> str:
         seeds = self.safe_string(self.options, 'seeds')
         if seeds is None:
             raise ArgumentsRequired(self.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX')
         return seeds
 
-    def get_account_id(self):
+    def get_account_id(self) -> Str:
         accountId = self.safe_string(self.options, 'accountId', '0')
         if accountId == '0':
             accountData = self.fetch_account()
             self.options['accountId'] = self.safe_string(accountData, 'id', '0')
-        return self.options['accountId']
+        return self.safe_string(self.options, 'accountId')
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1326,7 +1322,8 @@ class apex(Exchange, ImplicitAPI):
         fees = self.safe_dict(self.fees, 'swap', {})
         taker = self.safe_string(fees, 'taker', '0.0005')
         maker = self.safe_string(fees, 'maker', '0.0002')
-        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), taker), self.number_to_string(market['precision']['price'])), TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
+        pricePrecision = market['precision']['price']
+        limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), taker), self.number_to_string(pricePrecision)), TRUNCATE, pricePrecision, self.precisionMode, self.paddingMode)
         timeNow = self.milliseconds()
         triggerPrice = self.safe_string(params, 'triggerPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
@@ -1353,9 +1350,7 @@ class apex(Exchange, ImplicitAPI):
         paramsOmitted2 = self.omit(paramsOmitted, 'postOnly')
         clientOrderId = self.safe_string_n(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id'])
         accountId = self.get_account_id()
-        if clientOrderId is None:
-            clientOrderId = self.generate_random_client_id_omni(accountId)
-        finalClientOrderId = clientOrderId  # java req
+        finalClientOrderId = clientOrderId if (clientOrderId is not None) else self.generate_random_client_id_omni(accountId)
         paramsOmitted3 = self.omit(paramsOmitted2, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
         finalOrderPrice = orderPrice  # java req
         orderToSign = {
@@ -1379,7 +1374,7 @@ class apex(Exchange, ImplicitAPI):
             'size': orderSize,
             'price': finalOrderPrice,
             'limitFee': limitFee,
-            'expiration': int(math.floor(timeNow / 1000 + 30 * 24 * 60 * 60)),
+            'expiration': self.parse_to_int(timeNow / 1000) + 30 * 24 * 60 * 60,
             'timeInForce': timeInForce,
             'clientId': finalClientOrderId,
             'brokerId': self.safe_string(self.options, 'brokerId', '6956'),
@@ -1407,9 +1402,7 @@ class apex(Exchange, ImplicitAPI):
         configResponse = self.publicGetV3Symbols(params)
         configData = self.safe_dict(configResponse, 'data', {})
         contractConfig = self.safe_dict(configData, 'contractConfig', {})
-        contractAssets = self.safe_list(contractConfig, 'assets', [])
         spotConfig = self.safe_dict(configData, 'spotConfig', {})
-        spotAssets = self.safe_list(spotConfig, 'assets', [])
         globalConfig = self.safe_dict(spotConfig, 'global', {})
         receiverAddress = self.safe_string(globalConfig, 'contractAssetPoolEthAddress', '')
         receiverZkAccountId = self.safe_string(globalConfig, 'contractAssetPoolZkAccountId', '')
@@ -1428,26 +1421,27 @@ class apex(Exchange, ImplicitAPI):
         ethAddress = self.safe_string(accountData, 'ethereumAddress', '')
         accountId = self.safe_string(accountData, 'id', '')
         currency = {}
-        assets = []
-        if fromAccount.lower() == 'contract':
-            assets = contractAssets
-        else:
-            assets = spotAssets
-        for i in range(0, len(assets)):
-            if self.safe_string(assets[i], 'token', '') == code:
-                currency = assets[i]
+        isContract = fromAccount.lower() == 'contract'
+        assets = self.safe_list(spotConfig, 'assets', [])
+        if isContract:
+            assets = self.safe_list(contractConfig, 'assets', [])
+        numAssets = len(assets)
+        for i in range(0, numAssets):
+            asset = self.safe_dict(assets, i, {})
+            if self.safe_string(asset, 'token', '') == code:
+                currency = asset
         tokenId = self.safe_string(currency, 'tokenId', '')
         decimalsNum = self.safe_number(currency, 'decimals', 0)
         decimalsNumber = 0 if (decimalsNum is None) else decimalsNum
         mathPowResult = (math.pow(10, decimalsNumber))
-        amountNumber = self.parse_to_int(amount * mathPowResult)
+        amountNum = self.parse_number(amount)
+        amountValue = 0 if (amountNum is None) else amountNum
+        amountNumber = self.parse_to_int(amountValue * mathPowResult)
         timestampSeconds = self.parse_to_int(self.milliseconds() / 1000)
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
-        if clientOrderId is None:
-            clientOrderId = self.generate_random_client_id_omni(self.safe_string(self.options, 'accountId'))
-        finalClientOrderId = clientOrderId  # java req
+        finalClientOrderId = clientOrderId if (clientOrderId is not None) else self.generate_random_client_id_omni(self.safe_string(self.options, 'accountId'))
         paramsOmitted = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
-        if fromAccount.lower() == 'contract':
+        if isContract:
             formattedUint32 = '4294967295'
             zkSignAccountId = Precise.string_mod(accountId, formattedUint32)
             expireTime = timestampSeconds + 3600 * 24 * 28
@@ -1496,10 +1490,9 @@ class apex(Exchange, ImplicitAPI):
                 'timestampSeconds': timestampSeconds,
             }
             signature = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
-            amountStr = str(amount)
             ts = timestampSeconds  # java req
             request = {
-                'amount': amountStr,
+                'amount': self.number_to_string(amount),
                 'timestamp': ts,
                 'clientTransferId': finalClientOrderId,
                 'signature': signature,
@@ -1892,8 +1885,9 @@ class apex(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(baseApiUrl) + '/' + path
@@ -1903,7 +1897,7 @@ class apex(Exchange, ImplicitAPI):
             'Content-Type': 'application/x-www-form-urlencoded',
         }
         signPath = '/api/' + path
-        signBody = body
+        signBody = None
         if method.upper() != 'POST':
             if len(params) > 0:
                 signPath += '?' + self.rawencode(params)
@@ -1911,7 +1905,7 @@ class apex(Exchange, ImplicitAPI):
         else:
             sortedQuery = self.keysort(params)
             signBody = self.rawencode(sortedQuery)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             messageString = timestamp + method.upper() + signPath
@@ -1924,7 +1918,7 @@ class apex(Exchange, ImplicitAPI):
             headersValue['APEX-PASSPHRASE'] = self.password
         return {'url': url, 'method': method, 'body': signBody, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         #
         # {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         # {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}

@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class blockchaincom extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blockchaincom',
             'secret' => null,
@@ -449,7 +449,7 @@ class blockchaincom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        return Async\await($this->fetch_l3_order_book($symbol, $limit, $params));
+        return Async\await($this->fetch_l2_order_book($symbol, $limit, $params));
     }
 
     public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -478,10 +478,10 @@ class blockchaincom extends Exchange {
             $request['depth'] = $limit;
         }
         $response = Async\await($this->publicGetL3Symbol($this->extend($request, $params)));
-        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
+        return $this->parse_order_book_l3($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty', 'num');
     }
 
-    public function fetch_l2_order_book(string $symbol, ?int $limit = null, $params = array()) {
+    public function fetch_l2_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_l2_order_book(...))($symbol, $limit, $params);
     }
 
@@ -932,11 +932,11 @@ class blockchaincom extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $datetime = $this->iso8601($timestamp);
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         if ($feeCostString !== null) {
-            $feeCurrency = $marketResolved['quote'];
+            $feeCurrency = $this->safe_string($marketResolved, 'quote', '');
             $fee = array( 'cost' => $feeCostString, 'currency' => $feeCurrency );
         }
         return $this->safe_trade(array(
@@ -1072,12 +1072,14 @@ class blockchaincom extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $state = $this->safe_string($transaction, 'state');
-        if (is_array($transaction) && array_key_exists('depositId' ?? '', $transaction)) {
+        $depositId = $this->safe_string($transaction, 'depositId');
+        $withdrawalId = $this->safe_string($transaction, 'withdrawalId');
+        if ($depositId !== null) {
             $type = 'deposit';
-            $id = $this->safe_string($transaction, 'depositId');
-        } elseif (is_array($transaction) && array_key_exists('withdrawalId' ?? '', $transaction)) {
+            $id = $depositId;
+        } elseif ($withdrawalId !== null) {
             $type = 'withdrawal';
-            $id = $this->safe_string($transaction, 'withdrawalId');
+            $id = $withdrawalId;
         }
         $feeCost = ($type === 'withdrawal') ? $this->safe_number($transaction, 'fee') : null;
         $fee = null;
@@ -1110,11 +1112,11 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -1123,8 +1125,8 @@ class blockchaincom extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         if ($this->markets === null) {
@@ -1370,28 +1372,29 @@ class blockchaincom extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestPath = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
-        $isPrivate = ($api === 'private');
+        $isPrivate = ($apiName === 'private');
         $privateHeaders = array(
             'X-API-Token' => $this->secret,
         );
-        $requestHeaders = $headers;
+        $requestHeaders = null;
         if ($isPrivate) {
             $requestHeaders = $privateHeaders;
         }
         $isPrivatePost = $isPrivate && ($method !== 'GET');
-        $requestBody = $body;
+        $requestBody = null;
         if ($isPrivatePost) {
             $requestBody = $this->json($query);
         }
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -1408,7 +1411,7 @@ class blockchaincom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ($response === null) {
             return null;
@@ -1421,11 +1424,10 @@ class blockchaincom extends Exchange {
         }
         $errorCode = $this->safe_string($response, 'status');
         $errorMessage = $this->safe_string($response, 'error');
-        if ($code !== null) {
-            $feedback = $this->id . ' ' . $this->json($response);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        $feedback = $this->id . ' ' . $this->json($response);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+        $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
         return null;
     }
 }

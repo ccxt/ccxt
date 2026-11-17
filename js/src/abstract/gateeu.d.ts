@@ -1,6 +1,6 @@
 import { List, Dict } from '../base/types.js';
 import _gate from '../gate.js';
-interface gate {
+declare abstract class gate extends _gate {
     publicWalletGetCurrencyChains(params?: {}): Promise<List>;
     publicUnifiedGetCurrencies(params?: {}): Promise<List>;
     publicUnifiedGetHistoryLoanRate(params?: {}): Promise<Dict>;
@@ -396,7 +396,5 @@ interface gate {
     privateOtcPostBankPersonalBankSupplement(params?: {}): Promise<Dict>;
     privateOtcPostBankEnterpriseBankSupplement(params?: {}): Promise<Dict>;
     privateOtcPostUploadPreUpload(params?: {}): Promise<Dict>;
-}
-declare abstract class gate extends _gate {
 }
 export default gate;

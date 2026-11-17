@@ -3,14 +3,14 @@ import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class lighter extends lighterRest {
-    describe(): any;
+    describe(): Dict;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
     subscribePublic(messageHash: string, params?: Dict): Promise<any>;
     subscribePublicMultiple(messageHashes: string[], params?: Dict): Promise<any>;
     unsubscribe(messageHash: string, params?: Dict): Promise<any>;
     subscribePrivate(messageHash: string, params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
     handleOrderBook(client: Client, message: Dict): void;
     /**

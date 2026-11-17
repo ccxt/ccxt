@@ -53,9 +53,10 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const marketId = this.safeString(market, 'id', '');
         const name = 'SubscribeLevel1';
-        const messageHash = name + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const messageHash = name + ':' + marketId;
+        const url = this.safeString(this.safeDict(this.urls, 'api', {}), 'ws');
         const requestId = this.requestId();
         const payload = {
             'OMSId': omsId,
@@ -99,13 +100,14 @@ class ndax extends ndax$1["default"] {
         //     }
         //
         const ticker = this.parseTicker(payload);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString(ticker, 'symbol');
         const market = this.market(symbol);
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
         }
+        const marketId = this.safeString(market, 'id', '');
         const name = 'SubscribeLevel1';
-        const messageHash = name + ':' + market['id'];
+        const messageHash = name + ':' + marketId;
         client.resolve(ticker, messageHash);
     }
     /**
@@ -125,10 +127,11 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const name = 'SubscribeTrades';
-        const messageHash = name + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const messageHash = name + ':' + marketId;
+        const url = this.safeString(this.safeDict(this.urls, 'api', {}), 'ws');
         const requestId = this.requestId();
         const payload = {
             'OMSId': omsId,
@@ -174,7 +177,7 @@ class ndax extends ndax$1["default"] {
         const updates = {};
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade(payload[i]);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString(trade, 'symbol');
             let tradesArray = (symbol === undefined) ? undefined : this.safeValue(this.trades, symbol);
             if (tradesArray === undefined) {
                 const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -192,7 +195,8 @@ class ndax extends ndax$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const messageHash = name + ':' + market['id'];
+            const marketId = this.safeString(market, 'id', '');
+            const messageHash = name + ':' + marketId;
             const tradesArray = this.safeValue(this.trades, symbol);
             client.resolve(tradesArray, messageHash);
         }
@@ -215,15 +219,16 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const name = 'SubscribeTicker';
-        const messageHash = name + ':' + timeframe + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const messageHash = name + ':' + timeframe + ':' + marketId;
+        const url = this.safeString(this.safeDict(this.urls, 'api', {}), 'ws');
         const requestId = this.requestId();
         const payload = {
             'OMSId': omsId,
             'InstrumentId': this.safeInteger(market, 'id'), // conditionally optional
-            'Interval': parseInt(this.safeString(this.timeframes, timeframe, timeframe)),
+            'Interval': this.parseToInt(this.safeString(this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
         const request = {
@@ -271,22 +276,21 @@ class ndax extends ndax$1["default"] {
             const ohlcv = this.safeList(payload, i);
             const marketId = this.safeString(ohlcv, 8);
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
-            if (marketId !== undefined) {
-                updates[marketId] = {};
-            }
+            const symbol = this.safeString(market, 'symbol', '');
+            const marketUpdates = {};
             this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             const keys = Object.keys(this.timeframes);
             for (let j = 0; j < keys.length; j++) {
                 const timeframe = keys[j];
                 const interval = this.safeString(this.timeframes, timeframe, timeframe);
-                const duration = parseInt(interval) * 1000;
+                const duration = this.parseToInt(interval) * 1000;
                 const timestamp = this.safeInteger(ohlcv, 0);
                 if (timestamp === undefined) {
                     continue;
                 }
+                const candleTimestamp = this.parseToInt((timestamp / duration) * duration);
                 const parsed = [
-                    this.parseToInt((timestamp / duration) * duration),
+                    candleTimestamp,
                     this.safeFloat(ohlcv, 3),
                     this.safeFloat(ohlcv, 1),
                     this.safeFloat(ohlcv, 2),
@@ -295,50 +299,58 @@ class ndax extends ndax$1["default"] {
                 ];
                 const stored = this.safeValue(this.ohlcvs[symbol], timeframe, []);
                 const length = stored.length;
-                if ((length > 0) && (parsed[0] === stored[length - 1][0])) {
-                    const previous = stored[length - 1];
-                    let high = parsed[1];
-                    if (parsed[1] === undefined) {
-                        high = previous[1];
+                const previous = this.safeValue(stored, length - 1);
+                const previousTimestamp = this.safeInteger(previous, 0);
+                if ((length > 0) && (previousTimestamp !== undefined) && (previousTimestamp === candleTimestamp)) {
+                    const parsedHigh = this.safeFloat(ohlcv, 1);
+                    const previousHigh = this.safeFloat(previous, 1);
+                    let high = previousHigh;
+                    if (parsedHigh !== undefined) {
+                        high = parsedHigh;
+                        if ((previousHigh !== undefined) && (previousHigh > parsedHigh)) {
+                            high = previousHigh;
+                        }
                     }
-                    else if (previous[1] !== undefined) {
-                        high = Math.max(parsed[1], previous[1]);
-                    }
-                    let low = parsed[2];
-                    if (parsed[2] === undefined) {
-                        low = previous[2];
-                    }
-                    else if (previous[2] !== undefined) {
-                        low = Math.min(parsed[2], previous[2]);
+                    const parsedLow = this.safeFloat(ohlcv, 2);
+                    const previousLow = this.safeFloat(previous, 2);
+                    let low = previousLow;
+                    if (parsedLow !== undefined) {
+                        low = parsedLow;
+                        if ((previousLow !== undefined) && (parsedLow > previousLow)) {
+                            low = previousLow;
+                        }
                     }
                     stored[length - 1] = [
-                        parsed[0],
-                        previous[1],
+                        candleTimestamp,
+                        this.safeFloat(previous, 1),
                         high,
                         low,
-                        parsed[4],
-                        this.sum(parsed[5], previous[5]),
+                        this.safeFloat(ohlcv, 4),
+                        this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5)),
                     ];
                     if (marketId !== undefined) {
-                        updates[marketId][timeframe] = true;
+                        marketUpdates[timeframe] = true;
                     }
                 }
                 else {
-                    if ((length > 0) && (this.parseToInt(parsed[0]) < this.parseToInt(stored[length - 1][0]))) {
-                        continue;
+                    if (length > 0) {
+                        if ((previousTimestamp !== undefined) && (previousTimestamp > candleTimestamp)) {
+                            continue;
+                        }
                     }
-                    else {
-                        stored.push(parsed);
-                        const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-                        if (length >= limit) {
-                            stored.shift();
-                        }
-                        if (marketId !== undefined) {
-                            updates[marketId][timeframe] = true;
-                        }
+                    stored.push(parsed);
+                    const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+                    if (length >= limit) {
+                        stored.shift();
+                    }
+                    if (marketId !== undefined) {
+                        marketUpdates[timeframe] = true;
                     }
                 }
                 this.ohlcvs[symbol][timeframe] = stored;
+            }
+            if (marketId !== undefined) {
+                updates[marketId] = marketUpdates;
             }
         }
         const name = 'SubscribeTicker';
@@ -350,8 +362,8 @@ class ndax extends ndax$1["default"] {
                 const timeframe = timeframes[j];
                 const messageHash = name + ':' + timeframe + ':' + marketId;
                 const market = this.safeMarket(marketId);
-                const symbol = market['symbol'];
-                const stored = this.safeList(this.ohlcvs[symbol], timeframe, []);
+                const symbol = this.safeString(market, 'symbol', '');
+                const stored = this.safeList(this.safeValue(this.ohlcvs, symbol), timeframe, []);
                 client.resolve(stored, messageHash);
             }
         }
@@ -372,10 +384,11 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const name = 'SubscribeLevel2';
-        const messageHash = name + ':' + market['id'];
-        const url = this.urls['api']['ws'];
+        const messageHash = name + ':' + marketId;
+        const url = this.safeString(this.safeDict(this.urls, 'api', {}), 'ws');
         const requestId = this.requestId();
         const limitValue = (limit === undefined) ? 100 : limit;
         const payload = {
@@ -434,13 +447,14 @@ class ndax extends ndax$1["default"] {
             return;
         }
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
             return;
         }
-        let timestamp = undefined;
-        let nonce = undefined;
+        // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
+        let timestamp = this.safeInteger(firstBidAsk, 2);
+        let nonce = this.safeInteger(firstBidAsk, 0);
         for (let i = 0; i < payload.length; i++) {
             const bidask = this.safeList(payload, i);
             if (timestamp === undefined) {
@@ -448,18 +462,18 @@ class ndax extends ndax$1["default"] {
             }
             else {
                 const newTimestamp = this.safeInteger(bidask, 2);
-                const currentTimestampValue = (timestamp === undefined) ? 0 : timestamp;
-                const newTimestampValue = (newTimestamp === undefined) ? 0 : newTimestamp;
-                timestamp = Math.max(currentTimestampValue, newTimestampValue);
+                if ((newTimestamp !== undefined) && (newTimestamp > timestamp)) {
+                    timestamp = newTimestamp;
+                }
             }
             if (nonce === undefined) {
                 nonce = this.safeInteger(bidask, 0);
             }
             else {
                 const newNonce = this.safeInteger(bidask, 0);
-                const currentNonceValue = (nonce === undefined) ? 0 : nonce;
-                const newNonceValue = (newNonce === undefined) ? 0 : newNonce;
-                nonce = Math.max(currentNonceValue, newNonceValue);
+                if ((newNonce !== undefined) && (newNonce > nonce)) {
+                    nonce = newNonce;
+                }
             }
             // 0 new, 1 update, 2 remove
             const type = this.safeInteger(bidask, 3);
@@ -514,12 +528,19 @@ class ndax extends ndax$1["default"] {
         //     ]
         //
         const symbol = this.safeString(subscription, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const snapshot = this.parseOrderBook(payload, symbol);
         const limit = this.safeInteger(subscription, 'limit');
-        const orderbook = this.orderBook(snapshot, limit);
-        if (symbol !== undefined) {
-            this.orderbooks[symbol] = orderbook;
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset(snapshot);
         const messageHash = this.safeString(subscription, 'messageHash');
         client.resolve(orderbook, messageHash);
     }
@@ -581,7 +602,7 @@ class ndax extends ndax$1["default"] {
             'TickerDataUpdateEvent': this.handleOHLCV,
         };
         const event = this.safeString(message, 'n');
-        const method = (event === undefined) ? undefined : this.safeValue(methods, event);
+        const method = this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, message);
         }

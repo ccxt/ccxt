@@ -15,11 +15,14 @@ func testFetchTradesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	defer ReturnPanicError(ch)
 	var method string = "fetchTrades"
 
-	r := <-exchange.FetchTradesAsync(symbol, nil, 12000)
+	r := <-exchange.(ccxt.IFetchTrades).FetchTradesAsync(symbol, nil, 12000)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	trades := r.Value // test with unrealistically high amount
+	var trades any = nil
+	if r.Value != nil {
+		trades = ccxt.TradesToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, trades)
 	//
 	// test structure

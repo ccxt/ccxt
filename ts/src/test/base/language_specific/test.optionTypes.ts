@@ -3,7 +3,8 @@
 import assert from 'assert';
 import ccxt from '../../../../ccxt.js';
 
-// a wrong-typed option passes through unchanged in js (only the C#, Java and Go ports throw on it)
+// a wrong-typed string/integer option passes through unchanged in js (only the C#, Java and Go ports throw on it);
+// a wrong-typed bool option throws BadRequest everywhere
 function testOptionTypes () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -15,8 +16,7 @@ function testOptionTypes () {
             },
         },
     });
-    const [ wrongBool ] = exchange.handleOptionBoolAndParams ({}, 'fetchX', 'wrongBool', false);
-    assert.strictEqual (wrongBool, 'yes');
+    assert.throws (() => exchange.handleOptionBoolAndParams ({}, 'fetchX', 'wrongBool', false), (e) => (e instanceof ccxt.BadRequest) && e.message.includes ('fetchX() option wrongBool must be a boolean'));
     const [ wrongString ] = exchange.handleOptionStringAndParams ({}, 'fetchX', 'wrongString', 'x');
     assert.strictEqual (wrongString, 5);
     const [ wrongInteger ] = exchange.handleOptionIntegerAndParams ({}, 'fetchX', 'wrongInteger', 1);

@@ -722,7 +722,7 @@ public partial class coinone : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "quote_currency", "KRW" },
         };
@@ -1128,7 +1128,7 @@ public partial class coinone : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "live", "open" },
@@ -1137,7 +1137,7 @@ public partial class coinone : Exchange
             { "filled", "closed" },
             { "canceled", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
@@ -1188,16 +1188,8 @@ public partial class coinone : Exchange
         string? id = this.safeString2(order, "orderId", "order_id");
         string? baseId = this.safeString2(order, "baseCurrency", "target_currency");
         string? quoteId = this.safeString2(order, "targetCurrency", "quote_currency");
-        string? bs = null;
-        string? quote = null;
-        if ((baseId != null))
-        {
-            bs = this.safeCurrencyCode(baseId);
-        }
-        if ((quoteId != null))
-        {
-            quote = this.safeCurrencyCode(quoteId);
-        }
+        string? bs = this.safeCurrencyCode(baseId);
+        string? quote = this.safeCurrencyCode(quoteId);
         string? symbol = null;
         if (((bs != null)) && ((quote != null)))
         {
@@ -1466,21 +1458,15 @@ public partial class coinone : Exchange
             string? currencyId = this.safeString(parts, 0);
             string? secondPart = this.safeString(parts, 1);
             string? code = this.safeCurrencyCode(currencyId);
-            IDictionary<string, object> depositAddress = this.safeDict(result, code);
-            if ((depositAddress == null))
-            {
-                depositAddress = new Dictionary<string, object>() {
-                    { "info", value },
-                    { "currency", code },
-                    { "network", null },
-                    { "address", null },
-                    { "tag", null },
-                };
-            }
-            string? address = this.safeString(depositAddress, "address", value);
+            string? address = this.safeString(this.safeValue(result, code), "address", value);
             this.checkAddress(address);
-            depositAddress["address"] = address;
-            depositAddress["info"] = address;
+            Dictionary<string, object> depositAddress = new Dictionary<string, object>() {
+                { "info", address },
+                { "currency", code },
+                { "network", null },
+                { "address", address },
+                { "tag", this.safeString(this.safeValue(result, code), "tag") },
+            };
             if ((secondPart == "tag" || secondPart == "memo"))
             {
                 depositAddress["tag"] = value;
@@ -1491,42 +1477,43 @@ public partial class coinone : Exchange
                 result[(string)code] = depositAddress;
             }
         }
-        return ccxt.BaseExchange.ToDepositAddressList(result);
+        return ccxt.BaseExchange.ToDepositAddressList(this.toArray(result));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? request = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + "/");
-        bool isPublic = ((api is "public")) || (isEqual(api, "v2Public"));
-        if (isEqual(api, "v2Public"))
+        bool isPublic = (apiName == "public") || (apiName == "v2Public");
+        if (apiName == "v2Public")
         {
-            string? apiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Public");
+            string? apiUrl2 = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "v2Public");
             if ((apiUrl2 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl2 + "/");
-        } else if (isEqual(api, "v2Private"))
+        } else if (apiName == "v2Private")
         {
-            string? apiUrl3 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2Private");
+            string? apiUrl3 = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "v2Private");
             if ((apiUrl3 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
             }
             url = (apiUrl3 + "/");
-        } else if (isEqual(api, "v2_1Private"))
+        } else if (apiName == "v2_1Private")
         {
-            string? apiUrl4 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "v2_1Private");
+            string? apiUrl4 = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "v2_1Private");
             if ((apiUrl4 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1548,12 +1535,12 @@ public partial class coinone : Exchange
             url = url + request;
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             string? nonce = null;
-            if (isEqual(api, "v2_1Private"))
+            if (apiName == "v2_1Private")
             {
                 nonce = this.uuid();
             } else
             {
-                nonce = this.nonce().ToString();
+                nonce = this.numberToString(this.nonce());
             }
             string json = this.json(this.extend(new Dictionary<string, object>() {
                 { "access_token", this.apiKey },
@@ -1569,8 +1556,8 @@ public partial class coinone : Exchange
                 { "X-COINONE-SIGNATURE", signature },
             };
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -1579,7 +1566,7 @@ public partial class coinone : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

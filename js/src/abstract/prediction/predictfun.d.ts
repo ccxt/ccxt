@@ -1,6 +1,6 @@
 import { Dict } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     predictfunGetV1AuthMessage(params?: {}): Promise<Dict>;
     predictfunGetV1Categories(params?: {}): Promise<Dict>;
     predictfunGetV1CategoriesSlug(params?: {}): Promise<Dict>;
@@ -30,7 +30,5 @@ interface Exchange {
     predictfunPostV1OauthOrdersCreate(params?: {}): Promise<Dict>;
     predictfunPostV1OauthOrdersCancel(params?: {}): Promise<Dict>;
     predictfunPostV1OauthPositions(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

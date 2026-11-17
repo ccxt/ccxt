@@ -2,7 +2,7 @@ import blockchaincomRest from '../blockchaincom.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, NullableDict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class blockchaincom extends blockchaincomRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name blockchaincom#watchBalance
@@ -82,8 +82,8 @@ export default class blockchaincom extends blockchaincomRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
-    handleMessage(client: Client, message: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
+    handleMessage(client: Client, message: Dict): void;
     handleAuthenticationMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<any>;
 }

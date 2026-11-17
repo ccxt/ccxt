@@ -457,7 +457,7 @@ public partial class coinmate : Exchange
         //         "serverTime": 1765250628745
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "serverTime"));
+        return this.safeInteger(response, "serverTime") ?? 0;
     }
 
     /**
@@ -685,7 +685,7 @@ public partial class coinmate : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.publicGetTickerAll(parameters);
         //
         //     {
@@ -746,12 +746,12 @@ public partial class coinmate : Exchange
             { "ask", this.safeNumber(ticker, "ask") },
             { "vwap", null },
             { "askVolume", null },
-            { "open", null },
+            { "open", this.safeNumber(ticker, "open") },
             { "close", last },
             { "last", last },
             { "previousClose", null },
             { "change", null },
-            { "percentage", null },
+            { "percentage", this.safeNumber(ticker, "change") },
             { "average", null },
             { "baseVolume", this.safeNumber(ticker, "amount") },
             { "quoteVolume", null },
@@ -863,7 +863,7 @@ public partial class coinmate : Exchange
             { "txid", this.safeString(transaction, "txid") },
             { "type", this.safeStringLower(transaction, "transferType") },
             { "currency", code },
-            { "network", this.safeString(transaction, "walletType") },
+            { "network", this.networkIdToCode(this.safeString(transaction, "walletType"), code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", this.parseTransactionStatus(this.safeString(transaction, "transferStatus")) },
             { "timestamp", timestamp },
@@ -898,17 +898,17 @@ public partial class coinmate : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1469,24 +1469,26 @@ public partial class coinmate : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? bodySigned = null;
         Dictionary<string, object> headersSigned = null;
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + path);
-        if ((api is "public"))
+        if (apiName == "public")
         {
-            if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
+            Dictionary<string, object> publicQuery = this.extend(new Dictionary<string, object>() {}, parameters);
+            if ((new List<object>(publicQuery.Keys)).Count > 0)
             {
-                url = url + ("?" + this.urlencode(parameters));
+                url = url + ("?" + this.urlencode(publicQuery));
             }
         } else
         {
@@ -1505,8 +1507,8 @@ public partial class coinmate : Exchange
                 { "Content-Type", "application/x-www-form-urlencoded" },
             };
         }
-        object headersResolved = ((headersSigned == null)) ? headers : headersSigned;
-        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
+        Dictionary<string, object> headersResolved = headersSigned;
+        string? bodyResolved = bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -1515,7 +1517,7 @@ public partial class coinmate : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -1529,8 +1531,8 @@ public partial class coinmate : Exchange
         if ((errorMessage != null))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessage, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorMessage, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

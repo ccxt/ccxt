@@ -131,7 +131,7 @@ const ticker = await exchange.fetchTicker('BTC/USDT')
 console.log(ticker.last)      // Last price
 console.log(ticker.bid)       // Best bid
 console.log(ticker.ask)       // Best ask
-console.log(ticker.volume)    // 24h volume
+console.log(ticker.baseVolume)    // 24h volume in base currency (quoteVolume for quote)
 
 // Multiple tickers (if supported)
 const tickers = await exchange.fetchTickers(['BTC/USDT', 'ETH/USDT'])
@@ -215,6 +215,25 @@ await exchange.cancelOrder(orderId, 'BTC/USDT')
 // Cancel all orders for a symbol
 await exchange.cancelAllOrders('BTC/USDT')
 ```
+
+## Bitget Stock Routing
+
+Default market discovery cross-references classic spot symbols against public UTA spot instruments to identify stocks; `await exchange.loadMarkets()` is sufficient. `symbolType: 'stock'` sets `market.stock: true`; `isReality: 'yes'` is a fallback only when `symbolType` is absent. Stock-underlying derivatives remain derivatives and do not use Reality spot REST endpoints. Stock spot WebSocket subscriptions automatically use UTA; stock-underlying derivatives retain classic derivative WebSockets unless `uta: true` is selected explicitly. Required-symbol REST methods and supported stock WebSocket subscriptions infer routing from the market and discard legacy `params.stock`; stock options cannot override that routing. Keep `stock` selectors for symbol-less discovery, tickers and balances. This does not add Stock+ securities-account support or imply ownership of underlying shares.
+
+## Backpack Tokenized Stocks (REST)
+
+- `fetchMarkets` accepts scalar or array `marketType` aliases: `spot`/`SPOT`, `swap`/`PERP`, `stock`/`RFQ`. The `stock` alias selects RFQs; `params.stock: true` filters stock underlyings across execution types.
+- Market discovery deduplicates exchange IDs while keeping spot, perpetual and RFQ symbols separate. Restrict `marketType` to `['SPOT']` or `['PERP']` to avoid the securities request; stock-underlying perpetuals remain swaps, not tokenized spot holdings.
+- `fetchCurrencies()` uses the assets endpoint only, with `.US` and `.HK` symbols classified as `type: 'stock'`. It returns all assets by default; `fetchCurrencies({ stock: true })` returns stocks only. Securities metadata is fetched separately by market discovery for RFQ sessions and limits.
+- Default `backpack.loadMarkets()` includes security-discovered RFQs (`AAPL.US.RFQ/USDC`) and available stock spot books (`MU.US/USDC`). Use the symbols actually returned by the exchange. RFQs have `executionModel: 'rfq'`; both stock execution paths have `stock: true` and are not derivatives.
+- Symbol-scoped stock/RFQ methods infer stock status from the market; `stock: true` is needed for symbol-less stock filters such as balances/currencies, and `stock: false` explicitly opts out. For provider statistics, `source: 'External'` is inferred for RFQ symbols; Backpack does not document a separate native stock/ETF ownership account or an `equity` selector. Do not claim underlying-share ownership.
+- `fetchTicker`/`fetchTickers` accept `source: 'Venue' | 'External'` and `interval`; market symbols infer stock routing, and RFQ ticker stats default to External (`1d`). `fetchOHLCV` accepts the same source, with External requiring `priceType: 'Last'`. Explicit source/stock params override inference. RFQ-symbol statistics refer to the underlying market, not an executable quote.
+- Exchange-specific `fetchSecurities()` and `fetchStockIndicativeQuote(symbol, 'buy' | 'sell', baseAmount)` are public metadata/quote helpers (market sessions/holidays have no unified method; use the implicit `publicGetApiV1MarketHolidays` endpoint). Indicative `price` is a limit and `estimatedPrice` is not guaranteed. Never reinterpret indicative quotes as order-book depth.
+- RFQ `createOrder` accepts base quantity only and submits `Immediate`. Limit RFQs preserve the supplied price; market RFQs use a supplied price bound or obtain a stock indicative bound. Stock RFQs check current-session quote availability and size constraints without rounding shares. Fills are not guaranteed. Unified `createOrder` rejects `AwaitAccept` because that mode does not accept an engine-enforced price bound. Advanced unpriced RFQs submitted through the implicit API can be explicitly accepted with `acceptRfqQuote(rfqId, quoteId, symbol)`. Acceptance can bind funds before deferred settlement; do not report it as filled prematurely.
+- RFQ symbols route order/open-order history, `fetchOrder`, cancellation and private fills to RFQ APIs. Without a symbol, `stock: true` combines stock venue and requester RFQ records; `rfq: true` restricts to RFQs. RFQ time filtering applies to the retrieved history page (`offset`, `limit`, `sortDirection`), not an automatically paginated history.
+- `fetchBalance({ stock: true })` returns tokenized stock assets from the capital account. `fetchPositions` is derivatives-only. RFQ `fetchOrderBook`/public `fetchTrades`, RFQ batches/bulk cancellation, quote-cost amounts, post-only and trigger/bracket orders are unsupported. Cancel RFQs individually. A resting RFQ cancellation request need not immediately change its status to canceled.
+- `fetchConvertQuote(fromCode, toCode, amount)` is an indicative stock-RFQ estimate, not a reserved/executable quote ID. `createConvertTrade` submits a bounded Immediate RFQ; buying stock requires `params.price` or `params.baseAmount`, while passing `id` as an RFQ ID with `params.quoteId` accepts a specific maker quote. Conversion amounts reflect fills and may be absent while the RFQ remains open.
+- Read-only example: `await exchange.fetchTicker('AAPL.US.RFQ/USDC')` infers external stock statistics; `await exchange.fetchStockIndicativeQuote('AAPL.US.RFQ/USDC', 'buy', 1)` gets tokenized-stock execution terms. Explicit `stock: false` overrides inference. Pro `watchTicker(symbol)` infers external stats for RFQ symbols; `watchBidsAsks([symbol])` infers indicative RFQ quotes. RFQ `watchOrders` uses `account.rfqUpdate`; binding acceptance remains open until settlement. Quote stream timestamps are milliseconds, RFQ `E`/`T` are microseconds.
 
 ## WebSocket Operations (Real-time)
 
@@ -306,7 +325,50 @@ while (true) {
 await exchange.close()
 ```
 
+## Testnet, Capabilities, Precision and Pagination
+
+### Testnet / sandbox first
+```typescript
+const exchange = new ccxt.binance ({ apiKey: '...', secret: '...' })
+exchange.setSandboxMode (true) // call right after construction; throws NotSupported if the exchange has no testnet
+```
+Some venues (binance, bybit, okx, gate, ...) also offer demo trading inside the live API; check the exchange's `options`/docs. Always try orders on a testnet (or with the minimum size) before going live.
+
+### Check what an exchange supports
+```typescript
+if (exchange.has['fetchOHLCV']) { /* ... */ }        // method-level support (true | false | 'emulated')
+const f = exchange.features                          // finer-grained, per market type
+console.log (f['spot']['createOrder'])               // e.g. triggerPrice, stopLoss, takeProfit, timeInForce (incl. PO), hedged, marketBuyByCost
+console.log (f['swap']['linear']['fetchOHLCV'])      // e.g. { limit: 500, symbolRequired: true }
+```
+
+### Respect market precision and limits
+```typescript
+await exchange.loadMarkets ()
+const market = exchange.market ('BTC/USDT')
+console.log (market.limits.amount.min, market.limits.cost.min, market.precision.amount)
+const amount = exchange.amountToPrecision ('BTC/USDT', 0.0012345)   // returns a string
+const price = exchange.priceToPrecision ('BTC/USDT', 64123.456789)
+await exchange.createOrder ('BTC/USDT', 'limit', 'buy', parseFloat (amount), parseFloat (price))
+```
+
+### Pagination
+Let CCXT page through history for you instead of writing your own loop:
+```typescript
+const candles = await exchange.fetchOHLCV ('BTC/USDT', '1h', since, undefined, { paginate: true })
+const trades = await exchange.fetchMyTrades ('BTC/USDT', since, undefined, { paginate: true, paginationCalls: 20 })
+```
+Supported on methods the exchange marks as paginatable (most `fetchOHLCV`, `fetchTrades`, `fetchMyTrades`, `fetchOrders`, `fetchFundingRateHistory`, ...).
+
+### Unsubscribing and closing
+```typescript
+await exchange.unWatchTicker ('BTC/USDT')            // check exchange.has['unWatchTicker'] first
+await exchange.close ()                              // closes every subscription and socket
+```
+
 ## Complete Method Reference
+
+Names below are the canonical camelCase unified names; use your language's casing (`fetch_ohlcv` in Python/PHP, `FetchOHLCV` in C#/Go). Arguments are **positional in this order** — trailing ones are optional and `params` (exchange-specific extras) is always last and omitted here. Signatures mirror `ts/src/base/Exchange.ts`. Support varies per exchange: check `exchange.has['<method>']` (and `exchange.features` for finer options) before calling.
 
 ### Market Data Methods
 
@@ -315,24 +377,25 @@ await exchange.close()
 - `fetchTickers([symbols])` - Fetch multiple tickers at once
 - `fetchBidsAsks([symbols])` - Fetch best bid/ask for multiple symbols
 - `fetchLastPrices([symbols])` - Fetch last prices
+- `fetchMarkPrice(symbol)` - Fetch mark price (derivatives)
 - `fetchMarkPrices([symbols])` - Fetch mark prices (derivatives)
 
 #### Order Books
 - `fetchOrderBook(symbol, limit)` - Fetch order book
-- `fetchOrderBooks([symbols])` - Fetch multiple order books
-- `fetchL2OrderBook(symbol)` - Fetch level 2 order book
-- `fetchL3OrderBook(symbol)` - Fetch level 3 order book (if supported)
+- `fetchOrderBooks([symbols], limit)` - Fetch multiple order books
+- `fetchL2OrderBook(symbol, limit)` - Fetch level 2 order book
+- `fetchL3OrderBook(symbol, limit)` - Fetch level 3 order book (if supported)
 
 #### Trades
 - `fetchTrades(symbol, since, limit)` - Fetch public trades
 - `fetchMyTrades(symbol, since, limit)` - Fetch your trades (auth required)
-- `fetchOrderTrades(orderId, symbol)` - Fetch trades for specific order
+- `fetchOrderTrades(id, symbol, since, limit)` - Fetch trades for specific order
 
 #### OHLCV (Candlesticks)
 - `fetchOHLCV(symbol, timeframe, since, limit)` - Fetch candlestick data
-- `fetchIndexOHLCV(symbol, timeframe)` - Fetch index price OHLCV
-- `fetchMarkOHLCV(symbol, timeframe)` - Fetch mark price OHLCV
-- `fetchPremiumIndexOHLCV(symbol, timeframe)` - Fetch premium index OHLCV
+- `fetchIndexOHLCV(symbol, timeframe, since, limit)` - Fetch index price OHLCV
+- `fetchMarkOHLCV(symbol, timeframe, since, limit)` - Fetch mark price OHLCV
+- `fetchPremiumIndexOHLCV(symbol, timeframe, since, limit)` - Fetch premium index OHLCV
 
 ### Account & Balance
 
@@ -340,71 +403,83 @@ await exchange.close()
 - `fetchAccounts()` - Fetch sub-accounts
 - `fetchLedger(code, since, limit)` - Fetch ledger history
 - `fetchLedgerEntry(id, code)` - Fetch specific ledger entry
-- `fetchTransactions(code, since, limit)` - Fetch transactions
 - `fetchDeposits(code, since, limit)` - Fetch deposit history
 - `fetchWithdrawals(code, since, limit)` - Fetch withdrawal history
-- `fetchDepositsWithdrawals(code, since, limit)` - Fetch both deposits and withdrawals
+- `fetchDepositsWithdrawals(code, since, limit)` - Fetch both deposits and withdrawals (replaces the older `fetchTransactions`)
 
 ### Trading Methods
 
 #### Creating Orders
-- `createOrder(symbol, type, side, amount, price, params)` - Create order (generic)
+- `createOrder(symbol, type, side, amount, price)` - Create order (generic; `price` is `undefined`/`None`/`null` for market orders)
 - `createLimitOrder(symbol, side, amount, price)` - Create limit order
 - `createMarketOrder(symbol, side, amount)` - Create market order
 - `createLimitBuyOrder(symbol, amount, price)` - Buy limit order
 - `createLimitSellOrder(symbol, amount, price)` - Sell limit order
 - `createMarketBuyOrder(symbol, amount)` - Buy market order
 - `createMarketSellOrder(symbol, amount)` - Sell market order
-- `createMarketBuyOrderWithCost(symbol, cost)` - Buy with specific cost
-- `createStopLimitOrder(symbol, side, amount, price, stopPrice)` - Stop-limit order
-- `createStopMarketOrder(symbol, side, amount, stopPrice)` - Stop-market order
-- `createStopLossOrder(symbol, side, amount, stopPrice)` - Stop-loss order
-- `createTakeProfitOrder(symbol, side, amount, takeProfitPrice)` - Take-profit order
-- `createTrailingAmountOrder(symbol, side, amount, trailingAmount)` - Trailing stop
-- `createTrailingPercentOrder(symbol, side, amount, trailingPercent)` - Trailing stop %
-- `createTriggerOrder(symbol, side, amount, triggerPrice)` - Trigger order
-- `createPostOnlyOrder(symbol, side, amount, price)` - Post-only order
-- `createReduceOnlyOrder(symbol, side, amount, price)` - Reduce-only order
+- `createMarketOrderWithCost(symbol, side, cost)` - Market order sized in quote currency
+- `createMarketBuyOrderWithCost(symbol, cost)` - Buy spending a quote amount (e.g. 100 USDT)
+- `createMarketSellOrderWithCost(symbol, cost)` - Sell for a quote amount
+- `createStopLimitOrder(symbol, side, amount, price, triggerPrice)` - Stop-limit order
+- `createStopMarketOrder(symbol, side, amount, triggerPrice)` - Stop-market order
+- `createStopLossOrder(symbol, type, side, amount, price, stopLossPrice)` - Stop-loss order
+- `createTakeProfitOrder(symbol, type, side, amount, price, takeProfitPrice)` - Take-profit order
+- `createTriggerOrder(symbol, type, side, amount, price, triggerPrice)` - Trigger (conditional) order
+- `createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice)` - Trailing stop (absolute)
+- `createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice)` - Trailing stop (%)
+- `createPostOnlyOrder(symbol, type, side, amount, price)` - Post-only (maker-only) order
+- `createReduceOnlyOrder(symbol, type, side, amount, price)` - Reduce-only order
+- `createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, takeProfit, stopLoss)` - Order with attached TP/SL
 - `createOrders([orders])` - Create multiple orders at once
-- `createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, tpPrice, slPrice)` - OCO order
+
+The unified way to attach conditions to any `createOrder` call is through `params`: `triggerPrice`, `stopLossPrice`, `takeProfitPrice`, `stopLoss: { triggerPrice, price }`, `takeProfit: { triggerPrice, price }`, `reduceOnly`, `postOnly`, `timeInForce`, `clientOrderId`, `marginMode`, `hedged`. Which ones an exchange accepts is declared in `exchange.features[marketType][subType].createOrder`. (`stopPrice` is a legacy alias; prefer `triggerPrice`.)
 
 #### Managing Orders
-- `fetchOrder(orderId, symbol)` - Fetch single order
+- `fetchOrder(id, symbol)` - Fetch single order
 - `fetchOrders(symbol, since, limit)` - Fetch all orders
 - `fetchOpenOrders(symbol, since, limit)` - Fetch open orders
 - `fetchClosedOrders(symbol, since, limit)` - Fetch closed orders
 - `fetchCanceledOrders(symbol, since, limit)` - Fetch canceled orders
-- `fetchOpenOrder(orderId, symbol)` - Fetch specific open order
-- `fetchOrdersByStatus(status, symbol)` - Fetch orders by status
-- `cancelOrder(orderId, symbol)` - Cancel single order
-- `cancelOrders([orderIds], symbol)` - Cancel multiple orders
+- `fetchCanceledAndClosedOrders(symbol, since, limit)` - Fetch canceled + closed orders
+- `fetchOrderWithClientOrderId(clientOrderId, symbol)` - Fetch by your client order id
+- `cancelOrder(id, symbol)` - Cancel single order
+- `cancelOrderWithClientOrderId(clientOrderId, symbol)` - Cancel by your client order id
+- `cancelOrders([ids], symbol)` - Cancel multiple orders
+- `cancelOrdersForSymbols([{ id, symbol }])` - Cancel orders across symbols
 - `cancelAllOrders(symbol)` - Cancel all orders for symbol
-- `editOrder(orderId, symbol, type, side, amount, price)` - Modify order
+- `cancelAllOrdersAfter(timeout)` - Dead-man switch: cancel everything after `timeout` ms (0 disables)
+- `editOrder(id, symbol, type, side, amount, price)` - Modify order
+- `editOrders([orders])` - Modify multiple orders
 
 ### Margin & Leverage
 
-- `fetchBorrowRate(code)` - Fetch borrow rate for margin
-- `fetchBorrowRates([codes])` - Fetch multiple borrow rates
-- `fetchBorrowRateHistory(code, since, limit)` - Historical borrow rates
-- `fetchCrossBorrowRate(code)` - Cross margin borrow rate
-- `fetchIsolatedBorrowRate(symbol, code)` - Isolated margin borrow rate
-- `borrowMargin(code, amount, symbol)` - Borrow margin
-- `repayMargin(code, amount, symbol)` - Repay margin
-- `fetchLeverage(symbol)` - Fetch leverage
+- `fetchCrossBorrowRate(code)` - Cross-margin borrow rate
+- `fetchCrossBorrowRates()` - All cross-margin borrow rates
+- `fetchIsolatedBorrowRate(symbol)` - Isolated-margin borrow rate
+- `fetchIsolatedBorrowRates()` - All isolated-margin borrow rates
+- `fetchBorrowInterest(code, symbol, since, limit)` - Borrow interest paid
+- `borrowCrossMargin(code, amount)` / `repayCrossMargin(code, amount)` - Cross-margin loans
+- `borrowIsolatedMargin(symbol, code, amount)` / `repayIsolatedMargin(symbol, code, amount)` - Isolated-margin loans
+- `fetchLeverage(symbol)` / `fetchLeverages([symbols])` - Current leverage
 - `setLeverage(leverage, symbol)` - Set leverage
-- `fetchLeverageTiers(symbols)` - Fetch leverage tiers
-- `fetchMarketLeverageTiers(symbol)` - Leverage tiers for market
-- `setMarginMode(marginMode, symbol)` - Set margin mode (cross/isolated)
-- `fetchMarginMode(symbol)` - Fetch margin mode
+- `fetchLeverageTiers([symbols])` - Leverage tiers
+- `fetchMarketLeverageTiers(symbol)` - Leverage tiers for one market
+- `fetchMarginMode(symbol)` / `fetchMarginModes([symbols])` - Margin mode (cross/isolated)
+- `setMarginMode(marginMode, symbol)` - Set margin mode
+- `addMargin(symbol, amount)` / `reduceMargin(symbol, amount)` / `setMargin(symbol, amount)` - Adjust isolated position margin
+- `fetchMarginAdjustmentHistory(symbol, type, since, limit)` - Margin adjustment history
+
+Deprecated and always throw `NotSupported`: `fetchBorrowRate`, `borrowMargin`, `repayMargin` — use the cross/isolated variants above (there is no `fetchBorrowRates`; use `fetchCrossBorrowRates` / `fetchIsolatedBorrowRates`).
 
 ### Derivatives & Futures
 
 #### Positions
 - `fetchPosition(symbol)` - Fetch single position
 - `fetchPositions([symbols])` - Fetch all positions
-- `fetchPositionsForSymbol(symbol)` - Fetch positions for symbol
-- `fetchPositionHistory(symbol, since, limit)` - Position history
-- `fetchPositionsHistory(symbols, since, limit)` - Multiple position history
+- `fetchPositionsForSymbol(symbol)` - All positions for one symbol (e.g. both hedge sides)
+- `fetchPositionHistory(symbol, since, limit)` - Position history for one symbol
+- `fetchPositionsHistory([symbols], since, limit)` - Position history for many symbols
+- `fetchPositionsRisk([symbols])` - Position risk info
 - `fetchPositionMode(symbol)` - Fetch position mode (one-way/hedge)
 - `setPositionMode(hedged, symbol)` - Set position mode
 - `closePosition(symbol, side)` - Close position
@@ -415,87 +490,97 @@ await exchange.close()
 - `fetchFundingRates([symbols])` - Multiple funding rates
 - `fetchFundingRateHistory(symbol, since, limit)` - Funding rate history
 - `fetchFundingHistory(symbol, since, limit)` - Your funding payments
-- `fetchFundingInterval(symbol)` - Funding interval
-- `fetchSettlementHistory(symbol, since, limit)` - Settlement history
-- `fetchMySettlementHistory(symbol, since, limit)` - Your settlement history
+- `fetchFundingInterval(symbol)` / `fetchFundingIntervals([symbols])` - Funding interval
 
-#### Open Interest & Liquidations
+#### Open Interest, Liquidations & Sentiment
 - `fetchOpenInterest(symbol)` - Open interest for symbol
 - `fetchOpenInterests([symbols])` - Multiple open interests
 - `fetchOpenInterestHistory(symbol, timeframe, since, limit)` - OI history
 - `fetchLiquidations(symbol, since, limit)` - Public liquidations
 - `fetchMyLiquidations(symbol, since, limit)` - Your liquidations
+- `fetchLongShortRatioHistory(symbol, timeframe, since, limit)` - Long/short ratio history
 
 #### Options
 - `fetchOption(symbol)` - Fetch option info
 - `fetchOptionChain(code)` - Fetch option chain
 - `fetchGreeks(symbol)` - Fetch option greeks
-- `fetchVolatilityHistory(code, since, limit)` - Volatility history
-- `fetchUnderlyingAssets()` - Fetch underlying assets
+- `fetchAllGreeks([symbols])` - Greeks for many options
 
-### Fees & Limits
+Exchange-specific (implemented by only a few venues, not in the base class): `fetchSettlementHistory`, `fetchMySettlementHistory`, `fetchVolatilityHistory`, `fetchUnderlyingAssets`, `fetchBorrowRateHistory`, `fetchOpenOrder`, `fetchOrdersByStatus`, `fetchDeposit`, `fetchWithdrawal`. Always gate them on `exchange.has`.
+
+### Fees
 
 - `fetchTradingFee(symbol)` - Trading fee for symbol
-- `fetchTradingFees([symbols])` - Trading fees for multiple symbols
-- `fetchTradingLimits([symbols])` - Trading limits
-- `fetchTransactionFee(code)` - Transaction/withdrawal fee
-- `fetchTransactionFees([codes])` - Multiple transaction fees
+- `fetchTradingFees()` - Trading fees for all symbols
 - `fetchDepositWithdrawFee(code)` - Deposit/withdrawal fee
 - `fetchDepositWithdrawFees([codes])` - Multiple deposit/withdraw fees
+- `fetchTransactionFee(code)` / `fetchTransactionFees([codes])` - Older fee API, prefer `fetchDepositWithdrawFees`
 
 ### Deposits & Withdrawals
 
-- `fetchDepositAddress(code, params)` - Get deposit address
+- `fetchDepositAddress(code)` - Get deposit address (pass `{ network: 'TRC20' }` in params to choose a chain)
 - `fetchDepositAddresses([codes])` - Multiple deposit addresses
 - `fetchDepositAddressesByNetwork(code)` - Addresses by network
-- `createDepositAddress(code, params)` - Create new deposit address
-- `fetchDeposit(id, code)` - Fetch single deposit
-- `fetchWithdrawal(id, code)` - Fetch single withdrawal
-- `fetchWithdrawAddresses(code)` - Fetch withdrawal addresses
-- `fetchWithdrawalWhitelist(code)` - Fetch whitelist
-- `withdraw(code, amount, address, tag, params)` - Withdraw funds
-- `deposit(code, amount, params)` - Deposit funds (if supported)
+- `createDepositAddress(code)` - Create new deposit address
+- `withdraw(code, amount, address)` - Withdraw funds; pass the memo/tag and network in params: `{ tag: '...', network: 'ERC20' }`
 
 ### Transfer & Convert
 
-- `transfer(code, amount, fromAccount, toAccount)` - Internal transfer
+- `transfer(code, amount, fromAccount, toAccount)` - Internal transfer between accounts (`'spot'`, `'swap'`, `'funding'`, ...)
 - `fetchTransfer(id, code)` - Fetch transfer info
 - `fetchTransfers(code, since, limit)` - Fetch transfer history
 - `fetchConvertCurrencies()` - Currencies available for convert
-- `fetchConvertQuote(fromCode, toCode, amount)` - Get conversion quote
-- `createConvertTrade(fromCode, toCode, amount)` - Execute conversion
-- `fetchConvertTrade(id)` - Fetch convert trade
+- `fetchConvertQuote(fromCode, toCode, amount)` - Get conversion quote (returns a quote `id`)
+- `createConvertTrade(id, fromCode, toCode, amount)` - Execute a conversion using the quote `id`
+- `fetchConvertTrade(id, code)` - Fetch convert trade
 - `fetchConvertTradeHistory(code, since, limit)` - Convert history
 
 ### Market Info
 
-- `fetchMarkets()` - Fetch all markets
+- `loadMarkets(reload)` - Load and cache markets (call once; most methods do it for you)
+- `fetchMarkets()` - Fetch all markets (raw, uncached)
 - `fetchCurrencies()` - Fetch all currencies
 - `fetchTime()` - Fetch exchange server time
 - `fetchStatus()` - Fetch exchange status
-- `fetchBorrowInterest(code, symbol, since, limit)` - Borrow interest paid
-- `fetchLongShortRatio(symbol, timeframe, since, limit)` - Long/short ratio
-- `fetchLongShortRatioHistory(symbol, timeframe, since, limit)` - L/S ratio history
+
+### Precision & Market Helpers (synchronous, no network)
+
+- `market(symbol)` - Market structure: `precision`, `limits` (`amount.min`, `cost.min`, ...), `contractSize`, `type`, ...
+- `amountToPrecision(symbol, amount)` - Round an amount to the market's step (returns a string)
+- `priceToPrecision(symbol, price)` - Round a price to the market's tick (returns a string)
+- `costToPrecision(symbol, cost)` - Round a cost
+- `currencyToPrecision(code, fee)` - Round a currency amount (e.g. a fee)
+- `milliseconds()` / `iso8601(ts)` / `parse8601(str)` - Time helpers
+- `setSandboxMode(true)` - Switch to the exchange's testnet (call right after construction)
 
 ### WebSocket Methods (ccxt.pro)
 
-All REST methods have WebSocket equivalents with `watch*` prefix:
+Most market-data and account methods have a `watch*` equivalent; each returns the next update when awaited, so call it in a loop. Every `watch*` subscription has a matching `unWatch*` to unsubscribe without closing the whole connection.
 
 #### Real-time Market Data
-- `watchTicker(symbol)` - Watch single ticker
-- `watchTickers([symbols])` - Watch multiple tickers
-- `watchOrderBook(symbol)` - Watch order book updates
-- `watchOrderBookForSymbols([symbols])` - Watch multiple order books
-- `watchTrades(symbol)` - Watch public trades
-- `watchOHLCV(symbol, timeframe)` - Watch candlestick updates
-- `watchBidsAsks([symbols])` - Watch best bid/ask
+- `watchTicker(symbol)` / `watchTickers([symbols])` - Ticker updates
+- `watchOrderBook(symbol, limit)` / `watchOrderBookForSymbols([symbols], limit)` - Order book updates
+- `watchTrades(symbol, since, limit)` / `watchTradesForSymbols([symbols], since, limit)` - Public trades
+- `watchOHLCV(symbol, timeframe, since, limit)` / `watchOHLCVForSymbols([[symbol, timeframe]], since, limit)` - Candles
+- `watchBidsAsks([symbols])` - Best bid/ask
+- `watchMarkPrice(symbol)` / `watchMarkPrices([symbols])` - Mark price (derivatives)
+- `watchFundingRate(symbol)` / `watchFundingRates([symbols])` - Funding rate (derivatives)
+- `watchLiquidations(symbol, since, limit)` / `watchLiquidationsForSymbols([symbols], since, limit)` - Public liquidations
 
 #### Real-time Account Data (Auth Required)
-- `watchBalance()` - Watch balance updates
-- `watchOrders(symbol)` - Watch your order updates
-- `watchMyTrades(symbol)` - Watch your trade updates
-- `watchPositions([symbols])` - Watch position updates
-- `watchPositionsForSymbol(symbol)` - Watch positions for symbol
+- `watchBalance()` - Balance updates
+- `watchOrders(symbol, since, limit)` / `watchOrdersForSymbols([symbols], since, limit)` - Your order updates
+- `watchMyTrades(symbol, since, limit)` / `watchMyTradesForSymbols([symbols], since, limit)` - Your fills
+- `watchPositions([symbols], since, limit)` - Position updates
+- `watchPosition(symbol)` - One position
+- `watchMyLiquidations(symbol, since, limit)` - Your liquidations
+
+#### Unsubscribing
+- `unWatchTicker(symbol)`, `unWatchTickers([symbols])`, `unWatchOrderBook(symbol)`, `unWatchOrderBookForSymbols([symbols])`, `unWatchTrades(symbol)`, `unWatchTradesForSymbols([symbols])`, `unWatchOHLCV(symbol, timeframe)`, `unWatchOHLCVForSymbols([[symbol, timeframe]])`, `unWatchBidsAsks([symbols])`, `unWatchMarkPrice(symbol)`, `unWatchMarkPrices([symbols])`, `unWatchFundingRate(symbol)`, `unWatchFundingRates([symbols])`, `unWatchOrders(symbol)`, `unWatchMyTrades(symbol)`, `unWatchPositions([symbols])`
+- Check support first: `exchange.has['unWatchTicker']`. Use `close()` to drop every subscription and the socket.
+
+#### Trading over WebSocket (lower latency, where supported)
+- `createOrderWs(symbol, type, side, amount, price)`, `editOrderWs(id, symbol, type, side, amount, price)`, `cancelOrderWs(id, symbol)`, `cancelOrdersWs([ids], symbol)`, `cancelAllOrdersWs(symbol)`, `fetchOrderBookWs(symbol, limit)`
 
 ### Authentication Required
 
@@ -506,7 +591,7 @@ Methods marked with 🔒 require API credentials:
 - All `edit*` methods (modifying orders)
 - All `fetchMy*` methods (your trades, orders)
 - `fetchBalance`, `fetchLedger`, `fetchAccounts`
-- `withdraw`, `transfer`, `deposit`
+- `withdraw`, `transfer`
 - Margin/leverage methods
 - Position methods
 - `watchBalance`, `watchOrders`, `watchMyTrades`, `watchPositions`

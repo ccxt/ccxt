@@ -10,7 +10,6 @@ import "strings"
 
 type Revolutx struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newRevolutx() *Revolutx {
@@ -19,7 +18,7 @@ func newRevolutx() *Revolutx {
 	return p
 }
 
-func (this *Revolutx) Describe() any {
+func (this *Revolutx) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "revolutx",
 		"name":      "Revolut X",
@@ -157,11 +156,11 @@ func (this *Revolutx) Describe() any {
 				"sandbox": false,
 				"createOrder": map[string]any{
 					"marginMode":                 false,
-					"triggerPrice":               false,
+					"triggerPrice":               true,
 					"triggerPriceType":           nil,
 					"triggerDirection":           false,
-					"stopLossPrice":              false,
-					"takeProfitPrice":            false,
+					"stopLossPrice":              true,
+					"takeProfitPrice":            true,
 					"attachedStopLossTakeProfit": nil,
 					"timeInForce": map[string]any{
 						"GTC": true,
@@ -195,7 +194,7 @@ func (this *Revolutx) Describe() any {
 				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          300,
-					"trigger":        false,
+					"trigger":        true,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
@@ -204,7 +203,7 @@ func (this *Revolutx) Describe() any {
 					"limit":          1900,
 					"daysBack":       30,
 					"untilDays":      nil,
-					"trigger":        false,
+					"trigger":        true,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
@@ -214,7 +213,7 @@ func (this *Revolutx) Describe() any {
 					"daysBack":         30,
 					"daysBackCanceled": nil,
 					"untilDays":        nil,
-					"trigger":          false,
+					"trigger":          true,
 					"trailing":         false,
 					"symbolRequired":   false,
 				},
@@ -241,60 +240,43 @@ func (this *Revolutx) Describe() any {
 		},
 	})
 }
-func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+func (this *Revolutx) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var requestHeaders any = nil
-	var requestBody any = nil
 	var implodedPath string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var queryKeys []string = ObjectKeys(query)
-	var queryLength int = len(queryKeys)
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName string = api[0]
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + implodedPath
 	var queryString string = ""
-	if api == "private" {
+	var bodyString string = ""
+	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		if method == "GET" {
-			if queryLength > 0 {
-				queryString = this.Urlencode(query)
+			queryString = this.Urlencode(query)
+			if queryString != "" {
 				url += "?" + queryString
 			}
 		} else if method == "DELETE" {
-			if queryLength > 0 {
-				queryString = this.Urlencode(query)
+			queryString = this.Urlencode(query)
+			if queryString != "" {
 				url += "?" + queryString
 			}
 		} else {
-			requestBody = this.Json(query)
+			bodyString = this.Json(query)
 		}
 		var requestPath string = "/api/" + implodedPath
-		var bodyValue any = func() any {
-			if requestBody != nil {
-				return requestBody
-			}
-			return body
-		}()
-		var bodyString any = func() any {
-			if !IsEqual(bodyValue, nil) {
-				return bodyValue
-			}
-			return ""
-		}()
-		var message *string = SafeStringPtr(Add(timestamp+strings.ToUpper(method)+requestPath+queryString, bodyString))
+		var message string = timestamp + strings.ToUpper(method) + requestPath + queryString + bodyString
 		var signature string = Eddsa(this.Encode(message), this.PrivateKey, ed25519)
 		requestHeaders = map[string]any{
 			"X-Revx-API-Key":   this.ApiKey,
@@ -302,32 +284,29 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 			"X-Revx-Signature": signature,
 		}
 		if (method == "POST") || (method == "PUT") {
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			requestHeaders = this.Extend(requestHeaders, map[string]any{
+				"Content-Type": "application/json",
+			})
 		}
 	} else {
 		if method == "GET" {
-			if queryLength > 0 {
-				queryString = this.Urlencode(query)
+			queryString = this.Urlencode(query)
+			if queryString != "" {
 				url += "?" + queryString
 			}
 		} else {
-			requestBody = this.Json(query)
+			bodyString = this.Json(query)
 			requestHeaders = map[string]any{
 				"Content-Type": "application/json",
 			}
 		}
 	}
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
+	var headersResult any = requestHeaders
+	var bodyResult *string = func() *string {
+		if bodyString != "" {
+			return SafeStringPtr(bodyString)
 		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,
@@ -345,7 +324,7 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
  * @param {object} market the raw market data from the exchange
  * @returns {object} a [market structure]{@link https://docs.ccxt.com/?id=market-structure}
  */
-func (this *Revolutx) ParseMarket(market any) any {
+func (this *Revolutx) ParseMarket(market any) map[string]any {
 	var id *string = this.SafeString(market, "id")
 	var base *string = this.SafeString(market, "base", "")
 	var quote *string = this.SafeString(market, "quote", "")
@@ -425,18 +404,18 @@ func (this *Revolutx) ParseMarket(market any) any {
  * @param {string} [params.region] the region to filter markets by (e.g. EEA, UK)
  * @returns {object[]} an array of [market structures]{@link https://docs.ccxt.com/?id=market-structure}
  */
-func (this *Revolutx) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}
@@ -474,7 +453,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 		result = append(result, this.ParseMarket(marketData))
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
 
@@ -544,18 +523,18 @@ func (this *Revolutx) ParseCurrency(currency any) map[string]any {
  * @param {string} [params.region] the region to filter currencies by
  * @returns {object} a dictionary of [currency structures]{@link https://docs.ccxt.com/?id=currency-structure}
  */
-func (this *Revolutx) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}
@@ -581,14 +560,14 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 			"id": key,
 		})
 		var parsed map[string]any = this.ParseCurrency(currencyData)
-		var code *string = this.SafeString(parsed, "code", "")
-		if code != nil && *code == "" {
+		var code string = *this.SafeString(parsed, "code", "")
+		if code == "" {
 			continue
 		}
-		AddElementToObject(result, code, parsed)
+		result[code] = parsed
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]any]{Value: result}
 	return nil
 }
 
@@ -621,11 +600,7 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var percentage *float64 = nil
 	if (open != nil) && (priceChange != nil) {
 		var percentageString *string = Precise.StringDiv(priceChange, open, 8)
-		if derefNum, isNum := this.ParseNumber(Precise.StringMul(percentageString, "100")).(float64); isNum {
-			percentage = &derefNum
-		} else {
-			percentage = nil
-		}
+		percentage = this.ParseNumber(Precise.StringMul(percentageString, "100"))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -661,12 +636,12 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {string} [params.region] the region to fetch tickers for (e.g. EEA, UK)
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Revolutx) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -690,7 +665,7 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		}
 		request["symbols"] = Join(marketIds, ",")
 	}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}
@@ -722,7 +697,9 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		if symbol != nil && *symbol == "" {
 			continue
 		}
-		AddElementToObject(result, symbol, ticker)
+		if symbol != nil {
+			result[*symbol] = ticker
+		}
 	}
 	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
@@ -744,11 +721,11 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 			}
 		}
 
-		ch <- AsyncResult[any]{Value: filtered}
+		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(filtered)}
 		return nil
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(result)}
 	return nil
 }
 
@@ -762,12 +739,12 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {string} [params.region] the region to fetch the ticker for
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Revolutx) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Revolutx) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Revolutx) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -784,13 +761,13 @@ func (this *Revolutx) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers map[string]any = MapTyped(r1.Value)
+	var tickers map[string]any = StructResultMap(r1.Value, TickerMapToMap)
 	var ticker map[string]any = SafeMapTyped(tickers, symbol)
 	if ticker == nil {
 		panic(ExchangeError(this.Id + " fetchTicker() could not find ticker for symbol " + symbol))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: ticker}
+	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
 	return nil
 }
 
@@ -805,12 +782,12 @@ func (this *Revolutx) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
  * @param {string} [params.region] the region to fetch the order book for
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Revolutx) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Revolutx) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -831,7 +808,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sy
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}
@@ -854,7 +831,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sy
 	var metadata map[string]any = SafeMapTyped(response, "metadata")
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
 	return nil
 }
 
@@ -893,12 +870,12 @@ func (this *Revolutx) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {string} [params.region] the region to fetch candles for
  * @returns {int[][]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
  */
-func (this *Revolutx) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -924,13 +901,24 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 	if since != nil {
 		request["since"] = since
 	}
+	var defaultLimit int = 1000 // default max limit if not specified
+	var limitValue int64 = func() int64 {
+		if limit != nil {
+			return *limit
+		}
+		return int64(defaultLimit)
+	}()
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if until != nil {
 		request["until"] = until
-	} else {
-		request["until"] = this.Milliseconds()
 	}
-	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
+	if (since != nil) && (until == nil) {
+		request["until"] = this.Sum(since, (limitValue * duration))
+	} else if (since == nil) && (until != nil) {
+		request["since"] = (*until - (limitValue * duration))
+	}
+	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
 		request["region"] = region
 	}
@@ -951,7 +939,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limit)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
 }
 
@@ -970,13 +958,15 @@ func (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var id *string = this.SafeString(trade, "id")
 	var tradeSymbol *string = this.SafeString(trade, "symbol")
 	var symbol *string = this.SafeSymbol(tradeSymbol, market, "/")
-	var price *float64 = this.SafeNumber(trade, "price")
-	var amount *float64 = this.SafeNumber(trade, "quantity")
+	var priceString *string = this.SafeString(trade, "price")
+	var amountString *string = this.SafeString(trade, "quantity")
+	var price *float64 = this.ParseNumber(priceString)
+	var amount *float64 = this.ParseNumber(amountString)
 	var side *string = this.SafeStringLower(trade, "side")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	var cost any = nil
-	if (price != nil) && (amount != nil) {
-		cost = Multiply(price, amount)
+	var cost *float64 = nil
+	if (priceString != nil) && (amountString != nil) {
+		cost = this.ParseNumber(Precise.StringMul(priceString, amountString))
 	}
 	return TradeFromMap(map[string]any{
 		"info":         trade,
@@ -1009,12 +999,12 @@ func (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Revolutx) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1030,10 +1020,7 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = nil
-	if !IsEqual(symbol, nil) {
-		market = this.Market(symbol)
-	}
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	if market != nil {
 		request["symbol"] = market["id"]
@@ -1076,7 +1063,7 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 		result = append(result, TradeToMap(this.ParseTrade(trade, market)))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(this.SortBy(result, "timestamp"), symbol, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.FilterBySymbolSinceLimit(this.SortBy(result, "timestamp"), symbol, since, limit))}
 	return nil
 }
 
@@ -1088,12 +1075,12 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Revolutx) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Revolutx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1117,16 +1104,17 @@ func (this *Revolutx) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
 	//         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
 	//     ]
 	//
-	var data any = func() any {
-		if IsArray(response) {
-			return response
+	var payload any = response
+	if IsArray(payload) {
+		payload = map[string]any{
+			"data": payload,
 		}
-		return this.SafeList(response, "data", []any{})
-	}()
+	}
+	var data []any = SafeListTyped(payload, "data")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(data); i++ {
+	for i := 0; i < len(data); i++ {
 		var balance map[string]any = SafeMapTyped(data, i)
 		var currency *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currency)
@@ -1151,7 +1139,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
 		result[*code] = account
 	}
 
-	ch <- AsyncResult[any]{Value: this.SafeBalance(result)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.SafeBalance(result).(map[string]any))}
 	return nil
 }
 
@@ -1200,6 +1188,39 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
 	var leavesQuantity *string = this.SafeString(order, "leaves_quantity")
 	var price *string = this.SafeString(order, "price")
 	var averageFillPrice *string = this.SafeString(order, "average_fill_price")
+	//
+	// conditional and TP/SL orders carry their triggers, e.g.
+	//
+	//     "conditional": { "trigger_price": "118000.00", "type": "limit", "trigger_direction": "le", "limit_price": "117900.00", ... }
+	//     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
+	//     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
+	//
+	var conditional map[string]any = SafeMapTyped(order, "conditional")
+	var takeProfit map[string]any = this.SafeDictMap(order, "take_profit")
+	var stopLoss map[string]any = this.SafeDictMap(order, "stop_loss")
+	var triggerPrice *string = nil
+	if orderType != nil && *orderType == "conditional" {
+		triggerPrice = this.SafeString(conditional, "trigger_price")
+		orderType = this.SafeStringLower(conditional, "type")
+		if price == nil {
+			price = this.SafeString(conditional, "limit_price")
+		}
+	} else if orderType != nil && *orderType == "tpsl" {
+		// a single leg tells us the order type and limit price, with both legs they can differ
+		var leg any = nil
+		if (takeProfit != nil) && (stopLoss == nil) {
+			leg = takeProfit
+		} else if (stopLoss != nil) && (takeProfit == nil) {
+			leg = stopLoss
+		}
+		orderType = nil
+		if leg != nil {
+			orderType = this.SafeStringLower(leg, "type")
+			if price == nil {
+				price = this.SafeString(leg, "limit_price")
+			}
+		}
+	}
 	var amount *string = this.SafeString(order, "amount")
 	var filledAmount *string = this.SafeString(order, "filled_amount")
 	var totalFee *string = this.SafeString(order, "total_fee")
@@ -1244,6 +1265,9 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
 		"remaining":           this.ParseNumber(remainingValue),
 		"status":              status,
 		"timeInForce":         timeInForce,
+		"triggerPrice":        this.ParseNumber(triggerPrice),
+		"stopLossPrice":       this.ParseNumber(this.SafeString(stopLoss, "trigger_price")),
+		"takeProfitPrice":     this.ParseNumber(this.SafeString(takeProfit, "trigger_price")),
 		"timestamp":           createdDate,
 		"datetime":            this.Iso8601(createdDate),
 		"lastUpdateTimestamp": updatedDate,
@@ -1267,17 +1291,22 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
  * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
  * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
+ * @param {float} [params.triggerPrice] place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+ * @param {float} [params.stopLossPrice] place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price
+ * @param {float} [params.takeProfitPrice] place a Take Profit/Stop Loss order with a take profit leg that triggers at this price
+ * @param {object} [params.stopLoss] stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg
+ * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Revolutx) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1293,8 +1322,56 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var executionInstructions any = this.SafeList(params, "executionInstructions", this.SafeList(params, "execution_instructions"))
+	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
+	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
+	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var hasStopLoss bool = (stopLossPrice != nil) || (stopLoss != nil)
+	var hasTakeProfit bool = (takeProfitPrice != nil) || (takeProfit != nil)
+	var isTpsl bool = hasStopLoss || hasTakeProfit
+	if (triggerPrice != nil) || isTpsl {
+		if (typeVar != "limit") && (typeVar != "market") {
+			panic(InvalidOrder(this.Id + " createOrder() does not support order type " + typeVar))
+		}
+		if (timeInForce != nil) || (executionInstructions != nil) {
+			panic(InvalidOrder(this.Id + " createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders"))
+		}
+	}
 	var orderConfiguration map[string]any = map[string]any{}
-	if typeVar == "limit" {
+	if (triggerPrice != nil) && isTpsl {
+		panic(InvalidOrder(this.Id + " createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice"))
+	} else if triggerPrice != nil {
+		var conditionalConfig map[string]any = map[string]any{}
+		if cost != nil {
+			conditionalConfig["quote_size"] = this.CostToPrecision(symbol, cost)
+		} else {
+			conditionalConfig["base_size"] = this.AmountToPrecision(symbol, amount)
+		}
+		if typeVar == "limit" {
+			if price == nil {
+				panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit trigger orders"))
+			}
+			conditionalConfig["limit_price"] = this.PriceToPrecision(symbol, price)
+		}
+		conditionalConfig["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		orderConfiguration["conditional"] = conditionalConfig
+	} else if isTpsl {
+		if cost != nil {
+			panic(InvalidOrder(this.Id + " createOrder() TP/SL orders are sized in the base currency only, cost is not supported"))
+		}
+		var singleLeg bool = !(hasStopLoss && hasTakeProfit)
+		var tpslConfig map[string]any = map[string]any{
+			"base_size": this.AmountToPrecision(symbol, amount),
+		}
+		if hasTakeProfit {
+			tpslConfig["take_profit"] = this.CreateTriggerLegRequest(symbol, typeVar, price, takeProfitPrice, takeProfit, singleLeg)
+		}
+		if hasStopLoss {
+			tpslConfig["stop_loss"] = this.CreateTriggerLegRequest(symbol, typeVar, price, stopLossPrice, stopLoss, singleLeg)
+		}
+		orderConfiguration["tpsl"] = tpslConfig
+	} else if typeVar == "limit" {
 		var limitConfig map[string]any = map[string]any{}
 		if cost != nil {
 			limitConfig["quote_size"] = this.CostToPrecision(symbol, cost)
@@ -1305,7 +1382,7 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		if timeInForce != nil {
 			limitConfig["time_in_force"] = timeInForce
 		}
-		if !IsEqual(executionInstructions, nil) {
+		if executionInstructions != nil {
 			limitConfig["execution_instructions"] = executionInstructions
 		}
 		orderConfiguration["limit"] = limitConfig
@@ -1313,7 +1390,7 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		if timeInForce != nil {
 			panic(InvalidOrder(this.Id + " createOrder() timeInForce is only supported for limit orders"))
 		}
-		if !IsEqual(executionInstructions, nil) {
+		if executionInstructions != nil {
 			panic(InvalidOrder(this.Id + " createOrder() executionInstructions are only supported for limit orders"))
 		}
 		var marketConfig map[string]any = map[string]any{}
@@ -1333,7 +1410,7 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		"order_configuration": orderConfiguration,
 	}
 
-	r1 := <-this.PrivatePost10Orders(this.Extend(request, this.Omit(params, []any{"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})))
+	r1 := <-this.PrivatePost10Orders(this.Extend(request, this.Omit(params, []any{"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"})))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1362,8 +1439,42 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		"type":   typeVar,
 	}), market))
 
-	ch <- AsyncResult[map[string]any]{Value: order}
+	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
+}
+
+/**
+ * @method
+ * @name revolutx#createTriggerLegRequest
+ * @description builds the take profit or stop loss leg of a TP/SL order request
+ * @ignore
+ * @param {string} symbol unified market symbol
+ * @param {string} type 'limit' or 'market'
+ * @param {float} [price] the createOrder price, used as the limit price of a single limit leg
+ * @param {string} [triggerPrice] the stopLossPrice or takeProfitPrice param
+ * @param {object} [leg] the stopLoss or takeProfit param, *{ triggerPrice, price }*
+ * @param {boolean} singleLeg whether the order has only this leg
+ * @returns {object} the leg request
+ */
+func (this *Revolutx) CreateTriggerLegRequest(symbol string, typeVar string, price any, triggerPrice *string, leg map[string]any, singleLeg bool) map[string]any {
+	var legTriggerPrice *string = this.SafeString2(leg, "triggerPrice", "stopPrice", triggerPrice)
+	if legTriggerPrice == nil {
+		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg"))
+	}
+	var result map[string]any = map[string]any{
+		"trigger_price": this.PriceToPrecision(symbol, legTriggerPrice),
+	}
+	var legPrice *string = this.SafeString(leg, "price")
+	if (legPrice == nil) && (typeVar == "limit") {
+		if !singleLeg || (IsEqual(price, nil)) {
+			panic(ArgumentsRequired(this.Id + " createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set"))
+		}
+		legPrice = this.NumberToString(price)
+	}
+	if legPrice != nil {
+		result["limit_price"] = this.PriceToPrecision(symbol, legPrice)
+	}
+	return result
 }
 
 /**
@@ -1376,12 +1487,12 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[map[string]any], symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Revolutx) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Revolutx) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1405,11 +1516,11 @@ func (this *Revolutx) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	}
 	response := r1.Raw
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.SafeOrder(map[string]any{
+	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"info":   response,
 		"id":     id,
 		"status": "canceled",
-	}))}
+	})}
 	return nil
 }
 
@@ -1422,12 +1533,12 @@ func (this *Revolutx) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an empty [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Revolutx) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1447,7 +1558,7 @@ func (this *Revolutx) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs
 		panic(r1.Err)
 	}
 
-	ch <- AsyncResult[any]{Value: []any{}}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{})}
 	return nil
 }
 
@@ -1461,12 +1572,12 @@ func (this *Revolutx) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Revolutx) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Revolutx) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1508,7 +1619,7 @@ func (this *Revolutx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 		market = this.Market(symbol)
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(data, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -1524,15 +1635,16 @@ func (this *Revolutx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['new', 'partially_filled']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @param {string} [params.side] filter by side, 'buy' or 'sell'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1566,7 +1678,11 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if orderStates != nil {
 		request["order_states"] = Join(orderStates, ",")
 	}
+	var trigger *bool = this.SafeBool(params, "trigger", false)
 	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
+	if (orderTypes == nil) && (trigger != nil && *trigger) {
+		orderTypes = []any{"conditional", "tpsl"}
+	}
 	if orderTypes != nil {
 		request["order_types"] = Join(orderTypes, ",")
 	}
@@ -1575,7 +1691,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 		request["side"] = side
 	}
 
-	r1 := <-this.PrivateGet10OrdersActive(this.Extend(request, this.Omit(params, []any{"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"})))
+	r1 := <-this.PrivateGet10OrdersActive(this.Extend(request, this.Omit(params, []any{"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side", "trigger"})))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1593,7 +1709,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 		result = append(result, OrderToMap(this.ParseOrder(order)))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(result, symbol, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(result, symbol, since, limit))}
 	return nil
 }
 
@@ -1610,14 +1726,15 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['filled', 'cancelled', 'rejected']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1640,21 +1757,21 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		var market map[string]any = this.Market(symbol)
 		request["symbols"] = market["id"]
 	}
-	var thirtyDays int = 2592000000
+	var thirtyDays int64 = (30 * 24) * 60 * 60 * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if since != nil {
 		request["start_date"] = since
 	} else if until != nil {
-		request["start_date"] = Subtract(until, thirtyDays)
+		request["start_date"] = *until - thirtyDays
 	}
 	if until != nil {
 		request["end_date"] = until
 	} else if since != nil {
 		var now int64 = this.Milliseconds()
-		var defaultEnd any = Add(since, thirtyDays)
+		var thirtyDaysAgo int64 = now - thirtyDays
 		request["end_date"] = func() any {
-			if IsLessThan(defaultEnd, now) {
-				return defaultEnd
+			if *since < thirtyDaysAgo {
+				return *since + thirtyDays
 			}
 			return now
 		}()
@@ -1670,12 +1787,16 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if orderStates != nil {
 		request["order_states"] = Join(orderStates, ",")
 	}
+	var trigger *bool = this.SafeBool(params, "trigger", false)
 	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
+	if (orderTypes == nil) && (trigger != nil && *trigger) {
+		orderTypes = []any{"conditional", "tpsl"}
+	}
 	if orderTypes != nil {
 		request["order_types"] = Join(orderTypes, ",")
 	}
 
-	r1 := <-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})))
+	r1 := <-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger"})))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1687,7 +1808,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		result = append(result, OrderToMap(this.ParseOrder(order)))
 	}
 
-	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(result, symbol, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(result, symbol, since, limit))}
 	return nil
 }
 
@@ -1702,12 +1823,12 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1727,11 +1848,11 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes127715 []any = ListTyped(r.Value)
-	if retRes127715 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes141615 []any = OrdersToList(r.Value)
+	if retRes141615 == nil {
+		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes127715}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes141615)}
 	}
 	return nil
 }
@@ -1750,8 +1871,10 @@ func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) an
 	_ = market
 	var id *string = this.SafeString(trade, "tid")
 	var orderId *string = this.SafeString(trade, "oid")
-	var price *float64 = this.SafeNumber(trade, "p")
-	var amount *float64 = this.SafeNumber(trade, "q")
+	var priceString *string = this.SafeString(trade, "p")
+	var amountString *string = this.SafeString(trade, "q")
+	var price *float64 = this.ParseNumber(priceString)
+	var amount *float64 = this.ParseNumber(amountString)
 	var side *string = this.SafeStringLower(trade, "s")
 	var timestamp *int64 = this.SafeInteger2(trade, "tdt", "pdt")
 	var isMaker *bool = this.SafeBool(trade, "im", false)
@@ -1761,9 +1884,9 @@ func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) an
 		}
 		return "taker"
 	}()
-	var cost any = nil
-	if (price != nil) && (amount != nil) {
-		cost = Multiply(price, amount)
+	var cost *float64 = nil
+	if (priceString != nil) && (amountString != nil) {
+		cost = this.ParseNumber(Precise.StringMul(priceString, amountString))
 	}
 	var symbol *string = this.SafeSymbol(nil, market)
 	return map[string]any{
@@ -1797,12 +1920,12 @@ func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) an
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Revolutx) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Revolutx) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1827,21 +1950,21 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var thirtyDays int = 2592000000
+	var thirtyDays int64 = (30 * 24) * 60 * 60 * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if since != nil {
 		request["start_date"] = since
 	} else if until != nil {
-		request["start_date"] = Subtract(until, thirtyDays)
+		request["start_date"] = *until - thirtyDays
 	}
 	if until != nil {
 		request["end_date"] = until
 	} else if since != nil {
 		var now int64 = this.Milliseconds()
-		var defaultEnd any = Add(since, thirtyDays)
+		var thirtyDaysAgo int64 = now - thirtyDays
 		request["end_date"] = func() any {
-			if IsLessThan(defaultEnd, now) {
-				return defaultEnd
+			if *since < thirtyDaysAgo {
+				return *since + thirtyDays
 			}
 			return now
 		}()
@@ -1876,7 +1999,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		result = append(result, this.ParseMyTrade(trade, market))
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(result)}
 	return nil
 }
 
@@ -1898,12 +2021,12 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
  * @param {string[]} [params.executionInstructions] e.g. ['post_only']
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Revolutx) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// note: the exchange assigns a new venue_order_id on replace — the returned order carries the new id
@@ -1940,7 +2063,7 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	if timeInForce != nil {
 		request["time_in_force"] = timeInForce
 	}
-	if !IsEqual(executionInstructions, nil) {
+	if executionInstructions != nil {
 		request["execution_instructions"] = executionInstructions
 	}
 
@@ -1973,11 +2096,12 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 		"type":   typeVar,
 	}), market))
 
-	ch <- AsyncResult[map[string]any]{Value: order}
+	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
 }
-func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
-	if IsGreaterThanOrEqual(code, 400) {
+func (this *Revolutx) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+	var statusCode int64 = this.ParseToInt(code)
+	if statusCode >= 400 {
 		if response == nil {
 			return nil
 		}
@@ -2007,8 +2131,7 @@ func NewRevolutx(userConfig map[string]any) *Revolutx {
 func (this *Revolutx) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
@@ -2027,7 +2150,7 @@ func (this *Revolutx) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -2070,7 +2193,7 @@ func (this *Revolutx) FetchTickers(options ...FetchTickersOptions) (Tickers, err
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -2095,7 +2218,7 @@ func (this *Revolutx) FetchTicker(symbol string, options ...FetchTickerOptions) 
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -2121,7 +2244,7 @@ func (this *Revolutx) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -2150,7 +2273,7 @@ func (this *Revolutx) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -2178,7 +2301,7 @@ func (this *Revolutx) FetchTrades(symbol string, options ...FetchTradesOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -2195,7 +2318,7 @@ func (this *Revolutx) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -2214,6 +2337,11 @@ func (this *Revolutx) FetchBalance(params ...any) (Balances, error) {
  * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
  * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
  * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
+ * @param {float} [params.triggerPrice] place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+ * @param {float} [params.stopLossPrice] place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price
+ * @param {float} [params.takeProfitPrice] place a Take Profit/Stop Loss order with a take profit leg that triggers at this price
+ * @param {object} [params.stopLoss] stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg
+ * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Revolutx) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -2227,7 +2355,7 @@ func (this *Revolutx) CreateOrder(symbol string, typeVar string, side string, am
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -2252,7 +2380,7 @@ func (this *Revolutx) CancelOrder(id string, options ...CancelOrderOptions) (Ord
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -2276,7 +2404,7 @@ func (this *Revolutx) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2301,7 +2429,7 @@ func (this *Revolutx) FetchOrder(id string, options ...FetchOrderOptions) (Order
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -2317,6 +2445,7 @@ func (this *Revolutx) FetchOrder(id string, options ...FetchOrderOptions) (Order
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['new', 'partially_filled']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @param {string} [params.side] filter by side, 'buy' or 'sell'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2331,7 +2460,7 @@ func (this *Revolutx) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2348,6 +2477,7 @@ func (this *Revolutx) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
  * @param {string} [params.cursor] pagination cursor from the previous response
  * @param {string[]} [params.orderStates] filter by order states, e.g. ['filled', 'cancelled', 'rejected']
  * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+ * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Revolutx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
@@ -2361,7 +2491,7 @@ func (this *Revolutx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2387,7 +2517,7 @@ func (this *Revolutx) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -2415,7 +2545,7 @@ func (this *Revolutx) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -2448,576 +2578,6 @@ func (this *Revolutx) EditOrder(id string, symbol string, typeVar string, side s
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Revolutx) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Revolutx) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrders(ids, options...)
-}
-func (this *Revolutx) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Revolutx) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Revolutx) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Revolutx) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Revolutx) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Revolutx) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
-func (this *Revolutx) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Revolutx) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Revolutx) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Revolutx) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Revolutx) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
-}
-func (this *Revolutx) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Revolutx) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Revolutx) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Revolutx) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Revolutx) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
-}
-func (this *Revolutx) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Revolutx) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Revolutx) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Revolutx) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Revolutx) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Revolutx) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Revolutx) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Revolutx) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Revolutx) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Revolutx) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchBidsAsks(options...)
-}
-func (this *Revolutx) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Revolutx) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Revolutx) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
-}
-func (this *Revolutx) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Revolutx) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Revolutx) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Revolutx) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Revolutx) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Revolutx) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Revolutx) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddress(code, options...)
-}
-func (this *Revolutx) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Revolutx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Revolutx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDeposits(options...)
-}
-func (this *Revolutx) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Revolutx) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Revolutx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
-}
-func (this *Revolutx) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Revolutx) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
-}
-func (this *Revolutx) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Revolutx) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Revolutx) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Revolutx) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
-	return this.exchangeTyped.FetchFundingRateHistory(options...)
-}
-func (this *Revolutx) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingRates(options...)
-}
-func (this *Revolutx) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Revolutx) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Revolutx) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Revolutx) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Revolutx) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Revolutx) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedger(options...)
-}
-func (this *Revolutx) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Revolutx) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
-	return this.exchangeTyped.FetchLeverage(symbol, options...)
-}
-func (this *Revolutx) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
-	return this.exchangeTyped.FetchLeverages(options...)
-}
-func (this *Revolutx) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
-	return this.exchangeTyped.FetchLeverageTiers(options...)
-}
-func (this *Revolutx) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Revolutx) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Revolutx) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Revolutx) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Revolutx) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Revolutx) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Revolutx) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Revolutx) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Revolutx) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Revolutx) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Revolutx) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Revolutx) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
-func (this *Revolutx) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Revolutx) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Revolutx) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Revolutx) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Revolutx) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Revolutx) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Revolutx) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Revolutx) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchOrderTrades(id, options...)
-}
-func (this *Revolutx) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Revolutx) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
-	return this.exchangeTyped.FetchPosition(symbol, options...)
-}
-func (this *Revolutx) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Revolutx) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Revolutx) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositions(options...)
-}
-func (this *Revolutx) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Revolutx) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Revolutx) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Revolutx) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Revolutx) FetchStatus(params ...any) (Status, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Revolutx) FetchTime(params ...any) (int64, error) {
-	return this.exchangeTyped.FetchTime(params...)
-}
-func (this *Revolutx) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
-func (this *Revolutx) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
-}
-func (this *Revolutx) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Revolutx) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Revolutx) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Revolutx) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Revolutx) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Revolutx) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Revolutx) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawals(options...)
-}
-func (this *Revolutx) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Revolutx) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Revolutx) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Revolutx) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)
-}
-func (this *Revolutx) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
-	return this.exchangeTyped.Withdraw(code, amount, address, options...)
-}
-func (this *Revolutx) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Revolutx) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Revolutx) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Revolutx) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Revolutx) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Revolutx) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Revolutx) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Revolutx) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Revolutx) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Revolutx) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Revolutx) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Revolutx) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Revolutx) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Revolutx) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Revolutx) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Revolutx) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Revolutx) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Revolutx) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Revolutx) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Revolutx) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Revolutx) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Revolutx) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Revolutx) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Revolutx) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Revolutx) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Revolutx) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Revolutx) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Revolutx) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Revolutx) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Revolutx) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Revolutx) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Revolutx) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Revolutx) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Revolutx) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Revolutx) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Revolutx) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Revolutx) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Revolutx) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Revolutx) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Revolutx) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Revolutx) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Revolutx) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Revolutx) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Revolutx) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Revolutx) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Revolutx) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Revolutx) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Revolutx) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Revolutx) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Revolutx) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Revolutx) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Revolutx) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Revolutx) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Revolutx) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Revolutx) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Revolutx) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Revolutx) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Revolutx) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Revolutx) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Revolutx) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Revolutx) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Revolutx) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Revolutx) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Revolutx) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Revolutx) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

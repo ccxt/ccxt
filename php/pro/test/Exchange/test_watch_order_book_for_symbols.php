@@ -35,7 +35,7 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
                 $succeeded = false;
             }
             $current_time = $exchange->milliseconds();
-            if (($succeeded === true) && ($response !== null)) {
+            if (($succeeded) && ($response !== null)) {
                 test_order_book($exchange, $skipped_properties, $method, $response, null);
                 assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
                 $elapsed = $current_time - $start_time;

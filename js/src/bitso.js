@@ -498,11 +498,11 @@ export default class bitso extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString(market, 'book');
-            const [baseId, quoteId] = id.split('_');
-            let base = baseId.toUpperCase();
-            let quote = quoteId.toUpperCase();
-            base = this.safeCurrencyCode(base);
-            quote = this.safeCurrencyCode(quote);
+            const parts = id.split('_');
+            const baseId = this.safeString(parts, 0, '');
+            const quoteId = this.safeString(parts, 1, '');
+            const base = this.safeCurrencyCode(baseId.toUpperCase());
+            const quote = this.safeCurrencyCode(quoteId.toUpperCase());
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
@@ -856,10 +856,12 @@ export default class bitso extends Exchange {
                 request['end'] = this.sum(since, duration * limit * 1000);
             }
         }
-        else if (limit !== undefined) {
-            const now = this.milliseconds();
-            request['end'] = now;
-            request['start'] = now - this.parseTimeframe(timeframe) * 1000 * limit;
+        else {
+            if (limit !== undefined) {
+                const now = this.milliseconds();
+                request['end'] = now;
+                request['start'] = now - this.parseTimeframe(timeframe) * 1000 * limit;
+            }
         }
         const response = await this.publicGetOhlc(this.extend(request, params));
         //
@@ -1141,7 +1143,7 @@ export default class bitso extends Exchange {
         // convert it to an integer unconditionally
         let paramsMarker = params;
         if (markerInParams) {
-            paramsMarker = this.extend(params, { 'marker': parseInt(params['marker']) });
+            paramsMarker = this.extend(params, { 'marker': this.parseToInt(params['marker']) });
         }
         const request = {
             'book': market['id'],
@@ -1368,7 +1370,7 @@ export default class bitso extends Exchange {
         // convert it to an integer unconditionally
         let paramsMarker = params;
         if (markerInParams) {
-            paramsMarker = this.extend(params, { 'marker': parseInt(params['marker']) });
+            paramsMarker = this.extend(params, { 'marker': this.parseToInt(params['marker']) });
         }
         const request = {
             'book': market['id'],
@@ -1378,8 +1380,7 @@ export default class bitso extends Exchange {
         };
         const response = await this.privateGetOpenOrders(this.extend(request, paramsMarker));
         const payload = this.safeList(response, 'payload', []);
-        const orders = this.parseOrders(payload, market, since, limit);
-        return orders;
+        return this.parseOrders(payload, market, since, limit);
     }
     /**
      * @method
@@ -1398,12 +1399,10 @@ export default class bitso extends Exchange {
         const response = await this.privateGetOrdersOid({
             'oid': id,
         });
-        const payload = this.safeList(response, 'payload');
-        if (Array.isArray(payload)) {
-            const numOrders = payload.length;
-            if (numOrders === 1) {
-                return this.parseOrder(payload[0]);
-            }
+        const payload = this.safeList(response, 'payload', []);
+        const numOrders = payload.length;
+        if (numOrders === 1) {
+            return this.parseOrder(payload[0]);
         }
         throw new OrderNotFound(this.id + ': The order ' + id + ' not found.');
     }
@@ -1645,7 +1644,7 @@ export default class bitso extends Exchange {
             }
             if (code !== undefined) {
                 result[code] = {
-                    'deposit': this.safeValue(this.safeDict(result, code), 'deposit'),
+                    'deposit': this.safeNumber(this.safeDict(result, code), 'deposit'),
                     'withdraw': this.safeNumber(withdrawalFees, currencyId),
                     'info': {
                         'deposit': this.safeValue(this.safeDict(this.safeDict(result, code), 'info'), 'deposit'),
@@ -1764,7 +1763,7 @@ export default class bitso extends Exchange {
             const entry = depositResponse[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || ((code !== undefined) && (code in codes))) {
+            if ((codes === undefined) || ((code !== undefined) && this.inArray(code, codes))) {
                 if (code !== undefined) {
                     result[code] = {
                         'deposit': {
@@ -1785,7 +1784,7 @@ export default class bitso extends Exchange {
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode(currencyId);
-            if ((code !== undefined) && ((codes === undefined) || (code in codes))) {
+            if ((code !== undefined) && ((codes === undefined) || this.inArray(code, codes))) {
                 const withdrawFee = this.parseNumber(withdrawalResponse[currencyId]);
                 const resultValue = this.safeDict(result, code);
                 if (resultValue === undefined) {
@@ -1804,13 +1803,13 @@ export default class bitso extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1822,7 +1821,7 @@ export default class bitso extends Exchange {
             'LTC': 'Litecoin',
         };
         const currency = this.currency(code);
-        const method = (code in methods) ? methods[code] : undefined;
+        const method = this.safeString(methods, code);
         if (method === undefined) {
             throw new ExchangeError(this.id + ' not valid withdraw coin: ' + code);
         }
@@ -1939,9 +1938,9 @@ export default class bitso extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET' || method === 'DELETE') {
@@ -1954,17 +1953,17 @@ export default class bitso extends Exchange {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + endpoint;
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.checkRequiredCredentials();
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             const nonce = this.incrementingNonce().toString();
             endpoint = '/api' + endpoint;
-            const content = [nonce, method, endpoint];
-            let request = content.join('');
+            let request = nonce + method + endpoint;
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys(query).length > 0) {
-                    requestBody = this.json(query);
-                    request += requestBody;
+                    const jsonBody = this.json(query);
+                    requestBody = jsonBody;
+                    request += jsonBody;
                 }
             }
             const signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
@@ -1976,7 +1975,7 @@ export default class bitso extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -1984,23 +1983,15 @@ export default class bitso extends Exchange {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
-            let success = this.safeBool(response, 'success', false);
-            if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1')) {
-                    success = true;
-                }
-                else {
-                    success = false;
-                }
-            }
-            if (success !== true) {
+            const success = this.safeBool(response, 'success', false);
+            if (!success) {
                 const feedback = this.id + ' ' + this.json(response);
                 const error = this.safeDict(response, 'error');
                 if (error === undefined) {
                     throw new ExchangeError(feedback);
                 }
-                const code = this.safeString(error, 'code');
-                this.throwExactlyMatchedException(this.exceptions, code, feedback);
+                const codeError = this.safeString(error, 'code');
+                this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
                 throw new ExchangeError(feedback);
             }
         }

@@ -2,7 +2,7 @@ import cexRest from '../cex.js';
 import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): string;
     /**
      * @method
@@ -101,8 +101,8 @@ export default class cex extends cexRest {
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleOrderUpdate(client: Client, message: Dict): void;
     parseWsOrderUpdate(order: Dict, market?: Market): Order | undefined;
-    fromPrecision(amount: any, scale: any): string | undefined;
-    currencyFromPrecision(currency: any, amount: any): string | undefined;
+    fromPrecision(amount: any, scale: any): Str;
+    currencyFromPrecision(currency: string, amount: any): Str;
     handleOrdersSnapshot(client: Client, message: Dict): void;
     /**
      * @method
@@ -116,10 +116,10 @@ export default class cex extends cexRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
-    pairToSymbol(pair: any): Str;
+    pairToSymbol(pair: any): string;
     handleOrderBookUpdate(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name cex#watchOHLCV

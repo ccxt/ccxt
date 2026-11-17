@@ -121,7 +121,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// far above baseVolume * high), so the spot-derived invariant does not hold there,
 		// see https://github.com/ccxt/ccxt/pull/29563
 		var isInverse any = ccxt.DerefScalar(exchange.SafeBool(market, "inverse", false))
-		if (baseVolume != nil) && (quoteVolume != nil) && (high != nil) && (low != nil) && (isInverse != true) {
+		if (baseVolume != nil) && (quoteVolume != nil) && (high != nil) && (low != nil) && (!(isInverse == true)) {
 			var baseLow *string = ccxt.Precise.StringMul(baseVolume, low)
 			var baseHigh *string = ccxt.Precise.StringMul(baseVolume, high)
 			// to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -237,7 +237,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		var medianPrice *string = ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(bidString, askString), "2")
 		var medianLow *string = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringSub("1", allowedPercentageVariation))
 		var medianHigh *string = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringAdd("1", allowedPercentageVariation))
-		Assert(ccxt.Precise.StringGe(lastString, medianLow) && ccxt.Precise.StringLe(lastString, medianHigh), Add("last price should be within 1% of the bid/ask median price", logText))
+		var lastPriceIsBetween bool = ccxt.Precise.StringGe(lastString, medianLow) && ccxt.Precise.StringLe(lastString, medianHigh)
+		Assert(lastPriceIsBetween, Add("last price should be within 1% of the bid/ask median price", logText))
 	}
 	var percentage any = ccxt.DerefScalar(exchange.SafeString(entry, "percentage"))
 	var change any = ccxt.DerefScalar(exchange.SafeString(entry, "change"))
@@ -256,7 +257,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		if percentage != nil {
 			// - should be above -100 and (for non-options) below MAX
 			Assert(ccxt.Precise.StringGe(percentage, "-100"), Add("percentage should be above -100% ", logText))
-			if isOptionMarket != true {
+			if !(isOptionMarket == true) {
 				Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add("percentage should be below "+maxIncrease+"00% ", logText))
 			}
 		}
@@ -267,7 +268,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		if change != nil {
 			// - should be above -price and (for non-options) below +price*maxIncrease
 			Assert(ccxt.Precise.StringGe(change, ccxt.Precise.StringNeg(approxValue)), Add("change should be above -price ", logText))
-			if isOptionMarket != true {
+			if !(isOptionMarket == true) {
 				Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add("change should be below "+maxIncrease+"x price ", logText))
 			}
 		}

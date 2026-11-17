@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class bigone(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bigone, self).describe(), {
             'id': 'bigone',
             'name': 'BigONE',
@@ -255,7 +255,7 @@ class bigone(Exchange, ImplicitAPI):
                     'DOGE': 'Dogecoin',
                     'XEC': 'ECash',
                     'EOS': 'EOS',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'ETC': 'EthereumClassic',
                     'ETHW': 'EthereumPow',
                     'FTM': 'Fantom',
@@ -615,7 +615,7 @@ class bigone(Exchange, ImplicitAPI):
         promises = [self.publicGetAssetPairs(params), self.contractPublicGetSymbols(params)]
         promisesResult = promises
         response = self.safe_dict(promisesResult, 0)
-        contractResponse = promisesResult[1]
+        contractResponse = self.safe_value(promisesResult, 1)
         #
         #     {
         #         "code":0,
@@ -841,7 +841,7 @@ class bigone(Exchange, ImplicitAPI):
         #    }
         #
         marketType = 'swap'
-        if 'asset_pair_name' in ticker:
+        if self.safe_string(ticker, 'asset_pair_name') is not None:
             marketType = 'spot'
         marketId = self.safe_string_2(ticker, 'asset_pair_name', 'symbol')
         symbol = self.safe_symbol(marketId, market, '-', marketType)
@@ -1038,7 +1038,7 @@ class bigone(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         response: dict
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             request = {
                 'symbol': market['id'],
             }
@@ -1095,7 +1095,7 @@ class bigone(Exchange, ImplicitAPI):
             orderbook = self.safe_dict(response, 'data', {})
             return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_contract_bids_asks(self, bidsAsks: object):
+    def parse_contract_bids_asks(self, bidsAsks: dict):
         bidsAsksKeys = list(bidsAsks.keys())
         result = []
         for i in range(0, len(bidsAsksKeys)):
@@ -1105,8 +1105,8 @@ class bigone(Exchange, ImplicitAPI):
         return result
 
     def parse_contract_order_book(self, orderbook: dict, symbol: str, limit: Int = None) -> OrderBook:
-        responseBids = self.safe_dict(orderbook, 'bids')
-        responseAsks = self.safe_dict(orderbook, 'asks')
+        responseBids = self.safe_dict(orderbook, 'bids', {})
+        responseAsks = self.safe_dict(orderbook, 'asks', {})
         bids = self.parse_contract_bids_asks(responseBids)
         asks = self.parse_contract_bids_asks(responseAsks)
         return {
@@ -1259,7 +1259,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             raise NotSupported(self.id + ' fetchTrades () can only fetch trades for spot markets')
         request = {
             'asset_pair_name': market['id'],
@@ -1326,7 +1326,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             raise NotSupported(self.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets')
         until = self.safe_integer(params, 'until')
         untilIsDefined = (until is not None)
@@ -1341,15 +1341,15 @@ class bigone(Exchange, ImplicitAPI):
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         }
-        if sinceIsDefined:
+        if since is not None:
             # const start = this.parseToInt (since / 1000);
             duration = self.parse_timeframe(timeframe)
-            endByLimit = self.sum(since, limitResolved * duration * 1000)
-            if untilIsDefined:
+            endByLimit = self.parse_to_int(self.sum(since, limitResolved * duration * 1000))
+            if until is not None:
                 request['time'] = self.iso8601(min(endByLimit, until + 1))
             else:
                 request['time'] = self.iso8601(endByLimit)
-        elif untilIsDefined:
+        elif until is not None:
             request['time'] = self.iso8601(until + 1)
         paramsOmitted = self.omit(params, 'until')
         response = self.publicGetAssetPairsAssetPairNameCandles(self.extend(request, paramsOmitted))
@@ -1379,7 +1379,7 @@ class bigone(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limitResolved)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1428,7 +1428,7 @@ class bigone(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_type(self, type: Str):
+    def parse_type(self, type: Str) -> Str:
         types = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
@@ -1469,9 +1469,9 @@ class bigone(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string(order, 'stop_price')
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None
-        immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel')
+        immediateOrCancel = self.safe_bool(order, 'immediate_or_cancel', False)
         timeInForce = None
-        if immediateOrCancel is True:
+        if immediateOrCancel:
             timeInForce = 'IOC'
         type = self.parse_type(self.safe_string(order, 'type'))
         price = self.safe_string(order, 'price')
@@ -1521,7 +1521,7 @@ class bigone(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -1560,7 +1560,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
         postOnly = None
         query = None
-        postOnly, query = self.handle_post_only(uppercaseType == 'MARKET', exchangeSpecificParam is True, params)
+        postOnly, query = self.handle_post_only(uppercaseType == 'MARKET', exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(query, ['triggerPrice', 'stopPrice', 'stop_price'])
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
@@ -1577,7 +1577,7 @@ class bigone(Exchange, ImplicitAPI):
                 timeInForce = self.safe_string(query, 'timeInForce')
                 if timeInForce == 'IOC':
                     request['immediate_or_cancel'] = True
-                if postOnly is True:
+                if postOnly:
                     request['post_only'] = True
             request['amount'] = self.amount_to_precision(symbol, amount)
         else:
@@ -1837,7 +1837,7 @@ class bigone(Exchange, ImplicitAPI):
         trades = self.safe_list(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'PENDING': 'open',
             'FILLED': 'closed',
@@ -1879,25 +1879,27 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def nonce(self) -> float:
-        exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
+    def nonce(self) -> int:
+        exchangeMillisecondsCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0)
+        exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         bodySigned = None
         query = self.omit(params, self.extract_params(path))
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = self.implode_hostname(apiUrl)
         url = baseUrl + '/' + self.implode_params(path, params)
         headersValue = {}
-        if api == 'public' or api == 'webExchange' or api == 'contractPublic':
+        if apiName == 'public' or apiName == 'webExchange' or apiName == 'contractPublic':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = str(self.nonce())
+            nonce = self.number_to_string(self.nonce())
             request = {
                 'type': 'OpenAPIV2',
                 'sub': self.apiKey,
@@ -1913,7 +1915,7 @@ class bigone(Exchange, ImplicitAPI):
                 headersValue['Content-Type'] = 'application/json'
                 bodySigned = self.json(query)
         headersValue['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
 
     def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
@@ -1956,7 +1958,7 @@ class bigone(Exchange, ImplicitAPI):
         if dataLength < 1:
             raise ExchangeError(self.id + ' fetchDepositAddress() returned empty address response')
         chainsIndexedById = self.index_by(data, 'chain')
-        selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
+        selectedNetworkId = self.select_network_key_from_networks(code, networkCode, chainsIndexedById, False)
         addressObject = self.safe_dict(chainsIndexedById, selectedNetworkId, {})
         address = self.safe_string(addressObject, 'value')
         tag = self.safe_string(addressObject, 'memo')
@@ -1969,7 +1971,7 @@ class bigone(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # what are other statuses here?
             'WITHHOLD': 'ok',  # deposits
@@ -2043,7 +2045,7 @@ class bigone(Exchange, ImplicitAPI):
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
         type = 'deposit'
-        if 'customer_id' in transaction:
+        if self.safe_string(transaction, 'customer_id') is not None:
             type = 'withdrawal'
         internal = self.safe_bool(transaction, 'is_internal')
         return {
@@ -2210,7 +2212,7 @@ class bigone(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount
             transfer['amount'] = amount
@@ -2243,7 +2245,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2252,11 +2254,12 @@ class bigone(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -2296,19 +2299,19 @@ class bigone(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
         #      {"code":10013,"message":"Resource not found"}
         #      {"code":40004,"message":"invalid jwt"}
         #
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        if (code != '0') and (code is not None):
+        if (codeError != '0') and (codeError is not None):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None

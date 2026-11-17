@@ -24,7 +24,7 @@ use const ccxt\TRUNCATE;
 use const ccxt\DECIMAL_PLACES;
 
 class predictfun extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'predictfun',
             'name' => 'predict.fun',
@@ -313,11 +313,7 @@ class predictfun extends Exchange {
          */
         // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
         // overrides it so a caller can pass the slug the same way fetchEvents () takes it
-        $paramSlug = $this->safe_string($params, 'slug');
-        $slug = $id;
-        if ($paramSlug !== null) {
-            $slug = $paramSlug;
-        }
+        $slug = $this->safe_string($params, 'slug', $id);
         if ($slug === null) {
             throw new ArgumentsRequired($this->id . ' fetchEvent() requires the "id" argument or the "slug" parameter');
         }
@@ -379,10 +375,8 @@ class predictfun extends Exchange {
         } else {
             $request = array();
             $tags = $this->safe_list($paramsValue, 'tags', array());
-            $tagsLength = count($tags);
-            if ($tagsLength > 0) {
-                $tagsString = implode(',', $tags);
-                $request['tagIds'] = $tagsString;
+            if (strlen($tags) > 0) {
+                $request['tagIds'] = implode(',', $tags);
             }
             $postOmitKeys[] = 'limit';
             $paramsCategories = $this->omit($paramsValue, array( 'limit', 'tags' ));
@@ -642,7 +636,7 @@ class predictfun extends Exchange {
         $orphanSlugs = array();
         for ($i = 0; $i < $queriesLength; $i++) {
             $request = array(
-                'query' => $queries[$i],
+                'query' => $this->safe_string($queries, $i, ''),
                 'limit' => $limit,
                 'includeResolved' => $includeResolved,
             );
@@ -777,7 +771,7 @@ class predictfun extends Exchange {
         return $result;
     }
 
-    public function parse_event(array $rawTopic): mixed {
+    public function parse_event(array $rawTopic): array {
         /**
          * @ignore
          * parses a raw predictfun market topic (with nested markets) into the unified event shape
@@ -1003,9 +997,8 @@ class predictfun extends Exchange {
         }
         $digits = '0123456789';
         $chars = $this->string_to_chars_array($text);
-        $charsLength = count($chars);
         $stripped = '';
-        for ($i = 0; $i < $charsLength; $i++) {
+        for ($i = 0; $i < count($chars); $i++) {
             $ch = $chars[$i];
             $keep = true;
             if ($ch === '$') {
@@ -1015,7 +1008,7 @@ class predictfun extends Exchange {
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
                 $prevIsDigit = ($i > 0) && (mb_strpos($digits, $chars[$i - 1]) !== false);
-                $nextIsDigit = (($i + 1) < $charsLength) && (mb_strpos($digits, $chars[$i + 1]) !== false);
+                $nextIsDigit = (($i + 1) < strlen($chars)) && (mb_strpos($digits, $chars[$i + 1]) !== false);
                 $keep = !($prevIsDigit && $nextIsDigit);
             }
             if ($keep) {
@@ -1444,7 +1437,8 @@ class predictfun extends Exchange {
         $outcomeFound = false;
         for ($i = 0; $i < $rawOutcomesLength; $i++) {
             $candidate = $rawOutcomes[$i];
-            if ($this->safe_integer($candidate, 'indexSet') === $indexSet) {
+            $candidateIndexSet = $this->safe_integer($candidate, 'indexSet');
+            if ($candidateIndexSet === $indexSet) {
                 $rawOutcome = $candidate;
                 $outcomeFound = true;
                 break;
@@ -1454,7 +1448,7 @@ class predictfun extends Exchange {
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
-            $requested = $this->safe_outcome_symbol(null, $market);
+            $requested = $this->safe_string($market, 'outcome', '');
             throw new BadSymbol($this->id . ' fetchTicker() did not find ' . $requested . ' among the outcomes of its market');
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
@@ -2003,9 +1997,9 @@ class predictfun extends Exchange {
         $marketFeeRateBps = $this->safe_string($marketRow, 'feeRateBps', '200');  // should be at least 200
         $feeRateBps = $this->safe_string($paramsWarnOnMarketOrderWithoutPrice, 'feeRateBps', $marketFeeRateBps);
         $marketIsNegRisk = $this->safe_bool($marketRow, 'isNegRisk', false);
-        $isNegRisk = $this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', $marketIsNegRisk);
+        $isNegRisk = ($this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isNegRisk', $marketIsNegRisk) === true);
         $marketIsYieldBearing = $this->safe_bool($marketRow, 'isYieldBearing', false);
-        $isYieldBearing = $this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', $marketIsYieldBearing);
+        $isYieldBearing = ($this->safe_bool($paramsWarnOnMarketOrderWithoutPrice, 'isYieldBearing', $marketIsYieldBearing) === true);
         $defaultExpiration = $this->safe_integer($this->options, 'defaultExpiration', 3600); // 1 hour
         $expirationDelta = $defaultExpiration;
         $expiration = $this->safe_integer($paramsWarnOnMarketOrderWithoutPrice, 'expiration');
@@ -2171,15 +2165,15 @@ class predictfun extends Exchange {
         //     }
         //
         $rows = $this->safe_list($response, 'data', array());
-        $parsed = $this->parse_prediction_positions($rows);
         if ($outcomesLength === 0) {
-            return $parsed;
+            return $this->parse_prediction_positions($rows);
         }
+        $parsed = $this->parse_prediction_positions($rows);
         // the venue filters by marketId only, so a set of outcome handles is applied here
         $wanted = array();
         $wantedOutcomes = $this->to_array($outcomes);
         for ($i = 0; $i < $outcomesLength; $i++) {
-            $outcomeObj = $this->outcome($wantedOutcomes[$i]);
+            $outcomeObj = $this->outcome($this->safe_string($wantedOutcomes, $i));
             $wantedId = $this->safe_string($outcomeObj, 'outcomeId', '');
             $wanted[$wantedId] = true;
         }
@@ -2693,19 +2687,19 @@ class predictfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_errors(?int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         /**
          * @ignore
          * maps the venue's $error slugs and messages onto the unified exceptions
-         * @param {int} $statusCode the http status code
-         * @param {string} $statusText the http status text
+         * @param {int} $code the http status $code
+         * @param {string} $reason the http status text
          * @param {string} $url the request $url
          * @param {string} $method the http $method
-         * @param {array} $responseHeaders the $response headers
-         * @param {string} $responseBody the raw $response body
+         * @param {array} $headers the $response $headers
+         * @param {string} $body the raw $response $body
          * @param {array} $response the parsed $response
-         * @param {array} $requestHeaders the request headers
-         * @param {array} $requestBody the request body
+         * @param {array} $requestHeaders the request $headers
+         * @param {array} $requestBody the request $body
          * @return {null} nothing, it throws when the venue reported a failure
          */
         if ($response === null) {
@@ -2715,7 +2709,7 @@ class predictfun extends Exchange {
         if ($success) {
             return null;
         }
-        $feedback = $this->id . ' ' . $responseBody;
+        $feedback = $this->id . ' ' . $body;
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -2725,7 +2719,7 @@ class predictfun extends Exchange {
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if ($statusCode === 401) {
+        if ($code === 401) {
             $this->options['jwtToken'] = null;
             $this->options['jwtTokenExpiresAt'] = 0;
         }
@@ -2733,7 +2727,7 @@ class predictfun extends Exchange {
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if ($statusCode === 400) {
+        if ($code === 400) {
             throw new BadRequest($feedback);
         }
         throw new ExchangeError($feedback);
@@ -2828,13 +2822,7 @@ class predictfun extends Exchange {
         $rHex = $this->pad_hex_to_even($rHex);
         $sHex = $this->pad_hex_to_even($sHex);
         $yParity = $this->safe_integer($signature, 'v');
-        $signedFields = array();
-        for ($i = 0; $i < count($fields); $i++) {
-            $signedFields[] = $fields[$i];
-        }
-        $signedFields[] = $this->rlp_encode_bytes($this->int_to_rlp_hex($yParity));
-        $signedFields[] = $this->rlp_encode_bytes($rHex);
-        $signedFields[] = $this->rlp_encode_bytes($sHex);
+        $signedFields = $this->array_concat($fields, array( $this->rlp_encode_bytes($this->int_to_rlp_hex($yParity)), $this->rlp_encode_bytes($rHex), $this->rlp_encode_bytes($sHex) ));
         return '0x02' . $this->rlp_encode_list($signedFields);
     }
 
@@ -2883,8 +2871,8 @@ class predictfun extends Exchange {
             $marketSymbol = $this->safe_string($outcomeObj, 'market');
             $marketObj = $this->safe_dict($this->markets, $marketSymbol, array());
             $marketRow = $this->safe_dict($marketObj, 'info', array());
-            $isNegRisk = $this->safe_bool($marketRow, 'isNegRisk', false);
-            $isYieldBearing = $this->safe_bool($marketRow, 'isYieldBearing', false);
+            $isNegRisk = ($this->safe_bool($marketRow, 'isNegRisk', false) === true);
+            $isYieldBearing = ($this->safe_bool($marketRow, 'isYieldBearing', false) === true);
         }
         if ($side === 'sell') {
             $ctfToken = $this->safe_string($params, 'token', $this->conditional_tokens_address($isNegRisk, $isYieldBearing));
@@ -2913,7 +2901,7 @@ class predictfun extends Exchange {
             $receipts = array();
             $operatorsLength = count($operators);
             for ($i = 0; $i < $operatorsLength; $i++) {
-                $operatorAddress = $operators[$i];
+                $operatorAddress = $this->safe_string($operators, $i);
                 if ($operatorAddress === null) {
                     throw new ArgumentsRequired($this->id . ' approve() could not resolve the operator to approve for chain ' . $chainKey);
                 }
@@ -3111,7 +3099,7 @@ class predictfun extends Exchange {
             throw $error;
         }
         for ($i = 0; $i < $messageHashesLength; $i++) {
-            $client->reject($error, $messageHashes[$i]);
+            $client->reject($error, $this->safe_string($messageHashes, $i, ''));
         }
     }
 
@@ -3149,7 +3137,7 @@ class predictfun extends Exchange {
         // silently leaving those two languages with a stale cache
         $subMessageHashesLength = count($subMessageHashes);
         for ($i = 0; $i < $subMessageHashesLength; $i++) {
-            $subHash = $subMessageHashes[$i];
+            $subHash = $this->safe_string($subMessageHashes, $i);
             if (($subHash === 'orders') || ($subHash === 'myTrades')) {
                 $this->clean_cache(array(
                     'topic' => $subHash,
@@ -3176,7 +3164,7 @@ class predictfun extends Exchange {
          */
         $messageHash = 'orders';
         $outcomeResolved = $outcome;
-        if ($outcomeResolved !== null) {
+        if ($outcome !== null) {
             Async\await($this->load_outcome($outcomeResolved));
             $outcomeObj = $this->outcome($outcomeResolved);
             $outcomeResolved = $this->safe_outcome_symbol(null, $outcomeObj);
@@ -3215,7 +3203,7 @@ class predictfun extends Exchange {
          */
         $messageHash = 'myTrades';
         $outcomeResolved = $outcome;
-        if ($outcomeResolved !== null) {
+        if ($outcome !== null) {
             Async\await($this->load_outcome($outcomeResolved));
             $outcomeObj = $this->outcome($outcomeResolved);
             $outcomeResolved = $this->safe_outcome_symbol(null, $outcomeObj);
@@ -3441,10 +3429,10 @@ class predictfun extends Exchange {
          * @return {array[]} the outcome objects
          */
         $result = array();
-        $cached = $this->outcomes;
-        if (($marketId === null) || ($cached === null)) {
+        if (($marketId === null) || ($this->outcomes === null)) {
             return $result;
         }
+        $cached = $this->outcomes;
         $handles = is_array($cached) ? array_keys($cached) : array();
         $handlesLength = count($handles);
         for ($i = 0; $i < $handlesLength; $i++) {
@@ -3660,7 +3648,7 @@ class predictfun extends Exchange {
         }
     }
 
-    public function wallet_event_outcome(array $details): mixed {
+    public function wallet_event_outcome(array $details): array {
         /**
          * @ignore
          * resolves the cached outcome a wallet event refers to, by market and outcome index
@@ -3674,7 +3662,8 @@ class predictfun extends Exchange {
         for ($i = 0; $i < $outcomesLength; $i++) {
             $candidate = $outcomes[$i];
             $info = $this->safe_dict($candidate, 'info', array());
-            if ($this->safe_integer($info, 'indexSet') === $outcomeIndex) {
+            $candidateIndexSet = $this->safe_integer($info, 'indexSet');
+            if ($candidateIndexSet === $outcomeIndex) {
                 return $candidate;
             }
         }
@@ -3936,23 +3925,21 @@ class predictfun extends Exchange {
         }
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
         return $this->milliseconds();
     }
 
-    public function sign(string $path, mixed $api = 'predictfun', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('predictfun'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request URL and attaches the API key header required by every endpoint
          * @param {string} $path the endpoint $path
-         * @param {string|string[]} [$api] the API group and access level
+         * @param {string[]} [$api] the API group and access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
-         * @param {array} [$headers] request $headers
-         * @param {array} [$body] request $body
-         * @return {array} a dictionary with $url, $method, $body and $headers
+         * @return {array} a dictionary with $url, $method, body and headers
          */
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
@@ -3962,7 +3949,7 @@ class predictfun extends Exchange {
         if (($apiKey === null) && !$sandboxMode) {
             throw new AuthenticationError($this->id . ' sign() requires the "apiKey" credential for all endpoints');
         }
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
+        $apiGroup = $api[0];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['predictfun']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
@@ -3972,7 +3959,7 @@ class predictfun extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $existingHeaders = ($headers !== null) ? $headers : array();
+        $existingHeaders = array();
         $headersValue = $existingHeaders;
         $authHeaders = array();
         if (($apiKey !== null) && (!$sandboxMode)) {
@@ -4008,7 +3995,7 @@ class predictfun extends Exchange {
         if (($jwtToken !== null) && $this->in_array($path, $walletPaths)) {
             $authHeaders['Authorization'] = 'Bearer ' . $jwtToken;
         }
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($method !== 'GET') {
             if (!$sandboxMode) {
                 $this->check_required_credentials();

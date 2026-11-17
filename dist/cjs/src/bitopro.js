@@ -233,11 +233,8 @@ class bitopro extends bitopro$1["default"] {
             'options': {
                 'networks': {
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'BEP20': 'BSC',
-                    'BSC': 'BSC',
                 },
                 'fetchCurrencies': {
                     'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
@@ -690,8 +687,8 @@ class bitopro extends bitopro$1["default"] {
         const type = this.safeStringLower(trade, 'type');
         let side = this.safeStringLower(trade, 'action');
         if (side === undefined) {
-            const isBuyer = this.safeBool(trade, 'isBuyer');
-            if (isBuyer === true) {
+            const isBuyer = this.safeBool(trade, 'isBuyer', false);
+            if (isBuyer) {
                 side = 'buy';
             }
             else {
@@ -900,18 +897,20 @@ class bitopro extends bitopro$1["default"] {
         };
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        const limitResolved = (limit === undefined) ? 500 : Math.min(limit, 75000);
+        const limitResolved = this.parseToInt((limit === undefined) ? 500 : Math.min(limit, 75000));
         const timeframeInSeconds = this.parseTimeframe(timeframe);
         let alignedSince = undefined;
         if (since === undefined) {
-            request['to'] = this.seconds();
-            request['from'] = request['to'] - (limitResolved * timeframeInSeconds);
+            const toSeconds = this.seconds();
+            request['to'] = toSeconds;
+            request['from'] = toSeconds - (limitResolved * timeframeInSeconds);
         }
         else {
             const timeframeInMilliseconds = timeframeInSeconds * 1000;
-            alignedSince = Math.floor(since / timeframeInMilliseconds) * timeframeInMilliseconds;
-            request['from'] = Math.floor(since / 1000);
-            request['to'] = this.sum(request['from'], limitResolved * timeframeInSeconds);
+            alignedSince = this.parseToInt(Math.floor(since / timeframeInMilliseconds)) * timeframeInMilliseconds;
+            const fromSeconds = Math.floor(since / 1000);
+            request['from'] = fromSeconds;
+            request['to'] = this.sum(fromSeconds, limitResolved * timeframeInSeconds);
         }
         const response = await this.publicGetTradingHistoryPair(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
@@ -930,9 +929,9 @@ class bitopro extends bitopro$1["default"] {
         //     }
         //
         const sparse = this.parseOHLCVs(data, market, timeframe, since, limitResolved);
-        return this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limitResolved);
+        return this.insertMissingCandles(sparse, timeframeInSeconds * 1000, alignedSince, limitResolved);
     }
-    insertMissingCandles(candles, distance, since, limit) {
+    insertMissingCandles(candles, distanceInMs, since, limit) {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;
@@ -940,10 +939,11 @@ class bitopro extends bitopro$1["default"] {
             return candles;
         }
         const result = [];
-        let copyFrom = candles[0];
+        const firstCandle = this.safeList(candles, 0, []);
+        let copyFrom = firstCandle;
         let timestamp = undefined;
         if (since === undefined) {
-            timestamp = copyFrom[0];
+            timestamp = this.safeValue(firstCandle, 0);
         }
         else {
             timestamp = since;
@@ -952,28 +952,23 @@ class bitopro extends bitopro$1["default"] {
         const candleLength = candles.length;
         let resultLength = 0;
         while ((resultLength < limit) && (i < candleLength)) {
-            const candle = candles[i];
+            const candle = this.safeList(candles, i, []);
             if (candle[0] === timestamp) {
                 result.push(candle);
                 i = this.sum(i, 1);
             }
             else {
-                const copy = this.arrayConcat([], copyFrom);
-                copy[0] = timestamp;
                 // set open, high, low to close
-                copy[1] = copy[4];
-                copy[2] = copy[4];
-                copy[3] = copy[4];
-                copy[5] = this.parseNumber('0');
-                result.push(copy);
+                const closeValue = this.safeValue(copyFrom, 4);
+                result.push([timestamp, closeValue, closeValue, closeValue, closeValue, this.parseNumber('0')]);
             }
-            timestamp = this.sum(timestamp, distance * 1000);
+            timestamp = this.sum(timestamp, distanceInMs);
             resultLength = result.length;
-            copyFrom = result[resultLength - 1];
+            copyFrom = this.safeValue(result, resultLength - 1);
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         //
         //     [{
         //         "currency":"twd",
@@ -986,8 +981,9 @@ class bitopro extends bitopro$1["default"] {
         const result = {
             'info': response,
         };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+        const rows = this.toArray(response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict(rows, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const amount = this.safeString(balance, 'amount');
@@ -1029,7 +1025,7 @@ class bitopro extends bitopro$1["default"] {
         //         ]
         //     }
         //
-        return this.parseBalance(balances);
+        return this.parseBalanceList(balances);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1238,7 +1234,7 @@ class bitopro extends bitopro$1["default"] {
         const orders = [];
         for (let i = 0; i < dataKeys.length; i++) {
             const marketId = dataKeys[i];
-            const orderIds = data[marketId];
+            const orderIds = this.safeList(data, marketId, []);
             for (let j = 0; j < orderIds.length; j++) {
                 orders.push(this.safeOrder({
                     'info': orderIds[j],
@@ -1267,7 +1263,7 @@ class bitopro extends bitopro$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const id = market['uppercaseId'];
+        const id = this.safeString(market, 'uppercaseId');
         const request = {};
         if (id !== undefined) {
             request[id] = ids;
@@ -1283,7 +1279,7 @@ class bitopro extends bitopro$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseCancelOrders(data);
     }
     /**
@@ -1477,7 +1473,7 @@ class bitopro extends bitopro$1["default"] {
         const request = {
             'statusKind': 'DONE',
         };
-        return this.fetchOrders(symbol, since, limit, this.extend(request, params));
+        return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
     /**
      * @method
@@ -1777,16 +1773,16 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -1801,7 +1797,7 @@ class bitopro extends bitopro$1["default"] {
         if (hasNetwork) {
             const networks = this.safeDict(this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper(paramsWithdrawTag, 'network');
-            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString(networks, requestedNetwork);
+            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString(networks, this.safeString(this.networkAliases, requestedNetwork, requestedNetwork));
             if (networkId === undefined) {
                 throw new errors.ExchangeError(this.id + ' invalid network ' + requestedNetwork);
             }
@@ -1884,18 +1880,22 @@ class bitopro extends bitopro$1["default"] {
         const data = this.safeList(response, 'data', []);
         return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const requestHeaders = (headers === undefined) ? {} : headers;
-        const isSignedBody = (api === 'private') && ((method === 'POST') || (method === 'PUT'));
+        // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
+        // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
+        const queryLength = Object.keys(query).length;
+        const requestHeaders = {};
+        const isSignedBody = (apiName === 'private') && ((method === 'POST') || (method === 'PUT'));
         const signedBody = this.json(params);
-        let requestBody = body;
+        let requestBody = undefined;
         if (isSignedBody) {
             requestBody = signedBody;
         }
         requestHeaders['X-BITOPRO-API'] = 'ccxt';
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             if (method === 'POST' || method === 'PUT') {
                 const payload = this.stringToBase64(signedBody);
@@ -1905,7 +1905,7 @@ class bitopro extends bitopro$1["default"] {
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
             }
             else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys(query).length > 0) {
+                if (queryLength > 0) {
                     url += '?' + this.urlencode(query);
                 }
                 const nonce = this.milliseconds();
@@ -1920,8 +1920,8 @@ class bitopro extends bitopro$1["default"] {
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
             }
         }
-        else if (api === 'public' && method === 'GET') {
-            if (Object.keys(query).length > 0) {
+        else if (apiName === 'public' && method === 'GET') {
+            if (queryLength > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1936,7 +1936,8 @@ class bitopro extends bitopro$1["default"] {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }
-        if (code >= 200 && code < 300) {
+        const statusCode = this.parseToInt(code);
+        if (statusCode >= 200 && statusCode < 300) {
             return undefined;
         }
         const feedback = this.id + ' ' + body;

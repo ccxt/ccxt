@@ -71,6 +71,22 @@
         ],
         "createOrder": [
             {
+                "description": "linear swap limit order via defaultType swap without defaultSubType and a spot-style symbol",
+                "method": "createOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order",
+                "options": {
+                    "defaultType": "swap"
+                },
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.002,
+                    20000
+                ],
+                "output": "timestamp=1790607822610&symbol=BTCUSDT&side=BUY&newClientOrderId=x-cvBPrNm9b555bf5f520a46cab69e32&newOrderRespType=RESULT&type=LIMIT&timeInForce=GTC&quantity=0.002&price=20000&recvWindow=10000&signature=x"
+            },
+            {
                 "description": "Swap trailingPercent order",
                 "method": "createOrder",
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
@@ -3490,11 +3506,22 @@
                 ]
             },
             {
-                "description": "Fetch Open Interest History - inverse",
+                "description": "Fetch Open Interest History - inverse perpetual",
                 "method": "fetchOpenInterestHistory",
-                "url": "https://dapi.binance.com/futures/data/openInterestHist?period=5m&pair=BTCUSD_PERP&contractType=CURRENT_QUARTER",
+                "url": "https://dapi.binance.com/futures/data/openInterestHist?period=5m&pair=BTCUSD&contractType=PERPETUAL",
                 "input": [
                     "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "Fetch Open Interest History - inverse delivery",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://dapi.binance.com/futures/data/openInterestHist?period=1h&limit=2&pair=ETHUSD&contractType=CURRENT_QUARTER",
+                "input": [
+                    "ETH/USD:ETH-261225",
+                    "1h",
+                    null,
+                    2
                 ]
             }
         ],
@@ -4409,7 +4436,6 @@
                   "USDT",
                   10.34332,
                   "TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N",
-                  null,
                   {
                     "network": "TRC20"
                   }
@@ -4424,7 +4450,6 @@
                   "ASR",
                   10.34,
                   "xyz",
-                  null,
                   {
                     "network": "BSC"
                   }
@@ -4439,7 +4464,6 @@
                   "USDT",
                   10.34,
                   "xyz",
-                  null,
                   {
                     "network": "TRX"
                   }

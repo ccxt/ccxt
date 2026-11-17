@@ -14,7 +14,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress,
  * @augments Exchange
  */
 export default class foxbit extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'foxbit',
             'name': 'Foxbit',
@@ -208,7 +208,7 @@ export default class foxbit extends Exchange {
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -232,7 +232,7 @@ export default class foxbit extends Exchange {
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -977,7 +977,7 @@ export default class foxbit extends Exchange {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
@@ -1023,7 +1023,7 @@ export default class foxbit extends Exchange {
             const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
-            const type = this.safeStringUpper (order, 'type');
+            const type = this.safeStringUpper (order, 'type', '');
             const orderParams = this.safeDict (order, 'params', {});
             if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
                 throw new InvalidOrder ('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
@@ -1049,7 +1049,7 @@ export default class foxbit extends Exchange {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly === true) {
+            if (postOnly) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }
@@ -1541,31 +1541,32 @@ export default class foxbit extends Exchange {
         }
         const market = this.market (symbol);
         this.checkRequiredArgument ('editOrder', side, 'side');
+        const createRequest: Dict = {
+            'type': typeValue,
+            'side': side.toUpperCase (),
+            'market_symbol': market['id'],
+        };
+        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
+            createRequest['quantity'] = this.amountToPrecision (symbol, amount);
+            if (typeValue === 'LIMIT') {
+                createRequest['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        if (typeValue === 'STOP_MARKET') {
+            createRequest['stop_price'] = this.priceToPrecision (symbol, price);
+            createRequest['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        if (typeValue === 'INSTANT') {
+            createRequest['amount'] = this.priceToPrecision (symbol, amount);
+        }
         const request: Dict = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
                 'type': 'ID',
                 'id': this.parseNumber (id),
             },
-            'create': {
-                'type': typeValue,
-                'side': side.toUpperCase (),
-                'market_symbol': market['id'],
-            },
+            'create': createRequest,
         };
-        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
-            request['create']['quantity'] = this.amountToPrecision (symbol, amount);
-            if (typeValue === 'LIMIT') {
-                request['create']['price'] = this.priceToPrecision (symbol, price);
-            }
-        }
-        if (typeValue === 'STOP_MARKET') {
-            request['create']['stop_price'] = this.priceToPrecision (symbol, price);
-            request['create']['quantity'] = this.amountToPrecision (symbol, amount);
-        }
-        if (typeValue === 'INSTANT') {
-            request['create']['amount'] = this.priceToPrecision (symbol, amount);
-        }
         const response = await this.v3PrivatePostOrdersCancelReplace (this.extend (request, params));
         // {
         //     "cancel": {
@@ -1588,12 +1589,13 @@ export default class foxbit extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1743,7 +1745,15 @@ export default class foxbit extends Exchange {
         const bestAsk = this.safeDict (best, 'ask');
         const bestBid = this.safeDict (best, 'bid');
         const lastTrade = this.safeDict (ticker, 'last_trade');
-        const lastPrice = this.safeString (lastTrade, 'price');
+        let lastPrice = this.safeString (lastTrade, 'price');
+        let change = this.safeString (rolling_24h, 'price_change');
+        let percentage = this.safeString (rolling_24h, 'price_change_percent');
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise.stringEq (lastPrice, '0')) {
+            lastPrice = undefined;
+            change = undefined;
+            percentage = undefined;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': this.parseDate (this.safeString (lastTrade, 'date')),
@@ -1759,8 +1769,8 @@ export default class foxbit extends Exchange {
             'close': lastPrice,
             'last': lastPrice,
             'previousClose': undefined,
-            'change': this.safeString (rolling_24h, 'price_change'),
-            'percentage': this.safeString (rolling_24h, 'price_change_percent'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString (rolling_24h, 'volume'),
             'quoteVolume': this.safeString (rolling_24h, 'quote_volume'),
@@ -1808,7 +1818,7 @@ export default class foxbit extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PARTIALLY_CANCELED': 'open',
             'ACTIVE': 'open',
@@ -1823,10 +1833,10 @@ export default class foxbit extends Exchange {
     override parseOrder (order: Dict, market: Market = undefined): Order {
         let symbol = this.safeString (order, 'market_symbol');
         let marketResolved: Market = market;
-        if ((market === undefined) && (symbol !== undefined)) {
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
+        } else if (symbol !== undefined) {
             marketResolved = this.market (symbol);
-        }
-        if (marketResolved !== undefined) {
             symbol = this.safeString (marketResolved, 'symbol');
         }
         const timestamp = this.parseDate (this.safeString (order, 'created_at'));
@@ -1894,7 +1904,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // BOTH
             'SUBMITTING': 'pending',
@@ -1920,7 +1930,7 @@ export default class foxbit extends Exchange {
         const address = this.safeString2 (cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString (transaction, 'sn');
         let type = 'withdrawal';
-        if (sn !== undefined && sn[0] === 'D') {
+        if (sn !== undefined && sn.startsWith ('D')) {
             type = 'deposit';
         }
         const fee = this.safeString (transaction, 'fee', '0');
@@ -1948,7 +1958,7 @@ export default class foxbit extends Exchange {
             'txid': this.safeString (cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString (transaction, 'network_code'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2007,18 +2017,16 @@ export default class foxbit extends Exchange {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
         }
-        if (amount < 0) {
-            direction = 'out';
-            if (amount === undefined) {
-                throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
-            }
-            realAmount = amount * -1;
-        }
         if (balance === undefined) {
             throw new ExchangeError (this.id + ' parseLedgerEntry() missing balance');
         }
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
+        let before: Num = undefined;
+        if (amount !== undefined && balance !== undefined) {
+            before = balance - amount;
+            if (0 > amount) {
+                direction = 'out';
+                realAmount = -amount;
+            }
         }
         return {
             'id': id,
@@ -2032,14 +2040,14 @@ export default class foxbit extends Exchange {
             'type': type,
             'currency': currencySymbol,
             'amount': realAmount,
-            'before': balance - amount,
+            'before': before,
             'after': balance,
             'status': 'ok',
             'fee': fee,
         };
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [], method: string = 'GET', params: Dict = {}): Dict {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams (path, params);
@@ -2059,6 +2067,7 @@ export default class foxbit extends Exchange {
         if (method === 'GET') {
             const paramKeys = Object.keys (paramsOmitted);
             const paramKeysLength = paramKeys.length;
+            const lastKeyIndex = paramKeysLength - 1;
             if (paramKeysLength > 0) {
                 query = this.urlencode (paramsOmitted);
                 url += '?' + query;
@@ -2069,12 +2078,12 @@ export default class foxbit extends Exchange {
                 if (value !== undefined) {
                     signatureQuery += key + '=' + value;
                 }
-                if (i < paramKeysLength - 1) {
+                if (i < lastKeyIndex) {
                     signatureQuery += '&';
                 }
             }
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (method === 'POST' || method === 'PUT') {
             requestBody = this.json (paramsOmitted);
         }
@@ -2089,34 +2098,34 @@ export default class foxbit extends Exchange {
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials ();
-            const preHash = this.numberToString (timestamp) + method + fullPath + signatureQuery + bodyToSignature;
+            const preHash = timestamp.toString () + method + fullPath + signatureQuery + bodyToSignature;
             const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
             headersValue['X-FB-ACCESS-KEY'] = this.apiKey;
-            headersValue['X-FB-ACCESS-TIMESTAMP'] = this.numberToString (timestamp);
+            headersValue['X-FB-ACCESS-TIMESTAMP'] = timestamp.toString ();
             headersValue['X-FB-ACCESS-SIGNATURE'] = signature;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
         const error = this.safeDict (response, 'error');
-        const code = this.safeString (error, 'code');
+        const codeError = this.safeString (error, 'code');
         const details = this.safeList (error, 'details');
-        const message = this.safeString (error, 'message');
+        const message = this.safeString (error, 'message', '');
         let detailsString = '';
         if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
-                detailsString = detailsString + details[i] + ' ';
+                detailsString = detailsString + this.safeString (details, i, '') + ' ';
             }
         }
         if (error !== undefined) {
             const feedback = this.id + ' ' + message + ' details: ' + detailsString;
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], detailsString, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             throw new ExchangeError (feedback);
         }
         return undefined;

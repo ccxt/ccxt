@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"reflect"
 	"strings"
 )
 
@@ -22,6 +23,10 @@ type OrderBookInterface interface {
 	GetValue(key string, defaultValue any) any
 	ToMap() map[string]any
 	Copy() OrderBookInterface
+	SetTimestamp(timestamp *int64)
+	SetDatetime(datetime *string)
+	SetNonce(nonce *int64)
+	SetSymbol(symbol *string)
 }
 
 type WsOrderBook struct {
@@ -163,7 +168,7 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	if snapshot == nil {
 		snapshot = make(map[string]any)
 	}
-	asks, bids := getAsksBids(snapshot)
+	asks, bids := resetRows(this.Asks, snapshot)
 	snapshotMap := snapshot.(map[string]any)
 
 	for i := range *this.Asks.GetIndex() {
@@ -284,6 +289,76 @@ func getAsksBids(snapshot any) ([][]float64, [][]float64) {
 	asks := normalizeToFloat64SliceSlice(SafeValue(snapshot, "asks", nil))
 	bids := normalizeToFloat64SliceSlice(SafeValue(snapshot, "bids", nil))
 	return asks, bids
+}
+
+// resetRows shapes the snapshot rows for the side's StoreArray: every row keeps its
+// trailing columns (count, id or timestamp) the price/amount normalisation would drop.
+func resetRows(side IOrderBookSide, snapshot any) ([]any, []any) {
+	toAny := func(rows any) []any {
+		v := reflect.ValueOf(rows)
+		out := make([]any, v.Len())
+		for i := range out {
+			out[i] = v.Index(i).Interface()
+		}
+		return out
+	}
+	wide := func(rows [][]float64, raw any) []any {
+		source := toAnyRows(raw)
+		out := make([]any, 0, len(rows))
+		for i := range rows {
+			row := rows[i]
+			if len(row) < 2 {
+				continue
+			}
+			cells := []any{row[0], row[1]}
+			if (i < len(source)) && (len(source[i]) > 2) {
+				cells = append(cells, source[i][2:]...)
+			}
+			out = append(out, cells)
+		}
+		return out
+	}
+	switch side.(type) {
+	case *IndexedOrderBookSide:
+		asks, bids := getIndexedAsksBids(snapshot)
+		return toAny(asks), toAny(bids)
+	case *CountedOrderBookSide:
+		asks, bids := getAsksBids(snapshot)
+		conv := func(rows [][]float64) []any {
+			out := make([]any, len(rows))
+			for i, row := range rows {
+				r := make([]any, len(row))
+				for j, x := range row {
+					r[j] = x
+				}
+				out[i] = r
+			}
+			return out
+		}
+		return conv(asks), conv(bids)
+	}
+	asks, bids := getAsksBids(snapshot)
+	return wide(asks, SafeValue(snapshot, "asks", nil)), wide(bids, SafeValue(snapshot, "bids", nil))
+}
+
+func toAnyRows(rows any) [][]any {
+	value := reflect.ValueOf(derefScalar(rows))
+	if !value.IsValid() || ((value.Kind() != reflect.Slice) && (value.Kind() != reflect.Array)) {
+		return [][]any{}
+	}
+	out := make([][]any, value.Len())
+	for i := range out {
+		row := reflect.ValueOf(derefScalar(value.Index(i).Interface()))
+		if !row.IsValid() || ((row.Kind() != reflect.Slice) && (row.Kind() != reflect.Array)) {
+			continue
+		}
+		cells := make([]any, row.Len())
+		for j := range cells {
+			cells[j] = row.Index(j).Interface()
+		}
+		out[i] = cells
+	}
+	return out
 }
 
 func getIndexedAsksBids(snapshot any) ([][]any, [][]any) {
@@ -448,6 +523,32 @@ func (this *WsOrderBook) Copy() OrderBookInterface {
 	ob.Timestamp = this.Timestamp
 	ob.Datetime = this.Datetime
 	return copy
+}
+
+// field setters: a nil pointer is a no-op, like AddElementToObject on a typed-nil Safe* result
+func (this *WsOrderBook) SetTimestamp(timestamp *int64) {
+	if timestamp != nil {
+		ts := *timestamp
+		this.Timestamp = &ts
+	}
+}
+
+func (this *WsOrderBook) SetDatetime(datetime *string) {
+	if datetime != nil {
+		this.Datetime = *datetime
+	}
+}
+
+func (this *WsOrderBook) SetNonce(nonce *int64) {
+	if nonce != nil {
+		this.Nonce = *nonce
+	}
+}
+
+func (this *WsOrderBook) SetSymbol(symbol *string) {
+	if symbol != nil {
+		this.Symbol = *symbol
+	}
 }
 
 func (this *WsOrderBook) GetNonce() any {

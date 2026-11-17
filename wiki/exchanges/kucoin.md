@@ -560,15 +560,15 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 - https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
 - https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
 - https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
-- https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+- https://www.kucoin.com/docs-new/v2/rest/ua/get-orderbook
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return, for uta any depth is accepted and the full book is returned when omitted |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false, the uta orderbook endpoint is public |
 
 
 ```javascript
@@ -1754,12 +1754,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-kucoin.withdraw (code, amount, address, tag, params?)
+kucoin.withdraw (code, amount, address, params?)
 ```
 
 

@@ -16,7 +16,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class coinone extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
@@ -489,7 +489,7 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array( 'info' => $response );
         $balances = $this->omit($response, array(
             'errorCode',
@@ -998,7 +998,7 @@ class coinone extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'live' => 'open',
             'partially_filled' => 'open',
@@ -1056,14 +1056,8 @@ class coinone extends Exchange {
         $id = $this->safe_string_2($order, 'orderId', 'order_id');
         $baseId = $this->safe_string_2($order, 'baseCurrency', 'target_currency');
         $quoteId = $this->safe_string_2($order, 'targetCurrency', 'quote_currency');
-        $base = null;
-        $quote = null;
-        if ($baseId !== null) {
-            $base = $this->safe_currency_code($baseId);
-        }
-        if ($quoteId !== null) {
-            $quote = $this->safe_currency_code($quoteId);
-        }
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
@@ -1312,20 +1306,15 @@ class coinone extends Exchange {
             $currencyId = $this->safe_string($parts, 0);
             $secondPart = $this->safe_string($parts, 1);
             $code = $this->safe_currency_code($currencyId);
-            $depositAddress = $this->safe_dict($result, $code);
-            if ($depositAddress === null) {
-                $depositAddress = array(
-                    'info' => $value,
-                    'currency' => $code,
-                    'network' => null,
-                    'address' => null,
-                    'tag' => null,
-                );
-            }
-            $address = $this->safe_string($depositAddress, 'address', $value);
+            $address = $this->safe_string($this->safe_value($result, $code), 'address', $value);
             $this->check_address($address);
-            $depositAddress['address'] = $address;
-            $depositAddress['info'] = $address;
+            $depositAddress = array(
+                'info' => $address,
+                'currency' => $code,
+                'network' => null,
+                'address' => $address,
+                'tag' => $this->safe_string($this->safe_value($result, $code), 'tag'),
+            );
             if (($secondPart === 'tag' || $secondPart === 'memo')) {
                 $depositAddress['tag'] = $value;
                 $depositAddress['info'] = array( $address, $value );
@@ -1334,10 +1323,11 @@ class coinone extends Exchange {
                 $result[$code] = $depositAddress;
             }
         }
-        return $result;
+        return $this->to_array($result);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
@@ -1345,20 +1335,20 @@ class coinone extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/';
-        $isPublic = ($api === 'public') || ($api === 'v2Public');
-        if ($api === 'v2Public') {
+        $isPublic = ($apiName === 'public') || ($apiName === 'v2Public');
+        if ($apiName === 'v2Public') {
             $apiUrl2 = $this->safe_string($this->urls['api'], 'v2Public');
             if ($apiUrl2 === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $apiUrl2 . '/';
-        } elseif ($api === 'v2Private') {
+        } elseif ($apiName === 'v2Private') {
             $apiUrl3 = $this->safe_string($this->urls['api'], 'v2Private');
             if ($apiUrl3 === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $apiUrl3 . '/';
-        } elseif ($api === 'v2_1Private') {
+        } elseif ($apiName === 'v2_1Private') {
             $apiUrl4 = $this->safe_string($this->urls['api'], 'v2_1Private');
             if ($apiUrl4 === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
@@ -1377,10 +1367,10 @@ class coinone extends Exchange {
             $url .= $request;
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             $nonce = null;
-            if ($api === 'v2_1Private') {
+            if ($apiName === 'v2_1Private') {
                 $nonce = $this->uuid();
             } else {
-                $nonce = (string) $this->nonce();
+                $nonce = $this->number_to_string($this->nonce());
             }
             $json = $this->json($this->extend(array(
                 'access_token' => $this->apiKey,
@@ -1396,12 +1386,12 @@ class coinone extends Exchange {
                 'X-COINONE-SIGNATURE' => $signature,
             );
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

@@ -8,9 +8,13 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
+import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
+import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,29 +34,29 @@ public class Derive extends io.github.ccxt.exchanges.Derive
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
-                put( "ws", false );
-                put( "watchBalance", false );
+                put( "ws", true );
+                put( "watchBalance", true );
                 put( "watchMyTrades", true );
                 put( "watchOHLCV", false );
                 put( "watchOrderBook", true );
                 put( "watchOrders", true );
                 put( "watchTicker", true );
                 put( "watchTickers", false );
-                put( "watchBidsAsks", false );
+                put( "watchBidsAsks", true );
                 put( "watchTrades", true );
                 put( "watchTradesForSymbols", false );
-                put( "watchPositions", false );
+                put( "watchPositions", true );
             }} );
             put( "urls", new HashMap<String, Object>() {{
                 put( "api", new HashMap<String, Object>() {{
-                    put( "ws", "wss://api.lyra.finance/ws" );
+                    put( "ws", "wss://api.derive.xyz/v3/ws" );
                 }} );
                 put( "test", new HashMap<String, Object>() {{
-                    put( "ws", "wss://api-demo.lyra.finance/ws" );
+                    put( "ws", "wss://testnet.api.derive.xyz/v3/ws" );
                 }} );
             }} );
             put( "options", new HashMap<String, Object>() {{
@@ -71,16 +75,16 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }});
     }
 
-    public Long requestId(Object url)
+    public Long requestId(String url)
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
-        Object newValue = this.sum(previousValue, 1);
+        Long newValue = (Long) this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
-        return Helpers.toLongOrNull(newValue);
+        return newValue;
     }
 
-    public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message, Map<String, Object> subscription)
+    public CompletableFuture<Object> watchPublic(String messageHash, Map<String, Object> message, Map<String, Object> subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -102,7 +106,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     /**
      * @method
      * @name derive#watchOrderBook
-     * @see https://docs.derive.xyz/reference/orderbook-instrument_name-group-depth
+     * @see https://docs.derive.xyz/api-reference/channels/orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
@@ -120,7 +124,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             }
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 10 : limit;
             Map<String, Object> market = this.market(symbol);
-            String topic = ((("orderbook." + market.get("id")) + ".10.") + this.numberToString(limitResolved));
+            String marketId = this.safeString(market, "id", "");
+            String topic = ((("orderbook." + marketId) + ".10.") + this.numberToString(limitResolved));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -133,7 +138,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "limit", limitResolved );
                 put( "params", parameters );
             }};
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topic, request, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -160,14 +165,14 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "instrument_name");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String topic = this.safeString(parameters, "channel");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            Object subscription = (((java.util.Objects.equals(topic, null)))) ? null : Helpers.GetValue(client.subscriptions, topic);
+            Object subscription = (((java.util.Objects.equals(topic, null)))) ? null : (client.subscriptions == null || topic == null ? null : client.subscriptions.get(topic));
             Long limit = this.safeInteger(subscription, "limit", defaultLimit);
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
@@ -179,7 +184,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     /**
      * @method
      * @name derive#watchTicker
-     * @see https://docs.derive.xyz/reference/ticker-instrument_name-interval
+     * @see https://docs.derive.xyz/api-reference/channels/tickerslim
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -195,7 +200,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String topic = (("ticker_slim." + market.get("id")) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
+            String marketId = this.safeString(market, "id", "");
+            String topic = (("ticker_slim." + marketId) + ".100"); // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -207,115 +213,163 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "symbol", symbol );
                 put( "params", parameters );
             }};
-            return (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            return (this.watchPublic(topic, request, subscription)).join();
         }).thenApply(Ticker::new);
+
+    }
+
+    /**
+     * @method
+     * @name derive#unWatchTicker
+     * @description unsubscribe from the ticker channel; note that the bid ask feed of the same symbol shares the channel and stops as well
+     * @see https://docs.derive.xyz/api-reference/channels/tickerslim
+     * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            String marketId = this.safeString(market, "id", "");
+            String topic = (("ticker_slim." + marketId) + ".100");
+            String messageHash = ("unwatch" + topic);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "unsubscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channels", new ArrayList<Object>(Arrays.asList(topic)) );
+                }} );
+            }};
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "name", topic );
+            }};
+            return (this.unWatchPublic(messageHash, request, subscription)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name derive#watchBidsAsks
+     * @description watches best bid & ask for symbols; the data is sourced from the same ticker_slim channel the ticker uses
+     * @see https://docs.derive.xyz/api-reference/channels/tickerslim
+     * @param {string[]} symbols unified symbols of the markets to fetch the bids and asks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+            List<String> topics = new ArrayList<String>(Arrays.asList());
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+            {
+                Map<String, Object> market = this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i)));
+                String marketId = this.safeString(market, "id", "");
+                String marketSymbol = this.safeString(market, "symbol", "");
+                topics.add((("ticker_slim." + marketId) + ".100"));
+                messageHashes.add(("bidask:" + marketSymbol));
+            }
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            Long requestId = this.requestId(url);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "subscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channels", topics );
+                }} );
+                put( "id", requestId );
+            }};
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", requestId );
+                put( "method", "subscribe" );
+            }};
+            Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription)).join();
+            if (this.newUpdates)
+            {
+                Map<String, Object> result = new HashMap<String, Object>() {{}};
+                String tickerSymbol = this.safeString(ticker, "symbol", "");
+                result.put(tickerSymbol, ticker);
+                return result;
+            }
+            return this.filterByArray(this.bidsasks, "symbol", symbolsResolved, true);
+        }).thenApply(Tickers::new);
 
     }
 
     public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
     {
         //
-        // {
-        //     method: 'subscription',
-        //     params: {
-        //       channel: 'ticker.BTC-PERP.100',
-        //       data: {
-        //         timestamp: 1738485104439,
-        //         instrument_ticker: {
-        //           instrument_type: 'perp',
-        //           instrument_name: 'BTC-PERP',
-        //           scheduled_activation: 1701840228,
-        //           scheduled_deactivation: '9223372036854775807',
-        //           is_active: true,
-        //           tick_size: '0.1',
-        //           minimum_amount: '0.01',
-        //           maximum_amount: '10000',
-        //           amount_step: '0.001',
-        //           mark_price_fee_rate_cap: '0',
-        //           maker_fee_rate: '0.0001',
-        //           taker_fee_rate: '0.0003',
-        //           base_fee: '0.1',
-        //           base_currency: 'BTC',
-        //           quote_currency: 'USD',
-        //           option_details: null,
-        //           perp_details: {
-        //             index: 'BTC-USD',
-        //             max_rate_per_hour: '0.004',
-        //             min_rate_per_hour: '-0.004',
-        //             static_interest_rate: '0.0000125',
-        //             aggregate_funding: '10581.779418721074588722',
-        //             funding_rate: '0.000024792239208858'
-        //           },
-        //           erc20_details: null,
-        //           base_asset_address: '0xDBa83C0C654DB1cd914FA2710bA743e925B53086',
-        //           base_asset_sub_id: '0',
-        //           pro_rata_fraction: '0',
-        //           fifo_min_allocation: '0',
-        //           pro_rata_amount_step: '0.1',
-        //           best_ask_amount: '0.131',
-        //           best_ask_price: '99898.6',
-        //           best_bid_amount: '0.056',
-        //           best_bid_price: '99889.1',
-        //           five_percent_bid_depth: '11.817',
-        //           five_percent_ask_depth: '9.116',
-        //           option_pricing: null,
-        //           index_price: '99883.8',
-        //           mark_price: '99897.52408421244763303548098',
-        //           stats: {
-        //             contract_volume: '92.395',
-        //             num_trades: '2924',
-        //             open_interest: '33.743468027373780786',
-        //             high: '102320.4',
-        //             low: '99064.3',
-        //             percent_change: '-0.021356',
-        //             usd_change: '-2178'
-        //           },
-        //           timestamp: 1738485165881,
-        //           min_price: '97939.1',
-        //           max_price: '101895.2'
+        //     {
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker_slim.BTC-PERP.100",
+        //             "data": {
+        //                 "timestamp": 1790879819285,
+        //                 "instrument_ticker": {
+        //                     "t": 1790879819268,
+        //                     "A": "0.278",
+        //                     "a": "84214.6",
+        //                     "B": "0.213",
+        //                     "b": "84205.4",
+        //                     "f": "0.000012500",
+        //                     "option_pricing": null,
+        //                     "I": "84210.9",
+        //                     "M": "84210.2",
+        //                     "stats": {
+        //                         "c": "16.41",
+        //                         "v": "1377350.271",
+        //                         "pr": "1377095.872",
+        //                         "n": 98,
+        //                         "oi": "0",
+        //                         "h": "84282",
+        //                         "l": "83661.8",
+        //                         "p": "0"
+        //                     },
+        //                     "minp": "82526.1",
+        //                     "maxp": "85894.9"
+        //                 }
+        //             }
         //         }
-        //       }
         //     }
-        // }
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
         Map<String, Object> rawData = (Map<String, Object>) this.safeDict(parameters, "data", (Object) null);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(rawData, "instrument_ticker", new HashMap<String, Object>() {{}});
-        String topic = this.safeString(parameters, "channel");
-        Object ticker = null;
-        if (!java.util.Objects.equals(topic, null) && (topic.startsWith(((String)"ticker_slim"))))
-        {
-            // the slim payload uses short keys and does not carry the instrument name,
-            // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
-            String marketId = this.safeString(parts, 1);
-            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> stats = (Map<String, Object>) this.safeDict(data, "stats", new HashMap<String, Object>() {{}});
-            ticker = this.safeTicker(new HashMap<String, Object>() {{
-                put( "symbol", market.get("symbol") );
-                put( "timestamp", Derive.this.safeInteger(data, "t") );
-                put( "datetime", Derive.this.iso8601(Derive.this.safeInteger(data, "t")) );
-                put( "bid", Derive.this.safeString(data, "b") );
-                put( "bidVolume", Derive.this.safeString(data, "B") );
-                put( "ask", Derive.this.safeString(data, "a") );
-                put( "askVolume", Derive.this.safeString(data, "A") );
-                put( "high", Derive.this.safeString(stats, "h") );
-                put( "low", Derive.this.safeString(stats, "l") );
-                put( "baseVolume", Derive.this.safeString(stats, "c") );
-                put( "quoteVolume", Derive.this.safeString(stats, "v") );
-                put( "percentage", Derive.this.safeString(stats, "p") );
-                put( "markPrice", Derive.this.safeString(data, "M") );
-                put( "indexPrice", Derive.this.safeString(data, "I") );
-                put( "info", rawData );
-            }}, market);
-        } else
-        {
-            ticker = this.parseTicker(data, (Map<String, Object>) null);
-        }
-        String tickerSymbol = (String) ((Map<String, Object>)ticker).get("symbol");
+        String topic = this.safeString(parameters, "channel", "");
+        // the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
+        String marketId = this.safeString(parts, 1);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
+        String tickerSymbol = this.safeString(ticker, "symbol");
         if (!java.util.Objects.equals(tickerSymbol, null))
         {
-            Helpers.addElementToObject(this.tickers, tickerSymbol, ticker);
+            this.tickers.put(tickerSymbol, ticker);
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("symbol", tickerSymbol);
+            mapLiteral1.put("timestamp", this.safeInteger(ticker, "timestamp"));
+            mapLiteral1.put("datetime", this.safeString(ticker, "datetime"));
+            mapLiteral1.put("bid", this.safeNumber(ticker, "bid", (Object) null));
+            mapLiteral1.put("bidVolume", this.safeNumber(ticker, "bidVolume", (Object) null));
+            mapLiteral1.put("ask", this.safeNumber(ticker, "ask", (Object) null));
+            mapLiteral1.put("askVolume", this.safeNumber(ticker, "askVolume", (Object) null));
+            mapLiteral1.put("info", data);
+            Ticker bidAsk = this.safeTicker(mapLiteral1, market);
+            this.bidsasks.put(tickerSymbol, bidAsk);
+            client.resolve(bidAsk, ("bidask:" + tickerSymbol));
         }
         client.resolve(ticker, topic);
         return message;
@@ -339,13 +393,11 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Long limit = this.safeInteger(parameters, "limit");
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 10L;
-            }
+            Long limitRaw = this.safeInteger(parameters, "limit");
+            Object limit = (((java.util.Objects.equals(limitRaw, null)))) ? 10 : limitRaw;
             Map<String, Object> market = this.market(symbol);
-            String topic = ((("orderbook." + market.get("id")) + ".10.") + this.numberToString(limit));
+            String marketId = this.safeString(market, "id", "");
+            String topic = ((("orderbook." + marketId) + ".10.") + String.valueOf(limit));
             String messageHash = ("unwatch" + topic);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
@@ -356,7 +408,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "name", topic );
             }};
-            return (this.unWatchPublic(messageHash, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            return (this.unWatchPublic(messageHash, request, subscription)).join();
         });
 
     }
@@ -379,7 +431,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String topic = ("trades." + market.get("id"));
+            String marketId = this.safeString(market, "id", "");
+            String topic = ("trades." + marketId);
             String messageHah = ("unwatch" + topic);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
@@ -390,12 +443,12 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "name", topic );
             }};
-            return (this.unWatchPublic(messageHah, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            return (this.unWatchPublic(messageHah, request, subscription)).join();
         });
 
     }
 
-    public CompletableFuture<Object> unWatchPublic(Object messageHash, Map<String, Object> message, Map<String, Object> subscription)
+    public CompletableFuture<Object> unWatchPublic(String messageHash, Map<String, Object> message, Map<String, Object> subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -414,7 +467,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     }
 
-    public void handleOrderBookUnSubscription(Client client, Object topic)
+    public void handleOrderBookUnSubscription(Client client, String topic)
     {
         List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
@@ -424,44 +477,68 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             ((Map<String,Object>)this.orderbooks).remove(symbol);
         }
-        if (((Map<?, ?>)client.subscriptions).containsKey(topic))
-        {
-            ((Map<String,Object>)client.subscriptions).remove((String)topic);
-        }
-        var error = new UnsubscribeError(((this.id + " orderbook ") + symbol));
-        client.reject(error, topic);
-        client.resolve(error, ("unwatch" + topic));
+        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), false);
     }
 
-    public void handleTradesUnSubscription(Client client, Object topic)
+    public void handleTradesUnSubscription(Client client, String topic)
     {
         List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
-        if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+        String symbol = this.safeString(market, "symbol", "");
+        if (((Map<?, ?>)this.trades).containsKey(symbol))
         {
-            ((Map<String,Object>)this.trades).remove(symbol);
+            ((Map<String,Object>)this.trades).remove((String)symbol);
         }
-        if (((Map<?, ?>)client.subscriptions).containsKey(topic))
+        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), false);
+    }
+
+    public void handleTickerUnSubscription(Client client, String topic)
+    {
+        List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
+        String marketId = this.safeString(parsedTopic, 1);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeString(market, "symbol", "");
+        if (this.tickers.containsKey(symbol))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)topic);
+            this.tickers.remove((String)symbol);
         }
-        var error = new UnsubscribeError(((this.id + " trades ") + symbol));
-        client.reject(error, topic);
-        client.resolve(error, ("unwatch" + topic));
+        if (this.bidsasks.containsKey(symbol))
+        {
+            this.bidsasks.remove((String)symbol);
+        }
+        // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
+        String bidAskHash = ("bidask:" + symbol);
+        if (client.futures.containsKey(bidAskHash))
+        {
+            var error = new UnsubscribeError(((this.id + " ") + bidAskHash));
+            client.reject(error, bidAskHash);
+        }
+        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), false);
+    }
+
+    public void handleOrdersUnSubscription(Client client, String topic)
+    {
+        this.orders = null;
+        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), true);
+    }
+
+    public void handleMyTradesUnSubscription(Client client, String topic)
+    {
+        this.myTrades = null;
+        this.cleanUnsubscription(client, (String) (topic), ("unwatch" + topic), true);
     }
 
     public Map<String, Object> handleUnSubscribe(Client client, Map<String, Object> message)
     {
         //
-        // {
-        //     id: 1,
-        //     result: {
-        //       status: { 'orderbook.BTC-PERP.10.10': 'ok' },
-        //       remaining_subscriptions: []
+        //     {
+        //         "id": 1,
+        //         "result": {
+        //             "status": { "orderbook.BTC-PERP.10.10": "ok" },
+        //             "remaining_subscriptions": []
+        //         }
         //     }
-        // }
         //
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
         Map<String, Object> status = (Map<String, Object>) this.safeDict(result, "status", (Object) null);
@@ -471,12 +548,23 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
                 String topic = (topics == null || i < 0 || i >= topics.size() ? null : topics.get(i));
-                if (((String)topic).indexOf("orderbook") >= 0)
+                List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
+                String suffix = this.safeString(parsedTopic, 1);
+                if ((((String)topic).indexOf("orderbook") == 0))
                 {
                     this.handleOrderBookUnSubscription(client, topic);
-                } else if (((String)topic).indexOf("trades") >= 0)
+                } else if ((((String)topic).indexOf("ticker_slim") == 0))
+                {
+                    this.handleTickerUnSubscription(client, topic);
+                } else if ((((String)topic).indexOf("trades") == 0))
                 {
                     this.handleTradesUnSubscription(client, topic);
+                } else if (java.util.Objects.equals(suffix, "orders"))
+                {
+                    this.handleOrdersUnSubscription(client, topic);
+                } else if (java.util.Objects.equals(suffix, "trades"))
+                {
+                    this.handleMyTradesUnSubscription(client, topic);
                 }
             }
         }
@@ -487,7 +575,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
      * @method
      * @name derive#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://docs.derive.xyz/reference/trades-instrument_name
+     * @see https://docs.derive.xyz/api-reference/channels/tradesbyinstrument
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -504,7 +592,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String topic = ("trades." + market.get("id"));
+            String marketId = this.safeString(market, "id", "");
+            String topic = ("trades." + marketId);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -516,7 +605,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "symbol", symbol );
                 put( "params", parameters );
             }};
-            List<Object> trades = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(topic, request, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -533,11 +622,11 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Object topic = this.safeValue(parameters, "channel");
-        List<Object> parsedTopic = (List<Object>) Helpers.split(topic, ".");
+        String topic = this.safeString(parameters, "channel", "");
+        List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(tradesArray, null))
         {
@@ -549,7 +638,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i), (Map<String, Object>) null);
             tradesArray.append(trade);
         }
-        Helpers.addElementToObject(this.trades, symbol, tradesArray);
+        this.trades.put(symbol, tradesArray);
         client.resolve(tradesArray, topic);
     }
 
@@ -567,9 +656,11 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (java.util.Objects.equals(authenticated, null))
             {
                 Long requestId = this.requestId(url);
-                String now = String.valueOf(this.milliseconds());
-                String signature = this.signMessage(now, this.privateKey);
-                String deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
+                String now = this.numberToString(this.nonce());
+                String signature = this.signMessage((String) (now), (String) (this.privateKey));
+                String configuredWalletAddress = this.safeString(this.options, "deriveWalletAddress");
+                // v3: the owner wallet is the user's own EOA
+                Object deriveWalletAddress = ((((java.util.Objects.equals(configuredWalletAddress, null)) || (java.util.Objects.equals(configuredWalletAddress, ""))))) ? this.walletAddress : configuredWalletAddress;
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "id", requestId );
                     put( "method", "public/login" );
@@ -587,12 +678,12 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, message);
             }
-            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+            return future.getFuture().join();
         });
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Map<String, Object> message, Map<String, Object> subscription)
+    public CompletableFuture<Object> watchPrivate(String messageHash, Map<String, Object> message, Map<String, Object> subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -615,7 +706,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     /**
      * @method
      * @name derive#watchOrders
-     * @see https://docs.derive.xyz/reference/subaccount_id-orders
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountorders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -636,11 +727,13 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchOrders", (Map<String, Object>) (parameters));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
             var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            String topic = (this.numberToString(subaccountId) + ".orders");
+            String subaccountIdString = this.numberToString(subaccountId);
+            String topic = (subaccountIdString + ".orders");
             String messageHash = topic;
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
-            if (!java.util.Objects.equals(symbolResolved, null))
+            String symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
+                symbolResolved = this.symbol(symbol);
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -654,7 +747,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate((String) (messageHash), message, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -714,7 +807,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
             Object data = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
-            Object parsed = this.parseOrder(data, (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             String orderId = this.safeString(parsed, "id");
             if (!java.util.Objects.equals(symbol, null))
@@ -729,7 +822,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Map<String, Object> order = (Map<String, Object>) ((((java.util.Objects.equals(orderId, null)))) ? null : this.safeDict(orders, orderId, (Object) null));
                 if (!java.util.Objects.equals(order, null))
                 {
-                    Object fee = this.safeValue(order, "fee");
+                    Map<String, Object> fee = (Map<String, Object>) this.safeDict(order, "fee", (Object) null);
                     if (!java.util.Objects.equals(fee, null))
                     {
                         ((Map<String, Object>)parsed).put("fee", fee);
@@ -739,9 +832,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     {
                         ((Map<String, Object>)parsed).put("fees", fees);
                     }
-                    ((Map<String, Object>)parsed).put("trades", this.safeValue(order, "trades"));
-                    ((Map<String, Object>)parsed).put("timestamp", this.safeInteger(order, "timestamp"));
-                    ((Map<String, Object>)parsed).put("datetime", this.safeString(order, "datetime"));
+                    parsed.put("trades", this.safeList(order, "trades", (Object) null));
+                    parsed.put("timestamp", this.safeInteger(order, "timestamp"));
+                    parsed.put("datetime", this.safeString(order, "datetime"));
                 }
                 cachedOrders.append(parsed);
                 if (!java.util.Objects.equals(topic, null))
@@ -756,8 +849,48 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     /**
      * @method
+     * @name derive#unWatchOrders
+     * @description unsubscribe from the orders channel
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountorders
+     * @param {string} [symbol] not used by derive unWatchOrders, the whole subaccount channel is unsubscribed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("unWatchOrders", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+            String subaccountIdString = this.numberToString(subaccountId);
+            String topic = (subaccountIdString + ".orders");
+            String messageHash = ("unwatch" + topic);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "unsubscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channels", new ArrayList<Object>(Arrays.asList(topic)) );
+                }} );
+            }};
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "name", topic );
+            }};
+            Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
+            return (this.unWatchPublic(messageHash, message, subscription)).join();
+        });
+
+    }
+
+    /**
+     * @method
      * @name derive#watchMyTrades
-     * @see https://docs.derive.xyz/reference/subaccount_id-trades
+     * @see https://docs.derive.xyz/api-reference/channels/subaccounttrades
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -778,11 +911,13 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchMyTrades", (Map<String, Object>) (parameters));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
             var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            String topic = (this.numberToString(subaccountId) + ".trades");
+            String subaccountIdString = this.numberToString(subaccountId);
+            String topic = (subaccountIdString + ".trades");
             String messageHash = topic;
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
-            if (!java.util.Objects.equals(symbolResolved, null))
+            String symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
+                symbolResolved = this.symbol(symbol);
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -796,7 +931,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate((String) (messageHash), message, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -816,20 +951,328 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+            this.myTrades = myTrades;
         }
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
         String topic = this.safeString(parameters, "channel");
         List<Object> rawTrades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)), (Map<String, Object>) null);
             myTrades.append(trade);
             client.resolve(myTrades, topic);
             if (!java.util.Objects.equals(topic, null))
             {
-                String messageHash = (topic + this.safeString(trade, "symbol", ""));
+                String messageHash = ((topic + ":") + this.safeString(trade, "symbol", ""));
                 client.resolve(myTrades, messageHash);
             }
+        }
+    }
+
+    /**
+     * @method
+     * @name derive#unWatchMyTrades
+     * @description unsubscribe from the my trades channel
+     * @see https://docs.derive.xyz/api-reference/channels/subaccounttrades
+     * @param {string} [symbol] not used by derive unWatchMyTrades, the whole subaccount channel is unsubscribed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("unWatchMyTrades", (Map<String, Object>) (parameters));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+            String subaccountIdString = this.numberToString(subaccountId);
+            String topic = (subaccountIdString + ".trades");
+            String messageHash = ("unwatch" + topic);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "unsubscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channels", new ArrayList<Object>(Arrays.asList(topic)) );
+                }} );
+            }};
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "name", topic );
+            }};
+            Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
+            return (this.unWatchPublic(messageHash, message, subscription)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name derive#watchBalance
+     * @description watches balance updates for a single subaccount, the returned structure is scoped to the watched subaccount
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @param {boolean} [params.fetchBalanceSnapshot] default true, the channel only streams changed totals, so an initial snapshot is loaded over rest before subscribing
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Pair<Boolean, Map<String, Object>> fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchBalance", "fetchBalanceSnapshot", true);
+            Boolean fetchSnapshot = fetchSnapshotparamsSnapshotVariable.first();
+            Map<String, Object> paramsSnapshot = fetchSnapshotparamsSnapshotVariable.second();
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchBalance", (Map<String, Object>) (paramsSnapshot));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+            if (java.util.Objects.equals(this.balance, null))
+            {
+                Map<String, Object> emptyBalances = new HashMap<String, Object>() {{}};
+                this.balance = emptyBalances;
+            }
+            // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
+            String subaccountIdKey = this.numberToString(subaccountId);
+            if (java.util.Objects.equals(subaccountIdKey, null))
+            {
+                throw new ExchangeError((this.id + " watchBalance() could not resolve the subaccount id")) ;
+            }
+            if (Boolean.TRUE.equals(fetchSnapshot) && !(((Map<?, ?>)this.balance).containsKey(subaccountIdKey)))
+            {
+                Map<String, Object> snapshotRequest = new HashMap<String, Object>() {{
+                    put( "subaccount_id", subaccountId );
+                }};
+                Map<String, Object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
+                Balances snapshot = (this.fetchBalance(snapshotParams)).join();
+                Map<String, Object> emptyBalance = new HashMap<String, Object>() {{}}; // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
+                Map<String, Object> seeded = this.extend(snapshot, emptyBalance); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
+                this.balance.put(subaccountIdKey, seeded);
+            }
+            String subaccountIdString = this.numberToString(subaccountId);
+            String topic = (subaccountIdString + ".balances");
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "subscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channels", new ArrayList<Object>(Arrays.asList(topic)) );
+                }} );
+            }};
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "name", topic );
+                put( "params", paramsDeriveSubaccountId );
+            }};
+            Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
+            return (this.watchPrivate(topic, message, subscription)).join();
+        }).thenApply(Balances::new);
+
+    }
+
+    /**
+     * @method
+     * @name derive#watchPositions
+     * @description watch all open positions; the sizes stream over the balances channel, while entry price, pnl and margin fields stay from the rest snapshot until the next one
+     * @see https://docs.derive.xyz/api-reference/channels/subaccountbalances
+     * @param {string[]} [symbols] list of unified market symbols to watch positions for
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subaccount_id] *required* the subaccount id
+     * @param {boolean} [params.fetchPositionsSnapshot] default true, the channel only streams size changes, so an initial snapshot is loaded over rest before subscribing
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Pair<Boolean, Map<String, Object>> fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchPositions", "fetchPositionsSnapshot", true);
+            Boolean fetchSnapshot = fetchSnapshotparamsSnapshotVariable.first();
+            Map<String, Object> paramsSnapshot = fetchSnapshotparamsSnapshotVariable.second();
+            List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchPositions", (Map<String, Object>) (paramsSnapshot));
+            var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
+            var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
+            if (java.util.Objects.equals(this.positions, null))
+            {
+                Map<String, Object> emptyCaches = new HashMap<String, Object>() {{}};
+                this.positions = emptyCaches;
+                Map<String, Object> emptySnapshots = new HashMap<String, Object>() {{}};
+                this.options.put("loadedPositionsSnapshots", emptySnapshots);
+            }
+            // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
+            String subaccountIdKey = this.numberToString(subaccountId);
+            if (!((switch ((Object)(this.positions)) { case List<?> j39v2 -> ((Object)(subaccountIdKey)) != null && j39v2.contains(subaccountIdKey); case Map<?, ?> j39v1 -> ((Object)(subaccountIdKey)) instanceof String && j39v1.containsKey(subaccountIdKey); case null, default -> false; })))
+            {
+                ((Map<Object, Object>) (Map<?, ?>) this.positions).put(subaccountIdKey, new ArrayCache.ArrayCacheBySymbolBySide());
+            }
+            Map<String, Object> loadedSnapshots = (Map<String, Object>) this.safeDict(this.options, "loadedPositionsSnapshots", new HashMap<String, Object>() {{}});
+            if (Boolean.TRUE.equals(fetchSnapshot) && !(loadedSnapshots.containsKey(subaccountIdKey)))
+            {
+                Map<String, Object> snapshotRequest = new HashMap<String, Object>() {{
+                    put( "subaccount_id", subaccountId );
+                }};
+                Map<String, Object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
+                List<Position> positionsSnapshot = (this.fetchPositions((List<String>) null, snapshotParams)).join();
+                Object cache = this.safeValue(this.positions, subaccountIdKey);
+                for (var i = 0; i < ((List<?>)positionsSnapshot).size(); i++)
+                {
+                    Object snapshotPosition = this.safeValue(positionsSnapshot, i);
+                    ((io.github.ccxt.ws.ArrayCache) cache).append(snapshotPosition);
+                }
+                loadedSnapshots.put(subaccountIdKey, true);
+                this.options.put("loadedPositionsSnapshots", loadedSnapshots);
+            }
+            String subaccountIdString = this.numberToString(subaccountId);
+            String topic = (subaccountIdString + ".balances");
+            String messageHash = ("positions:" + topic);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "subscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channels", new ArrayList<Object>(Arrays.asList(topic)) );
+                }} );
+            }};
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "name", topic );
+                put( "params", paramsDeriveSubaccountId );
+            }};
+            Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
+            List<Object> newPositions = (List<Object>) (this.watchPrivate(messageHash, message, subscription)).join();
+            if (this.newUpdates)
+            {
+                return newPositions;
+            }
+            return this.filterBySymbolsSinceLimit(this.safeValue(this.positions, subaccountIdKey), symbolsResolved, since, limit, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+
+    }
+
+    public Map<String, Object> handlePositionDelta(String subaccountIdKey, Map<String, Object> entry)
+    {
+        String marketId = this.safeString(entry, "name");
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeString(market, "symbol", "");
+        String newSize = this.safeString(entry, "new_balance", "0");
+        Object isShort = Precise.stringLt(newSize, "0");
+        String side = ((Boolean.TRUE.equals(isShort))) ? "short" : "long";
+        String contracts = Precise.stringAbs(newSize);
+        Object cache = this.safeValue(this.positions, subaccountIdKey);
+        Map<String, Object> symbolPositions = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
+        // a fill through zero flattens the opposite side first
+        String oppositeSide = ((Boolean.TRUE.equals(isShort))) ? "long" : "short";
+        Map<String, Object> opposite = (Map<String, Object>) this.safeDict(symbolPositions, oppositeSide, (Object) null);
+        if (!java.util.Objects.equals(opposite, null))
+        {
+            String oppositeContracts = this.safeString(opposite, "contracts");
+            if ((!java.util.Objects.equals(oppositeContracts, null)) && (!java.util.Objects.equals(oppositeContracts, "0")))
+            {
+                ((Map<String, Object>)opposite).put("contracts", this.parseNumber("0"));
+                ((Map<String, Object>)opposite).put("lastUpdateTimestamp", this.milliseconds());
+                ((io.github.ccxt.ws.ArrayCache) cache).append(opposite);
+            }
+        }
+        Map<String, Object> position = (Map<String, Object>) this.safeDict(symbolPositions, side, (Object) null);
+        if (java.util.Objects.equals(position, null))
+        {
+            // the position is freshly opened by the current fill, so the local clock approximates the open time
+            Long timestamp = this.milliseconds();
+            position = (Map<String, Object>) this.safePosition(new HashMap<String, Object>() {{
+                put( "symbol", symbol );
+                put( "side", side );
+                put( "timestamp", timestamp );
+                put( "datetime", Derive.this.iso8601(timestamp) );
+                put( "info", entry );
+            }});
+        }
+        ((Map<String, Object>)position).put("contracts", this.parseNumber(contracts));
+        ((Map<String, Object>)position).put("side", side);
+        ((Map<String, Object>)position).put("lastUpdateTimestamp", this.milliseconds());
+        ((Map<String, Object>)position).put("info", entry);
+        ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+        return position;
+    }
+
+    public void handleBalance(Client client, Map<String, Object> message)
+    {
+        //
+        //     {
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "86815.balances",
+        //             "data": [
+        //                 {
+        //                     "name": "USDC",
+        //                     "new_balance": "8427.545482",
+        //                     "previous_balance": "8428.545482",
+        //                     "update_type": "trade"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
+        String topic = this.safeString(parameters, "channel", "");
+        List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
+        String subaccountIdKey = this.safeString(topicParts, 0);
+        List<Object> data = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
+        if (java.util.Objects.equals(this.balance, null))
+        {
+            this.balance = new HashMap<String, Object>() {{}};
+        }
+        Map<String, Object> subBalance = (Map<String, Object>) this.safeDict(this.balance, subaccountIdKey, new HashMap<String, Object>() {{}});
+        Boolean updated = false;
+        List<Object> positionUpdates = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)data).size(); i++)
+        {
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            String name = this.safeString(entry, "name", "");
+            if (((String)name).indexOf("-") >= 0)
+            {
+                // position deltas carry instrument names and do not belong into the balance structure
+                if ((!java.util.Objects.equals(this.positions, null)) && ((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(subaccountIdKey)) != null && j39v4.contains(subaccountIdKey); case Map<?, ?> j39v3 -> ((Object)(subaccountIdKey)) instanceof String && j39v3.containsKey(subaccountIdKey); case null, default -> false; })))
+                {
+                    Map<String, Object> position = this.handlePositionDelta(subaccountIdKey, entry);
+                    ((List<Object>)positionUpdates).add(position);
+                }
+                continue;
+            }
+            String code = this.safeCurrencyCode((String) (name), (Map<String, Object>) null);
+            if (java.util.Objects.equals(code, null))
+            {
+                continue;
+            }
+            Map<String, Object> account = (Map<String, Object>) this.safeDict(subBalance, code, (Object) null);
+            if (java.util.Objects.equals(account, null))
+            {
+                account = this.account();
+            }
+            // the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
+            Helpers.addElementToObject(account, "total", this.safeString(entry, "new_balance"));
+            // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
+            Helpers.addElementToObject(account, "free", null);
+            Helpers.addElementToObject(account, "used", null);
+            subBalance.put(code, account);
+            updated = true;
+        }
+        if (Boolean.TRUE.equals(updated))
+        {
+            this.balance.put(subaccountIdKey, this.safeBalance(((Object)subBalance)));
+            client.resolve(this.safeValue(this.balance, subaccountIdKey), topic);
+        }
+        Integer positionUpdatesLength = ((List<?>)positionUpdates).size();
+        if ((positionUpdatesLength != null && positionUpdatesLength > 0))
+        {
+            client.resolve(positionUpdates, ("positions:" + topic));
         }
     }
 
@@ -852,19 +1295,19 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (!java.util.Objects.equals(errorCode, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
                 throw new ExchangeError(feedback) ;
             }
             return false;
         } catch(Exception error)
         {
-            if (Helpers.isInstance(error, AuthenticationError.class))
+            if ((error instanceof AuthenticationError))
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+                if (client.subscriptions.containsKey(messageHash))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove(messageHash);
+                    client.subscriptions.remove(messageHash);
                 }
             } else
             {
@@ -874,19 +1317,20 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
     }
 
-    public void handleMessage(Client client, Object message)
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "orderbook", "handleOrderBook");
-            put( "ticker", "handleTicker");
-            put( "ticker_slim", "handleTicker");
-            put( "trades", "handleTrade");
-            put( "orders", "handleOrder");
-            put( "mytrades", "handleMyTrade");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("orderbook", "handleOrderBook");
+            put("ticker", "handleTicker");
+            put("ticker_slim", "handleTicker");
+            put("trades", "handleTrade");
+            put("orders", "handleOrder");
+            put("mytrades", "handleMyTrade");
+            put("balances", "handleBalance");
         }};
         String eventVar = null;
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
@@ -896,10 +1340,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (!java.util.Objects.equals(channel, null))
             {
                 List<Object> parsedChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
-                if ((((String)channel).indexOf("orders") >= 0) || ((String)channel).indexOf("trades") > 0)
+                if ((((String)channel).indexOf("orders") >= 0) || (((String)channel).indexOf("trades") > 0) || (((String)channel).indexOf("balances") > 0))
                 {
                     eventVar = this.safeString(parsedChannel, 1);
-                    // {subaccounr_id}.trades
+                    // {subaccount_id}.trades
                     if (java.util.Objects.equals(eventVar, "trades"))
                     {
                         eventVar = "mytrades";
@@ -910,25 +1354,65 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 }
             }
         }
-        Object method = (((java.util.Objects.equals(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
+        String method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method) {
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleTicker":
+                    this.handleTicker(client, message);
+                    break;
+                case "handleTrade":
+                    this.handleTrade(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleMyTrade":
+                    this.handleMyTrade(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + method);
+            }
             return;
         }
-        if (((Map<?, ?>)message).containsKey("id"))
+        if (message.containsKey("id"))
         {
             String id = this.safeString(message, "id");
-            Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-            Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(id, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}}));
-            if (subscription.containsKey("method"))
+            // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
+            List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
+            Boolean matched = false;
+            for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
             {
-                if (java.util.Objects.equals(this.safeString(subscription, "method"), "public/login"))
+                Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i)), new HashMap<String, Object>() {{}});
+                String subscriptionId = this.safeString(subscription, "id");
+                if ((!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))
                 {
-                    this.handleAuth(client, (Map<String, Object>) (message));
-                } else if (java.util.Objects.equals(this.safeString(subscription, "method"), "unsubscribe"))
+                    matched = true;
+                    String subscriptionMethod = this.safeString(subscription, "method");
+                    if (java.util.Objects.equals(subscriptionMethod, "public/login"))
+                    {
+                        this.handleAuth(client, message);
+                    } else if (java.util.Objects.equals(subscriptionMethod, "unsubscribe"))
+                    {
+                        this.handleUnSubscribe(client, message);
+                    }
+                }
+            }
+            if (!Boolean.TRUE.equals(matched))
+            {
+                List<Object> loginResult = (List<Object>) this.safeList(message, "result", (Object) null);
+                if (!java.util.Objects.equals(loginResult, null))
                 {
-                    this.handleUnSubscribe(client, (Map<String, Object>) (message));
+                    // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
+                    // in java the acknowledgement can arrive before the subscription record is stored
+                    // so the shape serves as the routing fallback when the id scan finds nothing
+                    this.handleAuth(client, message);
                 }
             }
         }
@@ -944,19 +1428,20 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //
         String messageHash = "authenticated";
         List<Object> ids = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
-        if (((List<?>)ids).size() > 0)
+        Integer idsLength = ((List<?>)ids).size();
+        if ((idsLength != null && idsLength > 0))
         {
             // client.resolve (message, messageHash);
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
-            ((io.github.ccxt.ws.Future)future).resolve(true);
+            io.github.ccxt.ws.Future future = client.futures.get("authenticated");
+            future.resolve(true);
         } else
         {
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
             // allows further authentication attempts
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (client.subscriptions.containsKey(messageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove("authenticated");
+                client.subscriptions.remove("authenticated");
             }
         }
     }

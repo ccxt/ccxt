@@ -13,7 +13,7 @@ func newOkxus() *Okxus {
 	return p
 }
 
-func (this *Okxus) Describe() any {
+func (this *Okxus) Describe() map[string]any {
 	return this.DeepExtend(this.Okx.Describe(), map[string]any{
 		"id":        "okxus",
 		"name":      "OKX (US)",

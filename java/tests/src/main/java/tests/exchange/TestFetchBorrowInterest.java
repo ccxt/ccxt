@@ -14,17 +14,17 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchBorrowInterest extends BaseTest {
-    public CompletableFuture<Object> testFetchBorrowInterest(BaseExchange exchange, Object skippedProperties, Object code, Object symbol)
+    public CompletableFuture<Object> testFetchBorrowInterest(BaseExchange exchange, Object skippedProperties, String code, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchBorrowInterest";
-        Object borrowInterest = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBorrowInterest", new Object[]{Helpers.toStringArg(code), Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+        Object borrowInterest = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBorrowInterest", new Object[]{code, symbol, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, borrowInterest, code);
         for (var i = 0; i < ((List<?>)borrowInterest).size(); i++)
         {
-            TestBorrowInterest.testBorrowInterest(exchange, skippedProperties, method, (borrowInterest == null || i < 0 || i >= ((List<?>)borrowInterest).size() ? null : ((List<?>)borrowInterest).get(i)), code, symbol);
+            TestBorrowInterest.testBorrowInterest(exchange, skippedProperties, method, (borrowInterest == null || i < 0 || i >= ((List<?>)borrowInterest).size() ? null : ((List<?>)borrowInterest).get(i)), (String) (code), (String) (symbol));
         }
         return true;
         });

@@ -24,7 +24,7 @@ async function testWatchMyTrades(exchange, skippedProperties, symbol) {
             // continue;
             success = false;
         }
-        if (success === true) {
+        if (success) {
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
             now = exchange.milliseconds();
             for (let i = 0; i < response.length; i++) {
