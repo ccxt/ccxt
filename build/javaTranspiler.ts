@@ -5849,7 +5849,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10372,6 +10372,38 @@ function javaR87j4SplitSeedSelfTest (): string[] {
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`r87-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 90j4: null seeds written from a typed handle*AndParams Pair slot, native String uses (ws tier, where
+// the earlier sections leave such a seed Object)
+function javaR90j4NullSeedSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzr90j4seed${process.pid}.ts`);
+    const body = [
+        "import Exchange from '../binance.js';", "import type { Str, Dict, Trade } from '../base/types.js';",
+        'export default class zzr90j4seed extends Exchange {',
+        "    async a1 (flag: boolean, params: Dict = {}) { let subType: Str = undefined; let paramsSubType: Dict = {}; if (flag) { subType = 'linear'; } else { const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('a1', undefined, params); [ subType, paramsSubType ] = this.handleOptionStringAndParams (paramsMarketType, 'a1', 'subType', subType); } return await this.ws2 ('c', subType, paramsSubType); }",
+        "    async a3 (flag: boolean, params: Dict = {}) { let k = undefined; let p2: Dict = {}; if (flag) { k = params['k']; } else { [ k, p2 ] = this.handleOptionStringAndParams (params, 'a3', 'k'); } return await this.ws2 ('c', k, p2); }",
+        "    async ws2 (c: string, s: string, params: Dict = {}) { return [ c, s, params ]; }",
+        "    h3 (raw: Dict, flag: boolean) { let parsed = undefined; if (flag) { parsed = this.parseWsTrade (raw); } else { parsed = this.parseTrade (raw); } const symbol = parsed['symbol']; return symbol; }",
+        "    h4 (raw: Dict, flag: boolean) { let parsed = undefined; if (flag) { parsed = this.parseWsTrade (raw); } else { parsed = this.parseTrade (raw); } return [ parsed ]; }",
+        "    parseWsTrade (trade: Dict, market = undefined): Trade { return this.parseTrade (trade, market); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String subType = null/.test(out) || !/ws2\("c", subType, /.test(out) || /toStringArg\(subType\)/.test(out)) problems.push("r90-j4: 'subType' (literal + Pair slot 0 writes, String core argument) must print String with no argument cast");
+        if (!/\bObject k = null/.test(out)) problems.push("r90-j4: 'k' (an unproven element-read write beside the Pair slot) must stay Object");
+        if (!/Map<String, Object> parsed = null;[^]*?String symbol = \(String\) parsed\.get\("symbol"\)/.test(out)) problems.push("r90-j4 R2: 'parsed' (Trade core writes, string-key read) must print Map<String, Object> with an uncast get");
+        if (!/public Object h4\([^]*?\bObject parsed = null/.test(out)) problems.push("r90-j4 R2: 'parsed' with no native use must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`r90-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
