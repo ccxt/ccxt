@@ -8123,6 +8123,24 @@ function goAccessSingleDeclaration (maskedFunc: string, signature: string, name:
     return undefined;
 }
 
+// slot 0 of the one `name, b := this.M(..)` bind of a pair method this file declares `(*string, map[string]any)` (every
+// declaration agrees): a *string local, the same declaration goAccessSingleDeclaration answers for `var name *string = ..`
+function goAccessPairSlot0Declaration (maskedFunc: string, signature: string, name: string, lines: string[]): any {
+    const n = goAccessEscape (name);
+    const bind = new RegExp ('^[ \\t]*' + n + ', \\w+ := this\\.(\\w+)\\(', 'm').exec (maskedFunc);
+    if ((bind === null) || (goAccessSingleDeclaration (maskedFunc.replace (bind[0], ' '.repeat (bind[0].length)), signature, name) !== undefined)
+        || new RegExp ('\\bvar\\s+' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\s*\\([^()]*\\b' + n + '\\b|\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=')
+            .test (maskedFunc.replace (bind[0], ' '.repeat (bind[0].length)))
+        || new RegExp ('[(,]\\s*' + n + '\\s+[^,()]+?\\s*[,)]').test (signature.substring (signature.indexOf (') ') + 1))) {
+        return undefined;
+    }
+    const sigs = lines.filter ((l) => l.startsWith ('func (this *') && l.includes (') ' + bind[1] + '('));
+    if ((sigs.length === 0) || !sigs.every ((l) => l.endsWith (') (*string, map[string]any) {'))) {
+        return undefined;
+    }
+    return { 'type': '*string', 'index': bind.index, 'line': bind[0] };
+}
+
 // line k sits directly in the body of an `if name != nil {` block (no else-if chain above it)
 function goAccessInsideNilGuard (masked: string[], k: number, name: string): boolean {
     let depth = 0;
@@ -8242,7 +8260,7 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     const cache = new Map<string, any> ();
     const declOf = (name: string) => {
         if (!cache.has (name)) {
-            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name));
+            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name) ?? goAccessPairSlot0Declaration (maskedFunc, lines[start], name, lines));
         }
         return cache.get (name);
     };
