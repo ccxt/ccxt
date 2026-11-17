@@ -28,6 +28,7 @@ export default class bitfinex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
+    parseMarket(pairObj: Dict): Market;
     /**
      * @method
      * @name bitfinex#fetchCurrencies

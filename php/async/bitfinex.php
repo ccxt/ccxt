@@ -615,7 +615,7 @@ class bitfinex extends Exchange {
          * @see https://docs.bitfinex.com/reference/rest-public-conf
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $labels = array(
             'pub:info:pair',
@@ -636,104 +636,108 @@ class bitfinex extends Exchange {
         $futuresMarketsInfo = $this->safe_list($response, 1, array());
         $marginIds = $this->safe_list($response, 3, array());
         $markets = $this->array_concat($spotMarketsInfo, $futuresMarketsInfo);
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $pairObj = $this->safe_list($markets, $i);
-            $id = $this->safe_string_upper($pairObj, 0, '');
-            $market = $this->safe_list($pairObj, 1, array());
-            $spot = true;
-            $type = null;
-            if (mb_strpos($id, 'F0') !== false) {
-                $spot = false;
-                $type = 'swap';
-            } else {
-                $type = 'spot';
-            }
-            $swap = $type === 'swap';
-            $baseId = null;
-            $quoteId = null;
-            if (mb_strpos($id, ':') !== false) {
-                $parts = explode(':', $id);
-                $baseId = $parts[0];
-                $quoteId = $parts[1];
-            } else {
-                $baseId = mb_substr($id, 0, 3 - 0);
-                $quoteId = mb_substr($id, 3, 6 - 3);
-            }
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $splitBase = explode('F0', $base);
-            $splitQuote = explode('F0', $quote);
-            $base = $this->safe_string($splitBase, 0);
-            $quote = $this->safe_string($splitQuote, 0);
-            if (($base === null) || ($quote === null)) {
-                continue;
-            }
-            $symbol = $base . '/' . $quote;
-            // baseId = 'f' + baseId;
-            // quoteId = 'f' + quoteId;
-            $settle = null;
-            $settleId = null;
-            if ($swap) {
-                $settle = $quote;
-                $settleId = $quote;
-                $symbol = $symbol . ':' . $settle;
-            }
-            $minOrderSizeString = $this->safe_string($market, 3);
-            $maxOrderSizeString = $this->safe_string($market, 4);
-            $result[] = array(
-                'id' => 't' . $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => $settle,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
-                'type' => $type,
-                'spot' => $spot,
-                'margin' => ($spot && $this->in_array($id, $marginIds)),
-                'swap' => $swap,
-                'future' => false,
-                'option' => false,
-                'active' => true,
-                'contract' => !$spot,
-                'linear' => $swap ? true : null,
-                'inverse' => $swap ? false : null,
-                'maker' => $this->safe_number($this->fees['trading'], 'maker'),
-                'taker' => $this->safe_number($this->fees['trading'], 'taker'),
-                'contractSize' => $swap ? $this->parse_number('1') : null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => intval('8'), // https://github.com/ccxt/ccxt/issues/7310
-                    'price' => intval('5'),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->parse_number($minOrderSizeString),
-                        'max' => $this->parse_number($maxOrderSizeString),
-                    ),
-                    'price' => array(
-                        'min' => $this->parse_number('1e-8'),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'created' => null, // todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
-                'info' => $market,
-            );
+        $this->options['marginIds'] = $marginIds;
+        return $this->parse_markets($markets);
+    }
+
+    public function parse_market(array $pairObj): array {
+        //
+        //     [ 'AAVE:USD', [ null, null, null, "0.02", "5000.0", null, null, null, null, null, null, null ] ]
+        //
+        $marginIds = $this->safe_list($this->options, 'marginIds', array());
+        $id = $this->safe_string_upper($pairObj, 0, '');
+        $market = $this->safe_list($pairObj, 1, array());
+        $spot = true;
+        $type = null;
+        if (mb_strpos($id, 'F0') !== false) {
+            $spot = false;
+            $type = 'swap';
+        } else {
+            $type = 'spot';
         }
-        return $result;
+        $swap = $type === 'swap';
+        $baseId = null;
+        $quoteId = null;
+        if (mb_strpos($id, ':') !== false) {
+            $parts = explode(':', $id);
+            $baseId = $parts[0];
+            $quoteId = $parts[1];
+        } else {
+            $baseId = mb_substr($id, 0, 3 - 0);
+            $quoteId = mb_substr($id, 3, 6 - 3);
+        }
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $splitBase = explode('F0', $base);
+        $splitQuote = explode('F0', $quote);
+        $base = $this->safe_string($splitBase, 0);
+        $quote = $this->safe_string($splitQuote, 0);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
+        $symbol = $base . '/' . $quote;
+        // baseId = 'f' + baseId;
+        // quoteId = 'f' + quoteId;
+        $settle = null;
+        $settleId = null;
+        if ($swap) {
+            $settle = $quote;
+            $settleId = $quote;
+            $symbol = $symbol . ':' . $settle;
+        }
+        $minOrderSizeString = $this->safe_string($market, 3);
+        $maxOrderSizeString = $this->safe_string($market, 4);
+        return array(
+            'id' => 't' . $id,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => $settleId,
+            'type' => $type,
+            'spot' => $spot,
+            'margin' => ($spot && $this->in_array($id, $marginIds)),
+            'swap' => $swap,
+            'future' => false,
+            'option' => false,
+            'active' => true,
+            'contract' => !$spot,
+            'linear' => $swap ? true : null,
+            'inverse' => $swap ? false : null,
+            'maker' => $this->safe_number($this->fees['trading'], 'maker'),
+            'taker' => $this->safe_number($this->fees['trading'], 'taker'),
+            'contractSize' => $swap ? $this->parse_number('1') : null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => intval('8'), // https://github.com/ccxt/ccxt/issues/7310
+                'price' => intval('5'),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->parse_number($minOrderSizeString),
+                    'max' => $this->parse_number($maxOrderSizeString),
+                ),
+                'price' => array(
+                    'min' => $this->parse_number('1e-8'),
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null, // todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
+            'info' => $market,
+        );
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
