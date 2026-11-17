@@ -1841,7 +1841,7 @@ public partial class weex : Exchange
                 request["priceType"] = priceType;
             }
             Int64 now = this.milliseconds();
-            object startTime = since;
+            Int64? startTime = since;
             object endTime = now;
             if ((until != null))
             {
@@ -1858,7 +1858,7 @@ public partial class weex : Exchange
                 {
                     historyLimit = this.parseToInt(Math.Min(limit.Value, maxHistoricalLimit));
                 }
-                Int64? timeDelta = this.parseToInt((historyLimit * duration));
+                Int64? timeDelta = (historyLimit * duration);
                 if (((since == null)) && ((until == null)))
                 {
                     endTime = now;

@@ -195,8 +195,8 @@ public partial class PredictionExchange : BaseExchange
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             int resultLength = getArrayLength(result);
-            object sliceEnd = limit;
-            if (isGreaterThan(sliceEnd, resultLength))
+            Int64? sliceEnd = limit;
+            if ((sliceEnd > resultLength))
             {
                 sliceEnd = resultLength;
             }

@@ -1623,8 +1623,8 @@ public partial class bitstamp : Exchange
         {
             return currencyId;
         }
-        object transactionOmitted = this.omit(transaction, new List<object>() {"fee", "price", "datetime", "type", "status", "id"});
-        List<object> ids = new List<object>(((IDictionary<string,object>)transactionOmitted).Keys);
+        Dictionary<string, object> transactionOmitted = ((Dictionary<string, object>)this.omit(transaction, new List<object>() {"fee", "price", "datetime", "type", "status", "id"}));
+        List<object> ids = new List<object>(transactionOmitted.Keys);
         for (int i = 0; i < ids.Count; i++)
         {
             string? id = ((string)ids[i]);
@@ -1642,8 +1642,8 @@ public partial class bitstamp : Exchange
 
     public virtual IDictionary<string, object> getMarketFromTrade(object trade)
     {
-        object tradeOmitted = this.omit(trade, new List<object>() {"fee", "price", "datetime", "tid", "type", "order_id", "side"});
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)tradeOmitted).Keys);
+        Dictionary<string, object> tradeOmitted = ((Dictionary<string, object>)this.omit(trade, new List<object>() {"fee", "price", "datetime", "tid", "type", "order_id", "side"}));
+        List<object> currencyIds = new List<object>(tradeOmitted.Keys);
         int numCurrencyIds = currencyIds.Count;
         if (numCurrencyIds > 2)
         {

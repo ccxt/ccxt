@@ -3496,8 +3496,8 @@ public partial class binance : ccxt.binance
                 // Schedule token renewal before expiration
                 if ((expirationTime != null))
                 {
-                    object renewalTime = ((expirationTime - time) - 60000); // Renew 1 minute before expiration
-                    if (isGreaterThan(renewalTime, 0))
+                    Int64? renewalTime = ((expirationTime - time) - 60000); // Renew 1 minute before expiration
+                    if ((renewalTime > 0))
                     {
                         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
                             { "type", marketTypeVar },

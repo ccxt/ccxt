@@ -299,7 +299,7 @@ public partial class paradex : ccxt.paradex
     public async virtual Task<object> unsubscribeChannelsFrom(object url, object topic, object channels, object subMessageHashes, object symbols, object start, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object refused = 0;
+        Int64? refused = 0;
         for (int i = 0; i < getArrayLength(channels); i++)
         {
             if (isGreaterThanOrEqual(i, start))
@@ -309,7 +309,7 @@ public partial class paradex : ccxt.paradex
                     await this.unsubscribeChannelAt(url, topic, channels, subMessageHashes, symbols, i, parameters);
                 } catch(Exception e)
                 {
-                    refused = add(refused, 1);
+                    refused = (refused + 1);
                 }
             }
         }
@@ -901,7 +901,7 @@ public partial class paradex : ccxt.paradex
             channels.Add(channel);
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
-        object orderbook = await this.subscribeChannels(url, messageHashes, channels, paramsDeltas);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribeChannels(url, messageHashes, channels, paramsDeltas));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -1125,11 +1125,11 @@ public partial class paradex : ccxt.paradex
         // a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
         // keep their ids in the subscriptions, so that an error reply reaches neither an unrelated watcher nor
         // the whole connection
-        object unsubscribe = this.unsubscribeRequest(channel);
+        Dictionary<string, object> unsubscribe = ((Dictionary<string, object>)this.unsubscribeRequest(channel));
         Dictionary<string, object> subscribe = this.subscribeRequest(channel);
         string unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id"));
         ((IDictionary<string,object>)client.subscriptions)[unsubscribeHash] = new Dictionary<string, object>() {
-            { "id", getValue(unsubscribe, "id") },
+            { "id", (unsubscribe != null && unsubscribe.ContainsKey("id") ? unsubscribe["id"] : null) },
             { "messageHashes", new List<object>() {} },
         };
         ((IDictionary<string,object>)client.subscriptions)[(string)channel] = new Dictionary<string, object>() {
@@ -2301,8 +2301,8 @@ public partial class paradex : ccxt.paradex
     {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         string digits = "0123456789abcdef";
-        object result = 0;
-        object factor = 1;
+        Int64? result = 0;
+        Int64? factor = 1;
         Int64? count = this.parseToInt(length);
         Int64? start = this.parseToInt(offset);
         Int64? position = (start * 2);
@@ -2313,8 +2313,8 @@ public partial class paradex : ccxt.paradex
             Int64? next = (position + 2);
             int high = digits.IndexOf(((string)slice(frameHex, position, middle)), StringComparison.Ordinal);
             int low = digits.IndexOf(((string)slice(frameHex, middle, next)), StringComparison.Ordinal);
-            result = this.parseToInt(this.sum(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((high * 16L), factor), ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(low, factor)));
-            factor = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(factor, 256));
+            result = this.parseToInt(this.sum(result, ((high * 16L) * factor), (low * factor)));
+            factor = this.parseToInt((factor * 256));
             position = this.parseToInt(next);
         }
         // an exact integer below 2^32, parseToInt keeps it and types the return as an integer
@@ -2531,7 +2531,7 @@ public partial class paradex : ccxt.paradex
             }
             Int64? entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             Int64? numInGroup = this.parseToInt(this.sbeReadUint(frameHex, (position + 2), 2));
-            position = this.parseToInt((position + 4));
+            position = (position + 4);
             if ((((entryLength == null || entryLength < 16))) || (isGreaterThan(this.parseToInt(this.sum(position, (numInGroup * entryLength))), frameEnd)))
             {
                 return ((Dictionary<string, object>)((object)(null)));

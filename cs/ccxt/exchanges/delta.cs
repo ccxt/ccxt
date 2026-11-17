@@ -1779,7 +1779,7 @@ public partial class delta : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
-        object limitValue = 2000;
+        Int64? limitValue = 2000;
         Int64? windowSeconds = (2000L * duration);
         if ((limit != null) && (limit != null) && (limit != 0))
         {

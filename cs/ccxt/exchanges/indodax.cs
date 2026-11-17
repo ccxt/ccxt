@@ -1675,10 +1675,10 @@ public partial class indodax : Exchange
         bool isPublic = (apiName == "public");
         if (isPublic)
         {
-            object query = this.omit(parameters, this.extractParams(path));
+            Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
             string requestPath = ("/" + this.implodeParams(path, parameters));
             url = (apiUrl + requestPath);
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if ((new List<object>(query.Keys)).Count > 0)
             {
                 url = (((apiUrl + requestPath) + "?") + this.urlencodeWithArrayRepeat(query));
             }

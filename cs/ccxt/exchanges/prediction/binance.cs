@@ -242,7 +242,7 @@ public partial class binance : PredictionExchange
             maxTopicsResolved = this.parseToInt(maxTopics);
         }
         Int64? pageLimitOption = this.safeInteger(this.options, "marketsPageLimit", 100);
-        Int64? pageLimit = this.parseToInt(100);
+        Int64? pageLimit = 100;
         if (((pageLimitOption == null || pageLimitOption < 100)))
         {
             pageLimit = this.parseToInt(pageLimitOption);
@@ -515,7 +515,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> collected = new List<object>() {};
         int queriesLength = queries?.Count ?? 0;
-        Int64? limitValue = this.parseToInt(20);
+        Int64? limitValue = 20;
         if ((limit != null))
         {
             limitValue = this.parseToInt(limit);
@@ -523,7 +523,7 @@ public partial class binance : PredictionExchange
         Int64? limitResolved = limitValue;
         if ((limitValue > 50))
         {
-            limitResolved = this.parseToInt(50);
+            limitResolved = 50;
         }
         for (int qi = 0; qi < queriesLength; qi++)
         {

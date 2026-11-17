@@ -2959,8 +2959,8 @@ public partial class polymarket : Exchange
             {
                 return credentials;
             }
-            object refreshAfter = (expires - margin);
-            if (isLessThan(this.milliseconds(), refreshAfter))
+            Int64? refreshAfter = (expires - margin);
+            if ((this.milliseconds() < refreshAfter))
             {
                 return credentials;
             }

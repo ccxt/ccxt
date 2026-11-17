@@ -1347,7 +1347,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseWsOrderTrade() is not supported yet")) ;
     }
 
-    public virtual List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public virtual List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         return ((List<object>)((object)(this.parseOHLCV(ohlcv, market))));
     }
@@ -2333,8 +2333,8 @@ public partial class BaseExchange
 
     public virtual Dictionary<string, object> safeBalance(object balance)
     {
-        object balances = this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"});
-        List<object> codes = new List<object>(((IDictionary<string,object>)balances).Keys);
+        Dictionary<string, object> balances = ((Dictionary<string, object>)this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"}));
+        List<object> codes = new List<object>(balances.Keys);
         Dictionary<string, object> freeBalance = new Dictionary<string, object>() {};
         Dictionary<string, object> usedBalance = new Dictionary<string, object>() {};
         Dictionary<string, object> totalBalance = new Dictionary<string, object>() {};
@@ -2342,10 +2342,10 @@ public partial class BaseExchange
         for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)codes[i]);
-            string? total = this.safeString(getValue(balances, code), "total");
-            string? free = this.safeString(getValue(balances, code), "free");
-            string? used = this.safeString(getValue(balances, code), "used");
-            string? debt = this.safeString(getValue(balances, code), "debt");
+            string? total = this.safeString((balances != null && code != null && balances.ContainsKey(code) ? balances[code] : null), "total");
+            string? free = this.safeString((balances != null && code != null && balances.ContainsKey(code) ? balances[code] : null), "free");
+            string? used = this.safeString((balances != null && code != null && balances.ContainsKey(code) ? balances[code] : null), "used");
+            string? debt = this.safeString((balances != null && code != null && balances.ContainsKey(code) ? balances[code] : null), "debt");
             if (((total == null)) && ((free != null)) && ((used != null)))
             {
                 total = Precise.stringAdd(free, used);
@@ -2371,7 +2371,7 @@ public partial class BaseExchange
                 debtBalance[(string)code] = this.parseNumber(debt);
                 entry["debt"] = (code != null && debtBalance.ContainsKey(code) ? debtBalance[code] : null);
             }
-            ((IDictionary<string,object>)balance)[(string)code] = this.extend(getValue(balances, code), entry);
+            ((IDictionary<string,object>)balance)[(string)code] = this.extend((balances != null && code != null && balances.ContainsKey(code) ? balances[code] : null), entry);
         }
         ((IDictionary<string,object>)balance)["free"] = freeBalance;
         ((IDictionary<string,object>)balance)["used"] = usedBalance;
@@ -6008,11 +6008,11 @@ public partial class BaseExchange
         }
         if ((code is string))
         {
-            object currencies = this.currencies;
+            IDictionary<string, object> currencies = this.currenciesDict;
             IDictionary<string, object> currenciesById = this.currencies_by_id;
-            if (inOp(currencies, code))
+            if ((currencies != null && currencies.ContainsKey(code)))
             {
-                return ccxt.BaseExchange.ToDict(getValue(currencies, code));
+                return ccxt.BaseExchange.ToDict((currencies != null && currencies.ContainsKey(code) ? currencies[code] : null));
             } else if (((currenciesById != null)) && ((currenciesById != null && currenciesById.ContainsKey(code))))
             {
                 return ccxt.BaseExchange.ToDict((currenciesById != null && currenciesById.ContainsKey(code) ? currenciesById[code] : null));

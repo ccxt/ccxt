@@ -270,7 +270,7 @@ public partial class sxbet : PredictionExchange
             { "limit", userLimit },
         }, "limit");
         string? paginationKey = null;
-        Int64? page = this.parseToInt(0);
+        Int64 page = 0;
         while (true)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -289,7 +289,7 @@ public partial class sxbet : PredictionExchange
                 rawMarkets.Add((pageMarkets != null && i < pageMarkets.Count ? pageMarkets[i] : null));
             }
             paginationKey = this.safeString(result, "nextKey");
-            page = this.parseToInt((page + 1));
+            page = (page + 1);
             Int64? collectedLength = this.parseToInt((rawMarkets?.Count ?? 0));
             if (((pageMarketsLength < pageSize)) || ((maxPages == null || page >= maxPages)) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
             {
@@ -828,7 +828,7 @@ public partial class sxbet : PredictionExchange
         string digits = "0123456789abcdef";
         string lowerHex = hex.ToLower();
         int hexLength = lowerHex.Length;
-        Int64? result = this.parseToInt(0);
+        Int64? result = 0;
         for (int i = 0; i < hexLength; i++)
         {
             string? ch = ((string)getValue(lowerHex, i));

@@ -3439,8 +3439,8 @@ public partial class myriad : PredictionExchange
                 for (int i = 0; i < requestedTagsLength; i++)
                 {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    object tagSlug = (requestedTags != null && i < requestedTags.Count ? requestedTags[i] : null);
-                    tagQueries.Add(((string)tagSlug).Replace("-", (string)" "));
+                    string? tagSlug = ((string)(requestedTags != null && i < requestedTags.Count ? requestedTags[i] : null));
+                    tagQueries.Add(tagSlug.Replace("-", (string)" "));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data

@@ -126,7 +126,7 @@ public partial class cryptocom : ccxt.cryptocom
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        object limitResolved = 50;
+        Int64? limitResolved = 50;
         if (((limit != null)) && ((limit != 0)))
         {
             limitResolved = limit;

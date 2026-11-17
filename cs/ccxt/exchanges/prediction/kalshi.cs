@@ -1540,7 +1540,7 @@ public partial class kalshi : PredictionExchange
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
         Int64? endTimestamp = this.safeTimestamp(ohlcv, "end_period_ts");
         Int64? durationSeconds = this.safeInteger(this.options, "ohlcvCandleDurationSeconds", 0);
-        object timestamp = endTimestamp;
+        Int64? timestamp = endTimestamp;
         if ((endTimestamp != null))
         {
             timestamp = (endTimestamp - (durationSeconds * 1000));

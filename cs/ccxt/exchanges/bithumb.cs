@@ -3706,8 +3706,8 @@ public partial class bithumb : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (this.implodeHostname(apiUrl) + endpoint);
-        object query = this.omit(parameters, this.extractParams(path));
-        List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
+        List<object> queryKeys = new List<object>(query.Keys);
         int queryKeysLength = queryKeys.Count;
         bool hasQuery = (queryKeysLength > 0);
         if (apiName == "public")

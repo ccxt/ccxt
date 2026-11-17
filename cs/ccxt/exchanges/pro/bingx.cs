@@ -825,7 +825,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public override List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //    {

@@ -1360,9 +1360,9 @@ public partial class lbank : Exchange
         Int64? limitResolved = this.parseToInt(((limit == null)) ? 100 : Math.Min(limit.Value, 2000));
         int duration = this.parseTimeframe(timeframeVar);
         Int64 now = this.milliseconds();
-        object defaultSince = (now - (((duration * 1000L) * limitResolved)));
-        object sinceResolved = defaultSince;
-        Int64? parsedSince = this.parseToInt(divide(defaultSince, 1000));
+        Int64? defaultSince = (now - (((duration * 1000L) * limitResolved)));
+        Int64? sinceResolved = defaultSince;
+        Int64? parsedSince = this.parseToInt(((double?)defaultSince / 1000));
         if ((since != null))
         {
             sinceResolved = since;

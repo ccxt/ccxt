@@ -819,7 +819,7 @@ public partial class poloniex : ccxt.poloniex
         }
     }
 
-    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public override List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //    {

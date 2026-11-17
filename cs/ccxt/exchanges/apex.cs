@@ -2152,7 +2152,7 @@ public partial class apex : Exchange
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "size");
         Int64? timestamp = this.safeInteger(position, "updatedTime");
-        object leverage = 20;
+        Int64? leverage = 20;
         string? customInitialMarginRate = this.safeString2(position, "customInitialMarginRate", "customImr", "0");
         if ((this.precisionFromString(customInitialMarginRate) != 0))
         {

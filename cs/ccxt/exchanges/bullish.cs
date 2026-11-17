@@ -1514,11 +1514,11 @@ public partial class bullish : Exchange
         {
             throw new NotSupported ((((this.id + " safeDeterministicCall() does not support the ") + (method)) + " method")) ;
         }
-        Int64? errors = this.parseToInt(0);
+        Int64 errors = 0;
         Dictionary<string, object> paramsOmitted = this.omit(paramsMaxRetries, "until");
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
-        while ((errors == null || errors <= maxRetries))
+        while ((errors <= maxRetries))
         {
             try
             {
@@ -1538,8 +1538,8 @@ public partial class bullish : Exchange
                 {
                     throw e;
                 }
-                errors = this.parseToInt((errors + 1));
-                if ((errors != null && (maxRetries == null || errors > maxRetries)))
+                errors = (errors + 1);
+                if (((maxRetries == null || errors > maxRetries)))
                 {
                     throw e;
                 }

@@ -5311,12 +5311,12 @@ public partial class phemex : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         List<object> riskLimits = this.safeList((marketResolved != null && marketResolved.ContainsKey("info") ? marketResolved["info"] : null), "riskLimits", new List<object>() {});
         List<object> tiers = new List<object>() {};
-        object minNotional = 0;
+        Int64? minNotional = 0;
         for (int i = 0; i < riskLimits.Count; i++)
         {
             IDictionary<string, object> tier = this.safeDict(riskLimits, i);
             Int64? maxNotional = this.safeInteger(tier, "limit");
-            object minNotionalResponse = minNotional; // java req
+            Int64? minNotionalResponse = minNotional; // java req
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, marketResolved) },

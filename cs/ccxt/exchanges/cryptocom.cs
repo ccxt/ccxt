@@ -1421,7 +1421,7 @@ public partial class cryptocom : Exchange
         Int64? limitResolved = limit;
         if (((limit != null)) && ((limit > 300)))
         {
-            limitResolved = ((Int64?)300);
+            limitResolved = 300;
         }
         if ((limit != null))
         {

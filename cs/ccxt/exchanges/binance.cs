@@ -6891,12 +6891,12 @@ public partial class binance : Exchange
         string? price = this.safeString(paramsPaginate, "price");
         Int64? until = this.safeInteger(paramsPaginate, "until");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"price", "until"});
-        object limitRequested = limit;
+        Int64? limitRequested = limit;
         if ((since != null) && (until != null) && (limit == null))
         {
             limitRequested = maxLimit;
         }
-        object limitValue = ((limitRequested == null)) ? defaultLimit : mathMin(limitRequested, maxLimit);
+        Int64 limitValue = ((limitRequested == null)) ? defaultLimit : Math.Min(limitRequested.Value, maxLimit);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitValue },
@@ -6928,9 +6928,9 @@ public partial class binance : Exchange
                 if ((since > 0))
                 {
                     int duration = this.parseTimeframe(timeframeVar);
-                    object endTime = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(limitValue, duration), 1000), 1));
+                    Int64 endTime = this.sum(since, (((limitValue * duration) * 1000) - 1));
                     Int64 now = this.milliseconds();
-                    request["endTime"] = mathMin(now, endTime);
+                    request["endTime"] = Math.Min(now, endTime);
                 }
             }
         }

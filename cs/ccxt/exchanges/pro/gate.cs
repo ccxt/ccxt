@@ -775,14 +775,14 @@ public partial class gate : ccxt.gate
         Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
         if ((nonce == null))
         {
-            Int64? cacheLength = this.parseToInt(0);
+            Int64? cacheLength = 0;
             if ((storedOrderBook != null))
             {
                 int storedCacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
                 cacheLength = this.parseToInt(storedCacheLength);
             }
             Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 10));
-            Int64? waitAmount = this.parseToInt(0);
+            Int64? waitAmount = 0;
             if (isSpot)
             {
                 waitAmount = snapshotDelay;

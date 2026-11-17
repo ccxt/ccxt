@@ -2159,16 +2159,16 @@ public partial class paradex : Exchange
         bool isStopOrder = ((triggerPrice != null)) || isTakeProfitOrder || isStopLossOrder;
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
-        object instruction = "GTC";
+        string? instruction = "GTC";
         if ((timeInForce != null))
         {
             instruction = this.encodeTimeInForce(timeInForce);
         }
-        if (postOnly && (!(instruction is "RPI")))
+        if (postOnly && (instruction != "RPI"))
         {
             instruction = "POST_ONLY";
         }
-        if (((instruction is "POST_ONLY")) || ((instruction is "RPI")))
+        if ((instruction == "POST_ONLY") || (instruction == "RPI"))
         {
             // both instructions only rest on the book, the exchange rejects them on market and trigger orders
             if (isMarket)

@@ -1735,7 +1735,7 @@ public partial class derive : Exchange
         Int64? limitResolved = limit;
         if ((limit != null) && (limit > 1000))
         {
-            limitResolved = ((Int64?)1000);
+            limitResolved = 1000;
         }
         if ((limit != null))
         {
@@ -1938,10 +1938,10 @@ public partial class derive : Exchange
         }
         if ((limitResolved > 5000))
         {
-            limitResolved = this.parseToInt(5000);
+            limitResolved = 5000;
         }
         Int64? span = this.parseToInt((limitResolved * duration));
-        Int64? windowStart = this.parseToInt((untilSeconds - span));
+        Int64? windowStart = (untilSeconds - span);
         Int64? start = windowStart;
         object end = untilSeconds;
         if ((since != null))

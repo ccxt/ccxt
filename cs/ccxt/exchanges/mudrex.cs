@@ -378,7 +378,7 @@ public partial class mudrex : Exchange
         Int64? requestLimit = ((limit == null)) ? 500 : limit;
         Int64 now = this.seconds();
         Int64? windowLength = (duration * requestLimit);
-        object defaultStart = (now - windowLength);
+        Int64? defaultStart = (now - windowLength);
         Int64? startTime = this.parseToInt(((since != null)) ? (((double?)since / 1000)) : defaultStart);
         Int64? windowEnd = this.parseToInt(add(startTime, (duration * requestLimit)));
         Int64? until = this.safeInteger(parameters, "until");
@@ -1507,8 +1507,8 @@ public partial class mudrex : Exchange
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         Int64? pageSize = ((limit == null)) ? 0 : (limit * 2);
         List<object> allRows = new List<object>() {};
-        Int64? transactionsCount = this.parseToInt(0);
-        Int64? calls = this.parseToInt(0);
+        Int64 transactionsCount = 0;
+        Int64 calls = 0;
         object offset = 0;
         bool paging = true;
         while (paging)
@@ -1531,16 +1531,16 @@ public partial class mudrex : Exchange
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (((market == null)) || (isEqual(this.safeString(entry, "symbol"), (market.ContainsKey("id") ? market["id"] : null))))
                     {
-                        transactionsCount = this.parseToInt((transactionsCount + 1));
+                        transactionsCount = (transactionsCount + 1);
                     }
                 }
             }
-            calls = this.parseToInt((calls + 1));
+            calls = (calls + 1);
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (((limit != null)) && ((dataLength == pageSize)))
             {
-                if ((((transactionsCount == null || transactionsCount < limit))) && ((maxCalls != null && (calls == null || calls < maxCalls))))
+                if (((transactionsCount < limit)) && ((calls < maxCalls)))
                 {
                     // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                     offset = this.sum(offset, pageSize);

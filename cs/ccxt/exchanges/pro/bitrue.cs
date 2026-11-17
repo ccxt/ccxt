@@ -893,7 +893,7 @@ public partial class bitrue : ccxt.bitrue
         client.resolve(stored, messageHash);
     }
 
-    public override List<object> parseWsOHLCV(object tick, object market = null)
+    public override List<object> parseWsOHLCV(object tick, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeString(market, "symbol", "");
         Int64? timestamp = this.safeTimestamp(tick, "id");

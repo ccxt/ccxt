@@ -1450,9 +1450,9 @@ public partial class bitbns : Exchange
         }
         string baseUrl = this.implodeHostname(baseApiUrl);
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
-        object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
         string? nonce = this.numberToString(this.nonce());
-        int queryLength = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
+        int queryLength = (new List<object>(query.Keys)).Count;
         string postBody = "{}";
         if (queryLength > 0)
         {

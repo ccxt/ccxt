@@ -159,11 +159,11 @@ public partial class bit2me : ccxt.bit2me
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object trades = await this.subscribePublic("public-trades", symbol, messageHash, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.subscribePublic("public-trades", symbol, messageHash, parameters));
         Int64? finalLimit = limit;
         if (this.newUpdates)
         {
-            finalLimit = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            finalLimit = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, finalLimit, "timestamp", true));
     }

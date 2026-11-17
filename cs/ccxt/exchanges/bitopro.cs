@@ -2063,10 +2063,10 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string url = ("/" + this.implodeParams(path, parameters));
-        object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
         // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
         // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
-        int queryLength = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
+        int queryLength = (new List<object>(query.Keys)).Count;
         Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
         bool isSignedBody = (apiName == "private") && (((method == "POST")) || ((method == "PUT")));
         string signedBody = this.json(parameters);

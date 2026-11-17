@@ -693,17 +693,17 @@ public partial class hyperliquid : PredictionExchange
         string? intPart = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         int intPartLength = intPart.Length;
         Int64? szDecimalsInt = this.parseToInt(szDecimals);
-        object maxDecimals = (8 - szDecimalsInt);
+        Int64? maxDecimals = (8 - szDecimalsInt);
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         int digitsLeft = 0;
         if (intPartLength <= 5)
         {
             digitsLeft = (5 - intPartLength);
         }
-        object cappedDecimals = (isLessThan(maxDecimals, digitsLeft)) ? maxDecimals : digitsLeft;
+        Int64? cappedDecimals = (((maxDecimals == null || maxDecimals < digitsLeft))) ? maxDecimals : digitsLeft;
         // appends max (1, cappedDecimals) - 1 zeros
         string zeros = "";
-        for (int zi = 1; isLessThan(zi, cappedDecimals); zi++)
+        for (int zi = 1; (zi < cappedDecimals); zi++)
         {
             zeros = (zeros + "0");
         }
@@ -791,8 +791,8 @@ public partial class hyperliquid : PredictionExchange
         }
         IDictionary<string, object> mids = this.safeDict(allMids, "mids", allMids);
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        object outcomesMap = ((this.outcomes != null)) ? this.outcomes : new Dictionary<string, object>() {};
-        List<object> outcomeHandles = new List<object>(((IDictionary<string,object>)outcomesMap).Keys);
+        Dictionary<string, object> outcomesMap = ((Dictionary<string, object>)(((this.outcomes != null)) ? this.outcomes : new Dictionary<string, object>() {}));
+        List<object> outcomeHandles = new List<object>(outcomesMap.Keys);
         for (int i = 0; i < outcomeHandles.Count; i++)
         {
             string? outcomeHandle = ((string)outcomeHandles[i]);
@@ -972,7 +972,7 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> market = this.market(this.safeString(outcomeObj, "market"));
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
-        object startTime = since;
+        Int64? startTime = since;
         if ((since == null))
         {
             int tf = this.parseTimeframe(timeframeVar);

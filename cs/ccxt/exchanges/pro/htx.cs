@@ -1737,13 +1737,13 @@ public partial class htx : ccxt.htx
         string? amount = this.safeString(trade, "tradeVolume");
         string? order = this.safeString(trade, "orderId");
         Int64? timestamp = this.safeInteger(trade, "tradeTime");
-        object type = this.safeString(trade, "type");
+        string? type = this.safeString(trade, "type");
         object side = null;
         if ((type != null))
         {
-            List<object> typeParts = ((string)type).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+            List<object> typeParts = type.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             side = (typeParts != null && 0 < typeParts.Count ? typeParts[0] : null);
-            type = (typeParts != null && 1 < typeParts.Count ? typeParts[1] : null);
+            type = ((string)(typeParts != null && 1 < typeParts.Count ? typeParts[1] : null));
         }
         bool? aggressor = this.safeBool(trade, "aggressor");
         string? takerOrMaker = null;

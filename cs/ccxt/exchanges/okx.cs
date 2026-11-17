@@ -5372,7 +5372,7 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        object timeOut = 0;
+        Int64? timeOut = 0;
         if (((timeout != null)) && ((timeout > 0)))
         {
             timeOut = this.parseToInt(((double?)timeout / 1000));
@@ -9809,7 +9809,7 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         int maxLimit = 100;
-        Int64? effectiveLimit = this.parseToInt(100);
+        Int64? effectiveLimit = 100;
         if (((limit != null)) && ((100 > limit)))
         {
             effectiveLimit = this.parseToInt(limit);

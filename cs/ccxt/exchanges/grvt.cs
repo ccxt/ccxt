@@ -1247,7 +1247,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", this.marketId(symbol) },
         };
-        object limitResolved = 100;
+        Int64? limitResolved = 100;
         if ((limit != null))
         {
             limitResolved = limit;

@@ -6795,7 +6795,7 @@ public partial class bitget : Exchange
         Int64? limitCapped = ((requestedLimit > maxLimitForRecentEndpoint)) ? maxLimitForRecentEndpoint : requestedLimit;
         // the per-timeframe cap only applies to a user-supplied limit
         Int64? recentLimit = (((limit != null)) && ((limitCapped != null && (timeframeLimit == null || limitCapped > timeframeLimit)))) ? timeframeLimit : limitCapped;
-        object limitResolved = recentLimit;
+        Int64? limitResolved = recentLimit;
         Int64? recentDuration = (recentLimit * duration);
         IDictionary<string, object> recentEndpointDaysMap = this.safeDict((this.options != null && this.options.ContainsKey("fetchOHLCV") ? this.options["fetchOHLCV"] : null), "maxRecentDaysPerTimeframe", new Dictionary<string, object>() {});
         Int64? recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, timeframeVar);
@@ -6829,10 +6829,10 @@ public partial class bitget : Exchange
             request["endTime"] = untilEndTime;
             if ((since == null))
             {
-                object untilStartTime = (untilEndTime - recentDuration);
+                Int64? untilStartTime = (untilEndTime - recentDuration);
                 calculatedStartTime = untilStartTime;
                 // we do not need to set "startTime" here
-                if (((recentEndpointAvailableDays != null)) && (isLessThanOrEqual(untilStartTime, (now - (((recentEndpointAvailableDays - 1)) * msInDay)))))
+                if (((recentEndpointAvailableDays != null)) && ((untilStartTime == null || untilStartTime <= (now - (((recentEndpointAvailableDays - 1)) * msInDay)))))
                 {
                     historicalEndpointNeeded = true;
                 }

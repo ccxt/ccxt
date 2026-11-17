@@ -3910,7 +3910,7 @@ public partial class kucoin : Exchange
         // To obtain more data, please page the data by time.
         Int64? windowLimit = ((limit == null)) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
         Int64? limitResolved = ((since != null)) ? windowLimit : limit;
-        object sinceResolved = since;
+        Int64? sinceResolved = since;
         if (((since == null)) && ((limit != null)))
         {
             sinceResolved = (now - (limit * duration));
@@ -4014,7 +4014,7 @@ public partial class kucoin : Exchange
         // To obtain more data, please page the data by time.
         Int64? windowLimit = ((limit == null)) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
         Int64? limitResolved = ((since != null)) ? windowLimit : limit;
-        object sinceResolved = since;
+        Int64? sinceResolved = since;
         if (((since == null)) && ((limit != null)))
         {
             sinceResolved = (now - (limit * duration));
@@ -4093,7 +4093,7 @@ public partial class kucoin : Exchange
         // To obtain more data, please page the data by time.
         Int64? windowLimit = ((limit == null)) ? this.safeInteger(this.options, "fetchOHLCVLimit", maxLimit) : limit;
         Int64? limitResolved = ((since != null)) ? windowLimit : limit;
-        object sinceResolved = since;
+        Int64? sinceResolved = since;
         if (((since == null)) && ((limit != null)))
         {
             sinceResolved = (now - (limit * duration));
@@ -8868,10 +8868,10 @@ public partial class kucoin : Exchange
         string? code = this.safeCurrencyCode(currencyId, currency);
         object address = this.safeString(transaction, "address");
         string? amount = this.safeString(transaction, "amount");
-        object txid = this.safeString(transaction, "walletTxId");
+        string? txid = this.safeString(transaction, "walletTxId");
         if ((txid != null))
         {
-            List<object> txidParts = ((string)txid).Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
+            List<object> txidParts = txid.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
             int numTxidParts = txidParts.Count;
             if (numTxidParts > 1)
             {
@@ -8883,7 +8883,7 @@ public partial class kucoin : Exchange
                     }
                 }
             }
-            txid = (txidParts != null && 0 < txidParts.Count ? txidParts[0] : null);
+            txid = ((string)(txidParts != null && 0 < txidParts.Count ? txidParts[0] : null));
         }
         string type = "deposit";
         if ((txid == null))
@@ -11750,7 +11750,7 @@ public partial class kucoin : Exchange
         bool? utaOption = utaOptionparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = (utaOptionparamsUtaVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsUta, "until");
-        object start = since;
+        Int64? start = since;
         Int64? end = until;
         if ((since == null))
         {

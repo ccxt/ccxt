@@ -3288,7 +3288,7 @@ public partial class whitebit : Exchange
         Int64? limitResolved = limit;
         if ((limit == null) || (limit > 100))
         {
-            limitResolved = ((Int64?)100);
+            limitResolved = 100;
         }
         request["limit"] = limitResolved;
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
@@ -3348,7 +3348,7 @@ public partial class whitebit : Exchange
         Int64? limitResolved = limit;
         if ((limit == null) || (limit > 100))
         {
-            limitResolved = ((Int64?)100);
+            limitResolved = 100;
         }
         request["limit"] = limitResolved;
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)

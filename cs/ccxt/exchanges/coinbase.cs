@@ -5947,9 +5947,9 @@ public partial class coinbase : Exchange
             pathPart = "api/v3";
         }
         string fullPath = ((("/" + pathPart) + "/") + this.implodeParams(path, parameters));
-        object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
         string savedPath = fullPath;
-        int queryLength = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
+        int queryLength = (new List<object>(query.Keys)).Count;
         if ((method == "GET"))
         {
             if (queryLength > 0)

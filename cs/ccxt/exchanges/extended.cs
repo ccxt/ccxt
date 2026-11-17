@@ -1545,7 +1545,7 @@ public partial class extended : Exchange
         Int64? until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
         Int64? endTime = this.safeInteger(paramsPaginate, "endTime", until);
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"endTime", "until"});
-        object sinceResolved = since;
+        Int64? sinceResolved = since;
         if (((endTime != null)) && ((since == null)))
         {
             sinceResolved = (endTime - ((((limitResolved * 60) * 60) * 1000)));
@@ -1643,7 +1643,7 @@ public partial class extended : Exchange
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         Int64? endTime = this.safeInteger(parameters, "endTime", until);
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"endTime", "until"});
-        object sinceResolved = since;
+        Int64? sinceResolved = since;
         if (((endTime != null)) && ((since == null)))
         {
             sinceResolved = (endTime - (((limitResolved * this.parseTimeframe(timeframeVar)) * 1000)));

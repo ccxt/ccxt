@@ -1803,7 +1803,7 @@ public partial class testMainClass
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
         List<object> keys = new List<object>(((IDictionary<string,object>)target).Keys);
-        object count = 0;
+        Int64? count = 0;
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
@@ -1811,7 +1811,7 @@ public partial class testMainClass
             {
                 continue;
             }
-            count = add(count, 1);
+            count = (count + 1);
         }
         return count;
     }

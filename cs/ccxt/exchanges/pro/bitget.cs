@@ -806,7 +806,7 @@ public partial class bitget : ccxt.bitget
         client.resolve(stored, messageHash);
     }
 
-    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public override List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     [

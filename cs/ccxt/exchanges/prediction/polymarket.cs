@@ -2589,7 +2589,7 @@ public partial class polymarket : PredictionExchange
             if (builderHex.Length <= 40)
             {
                 bool? builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
-                object feeRate = 0;
+                Int64? feeRate = 0;
                 if ((builderFeeEnabled == true))
                 {
                     feeRate = this.safeInteger(this.options, "feeRate", 0);

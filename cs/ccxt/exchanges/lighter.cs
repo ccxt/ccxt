@@ -998,7 +998,7 @@ public partial class lighter : Exchange
         (Int64?, object) orderExpiryOptionparamsOrderExpiryVariable = this.handleOptionIntegerAndParams(paramsNonce, "createOrder", "orderExpiry", 0);
         Int64? orderExpiryOption = orderExpiryOptionparamsOrderExpiryVariable.Item1;
         IDictionary<string, object> paramsOrderExpiry = ((IDictionary<string, object>)orderExpiryOptionparamsOrderExpiryVariable.Item2);
-        object orderExpiry = orderExpiryOption;
+        Int64? orderExpiry = orderExpiryOption;
         if ((nonce != null))
         {
             request["nonce"] = nonce;

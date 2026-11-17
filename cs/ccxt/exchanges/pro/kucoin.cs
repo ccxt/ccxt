@@ -399,9 +399,9 @@ public partial class kucoin : ccxt.kucoin
         (string?, IDictionary<string, object>) spotMethodparamsSpotMethodVariable = this.handleOptionStringAndParams(paramsUta, "watchTicker", "spotMethod", "/market/snapshot");
         string? spotMethod = spotMethodparamsSpotMethodVariable.Item1;
         IDictionary<string, object> paramsSpotMethod = (spotMethodparamsSpotMethodVariable.Item2);
-        object method = ((isFuturesMethod == true)) ? "/contractMarket/ticker" : spotMethod;
+        string? method = ((isFuturesMethod == true)) ? "/contractMarket/ticker" : spotMethod;
         IDictionary<string, object> query = ((isFuturesMethod == true)) ? paramsUta : paramsSpotMethod;
-        string? topic = ((string)((object)(method == null ? null : method + ":" + (string)(object)((market.ContainsKey("id") ? market["id"] : null)))));
+        string? topic = (method == null ? null : method + ":" + (string)(object)((market.ContainsKey("id") ? market["id"] : null)));
         return ccxt.BaseExchange.ToTicker(await this.subscribe(url, messageHash, topic, query));
     }
 
@@ -449,9 +449,9 @@ public partial class kucoin : ccxt.kucoin
             (string?, IDictionary<string, object>) spotMethodparamsSpotMethodVariable = this.handleOptionStringAndParams(paramsUta, "watchTicker", "spotMethod", "/market/snapshot");
             string? spotMethod = spotMethodparamsSpotMethodVariable.Item1;
             IDictionary<string, object> paramsSpotMethod = (spotMethodparamsSpotMethodVariable.Item2);
-            object method = ((isFuturesMethod == true)) ? "/contractMarket/ticker" : spotMethod;
+            string? method = ((isFuturesMethod == true)) ? "/contractMarket/ticker" : spotMethod;
             IDictionary<string, object> query = ((isFuturesMethod == true)) ? paramsUta : paramsSpotMethod;
-            string? topic = ((string)((object)(method == null ? null : method + ":" + (string)(object)((market.ContainsKey("id") ? market["id"] : null)))));
+            string? topic = (method == null ? null : method + ":" + (string)(object)((market.ContainsKey("id") ? market["id"] : null)));
             string messageHash = ("unsubscribe:" + subMessageHash);
             subscription["messageHashes"] = new List<object>() {messageHash, topic};
             subscription["subMessageHashes"] = new List<object>() {subMessageHash, topic};

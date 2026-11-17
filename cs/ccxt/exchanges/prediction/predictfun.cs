@@ -3649,8 +3649,8 @@ public partial class predictfun : PredictionExchange
         {
             return result;
         }
-        object cached = this.outcomes;
-        List<object> handles = new List<object>(((IDictionary<string,object>)cached).Keys);
+        Dictionary<string, object> cached = ((Dictionary<string, object>)this.outcomes);
+        List<object> handles = new List<object>(cached.Keys);
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {

@@ -730,8 +730,8 @@ public partial class paymium : Exchange
         }
         string baseUrl = baseApiUrl;
         string url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
-        object query = this.omit(parameters, this.extractParams(path));
-        bool hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0;
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
+        bool hasQuery = (new List<object>(query.Keys)).Count > 0;
         if (((api != null && 0 < api.Count ? api[0] : null) is "public"))
         {
             if (hasQuery)

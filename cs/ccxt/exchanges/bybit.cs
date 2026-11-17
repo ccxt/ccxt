@@ -3849,7 +3849,7 @@ public partial class bybit : Exchange
         Int64? limitResolved = limit;
         if ((limitResolved == null))
         {
-            limitResolved = ((Int64?)200);
+            limitResolved = 200;
         }
         if ((since != null))
         {
@@ -11843,7 +11843,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? requestBody = null;
-        object requestHeaders = null;
+        Dictionary<string, object> requestHeaders = null;
         string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
@@ -11893,7 +11893,7 @@ public partial class bybit : Exchange
                 };
                 if (isV3UnifiedMargin || isV3Contract)
                 {
-                    ((IDictionary<string,object>)requestHeaders)["X-BAPI-SIGN-TYPE"] = "2";
+                    requestHeaders["X-BAPI-SIGN-TYPE"] = "2";
                 }
                 Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
                 string queryEncoded = this.rawencode(query);
@@ -11916,7 +11916,7 @@ public partial class bybit : Exchange
                 {
                     signature = this.hmac(this.encode(authFull), this.encode(this.secret), sha256);
                 }
-                ((IDictionary<string,object>)requestHeaders)["X-BAPI-SIGN"] = signature;
+                requestHeaders["X-BAPI-SIGN"] = signature;
             } else
             {
                 Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
@@ -11963,12 +11963,12 @@ public partial class bybit : Exchange
         if ((method == "POST"))
         {
             string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
-            object headersBase = requestHeaders;
+            Dictionary<string, object> headersBase = requestHeaders;
             requestHeaders = ((headersBase == null)) ? new Dictionary<string, object>() {} : headersBase;
-            ((IDictionary<string,object>)requestHeaders)["Referer"] = brokerId;
+            requestHeaders["Referer"] = brokerId;
         }
         string? bodyResolved = requestBody;
-        object headersResolved = requestHeaders;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

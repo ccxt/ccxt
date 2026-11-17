@@ -886,7 +886,7 @@ public partial class zebpay : Exchange
         {
             if ((limit == null))
             {
-                limitResolved = ((Int64?)100);
+                limitResolved = 100;
             }
             request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
             if ((since != null))

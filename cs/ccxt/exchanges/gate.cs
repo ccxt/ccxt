@@ -5823,7 +5823,7 @@ public partial class gate : Exchange
         {
             priceResolved = 0;
         }
-        object contractAmount = 0;
+        Int64? contractAmount = 0;
         string? signedAmount = null;
         bool useGateFuturesDecimalSize = false;
         if ((contract == true))

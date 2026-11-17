@@ -1021,7 +1021,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public override List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //    {

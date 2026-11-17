@@ -2558,9 +2558,9 @@ public partial class alpaca : Exchange
             headersValue["APCA-API-KEY-ID"] = this.apiKey;
             headersValue["APCA-API-SECRET-KEY"] = this.secret;
         }
-        object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
         string? bodyJson = null;
-        if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+        if ((new List<object>(query.Keys)).Count > 0)
         {
             if (((method == "GET")) || ((method == "DELETE")))
             {

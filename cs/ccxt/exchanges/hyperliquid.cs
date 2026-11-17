@@ -810,7 +810,7 @@ public partial class hyperliquid : Exchange
         List<object> priceSplitted = priceStr.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         Int64? maxDecimalsInt = this.parseToInt(maxDecimals);
         Int64? amountPrecisionInt = this.parseToInt(amountPrecision);
-        object decimalsLeft = (maxDecimalsInt - amountPrecisionInt);
+        Int64? decimalsLeft = (maxDecimalsInt - amountPrecisionInt);
         if (Precise.stringEq(priceStr, "0"))
         {
             // Significant digits is always 5 in this case
@@ -823,10 +823,10 @@ public partial class hyperliquid : Exchange
             // Get the part after the decimal separator
             string? decimalPart = this.safeString(priceSplitted, 1, "");
             // Count the number of leading zeros in the decimal part
-            Int64? leadingZeros = this.parseToInt(0);
+            Int64? leadingZeros = 0;
             while (((leadingZeros == null || leadingZeros <= decimalPart.Length)) && (isEqual(getValue(decimalPart, leadingZeros), "0")))
             {
-                leadingZeros = this.parseToInt((leadingZeros + 1));
+                leadingZeros = (leadingZeros + 1);
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = (leadingZeros + significantDigits);

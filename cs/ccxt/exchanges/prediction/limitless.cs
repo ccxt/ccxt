@@ -317,7 +317,7 @@ public partial class limitless : PredictionExchange
             Int64? requestedLimit = this.safeInteger(parameters, "limit", 50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
-            object limit = 50;
+            Int64? limit = 50;
             if (((requestedLimit != null)) && ((requestedLimit < 50)))
             {
                 limit = requestedLimit;
@@ -3365,7 +3365,7 @@ public partial class limitless : PredictionExchange
         {
             Int64? requestedLimit = this.safeInteger(parameters, "limit", 50);
             // the search endpoint rejects limit > 50 - cap the per-query request
-            object limit = 50;
+            Int64? limit = 50;
             if (((requestedLimit != null)) && ((requestedLimit < 50)))
             {
                 limit = requestedLimit;

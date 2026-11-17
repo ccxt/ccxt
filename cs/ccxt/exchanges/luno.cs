@@ -1857,9 +1857,9 @@ public partial class luno : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
-        object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
         Dictionary<string, object> requestHeaders = null;
-        if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+        if ((new List<object>(query.Keys)).Count > 0)
         {
             url = url + ("?" + this.urlencode(query));
         }

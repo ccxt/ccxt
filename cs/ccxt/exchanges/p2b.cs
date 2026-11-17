@@ -1194,8 +1194,8 @@ public partial class p2b : Exchange
         }
         Int64? untilParam = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
-        Int64? until = this.parseToInt(0);
-        Int64? sinceResolved = this.parseToInt(0);
+        Int64? until = 0;
+        Int64? sinceResolved = 0;
         if ((untilParam != null))
         {
             until = this.parseToInt(untilParam);
@@ -1208,7 +1208,7 @@ public partial class p2b : Exchange
                 sinceResolved = this.parseToInt(since);
             } else
             {
-                sinceResolved = this.parseToInt((untilParam - 86400000));
+                sinceResolved = (untilParam - 86400000);
             }
         } else if ((since != null))
         {
@@ -1218,7 +1218,7 @@ public partial class p2b : Exchange
         {
             Int64 now = this.milliseconds();
             until = this.parseToInt(now);
-            sinceResolved = this.parseToInt((now - 86400000));
+            sinceResolved = (now - 86400000);
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? sinceSec = this.parseToInt(((double?)sinceResolved / 1000));
@@ -1293,8 +1293,8 @@ public partial class p2b : Exchange
         {
             market = this.market(symbol);
         }
-        Int64? until = this.parseToInt(0);
-        Int64? sinceResolved = this.parseToInt(0);
+        Int64? until = 0;
+        Int64? sinceResolved = 0;
         if ((untilParam != null))
         {
             until = this.parseToInt(untilParam);
@@ -1307,7 +1307,7 @@ public partial class p2b : Exchange
                 sinceResolved = this.parseToInt(since);
             } else
             {
-                sinceResolved = this.parseToInt((untilParam - 86400000));
+                sinceResolved = (untilParam - 86400000);
             }
         } else if ((since != null))
         {
@@ -1317,7 +1317,7 @@ public partial class p2b : Exchange
         {
             Int64 now = this.milliseconds();
             until = this.parseToInt(now);
-            sinceResolved = this.parseToInt((now - 86400000));
+            sinceResolved = (now - 86400000);
         }
         Int64? sinceSec = this.parseToInt(((double?)sinceResolved / 1000));
         Int64? untilSec = this.parseToInt(((double?)until / 1000));

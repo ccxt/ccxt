@@ -1151,8 +1151,8 @@ public partial class coincheck : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
-        object query = this.omit(parameters, this.extractParams(path));
-        bool hasQuery = (new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0;
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
+        bool hasQuery = (new List<object>(query.Keys)).Count > 0;
         if (apiName == "public")
         {
             if (hasQuery)

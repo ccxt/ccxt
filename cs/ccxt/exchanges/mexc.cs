@@ -2953,16 +2953,16 @@ public partial class mexc : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), isEqual(type, 2), parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        Int64? orderType = this.parseToInt(0); // typed seed, every branch below assigns it
+        Int64? orderType = 0; // typed seed, every branch below assigns it
         if (postOnly)
         {
-            orderType = this.parseToInt(2);
+            orderType = 2;
         } else if ((type == "limit"))
         {
-            orderType = this.parseToInt(1);
+            orderType = 1;
         } else if ((type == "market"))
         {
-            orderType = this.parseToInt(6);
+            orderType = 6;
         } else
         {
             orderType = this.parseToInt(type);
@@ -3048,7 +3048,7 @@ public partial class mexc : Exchange
             request["triggerType"] = triggerType;
             request["executeCycle"] = this.safeInteger(paramsOmitted, "executeCycle", 1);
             request["trend"] = this.safeInteger(paramsOmitted, "trend", 1);
-            object planOrderType = orderType;
+            Int64? planOrderType = orderType;
             if ((orderType == 6))
             {
                 planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type

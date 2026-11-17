@@ -2147,7 +2147,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        object triggerAfter = 0;
+        Int64? triggerAfter = 0;
         if (((timeout != null)) && ((timeout > 0)))
         {
             triggerAfter = ((timeout > 900000)) ? 900000 : timeout;
