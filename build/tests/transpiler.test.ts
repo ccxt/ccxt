@@ -296,3 +296,41 @@ describe ('ral-87c8-string-literal-split-element-write', () => {
         assert.match (out, /if \(expiryDate != ""\)/);
     });
 });
+
+describe ('ral-90c8-guarded-self-concat-write-native-use', () => {
+    type CsPrinter = { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } };
+    test('removeRepeatedTradesFromArray shape: `id = id + r` on a safeString local used as a dict key prints string? and a native ContainsKey', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const src = [
+            'class Test {',
+            '    safeString (o, k, d = undefined) { return d; }',
+            '    dedupe (input: any[]) {',
+            '        const uniqueResult = {};',
+            '        for (let i = 0; i < input.length; i++) {',
+            '            const entry = input[i];',
+            '            let id = this.safeString (entry, \'id\');',
+            '            if (id === undefined) {',
+            '                const price = this.safeString (entry, \'price\', \'\');',
+            '                id = \'t_\' + price + \'_\';',
+            '                id = id + (price + \'_\');',
+            '            }',
+            '            if (id !== undefined && !(id in uniqueResult)) {',
+            '                uniqueResult[id] = entry;',
+            '            }',
+            '        }',
+            '        return uniqueResult;',
+            '    }',
+            '}',
+        ].join ('\n');
+        const out = (transpiler as unknown as CsPrinter).transpileCSharp (src).content;
+        assert.match (out, /string\? id = this\.safeString\(entry, "id"\);/);
+        assert.match (out, /id = \(id == null \? null : id \+ /);
+    });
+    test('pro xt: a self-concat url only handed to client (url) stays object', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const out = (transpiler as unknown as CsPrinter).transpileCSharpByPath ('./ts/src/pro/xt.ts').content;
+        assert.match (out, /object url = this\.safeString\(apiUrls, tradeType\);/);
+    });
+});
