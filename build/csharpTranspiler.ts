@@ -8694,7 +8694,7 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...copyLocalSnippetChecks87c5 () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...copyLocalSnippetChecks87c5 (), ...copyLocalSnippetChecks90c5 () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12933,5 +12933,22 @@ export function copyLocalSnippetChecks87c5 (): string[] {
     // a copy of an untyped value keeps object
     const kept = print ('f (o, r) { let q = o; q = q + \'?\' + r; return this.hash (q, 1, 1); }');
     if (!kept.includes ('object q = o;')) problems.push (`87c5 string copy: untyped source retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// 90c5 R4: a copy of a copy. `q` is typed by an earlier rule (string? from the reader); `m = q` becomes
+// string? too when its `+` reads print the guarded concat, which then loses its ((object) box.
+// R2 (string parameters) and R1 / R3 (D-17 parameter proofs, dereference proof) need the corpus or the
+// D-17 call-site scan and are gated on the farm only.
+export function copyLocalSnippetChecks90c5 (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const pre = 'type Str = string | undefined;\nclass Test {\n safeString (o, k, d = undefined): Str { return d; }\n hash (a, b, c) { return a; }\n';
+    const print = (body: string) => (transpiler as unknown as { transpileCSharp (src: string): { content: string } }).transpileCSharp (pre + body + '\n}').content as string;
+    const out = print ('f (o, c, e) { const t = this.safeString (o, \'t\'); const q = t; let m: Str = q; if (e) { m = q + \'_x\'; } let h = undefined; if (c) { h = m + \'.\' + c; } else { h = m + \'.\' + \'*\'; } return this.hash (h, q, 1); }');
+    if (!out.includes ('string? m = q;')) problems.push (`90c5 R4 copy of a copy: not typed: ${out.replace (/\n/g, ' | ').slice (-500)}`);
+    if (out.includes ('((object)(m == null')) problems.push (`90c5 R4 copy of a copy: guarded read kept its box: ${out.replace (/\n/g, ' | ').slice (-500)}`);
     return problems;
 }

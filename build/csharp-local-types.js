@@ -21964,3 +21964,240 @@ const c90UpstreamLocalDeclarationR3 = csharpLocalDeclaration;
 csharpLocalDeclaration = function (csharp, declaration, context) {
     return c90UpstreamLocalDeclarationR3 (csharp, declaration, context) ?? c90StringLiteralMapReadLocal (csharp, declaration, context) ?? c90ListLiteralMapReadLocal (csharp, declaration, context);
 };
+
+// ===== 90c5: copies of typed parameters and locals (continues 87c5 / 84c5) =====
+// (R1) a read of a `Dict` parameter the D-17 rule prints `IDictionary<string, object>` (csharpParameterDecision:
+// every declaration, body and call-site argument proves the dictionary; the parameter is never written)
+// has that static type, exactly as the trailing params bag of dictParamsCopyReadType. `let q = query`
+// then starts its join at the interface; the 84c5 wrapper keeps the copy `object` unless some use is
+// native (dictParamsCopyHasNativeUse: omit receiver, indexer, `in`). It answers nothing while a call-site
+// parameter proof runs (c5ParameterProofDepth), so no signature moves (lane 90c1 owns signatures).
+function c90DictAliasParameterReadType (csharp, scope, identifier) {
+    if (c5ParameterProofDepth > 0 || scope?.kind !== ts.SyntaxKind.MethodDeclaration || enclosingFunction (identifier) !== scope) {
+        return undefined;
+    }
+    const parameter = (scope.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === identifier.text);
+    if (parameter === undefined || parameterIsRefSunk (csharp, identifier) || useRefersToDeclaration (csharp, scope, parameter, identifier) === false) {
+        return undefined;
+    }
+    return (csharpParameterDecision (csharp, parameter) === 'IDictionary<string, object>') ? 'IDictionary<string, object>' : undefined;
+}
+const c90UpstreamDictParamsCopyReadType = dictParamsCopyReadType;
+// eslint-disable-next-line no-func-assign
+dictParamsCopyReadType = function (csharp, scope, identifier) {
+    return c90UpstreamDictParamsCopyReadType (csharp, scope, identifier) ?? c90DictAliasParameterReadType (csharp, scope, identifier);
+};
+// (R1 guard) a copy that a destructuring slot writes (`[ x, q ] = ...`) would print the slot read behind a
+// bare `(IDictionary<string, object>)` write cast (a counted conversion): such a copy keeps `object`
+function c90DestructuredSlotWritten (csharp, scope, declaration) {
+    const name = declaration.name?.text;
+    for (const n of (indexScope (csharp, scope).identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        let use = n;
+        while (use.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            use = use.parent;
+        }
+        if (use.parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            return true;
+        }
+    }
+    return false;
+}
+const c90UpstreamLocalDeclarationR1 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = c90UpstreamLocalDeclarationR1 (csharp, declaration, context);
+    if (info === undefined || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return info;
+    }
+    const init = stripParens (declaration.initializer);
+    if (init?.kind !== ts.SyntaxKind.Identifier) {
+        return info;
+    }
+    const scope = (context?.scope) ?? enclosingFunction (declaration);
+    if (c90DictAliasParameterReadType (csharp, scope, init) === undefined || c90UpstreamDictParamsCopyReadType (csharp, scope, init) !== undefined) {
+        return info;
+    }
+    // a declaration already emitted `object` answers `object` for good: a later classification (a read
+    // inside another local's initializer) must not name the interface the printed line does not carry
+    if (printedObjectDeclarations.has (declaration)) {
+        return undefined;
+    }
+    return c90DestructuredSlotWritten (csharp, scope, declaration) ? undefined : info;
+};
+
+// (R2) the 87c5 string-copy rule (c87StringCopyLocal) for a copy of a PARAMETER the signature prints
+// `string` / `string?`: a D-17 Str parameter (csharpParameterDecision) or a never-written core string
+// argument (coreParameterCopyReadType). Either prints with no cast and holds a string-or-null box, so the
+// same proof applies: every `+` / `+=` left read must already print as the null-guarded concat, at least
+// one must, and the whole retype scan must pass; the guarded conditional then loses its ((object) box.
+function c90StringParameterCopy (csharp, declaration) {
+    const init = stripParens (declaration?.initializer);
+    if (init?.kind !== ts.SyntaxKind.Identifier || c5ParameterProofDepth > 0) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return false;
+    }
+    const parameter = (scope.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === init.text);
+    if (parameter === undefined || useRefersToDeclaration (csharp, scope, parameter, init) === false || parameterIsRefSunk (csharp, init)) {
+        return false;
+    }
+    const type = csharpParameterDecision (csharp, parameter) ?? coreParameterCopyReadType (csharp, scope, init);
+    if (type !== 'string' && type !== 'string?') {
+        return false;
+    }
+    // every `+` / `+=` left read of the copy (self-concat writes included) must ALREADY print as the
+    // printer's null-guarded concat (csharpObjectStringLocal): an unguarded `object + string` read is
+    // string.Concat (null -> ""), which the typed guard would turn into null
+    if (typeof csharp.csharpObjectStringLocal !== 'function') {
+        return false;
+    }
+    for (const n of (indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        let use = n;
+        while (use.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            use = use.parent;
+        }
+        const parent = use.parent;
+        const plusLeft = parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use
+            && (parent.operatorToken.kind === ts.SyntaxKind.PlusToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken);
+        if (plusLeft && !csharp.csharpObjectStringLocal (n)) {
+            return false;
+        }
+        // a string-printing right operand makes the printer emit the unguarded `object + string`
+        // (string.Concat, null -> "") for the untyped copy; the typed copy would guard it (null -> null)
+        // only a right operand led by a string literal (`x + ':' + y`): the printer's guard decision
+        // for any other right operand (a `string?` local) depends on print order
+        if (plusLeft) {
+            let leaf = stripParens (parent.right);
+            while (leaf?.kind === ts.SyntaxKind.BinaryExpression && leaf.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+                leaf = stripParens (leaf.left);
+            }
+            if (leaf?.kind !== ts.SyntaxKind.StringLiteral && leaf?.kind !== ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+const c90UpstreamStringCopyInitializer = c87StringCopyInitializer;
+// eslint-disable-next-line no-func-assign
+c87StringCopyInitializer = function (csharp, declaration) {
+    return c90UpstreamStringCopyInitializer (csharp, declaration) || c90StringParameterCopy (csharp, declaration);
+};
+
+// (R3) a `string?` local whose first use after the declaration (same statement list, no earlier mention)
+// is an unconditional member call `x.m (...)` in the condition of the next `if` / an expression statement:
+// a null value throws right there (TypeError in TS, NullReferenceException on the `((string)x).M (...)`
+// the C# side prints), so every read after that condition holds a non-null string as long as each write
+// stores one: `x = '<literal>'` or `x += r` (add(string, *) on a non-null left never answers null).
+// Answers the same question stringValueIsNonNullAtUse answers (the add(string, *) left-operand proof).
+function c90DereferenceDominates (csharp, scope, declaration, name, read) {
+    const statement = declaration?.parent?.parent;
+    const list = statement?.parent;
+    if (statement?.kind !== ts.SyntaxKind.VariableStatement || declaration.parent.declarations.length !== 1
+            || (list?.kind !== ts.SyntaxKind.Block && list?.kind !== ts.SyntaxKind.SourceFile) || enclosingFunction (read) !== scope) {
+        return false;
+    }
+    const uses = (indexScope (csharp, scope).identifiers.get (name) ?? []).filter ((n) => n !== declaration.name && !isNotAUse (n)
+        && useRefersToDeclaration (csharp, scope, declaration, n) !== false);
+    const at = list.statements.indexOf (statement);
+    const next = list.statements[at + 1];
+    const test = (next?.kind === ts.SyntaxKind.IfStatement) ? next.expression : (next?.kind === ts.SyntaxKind.ExpressionStatement ? next.expression : undefined);
+    if (test === undefined) {
+        return false;
+    }
+    // the dereference: the test itself, or the left of a comparison, is `x.m (...)`
+    let call = stripParens (test);
+    if (call?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken,
+        ts.SyntaxKind.GreaterThanEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (call.operatorToken.kind)) {
+        call = stripParens (call.left);
+    }
+    const receiver = (call?.kind === ts.SyntaxKind.CallExpression && call.questionDotToken === undefined && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && call.expression.questionDotToken === undefined) ? call.expression.expression : undefined;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || receiver.text !== name || !uses.includes (receiver)) {
+        return false;
+    }
+    const after = test.getEnd ();
+    if (read.getStart () < after) {
+        return false;
+    }
+    for (const n of uses) {
+        if (n.getStart () < receiver.getStart ()) {
+            return false; // a mention before the dereference
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            const op = parent.operatorToken.kind;
+            const value = stripParens (parent.right);
+            const literal = value?.kind === ts.SyntaxKind.StringLiteral || value?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral;
+            if (n.getStart () < after || !((op === ts.SyntaxKind.EqualsToken && literal) || op === ts.SyntaxKind.PlusEqualsToken)) {
+                return false;
+            }
+        }
+        if (enclosingFunction (n) !== scope) {
+            return false; // a closure could run before the dereference
+        }
+    }
+    return true;
+}
+const c90UpstreamStringValueIsNonNullAtUse = stringValueIsNonNullAtUse;
+// eslint-disable-next-line no-func-assign
+stringValueIsNonNullAtUse = function (csharp, scope, declaration, name, read, context) {
+    return c90UpstreamStringValueIsNonNullAtUse (csharp, scope, declaration, name, read, context)
+        || c90DereferenceDominates (csharp, scope, declaration, name, read);
+};
+
+// (R4) a copy of a copy: `let y = x` where x's own top-level declaration decision (any rule of this
+// module, recorded when the printer asks for it, before y's) named `string` / `string?`: nested lookups
+// (localIdentifierType) refuse such a local because some rules decide only at the top level, so the
+// accepted decisions are remembered here and y becomes an 87c5 R1 candidate under the same guarded-concat
+// proof. Decided from this module's own AST decisions, never from printed text.
+const c90StringDeclared = new WeakSet ();
+const c90UpstreamLocalDeclarationR4 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = c90UpstreamLocalDeclarationR4 (csharp, declaration, context);
+    if (context === undefined && (info?.type === 'string' || info?.type === 'string?')) {
+        c90StringDeclared.add (declaration);
+    }
+    return info;
+};
+function c90StringCopyOfCopy (csharp, declaration) {
+    const init = stripParens (declaration?.initializer);
+    if (init?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const source = resolveReference (csharp, init);
+    return source !== undefined && source !== declaration && c90StringDeclared.has (source)
+        && enclosingFunction (source) === enclosingFunction (declaration) && source.getStart () < declaration.getStart ();
+}
+const c90UpstreamStringCopyInitializerR4 = c87StringCopyInitializer;
+// eslint-disable-next-line no-func-assign
+c87StringCopyInitializer = function (csharp, declaration) {
+    return c90UpstreamStringCopyInitializerR4 (csharp, declaration) || c90StringCopyOfCopy (csharp, declaration);
+};
+// the R4 copy's own writes `y = x + r` whose leftmost leaf x is such a recorded string local
+const c90UpstreamStringPlusWriteType = c87StringPlusWriteType;
+// eslint-disable-next-line no-func-assign
+c87StringPlusWriteType = function (csharp, node, declaration) {
+    const upstream = c90UpstreamStringPlusWriteType (csharp, node, declaration);
+    if (upstream !== undefined) {
+        return upstream;
+    }
+    let value = stripParens (node);
+    if (value?.kind !== ts.SyntaxKind.BinaryExpression || value.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    while (value?.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        value = stripParens (value.left);
+    }
+    const source = (value?.kind === ts.SyntaxKind.Identifier) ? resolveReference (csharp, value) : undefined;
+    return (source !== undefined && c90StringDeclared.has (source)) ? 'string' : undefined;
+};
