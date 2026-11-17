@@ -1,18 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import json
-
-# use orjson if importable, otherwise default to the stdlib json
-try:
-    import orjson as json_parser
-
-    def json_dumps(message):
-        return json_parser.dumps(message).decode('utf-8')
-except ImportError:
-    json_parser = json
-
-    def json_dumps(message):
-        return json.dumps(message, separators=(',', ':'))
+from ccxt.base.exchange import json_parser, json_dumps
 
 from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
 from ccxt import Exchange, NetworkError, RequestTimeout
