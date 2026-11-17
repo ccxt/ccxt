@@ -4799,6 +4799,10 @@ public Map<String, Object> describe()
          * @returns {object | undefined}
          */
         Object value = this.safeValueN(dictionaryOrList, keys, defaultValue);
+        if (java.util.Objects.equals(value, null))
+        {
+            return defaultValue;
+        }
         if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
             return value;
@@ -4815,6 +4819,10 @@ public Map<String, Object> describe()
          * @returns {object | undefined}
          */
         Object value = this.safeValue(dictionaryOrList, key, defaultValue);
+        if (java.util.Objects.equals(value, null))
+        {
+            return defaultValue;
+        }
         if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
             return value;
@@ -5001,12 +5009,12 @@ public Map<String, Object> describe()
         if (!java.util.Objects.equals(this.proxyUrlCallback, null))
         {
             usedProxies.add("proxyUrlCallback");
-            proxyUrl = this.proxyUrlCallback.call(url, method, headers, body);
+            proxyUrl = Helpers.callDynamically(this, "proxyUrlCallback", new Object[] { url, method, headers, body });
         }
         if (!java.util.Objects.equals(this.proxy_url_callback, null))
         {
             usedProxies.add("proxy_url_callback");
-            proxyUrl = this.proxy_url_callback.call(url, method, headers, body);
+            proxyUrl = Helpers.callDynamically(this, "proxy_url_callback", new Object[] { url, method, headers, body });
         }
         // backwards-compatibility
         if (!java.util.Objects.equals(this.proxy, null))
@@ -5056,7 +5064,7 @@ public Map<String, Object> describe()
         if (Boolean.TRUE.equals(ishttpProxyCallbackDefined) || Boolean.TRUE.equals(ishttp_proxy_callback_defined))
         {
             usedProxies.add("httpProxyCallback");
-            httpProxy = ((Boolean.TRUE.equals(ishttpProxyCallbackDefined))) ? this.httpProxyCallback.call(url, method, headers, body) : this.http_proxy_callback.call(url, method, headers, body);
+            httpProxy = ((Boolean.TRUE.equals(ishttpProxyCallbackDefined))) ? Helpers.callDynamically(this, "httpProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "http_proxy_callback", new Object[] { url, method, headers, body });
         }
         // httpsProxy
         Boolean isHttpsProxyDefined = this.valueIsDefined(this.httpsProxy);
@@ -5071,7 +5079,7 @@ public Map<String, Object> describe()
         if (Boolean.TRUE.equals(ishttpsProxyCallbackDefined) || Boolean.TRUE.equals(ishttps_proxy_callback_defined))
         {
             usedProxies.add("httpsProxyCallback");
-            httpsProxy = ((Boolean.TRUE.equals(ishttpsProxyCallbackDefined))) ? this.httpsProxyCallback.call(url, method, headers, body) : this.https_proxy_callback.call(url, method, headers, body);
+            httpsProxy = ((Boolean.TRUE.equals(ishttpsProxyCallbackDefined))) ? Helpers.callDynamically(this, "httpsProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "https_proxy_callback", new Object[] { url, method, headers, body });
         }
         // socksProxy
         Boolean isSocksProxyDefined = this.valueIsDefined(this.socksProxy);
@@ -5086,7 +5094,7 @@ public Map<String, Object> describe()
         if (Boolean.TRUE.equals(issocksProxyCallbackDefined) || Boolean.TRUE.equals(issocks_proxy_callback_defined))
         {
             usedProxies.add("socksProxyCallback");
-            socksProxy = ((Boolean.TRUE.equals(issocksProxyCallbackDefined))) ? this.socksProxyCallback.call(url, method, headers, body) : this.socks_proxy_callback.call(url, method, headers, body);
+            socksProxy = ((Boolean.TRUE.equals(issocksProxyCallbackDefined))) ? Helpers.callDynamically(this, "socksProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "socks_proxy_callback", new Object[] { url, method, headers, body });
         }
         // check
         Integer length = ((List<?>)usedProxies).size();
@@ -5733,7 +5741,7 @@ public Map<String, Object> describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v31 -> (List<String>) hx4J40v31; case Object hx4J40v31 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v31.getClass().getName()); })), parameters)).join();
+            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v35 -> (List<String>) hx4J40v35; case Object hx4J40v35 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v35.getClass().getName()); })), parameters)).join();
         }).thenApply(FundingRates::new);
 
     }
@@ -6590,7 +6598,7 @@ public Map<String, Object> describe()
             for (var i = 0; i < ((List<?>)values).size(); i++)
             {
                 Object market = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
-                Object defaultCurrencyPrecision = ((((this.precisionMode == DECIMAL_PLACES)))) ? 8 : this.parseNumber("1e-8");
+                Object defaultCurrencyPrecision = (((Helpers.isEqual(this.precisionMode, DECIMAL_PLACES)))) ? 8 : this.parseNumber("1e-8");
                 Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
                 if (((Map<?, ?>)market).containsKey("base"))
                 {
@@ -6634,7 +6642,7 @@ public Map<String, Object> describe()
                     {
                         continue;
                     }
-                    if ((this.precisionMode == TICK_SIZE))
+                    if (Helpers.isEqual(this.precisionMode, TICK_SIZE))
                     {
                         if ((highestPrecision != null && (currentPrecision == null || highestPrecision > currentPrecision)))
                         {
@@ -8256,7 +8264,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v27 -> (Map<String, Object>) hx4J40v27; case Object hx4J40v27 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v27.getClass().getName()); }))));
+            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v29 -> (Map<String, Object>) hx4J40v29; case Object hx4J40v29 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v29.getClass().getName()); }))));
         }
         List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, java.util.Objects.requireNonNullElse(tail, false));
@@ -9658,7 +9666,7 @@ public Map<String, Object> describe()
             {
                 throw new NotSupported((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
             }
-            CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v19 -> (Map<String, Object>) hx4J40v19; case Object hx4J40v19 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v19.getClass().getName()); })))).join();
+            CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v21 -> (Map<String, Object>) hx4J40v21; case Object hx4J40v21 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v21.getClass().getName()); })))).join();
             Map<String, Object> rate = (Map<String, Object>) this.safeDict(borrowRates, code, (Object) null);
             if (java.util.Objects.equals(rate, null))
             {
@@ -10465,12 +10473,12 @@ public Map<String, Object> describe()
 
     public Boolean isTickPrecision()
     {
-        return (this.precisionMode == TICK_SIZE);
+        return Helpers.isEqual(this.precisionMode, TICK_SIZE);
     }
 
     public Boolean isSignificantPrecision()
     {
-        return (this.precisionMode == SIGNIFICANT_DIGITS);
+        return Helpers.isEqual(this.precisionMode, SIGNIFICANT_DIGITS);
     }
 
     public Double safeNumber(Object obj, Object key, Object defaultNumber)
@@ -11713,7 +11721,7 @@ public Map<String, Object> describe()
             List<Object> tasks = new ArrayList<Object>(Arrays.asList());
             Long time = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Object maxEntriesPerRequestValue = this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
-            Long step = (time * this.parseToInt(maxEntriesPerRequestValue));
+            Long step = (Long) Helpers.multiply(time, this.parseToInt(maxEntriesPerRequestValue));
             Long until = (Long) this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
             Object currentSince = ((current - ((maxCallsLimit * step))) - 1L);
             if (!java.util.Objects.equals(since, null))
