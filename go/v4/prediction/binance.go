@@ -271,7 +271,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
 		maxTopicsResolved = this.ParseToInt(maxTopics)
 	}
 	var pageLimitOption *int64 = this.SafeInteger(this.Options, "marketsPageLimit", 100)
-	var pageLimit int64 = this.ParseToInt(100)
+	var pageLimit int64 = 100
 	if pageLimitOption == nil || *pageLimitOption < 100 {
 		pageLimit = this.ParseToInt(pageLimitOption)
 	}
@@ -280,12 +280,12 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
 	for true {
 		var collectedLength int = len(collected)
 		var remaining int64 = maxTopicsResolved - int64(collectedLength)
-		var reqLimit int64 = func() int64 {
-			if remaining < pageLimit {
-				return remaining
-			}
-			return pageLimit
-		}()
+		var reqLimit int64
+		if remaining < pageLimit {
+			reqLimit = remaining
+		} else {
+			reqLimit = pageLimit
+		}
 		if reqLimit <= 0 {
 			break
 		}
@@ -608,13 +608,13 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 	var seen map[string]any = map[string]any{}
 	var collected []any = []any{}
 	var queriesLength int = ccxt.GetArrayLength(queries)
-	var limitValue int64 = this.ParseToInt(20)
+	var limitValue int64 = 20
 	if !ccxt.IsEqual(limit, nil) {
 		limitValue = this.ParseToInt(limit)
 	}
 	var limitResolved int64 = limitValue
 	if limitValue > 50 {
-		limitResolved = this.ParseToInt(50)
+		limitResolved = 50
 	}
 	for qi := 0; qi < queriesLength; qi++ {
 		var request map[string]any = map[string]any{

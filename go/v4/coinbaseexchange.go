@@ -732,9 +732,9 @@ func (this *Coinbaseexchange) ParseCurrency(rawCurrency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(id)
 	var details map[string]any = SafeMapTyped(rawCurrency, "details")
 	var networks map[string]any = map[string]any{}
-	var supportedNetworks []any = SafeListTyped(rawCurrency, "supported_networks")
+	var supportedNetworks []map[string]any = this.SafeListMapsTyped(rawCurrency, "supported_networks")
 	for j := 0; j < len(supportedNetworks); j++ {
-		var network any = supportedNetworks[j]
+		var network map[string]any = supportedNetworks[j]
 		var networkId *string = this.SafeString(network, "id")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {

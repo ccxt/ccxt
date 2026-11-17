@@ -2109,8 +2109,8 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	this.Options["jwtToken"] = ccxt.DerefScalar(token)
 	// measured from before the round trip, so the cached window closes a little early rather
 	// than a little late
-	var tokenExpiresIn *int64 = this.SafeInteger(this.Options, "tokenExpiresIn", 86400000)
-	this.Options["jwtTokenExpiresAt"] = this.Sum(now, tokenExpiresIn)
+	var tokenExpiresIn int64 = *this.SafeInteger(this.Options, "tokenExpiresIn", 86400000)
+	this.Options["jwtTokenExpiresAt"] = now + tokenExpiresIn
 
 	ch <- ccxt.AsyncResult[*string]{Value: token}
 	return nil

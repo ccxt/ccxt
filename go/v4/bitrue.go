@@ -903,10 +903,10 @@ func (this *Bitrue) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "coin")
 	var name *string = this.SafeString(rawCurrency, "coinFulName")
 	var code *string = this.SafeCurrencyCode(id)
-	var networkDetails []any = SafeListTyped(rawCurrency, "chainDetail")
+	var networkDetails []map[string]any = this.SafeListMapsTyped(rawCurrency, "chainDetail")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(networkDetails); j++ {
-		var entry any = networkDetails[j]
+		var entry map[string]any = networkDetails[j]
 		var networkId *string = this.SafeString(entry, "chain")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -1366,7 +1366,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			"contractName": market["id"],
 		}
 		if limit != nil {
-			request["limit"] = mathMin(limit, 100) // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
+			request["limit"] = min(*limit, 100) // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
 		}
 		if *this.SafeBool(market, "linear", false) {
 
@@ -1388,7 +1388,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			"symbol": market["id"],
 		}
 		if limit != nil {
-			request["limit"] = mathMin(limit, 1000) // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+			request["limit"] = min(*limit, 1000) // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
 		}
 
 		r3 := <-this.SpotV1PublicGetDepth(this.Extend(request, params))

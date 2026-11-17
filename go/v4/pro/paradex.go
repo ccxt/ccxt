@@ -100,7 +100,7 @@ func (this *Paradex) GetOrderBookChannel(marketId any, optionalArgs ...any) any 
 	return ccxt.Add(ccxt.Add("order_book.", marketId), ".snapshot@15@100ms")
 }
 func (this *Paradex) RequestId() int64 {
-	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	var requestId int64 = *this.SafeInteger(this.Options, "requestId", 0) + 1
 	this.Options["requestId"] = requestId
 	return requestId
 }
@@ -3053,7 +3053,7 @@ func (this *Paradex) SbeReadString(frameHex string, offset int64, length int64) 
 	var first int64 = this.ParseToInt(offset)
 	var size int64 = this.ParseToInt(length)
 	var start int64 = first * 2
-	var end any = start + size*2
+	var end int64 = start + size*2
 	return this.BinaryToString(this.Base16ToBinary(ccxt.Slice(frameHex, start, end)))
 }
 func (this *Paradex) SbeReadAddress(frameHex string, offset any) string {
@@ -3185,7 +3185,7 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 		}
 		var entryLength int64 = this.ParseToInt(this.SbeReadUint(frameHex, position, 2))
 		var numInGroup int64 = this.ParseToInt(this.SbeReadUint(frameHex, position+2, 2))
-		position = this.ParseToInt(position + 4)
+		position = position + 4
 		if (entryLength < 16) || (this.ParseToInt(position+numInGroup*entryLength) > frameEnd) {
 			return nil
 		}

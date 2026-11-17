@@ -1233,9 +1233,9 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	// { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
 	//
 	var ret []any = []any{}
-	var responseOrders []any = SafeListTyped(response, "orders")
+	var responseOrders []map[string]any = this.SafeListMapsTyped(response, "orders")
 	for i := 0; i < len(responseOrders); i++ {
-		var responseOrder any = responseOrders[i]
+		var responseOrder map[string]any = responseOrders[i]
 		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -1387,9 +1387,9 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 	// { "orders": [ { "orderId": "589636801329628160" } ] }
 	//
 	var ret []any = []any{}
-	var responseOrders []any = SafeListTyped(response, "orders")
+	var responseOrders []map[string]any = this.SafeListMapsTyped(response, "orders")
 	for i := 0; i < len(responseOrders); i++ {
-		var responseOrder any = responseOrders[i]
+		var responseOrder map[string]any = responseOrders[i]
 		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -1497,9 +1497,9 @@ func (this *Hibachi) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	// { "orders": [ { "orderId": "589636801329628160" } ] }
 	//
 	var ret []any = []any{}
-	var responseOrders []any = SafeListTyped(response, "orders")
+	var responseOrders []map[string]any = this.SafeListMapsTyped(response, "orders")
 	for i := 0; i < len(responseOrders); i++ {
-		var responseOrder any = responseOrders[i]
+		var responseOrder map[string]any = responseOrders[i]
 		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -3208,10 +3208,10 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	//     ]
 	// }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var timestamp *int64 = this.SafeIntegerProduct(entry, "fundingTimestamp", 1000)
 		rates = append(rates, map[string]any{
 			"info":        entry,

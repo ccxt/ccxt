@@ -2085,7 +2085,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			request["end"] = untilEnd
 			request["start"] = untilEnd - (duration * *limit) - 1
 		}
-		request["limit"] = mathMin(limit, 1000) // min 1, max 1000
+		request["limit"] = min(*limit, 1000) // min 1, max 1000
 	} else {
 		if since == nil {
 			request["limit"] = 1000

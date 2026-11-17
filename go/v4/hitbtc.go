@@ -1071,10 +1071,10 @@ func (this *Hitbtc) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 func (this *Hitbtc) ParseCurrency(currency any) map[string]any {
 	var currencyId *string = this.SafeString(currency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var rawNetworks []any = SafeListTyped(currency, "networks")
+	var rawNetworks []map[string]any = this.SafeListMapsTyped(currency, "networks")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(rawNetworks); j++ {
-		var rawNetwork any = rawNetworks[j]
+		var rawNetwork map[string]any = rawNetworks[j]
 		var networkId *string = this.SafeString2(rawNetwork, "protocol", "network")
 		var rawNetworkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkCodeUpper *string
@@ -1453,8 +1453,8 @@ func (this *Hitbtc) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if symbolsNormalized != nil {
-		var marketIds any = this.MarketIds(symbolsNormalized)
-		var delimited string = Join(marketIds, ",")
+		var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
+		var delimited string = strings.Join(marketIds, ",")
 		request["symbols"] = delimited
 	}
 
@@ -1580,7 +1580,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["from"] = since
@@ -1825,12 +1825,12 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}, marketResolved)
 }
-func (this *Hitbtc) FetchTransactionsHelperAsync(types string, code any, since any, limit any, params any) <-chan AsyncResult[[]Transaction] {
+func (this *Hitbtc) FetchTransactionsHelperAsync(types string, code *string, since any, limit any, params any) <-chan AsyncResult[[]Transaction] {
 	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchTransactionsHelperBody(ch, types, code, since, limit, params)
 	return ch
 }
-func (this *Hitbtc) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], types string, code any, since any, limit any, params any) any {
+func (this *Hitbtc) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], types string, code *string, since any, limit any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	if this.Markets == nil {
@@ -1844,7 +1844,7 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 		"types": types,
 	}
 	var currency map[string]any = nil
-	if !IsEqual(code, nil) {
+	if code != nil {
 		currency = this.Currency(code)
 		request["currencies"] = this.SafeString(currency, "id")
 	}
@@ -2152,8 +2152,8 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var marketIdsInner any = this.MarketIds(symbols)
-		request["symbols"] = Join(marketIdsInner, ",")
+		var marketIdsInner []string = this.MarketIdsStrings(symbols)
+		request["symbols"] = strings.Join(marketIdsInner, ",")
 	}
 	if limit != nil {
 		request["depth"] = limit
@@ -2448,7 +2448,7 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		request["from"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsPaginate)
 	var price *string = this.SafeString(paramsUntil, "price")
@@ -3904,8 +3904,8 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 			}
 			return nil
 		}())
-		var queryMarketIds any = this.MarketIds(symbolsNormalized)
-		request["symbols"] = Join(queryMarketIds, ",")
+		var queryMarketIds []string = this.MarketIdsStrings(symbolsNormalized)
+		request["symbols"] = strings.Join(queryMarketIds, ",")
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
 	if typeVar == nil || *typeVar != "swap" {
@@ -4056,9 +4056,9 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	for i := 0; i < len(contracts); i++ {
 		var marketId string = contracts[i]
 		var marketInner map[string]any = this.SafeMarket(marketId)
-		var fundingRateData []any = SafeListTyped(response, marketId)
+		var fundingRateData []map[string]any = this.SafeListMapsTyped(response, marketId)
 		for j := 0; j < len(fundingRateData); j++ {
-			var entry any = fundingRateData[j]
+			var entry map[string]any = fundingRateData[j]
 			var symbolInner *string = this.SafeSymbol(marketInner["symbol"])
 			var fundingRate *float64 = this.SafeNumber(entry, "funding_rate")
 			var datetime *string = this.SafeString(entry, "timestamp")
@@ -5521,7 +5521,7 @@ func (this *Hitbtc) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	var res []Trade = r.Value
 	return res, nil
 }
-func (this *Hitbtc) FetchTransactionsHelper(types string, code string, since int64, limit int64, options ...FetchTransactionsHelperOptions) ([]Transaction, error) {
+func (this *Hitbtc) FetchTransactionsHelper(types string, code *string, since int64, limit int64, options ...FetchTransactionsHelperOptions) ([]Transaction, error) {
 
 	opts := FetchTransactionsHelperOptionsStruct{}
 

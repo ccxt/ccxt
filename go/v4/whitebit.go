@@ -3497,7 +3497,7 @@ func (this *Whitebit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["market"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 
 	responseRecv := <-this.V4PrivatePostOrders(this.Extend(request, params))
@@ -3579,7 +3579,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		symbolResolved = symbol
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100) // default 50 max 100
+		request["limit"] = min(*limit, 100) // default 50 max 100
 	}
 
 	r1 := <-this.V4PrivatePostTradeAccountOrderHistory(this.Extend(request, params))
@@ -3801,7 +3801,7 @@ func (this *Whitebit) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 		request["market"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 
 	r1 := <-this.V4PrivatePostTradeAccountOrder(this.Extend(request, params))
@@ -4681,7 +4681,7 @@ func (this *Whitebit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		request["ticker"] = currency["id"]
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 
 	r1 := <-this.V4PrivatePostMainAccountHistory(this.Extend(request, params))

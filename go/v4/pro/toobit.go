@@ -254,9 +254,9 @@ func (this *Toobit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "trade::"+symbol)
 	}
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var request map[string]any = map[string]any{
-		"symbol": ccxt.Join(marketIds, ","),
+		"symbol": strings.Join(marketIds, ","),
 		"topic":  "trade",
 		"event":  "sub",
 	}
@@ -599,9 +599,9 @@ func (this *Toobit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "ticker::"+symbol)
 	}
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var request map[string]any = map[string]any{
-		"symbol": ccxt.Join(marketIds, ","),
+		"symbol": strings.Join(marketIds, ","),
 		"topic":  "realtimes",
 		"event":  "sub",
 	}
@@ -759,10 +759,10 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "orderBook::"+symbol+"::"+*channel)
 	}
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var url string = *this.SafeString(this.UrlsApi["ws"], "common", "") + "/quote/ws/v1"
 	var request map[string]any = map[string]any{
-		"symbol": ccxt.Join(marketIds, ","),
+		"symbol": strings.Join(marketIds, ","),
 		"topic":  channel,
 		"event":  "sub",
 	}

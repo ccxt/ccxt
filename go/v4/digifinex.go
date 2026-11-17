@@ -1034,10 +1034,10 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan AsyncResult[[]MarketInterface]
 	//         "code":0
 	//     }
 	//
-	var markets []any = SafeListTyped(response, "data")
+	var markets []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var id *string = this.SafeString(market, "market")
 		if id == nil {
 			panic(ExchangeError(this.Id + " fetchMarketsV1() missing id"))
@@ -1937,7 +1937,7 @@ func (this *Digifinex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	var request map[string]any = map[string]any{}
 	if limit != nil {
 		if *this.SafeBool(market, "swap", false) {
-			request["limit"] = mathMin(limit, 100)
+			request["limit"] = min(*limit, 100)
 		} else {
 			request["limit"] = limit
 		}
@@ -2070,7 +2070,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 		request["instrument_id"] = market["id"]
 		request["granularity"] = timeframe
 		if limit != nil {
-			request["limit"] = mathMin(limit, 100)
+			request["limit"] = min(*limit, 100)
 		}
 
 		r1 := <-this.PublicSwapGetPublicCandles(this.Extend(request, params))
@@ -2100,7 +2100,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 			if since != nil {
 				startTime = this.ParseToInt(float64(*since) / 1000)
 			} else {
-				startTime = this.ParseToInt(float64((endTime - ((startLimit * duration) * 1000))) / 1000)
+				startTime = this.ParseToInt(float64(endTime-((startLimit*duration)*1000)) / 1000)
 			}
 			request["start_time"] = startTime
 			if (limit != nil) || (until != nil) {
@@ -4003,7 +4003,7 @@ func (this *Digifinex) fetchTransactionsByTypeBody(ch chan AsyncResult[[]Transac
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["size"] = mathMin(500, limit)
+		request["size"] = min(500, *limit)
 	}
 	var response map[string]any = nil
 	if typeVar == "deposit" {
@@ -4891,10 +4891,10 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result []any = SafeListTyped(data, "funding_rates")
+	var result []map[string]any = this.SafeListMapsTyped(data, "funding_rates")
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var entry any = result[i]
+		var entry map[string]any = result[i]
 		var marketId *string = this.SafeString(data, "instrument_id")
 		var symbolInner *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.SafeInteger(entry, "time")

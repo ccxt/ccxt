@@ -2225,10 +2225,10 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		limitResolved = this.ParseToInt(limit)
 	}
 	if limitResolved > 5000 {
-		limitResolved = this.ParseToInt(5000)
+		limitResolved = 5000
 	}
 	var span int64 = this.ParseToInt(limitResolved * duration)
-	var windowStart int64 = this.ParseToInt(untilSeconds - span)
+	var windowStart int64 = untilSeconds - span
 	var start int64 = windowStart
 	var end any = untilSeconds
 	if since != nil {
@@ -2433,10 +2433,10 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTyped(result, "funding_rate_history")
+	var data []map[string]any = this.SafeListMapsTyped(result, "funding_rate_history")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,

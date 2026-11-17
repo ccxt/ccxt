@@ -859,7 +859,7 @@ func (this *Dydx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 
 	r1 := <-this.IndexerGetTradesPerpetualMarketMarket(this.Extend(request, params))
@@ -952,7 +952,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["fromISO"] = this.Iso8601(since)
@@ -1074,9 +1074,9 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	// }
 	//
 	var rates []any = []any{}
-	var rows []any = SafeListTyped(response, "historicalFunding")
+	var rows []map[string]any = this.SafeListMapsTyped(response, "historicalFunding")
 	for i := 0; i < len(rows); i++ {
-		var entry any = rows[i]
+		var entry map[string]any = rows[i]
 		var timestamp *int64 = this.Parse8601(this.SafeString(entry, "effectiveAt"))
 		var marketId *string = this.SafeString(entry, "ticker")
 		rates = append(rates, map[string]any{
@@ -3275,10 +3275,10 @@ func (this *Dydx) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 	//     ]
 	// }
 	//
-	var rows []any = SafeListTyped(response, "subaccounts")
+	var rows []map[string]any = this.SafeListMapsTyped(response, "subaccounts")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var account any = rows[i]
+		var account map[string]any = rows[i]
 		var accountId *string = this.SafeString(account, "subaccountNumber")
 		result = append(result, map[string]any{
 			"id":       accountId,

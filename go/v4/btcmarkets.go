@@ -932,7 +932,7 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		request["from"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 200) // default is 10, max 200
+		request["limit"] = min(*limit, 200) // default is 10, max 200
 	}
 
 	responseRecv := <-this.PublicGetMarketsMarketIdCandles(this.Extend(request, params))

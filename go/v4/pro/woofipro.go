@@ -80,8 +80,8 @@ func (this *Woofipro) Describe() map[string]any {
 }
 func (this *Woofipro) RequestId(url string) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
-	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
+	var previousValue int64 = *this.SafeInteger(options, url, 0)
+	var newValue int64 = previousValue + 1
 	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	return newValue
 }

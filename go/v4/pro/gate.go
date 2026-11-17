@@ -1014,13 +1014,13 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 	}
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	if nonce == nil {
-		var cacheLength int64 = this.ParseToInt(0)
+		var cacheLength int64 = 0
 		if storedOrderBook != nil {
 			var storedCacheLength int = ccxt.GetArrayLength(storedOrderBook.GetCache())
 			cacheLength = this.ParseToInt(storedCacheLength)
 		}
 		var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 10))
-		var waitAmount int64 = this.ParseToInt(0)
+		var waitAmount int64 = 0
 		if isSpot {
 			waitAmount = snapshotDelay
 		}
@@ -1030,7 +1030,7 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{}) // needed for c#, number of args needs to match
 		}
-		ccxt.AppendToArray(storedOrderBook.GetCache(), delta)
+		storedOrderBook.AppendCache(delta)
 		return
 	} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 		return
@@ -3454,12 +3454,12 @@ func (this *Gate) requestPrivateBody(ch chan ccxt.AsyncResult[any], url any, req
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Gate) SubscribePrivateAsync(url any, messageHash any, payload any, channel any, params any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Gate) SubscribePrivateAsync(url *string, messageHash any, payload any, channel any, params any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, url, messageHash, payload, channel, params, optionalArgs...)
 	return ch
 }
-func (this *Gate) subscribePrivateBody(ch chan ccxt.AsyncResult[any], url any, messageHash any, payload any, channel any, params any, optionalArgs ...any) any {
+func (this *Gate) subscribePrivateBody(ch chan ccxt.AsyncResult[any], url *string, messageHash any, payload any, channel any, params any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var requiresUid bool = ccxt.GetArgBool(optionalArgs, 0, false)

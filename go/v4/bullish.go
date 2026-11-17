@@ -1708,11 +1708,11 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 	if (!IsEqual(method, "fetchOHLCV")) && (!IsEqual(method, "fetchFundingRateHistory")) && (!IsEqual(method, "fetchTrades")) {
 		panic(NotSupported(Add(Add(this.Id+" safeDeterministicCall() does not support the ", method), " method")))
 	}
-	var errors int64 = this.ParseToInt(0)
+	var errors int = 0
 	var paramsOmitted any = this.Omit(paramsMaxRetries, "until")
 	// the exchange returns the most recent data, so we do not need to pass until into paginated calls
 	// the correct util value will be calculated inside of the method
-	for errors <= maxRetries {
+	for int64(errors) <= maxRetries {
 
 		{
 			func(this *Bullish) (ret_ any) {
@@ -1726,8 +1726,8 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 							if IsInstance(e, RateLimitExceeded) {
 								panic(e)
 							}
-							errors = this.ParseToInt(errors + 1)
-							if errors > maxRetries {
+							errors = errors + 1
+							if int64(errors) > maxRetries {
 								panic(e)
 							}
 							return nil

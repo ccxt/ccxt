@@ -6685,9 +6685,9 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	var isStockOrUta bool = (isStockSpot || (uta == true))
 	if limit != nil {
 		if isStockOrUta {
-			request["limit"] = mathMin(limit, 100)
+			request["limit"] = min(*limit, 100)
 		} else if *this.SafeBool(market, "contract", false) {
-			request["limit"] = mathMin(limit, 1000)
+			request["limit"] = min(*limit, 1000)
 		} else {
 			request["limit"] = limit
 		}
@@ -7337,33 +7337,33 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var maxLimitPerTimeframe map[string]any = SafeMapTyped(ohlcOptions, "maxLimitPerTimeframe")
 	var timeframeLimitValue *int64 = this.SafeInteger(maxLimitPerTimeframe, timeframe)
 	// the per-timeframe cap only applies to a user-supplied limit
-	var timeframeLimit any = func() any {
-		if timeframeLimitValue == nil {
-			return maxLimitForRecentEndpoint
-		}
-		return timeframeLimitValue
-	}()
-	var requestedLimit any = func() any {
-		if limit == nil {
-			return defaultLimit
-		}
-		return limit
-	}()
-	var limitCapped any = func() any {
-		if IsGreaterThan(requestedLimit, maxLimitForRecentEndpoint) {
-			return maxLimitForRecentEndpoint
-		}
-		return requestedLimit
-	}()
+	var timeframeLimit int64
+	if timeframeLimitValue == nil {
+		timeframeLimit = int64(maxLimitForRecentEndpoint)
+	} else {
+		timeframeLimit = *timeframeLimitValue
+	}
+	var requestedLimit int64
+	if limit == nil {
+		requestedLimit = int64(defaultLimit)
+	} else {
+		requestedLimit = *limit
+	}
+	var limitCapped int64
+	if requestedLimit > int64(maxLimitForRecentEndpoint) {
+		limitCapped = int64(maxLimitForRecentEndpoint)
+	} else {
+		limitCapped = requestedLimit
+	}
 	// the per-timeframe cap only applies to a user-supplied limit
-	var recentLimit any = func() any {
-		if (limit != nil) && (IsGreaterThan(limitCapped, timeframeLimit)) {
+	var recentLimit int64 = func() int64 {
+		if (limit != nil) && (limitCapped > timeframeLimit) {
 			return timeframeLimit
 		}
 		return limitCapped
 	}()
-	var limitResolved any = recentLimit
-	var recentDuration any = Multiply(recentLimit, duration)
+	var limitResolved int64 = recentLimit
+	var recentDuration int64 = recentLimit * duration
 	var recentEndpointDaysMap map[string]any = SafeMapTyped(this.Options["fetchOHLCV"], "maxRecentDaysPerTimeframe")
 	var recentEndpointAvailableDays *int64 = this.SafeInteger(recentEndpointDaysMap, timeframe)
 	var historicalEndpointNeeded bool = (useHistoryEndpoint != nil && *useHistoryEndpoint == true)
@@ -7376,7 +7376,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		request["startTime"] = since
 		if until == nil {
 			calculatedEndTime = this.Sum(since, recentDuration)
-			if IsGreaterThan(since, Subtract(now, recentDuration)) {
+			if *since > (now - recentDuration) {
 				calculatedEndTime = now
 			}
 			request["endTime"] = calculatedEndTime
@@ -7386,40 +7386,40 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 	}
 	if until != nil {
-		var untilEndTime any = func() any {
-			if until != nil && *until > now {
-				return now
-			}
-			return until
-		}()
+		var untilEndTime int64
+		if until != nil && *until > now {
+			untilEndTime = now
+		} else {
+			untilEndTime = *until
+		}
 		calculatedEndTime = untilEndTime
 		request["endTime"] = untilEndTime
 		if since == nil {
-			var untilStartTime any = Subtract(untilEndTime, recentDuration)
+			var untilStartTime int64 = untilEndTime - recentDuration
 			calculatedStartTime = untilStartTime
 			// we do not need to set "startTime" here
-			if (recentEndpointAvailableDays != nil) && (IsLessThanOrEqual(untilStartTime, now-(*recentEndpointAvailableDays-1)*int64(msInDay))) {
+			if (recentEndpointAvailableDays != nil) && (untilStartTime <= (now - (*recentEndpointAvailableDays-1)*int64(msInDay))) {
 				historicalEndpointNeeded = true
 			}
 		}
 	}
 	if historicalEndpointNeeded {
 		// only for "historical-candles" - ensure we use correct max limit
-		var historicalLimit any = func() any {
-			if IsGreaterThan(recentLimit, maxLimitForHistoryEndpoint) {
-				return maxLimitForHistoryEndpoint
-			}
-			return recentLimit
-		}()
+		var historicalLimit int64
+		if recentLimit > int64(maxLimitForHistoryEndpoint) {
+			historicalLimit = int64(maxLimitForHistoryEndpoint)
+		} else {
+			historicalLimit = recentLimit
+		}
 		limitResolved = historicalLimit
-		var historicalDuration any = Multiply(historicalLimit, duration)
+		var historicalDuration int64 = historicalLimit * duration
 		calculatedStartTime = Subtract(calculatedEndTime, historicalDuration)
 		request["startTime"] = calculatedStartTime
 		// for contract, maximum 90 days allowed between start-end times
 		if !(*this.SafeBool(market, "spot", false)) {
 			var maxDistanceForContracts int64 = 90 * int64(msInDay)
 			// endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-			if (!IsEqual(calculatedEndTime, nil)) && (IsGreaterThan(historicalDuration, maxDistanceForContracts)) {
+			if (!IsEqual(calculatedEndTime, nil)) && (historicalDuration > maxDistanceForContracts) {
 				calculatedEndTime = this.Sum(calculatedStartTime, maxDistanceForContracts)
 				request["endTime"] = calculatedEndTime
 			}
@@ -16356,9 +16356,9 @@ func (this *Bitget) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], 
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var id *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {

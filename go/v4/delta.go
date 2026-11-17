@@ -744,10 +744,10 @@ func (this *Delta) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var numericId *int64 = this.SafeInteger(rawCurrency, "id")
 	var code *string = this.SafeCurrencyCode(id)
-	var chains []any = SafeListTyped(rawCurrency, "networks")
+	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "networks")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -1048,10 +1048,10 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	//         "success":true
 	//     }
 	//
-	var markets []any = SafeListTyped(response, "result")
+	var markets []map[string]any = this.SafeListMapsTyped(response, "result")
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var typeVar *string = this.SafeString(market, "contract_type")
 		if (typeVar != nil && *typeVar == "options_combos") || (typeVar != nil && *typeVar == "binary_call_options") || (typeVar != nil && *typeVar == "binary_put_options") {
 			continue

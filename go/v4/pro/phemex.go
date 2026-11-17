@@ -2035,12 +2035,12 @@ func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Phemex) SubscribePrivateAsync(typeVar any, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Phemex) SubscribePrivateAsync(typeVar *string, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, typeVar, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar any, messageHash any, optionalArgs ...any) any {
+func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar *string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2062,7 +2062,7 @@ func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar 
 	var settleIsUSDT bool = (this.SafeString(params, "settle", "") != nil && *this.SafeString(params, "settle", "") == "USDT")
 	var paramsOmitted map[string]any = this.OmitDict(params, "settle")
 	var channel string = "aop.subscribe"
-	if ccxt.IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		channel = "wo.subscribe"
 	}
 	if settleIsUSDT {

@@ -49,7 +49,7 @@ func (this *Mudrex) Ping(client any) any {
 	}
 }
 func (this *Mudrex) RequestId() int64 {
-	var reqid int64 = this.Sum(this.SafeInteger(this.Options, "correlationId", 0), 1).(int64)
+	var reqid int64 = *this.SafeInteger(this.Options, "correlationId", 0) + 1
 	this.Options["correlationId"] = reqid
 	return reqid
 }
@@ -306,9 +306,9 @@ func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Mudrex) HandleTicker(client any, message map[string]any) {
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data []map[string]any = this.SafeListMapsTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var t any = data[i]
+		var t map[string]any = data[i]
 		var s *string = this.SafeString(t, "s")
 		if s == nil {
 			continue

@@ -2566,7 +2566,7 @@ func (this *Woo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...a
 		request["endTime"] = until
 	}
 	if limit != nil {
-		request["size"] = mathMin(limit, 500)
+		request["size"] = min(*limit, 500)
 	}
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
@@ -3208,7 +3208,7 @@ func (this *Woo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["after"] = *since - 1 // #27793
@@ -3782,7 +3782,7 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optionalArg
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["size"] = mathMin(limit, 1000)
+		request["size"] = min(*limit, 1000)
 	}
 	var transactionType *string = this.SafeString(paramsNetworkCode, "type")
 	var paramsOmitted map[string]any = this.OmitDict(paramsNetworkCode, "type")
@@ -4772,7 +4772,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 		request["endTime"] = until
 	}
 	if limit != nil {
-		request["size"] = mathMin(limit, 500)
+		request["size"] = min(*limit, 500)
 	}
 
 	r2 := <-this.V3PrivateGetFuturesFundingFeeHistory(this.Extend(request, paramsOmitted))
@@ -5114,10 +5114,10 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTyped(data, "rows")
+	var rows []map[string]any = this.SafeListMapsTyped(data, "rows")
 	var rates []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var entry any = rows[i]
+		var entry map[string]any = rows[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "fundingRateTimestamp")
 		rates = append(rates, map[string]any{
@@ -6081,9 +6081,9 @@ func (this *Woo) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], opt
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var data []any = SafeListTyped(response, "rows")
+	var data []map[string]any = this.SafeListMapsTyped(response, "rows")
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var id *string = this.SafeString(entry, "token")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {

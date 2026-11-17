@@ -1222,11 +1222,11 @@ func (this *Mercado) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	}
 	if since != nil {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
-		request["to"] = this.Sum(request["from"], (limitResolved * this.ParseTimeframe(timeframe)))
+		request["to"] = this.Sum(request["from"], limitResolved*this.ParseTimeframe(timeframe))
 	} else {
 		var to int64 = this.Seconds()
 		request["to"] = to
-		request["from"] = (to - (limitResolved * this.ParseTimeframe(timeframe)))
+		request["from"] = to - (limitResolved * this.ParseTimeframe(timeframe))
 	}
 
 	r1 := <-this.V4PublicNetGetCandles(this.Extend(request, params))

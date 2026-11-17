@@ -806,13 +806,13 @@ func (this *Coinbase) HandleOHLCV(client any, message any) {
 	//         ]
 	//     }
 	//
-	var events []any = ccxt.SafeListTyped(message, "events")
+	var events []map[string]any = this.SafeListMapsTyped(message, "events")
 	var timeframe string = "5m"
 	for i := 0; i < len(events); i++ {
-		var event map[string]any = ccxt.MapTyped(events[i])
-		var candles []any = ccxt.SafeListTyped(event, "candles")
+		var event map[string]any = events[i]
+		var candles []map[string]any = this.SafeListMapsTyped(event, "candles")
 		for j := 0; j < len(candles); j++ {
-			var candle map[string]any = ccxt.MapTyped(candles[j])
+			var candle map[string]any = candles[j]
 			var marketId *string = this.SafeString(candle, "product_id")
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])

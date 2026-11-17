@@ -850,8 +850,8 @@ func (this *Kucoin) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 			return nil
 		}
 	} else {
-		var marketIds any = this.MarketIds(symbolsNormalized)
-		var symbolsTopic string = *method + ":" + ccxt.Join(marketIds, ",")
+		var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
+		var symbolsTopic string = *method + ":" + strings.Join(marketIds, ",")
 
 		r3 := <-this.SubscribeMultipleAsync(url, messageHashes, symbolsTopic, topics, query)
 		if r3.Err != nil {
@@ -1789,7 +1789,7 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isFuturesMethod *bool = this.SafeBool(firstMarket, "contract", false)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 
 	r1 := <-this.NegotiateAsync(false, isFuturesMethod)
 	if r1.Err != nil {
@@ -1802,7 +1802,7 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	if isFuturesMethod != nil && *isFuturesMethod {
 		channelName = "/contractMarket/execution:"
 	}
-	var topic string = channelName + ccxt.Join(marketIds, ",")
+	var topic string = channelName + strings.Join(marketIds, ",")
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "trades:"+symbol)
@@ -1854,7 +1854,7 @@ func (this *Kucoin) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isFuturesMethod *bool = this.SafeBool(firstMarket, "contract", false)
 
@@ -1869,7 +1869,7 @@ func (this *Kucoin) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	if isFuturesMethod != nil && *isFuturesMethod {
 		channelName = "/contractMarket/execution:"
 	}
-	var topic string = channelName + ccxt.Join(marketIds, ",")
+	var topic string = channelName + strings.Join(marketIds, ",")
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "unsubscribe:trades:"+symbol)
@@ -2294,7 +2294,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isFuturesMethod *bool = this.SafeBool(firstMarket, "contract", false)
 
@@ -2321,7 +2321,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 			method = ccxt.Add(method, "Depth"+ccxt.ToString(limit))
 		}
 	}
-	var topic any = ccxt.Add(ccxt.Add(method, ":"), ccxt.Join(marketIds, ","))
+	var topic any = ccxt.Add(ccxt.Add(method, ":"), strings.Join(marketIds, ","))
 	var messageHashes []any = []any{}
 	var subscriptionHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -2384,7 +2384,7 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true)
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var isFuturesMethod *bool = this.SafeBool(firstMarket, "contract", false)
 
@@ -2411,7 +2411,7 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool
 			method = ccxt.Add(method, "Depth"+ccxt.ToString(limit))
 		}
 	}
-	var topic any = ccxt.Add(ccxt.Add(method, ":"), ccxt.Join(marketIds, ","))
+	var topic any = ccxt.Add(ccxt.Add(method, ":"), strings.Join(marketIds, ","))
 	var messageHashes []any = []any{}
 	var subscriptionHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -2524,7 +2524,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{})
 			}
-			ccxt.AppendToArray(orderbook.GetCache(), data)
+			orderbook.AppendCache(data)
 			return
 		} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 			return
@@ -2583,7 +2583,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, utaParams)
 			}
-			ccxt.AppendToArray(orderbook.GetCache(), data)
+			orderbook.AppendCache(data)
 			return
 		} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 			return

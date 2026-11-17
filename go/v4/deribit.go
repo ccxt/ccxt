@@ -1335,9 +1335,9 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		}
 	}
 	for i := 0; i < len(instrumentsResponses); i++ {
-		var instrumentsResult []any = SafeListTyped(instrumentsResponses[i], "result")
+		var instrumentsResult []map[string]any = this.SafeListMapsTyped(instrumentsResponses[i], "result")
 		for k := 0; k < len(instrumentsResult); k++ {
-			var market any = instrumentsResult[k]
+			var market map[string]any = instrumentsResult[k]
 			var kind *string = this.SafeString(market, "kind")
 			var isSpot bool = (kind != nil && *kind == "spot")
 			var id *string = this.SafeString(market, "instrument_name")
@@ -2057,7 +2057,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		return max(*since-1, 0)
 	}()
 	if since == nil {
-		request["start_timestamp"] = (now - (((windowLimit - 1) * duration) * 1000))
+		request["start_timestamp"] = now - (windowLimit-1)*duration*1000
 		request["end_timestamp"] = now
 	} else {
 		request["start_timestamp"] = sinceResolved
@@ -2248,7 +2248,7 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		request["start_timestamp"] = since
 	}
 	if limit != nil {
-		request["count"] = mathMin(limit, 1000) // default 10
+		request["count"] = min(*limit, 1000) // default 10
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
 	var paramsOmitted map[string]any = func() map[string]any {
@@ -2395,12 +2395,12 @@ func (this *Deribit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var fees []any = SafeListTyped(result, "fees")
+	var fees []map[string]any = this.SafeListMapsTyped(result, "fees")
 	var perpetualFee map[string]any = map[string]any{}
 	var futureFee map[string]any = map[string]any{}
 	var optionFee map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var feeEntry any = fees[i]
+		var feeEntry map[string]any = fees[i]
 		var instrumentType *string = this.SafeString(feeEntry, "instrument_type")
 		if instrumentType != nil && *instrumentType == "future" {
 			futureFee = map[string]any{
@@ -4497,7 +4497,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	}
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
-		"start_timestamp": (sinceResolved - 1),
+		"start_timestamp": sinceResolved - 1,
 	}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end_timestamp")
 	var paramsUntil map[string]any = func() map[string]any {
@@ -4520,7 +4520,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if limit == nil {
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
-		var maxUntil int64 = this.ParseToInt(this.Sum(sinceResolved, *limit*duration))
+		var maxUntil int64 = this.ParseToInt(sinceResolved + *limit*duration)
 		request["end_timestamp"] = func() int64 {
 			if endTimestamp < maxUntil {
 				return endTimestamp

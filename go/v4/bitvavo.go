@@ -1039,7 +1039,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start"] = since
@@ -1413,7 +1413,7 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol any, optionalArgs ...any) map[stri
 		request["end"] = this.Sum(since, (sinceLimit*duration)*1000)
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1440) // default 1440, max 1440
+		request["limit"] = min(*limit, 1440) // default 1440, max 1440
 	} else if since != nil {
 		request["limit"] = 1440
 	}
@@ -2982,7 +2982,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 		request["fromDate"] = since
 	}
 	if limit != nil {
-		request["maxItems"] = mathMin(limit, 100)
+		request["maxItems"] = min(*limit, 100)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("toDate", request, params)
 

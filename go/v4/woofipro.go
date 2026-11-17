@@ -1118,12 +1118,12 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 func (this *Woofipro) ParseCurrency(rawCurrency any) map[string]any {
 	var token map[string]any = this.SafeDictMap(rawCurrency, "_token", map[string]any{})
 	var currencyId *string = this.SafeString(token, "token")
-	var networks []any = SafeListTyped(token, "chain_details")
+	var networks []map[string]any = this.SafeListMapsTyped(token, "chain_details")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var indexedChains map[string]any = SafeMapTyped(rawCurrency, "_indexedChains")
 	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
-		var networkEntry any = networks[j]
+		var networkEntry map[string]any = networks[j]
 		var networkId *string = this.SafeString(networkEntry, "chain_id")
 		var networkRow map[string]any = SafeMapTyped(indexedChains, networkId)
 		var networkName *string = this.SafeString(networkRow, "name", networkId)
@@ -1961,10 +1961,10 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result []any = SafeListTyped(data, "rows")
+	var result []map[string]any = this.SafeListMapsTyped(data, "rows")
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var entry any = result[i]
+		var entry map[string]any = result[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "funding_rate_timestamp")
 		rates = append(rates, map[string]any{
@@ -2088,7 +2088,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		request["end_t"] = until
 	}
 	if limit != nil {
-		request["size"] = mathMin(limit, 500)
+		request["size"] = min(*limit, 500)
 	}
 
 	r2 := <-this.V1PrivateGetFundingFeeHistory(this.Extend(request, paramsOmitted))
@@ -2239,7 +2239,7 @@ func (this *Woofipro) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["max_level"] = mathMin(limit, 1000)
+		request["max_level"] = min(*limit, 1000)
 	}
 
 	r1 := <-this.V1PrivateGetOrderbookSymbol(this.Extend(request, params))
@@ -2317,7 +2317,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 
 	r1 := <-this.V1PrivateGetKline(this.Extend(request, params))

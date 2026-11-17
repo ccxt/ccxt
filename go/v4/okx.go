@@ -4008,12 +4008,12 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		limitResolved = mathMin(limit, requestMaxLimit)
 	}
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var bar any
-	if derefPtr := this.SafeString(this.Timeframes, timeframe, timeframe); derefPtr != nil {
-		bar = *derefPtr
-	}
+	var bar *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	if (timezone == "UTC") && (duration >= 21600) {
-		bar = Add(bar, strings.ToLower(timezone))
+		if bar != nil {
+			barValue := *bar + strings.ToLower(timezone)
+			bar = &barValue
+		}
 	}
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
@@ -5891,7 +5891,7 @@ func (this *Okx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any], t
 			panic(r.Err)
 		}
 	}
-	var timeOut any = 0
+	var timeOut int64 = 0
 	if (true) && (timeout > 0) {
 		timeOut = this.ParseToInt(float64(timeout) / 1000)
 	}
@@ -6192,9 +6192,9 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) Order {
 	var stopLossPrice *float64 = this.SafeNumber2(order, "slTriggerPx", "slOrdPx")
 	var takeProfitPrice *float64 = this.SafeNumber2(order, "tpTriggerPx", "tpOrdPx")
 	// regular orders carry attached sl/tp inside attachAlgoOrds
-	var attachAlgoOrds []any = SafeListTyped(order, "attachAlgoOrds")
+	var attachAlgoOrds []map[string]any = this.SafeListMapsTyped(order, "attachAlgoOrds")
 	for i := 0; i < len(attachAlgoOrds); i++ {
-		var attached map[string]any = MapTyped(attachAlgoOrds[i])
+		var attached map[string]any = attachAlgoOrds[i]
 		if stopLossPrice == nil {
 			stopLossPrice = this.SafeNumber(attached, "slTriggerPx")
 		}
@@ -9618,10 +9618,10 @@ func (this *Okx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 	//        "type": "8"
 	//    }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
 		var instId *string = this.SafeString(entry, "instId")
 		var marketInner map[string]any = this.SafeMarket(instId)
@@ -11159,7 +11159,7 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period an
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var maxLimit int = 100
-	var effectiveLimit int64 = this.ParseToInt(100)
+	var effectiveLimit int64 = 100
 	if (limit != nil) && (100 > *limit) {
 		effectiveLimit = this.ParseToInt(limit)
 	}
@@ -12702,9 +12702,9 @@ func (this *Okx) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], opt
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var id *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {

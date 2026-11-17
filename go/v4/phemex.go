@@ -4312,7 +4312,7 @@ func (this *Phemex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = mathMin(200, limit)
+		request["limit"] = min(200, *limit)
 	}
 	var limitResolved *int64 = this.SafeInteger(request, "limit")
 	var isUSDTSettled bool = (typeVar == nil || *typeVar != "spot") && ((symbol == nil) || (this.SafeString(market, "settle") != nil && *this.SafeString(market, "settle") == "USDT"))
@@ -5041,7 +5041,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sy
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(200, limit)
+		request["limit"] = min(200, *limit)
 	}
 
 	r1 := <-this.PrivateGetApiDataGFuturesClosedPosition(this.Extend(request, params))
@@ -5358,10 +5358,10 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTyped(data, "rows")
+	var rows []map[string]any = this.SafeListMapsTyped(data, "rows")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var entry any = rows[i]
+		var entry map[string]any = rows[i]
 		var timestamp *int64 = this.SafeInteger(entry, "createTime")
 		var execFee *string = this.SafeString2(entry, "execFeeEv", "execFeeRv")
 		var currencyCode *string = this.SafeCurrencyCode(this.SafeString(entry, "currency"))
@@ -5953,8 +5953,8 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Seconds()
-		var xPhemexRequestExpiry *int64 = this.SafeInteger(this.Options, "x-phemex-request-expiry", 60)
-		var expiry int64 = this.Sum(timestamp, xPhemexRequestExpiry).(int64)
+		var xPhemexRequestExpiry int64 = *this.SafeInteger(this.Options, "x-phemex-request-expiry", 60)
+		var expiry int64 = timestamp + xPhemexRequestExpiry
 		var expiryString string = strconv.FormatInt(expiry, 10)
 		privateHeaders["x-phemex-access-token"] = this.ApiKey
 		privateHeaders["x-phemex-request-expiry"] = expiryString
@@ -6462,10 +6462,10 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rates []any = SafeListTyped(data, "rows")
+	var rates []map[string]any = this.SafeListMapsTyped(data, "rows")
 	var result []any = []any{}
 	for i := 0; i < len(rates); i++ {
-		var item any = rates[i]
+		var item map[string]any = rates[i]
 		var timestamp *int64 = this.SafeInteger(item, "fundingTime")
 		result = append(result, map[string]any{
 			"info":        item,

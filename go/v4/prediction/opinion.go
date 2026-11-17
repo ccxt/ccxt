@@ -546,12 +546,12 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	for page := 1; int64(page) <= maxPages; page++ {
 		var fetchedSoFar int = len(rawEvents)
 		var remaining int64 = this.ParseToInt(*fetchCap - int64(fetchedSoFar))
-		var reqLimit int64 = func() int64 {
-			if remaining < pageLimit {
-				return remaining
-			}
-			return pageLimit
-		}()
+		var reqLimit int64
+		if remaining < pageLimit {
+			reqLimit = remaining
+		} else {
+			reqLimit = pageLimit
+		}
 		if reqLimit <= 0 {
 			break
 		}
@@ -1144,18 +1144,18 @@ func (this *Opinion) ParseOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
  * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a 'quoteToken' field
  * @returns {object} the matching quote-token entry
  */
-func (this *Opinion) LoadQuoteTokenAsync(quoteTokenAddress any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Opinion) LoadQuoteTokenAsync(quoteTokenAddress *string) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.loadQuoteTokenBody(ch, quoteTokenAddress)
 	return ch
 }
-func (this *Opinion) loadQuoteTokenBody(ch chan ccxt.AsyncResult[map[string]any], quoteTokenAddress any) any {
+func (this *Opinion) loadQuoteTokenBody(ch chan ccxt.AsyncResult[map[string]any], quoteTokenAddress *string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	if ccxt.IsEqual(quoteTokenAddress, nil) {
+	if quoteTokenAddress == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " loadQuoteToken() requires a quoteTokenAddress"))
 	}
-	var cacheKey string = ccxt.ToLower(quoteTokenAddress)
+	var cacheKey string = strings.ToLower(*quoteTokenAddress)
 	var cached map[string]any = ccxt.SafeMapTyped(this.Options, "quoteTokens")
 	var existing map[string]any = this.SafeDictMap(cached, cacheKey)
 	if existing != nil {
@@ -1183,7 +1183,7 @@ func (this *Opinion) loadQuoteTokenBody(ch chan ccxt.AsyncResult[map[string]any]
 	this.Options["quoteTokens"] = quoteTokens
 	var quoteToken map[string]any = this.SafeDictMap(quoteTokens, cacheKey)
 	if quoteToken == nil {
-		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" loadQuoteToken() could not find quote token ", quoteTokenAddress)))
+		panic(ccxt.ExchangeError(this.Id + " loadQuoteToken() could not find quote token " + *quoteTokenAddress))
 	}
 
 	ch <- ccxt.AsyncResult[map[string]any]{Value: quoteToken}

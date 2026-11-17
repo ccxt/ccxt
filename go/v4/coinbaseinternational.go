@@ -1070,10 +1070,10 @@ func (this *Coinbaseinternational) ParseCurrency(currency any) map[string]any {
 	var precision *float64 = this.ParseNumber(this.ParsePrecision(decimals))
 	var networkFee *float64 = this.SafeNumber(currency, "network_fee")
 	var withdrawalFee *float64 = this.SafeNumber(currency, "withdrawal_fee")
-	var rawNetworks []any = SafeListTyped(currency, "coinbase_networks")
+	var rawNetworks []map[string]any = this.SafeListMapsTyped(currency, "coinbase_networks")
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < len(rawNetworks); i++ {
-		var rawNetwork any = rawNetworks[i]
+		var rawNetwork map[string]any = rawNetworks[i]
 		var networkId *string = this.SafeString(rawNetwork, "resource_name")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {

@@ -781,10 +781,10 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "coin")
 	var code *string = this.SafeCurrencyCode(id)
 	var isFiat *bool = this.SafeBool(rawCurrency, "isLegalMoney", false)
-	var networkList []any = SafeListTyped(rawCurrency, "networkList")
+	var networkList []map[string]any = this.SafeListMapsTyped(rawCurrency, "networkList")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(networkList); j++ {
-		var networkItem any = networkList[j]
+		var networkItem map[string]any = networkList[j]
 		var network *string = this.SafeString(networkItem, "network")
 		var networkCode *string = this.NetworkIdToCode(network, code)
 		if networkCode != nil {
@@ -1015,10 +1015,10 @@ func (this *Coinsph) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//         ]
 	//     }
 	//
-	var markets []any = SafeListTyped(response, "symbols")
+	var markets []map[string]any = this.SafeListMapsTyped(response, "symbols")
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
@@ -1420,7 +1420,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if until != nil {
 			request["endTime"] = until
 		} else {
-			var endTimeByLimit any = this.Sum(since, ((this.ParseTimeframe(timeframe) * 1000) * (limitResolved - 1)))
+			var endTimeByLimit any = this.Sum(since, (this.ParseTimeframe(timeframe)*1000)*(limitResolved-1))
 			var now int64 = this.Milliseconds()
 			request["endTime"] = mathMin(endTimeByLimit, now)
 		}
@@ -2954,10 +2954,10 @@ func (this *Coinsph) ParseDepositAddress(depositAddress any, optionalArgs ...any
 		"tag":      this.SafeString(depositAddress, "addressTag"),
 	})
 }
-func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
+func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) string {
 	var query map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = query
-	var encodedArrayParams any = ""
+	var encodedArrayParams string = ""
 	var remainingQuery map[string]any = query
 	var keys []string = nil
 	if query != nil {
@@ -2970,22 +2970,22 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 		var key string = keys[i]
 		if IsArray(query[key]) {
 			if i != 0 {
-				encodedArrayParams = Add(encodedArrayParams, "&")
+				encodedArrayParams += "&"
 			}
 			var innerArray any = query[key]
 			remainingQuery = this.OmitDict(remainingQuery, key)
-			var encodedArrayParam any = this.ParseArrayParam(innerArray, key)
-			encodedArrayParams = Add(encodedArrayParams, encodedArrayParam)
+			var encodedArrayParam string = this.ParseArrayParam(innerArray, key)
+			encodedArrayParams += encodedArrayParam
 		}
 	}
 	var encodedQuery string = this.Urlencode(remainingQuery)
 	if len(encodedQuery) != 0 {
-		return Add(encodedQuery+"&", encodedArrayParams)
+		return encodedQuery + "&" + encodedArrayParams
 	} else {
 		return encodedArrayParams
 	}
 }
-func (this *Coinsph) ParseArrayParam(array any, key string) any {
+func (this *Coinsph) ParseArrayParam(array any, key string) string {
 	var stringifiedArray string = this.Json(array)
 	stringifiedArray = strings.Replace(stringifiedArray, "[", "%5B", 1)
 	stringifiedArray = strings.Replace(stringifiedArray, "]", "%5D", 1)
@@ -3006,7 +3006,7 @@ func (this *Coinsph) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var query map[string]any = this.Extend(map[string]any{}, this.Omit(params, this.ExtractParams(path)))
 	var endpoint string = this.ImplodeParams(path, params)
-	var url any = *apiUrl + "/" + endpoint
+	var url string = *apiUrl + "/" + endpoint
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		query["timestamp"] = this.Milliseconds()
@@ -3017,9 +3017,9 @@ func (this *Coinsph) Sign(path string, optionalArgs ...any) map[string]any {
 				query["recvWindow"] = defaultRecvWindow
 			}
 		}
-		var signedQuery any = this.UrlEncodeQuery(query)
+		var signedQuery string = this.UrlEncodeQuery(query)
 		var signature string = this.Hmac(this.Encode(signedQuery), this.Encode(this.Secret), sha256)
-		url = Add(Add(Add(*apiUrl+"/"+endpoint+"?", signedQuery), "&signature="), signature)
+		url = *apiUrl + "/" + endpoint + "?" + signedQuery + "&signature=" + signature
 		var signedHeaders map[string]any = map[string]any{
 			"X-COINS-APIKEY": this.ApiKey,
 		}
@@ -3030,9 +3030,9 @@ func (this *Coinsph) Sign(path string, optionalArgs ...any) map[string]any {
 			"headers": signedHeaders,
 		}
 	}
-	var encodedQuery any = this.UrlEncodeQuery(query)
-	if GetLength(encodedQuery) != 0 {
-		url = Add(*apiUrl+"/"+endpoint+"?", encodedQuery)
+	var encodedQuery string = this.UrlEncodeQuery(query)
+	if len(encodedQuery) != 0 {
+		url = *apiUrl + "/" + endpoint + "?" + encodedQuery
 	}
 	return map[string]any{
 		"url":     url,

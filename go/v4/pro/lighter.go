@@ -1737,8 +1737,8 @@ func (this *Lighter) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalA
 }
 func (this *Lighter) RequestId(url *string) int64 {
 	var options any = this.SafeDict(this.Options, "requestId", this.CreateSafeDictionary())
-	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
+	var previousValue int64 = *this.SafeInteger(options, url, 0)
+	var newValue int64 = previousValue + 1
 	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	return newValue
 }

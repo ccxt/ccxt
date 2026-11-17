@@ -98,12 +98,12 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 		tradeType = "contract"
 	}
 	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
-	var url any
-	if derefPtr := this.SafeString(apiUrls, tradeType); derefPtr != nil {
-		url = *derefPtr
-	}
+	var url *string = this.SafeString(apiUrls, tradeType)
 	if !ccxt.EvalTruthy(isContract) {
-		url = ccxt.Add(url, "/private")
+		if url != nil {
+			urlValue := *url + "/private"
+			url = &urlValue
+		}
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	var token *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "token")
@@ -1817,7 +1817,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
 				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})
 			}
-			ccxt.AppendToArray(orderbook.GetCache(), data)
+			orderbook.AppendCache(data)
 			return
 		}
 		if obAsks != nil {

@@ -2738,7 +2738,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		var timeoutMs int64 = this.ParseToInt(this.Timeout)
 		var defaultExpires *int64 = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(float64(timeoutMs)/1000))
-		var expires any = this.Sum(this.Seconds(), defaultExpires)
+		var expires int64 = this.Seconds() + *defaultExpires
 		var expiresString *string = this.NumberToString(expires)
 		var auth any = method + requestPath + *expiresString
 		requestHeaders = map[string]any{

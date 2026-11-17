@@ -2339,13 +2339,13 @@ func (this *Bybit) EnableDemoTrading(enable bool) {
 func (this *Bybit) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
-func (this *Bybit) AddPaginationCursorToResult(response any) any {
+func (this *Bybit) AddPaginationCursorToResult(response any) []any {
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeListN(result, []any{"list", "rows", "data", "dataList"}, []any{})
+	var data []any = this.SafeListNSliceDefault(result, []any{"list", "rows", "data", "dataList"}, []any{})
 	var paginationCursor *string = this.SafeString2(result, "nextPageCursor", "cursor")
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	if (paginationCursor != nil) && (dataLength > 0) {
-		var first any = GetValue(data, 0)
+		var first any = data[0]
 		AddElementToObject(first, "nextPageCursor", paginationCursor)
 		AddElementToObject(data, 0, first)
 	}
@@ -2844,10 +2844,10 @@ func (this *Bybit) ParseCurrency(currency any) map[string]any {
 	var currencyId *string = this.SafeString(currency, "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(currency, "name")
-	var chains []any = SafeListTyped(currency, "chains")
+	var chains []map[string]any = this.SafeListMapsTyped(currency, "chains")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "chain")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -3048,12 +3048,12 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//     }
 	//
 	var responseResult map[string]any = SafeMapTyped(response, "result")
-	var markets []any = SafeListTyped(responseResult, "list")
+	var markets []map[string]any = this.SafeListMapsTyped(responseResult, "list")
 	var result []any = []any{}
 	var takerFee *float64 = this.ParseNumber("0.001")
 	var makerFee *float64 = this.ParseNumber("0.001")
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
@@ -4433,9 +4433,9 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 	//
 	var rates []any = []any{}
 	var result map[string]any = SafeMapTyped(response, "result")
-	var resultList []any = SafeListTyped(result, "list")
+	var resultList []map[string]any = this.SafeListMapsTyped(result, "list")
 	for i := 0; i < len(resultList); i++ {
-		var entry any = resultList[i]
+		var entry map[string]any = resultList[i]
 		var timestamp *int64 = this.SafeInteger(entry, "fundingRateTimestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -9211,10 +9211,10 @@ func (this *Bybit) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 	//         "time": 1657713693182
 	//     }
 	//
-	var positions any = this.AddPaginationCursorToResult(response)
+	var positions []any = this.AddPaginationCursorToResult(response)
 	var results []any = []any{}
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var rawPosition any = GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var rawPosition any = positions[i]
 		if (InOp(rawPosition, "data")) && (InOp(rawPosition, "is_valid")) {
 			// futures only
 			rawPosition = this.SafeDict(rawPosition, "data")
@@ -9662,20 +9662,20 @@ func (this *Bybit) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 			} else {
 				panic(NotSupported(this.Id + " setMarginMode() with symbol marginMode must be either [isolated, cross]"))
 			}
-			var sellLeverage any = nil
-			var buyLeverage any = nil
+			var sellLeverage *string = nil
+			var buyLeverage *string = nil
 			var leverage *string = this.SafeString(paramsType, "leverage")
 			var paramsOmitted map[string]any = nil
 			if leverage == nil {
-				sellLeverage = DerefScalar(this.SafeString2(paramsType, "sell_leverage", "sellLeverage"))
-				buyLeverage = DerefScalar(this.SafeString2(paramsType, "buy_leverage", "buyLeverage"))
-				if IsEqual(sellLeverage, nil) && IsEqual(buyLeverage, nil) {
+				sellLeverage = this.SafeString2(paramsType, "sell_leverage", "sellLeverage")
+				buyLeverage = this.SafeString2(paramsType, "buy_leverage", "buyLeverage")
+				if (sellLeverage == nil) && (buyLeverage == nil) {
 					panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters"))
 				}
-				if IsEqual(buyLeverage, nil) {
+				if buyLeverage == nil {
 					buyLeverage = sellLeverage
 				}
-				if IsEqual(sellLeverage, nil) {
+				if sellLeverage == nil {
 					sellLeverage = buyLeverage
 				}
 				paramsOmitted = this.OmitDict(paramsType, []any{"buy_leverage", "sell_leverage", "sellLeverage", "buyLeverage"})
@@ -10028,7 +10028,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symb
 	var result map[string]any = SafeMapTyped(response, "result")
 	var id *string = this.SafeString(result, "symbol")
 	var safeMarketObj map[string]any = this.SafeMarket(id, market, nil, "contract")
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(GetValue(data, 0), safeMarketObj)}
 	return nil
@@ -10389,10 +10389,11 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]a
 		sinceResolved = *since
 	} // last 30 days
 	request["startTime"] = sinceResolved
-	var endTime any = DerefScalar(this.SafeInteger2(params, "until", "endTime"))
+	var endTime *int64 = this.SafeInteger2(params, "until", "endTime")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	if endTime == nil {
-		endTime = Add(sinceResolved, 2592000000) // since + 30 days
+		endTimeValue := sinceResolved + 2592000000
+		endTime = &endTimeValue // since + 30 days
 	}
 	request["endTime"] = endTime
 
@@ -12011,9 +12012,9 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[[]LeverageT
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var result any = this.AddPaginationCursorToResult(response)
+	var result []any = this.AddPaginationCursorToResult(response)
 	var first map[string]any = SafeMapTyped(result, 0)
-	var total int = GetArrayLength(result)
+	var total int = len(result)
 	var lastIndex int64 = int64(total) - 1
 	var last map[string]any = this.SafeDictMap(result, lastIndex, map[string]any{})
 	var cursorValue *string = this.SafeString(first, "nextPageCursor")
@@ -12745,9 +12746,9 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], o
 	//
 	var result map[string]any = map[string]any{}
 	var data map[string]any = SafeMapTyped(response, "result")
-	var coins []any = SafeListTyped(data, "coins")
+	var coins []map[string]any = this.SafeListMapsTyped(data, "coins")
 	for i := 0; i < len(coins); i++ {
-		var entry any = coins[i]
+		var entry map[string]any = coins[i]
 		var id *string = this.SafeString(entry, "coin")
 		var disableFrom *bool = this.SafeBool(entry, "disableFrom", false)
 		var disableTo *bool = this.SafeBool(entry, "disableTo", false)

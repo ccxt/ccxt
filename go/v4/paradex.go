@@ -1845,7 +1845,7 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["page_size"] = mathMin(limit, 1000)
+		request["page_size"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_at"] = since
@@ -5008,7 +5008,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["page_size"] = mathMin(limit, 5000)
+		request["page_size"] = min(*limit, 5000)
 	} else {
 		request["page_size"] = 100
 	}
@@ -5120,7 +5120,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		"market": market["id"],
 	}
 	if limit != nil {
-		request["page_size"] = mathMin(limit, 5000) // api maximum 5000
+		request["page_size"] = min(*limit, 5000) // api maximum 5000
 	} else {
 		request["page_size"] = 1000 // max is 5000
 	}

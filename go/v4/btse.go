@@ -1112,7 +1112,7 @@ func (this *Btse) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = mathMin(limit, 50) // the endpoint supports a maximum depth of 50
+		request["depth"] = min(*limit, 50) // the endpoint supports a maximum depth of 50
 	}
 
 	r1 := <-this.PublicGetPublicApiMarketV1Orderbook(this.Extend(request, params))
@@ -1469,12 +1469,12 @@ func (this *Btse) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		if (symbolsNormalized == nil) || this.InArray(symbol, symbolsNormalized) {
-			var levels []any = SafeListTyped(entry, "riskLimits")
+			var levels []map[string]any = this.SafeListMapsTyped(entry, "riskLimits")
 			var tiers []any = []any{}
 			// each tier's floor is the previous tier's cap (0 for the first)
 			var minNotional any = nil
 			for j := 0; j < len(levels); j++ {
-				var level any = levels[j]
+				var level map[string]any = levels[j]
 				var maxNotional *float64 = this.SafeNumber(level, "value")
 				// the endpoint only reports the notional ladder, the
 				// per-tier leverage and margin rates are not available
@@ -2005,7 +2005,7 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 500) // the endpoint supports a maximum of 500 trades
+		request["limit"] = min(*limit, 500) // the endpoint supports a maximum of 500 trades
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")

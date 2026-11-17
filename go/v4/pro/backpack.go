@@ -1763,7 +1763,7 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 	if nonce == nil {
 		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.GetCache())
 		// cache the triggering delta before a synchronous snapshot can inspect the cache
-		ccxt.AppendToArray(storedOrderBook.GetCache(), data)
+		storedOrderBook.AppendCache(data)
 		// stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
 		var market map[string]any = this.Market(symbol)
 		var isStockMarket bool = (market["stock"] == true) || ((marketId != nil) && ((strings.Index(*marketId, ".US_") >= 0) || (strings.Index(*marketId, ".HK_") >= 0)))

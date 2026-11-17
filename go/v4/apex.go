@@ -1466,9 +1466,9 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	//
 	var rates []any = []any{}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var resultList []any = SafeListTyped(data, "historyFunds")
+	var resultList []map[string]any = this.SafeListMapsTyped(data, "historyFunds")
 	for i := 0; i < len(resultList); i++ {
-		var entry any = resultList[i]
+		var entry map[string]any = resultList[i]
 		var timestamp *int64 = this.SafeInteger(entry, "fundingTimestamp")
 		var marketId *string = this.SafeString(entry, "symbol")
 		rates = append(rates, map[string]any{
@@ -2699,7 +2699,7 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) Position {
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	var timestamp *int64 = this.SafeInteger(position, "updatedTime")
-	var leverage any = 20
+	var leverage int64 = 20
 	var customInitialMarginRate *string = this.SafeString2(position, "customInitialMarginRate", "customImr", "0")
 	if this.PrecisionFromString(customInitialMarginRate) != 0 {
 		leverage = this.ParseToInt(Precise.StringDiv("1", customInitialMarginRate, 4))

@@ -983,9 +983,9 @@ func (this *Toobit) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "coinId")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var rawNetworks []any = SafeListTyped(rawCurrency, "chainTypes")
+	var rawNetworks []map[string]any = this.SafeListMapsTyped(rawCurrency, "chainTypes")
 	for j := 0; j < len(rawNetworks); j++ {
-		var rawNetwork any = rawNetworks[j]
+		var rawNetwork map[string]any = rawNetworks[j]
 		var networkId *string = this.SafeString(rawNetwork, "chainType")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {

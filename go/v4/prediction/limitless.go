@@ -1533,7 +1533,7 @@ func (this *Limitless) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		"slug": slug,
 	}
 	if limit != nil {
-		request["limit"] = math.Min(float64(*limit), 100)
+		request["limit"] = min(*limit, 100)
 	}
 
 	r1 := <-this.LimitlessPublicGetMarketsSlugEvents(this.Extend(request, params))
@@ -3291,7 +3291,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	}
 	var request map[string]any = map[string]any{}
 	if limit != nil {
-		request["limit"] = math.Min(float64(*limit), 100)
+		request["limit"] = min(*limit, 100)
 	}
 
 	r2 := <-this.LimitlessPrivateGetPortfolioHistory(this.Extend(request, paramsValue))

@@ -1116,12 +1116,12 @@ func (this *Myriad) ethRpcBody(ch chan ccxt.AsyncResult[any], rpcUrl any, method
 	ch <- ccxt.AsyncResult[any]{Value: this.SafeValue(response, "result")}
 	return nil
 }
-func (this *Myriad) EnsureErc20AllowanceAsync(rpcUrl any, networkId any, token any, owner any, spender any) <-chan ccxt.AsyncResult[bool] {
+func (this *Myriad) EnsureErc20AllowanceAsync(rpcUrl *string, networkId *string, token *string, owner any, spender *string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.ensureErc20AllowanceBody(ch, rpcUrl, networkId, token, owner, spender)
 	return ch
 }
-func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpcUrl any, networkId any, token any, owner any, spender any) any {
+func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpcUrl *string, networkId *string, token *string, owner any, spender *string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// allowance(owner, spender)
@@ -4381,15 +4381,15 @@ func (this *Myriad) ParseEvent(rawEvent any) map[string]any {
 		"info":             rawEvent,
 	})
 }
-func (this *Myriad) RequestId(url any) int64 {
+func (this *Myriad) RequestId(url *string) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
 	if existing == nil {
 		this.Options["requestId"] = this.CreateSafeDictionary()
 	}
 	var options any = this.Options["requestId"]
-	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	if !ccxt.IsEqual(url, nil) {
+	var previousValue int64 = *this.SafeInteger(options, url, 0)
+	var newValue int64 = previousValue + 1
+	if url != nil {
 		ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	}
 	return newValue
@@ -4409,12 +4409,12 @@ func (this *Myriad) MarketOutcomeToSymbol(networkId *string, marketId *string, o
 	var outcomeObj map[string]any = ccxt.SafeMapTyped(this.Outcomes_by_id, ocId)
 	return this.SafeString(outcomeObj, "outcome")
 }
-func (this *Myriad) ConnectCentrifugoAsync(url any) <-chan ccxt.AsyncResult[bool] {
+func (this *Myriad) ConnectCentrifugoAsync(url *string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.connectCentrifugoBody(ch, url)
 	return ch
 }
-func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url any) any {
+func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url *string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
@@ -4907,10 +4907,10 @@ func (this *Myriad) HandleTrades(client any, data any) {
 		if ccxt.IsEqual(takerTrader, myWallet) {
 			myLegs = append(myLegs, trade)
 		}
-		var makers []any = ccxt.SafeListTyped(data, "makers")
+		var makers []map[string]any = this.SafeListMapsTyped(data, "makers")
 		var makersLength int = len(makers)
 		for i := 0; i < makersLength; i++ {
-			var maker any = makers[i]
+			var maker map[string]any = makers[i]
 			var makerTrader *string = this.SafeStringLower(maker, "trader")
 			if ccxt.IsEqual(makerTrader, myWallet) {
 				var makerSym any = this.MarketOutcomeToSymbol(networkId, marketId, this.SafeString(maker, "outcome"))
@@ -5151,11 +5151,11 @@ func (this *Myriad) HandleTicker(client any, data any) {
 	var networkId *string = this.SafeString(data, "networkId")
 	var marketId *string = this.SafeString(data, "marketId")
 	var ts *int64 = this.SafeInteger(data, "ts")
-	var outcomes []any = ccxt.SafeListTyped(data, "outcomes")
+	var outcomes []map[string]any = this.SafeListMapsTyped(data, "outcomes")
 	var outcomesLength int = len(outcomes)
 	var cachedTickers map[string]any = this.SafeDictMap(this.Options, "wsTickers", map[string]any{})
 	for i := 0; i < outcomesLength; i++ {
-		var oc any = outcomes[i]
+		var oc map[string]any = outcomes[i]
 		var outcomeId *string = this.SafeString(oc, "outcome")
 		var sym any = this.MarketOutcomeToSymbol(networkId, marketId, outcomeId)
 		if sym == nil {

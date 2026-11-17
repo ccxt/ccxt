@@ -2308,7 +2308,7 @@ func (this *Bingx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
 	if limit != nil {
 		if marketType != nil && *marketType == "spot" {
-			request["limit"] = mathMin(limit, 1000) // api maximum 1000
+			request["limit"] = min(*limit, 1000) // api maximum 1000
 		} else {
 			request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 500, 1000}, limit)
 		}
@@ -2660,7 +2660,7 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // api maximum 1000
+		request["limit"] = min(*limit, 1000) // api maximum 1000
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
@@ -6346,7 +6346,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 		var paramsOmitted map[string]any = this.OmitDict(paramsStandard, "twap")
 		if !(isTwapOrder != nil && *isTwapOrder) {
 			if limit != nil {
-				request["limit"] = mathMin(limit, 1000)
+				request["limit"] = min(*limit, 1000)
 			}
 			if since != nil {
 				request["startTime"] = since
@@ -6835,7 +6835,7 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // api maximum 1000
+		request["limit"] = min(*limit, 1000) // api maximum 1000
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
@@ -6911,7 +6911,7 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // api maximum 1000
+		request["limit"] = min(*limit, 1000) // api maximum 1000
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
@@ -7533,7 +7533,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 			panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires an orderId argument for inverse swap trades"))
 		}
 		if limit != nil {
-			request["pageSize"] = mathMin(limit, 1000) // api maximum 1000
+			request["pageSize"] = min(*limit, 1000) // api maximum 1000
 		}
 
 		r1 := <-this.CswapV1PrivateGetTradeAllFillOrders(this.Extend(request, paramsSubType))
@@ -7855,7 +7855,7 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		requestUntil["startTime"] = *since
 	}
 	if limit != nil {
-		AddElementToObject(requestUntil, "limit", mathMin(limit, 100)) // api maximum 100
+		AddElementToObject(requestUntil, "limit", min(*limit, 100)) // api maximum 100
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchMyLiquidations", market, paramsUntil)
 	var response map[string]any = nil

@@ -219,8 +219,8 @@ func (this *Binance) DescribeData() any {
 }
 func (this *Binance) RequestId(url any) int64 {
 	var options any = this.SafeDict(this.Options, "requestId", this.CreateSafeDictionary())
-	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
+	var previousValue int64 = *this.SafeInteger(options, url, 0)
+	var newValue int64 = previousValue + 1
 	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	return newValue
 }
@@ -1307,9 +1307,9 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			orderbook.Reset(snapshot)
 			// unroll the accumulated deltas
-			var messages any = orderbook.GetCache()
+			var messages []any = orderbook.GetCache()
 			orderbook.SetCache([]any{})
-			for i := 0; i < ccxt.GetArrayLength(messages); i++ {
+			for i := 0; i < len(messages); i++ {
 				var messageItem any = this.SafeValue(messages, i)
 				var U *int64 = this.SafeInteger(messageItem, "U")
 				var u *int64 = this.SafeInteger(messageItem, "u")
@@ -1423,7 +1423,7 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if nonce == nil {
 		// 2. Buffer the events you receive from the stream.
-		ccxt.AppendToArray(orderbook.GetCache(), message)
+		orderbook.AppendCache(message)
 	} else {
 
 		{

@@ -920,7 +920,7 @@ func (this *P2b) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		"interval": timeframe,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 500)
+		request["limit"] = min(*limit, 500)
 	}
 
 	r1 := <-this.PublicGetMarketKline(this.Extend(request, params))
@@ -1421,8 +1421,8 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 	}
 	var untilParam *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
-	var until int64 = this.ParseToInt(0)
-	var sinceResolved int64 = this.ParseToInt(0)
+	var until int64 = 0
+	var sinceResolved int64 = 0
 	if untilParam != nil {
 		until = this.ParseToInt(untilParam)
 		if since != nil {
@@ -1431,7 +1431,7 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 			}
 			sinceResolved = this.ParseToInt(since)
 		} else {
-			sinceResolved = this.ParseToInt(*untilParam - 86400000)
+			sinceResolved = *untilParam - 86400000
 		}
 	} else if since != nil {
 		until = this.ParseToInt(*since + 86400000)
@@ -1439,7 +1439,7 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 	} else {
 		var now int64 = this.Milliseconds()
 		until = this.ParseToInt(now)
-		sinceResolved = this.ParseToInt(now - 86400000)
+		sinceResolved = now - 86400000
 	}
 	var market map[string]any = this.Market(symbol)
 	var sinceSec int64 = this.ParseToInt(float64(sinceResolved) / 1000)
@@ -1535,8 +1535,8 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var until int64 = this.ParseToInt(0)
-	var sinceResolved int64 = this.ParseToInt(0)
+	var until int64 = 0
+	var sinceResolved int64 = 0
 	if untilParam != nil {
 		until = this.ParseToInt(untilParam)
 		if since != nil {
@@ -1545,7 +1545,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 			}
 			sinceResolved = this.ParseToInt(since)
 		} else {
-			sinceResolved = this.ParseToInt(*untilParam - 86400000)
+			sinceResolved = *untilParam - 86400000
 		}
 	} else if since != nil {
 		until = this.ParseToInt(*since + 86400000)
@@ -1553,7 +1553,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	} else {
 		var now int64 = this.Milliseconds()
 		until = this.ParseToInt(now)
-		sinceResolved = this.ParseToInt(now - 86400000)
+		sinceResolved = now - 86400000
 	}
 	var sinceSec int64 = this.ParseToInt(float64(sinceResolved) / 1000)
 	var untilSec int64 = this.ParseToInt(float64(until) / 1000)

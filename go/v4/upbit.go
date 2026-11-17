@@ -904,8 +904,8 @@ func (this *Upbit) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook]
 			ids = SafeStringPtr(Join(this.Ids, ","))
 		}
 	} else {
-		var marketIds any = this.MarketIds(symbols)
-		ids = SafeStringPtr(Join(marketIds, ","))
+		var marketIds []string = this.MarketIdsStrings(symbols)
+		ids = SafeStringPtr(strings.Join(marketIds, ","))
 	}
 	var request map[string]any = map[string]any{
 		"markets": ids,
@@ -1587,7 +1587,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	var response []any = nil
 	if since != nil {
 		// convert `since` to `to` value
-		request["to"] = this.Iso8601(this.Sum(since, ((timeframePeriod * limitResolved) * 1000)))
+		request["to"] = this.Iso8601(this.Sum(since, (timeframePeriod*limitResolved)*1000))
 	}
 	if timeframeValue != nil && *timeframeValue == "minutes" {
 		var numMinutes float64 = math.Round(float64(timeframePeriod) / 60)

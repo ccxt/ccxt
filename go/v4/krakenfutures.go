@@ -546,10 +546,10 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 	//        "serverTime": "2018-07-19T11:32:39.433Z"
 	//    }
 	//
-	var instruments []any = SafeListTyped(response, "instruments")
+	var instruments []map[string]any = this.SafeListMapsTyped(response, "instruments")
 	var result []any = []any{}
 	for i := 0; i < len(instruments); i++ {
-		var market any = instruments[i]
+		var market map[string]any = instruments[i]
 		var id *string = this.SafeString(market, "symbol")
 		var marketType *string = this.SafeString(market, "type")
 		var typeVar string

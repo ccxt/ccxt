@@ -839,7 +839,7 @@ func (this *Cex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 		request["toDateISO"] = this.Iso8601(until)
 	}
 	if limit != nil {
-		request["pageSize"] = mathMin(limit, 10000) // has a bug, still returns more trades
+		request["pageSize"] = min(*limit, 10000) // has a bug, still returns more trades
 	}
 
 	r1 := <-this.PublicPostGetTradeHistory(this.Extend(request, paramsUntil))

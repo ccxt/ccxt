@@ -528,11 +528,11 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 		panic(r.Err)
 	}
 	var responses []any = ListTyped(r.Value)
-	var instruments []any = SafeListTyped(responses, 0)
-	var assets []any = SafeListTyped(responses, 1)
+	var instruments []map[string]any = this.SafeListMapsTyped(responses, 0)
+	var assets []map[string]any = this.SafeListMapsTyped(responses, 1)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(instruments); i++ {
-		var instrument any = instruments[i]
+		var instrument map[string]any = instruments[i]
 		var baseId *string = this.SafeString(instrument, "base_asset")
 		if baseId == nil {
 			continue
@@ -585,7 +585,7 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 		"networks":  map[string]any{},
 	})
 	for i := 0; i < len(assets); i++ {
-		var asset any = assets[i]
+		var asset map[string]any = assets[i]
 		var currencyId *string = this.SafeString(asset, "asset")
 		if currencyId == nil {
 			continue
@@ -1259,7 +1259,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		} else {
 			requestedLimit = 100
 		}
-		request["start_timestamp"] = (end - ((requestedLimit - 1) * duration))
+		request["start_timestamp"] = end - (requestedLimit-1)*duration
 	}
 
 	r2 := <-this.PublicGetInfoKlines(this.Extend(request, paramsOmitted))
@@ -1499,10 +1499,10 @@ func (this *Polymarket) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundin
 	//         "more": false
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -3029,10 +3029,10 @@ func (this *Polymarket) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHis
 	//         "more": false
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var marketId *string = this.SafeString(entry, "instrument_id")
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		result = append(result, map[string]any{
@@ -3797,8 +3797,8 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 	var proxyAddress string = this.EthGetAddressFromPrivateKey(proxyPrivateKey)
 	var owner string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	var ts int64 = this.Milliseconds()
-	var lifetime *int64 = this.SafeInteger(this.Options, "proxyExpiry", 604800000)
-	var expiry int64 = this.Sum(ts, lifetime).(int64)
+	var lifetime int64 = *this.SafeInteger(this.Options, "proxyExpiry", 604800000)
+	var expiry int64 = ts + lifetime
 	var salt int64 = this.RandNumber(9)
 	var chainId *int64 = this.SafeInteger(this.Options, "chainId", 137)
 	var domain map[string]any = map[string]any{

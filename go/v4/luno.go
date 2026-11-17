@@ -641,9 +641,9 @@ func (this *Luno) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	//     }
 	//
 	var result []any = []any{}
-	var markets []any = SafeListTyped(response, "markets")
+	var markets []map[string]any = this.SafeListMapsTyped(response, "markets")
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var id *string = this.SafeString(market, "market_id")
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
@@ -760,10 +760,10 @@ func (this *Luno) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var wallets []any = SafeListTyped(response, "balance")
+	var wallets []map[string]any = this.SafeListMapsTyped(response, "balance")
 	var result []any = []any{}
 	for i := 0; i < len(wallets); i++ {
-		var account any = wallets[i]
+		var account map[string]any = wallets[i]
 		var accountId *string = this.SafeString(account, "account_id")
 		var currencyId *string = this.SafeString(account, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)

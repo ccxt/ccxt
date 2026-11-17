@@ -612,11 +612,11 @@ func (this *Bitso) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	//             },
 	//         ]
 	//     }
-	var markets []any = SafeListTyped(response, "payload")
+	var markets []map[string]any = this.SafeListMapsTyped(response, "payload")
 	var currencies map[string]any = SafeMapTyped(this.Options, "cachedCurrencies")
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var id *string = this.SafeString(market, "book")
 		var parts []string = strings.Split(*id, "_")
 		var baseId *string = this.SafeString(parts, 0, "")
@@ -1368,10 +1368,10 @@ func (this *Bitso) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	//    }
 	//
 	var payload map[string]any = SafeMapTyped(response, "payload")
-	var fees []any = SafeListTyped(payload, "fees")
+	var fees []map[string]any = this.SafeListMapsTyped(payload, "fees")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee any = fees[i]
+		var fee map[string]any = fees[i]
 		var marketId *string = this.SafeString(fee, "book")
 		var symbol *string = this.SafeSymbol(marketId, nil, "_")
 		if symbol != nil {
@@ -2174,9 +2174,9 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 	//
 	var result map[string]any = map[string]any{}
 	var payload map[string]any = SafeMapTyped(response, "payload")
-	var depositFees []any = SafeListTyped(payload, "deposit_fees")
+	var depositFees []map[string]any = this.SafeListMapsTyped(payload, "deposit_fees")
 	for i := 0; i < len(depositFees); i++ {
-		var depositFee any = depositFees[i]
+		var depositFee map[string]any = depositFees[i]
 		var currencyId *string = this.SafeString(depositFee, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (codes != nil) && !this.InArray(code, codes) {
@@ -2351,10 +2351,10 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 	var currencyIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyIdKey
 	var result map[string]any = map[string]any{}
-	var depositResponse []any = SafeListTyped(response, "deposit_fees")
+	var depositResponse []map[string]any = this.SafeListMapsTyped(response, "deposit_fees")
 	var withdrawalResponse map[string]any = SafeMapTyped(response, "withdrawal_fees")
 	for i := 0; i < len(depositResponse); i++ {
-		var entry any = depositResponse[i]
+		var entry map[string]any = depositResponse[i]
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (codes == nil) || ((code != nil) && this.InArray(code, codes)) {

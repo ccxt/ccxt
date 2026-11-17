@@ -391,7 +391,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		requestLimit = *limit
 	}
 	var now int64 = this.Seconds()
-	var windowLength int64 = (duration * requestLimit)
+	var windowLength int64 = duration * requestLimit
 	var defaultStart int64 = now - windowLength
 	var startTime int64 = this.ParseToInt(func() any {
 		if since != nil {
@@ -399,7 +399,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 		return defaultStart
 	}())
-	var windowEnd int64 = this.ParseToInt(Add(startTime, (duration * requestLimit)))
+	var windowEnd int64 = this.ParseToInt(startTime + (duration * requestLimit))
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
 	var cappedEnd int64
@@ -1945,8 +1945,8 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		return *limit * 2
 	}()
 	var allRows []any = []any{}
-	var transactionsCount int64 = this.ParseToInt(0)
-	var calls int64 = this.ParseToInt(0)
+	var transactionsCount int = 0
+	var calls int = 0
 	var offset any = 0
 	var paging bool = true
 	for paging {
@@ -1969,15 +1969,15 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 			if this.SafeString(entry, "fee_type") != nil && *this.SafeString(entry, "fee_type") == "TRANSACTION" {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
 				if (market == nil) || (IsEqual(this.SafeString(entry, "symbol"), market["id"])) {
-					transactionsCount = this.ParseToInt(transactionsCount + 1)
+					transactionsCount = transactionsCount + 1
 				}
 			}
 		}
-		calls = this.ParseToInt(calls + 1)
+		calls = calls + 1
 		paging = false
 		// the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
 		if (limit != nil) && (dataLength == pageSize) {
-			if (transactionsCount < *limit) && (calls < maxCalls) {
+			if (int64(transactionsCount) < *limit) && (int64(calls) < maxCalls) {
 				// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
 				offset = this.Sum(offset, pageSize)
 				paging = true

@@ -254,7 +254,7 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 		if cacheLength == snapshotDelay {
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})
 		}
-		ccxt.AppendToArray(storedOrderBook.GetCache(), delta)
+		storedOrderBook.AppendCache(delta)
 		return
 	} else if deltaNonce == nil || (nonce != nil && *nonce >= *deltaNonce) {
 		return

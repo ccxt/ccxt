@@ -727,10 +727,10 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//         "ts": 1691560288484
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var marketId *string = this.SafeString(market, "symbol")
 		var parts []string = strings.Split(*marketId, "_")
 		var baseId *string = SafeStringPtr(parts[0])
@@ -847,10 +847,10 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//         "success": true
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var marketId *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var settleId *string = this.SafeString(market, "clearCurrency")
@@ -1441,7 +1441,7 @@ func (this *Lbank) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		request["time"] = since
 	}
 	if limit != nil {
-		request["size"] = mathMin(limit, 600)
+		request["size"] = min(*limit, 600)
 	} else {
 		request["size"] = 600 // max
 	}
@@ -4127,7 +4127,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) map[string]any {
 		} else {
 			signatureMethod = "HmacSHA256"
 		}
-		var finalSig any = signatureMethod // java req
+		var finalSig string = signatureMethod // java req
 		var auth string = this.Rawencode(this.Keysort(this.Extend(map[string]any{
 			"echostr":          echostr,
 			"signature_method": finalSig,

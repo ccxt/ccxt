@@ -1771,8 +1771,8 @@ func (this *Bitfinex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if symbolsNormalized != nil {
-		var ids any = this.MarketIds(symbolsNormalized)
-		request["symbols"] = Join(ids, ",")
+		var ids []string = this.MarketIdsStrings(symbolsNormalized)
+		request["symbols"] = strings.Join(ids, ",")
 	} else {
 		request["symbols"] = "ALL"
 	}
@@ -2041,7 +2041,7 @@ func (this *Bitfinex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		sort = "1"
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 10000) // default 120, max 10000
+		request["limit"] = min(*limit, 10000) // default 120, max 10000
 	}
 	request["sort"] = sort
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
@@ -4406,9 +4406,9 @@ func (this *Bitfinex) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 			panic(r.Err)
 		}
 	}
-	var marketIds any = this.MarketIds(symbols)
+	var marketIds []string = this.MarketIdsStrings(symbols)
 	var request map[string]any = map[string]any{
-		"keys": Join(marketIds, ","),
+		"keys": strings.Join(marketIds, ","),
 	}
 
 	responseRecv := <-this.PublicGetStatusDeriv(this.Extend(request, params))

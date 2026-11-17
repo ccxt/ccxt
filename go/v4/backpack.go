@@ -747,10 +747,10 @@ func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 	var symbol string = *this.SafeString(rawCurrency, "symbol", "")
 	var stock bool = strings.HasSuffix(symbol, ".US") || strings.HasSuffix(symbol, ".HK")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var networks []any = SafeListTyped(rawCurrency, "tokens")
+	var networks []map[string]any = this.SafeListMapsTyped(rawCurrency, "tokens")
 	var parsedNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
-		var network any = networks[j]
+		var network map[string]any = networks[j]
 		var networkId *string = this.SafeString(network, "blockchain")
 		var networkIdLowerCase *string = this.SafeStringLower(network, "blockchain")
 		var networkCode *string = this.NetworkIdToCode(networkIdLowerCase, code)
@@ -2427,7 +2427,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // api maximum 1000
+		request["limit"] = min(*limit, 1000) // api maximum 1000
 	}
 
 	responseRecv := <-this.PublicGetApiV1FundingRates(this.Extend(request, params))
@@ -2509,7 +2509,7 @@ func (this *Backpack) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // api maximum 1000
+		request["limit"] = min(*limit, 1000) // api maximum 1000
 	}
 	var response []any = nil
 	var offset *int64 = this.SafeInteger(query, "offset")
@@ -2598,7 +2598,7 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 			rfqRequest["symbol"] = this.SafeString(market, "id")
 		}
 		if limit != nil {
-			rfqRequest["limit"] = mathMin(limit, 1000)
+			rfqRequest["limit"] = min(*limit, 1000)
 		}
 		var rfqParams map[string]any = this.OmitDict(accountParams, []any{"assetClass", "marketType", "from", "to"})
 

@@ -410,9 +410,9 @@ func (this *Luno) HandleBookDelta(orderbook ccxt.OrderBookInterface, message any
 	var bidsOrderSide ccxt.IOrderBookSide = orderbook.GetBids()
 	// trade updates are applied first, matching the ordering of the
 	// reference luno streaming client
-	var tradeUpdates []any = ccxt.SafeListTyped(message, "trade_updates")
+	var tradeUpdates []map[string]any = this.SafeListMapsTyped(message, "trade_updates")
 	for i := 0; i < len(tradeUpdates); i++ {
-		var tradeUpdate map[string]any = ccxt.MapTyped(tradeUpdates[i])
+		var tradeUpdate map[string]any = tradeUpdates[i]
 		var makerOrderId *string = this.SafeString(tradeUpdate, "maker_order_id")
 		var tradedAmount *string = this.SafeString(tradeUpdate, "base")
 		if (makerOrderId != nil) && (tradedAmount != nil) {

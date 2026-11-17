@@ -1342,18 +1342,18 @@ func (this *Xt) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optiona
 	//
 	var chainsData []any = SafeListTyped(chainsResponse, "result")
 	var currenciesResult map[string]any = SafeMapTyped(currenciesResponse, "result")
-	var currenciesData []any = SafeListTyped(currenciesResult, "currencies")
+	var currenciesData []map[string]any = this.SafeListMapsTyped(currenciesResult, "currencies")
 	var chainsDataIndexed map[string]any = this.IndexBy(chainsData, "currency")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(currenciesData); i++ {
-		var entry any = currenciesData[i]
+		var entry map[string]any = currenciesData[i]
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var networkEntry map[string]any = SafeMapTyped(chainsDataIndexed, currencyId)
-		var rawNetworks []any = SafeListTyped(networkEntry, "supportChains")
+		var rawNetworks []map[string]any = this.SafeListMapsTyped(networkEntry, "supportChains")
 		var networks map[string]any = map[string]any{}
 		for j := 0; j < len(rawNetworks); j++ {
-			var rawNetwork any = rawNetworks[j]
+			var rawNetwork map[string]any = rawNetworks[j]
 			var networkId *string = this.SafeString(rawNetwork, "chain")
 			var networkCode *string = this.NetworkIdToCode(networkId, code)
 			if networkCode != nil {
@@ -2130,7 +2130,7 @@ func (this *Xt) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string
 	var response map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 		if limit != nil {
-			request["limit"] = mathMin(limit, 500)
+			request["limit"] = min(*limit, 500)
 		}
 
 		r1 := <-this.PublicSpotGetDepth(this.Extend(request, params))
@@ -2140,7 +2140,7 @@ func (this *Xt) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string
 		response = r1.Value
 	} else {
 		if limit != nil {
-			request["level"] = mathMin(limit, 50)
+			request["level"] = min(*limit, 50)
 		} else {
 			request["level"] = 50
 		}
@@ -2741,7 +2741,7 @@ func (this *Xt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, option
 	var response map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 		if limit != nil {
-			request["limit"] = mathMin(limit, 1000)
+			request["limit"] = min(*limit, 1000)
 		}
 
 		r1 := <-this.PublicSpotGetTradeRecent(this.Extend(request, params))
@@ -2751,7 +2751,7 @@ func (this *Xt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, option
 		response = r1.Value
 	} else {
 		if limit != nil {
-			request["num"] = mathMin(limit, 1000)
+			request["num"] = min(*limit, 1000)
 		}
 		if *this.SafeBool(market, "linear", false) {
 
@@ -6501,10 +6501,10 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHis
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var items []any = SafeListTyped(result, "items")
+	var items []map[string]any = this.SafeListMapsTyped(result, "items")
 	var rates []any = []any{}
 	for i := 0; i < len(items); i++ {
-		var entry any = items[i]
+		var entry map[string]any = items[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbolInner *string = this.SafeSymbol(marketId, market)
 		var timestamp *int64 = this.SafeInteger(entry, "createdTime")

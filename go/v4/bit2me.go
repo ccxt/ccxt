@@ -958,7 +958,7 @@ func (this *Bit2me) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 50)
+		request["limit"] = min(*limit, 50)
 	}
 
 	responseRecv := <-this.PublicGetV1TradingTradeLast(this.Extend(request, params))
@@ -1727,7 +1727,7 @@ func (this *Bit2me) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		request["symbol"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 	var untilPtr *int64 = nil
 	untilPtr, query := this.HandleParamInteger(params, "until")
@@ -2096,7 +2096,7 @@ func (this *Bit2me) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		request["symbol"] = market["id"]
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 50)
+		request["limit"] = min(*limit, 50)
 	}
 	var untilPtr *int64 = nil
 	untilPtr, query := this.HandleParamInteger(params, "until")
@@ -2356,7 +2356,7 @@ func (this *Bit2me) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		request["from"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 	until, query := this.HandleParamInteger(params, "until")
 	if until != nil {

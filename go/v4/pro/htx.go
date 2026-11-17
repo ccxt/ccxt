@@ -773,7 +773,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 			// try block:
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			var data map[string]any = ccxt.SafeMapTyped(message, "data")
-			var messages any = orderbook.GetCache()
+			var messages []any = orderbook.GetCache()
 			var firstMessage map[string]any = ccxt.SafeMapTyped(messages, 0)
 			var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 			var tick map[string]any = ccxt.SafeMapTyped(firstMessage, "tick")
@@ -790,12 +790,12 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 			client.(ccxt.ClientInterface).Resolve(snapshotOrderBook, id)
 			if (sequence == nil) || (sequence != nil && (nonce == nil || *nonce < *sequence)) {
 				var maxAttempts int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "maxRetries", 3))
-				var numAttempts *int64 = this.SafeInteger(subscription, "numAttempts", 0)
+				var numAttempts int64 = *this.SafeInteger(subscription, "numAttempts", 0)
 				// retry to synchronize if we have not reached maxAttempts yet
-				if numAttempts == nil || *numAttempts < maxAttempts {
+				if numAttempts < maxAttempts {
 					// safety guard
 					if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-						var nextAttempts int64 = this.Sum(numAttempts, 1).(int64)
+						var nextAttempts int64 = numAttempts + 1
 						var delayTime any = 1000
 						if (lastTimestamp != nil) && (snapshotTimestamp != nil) {
 							delayTime = this.Sum(1000, *lastTimestamp-*snapshotTimestamp)
@@ -810,8 +810,8 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 			} else {
 				orderbook.Reset(snapshot)
 				// unroll the accumulated deltas
-				for i := 0; i < ccxt.GetArrayLength(messages); i++ {
-					this.HandleOrderBookMessage(client, ccxt.GetValue(messages, i))
+				for i := 0; i < len(messages); i++ {
+					this.HandleOrderBookMessage(client, messages[i])
 				}
 				orderbook.SetCache([]any{})
 				if symbol != nil {
@@ -1085,7 +1085,7 @@ func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if (event == nil) && (this.SafeInteger(orderbook, "nonce") == nil) {
-		ccxt.AppendToArray(orderbook.GetCache(), message)
+		orderbook.AppendCache(message)
 	} else {
 		this.HandleOrderBookMessage(client, message)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -2584,10 +2584,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 		}
 		var first map[string]any = ccxt.SafeMapTyped(data, 0)
 		var splitTopic []string = strings.Split(*topic, ".")
-		var messageHash any
-		if derefPtr := this.SafeString(splitTopic, 0); derefPtr != nil {
-			messageHash = *derefPtr
-		}
+		var messageHash *string = this.SafeString(splitTopic, 0)
 		var subscription any = this.SafeDict2(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, ccxt.Add(messageHash, ".*"))
 		if subscription == nil {
 			// if subscription not found means that we subscribed to a specific currency/symbol
@@ -2599,7 +2596,10 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 			if currencyId == nil {
 				return
 			}
-			messageHash = ccxt.Add(messageHash, "."+strings.ToLower(*currencyId))
+			if messageHash != nil {
+				messageHashValue := *messageHash + "." + strings.ToLower(*currencyId)
+				messageHash = &messageHashValue
+			}
 			subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 		}
 		var subType *string = this.SafeString(subscription, "subType")
@@ -3488,12 +3488,12 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	}
 	return url
 }
-func (this *Htx) SubscribePublicAsync(url any, symbol any, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Htx) SubscribePublicAsync(url any, symbol *string, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicBody(ch, url, symbol, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Htx) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, symbol any, messageHash any, optionalArgs ...any) any {
+func (this *Htx) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, symbol *string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	method := ccxt.GetArg(optionalArgs, 0, nil)

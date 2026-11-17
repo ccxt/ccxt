@@ -2384,9 +2384,9 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	if limit != nil {
 		if marketType != nil && *marketType == "spot" {
-			request["limit"] = mathMax(limit, 2000)
+			request["limit"] = max(*limit, 2000)
 		} else {
-			request["limit"] = mathMax(limit, 100)
+			request["limit"] = max(*limit, 100)
 		}
 	}
 	var isTrigger *bool = this.SafeBool2(paramsMarketType, "trigger", "stop")
@@ -2529,7 +2529,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		panic(NotSupported(this.Id + " fetchClosedOrders() is not supported for spot markets yet"))
 	}
 	if limit != nil {
-		request["limit"] = mathMin(200, limit)
+		request["limit"] = min(200, *limit)
 	}
 	if since != nil {
 		request["sTime"] = since

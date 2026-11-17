@@ -1152,12 +1152,12 @@ func (this *Whitebit) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Whitebit) WatchMultipleSubscriptionAsync(messageHash string, method string, symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Whitebit) WatchMultipleSubscriptionAsync(messageHash string, method string, symbol *string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchMultipleSubscriptionBody(ch, messageHash, method, symbol, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any], messageHash string, method string, symbol any, optionalArgs ...any) any {
+func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any], messageHash string, method string, symbol *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isNested bool = ccxt.GetArgBool(optionalArgs, 0, false)

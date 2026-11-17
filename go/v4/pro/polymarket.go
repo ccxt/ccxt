@@ -75,7 +75,7 @@ func (this *Polymarket) Describe() map[string]any {
 	})
 }
 func (this *Polymarket) RequestId() int64 {
-	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	var requestId int64 = *this.SafeInteger(this.Options, "requestId", 0) + 1
 	this.Options["requestId"] = requestId
 	return requestId
 }

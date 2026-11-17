@@ -1121,7 +1121,7 @@ func (this *Coinone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"target_currency": market["base"],
 	}
 	if limit != nil {
-		request["size"] = mathMin(limit, 200)
+		request["size"] = min(*limit, 200)
 	}
 
 	r1 := <-this.V2PublicGetTradesQuoteCurrencyTargetCurrency(this.Extend(request, params))

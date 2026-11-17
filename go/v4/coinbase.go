@@ -964,10 +964,10 @@ func (this *Coinbase) fetchPortfoliosBody(ch chan AsyncResult[[]Account], option
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var portfolios []any = SafeListTyped(response, "portfolios")
+	var portfolios []map[string]any = this.SafeListMapsTyped(response, "portfolios")
 	var result []any = []any{}
 	for i := 0; i < len(portfolios); i++ {
-		var portfolio any = portfolios[i]
+		var portfolio map[string]any = portfolios[i]
 		result = append(result, map[string]any{
 			"id":   this.SafeString(portfolio, "uuid"),
 			"type": this.SafeString(portfolio, "type"),
@@ -5454,7 +5454,7 @@ func (this *Coinbase) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		request["start"] = this.NumberToString(this.ParseToInt(float64(*since) / 1000))
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
 	var until *int64 = nil

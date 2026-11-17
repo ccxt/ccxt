@@ -1463,7 +1463,7 @@ func (this *Grvt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		"instrument": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
@@ -1670,7 +1670,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	var selectedPriceType string = *this.SafeString(paramsPaginate, "priceType", "last")
 	request["type"] = this.SafeString(priceTypeMap, selectedPriceType)
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
@@ -1787,7 +1787,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		"instrument": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
@@ -2010,7 +2010,7 @@ func (this *Grvt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		request["currency"] = []any{currency["code"]}
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
@@ -2104,7 +2104,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		request["currency"] = []any{currency["code"]}
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
@@ -2388,7 +2388,7 @@ func (this *Grvt) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 		return nil
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
@@ -3013,10 +3013,10 @@ func (this *Grvt) ConvertToBigIntCustom(x any) any {
 }
 func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string) map[string]any {
 	var priceMultiplier int = 1000000000
-	var orderLegs []any = SafeListTyped(order, "legs")
+	var orderLegs []map[string]any = this.SafeListMapsTyped(order, "legs")
 	var legs []any = []any{}
 	for i := 0; i < len(orderLegs); i++ {
-		var leg map[string]any = MapTyped(orderLegs[i])
+		var leg map[string]any = orderLegs[i]
 		var market map[string]any = this.Market(leg["instrument"])
 		var precisionValue int = this.PrecisionFromString(this.SafeString(market["precision"], "base"))
 		var sizeMultiplier float64 = math.Pow(10, float64(precisionValue))
@@ -3127,7 +3127,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		request["quote"] = []any{market["quoteId"]}
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
@@ -3596,7 +3596,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		request["quote"] = []any{market["quoteId"]}
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
@@ -3702,7 +3702,7 @@ func (this *Grvt) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		request["quote"] = []any{market["quoteId"]}
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["start_time"] = this.NumberToString(*since * 1000000)
@@ -4440,7 +4440,7 @@ func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, op
 	return []any{request, params}
 }
 func (this *Grvt) RequestId() int64 {
-	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	var requestId int64 = *this.SafeInteger(this.Options, "requestId", 0) + 1
 	this.Options["requestId"] = requestId
 	return requestId
 }

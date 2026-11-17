@@ -783,10 +783,10 @@ func (this *Latoken) ParseCurrency(currency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(tag)
 	var currencyType *string = this.SafeString(currency, "type")
 	var isCrypto bool = ((currencyType != nil && *currencyType == "CURRENCY_TYPE_CRYPTO") || (currencyType != nil && *currencyType == "CURRENCY_TYPE_IEO"))
-	var bindings []any = SafeListTyped(currency, "bindings")
+	var bindings []map[string]any = this.SafeListMapsTyped(currency, "bindings")
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < len(bindings); i++ {
-		var binding any = bindings[i]
+		var binding map[string]any = bindings[i]
 		var networkId *string = this.SafeString(binding, "providerName")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		// the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
@@ -1368,7 +1368,7 @@ func (this *Latoken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"quote":    market["quoteId"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100) // default 100, limit 100
+		request["limit"] = min(*limit, 100) // default 100, limit 100
 	}
 
 	responseRecv := <-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))

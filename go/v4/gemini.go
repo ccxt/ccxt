@@ -1784,7 +1784,7 @@ func (this *Gemini) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit_trades"] = mathMin(limit, 500)
+		request["limit_trades"] = min(*limit, 500)
 	}
 	if since != nil {
 		request["timestamp"] = since

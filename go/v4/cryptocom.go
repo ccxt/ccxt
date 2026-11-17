@@ -922,9 +922,9 @@ func (this *Cryptocom) ParseCurrency(currency any) map[string]any {
 	var id *string = this.SafeString(currency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains []any = SafeListTyped(currency, "network_list")
+	var chains []map[string]any = this.SafeListMapsTyped(currency, "network_list")
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "network_id")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -1079,10 +1079,10 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//     }
 	//
 	var resultResponse map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTyped(resultResponse, "data")
+	var data []map[string]any = this.SafeListMapsTyped(resultResponse, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var inst_type *string = this.SafeString(market, "inst_type")
 		var spot bool = (inst_type != nil && *inst_type == "CCY_PAIR")
 		var swap bool = (inst_type != nil && *inst_type == "PERPETUAL_SWAP")
@@ -1623,7 +1623,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	if since != nil {
 		request["start_ts"] = (*since - (duration * 1000))
 		if limit != nil {
-			var countLimit int64 = this.ParseToInt(mathMin(limit, 300))
+			var countLimit int64 = this.ParseToInt(min(*limit, 300))
 			request["end_ts"] = this.Sum(since, (duration*countLimit)*1000)
 		} else {
 			request["end_ts"] = until
@@ -1699,7 +1699,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 		"instrument_name": market["id"],
 	}
 	if (limit != nil) && (limit == nil || *limit != 0) {
-		request["depth"] = mathMin(limit, 50) // max 50
+		request["depth"] = min(*limit, 50) // max 50
 	}
 
 	r1 := <-this.V1PublicGetPublicGetBook(this.Extend(request, params))
@@ -4309,11 +4309,11 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTyped(result, "data")
+	var data []map[string]any = this.SafeListMapsTyped(result, "data")
 	var marketId *string = this.SafeString(result, "instrument_name")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		rates = append(rates, map[string]any{
 			"info":        entry,

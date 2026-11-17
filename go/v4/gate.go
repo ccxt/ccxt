@@ -3067,10 +3067,10 @@ func (this *Gate) ParseCurrency(rawCurrency any) map[string]any {
 	if this.IsLeveragedCurrency(currencyId) {
 		typeVar = "leveraged"
 	}
-	var chains []any = SafeListTyped(rawCurrency, "chains")
+	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "chains")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "name")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -3402,12 +3402,12 @@ func (this *Gate) fetchNetworkDepositAddressBody(ch chan AsyncResult[DepositAddr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var addresses []any = SafeListTyped(response, "multichain_addresses")
+	var addresses []map[string]any = this.SafeListMapsTyped(response, "multichain_addresses")
 	var currencyId *string = this.SafeString(response, "currency")
 	var codeValue *string = this.SafeCurrencyCode(currencyId)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(addresses); i++ {
-		var entry any = addresses[i]
+		var entry map[string]any = addresses[i]
 		//
 		//    {
 		//        "chain": "ETH",
@@ -4116,7 +4116,7 @@ func (this *Gate) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 		} else {
 			maxLimit = 300
 		}
-		AddElementToObject(request, "limit", mathMin(limit, maxLimit))
+		AddElementToObject(request, "limit", min(*limit, maxLimit))
 	}
 	request["with_id"] = true
 	var response map[string]any = nil
@@ -5321,7 +5321,7 @@ func (this *Gate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		request["to"] = this.ParseToInt(float64(*until) / 1000)
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 1000)) // default 100, max 1000
+		AddElementToObject(request, "limit", min(*limit, 1000)) // default 100, max 1000
 	}
 	if (since != nil) && (*this.SafeBool(market, "contract", false)) {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
@@ -9298,7 +9298,7 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 		if requestedLimit == nil {
 			return 100
 		}
-		return mathMax(1, mathMin(requestedLimit, 100))
+		return mathMax(1, min(*requestedLimit, 100))
 	}())
 	var offset any = (*this.SafeInteger(requestParams, "offset", 0))
 	var contract string = *this.SafeString(requestParams, "contract", "")

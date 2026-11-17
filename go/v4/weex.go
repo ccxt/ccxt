@@ -2115,7 +2115,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 			if (limit != nil) && (limit == nil || *limit != 0) {
 				historyLimit = this.ParseToInt(mathMin(limit, maxHistoricalLimit))
 			}
-			var timeDelta int64 = this.ParseToInt(historyLimit * duration)
+			var timeDelta int64 = historyLimit * duration
 			if (since == nil) && (until == nil) {
 				endTime = now
 				startTime = now - timeDelta
@@ -2216,7 +2216,7 @@ func (this *Weex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	var response []any = nil
 	if *this.SafeBool(market, "spot", false) {

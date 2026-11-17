@@ -1287,9 +1287,9 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	}()
 	var symbolsNormalized []string = this.MarketSymbols(symbolsSorted)
 	var loc *string = this.SafeString(params, "loc", "us")
-	var ids any = this.MarketIds(symbolsNormalized)
+	var ids []string = this.MarketIdsStrings(symbolsNormalized)
 	var request map[string]any = map[string]any{
-		"symbols": Join(ids, ","),
+		"symbols": strings.Join(ids, ","),
 		"loc":     loc,
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "loc")
@@ -2488,12 +2488,12 @@ func (this *Alpaca) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }
-func (this *Alpaca) FetchTransactionsHelperAsync(typeVar string, code any, since any, limit any, params any) <-chan AsyncResult[[]Transaction] {
+func (this *Alpaca) FetchTransactionsHelperAsync(typeVar string, code *string, since any, limit any, params any) <-chan AsyncResult[[]Transaction] {
 	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchTransactionsHelperBody(ch, typeVar, code, since, limit, params)
 	return ch
 }
-func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code any, since any, limit any, params any) any {
+func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code *string, since any, limit any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	if this.Markets == nil {
@@ -2504,7 +2504,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan AsyncResult[[]Transactio
 		}
 	}
 	var currency map[string]any = nil
-	if !IsEqual(code, nil) {
+	if code != nil {
 		currency = this.Currency(code)
 	}
 	var sandboxMode bool = this.IsSandboxModeEnabled || (*this.SafeBool(this.Options, "sandboxMode", false))
@@ -3665,7 +3665,7 @@ func (this *Alpaca) Withdraw(code string, amount float64, address string, option
 	var res Transaction = r.Value
 	return res, nil
 }
-func (this *Alpaca) FetchTransactionsHelper(typeVar string, code string, since int64, limit int64, params any) ([]Transaction, error) {
+func (this *Alpaca) FetchTransactionsHelper(typeVar string, code *string, since int64, limit int64, params any) ([]Transaction, error) {
 	r := <-this.FetchTransactionsHelperAsync(typeVar, code, since, limit, params)
 	if r.Err != nil {
 		return nil, r.Err

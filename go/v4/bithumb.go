@@ -611,8 +611,8 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			var marketId *string = this.SafeString(entry, "market")
 			var baseId any = nil
 			var quoteId any = nil
-			var base any = nil
-			var quote any = nil
+			var base *string = nil
+			var quote *string = nil
 			if marketId != nil {
 				var parts []string = strings.Split(*marketId, "-")
 				// to match gen 1, the quoteId is the first currency derived from the market id
@@ -624,11 +624,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				}()
 				quoteId = parts[0]
 				base = this.SafeCurrencyCode(baseId)
-				if derefPtr := this.SafeCurrencyCode(quoteId); derefPtr != nil {
-					quote = *derefPtr
-				} else {
-					quote = nil
-				}
+				quote = this.SafeCurrencyCode(quoteId)
 			}
 			if (base == nil) || (quote == nil) {
 				continue
@@ -1598,7 +1594,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		// the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
 		var count any = 200
 		if limit != nil {
-			count = mathMin(limit, 200)
+			count = min(*limit, 200)
 		}
 		if (limit != nil) || (since != nil) || (until != nil) {
 			request["count"] = count

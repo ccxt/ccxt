@@ -581,12 +581,12 @@ func (this *Deepcoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Deepcoin) FetchMarketsByTypeAsync(typeVar any, optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+func (this *Deepcoin) FetchMarketsByTypeAsync(typeVar *string, optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
 	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsByTypeBody(ch, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) fetchMarketsByTypeBody(ch chan AsyncResult[[]MarketInterface], typeVar any, optionalArgs ...any) any {
+func (this *Deepcoin) fetchMarketsByTypeBody(ch chan AsyncResult[[]MarketInterface], typeVar *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -958,12 +958,12 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			} else {
 				numberOfCandles = *limit
 			}
-			var endTime any = this.ParseToInt(Add(since, ((duration * numberOfCandles) * 1000)))
+			var endTime int64 = this.ParseToInt(Add(since, (duration*numberOfCandles)*1000))
 			if until != nil {
-				endTime = mathMin(endTime, until)
+				endTime = min(endTime, *until)
 			}
 			var now int64 = this.Milliseconds()
-			request["after"] = mathMin(endTime, now)
+			request["after"] = min(endTime, now)
 		}
 	}
 	var response map[string]any = nil
@@ -1173,7 +1173,7 @@ func (this *Deepcoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		"instId": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 500)
+		request["limit"] = min(*limit, 500)
 	}
 	var productGroup string = this.GetProductGroupFromMarket(market)
 	request["productGroup"] = productGroup
@@ -4362,7 +4362,7 @@ func (this *Deepcoin) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	var res []MarketInterface = r.Value
 	return res, nil
 }
-func (this *Deepcoin) FetchMarketsByType(typeVar string, options ...FetchMarketsByTypeOptions) ([]MarketInterface, error) {
+func (this *Deepcoin) FetchMarketsByType(typeVar *string, options ...FetchMarketsByTypeOptions) ([]MarketInterface, error) {
 
 	opts := FetchMarketsByTypeOptionsStruct{}
 

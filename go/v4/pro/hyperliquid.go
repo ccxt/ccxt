@@ -2866,7 +2866,7 @@ func (this *Hyperliquid) HandlePong(client any, message map[string]any) any {
 	return message
 }
 func (this *Hyperliquid) RequestId() int64 {
-	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	var requestId int64 = *this.SafeInteger(this.Options, "requestId", 0) + 1
 	this.Options["requestId"] = requestId
 	return requestId
 }

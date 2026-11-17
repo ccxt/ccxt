@@ -87,8 +87,8 @@ func (this *Woo) Describe() map[string]any {
 }
 func (this *Woo) RequestId(url string) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
-	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
+	var previousValue int64 = *this.SafeInteger(options, url, 0)
+	var newValue int64 = previousValue + 1
 	var entry map[string]any = map[string]any{}
 	entry[url] = newValue
 	this.Options["requestId"] = this.Extend(this.SafeDict(this.Options, "requestId", map[string]any{}), entry)
@@ -330,7 +330,7 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 		if timestamp == nil {
-			ccxt.AppendToArray(orderbook.GetCache(), message)
+			orderbook.AppendCache(message)
 		} else {
 
 			{
@@ -447,9 +447,9 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 			}
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			orderbook.Reset(snapshot)
-			var messages any = orderbook.GetCache()
-			for i := 0; i < ccxt.GetArrayLength(messages); i++ {
-				var messageItem any = ccxt.GetValue(messages, i)
+			var messages []any = orderbook.GetCache()
+			for i := 0; i < len(messages); i++ {
+				var messageItem any = messages[i]
 				var ts *int64 = this.SafeInteger(messageItem, "ts")
 				if ts == nil {
 					continue

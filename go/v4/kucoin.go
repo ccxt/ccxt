@@ -2519,9 +2519,9 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan AsyncResult[[]MarketInterfa
 	//    }
 	//
 	var result []any = []any{}
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var id *string = this.SafeString(market, "symbol")
 		var expiry *int64 = this.SafeInteger(market, "expireDate")
 		var future bool = (this.SafeString(market, "nextFundingRateTime") == nil)
@@ -9442,7 +9442,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan AsyncResult[[]Trade], opti
 		request["startAt"] = since
 	}
 	if limit != nil {
-		request["pageSize"] = mathMin(1000, limit)
+		request["pageSize"] = min(1000, *limit)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endAt", request, paramsPaginate)
 
@@ -15565,13 +15565,13 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 	if marginMode != "CROSS" {
 		panic(BadRequest(this.Id + " fetchLeverageTiers() supports cross margin only"))
 	}
-	var marketIds any = this.MarketIds(symbolsNormalized)
+	var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
 	var request map[string]any = map[string]any{
 		"tradeType":   "FUTURES",
 		"marginMode":  marginMode,
 		"data":        "RISK_LIMIT",
 		"accountType": "UNIFIED",
-		"symbol":      Join(marketIds, ","),
+		"symbol":      strings.Join(marketIds, ","),
 	}
 
 	r1 := <-this.UtaGetMarketPositionTiers(this.Extend(request, paramsRequest))
@@ -15663,8 +15663,8 @@ func (this *Kucoin) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenIn
 		if length < 11 {
 			// the endpoint does not accept more than 10 symbols at a time
 			// if user provided more than 10 symbols, we will fetch all symbols
-			var marketIds any = this.MarketIds(symbolsNormalized)
-			request["symbol"] = Join(marketIds, ",")
+			var marketIds []string = this.MarketIdsStrings(symbolsNormalized)
+			request["symbol"] = strings.Join(marketIds, ",")
 		}
 	}
 

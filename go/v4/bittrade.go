@@ -1721,12 +1721,12 @@ func (this *Bittrade) ParseCurrency(currency any) map[string]any {
 }
 func (this *Bittrade) ParseBalance(response any) map[string]any {
 	var data map[string]any = SafeMapTyped(response, "data")
-	var balances []any = SafeListTyped(data, "list")
+	var balances []map[string]any = this.SafeListMapsTyped(data, "list")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = MapTyped(balances[i])
+		var balance map[string]any = balances[i]
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.SafeDict(result, code, this.Account())

@@ -2413,10 +2413,10 @@ func (this *Pacifica) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var results []any = SafeListTyped(data, "results")
+	var results []map[string]any = this.SafeListMapsTyped(data, "results")
 	var ordersToReturn []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var order any = results[i]
+		var order map[string]any = results[i]
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var status string
@@ -2504,10 +2504,10 @@ func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var results []any = SafeListTyped(data, "results")
+	var results []map[string]any = this.SafeListMapsTyped(data, "results")
 	var ordersToReturn []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var order any = results[i]
+		var order map[string]any = results[i]
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var status string
@@ -2927,10 +2927,10 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	//   "has_more": true
 	// }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "created_at")
 		result = append(result, map[string]any{
 			"info":        entry,
@@ -3379,14 +3379,14 @@ func (this *Pacifica) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
 }
-func (this *Pacifica) AddPaginationCursorToResult(response any) any {
-	var data any = this.SafeList(response, "data", []any{})
+func (this *Pacifica) AddPaginationCursorToResult(response any) []any {
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var paginationCursor *string = this.SafeString(response, "next_cursor")
 	var hasMore *bool = this.SafeBool(response, "has_more", false)
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	if hasMore != nil && *hasMore {
 		if (paginationCursor != nil) && (dataLength > 0) {
-			var first any = GetValue(data, 0)
+			var first any = data[0]
 			AddElementToObject(first, "next_cursor", paginationCursor)
 			AddElementToObject(first, "has_more", hasMore)
 			AddElementToObject(data, 0, first)

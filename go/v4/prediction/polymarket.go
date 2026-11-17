@@ -964,7 +964,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[[]map[st
 }
 func (this *Polymarket) ParseEventToMarkets(event any) []any {
 	var eventSlug *string = this.SafeString(event, "slug", this.SafeString(event, "id"))
-	var rawMarkets []any = ccxt.SafeListTyped(event, "markets")
+	var rawMarkets []map[string]any = this.SafeListMapsTyped(event, "markets")
 	var result []any = []any{}
 	//
 	// {
@@ -1053,7 +1053,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
 	// }
 	//
 	for mi := 0; mi < len(rawMarkets); mi++ {
-		var market any = rawMarkets[mi]
+		var market map[string]any = rawMarkets[mi]
 		var conditionId *string = this.SafeString(market, "conditionId")
 		var marketId *string = this.SafeString(market, "id")
 		var marketSlug *string = this.SafeString(market, "slug", conditionId)
@@ -4680,35 +4680,27 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	orderbook := r1.Value
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
-	var bestBid any = nil
+	var bestBid *float64 = nil
 	var bestBidVolume *float64 = nil
 	var bidsLength int = 0
 	if bids != nil {
 		bidsLength = ccxt.GetArrayLength(bids)
 	}
 	if (bids != nil) && (bidsLength > 0) {
-		if derefPtr := this.SafeNumber(ccxt.GetValue(bids, 0), 0); derefPtr != nil {
-			bestBid = *derefPtr
-		} else {
-			bestBid = nil
-		}
+		bestBid = this.SafeNumber(ccxt.GetValue(bids, 0), 0)
 		bestBidVolume = this.SafeNumber(ccxt.GetValue(bids, 0), 1)
 	}
-	var bestAsk any = nil
+	var bestAsk *float64 = nil
 	var bestAskVolume *float64 = nil
 	var asksLength int = 0
 	if asks != nil {
 		asksLength = ccxt.GetArrayLength(asks)
 	}
 	if (asks != nil) && (asksLength > 0) {
-		if derefPtr := this.SafeNumber(ccxt.GetValue(asks, 0), 0); derefPtr != nil {
-			bestAsk = *derefPtr
-		} else {
-			bestAsk = nil
-		}
+		bestAsk = this.SafeNumber(ccxt.GetValue(asks, 0), 0)
 		bestAskVolume = this.SafeNumber(ccxt.GetValue(asks, 0), 1)
 	}
-	var mid any = nil
+	var mid *float64 = nil
 	if (bestBid != nil) && (bestAsk != nil) {
 		var sum *string = ccxt.Precise.StringAdd(this.NumberToString(bestBid), this.NumberToString(bestAsk))
 		mid = this.ParseNumber(ccxt.Precise.StringDiv(sum, "2"))

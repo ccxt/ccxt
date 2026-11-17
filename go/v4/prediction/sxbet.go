@@ -302,7 +302,7 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan ccxt.AsyncResult[[]map[strin
 		"limit": userLimit,
 	}, "limit")
 	var paginationKey *string = nil
-	var page int64 = this.ParseToInt(0)
+	var page int = 0
 	for true {
 		var request map[string]any = map[string]any{
 			"pageSize": pageSize,
@@ -323,9 +323,9 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan ccxt.AsyncResult[[]map[strin
 			rawMarkets = append(rawMarkets, pageMarkets[i])
 		}
 		paginationKey = this.SafeString(result, "nextKey")
-		page = this.ParseToInt(page + 1)
+		page = page + 1
 		var collectedLength int64 = this.ParseToInt(len(rawMarkets))
-		if (pageSize != nil && int64(pageMarketsLength) < *pageSize) || (page >= maxPages) || (paginationKey == nil) || ((collectCap != nil) && (collectedLength >= *collectCap)) {
+		if (pageSize != nil && int64(pageMarketsLength) < *pageSize) || (int64(page) >= maxPages) || (paginationKey == nil) || ((collectCap != nil) && (collectedLength >= *collectCap)) {
 			break
 		}
 	}
@@ -899,12 +899,12 @@ func (this *Sxbet) SignDigest(digest any, privateKey string) string {
  * @param {string} tokenAddress the token contract address
  * @returns {string} the token's on-chain name
  */
-func (this *Sxbet) FetchErc20NameAsync(rpcUrl any, tokenAddress string) <-chan ccxt.AsyncResult[string] {
+func (this *Sxbet) FetchErc20NameAsync(rpcUrl *string, tokenAddress string) <-chan ccxt.AsyncResult[string] {
 	ch := make(chan ccxt.AsyncResult[string], 1)
 	go this.fetchErc20NameBody(ch, rpcUrl, tokenAddress)
 	return ch
 }
-func (this *Sxbet) fetchErc20NameBody(ch chan ccxt.AsyncResult[string], rpcUrl any, tokenAddress string) any {
+func (this *Sxbet) fetchErc20NameBody(ch chan ccxt.AsyncResult[string], rpcUrl *string, tokenAddress string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var nameCallData string = "0x06fdde03" // name()
@@ -921,7 +921,7 @@ func (this *Sxbet) fetchErc20NameBody(ch chan ccxt.AsyncResult[string], rpcUrl a
 	// dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
 	var lengthHex string = hex[64:min(128, len(hex))]
 	var length int64 = this.ParseToInt(this.HexToInt(lengthHex))
-	var dataEnd any = 128 + length*2
+	var dataEnd int64 = 128 + length*2
 	var dataHex string = ccxt.Slice(hex, 128, dataEnd)
 
 	ch <- ccxt.AsyncResult[string]{Value: this.Decode(this.Base16ToBinary(dataHex))}
@@ -940,7 +940,7 @@ func (this *Sxbet) HexToInt(hex any) any {
 	var digits string = "0123456789abcdef"
 	var lowerHex string = ccxt.ToLower(hex)
 	var hexLength int = len(lowerHex)
-	var result int64 = this.ParseToInt(0)
+	var result int64 = 0
 	for i := 0; i < hexLength; i++ {
 		var ch string = string(lowerHex[i])
 		var digitValue int64 = this.ParseToInt(strings.Index(digits, ch))
@@ -1092,8 +1092,8 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 		panic(r5.Err)
 	}
 	var tokenName *string = ccxt.SafeStringPtr(r5.Value)
-	var defaultDeadlineSeconds *int64 = this.SafeInteger(this.Options, "approveDeadlineSeconds", 7200)
-	var deadline *int64 = this.SafeInteger(paramsSpender, "deadline", this.Sum(this.Seconds(), defaultDeadlineSeconds))
+	var defaultDeadlineSeconds int64 = *this.SafeInteger(this.Options, "approveDeadlineSeconds", 7200)
+	var deadline *int64 = this.SafeInteger(paramsSpender, "deadline", this.Seconds()+defaultDeadlineSeconds)
 	var value string = this.DecimalToPrecision(ccxt.Precise.StringMul(this.NumberToString(amount), "1000000"), ccxt.ROUND, 0, ccxt.DECIMAL_PLACES)
 	var domain map[string]any = map[string]any{
 		"name":              tokenName,
@@ -1251,8 +1251,8 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 	var saltHexRaw string = this.IntToBase16(this.ParseToInt(saltNumber))
 	var saltHexPadded string = (strings.Repeat("0", max(64-len(saltHexRaw), 0)) + saltHexRaw)[max(len(saltHexRaw)-64, 0):]
 	var saltHex string = "0x" + saltHexPadded
-	var defaultExpirySeconds *int64 = this.SafeInteger(this.Options, "defaultOrderExpirySeconds", 86400)
-	var expiry *int64 = this.SafeInteger(params, "expiry", this.Sum(this.Seconds(), defaultExpirySeconds))
+	var defaultExpirySeconds int64 = *this.SafeInteger(this.Options, "defaultOrderExpirySeconds", 86400)
+	var expiry *int64 = this.SafeInteger(params, "expiry", this.Seconds()+defaultExpirySeconds)
 	var defaultTif string = "IOC"
 	if typeVar == "limit" {
 		defaultTif = "GTC"
@@ -2511,12 +2511,12 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
  * @param {string} marketHash the market hash
  * @returns {object} the raw snapshot data
  */
-func (this *Sxbet) FetchSxbetBookSnapshotAsync(marketHash any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Sxbet) FetchSxbetBookSnapshotAsync(marketHash *string) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchSxbetBookSnapshotBody(ch, marketHash)
 	return ch
 }
-func (this *Sxbet) fetchSxbetBookSnapshotBody(ch chan ccxt.AsyncResult[map[string]any], marketHash any) any {
+func (this *Sxbet) fetchSxbetBookSnapshotBody(ch chan ccxt.AsyncResult[map[string]any], marketHash *string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var request map[string]any = map[string]any{
@@ -2992,15 +2992,15 @@ func (this *Sxbet) SetWsOption(group string, key string, value any) {
 	entry[key] = value
 	this.Options[group] = this.Extend(this.SafeDict(this.Options, group, map[string]any{}), entry)
 }
-func (this *Sxbet) RequestId(url any) int64 {
+func (this *Sxbet) RequestId(url *string) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
 	if existing == nil {
 		this.Options["requestId"] = this.CreateSafeDictionary()
 	}
 	var options any = this.Options["requestId"]
-	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	if !ccxt.IsEqual(url, nil) {
+	var previousValue int64 = *this.SafeInteger(options, url, 0)
+	var newValue int64 = previousValue + 1
+	if url != nil {
 		ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	}
 	return newValue
@@ -3053,12 +3053,12 @@ func (this *Sxbet) fetchSxbetRealtimeTokenBody(ch chan ccxt.AsyncResult[*string]
 	ch <- ccxt.AsyncResult[*string]{Value: this.SafeString2(data, "token", "realtimeToken", this.SafeString(response, "token"))}
 	return nil
 }
-func (this *Sxbet) ConnectSxbetCentrifugoAsync(url any) <-chan ccxt.AsyncResult[bool] {
+func (this *Sxbet) ConnectSxbetCentrifugoAsync(url *string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.connectSxbetCentrifugoBody(ch, url)
 	return ch
 }
-func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], url any) any {
+func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], url *string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// Centrifugo requires a token-carrying connect command before any subscribe. This sends it once
@@ -4040,7 +4040,7 @@ func (this *Sxbet) FetchEvent(id string, options ...FetchEventOptions) (ccxt.Pre
  * @param {string} tokenAddress the token contract address
  * @returns {string} the token's on-chain name
  */
-func (this *Sxbet) FetchErc20Name(rpcUrl string, tokenAddress string) (string, error) {
+func (this *Sxbet) FetchErc20Name(rpcUrl *string, tokenAddress string) (string, error) {
 	r := <-this.FetchErc20NameAsync(rpcUrl, tokenAddress)
 	if r.Err != nil {
 		return "", r.Err
@@ -4382,7 +4382,7 @@ func (this *Sxbet) FetchSettlements(options ...FetchSettlementsOptions) ([]ccxt.
  * @param {string} marketHash the market hash
  * @returns {object} the raw snapshot data
  */
-func (this *Sxbet) FetchSxbetBookSnapshot(marketHash string) (map[string]any, error) {
+func (this *Sxbet) FetchSxbetBookSnapshot(marketHash *string) (map[string]any, error) {
 	r := <-this.FetchSxbetBookSnapshotAsync(marketHash)
 	if r.Err != nil {
 		return map[string]any{}, r.Err

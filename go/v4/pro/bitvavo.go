@@ -1194,7 +1194,7 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 			// fetch the snapshot in a separate async call after a warmup delay
 			this.Delay(delay, this.WatchOrderBookSnapshotAsync, client, message, subscription)
 		}
-		ccxt.AppendToArray(orderbook.GetCache(), message)
+		orderbook.AppendCache(message)
 	} else {
 		this.HandleOrderBookMessage(client, message, orderbook)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -1273,9 +1273,9 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 	snapshot["nonce"] = this.SafeInteger(response, "nonce")
 	orderbook.Reset(snapshot)
 	// unroll the accumulated deltas
-	var messages any = orderbook.GetCache()
-	for i := 0; i < ccxt.GetArrayLength(messages); i++ {
-		var messageItem any = ccxt.GetValue(messages, i)
+	var messages []any = orderbook.GetCache()
+	for i := 0; i < len(messages); i++ {
+		var messageItem any = messages[i]
 		this.HandleOrderBookMessage(client, messageItem, orderbook)
 	}
 	if symbol != nil {

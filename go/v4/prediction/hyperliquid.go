@@ -692,12 +692,12 @@ func (this *Hyperliquid) CalculatePricePrecision(midPx any, szDecimals any) any 
 	if intPartLength <= 5 {
 		digitsLeft = 5 - intPartLength
 	}
-	var cappedDecimals int64 = func() int64 {
-		if maxDecimals < int64(digitsLeft) {
-			return maxDecimals
-		}
-		return int64(digitsLeft)
-	}()
+	var cappedDecimals int64
+	if maxDecimals < int64(digitsLeft) {
+		cappedDecimals = maxDecimals
+	} else {
+		cappedDecimals = int64(digitsLeft)
+	}
 	// appends max (1, cappedDecimals) - 1 zeros
 	var zeros string = ""
 	for zi := 1; int64(zi) < cappedDecimals; zi++ {
@@ -2608,7 +2608,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 	var underlying *string = this.SafeString(desc, "underlying")
 	var targetPrice *string = this.SafeString(desc, "targetPrice")
 	var expiryRaw *string = this.SafeString(desc, "expiry")
-	var expiryMs any = nil
+	var expiryMs *int64 = nil
 	var expiryDatetime *string = nil
 	if (expiryRaw != nil) && (expiryRaw == nil || *expiryRaw != "") {
 		var parts []string = strings.Split(*expiryRaw, "-")
@@ -2638,11 +2638,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 				str := *ymd
 				return str[6:min(8, len(str))]
 			}() + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
-			if derefPtr := this.Parse8601(isoStr); derefPtr != nil {
-				expiryMs = *derefPtr
-			} else {
-				expiryMs = nil
-			}
+			expiryMs = this.Parse8601(isoStr)
 			expiryDatetime = ccxt.SafeStringPtr(isoStr)
 		}
 	}

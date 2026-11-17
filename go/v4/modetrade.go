@@ -1055,12 +1055,12 @@ func (this *Modetrade) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 }
 func (this *Modetrade) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "token")
-	var networks []any = SafeListTyped(rawCurrency, "chain_details")
+	var networks []map[string]any = this.SafeListMapsTyped(rawCurrency, "chain_details")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var minPrecision any = nil
 	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
-		var network any = networks[j]
+		var network map[string]any = networks[j]
 		// TODO: transform chain id to human readable name
 		var networkId *string = this.SafeString(network, "chain_id", "")
 		var precision any = this.ParsePrecision(this.SafeString(network, "decimals"))
@@ -1558,10 +1558,10 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result []any = SafeListTyped(data, "rows")
+	var result []map[string]any = this.SafeListMapsTyped(data, "rows")
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var entry any = result[i]
+		var entry map[string]any = result[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "funding_rate_timestamp")
 		rates = append(rates, map[string]any{
@@ -1992,7 +1992,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHist
 		request["end_t"] = until
 	}
 	if limit != nil {
-		request["size"] = mathMin(limit, 500)
+		request["size"] = min(*limit, 500)
 	}
 
 	r2 := <-this.V1PrivateGetFundingFeeHistory(this.Extend(request, paramsOmitted))
@@ -2145,7 +2145,7 @@ func (this *Modetrade) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["max_level"] = mathMin(limit, 1000)
+		request["max_level"] = min(*limit, 1000)
 	}
 
 	r1 := <-this.V1PrivateGetOrderbookSymbol(this.Extend(request, params))
@@ -2223,7 +2223,7 @@ func (this *Modetrade) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 
 	r1 := <-this.V1PrivateGetKline(this.Extend(request, params))

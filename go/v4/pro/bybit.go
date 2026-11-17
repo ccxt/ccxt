@@ -577,9 +577,9 @@ func (this *Bybit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	var paramsValue any = this.CleanParams(params)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
 	var topic string = *this.SafeString(options, "name", "tickers")
-	var marketIds any = this.MarketIds(symbolsValue)
+	var marketIds []any = this.MarketIdsSlice(symbolsValue)
 	var topics []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
+	for i := 0; i < len(marketIds); i++ {
 		var marketId string = *this.SafeString(marketIds, i, "")
 		topics = append(topics, topic+"."+marketId)
 		messageHashes = append(messageHashes, "ticker:"+*this.SafeString(symbolsValue, i, ""))
@@ -639,9 +639,9 @@ func (this *Bybit) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	var topic string = *this.SafeString(options, "name", "tickers")
 	var messageHashes []any = []any{}
 	var subMessageHashes []any = []any{}
-	var marketIds any = this.MarketIds(symbolsValue)
+	var marketIds []any = this.MarketIdsSlice(symbolsValue)
 	var topics []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
+	for i := 0; i < len(marketIds); i++ {
 		var marketId string = *this.SafeString(marketIds, i, "")
 		var symbol *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(symbolsValue) {
@@ -886,9 +886,9 @@ func (this *Bybit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 	url := r1.Value
 	var paramsValue any = this.CleanParams(params)
-	var marketIds any = this.MarketIds(symbolsValue)
+	var marketIds []any = this.MarketIdsSlice(symbolsValue)
 	var topics []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
+	for i := 0; i < len(marketIds); i++ {
 		var marketId string = *this.SafeString(marketIds, i, "")
 		var topic string = "orderbook.1." + marketId
 		topics = append(topics, topic)

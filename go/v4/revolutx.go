@@ -914,7 +914,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		request["until"] = until
 	}
 	if (since != nil) && (until == nil) {
-		request["until"] = this.Sum(since, (limitValue * duration))
+		request["until"] = this.Sum(since, limitValue*duration)
 	} else if (since == nil) && (until != nil) {
 		request["since"] = (*until - (limitValue * duration))
 	}
@@ -1035,7 +1035,7 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		request["end_date"] = this.Milliseconds()
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {

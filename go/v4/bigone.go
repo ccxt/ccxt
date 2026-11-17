@@ -599,10 +599,10 @@ func (this *Bigone) ParseCurrency(rawCurrency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(id)
 	var name *string = this.SafeString(rawCurrency, "name")
 	var networks map[string]any = map[string]any{}
-	var chains []any = SafeListTyped(rawCurrency, "binding_gateways")
+	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "binding_gateways")
 	var currencyMaxPrecision any = this.ParsePrecision(this.SafeString2(rawCurrency, "withdrawal_scale", "scale"))
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "gateway_name")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var deposit *bool = this.SafeBool(chain, "is_deposit_enabled")
@@ -1079,8 +1079,8 @@ func (this *Bigone) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var data any = nil
 	if isSpot {
 		if symbolsNormalized != nil {
-			var ids any = this.MarketIds(symbolsNormalized)
-			request["pair_names"] = Join(ids, ",")
+			var ids []string = this.MarketIdsStrings(symbolsNormalized)
+			request["pair_names"] = strings.Join(ids, ",")
 		}
 
 		r1 := <-this.PublicGetAssetPairsTickers(this.Extend(request, paramsMarketType))
@@ -1614,7 +1614,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if since != nil {
 		// const start = this.parseToInt (since / 1000);
 		var duration int64 = this.ParseTimeframe(timeframe)
-		var endByLimit int64 = this.ParseToInt(this.Sum(since, ((limitResolved * duration) * 1000)))
+		var endByLimit int64 = this.ParseToInt(this.Sum(since, (limitResolved*duration)*1000))
 		if until != nil {
 			request["time"] = this.Iso8601(min(endByLimit, *until+1))
 		} else {

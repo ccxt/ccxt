@@ -885,10 +885,10 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 		}
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var list []any = SafeListTyped(data, "list")
+	var list []map[string]any = this.SafeListMapsTyped(data, "list")
 	var result []any = []any{}
 	for i := 0; i < len(list); i++ {
-		var market any = list[i]
+		var market map[string]any = list[i]
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
 		var id *string = this.SafeString(market, "symbol")
@@ -1350,7 +1350,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 		request["startTime"] = since
 		// https://github.com/ccxt/ccxt/issues/6400
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-		request["endTime"] = this.Sum(since, 3600000)
+		request["endTime"] = *since + 3600000
 
 		responseRecv := <-this.BinanceGetAggTrades(this.Extend(request, params))
 		if responseRecv.Err != nil {
@@ -2915,9 +2915,9 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 	if since != nil {
 		request["startTime"] = since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
-		var endTime any = this.Sum(since, 7776000000)
+		var endTime int64 = *since + 7776000000
 		if until != nil {
-			endTime = mathMin(endTime, until)
+			endTime = min(endTime, *until)
 		}
 		request["endTime"] = endTime
 	}
@@ -3003,7 +3003,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 	if since != nil {
 		request["startTime"] = since
 		// max 3 months range https://github.com/ccxt/ccxt/issues/6495
-		request["endTime"] = this.Sum(since, 7776000000)
+		request["endTime"] = *since + 7776000000
 	}
 	if limit != nil {
 		request["limit"] = limit

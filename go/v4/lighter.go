@@ -493,12 +493,12 @@ func (this *Lighter) Describe() map[string]any {
 		},
 	})
 }
-func (this *Lighter) LoadAccountAsync(chainId any, privateKey any, apiKeyIndex any, accountIndex any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Lighter) LoadAccountAsync(chainId any, privateKey *string, apiKeyIndex any, accountIndex any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.loadAccountBody(ch, chainId, privateKey, apiKeyIndex, accountIndex, optionalArgs...)
 	return ch
 }
-func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, privateKey any, apiKeyIndex any, accountIndex any, optionalArgs ...any) any {
+func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, privateKey *string, apiKeyIndex any, accountIndex any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -512,7 +512,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 		return nil
 	}
 	libraryPath, _ := this.HandleOptionStringAndParams(params, "loadAccount", "libraryPath")
-	var lighterPrivateKeyIsSet bool = (!IsEqual(privateKey, nil)) && (!IsEqual(privateKey, ""))
+	var lighterPrivateKeyIsSet bool = (privateKey != nil) && (privateKey == nil || *privateKey != "")
 	if lighterPrivateKeyIsSet && (libraryPath != nil) && (!IsEqual(apiKeyIndex, nil)) && (!IsEqual(accountIndex, nil)) {
 		// load lighter library, and create lighter client
 
@@ -2079,7 +2079,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"limit":     100,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 250)
+		request["limit"] = min(*limit, 250)
 	}
 
 	r1 := <-this.PublicGetOrderBookOrders(this.Extend(request, params))
@@ -3234,7 +3234,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 		"limit":         100,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 
 	r3 := <-this.PrivateGetAccountInactiveOrders(this.Extend(request, paramsApiKeyIndex))
@@ -4183,7 +4183,7 @@ func (this *Lighter) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"limit":     100,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 
 	r1 := <-this.PublicGetRecentTrades(this.Extend(request, params))
@@ -4294,7 +4294,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		"account_index": accountIndex,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(paramsApiKeyIndex, "fetchMyTrades", "until", "from")
 	var until *int64 = nil

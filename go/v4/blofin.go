@@ -1457,7 +1457,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if since != nil {
 		var durationInMilliseconds int64 = this.ParseTimeframe(timeframe) * 1000
 		request["before"] = max(*since-1, 0)
-		request["after"] = this.Sum(since, (durationInMilliseconds * limitResolved))
+		request["after"] = this.Sum(since, durationInMilliseconds*limitResolved)
 	}
 	var until *int64 = this.SafeInteger(query, "until")
 	if until != nil {
@@ -3980,7 +3980,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 		}
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 	if since != nil {
 		request["begin"] = since

@@ -820,12 +820,12 @@ func (this *Alpaca) ParseMyTrade(trade map[string]any, optionalArgs ...any) any 
 		"fee":    nil,
 	}, market))
 }
-func (this *Alpaca) AuthenticateAsync(url any, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+func (this *Alpaca) AuthenticateAsync(url *string, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, url, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, optionalArgs ...any) any {
+func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

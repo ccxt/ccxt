@@ -4911,13 +4911,13 @@ func (this *Binance) ParseCurrency(rawCurrency any) map[string]any {
 	var name *string = this.SafeString(entry, "name")
 	var code *string = this.SafeCurrencyCode(id)
 	var isFiat *bool = this.SafeBool(entry, "isLegalMoney")
-	var networkList []any = SafeListTyped(entry, "networkList")
+	var networkList []map[string]any = this.SafeListMapsTyped(entry, "networkList")
 	var fees map[string]any = map[string]any{}
 	var fee *float64 = nil
 	var networks map[string]any = map[string]any{}
 	var isETF bool = false
 	for j := 0; j < len(networkList); j++ {
-		var networkItem any = networkList[j]
+		var networkItem map[string]any = networkList[j]
 		var network *string = this.SafeString(networkItem, "network")
 		var networkCode *string = this.NetworkIdToCode(network, code)
 		isETF = (network != nil && *network == "ETF") // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
@@ -7666,7 +7666,7 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 			request["startTime"] = since
 			// https://github.com/ccxt/ccxt/issues/6400
 			// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-			request["endTime"] = this.Sum(since, 3600000)
+			request["endTime"] = *since + 3600000
 		}
 		var until *int64 = this.SafeInteger(paramsPaginate, "until")
 		if until != nil {
@@ -10514,7 +10514,7 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	// max 100
 	var limitResolved any = limit
 	if (limit != nil) && stock {
-		limitResolved = mathMin(limit, 100)
+		limitResolved = min(*limit, 100)
 	}
 	if limit != nil {
 		if stock {
@@ -12256,11 +12256,11 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	// above 1000, returns error
 	var limitContract any = limit
 	if (limit != nil) && isContractLimit {
-		limitContract = mathMin(limit, 1000)
+		limitContract = min(*limit, 1000)
 	}
 	var limitResolved any = limitContract
 	if (limit != nil) && stock {
-		limitResolved = mathMin(limit, 100)
+		limitResolved = min(*limit, 100)
 	}
 	if limit != nil {
 		if stock {
@@ -12566,7 +12566,7 @@ func (this *Binance) fetchMyDustTradesBody(ch chan AsyncResult[[]Trade], optiona
 	var request map[string]any = map[string]any{}
 	if since != nil {
 		request["startTime"] = since
-		request["endTime"] = this.Sum(since, 7776000000)
+		request["endTime"] = *since + 7776000000
 	}
 	var accountType *string = this.SafeStringUpper(params, "type")
 	var paramsOmitted map[string]any = this.OmitDict(params, "type")
@@ -12795,9 +12795,9 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		if since != nil {
 			request["startTime"] = since
 			// max 3 months range https://github.com/ccxt/ccxt/issues/6495
-			var endTime any = this.Sum(since, 7776000000)
+			var endTime int64 = *since + 7776000000
 			if until != nil {
-				endTime = mathMin(endTime, until)
+				endTime = min(endTime, *until)
 			}
 			request["endTime"] = endTime
 		}
@@ -12921,7 +12921,7 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		if since != nil {
 			request["startTime"] = since
 			// max 3 months range https://github.com/ccxt/ccxt/issues/6495
-			request["endTime"] = this.Sum(since, 7776000000)
+			request["endTime"] = *since + 7776000000
 		}
 		if limit != nil {
 			request["limit"] = limit
@@ -15542,10 +15542,10 @@ func (this *Binance) ParseMarketLeverageTiers(info any, optionalArgs ...any) []a
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
-	var brackets []any = SafeListTyped(info, "brackets")
+	var brackets []map[string]any = this.SafeListMapsTyped(info, "brackets")
 	var tiers []any = []any{}
 	for j := 0; j < len(brackets); j++ {
-		var bracket any = brackets[j]
+		var bracket map[string]any = brackets[j]
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeNumber(bracket, "bracket"),
 			"symbol":                this.SafeSymbol(marketId, marketResolved),
@@ -18049,7 +18049,7 @@ func (this *Binance) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 	}
 	if since != nil {
 		request["startTime"] = since
-		var endTime int64 = ((*since + (limitResolved * 86400000)) - 1) // required when startTime is further than 93 days in the past
+		var endTime int64 = ((*since + limitResolved*86400000) - 1) // required when startTime is further than 93 days in the past
 		var now int64 = this.Milliseconds()
 		request["endTime"] = mathMin(endTime, now) // cannot have an endTime later than current time
 	}
@@ -18789,7 +18789,7 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInte
 			limitDefault = *limit
 		}
 		var duration int64 = this.ParseTimeframe(timeframe)
-		request["endTime"] = this.Sum(since, ((duration * limitDefault) * 1000))
+		request["endTime"] = this.Sum(since, (duration*limitDefault)*1000)
 	}
 	var response []any = nil
 	if *this.SafeBool(market, "inverse", false) {

@@ -1556,9 +1556,9 @@ func (this *Mexc) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "coin")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains []any = SafeListTyped(rawCurrency, "networkList")
+	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "networkList")
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString2(chain, "netWork", "network")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -1715,10 +1715,10 @@ func (this *Mexc) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	// Notes:
 	// - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
 	//
-	var data []any = SafeListTyped(response, "symbols")
+	var data []map[string]any = this.SafeListMapsTyped(response, "symbols")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
@@ -1866,10 +1866,10 @@ func (this *Mexc) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
@@ -2425,7 +2425,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			var latestStart int64 = now - spotWindow
 			request["endTime"] = func() any {
 				if *since < latestStart {
-					return this.Sum(since, spotWindow)
+					return (*since + spotWindow)
 				}
 				return now
 			}()
@@ -3295,13 +3295,13 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), IsEqual(typeVar, 2), params)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
-	var orderType int64 = this.ParseToInt(0) // typed seed, every branch below assigns it
+	var orderType int64 = 0 // typed seed, every branch below assigns it
 	if postOnly {
-		orderType = this.ParseToInt(2)
+		orderType = 2
 	} else if typeVar == "limit" {
-		orderType = this.ParseToInt(1)
+		orderType = 1
 	} else if typeVar == "market" {
-		orderType = this.ParseToInt(6)
+		orderType = 6
 	} else {
 		orderType = this.ParseToInt(typeVar)
 	}
@@ -3405,7 +3405,7 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 		request["triggerType"] = triggerType
 		request["executeCycle"] = this.SafeInteger(paramsOmitted, "executeCycle", 1)
 		request["trend"] = this.SafeInteger(paramsOmitted, "trend", 1)
-		var planOrderType any = orderType
+		var planOrderType int64 = orderType
 		if orderType == 6 {
 			planOrderType = 5 // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
 		}
@@ -3793,7 +3793,7 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 			}
 			var end *int64 = this.SafeInteger(paramsOmitted, "end_time", until)
 			if end == nil {
-				request["end_time"] = this.Sum(since, maxTimeTillEnd)
+				request["end_time"] = *since + *maxTimeTillEnd
 			} else {
 				if (maxTimeTillEnd != nil) && ((*end - *since) > *maxTimeTillEnd) {
 					panic(BadRequest(this.Id + " end is invalid, i.e. exceeds allowed 90 days."))
@@ -4882,15 +4882,15 @@ func (this *Mexc) GetTifFromRawOrderType(optionalArgs ...any) *string {
 	}
 	return this.SafeString(statuses, orderType, orderType)
 }
-func (this *Mexc) FetchAccountHelperAsync(typeVar any, params any) <-chan AsyncResult[map[string]any] {
+func (this *Mexc) FetchAccountHelperAsync(typeVar *string, params any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchAccountHelperBody(ch, typeVar, params)
 	return ch
 }
-func (this *Mexc) fetchAccountHelperBody(ch chan AsyncResult[map[string]any], typeVar any, params any) any {
+func (this *Mexc) fetchAccountHelperBody(ch chan AsyncResult[map[string]any], typeVar *string, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 
 		r := <-this.SpotPrivateGetAccount(params)
 		if r.Err != nil {
@@ -4898,7 +4898,7 @@ func (this *Mexc) fetchAccountHelperBody(ch chan AsyncResult[map[string]any], ty
 		}
 		ch <- AsyncResult[map[string]any]{Value: r.Value}
 		return nil
-	} else if IsEqual(typeVar, "swap") {
+	} else if typeVar != nil && *typeVar == "swap" {
 
 		r1 := <-this.ContractPrivateGetAccountAssets(params)
 		if r1.Err != nil {
@@ -4969,10 +4969,10 @@ func (this *Mexc) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTyped(response, "balances")
+	var data []map[string]any = this.SafeListMapsTyped(response, "balances")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var account any = data[i]
+		var account map[string]any = data[i]
 		var currencyId *string = this.SafeString2(account, "asset", "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		result = append(result, map[string]any{
@@ -5223,8 +5223,8 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 		if symbol == nil {
 			var symbols []any = SafeListTyped(paramsOmitted2, "symbols")
 			if symbols != nil {
-				var symbolIds any = this.MarketIds(symbols)
-				parsedSymbols = Join(symbolIds, ",")
+				var symbolIds []string = this.MarketIdsStrings(symbols)
+				parsedSymbols = strings.Join(symbolIds, ",")
 			}
 		} else {
 			var market map[string]any = this.Market(symbol)
@@ -5804,10 +5804,10 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var resultList []any = SafeListTyped(data, "resultList")
+	var resultList []map[string]any = this.SafeListMapsTyped(data, "resultList")
 	var result []any = []any{}
 	for i := 0; i < len(resultList); i++ {
-		var entry any = resultList[i]
+		var entry map[string]any = resultList[i]
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
 		result = append(result, map[string]any{
 			"info":      entry,
@@ -6037,10 +6037,10 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result []any = SafeListTyped(data, "resultList")
+	var result []map[string]any = this.SafeListMapsTyped(data, "resultList")
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var entry any = result[i]
+		var entry map[string]any = result[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbolInner *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
@@ -8965,7 +8965,7 @@ func (this *Mexc) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
 	var res []Order = r.Value
 	return res, nil
 }
-func (this *Mexc) FetchAccountHelper(typeVar string, options ...FetchAccountHelperOptions) (map[string]any, error) {
+func (this *Mexc) FetchAccountHelper(typeVar *string, options ...FetchAccountHelperOptions) (map[string]any, error) {
 
 	opts := FetchAccountHelperOptionsStruct{}
 

@@ -493,9 +493,9 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	snapshot["datetime"] = this.Iso8601(timestamp)
 	orderbook.Reset(snapshot)
 	// unroll the accumulated deltas
-	var messages any = orderbook.GetCache()
-	for i := 0; i < ccxt.GetArrayLength(messages); i++ {
-		this.HandleOrderBookMessage(client, ccxt.GetValue(messages, i), orderbook)
+	var messages []any = orderbook.GetCache()
+	for i := 0; i < len(messages); i++ {
+		this.HandleOrderBookMessage(client, messages[i], orderbook)
 	}
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
@@ -658,7 +658,7 @@ func (this *Bittrade) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	if this.SafeInteger(orderbook, "nonce") == nil {
-		ccxt.AppendToArray(orderbook.GetCache(), message)
+		orderbook.AppendCache(message)
 	} else {
 		this.HandleOrderBookMessage(client, message, orderbook)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

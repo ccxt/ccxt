@@ -1584,7 +1584,7 @@ func (this *Aster) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1500)
+		request["limit"] = min(*limit, 1500)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	requestUntil["interval"] = *this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1787,7 +1787,7 @@ func (this *Aster) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		AddElementToObject(request, "limit", mathMin(limit, 1000))
+		AddElementToObject(request, "limit", min(*limit, 1000))
 	}
 	var response []any = nil
 	var sinceDefined bool = (since != nil)
@@ -1882,7 +1882,7 @@ func (this *Aster) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 	var response []any = nil
@@ -2701,7 +2701,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
@@ -3373,7 +3373,7 @@ func (this *Aster) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ..
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -4646,7 +4646,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // max 1000
+		request["limit"] = min(*limit, 1000) // max 1000
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
@@ -4760,7 +4760,7 @@ func (this *Aster) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 		request["startTime"] = since
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // max 1000
+		request["limit"] = min(*limit, 1000) // max 1000
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = func() map[string]any {

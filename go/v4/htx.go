@@ -4324,7 +4324,7 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	}
 	if isContract {
 		if limit != nil {
-			request["size"] = mathMin(limit, 2000) // when using limit: from & to are ignored
+			request["size"] = min(*limit, 2000) // when using limit: from & to are ignored
 		}
 		if priceType == nil {
 			var duration int64 = this.ParseTimeframe(timeframe)
@@ -4459,7 +4459,7 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		useHistorical, paramsHistorical := this.HandleOptionBoolAndParams(paramsUntil, "fetchOHLCV", "useHistoricalEndpointForSpot", true)
 		if !useHistorical {
 			if limit != nil {
-				request["size"] = mathMin(limit, 2000) // max 2000
+				request["size"] = min(*limit, 2000) // max 2000
 			}
 
 			r14 := <-this.SpotPublicGetMarketHistoryKline(this.Extend(request, paramsHistorical))
@@ -4476,7 +4476,7 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 				request["to"] = untilSeconds
 			}
 			if limit != nil {
-				request["size"] = mathMin(1000, limit) // max 1000, otherwise default returns 150
+				request["size"] = min(1000, *limit) // max 1000, otherwise default returns 150
 			}
 
 			r15 := <-this.SpotPublicGetMarketHistoryCandles(this.Extend(request, paramsHistorical))
@@ -4725,10 +4725,10 @@ func (this *Htx) ParseCurrency(rawCurrency any) map[string]any {
 	if code != nil {
 		AddElementToObject(this.Options["networkChainIdsByNames"], code, map[string]any{})
 	}
-	var chains []any = SafeListTyped(rawCurrency, "chains")
+	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "chains")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(chains); j++ {
-		var chainEntry any = chains[j]
+		var chainEntry map[string]any = chains[j]
 		var uniqueChainId *string = this.SafeString(chainEntry, "chain")             // i.e. usdterc20, trc20usdt ...
 		var title *string = this.SafeString2(chainEntry, "baseChain", "displayName") // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
 		if (code != nil) && (title != nil) {
@@ -6985,22 +6985,22 @@ func (this *Htx) createTrailingPercentOrderBody(ch chan AsyncResult[Order], symb
  * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
  * @returns {object} request to be sent to the exchange
  */
-func (this *Htx) CreateSpotOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Htx) CreateSpotOrderRequestAsync(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createSpotOrderRequestBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any], symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any], symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	if this.Markets == nil {
@@ -7015,8 +7015,8 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var typeStr any = typeVar
-	var sideStr any = side
+	var typeStr *string = typeVar
+	var sideStr *string = side
 	var market map[string]any = this.Market(symbol)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", params)
 
@@ -7029,7 +7029,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 		"account-id": accountId,
 		"symbol":     market["id"],
 	}
-	var orderType string = Replace(typeStr, "buy-", "")
+	var orderType string = strings.Replace(*typeStr, "buy-", "", 1)
 	orderType = strings.Replace(orderType, "sell-", "", 1)
 	var options map[string]any = SafeMapTyped(this.Options, market["type"])
 	var triggerPrice *string = this.SafeStringN(paramsMarginMode, []any{"triggerPrice", "stopPrice", "stop-price"})
@@ -7040,7 +7040,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 		}
 	} else {
 		var defaultOperator string = "gte"
-		if IsEqual(sideStr, "sell") {
+		if sideStr != nil && *sideStr == "sell" {
 			defaultOperator = "lte"
 		}
 		var stopOperator *string = this.SafeString(paramsMarginMode, "operator", defaultOperator)
@@ -7049,7 +7049,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 		if (orderType == "limit") || (orderType == "limit-fok") {
 			orderType = "stop-" + orderType
 		} else if (orderType != "stop-limit") && (orderType != "stop-limit-fok") {
-			panic(NotSupported(Add(Add(this.Id+" createOrder() does not support ", typeStr), " orders")))
+			panic(NotSupported(this.Id + " createOrder() does not support " + *typeStr + " orders"))
 		}
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((orderType == "market"), (orderType == "limit-maker"), paramsMarginMode)
@@ -7064,7 +7064,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 	} else if timeInForce == "IOC" {
 		orderType = "ioc"
 	}
-	request["type"] = Add(Add(sideStr, "-"), orderType)
+	request["type"] = *sideStr + "-" + orderType
 	var clientOrderId *string = this.SafeString2(paramsPostOnly, "clientOrderId", "client-order-id") // must be 64 chars max and unique within 24 hours
 	if clientOrderId == nil {
 		var broker map[string]any = SafeMapTyped(this.Options, "broker")
@@ -7080,7 +7080,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 	} else if marginMode != nil && *marginMode == "c2c" {
 		request["source"] = "c2c-margin-api"
 	}
-	var isMarketBuy bool = (orderType == "market") && (IsEqual(sideStr, "buy"))
+	var isMarketBuy bool = (orderType == "market") && (sideStr != nil && *sideStr == "buy")
 	requiresPriceAndParamsSlot0, requiresPriceAndParamsSlot1 := this.HandleOptionBoolAndParams(paramsPostOnly, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 	var cost *float64 = this.SafeNumber(requiresPriceAndParamsSlot1, "cost")
 	var paramsCost any = paramsPostOnly
@@ -7404,7 +7404,7 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 			panic(NotSupported(this.Id + " createOrder() does not support trailing orders for spot markets"))
 		}
 
-		r1 := <-this.CreateSpotOrderRequestAsync(symbol, typeVar, side, amount, price, params)
+		r1 := <-this.CreateSpotOrderRequestAsync(&symbol, &typeVar, &side, amount, price, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -9054,14 +9054,19 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) Transact
 		feeCost = Precise.StringAbs(feeCost)
 	}
 	var networkId *string = this.SafeString(transaction, "chain")
-	var txHash any
-	if derefPtr := this.SafeString(transaction, "tx-hash"); derefPtr != nil {
-		txHash = *derefPtr
-	}
+	var txHash *string = this.SafeString(transaction, "tx-hash")
 	// a freshly created withdrawal has no tx-hash yet, the create
 	// endpoint returns only { "status": "ok", "data": "<id>" }
-	if (txHash != nil) && (networkId != nil && *networkId == "ETH") && (GetIndexOf(txHash, "0x") < 0) {
-		txHash = Add("0x", txHash)
+	if (txHash != nil) && (networkId != nil && *networkId == "ETH") && (func() int {
+		if txHash == nil {
+			return -1
+		}
+		return strings.Index(*txHash, "0x")
+	}() < 0) {
+		if txHash != nil {
+			txHashValue := "0x" + *txHash
+			txHash = &txHashValue
+		}
 	}
 	var subType *string = this.SafeString(transaction, "sub-type")
 	var internal bool = (subType != nil && *subType == "FAST")
@@ -9727,7 +9732,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	}
 	if *this.SafeBool(market, "linear", false) {
 		if limit != nil {
-			request["limit"] = mathMin(limit, 100) // max 100
+			request["limit"] = min(*limit, 100) // max 100
 		}
 		if since != nil {
 			request["start_time"] = since
@@ -11216,9 +11221,9 @@ func (this *Htx) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any {
 	for i := 0; i < len(brackets); i++ {
 		var item map[string]any = SafeMapTyped(brackets, i)
 		var leverage *string = this.SafeString(item, "lever_rate")
-		var ladders []any = SafeListTyped(item, "ladders")
+		var ladders []map[string]any = this.SafeListMapsTyped(item, "ladders")
 		for k := 0; k < len(ladders); k++ {
-			var bracket any = ladders[k]
+			var bracket map[string]any = ladders[k]
 			var adjustFactor *string = this.SafeString(bracket, "adjust_factor")
 			tiers = append(tiers, map[string]any{
 				"tier":                  this.SafeInteger(bracket, "ladder"),
@@ -13640,7 +13645,7 @@ func (this *Htx) CreateTrailingPercentOrder(symbol string, typeVar string, side 
  * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
  * @returns {object} request to be sent to the exchange
  */
-func (this *Htx) CreateSpotOrderRequest(symbol string, typeVar string, side string, amount float64, options ...CreateSpotOrderRequestOptions) (map[string]any, error) {
+func (this *Htx) CreateSpotOrderRequest(symbol *string, typeVar *string, side *string, amount float64, options ...CreateSpotOrderRequestOptions) (map[string]any, error) {
 
 	opts := CreateSpotOrderRequestOptionsStruct{}
 

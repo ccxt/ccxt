@@ -1345,7 +1345,7 @@ func (this *Nado) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		"product_ids": productIds,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 500)
+		request["limit"] = min(*limit, 500)
 	}
 
 	r1 := <-this.QueryContractsAsync()
@@ -1576,7 +1576,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		ordersRequest["product_ids"] = []any{this.ParseToInt(this.SafeString(market, "id"))}
 	}
 	if limit != nil {
-		ordersRequest["limit"] = mathMin(limit, 500)
+		ordersRequest["limit"] = min(*limit, 500)
 	}
 	ordersRequestUntil, paramsUntil := this.HandleUntilOption("max_time", ordersRequest, paramsSubaccount, 0.001)
 	var request map[string]any = map[string]any{
@@ -1759,7 +1759,7 @@ func (this *Nado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		matchesRequest["product_ids"] = []any{this.ParseToInt(this.SafeString(market, "id"))}
 	}
 	if limit != nil {
-		matchesRequest["limit"] = mathMin(limit, 500)
+		matchesRequest["limit"] = min(*limit, 500)
 	}
 	matchesRequestUntil, paramsUntil := this.HandleUntilOption("max_time", matchesRequest, paramsSubaccount, 0.001)
 	var request map[string]any = map[string]any{
@@ -1995,7 +1995,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[[]Transac
 		"raw": 100,
 	}
 	if limit != nil {
-		limitRequest["raw"] = mathMin(limit, 500)
+		limitRequest["raw"] = min(*limit, 500)
 	}
 	var eventsRequest map[string]any = map[string]any{
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
@@ -2719,7 +2719,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		"limit":       100,
 	}
 	if limit != nil {
-		fundingRequest["limit"] = mathMin(limit, 100)
+		fundingRequest["limit"] = min(*limit, 100)
 	}
 	var request map[string]any = map[string]any{
 		"interest_and_funding": fundingRequest,
@@ -3073,7 +3073,7 @@ func (this *Nado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		"ticker_id": tickerId,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 500)
+		request["limit"] = min(*limit, 500)
 	}
 
 	responseRecv := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
@@ -3142,7 +3142,7 @@ func (this *Nado) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		"granularity": this.SafeInteger(this.Timeframes, timeframe, this.ParseTimeframe(timeframe)),
 	}
 	if limit != nil {
-		candlesticks["limit"] = mathMin(limit, 500)
+		candlesticks["limit"] = min(*limit, 500)
 	}
 	if until != nil {
 		candlesticks["max_time"] = this.ParseToInt(float64(*until) / 1000)
@@ -4188,17 +4188,17 @@ func (this *Nado) CalculateRateLimiterCost(api any, method string, path string, 
 				if nestedLimit != nil {
 					rows = this.SafeInteger(nestedLimit, "raw", 100)
 				}
-				return this.Sum(baseWeight, this.ParseToInt(Divide(rows, rowsPerWeight)))
+				return *baseWeight + this.ParseToInt(Divide(rows, rowsPerWeight))
 			}
 		}
 	}
 	var byRows []any = SafeListTyped(config, "byRows")
 	if byRows != nil {
 		// distinct local names: the C# emitter rejects a name already used in a sibling block
-		var rowsBaseWeight *int64 = this.SafeInteger(byRows, 0, 2)
+		var rowsBaseWeight int64 = *this.SafeInteger(byRows, 0, 2)
 		var rowsDivisor int64 = *this.SafeInteger(byRows, 1, 50)
 		var rowCount *int64 = this.SafeInteger(params, "limit", 100) // the v2 default page
-		return this.Sum(rowsBaseWeight, this.ParseToInt(Divide(rowCount, rowsDivisor)))
+		return rowsBaseWeight + this.ParseToInt(Divide(rowCount, rowsDivisor))
 	}
 	return this.SafeValue(config, "cost", 1)
 }

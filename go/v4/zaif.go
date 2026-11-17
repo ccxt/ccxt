@@ -1003,7 +1003,7 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
-		request["count"] = mathMin(limit, 1000)
+		request["count"] = min(*limit, 1000)
 	}
 
 	r1 := <-this.PrivatePostTradeHistory(this.Extend(request, params))

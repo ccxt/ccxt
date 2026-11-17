@@ -1417,7 +1417,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		request["from"] = this.Iso8601(now - (limitResolved * duration))
 	} else {
 		request["from"] = this.Iso8601(since)
-		request["to"] = this.Iso8601(this.Sum(since, (limitResolved * duration)))
+		request["to"] = this.Iso8601(this.Sum(since, limitResolved*duration))
 	}
 
 	r1 := <-this.PublicGetCandlesticksInstrumentCode(this.Extend(request, params))

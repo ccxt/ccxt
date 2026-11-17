@@ -683,7 +683,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var hip3 map[string]any = SafeMapTyped(options, "hip3")
 	var dexesProvided any = this.SafeList(hip3, "dexes", []any{}) // let users provide their own list of dexes to load
-	var maxLimit *int64 = this.SafeInteger(hip3, "limit", 10)
+	var maxLimit int64 = *this.SafeInteger(hip3, "limit", 10)
 	var userProvidedDexesLength int = GetArrayLength(dexesProvided)
 	if userProvidedDexesLength > 0 {
 		if userProvidedDexesLength > 0 {
@@ -696,7 +696,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 		// python transpiler collapses every for-loop bound to an exclusive
 		// range(), so `<=` silently emits range(1, maxLimit) and loads one dex
 		// too few (build/transpile.ts treats <, <=, > and >= identically)
-		var maxIteration int64 = this.Sum(maxLimit, 1).(int64)
+		var maxIteration int64 = maxLimit + 1
 		for i := 1; int64(i) < maxIteration; i++ {
 			if i >= fetchDexesLength {
 				break
@@ -902,9 +902,9 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 		// Get the part after the decimal separator
 		var decimalPart *string = this.SafeString(priceSplitted, 1, "")
 		// Count the number of leading zeros in the decimal part
-		var leadingZeros int64 = this.ParseToInt(0)
+		var leadingZeros int64 = 0
 		for (leadingZeros <= int64(len(*decimalPart))) && (GetValue(decimalPart, leadingZeros) == "0") {
-			leadingZeros = this.ParseToInt(leadingZeros + 1)
+			leadingZeros = leadingZeros + 1
 		}
 		// Calculate price precision based on leading zeros and significant digits
 		pricePrecision = leadingZeros + int64(significantDigits)
@@ -4101,7 +4101,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 		} else {
 			maxLimit = *limit
 		}
-		request["startTime"] = (this.Milliseconds() - (((maxLimit * 60) * 60) * 1000))
+		request["startTime"] = this.Milliseconds() - (maxLimit*60)*60*1000
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")

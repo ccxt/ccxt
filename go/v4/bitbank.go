@@ -719,10 +719,10 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var pairs []any = SafeListTyped(data, "pairs")
+	var pairs []map[string]any = this.SafeListMapsTyped(data, "pairs")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(pairs); i++ {
-		var pair any = pairs[i]
+		var pair map[string]any = pairs[i]
 		var marketId *string = this.SafeString(pair, "name")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
@@ -805,7 +805,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	}
 	var sinceResolved any = func() any {
 		if since == nil {
-			return (this.Milliseconds() - windowMs)
+			return this.Milliseconds() - windowMs
 		}
 		return since
 	}()

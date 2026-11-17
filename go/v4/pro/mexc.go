@@ -1141,7 +1141,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 		if cacheLength == snapshotDelay {
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{})
 		}
-		ccxt.AppendToArray(storedOrderBook.GetCache(), data)
+		storedOrderBook.AppendCache(data)
 		return
 	}
 
