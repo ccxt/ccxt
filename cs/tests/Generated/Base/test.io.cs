@@ -17,10 +17,10 @@ public partial class BaseTest
             // upper tmp dir
             object tempDir = exchange.getTempDir();
             Assert((tempDir != null) && !isEqual(tempDir, ""), "temp dir should not be empty");
-            object filePath = ((object)(tempDir == null ? null : tempDir + fileName)); // '../../../../../../../../../../../../tmp/' + fileName;
+            string? filePath = (tempDir == null ? null : tempDir + fileName); // '../../../../../../../../../../../../tmp/' + fileName;
             string fileContent = "hello world";
-            Assert(exchange.writeFile(filePath, fileContent), ("can not write file " + (filePath)));
-            Assert(exchange.existsFile(filePath), ("file does not exist: " + (filePath)));
+            Assert(exchange.writeFile(filePath, fileContent), ("can not write file " + filePath));
+            Assert(exchange.existsFile(filePath), ("file does not exist: " + filePath));
             object readContent = exchange.readFile(filePath);
             Assert(isEqual(readContent, fileContent), ((("file content mismatch. Expected: " + fileContent) + ", got: ") + (readContent)));
         }

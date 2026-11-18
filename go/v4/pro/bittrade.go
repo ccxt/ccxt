@@ -53,9 +53,9 @@ func (this *Bittrade) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bittrade) RequestId() string {
+func (this *Bittrade) RequestId() int64 {
 	var requestId int64 = this.NextRequestId("requestId")
-	return strconv.FormatInt(requestId, 10)
+	return requestId
 }
 
 /**
@@ -95,13 +95,13 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 		"hostname": this.Hostname,
 	}
 	var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"symbol":      market["symbol"],
 		"params":      params,
@@ -196,13 +196,13 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 		"hostname": this.Hostname,
 	}
 	var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"symbol":      symbolValue,
 		"params":      params,
@@ -315,13 +315,13 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 		"hostname": this.Hostname,
 	}
 	var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"symbol":      symbolValue,
 		"timeframe":   timeframe,
@@ -371,9 +371,9 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -384,7 +384,7 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	}
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, ch)
 }
 
@@ -433,13 +433,13 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		"hostname": this.Hostname,
 	}
 	var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"symbol":      symbolValue,
 		"limit":       limitValue,
@@ -493,9 +493,9 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	snapshot["datetime"] = this.Iso8601(timestamp)
 	orderbook.Reset(snapshot)
 	// unroll the accumulated deltas
-	var messages any = orderbook.GetCache()
-	for i := 0; i < ccxt.GetArrayLength(messages); i++ {
-		this.HandleOrderBookMessage(client, ccxt.GetValue(messages, i), orderbook)
+	var messages []any = orderbook.GetCache()
+	for i := 0; i < len(messages); i++ {
+		this.HandleOrderBookMessage(client, messages[i], orderbook)
 	}
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
@@ -541,15 +541,15 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 				"hostname": this.Hostname,
 			}
 			var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-			var requestId string = this.RequestId()
+			var requestId int64 = this.RequestId()
 			var request map[string]any = map[string]any{
 				"req": messageHash,
-				"id":  requestId,
+				"id":  strconv.FormatInt(requestId, 10),
 			}
 			// this is a temporary subscription by a specific requestId
 			// it has a very short lifetime until the snapshot is received over ws
 			var snapshotSubscription map[string]any = map[string]any{
-				"id":          requestId,
+				"id":          strconv.FormatInt(requestId, 10),
 				"messageHash": messageHash,
 				"symbol":      symbol,
 				"limit":       limit,
@@ -557,7 +557,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 				"method":      this.HandleOrderBookSnapshot,
 			}
 
-			r := <-this.Watch(url, requestId, request, requestId, snapshotSubscription)
+			r := <-this.Watch(url, strconv.FormatInt(requestId, 10), request, strconv.FormatInt(requestId, 10), snapshotSubscription)
 			if r.Err != nil {
 				panic(r.Err)
 			}
@@ -658,7 +658,7 @@ func (this *Bittrade) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	if this.SafeInteger(orderbook, "nonce") == nil {
-		ccxt.AppendToArray(orderbook.GetCache(), message)
+		orderbook.AppendCache(message)
 	} else {
 		this.HandleOrderBookMessage(client, message, orderbook)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

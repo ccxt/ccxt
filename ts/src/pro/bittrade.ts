@@ -4,7 +4,7 @@
 import bittradeRest from '../bittrade.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -44,12 +44,12 @@ export default class bittrade extends bittradeRest {
         });
     }
 
-    requestId (): string {
+    requestId (): int {
         this.lockId ();
         const requestId: number = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId ();
-        return requestId.toString ();
+        return requestId;
     }
 
     /**
@@ -74,13 +74,13 @@ export default class bittrade extends bittradeRest {
         const apiWsUrls = this.safeDict (wsUrls, api, {});
         const hostname: Dict = { 'hostname': this.hostname };
         const url = this.implodeParams (apiWsUrls['public'], hostname);
-        const requestId = this.requestId ();
+        const requestId: int = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString (),
         };
         const subscription: Dict = {
-            'id': requestId,
+            'id': requestId.toString (),
             'messageHash': messageHash,
             'symbol': market['symbol'],
             'params': params,
@@ -149,13 +149,13 @@ export default class bittrade extends bittradeRest {
         const apiWsUrls = this.safeDict (wsUrls, api, {});
         const hostname: Dict = { 'hostname': this.hostname };
         const url = this.implodeParams (apiWsUrls['public'], hostname);
-        const requestId = this.requestId ();
+        const requestId: int = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString (),
         };
         const subscription: Dict = {
-            'id': requestId,
+            'id': requestId.toString (),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'params': params,
@@ -239,13 +239,13 @@ export default class bittrade extends bittradeRest {
         const apiWsUrls = this.safeDict (wsUrls, api, {});
         const hostname: Dict = { 'hostname': this.hostname };
         const url = this.implodeParams (apiWsUrls['public'], hostname);
-        const requestId = this.requestId ();
+        const requestId: int = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString (),
         };
         const subscription: Dict = {
-            'id': requestId,
+            'id': requestId.toString (),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'timeframe': timeframe,
@@ -327,13 +327,13 @@ export default class bittrade extends bittradeRest {
         const apiWsUrls = this.safeDict (wsUrls, api, {});
         const hostname: Dict = { 'hostname': this.hostname };
         const url = this.implodeParams (apiWsUrls['public'], hostname);
-        const requestId = this.requestId ();
+        const requestId: int = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString (),
         };
         const subscription: Dict = {
-            'id': requestId,
+            'id': requestId.toString (),
             'messageHash': messageHash,
             'symbol': symbolValue,
             'limit': limitValue,
@@ -401,22 +401,22 @@ export default class bittrade extends bittradeRest {
             const apiWsUrls = this.safeDict (wsUrls, api, {});
             const hostname: Dict = { 'hostname': this.hostname };
             const url = this.implodeParams (apiWsUrls['public'], hostname);
-            const requestId = this.requestId ();
+            const requestId: int = this.requestId ();
             const request: Dict = {
                 'req': messageHash,
-                'id': requestId,
+                'id': requestId.toString (),
             };
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
             const snapshotSubscription: Dict = {
-                'id': requestId,
+                'id': requestId.toString (),
                 'messageHash': messageHash,
                 'symbol': symbol,
                 'limit': limit,
                 'params': params,
                 'method': this.handleOrderBookSnapshot,
             };
-            const orderbook: WsOrderBook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
+            const orderbook: WsOrderBook = await this.watch (url, requestId.toString (), request, requestId.toString (), snapshotSubscription);
             return orderbook.limit ();
         } catch (e) {
             delete client.subscriptions[(messageHash as string)];

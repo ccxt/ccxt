@@ -4492,16 +4492,16 @@ class phemex extends phemex$1["default"] {
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': this.safeNumber(contract, 'markPriceRp', markEp),
-            'indexPrice': this.safeNumber(contract, 'indexPriceRp', indexEp),
+            'markPrice': this.safeNumber(contract, 'markPriceRp', this.parseNumber(markEp)),
+            'indexPrice': this.safeNumber(contract, 'indexPriceRp', this.parseNumber(indexEp)),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fundingRate': this.safeNumber(contract, 'fundingRateRr', fundingRateEr),
+            'fundingRate': this.safeNumber(contract, 'fundingRateRr', this.parseNumber(fundingRateEr)),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': this.safeNumber(contract, 'predFundingRateRr', nextFundingRateEr),
+            'nextFundingRate': this.safeNumber(contract, 'predFundingRateRr', this.parseNumber(nextFundingRateEr)),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
@@ -4914,7 +4914,7 @@ class phemex extends phemex$1["default"] {
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
-        const scaledAmmount = this.toEv(amount, currency);
+        const scaledAmmount = this.toEn(amount, this.safeInteger(currency, 'valueScale'));
         let direction = undefined;
         let transfer = undefined;
         if (fromId === 'spot' && toId === 'future') {
@@ -5086,7 +5086,7 @@ class phemex extends phemex$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'currency': code,
-            'amount': amountTransfered,
+            'amount': this.parseNumber(amountTransfered),
             'fromAccount': fromId,
             'toAccount': toId,
             'status': this.parseTransferStatus(status),
@@ -5129,7 +5129,7 @@ class phemex extends phemex$1["default"] {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100);
         }
         let customSymbol = undefined;
         if (isUsdtSettled) {

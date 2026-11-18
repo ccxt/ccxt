@@ -2,8 +2,6 @@ package ccxt
 
 import (
 	"time"
-
-	u "github.com/google/uuid"
 )
 
 type TimestampedCost struct {
@@ -62,7 +60,7 @@ func (t *Throttler) Throttle(cost2 any) <-chan bool {
 	queueElement := QueueElement{
 		Cost: cost,
 		Task: task,
-		Id:   u.New().String(),
+		Id:   newUuidV4(),
 	}
 
 	t.Queue.Enqueue(queueElement)

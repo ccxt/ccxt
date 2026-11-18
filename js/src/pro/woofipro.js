@@ -620,13 +620,12 @@ export default class woofipro extends woofiproRest {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce().toString();
-            const auth = ts;
             let secret = this.secret;
             if (this.secret.indexOf('ed25519:') >= 0) {
                 const parts = this.secret.split('ed25519:');
                 secret = parts[1];
             }
-            const signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
+            const signature = eddsa(this.encode(ts), this.base58ToBinary(secret), ed25519);
             const request = {
                 'event': event,
                 'params': {

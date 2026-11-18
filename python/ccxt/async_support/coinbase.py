@@ -1278,10 +1278,12 @@ class coinbase(Exchange, ImplicitAPI):
         else:
             priceString = v3Price
         if (priceString is not None) and (amountString is not None):
-            cost = Precise.string_mul(priceString, amountString)
+            baseCost = Precise.string_mul(priceString, amountString)
             contractSize = self.safe_string(marketResolved, 'contractSize')
             if contractSize is not None:
-                cost = Precise.string_mul(cost, contractSize)
+                cost = Precise.string_mul(baseCost, contractSize)
+            else:
+                cost = baseCost
         else:
             cost = costString
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -1291,10 +1293,18 @@ class coinbase(Exchange, ImplicitAPI):
         datetime = self.safe_string_n(trade, ['created_at', 'trade_time', 'time'])
         side = self.safe_string_lower_2(trade, 'resource', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'liquidity_indicator')
+        orderId = self.safe_string(trade, 'order_id')
+        entryId = self.safe_string(trade, 'entry_id')
+        if (orderId is None) and (entryId is None) and (self.safe_string(trade, 'resource') is None):
+            # public market trades carry the maker side, the unified side of a public trade is the taker side
+            if side == 'buy':
+                side = 'sell'
+            elif side == 'sell':
+                side = 'buy'
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string_2(trade, 'id', 'trade_id'),
-            'order': self.safe_string(trade, 'order_id'),
+            'order': orderId,
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'symbol': symbol,
@@ -1367,8 +1377,8 @@ class coinbase(Exchange, ImplicitAPI):
                         'type': 'spot',
                         'spot': True,
                         'margin': False,
-                        'swap': True,
-                        'future': True,
+                        'swap': False,
+                        'future': False,
                         'option': False,
                         'active': None,
                         'contract': False,
@@ -1501,8 +1511,6 @@ class coinbase(Exchange, ImplicitAPI):
         fees = self.safe_dict(promises, 1, {})
         expiringFutures = self.safe_dict(contractPromises, 0, {})
         perpetualFutures = self.safe_dict(contractPromises, 1, {})
-        expiringFees = self.safe_dict(contractPromises, 0, {})
-        perpetualFees = self.safe_dict(contractPromises, 1, {})
         #
         #     {
         #         "total_volume": 0,
@@ -1523,8 +1531,6 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         feeTier = self.safe_dict(fees, 'fee_tier', {})
-        expiringFeeTier = self.safe_dict(expiringFees, 'fee_tier', {})  # fee tier null?
-        perpetualFeeTier = self.safe_dict(perpetualFees, 'fee_tier', {})  # fee tier null?
         data = self.safe_list(spot, 'products', [])
         result = []
         for i in range(0, len(data)):
@@ -1533,12 +1539,12 @@ class coinbase(Exchange, ImplicitAPI):
                 result.append(spotMarket)
         futureData = self.safe_list(expiringFutures, 'products', [])
         for i in range(0, len(futureData)):
-            futureMarket = self.parse_contract_market(futureData[i], expiringFeeTier)
+            futureMarket = self.parse_contract_market(futureData[i])
             if futureMarket is not None:
                 result.append(futureMarket)
         perpetualData = self.safe_list(perpetualFutures, 'products', [])
         for i in range(0, len(perpetualData)):
-            perpetualMarket = self.parse_contract_market(perpetualData[i], perpetualFeeTier)
+            perpetualMarket = self.parse_contract_market(perpetualData[i])
             if perpetualMarket is not None:
                 result.append(perpetualMarket)
         newMarkets = []
@@ -1651,7 +1657,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_contract_market(self, market: dict, feeTier: dict) -> Market:
+    def parse_contract_market(self, market: dict, feeTier: dict = None) -> Market:
         # expiring
         #
         #        {
@@ -1802,8 +1808,9 @@ class coinbase(Exchange, ImplicitAPI):
             symbol = symbol + ':' + quote + '-' + self.yymmdd(expireTimestamp)
         takerFeeRate = self.safe_number(feeTier, 'taker_fee_rate')
         makerFeeRate = self.safe_number(feeTier, 'maker_fee_rate')
-        taker = takerFeeRate if (takerFeeRate is not None and takerFeeRate is not None and takerFeeRate != 0) else self.parse_number('0.06')
-        maker = makerFeeRate if (makerFeeRate is not None and makerFeeRate is not None and makerFeeRate != 0) else self.parse_number('0.04')
+        # CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
+        taker = takerFeeRate if (takerFeeRate is not None and takerFeeRate is not None and takerFeeRate != 0) else self.parse_number('0.0002')
+        maker = makerFeeRate if (makerFeeRate is not None and makerFeeRate is not None and makerFeeRate != 0) else self.parse_number('0.0002')
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -2352,14 +2359,14 @@ class coinbase(Exchange, ImplicitAPI):
         totalUsdBalance = self.safe_string(totalUsdBalanceData, 'value')
         futuresBuyingPower = self.safe_string(futuresBuyingPowerData, 'value')
         if (totalUsdBalance is not None) or (futuresBuyingPower is not None):
-            total = totalUsdBalance if (totalUsdBalance is not None) else futuresBuyingPower
-            free = futuresBuyingPower if (futuresBuyingPower is not None) else total
-            used = Precise.string_sub(total, free)
+            usdTotal = totalUsdBalance if (totalUsdBalance is not None) else futuresBuyingPower
+            usdFree = futuresBuyingPower if (futuresBuyingPower is not None) else usdTotal
+            usdUsed = Precise.string_sub(usdTotal, usdFree)
             balanceResult = {'info': response}
             balanceResult['USD'] = {
-                'free': free,
-                'used': used,
-                'total': total,
+                'free': usdFree,
+                'used': usdUsed,
+                'total': usdTotal,
             }
             return self.safe_balance(balanceResult)
         balances = self.safe_list_2(response, 'data', 'accounts', [])
@@ -2392,17 +2399,17 @@ class coinbase(Exchange, ImplicitAPI):
                 if available is not None and hold is not None:
                     currencyId = self.safe_string(available, 'currency')
                     code = self.safe_currency_code(currencyId)
-                    used = self.safe_string(hold, 'value')
-                    free = self.safe_string(available, 'value')
-                    total = Precise.string_add(used, free)
+                    v3Used = self.safe_string(hold, 'value')
+                    v3Free = self.safe_string(available, 'value')
+                    v3Total = Precise.string_add(v3Used, v3Free)
                     account = self.safe_dict(result, code)
                     if account is None:
-                        account = self.extend(self.account(), {'free': free, 'used': used, 'total': total})
+                        account = self.extend(self.account(), {'free': v3Free, 'used': v3Used, 'total': v3Total})
                     else:
                         account = self.extend(account, {
-                            'free': Precise.string_add(self.safe_string(account, 'free'), free),
-                            'used': Precise.string_add(self.safe_string(account, 'used'), used),
-                            'total': Precise.string_add(self.safe_string(account, 'total'), total),
+                            'free': Precise.string_add(self.safe_string(account, 'free'), v3Free),
+                            'used': Precise.string_add(self.safe_string(account, 'used'), v3Used),
+                            'total': Precise.string_add(self.safe_string(account, 'total'), v3Total),
                         })
                     if code is not None:
                         result[code] = account
@@ -3732,7 +3739,7 @@ class coinbase(Exchange, ImplicitAPI):
             limitValue = self.parse_to_int(limit)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 299)
         market = self.market(symbol)
         request = {
             'product_id': market['id'],
@@ -3749,11 +3756,15 @@ class coinbase(Exchange, ImplicitAPI):
             now = str(self.seconds())
             sinceString = Precise.string_sub(now, str(requestedDuration))
         request['start'] = sinceString
+        # 300 candles max
+        windowEnd = Precise.string_add(sinceString, str(requestedDuration))
         if until is not None:
-            request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
+            endString = self.number_to_string(self.parse_to_int(until / 1000))
+            if (since is not None) and Precise.string_lt(windowEnd, endString):
+                endString = windowEnd
+            request['end'] = endString
         else:
-            # 300 candles max
-            request['end'] = Precise.string_add(sinceString, str(requestedDuration))
+            request['end'] = windowEnd
         response = None
         usePrivate, paramsUsePrivate = self.handle_option_bool_and_params(paramsOmitted, 'fetchOHLCV', 'usePrivate', False)
         if usePrivate:

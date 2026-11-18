@@ -357,6 +357,9 @@ class bithumb extends Exchange {
                 '30m' => 30,
                 '1h' => 60,
                 '4h' => 240,
+                '1d' => 'days',
+                '1w' => 'weeks',
+                '1M' => 'months',
             ),
             'options' => array(
                 'generation' => 2, // either API generation 1 or 2
@@ -407,8 +410,14 @@ class bithumb extends Exchange {
         if (($marketId !== null) && (mb_strpos($marketId, '-') !== false)) {
             return $marketId;
         }
-        $quoteId = $this->safe_string_2($market, 'quoteId', 'quote', '');
-        $baseId = $this->safe_string_2($market, 'baseId', 'base', '');
+        $quoteId = $this->safe_string($market, 'quoteId');
+        if ($quoteId === null) {
+            $quoteId = $this->safe_string($market, 'quote', '');
+        }
+        $baseId = $this->safe_string($market, 'baseId');
+        if ($baseId === null) {
+            $baseId = $this->safe_string($market, 'base', '');
+        }
         return $quoteId . '-' . $baseId;
     }
 
@@ -553,7 +562,6 @@ class bithumb extends Exchange {
             $results = $promises;
             for ($i = 0; $i < count($quotes); $i++) {
                 $quote = $quotes[$i];
-                $quoteId = $quote;
                 $response = $this->safe_dict($results, $i);
                 $data = $this->safe_dict($response, 'data', array());
                 $extension = $this->safe_dict($quoteCurrencies, $quote, array());
@@ -582,7 +590,7 @@ class bithumb extends Exchange {
                         'quote' => $quote,
                         'settle' => null,
                         'baseId' => $currencyId,
-                        'quoteId' => $quoteId,
+                        'quoteId' => $quote,
                         'settleId' => null,
                         'type' => 'spot',
                         'spot' => true,
@@ -1295,12 +1303,14 @@ class bithumb extends Exchange {
          * @see https://apidocs.bithumb.com/reference/%EC%A3%BCweek-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
          * @see https://apidocs.bithumb.com/reference/%EC%9B%94month-%EC%BA%94%EB%93%A4-%EC%A1%B0%ED%9A%8C
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->generation] if you want to use the API $generation 1 or 2, default is 2
+         * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
+         * @param {int} [$limit] the maximum amount of candles $to fetch
+         * @param {array} [$params] extra parameters specific $to the exchange API endpoint
+         * @param {int} [$params->generation] if you want $to use the API $generation 1 or 2, default is 2
+         * @param {int} [$params->until] $generation 2 only, timestamp in ms of the latest candle $to fetch
+         * @param {boolean} [$params->paginate] $generation 2 only, default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -1312,23 +1322,50 @@ class bithumb extends Exchange {
         $response = null;
         $data = array();
         if ($generation === 2) {
+            list($paginate, $paramsPaginate) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 200);
+            }
+            $until = $this->safe_integer($paramsGeneration, 'until');
+            $requestParams = $this->omit($paramsGeneration, array( 'until', 'paginate' ));
             $request['market'] = $this->get_gen2_market_id($market);
+            // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            $count = 200;
             if ($limit !== null) {
-                $request['count'] = $limit;
+                $count = min($limit, 200);
+            }
+            if (($limit !== null) || ($since !== null) || ($until !== null)) {
+                $request['count'] = $count;
+            }
+            // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            $to = null;
+            if ($until !== null) {
+                $to = $this->sum($until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
+            }
+            if ($since !== null) {
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $sinceEnd = $this->sum($since, $duration * $count);
+                if (($to === null) || ($sinceEnd < $to)) {
+                    $to = $sinceEnd;
+                }
+            }
+            if ($to !== null) {
+                $request['to'] = $this->ymdhms($this->sum($to, 32400000), ' ');
             }
             if ($timeframe === '1d') {
-                $response = $this->publicGetV1CandlesDays($this->extend($request, $paramsGeneration));
+                $response = $this->publicGetV1CandlesDays($this->extend($request, $requestParams));
             } elseif ($timeframe === '1w') {
-                $response = $this->publicGetV1CandlesWeeks($this->extend($request, $paramsGeneration));
+                $response = $this->publicGetV1CandlesWeeks($this->extend($request, $requestParams));
             } elseif ($timeframe === '1M') {
-                $response = $this->publicGetV1CandlesMonths($this->extend($request, $paramsGeneration));
+                $response = $this->publicGetV1CandlesMonths($this->extend($request, $requestParams));
             } else {
                 $timeframeInteger = $this->safe_integer($this->timeframes, $timeframe);
                 if ($timeframeInteger === null) {
                     throw new BadRequest($this->id . ' fetchOHLCV() unsupported timeframe ' . $timeframe);
                 }
                 $request['unit'] = $timeframeInteger;
-                $response = $this->publicGetV1CandlesMinutesUnit($this->extend($request, $paramsGeneration));
+                $response = $this->publicGetV1CandlesMinutesUnit($this->extend($request, $requestParams));
             }
             //
             //     [
@@ -1991,9 +2028,8 @@ class bithumb extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
             }
-            $marketDefined = $market;
-            $base = $this->safe_string($marketDefined, 'base');
-            $quote = $this->safe_string($marketDefined, 'quote');
+            $base = $this->safe_string($market, 'base');
+            $quote = $this->safe_string($market, 'quote');
             if (($base === null) || ($quote === null)) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a market with defined base and quote');
             }
@@ -2547,9 +2583,8 @@ class bithumb extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
             }
-            $marketDefined = $market;
-            $base = $this->safe_string($marketDefined, 'base');
-            $quote = $this->safe_string($marketDefined, 'quote');
+            $base = $this->safe_string($market, 'base');
+            $quote = $this->safe_string($market, 'quote');
             if (($base === null) || ($quote === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a market with defined base and quote');
             }
@@ -3368,9 +3403,7 @@ class bithumb extends Exchange {
                 );
             }
         }
-        $headersResult = $requestHeaders;
-        $bodyResult = $requestBody;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {

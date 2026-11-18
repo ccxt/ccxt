@@ -153,7 +153,7 @@ export default class coinbase extends Exchange {
     fetchMarketsV2(params?: Dict): Promise<Market[]>;
     fetchMarketsV3(params?: Dict): Promise<Market[]>;
     parseSpotMarket(market: Dict, feeTier: Dict): Market;
-    parseContractMarket(market: Dict, feeTier: Dict): Market;
+    parseContractMarket(market: Dict, feeTier?: NullableDict): Market;
     fetchCurrenciesFromCache(params?: Dict): Promise<Dict>;
     /**
      * @method

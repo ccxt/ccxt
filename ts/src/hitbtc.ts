@@ -981,8 +981,7 @@ export default class hitbtc extends Exchange {
     override parseCurrency (currency: Dict): CurrencyInterface {
         const currencyId = this.safeString (currency, '_coin_id');
         const code = this.safeCurrencyCode (currencyId);
-        const entry = currency;
-        const rawNetworks: Dict[] = this.safeList (entry, 'networks', []);
+        const rawNetworks: Dict[] = this.safeList (currency, 'networks', []);
         const networks: Dict = {};
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
@@ -1015,14 +1014,14 @@ export default class hitbtc extends Exchange {
             }
         }
         return this.safeCurrencyStructure ({
-            'info': entry,
+            'info': currency,
             'code': code,
             'id': currencyId,
-            'precision': this.safeNumber (entry, 'precision_transfer'),
-            'name': this.safeString (entry, 'full_name'),
-            'active': !this.safeBool (entry, 'delisted', false),
-            'deposit': this.safeBool (entry, 'payin_enabled'),
-            'withdraw': this.safeBool (entry, 'payout_enabled'),
+            'precision': this.safeNumber (currency, 'precision_transfer'),
+            'name': this.safeString (currency, 'full_name'),
+            'active': !this.safeBool (currency, 'delisted', false),
+            'deposit': this.safeBool (currency, 'payin_enabled'),
+            'withdraw': this.safeBool (currency, 'payout_enabled'),
             'networks': networks,
             'fee': undefined,
             'limits': {
@@ -2016,7 +2015,7 @@ export default class hitbtc extends Exchange {
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchClosedOrders', paramsMarketType);
         const paramsOmitted: Dict = this.omit (paramsMarginMode, [ 'marginMode', 'margin' ]);
-        let response: Dict;
+        let response: List;
         if (marginMode !== undefined) {
             response = await this.privateGetMarginHistoryOrder (this.extend (request, paramsOmitted));
         } else {
@@ -2219,7 +2218,7 @@ export default class hitbtc extends Exchange {
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchOpenOrders', paramsMarketType);
         const paramsOmitted: Dict = this.omit (paramsMarginMode, [ 'marginMode', 'margin' ]);
-        let response: Dict;
+        let response: List;
         if (marginMode !== undefined) {
             response = await this.privateGetMarginOrder (this.extend (request, paramsOmitted));
         } else {
@@ -2326,7 +2325,7 @@ export default class hitbtc extends Exchange {
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('cancelAllOrders', paramsMarketType);
         const paramsOmitted: Dict = this.omit (paramsMarginMode, [ 'marginMode', 'margin' ]);
-        let response: Dict;
+        let response: List;
         if (marginMode !== undefined) {
             response = await this.privateDeleteMarginOrder (this.extend (request, paramsOmitted));
         } else {
@@ -2778,7 +2777,7 @@ export default class hitbtc extends Exchange {
         const response = await this.privatePostWalletTransfer (this.extend (request, params));
         //
         //     [
-        //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
+        //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         //     ]
         //
         return this.parseTransfer (response, currency);
@@ -2970,7 +2969,7 @@ export default class hitbtc extends Exchange {
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 1000) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000) as FundingRateHistory[];
         }
         let market: Market = undefined;
         const request: Dict = {
@@ -2978,11 +2977,11 @@ export default class hitbtc extends Exchange {
             // 'symbols': Comma separated list of symbol codes,
             // 'sort': 'DESC' or 'ASC'
             // 'from': 'Datetime or Number',
-            // 'until': 'Datetime or Number',
+            // 'till': 'Datetime or Number',
             // 'limit': 100,
             // 'offset': 0,
         };
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until', request, paramsPaginate);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('till', request, paramsPaginate);
         if (symbol !== undefined) {
             market = this.market (symbol);
             requestUntil['symbols'] = market['id'];
@@ -3420,7 +3419,7 @@ export default class hitbtc extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "contract_type": "perpetual",

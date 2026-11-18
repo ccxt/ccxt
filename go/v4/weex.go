@@ -1516,7 +1516,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
 	}
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var rawTicker any = this.SafeValue(response, i)
+		var rawTicker map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		// book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
 		var marketId *string = this.SafeString(rawTicker, "symbol")
 		var tickerMarket map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
@@ -2115,7 +2115,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 			if (limit != nil) && (limit == nil || *limit != 0) {
 				historyLimit = this.ParseToInt(mathMin(limit, maxHistoricalLimit))
 			}
-			var timeDelta int64 = this.ParseToInt(historyLimit * duration)
+			var timeDelta int64 = historyLimit * duration
 			if (since == nil) && (until == nil) {
 				endTime = now
 				startTime = now - timeDelta
@@ -2216,7 +2216,7 @@ func (this *Weex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000)
+		request["limit"] = min(*limit, 1000)
 	}
 	var response []any = nil
 	if *this.SafeBool(market, "spot", false) {
@@ -2332,7 +2332,7 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 		return nil
 	}(), market, nil, tradeMarketType)
-	var isSpot any = nil
+	var isSpot any = false
 	if market == nil {
 		isSpot = (tradeMarketType == "spot")
 	} else {
@@ -2730,8 +2730,8 @@ func (this *Weex) ParseBalanceList(response any) map[string]any {
 		"info": response,
 	}
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var balances any = this.SafeList(response, "balances", response)
-	for i := 0; i < GetArrayLength(balances); i++ {
+	var balances []any = this.SafeListSlice(response, "balances", response)
+	for i := 0; i < len(balances); i++ {
 		var entry map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(entry, "asset")
 		if (sandboxMode != nil && *sandboxMode) && (currencyId != nil && *currencyId == "SUSDT") {
@@ -3286,12 +3286,12 @@ func (this *Weex) EncodeTriggerPriceType(triggerPriceType string) *string {
  * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Weex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Weex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Weex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3311,7 +3311,7 @@ func (this *Weex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	var trigger *bool = this.SafeBool(paramsMarketType, "trigger", false)
-	if (trigger != nil && *trigger) && (IsEqual(id, nil)) {
+	if (trigger != nil && *trigger) && false {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument for trigger orders"))
 	}
 	var request map[string]any = map[string]any{}
@@ -3319,7 +3319,7 @@ func (this *Weex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"clientOrderId", "trigger"})
 	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
-	} else if IsEqual(id, nil) {
+	} else if false {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument or clientOrderId parameter"))
 	} else {
 		request["orderId"] = id
@@ -3457,12 +3457,12 @@ func (this *Weex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
  * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Weex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Weex) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Weex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Weex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3491,7 +3491,7 @@ func (this *Weex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, option
 		} else {
 			request["origClientOrderIdList"] = clientOrderIds
 		}
-	} else if !IsEqual(ids, nil) {
+	} else if ids != nil {
 		if isSpot {
 			request["orderIds"] = ids
 		} else {
@@ -4292,14 +4292,14 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 	}(), market, nil, orderMarketType)
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"transactTime", "time", "createTime"})
 	var rawStatus *string = this.SafeStringLower2(order, "status", "algoStatus") // algo (trigger) order payloads carry algoStatus instead of status
-	var triggerPrice any = this.OmitZero(this.SafeString2(order, "triggerPrice", "stopPrice"))
+	var triggerPrice *string = this.OmitZero(this.SafeString2(order, "triggerPrice", "stopPrice"))
 	var rawType *string = this.SafeStringUpper2(order, "type", "orderType")
 	var isReduceOnly *bool = this.SafeBool(order, "reduceOnly")
 	// entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
 	// a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
 	var isEntryTrigger bool = !(*this.SafeBool(order, "reduceOnly", true))
-	var takeProfitPrice any = nil
-	var stopLossPrice any = nil
+	var takeProfitPrice *string = nil
+	var stopLossPrice *string = nil
 	if !isEntryTrigger {
 		if (rawType != nil && *rawType == "TAKE_PROFIT_MARKET") || (rawType != nil && *rawType == "TAKE_PROFIT") {
 			takeProfitPrice = triggerPrice
@@ -4367,18 +4367,18 @@ func (this *Weex) ParseOrderType(typeVar *string) *string {
 	return this.SafeString(types, typeVar, typeVar)
 }
 func (this *Weex) HandleOrderOrPositionError(errorCode *string, errorMessage *string, order any) {
-	var errorCodeValue string = func() string {
-		if errorCode == nil {
-			return ""
-		}
-		return *errorCode
-	}()
-	var errorMessageValue string = func() string {
-		if errorMessage == nil {
-			return ""
-		}
-		return *errorMessage
-	}()
+	var errorCodeValue string
+	if errorCode == nil {
+		errorCodeValue = ""
+	} else {
+		errorCodeValue = *errorCode
+	}
+	var errorMessageValue string
+	if errorMessage == nil {
+		errorMessageValue = ""
+	} else {
+		errorMessageValue = *errorMessage
+	}
 	if ((errorCode == nil) || (errorCode != nil && *errorCode == "")) && ((errorMessage == nil) || (errorMessage != nil && *errorMessage == "")) {
 		// some endpoints could return an empty string if there is no error
 		return
@@ -5166,7 +5166,7 @@ func (this *Weex) ParsePosition(position any, optionalArgs ...any) Position {
 	var size *string = this.SafeString(position, "size")
 	var entryPrice *string = Precise.StringDiv(notional, size)
 	var unrealizePnl *string = this.SafeString(position, "unrealizePnl")
-	var isolatedMargin any = this.OmitZero(this.SafeString2(position, "isolatedMargin", "marginSize"))
+	var isolatedMargin *string = this.OmitZero(this.SafeString2(position, "isolatedMargin", "marginSize"))
 	var collateralString any = nil
 	if (marginMode == "isolated") && (isolatedMargin != nil) {
 		collateralString = func() any {
@@ -5176,8 +5176,8 @@ func (this *Weex) ParsePosition(position any, optionalArgs ...any) Position {
 			return isolatedMargin
 		}()
 	}
-	var initialMarginString any = this.OmitZero(this.SafeString2(position, "marginSize", "isolatedMargin"))
-	var marginString any = nil
+	var initialMarginString *string = this.OmitZero(this.SafeString2(position, "marginSize", "isolatedMargin"))
+	var marginString *string = nil
 	if marginMode == "isolated" {
 		marginString = isolatedMargin
 	}

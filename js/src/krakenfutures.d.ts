@@ -313,7 +313,7 @@ export default class krakenfutures extends Exchange {
      * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
-    parseFundingRate(ticker: any, market?: Market): FundingRate;
+    parseFundingRate(ticker: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name krakenfutures#fetchFundingRateHistory

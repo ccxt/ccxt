@@ -1,15 +1,14 @@
 // CCXT Rust — Binance typed example.
 //
-// Uses the typed wrapper `ccxt::Binance`: every unified method returns a native
-// Rust struct (`Ticker`, `Vec<Trade>`, …) instead of the dynamic `Value`. The
-// wrapper owns the transpiled `BinanceCore` and drives it; `load_markets()`
-// performs the describe()/implicit-API setup internally, so callers don't touch
-// the low-level dispatch machinery.
+// Uses `ccxt::Binance`: every unified method returns a native Rust struct
+// (`Ticker`, `Vec<Trade>`, …) instead of the dynamic `Value`, wrapped in
+// `Result<T, ccxt::ExchangeError>`. `load_markets()` fetches
+// and caches markets, so callers don't touch the
+// low-level dispatch machinery.
 //
 // Note: the underlying behaviour is transpiled from `ts/src/binance.ts` — to
 // change it, edit the TypeScript and re-run the Rust transpiler.
-use ccxt::Binance;
-use ccxt::Params;
+use ccxt::{Binance, Params, ExchangeRuntime};
 
 #[tokio::main]
 async fn main() {
@@ -19,7 +18,10 @@ async fn main() {
 
     // Fetch + cache markets (also wires describe()/implicit-API under the hood).
     println!("→ load_markets() …");
-    binance.load_markets(false).await;
+    if let Err(e) = binance.load_markets(false, ()).await {
+        eprintln!("   ✗ [{}] {}", e.kind, e.message);
+        return;
+    }
 
     // fetch_tickers() -> Tickers  (HashMap<String, Ticker>)
     println!("→ fetch_tickers() -> Tickers");

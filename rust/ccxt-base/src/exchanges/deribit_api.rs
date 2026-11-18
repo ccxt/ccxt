@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::deribit::DeribitCore;
+use super::deribit::Deribit;
 use crate::exchange::ExchangeRuntime;
 
-impl DeribitCore {
+impl Deribit {
     /// Auto-generated wrapper for the `publicGetAuth` implicit endpoint.
     pub async fn public_get_auth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_auth".into()), optional_args).await

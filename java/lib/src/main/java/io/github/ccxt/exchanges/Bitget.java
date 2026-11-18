@@ -3761,9 +3761,9 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeInteger(data, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -3811,7 +3811,7 @@ public class Bitget extends BitgetApi
         return BaseExchange.supplyAsync(() -> {
 
             Object types = null;
-            Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", (Object) null);
+            Map<String, Object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets", null);
             List<String> defaultMarkets = new ArrayList<String>(Arrays.asList("spot", "swap"));
             if (!java.util.Objects.equals(fetchMarketsOptions, null))
             {
@@ -3829,7 +3829,7 @@ public class Bitget extends BitgetApi
                 if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
                 {
                     List<String> subTypes = new ArrayList<String>(Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
-                    for (var j = 0; j < ((List<?>)subTypes).size(); j++)
+                    for (var j = 0; j < subTypes.size(); j++)
                     {
                         ((List<Object>)promises).add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("productType", (subTypes == null || j < 0 || j >= subTypes.size() ? null : subTypes.get(j))); yield j39v1; } }))));
                     }
@@ -3843,33 +3843,33 @@ public class Bitget extends BitgetApi
                     throw new NotSupported((((this.id + " does not support ") + type) + " market")) ;
                 }
             }
-            Object spotInstrumentsIndex = ((List<?>)promises).size();
+            Object spotInstrumentsIndex = promises.size();
             if (Boolean.TRUE.equals(fetchMargins))
             {
                 ((List<Object>)promises).add(this.publicUtaGetV3MarketInstruments(new HashMap<String, Object>() {{
                     put( "category", "SPOT" );
                 }}));
             }
-            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> spotInstruments = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(fetchMargins))
             {
-                Map<String, Object> instrumentsResponse = (Map<String, Object>) this.safeDict(results, spotInstrumentsIndex, (Object) null);
-                List<Object> instruments = (List<Object>) this.safeList(instrumentsResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> instrumentsResponse = this.safeDict(results, spotInstrumentsIndex, null);
+                List<Object> instruments = this.safeList(instrumentsResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 spotInstruments = this.indexBy(instruments, "symbol");
             }
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             this.options.put("crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             this.options.put("isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)results).size(); i++)
+            for (var i = 0; i < results.size(); i++)
             {
                 if (java.util.Objects.equals(i, spotInstrumentsIndex))
                 {
                     continue;
                 }
-                Map<String, Object> res = (Map<String, Object>) this.safeDict(results, i, (Object) null);
-                List<Object> data = (List<Object>) this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
-                Map<String, Object> firstData = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> res = this.safeDict(results, i, null);
+                List<Object> data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> firstData = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 Boolean isBorrowable = (Boolean) this.safeBool(firstData, "isBorrowable", (Object) null);
                 if (Boolean.TRUE.equals(fetchMargins) && !java.util.Objects.equals(isBorrowable, null))
                 {
@@ -3879,9 +3879,9 @@ public class Bitget extends BitgetApi
                     // fail with bitget error 50001 "coin does not support cross"
                     List<String> crossKeys = new ArrayList<String>(Arrays.asList());
                     List<String> isolatedKeys = new ArrayList<String>(Arrays.asList());
-                    for (var j = 0; j < ((List<?>)data).size(); j++)
+                    for (var j = 0; j < data.size(); j++)
                     {
-                        Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, j, new HashMap<String, Object>() {{}});
+                        Map<String, Object> entry = this.safeDict(data, j, new HashMap<String, Object>() {{}});
                         String entrySymbol = this.safeString(entry, "symbol");
                         Boolean entryBorrowable = (Boolean) this.safeBool(entry, "isBorrowable", true);
                         Boolean isCrossBorrowable = (Boolean) this.safeBool(entry, "isCrossBorrowable", true);
@@ -3961,7 +3961,7 @@ public class Bitget extends BitgetApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String quoteId = this.safeString(market, "quoteCoin");
@@ -3973,10 +3973,10 @@ public class Bitget extends BitgetApi
                     continue;
                 }
                 MarketInterface parsedMarket = this.parseMarket(market);
-                if (((!java.util.Objects.equals(parsedMarket, null)) && Helpers.isTrue(((Map<String, Object>)parsedMarket).get("spot"))))
+                if ((!java.util.Objects.equals(parsedMarket, null)) && Helpers.isTrue(((Map<String, Object>)parsedMarket).get("spot")))
                 {
                     Object marketId = ((Map<String, Object>)parsedMarket).get("id");
-                    Map<String, Object> instrument = (Map<String, Object>) this.safeDict(spotInstruments, marketId, (Object) null);
+                    Map<String, Object> instrument = this.safeDict(spotInstruments, marketId, null);
                     if (!java.util.Objects.equals(instrument, null))
                     {
                         // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
@@ -4016,7 +4016,7 @@ public class Bitget extends BitgetApi
         String baseId = this.safeString(market, "baseCoin");
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-        List<Object> supportMarginCoins = (List<Object>) this.safeList(market, "supportMarginCoins", new ArrayList<Object>(Arrays.asList()));
+        List<Object> supportMarginCoins = this.safeList(market, "supportMarginCoins", new ArrayList<Object>(Arrays.asList()));
         String settleId = null;
         if (this.inArray(baseId, supportMarginCoins))
         {
@@ -4050,12 +4050,12 @@ public class Bitget extends BitgetApi
             spot = true;
             String priceDecimals = this.safeString(market, "pricePrecision");
             String amountDecimals = this.safeString(market, "quantityPrecision");
-            String priceStep = (String) this.parsePrecision(priceDecimals);
-            String amountStep = (String) this.parsePrecision(amountDecimals);
+            String priceStep = this.parsePrecision(priceDecimals);
+            String amountStep = this.parsePrecision(amountDecimals);
             pricePrecision = this.parseNumber(priceStep);
             amountPrecision = this.parseNumber(amountStep);
-            List<Object> crossMarginPairs = (List<Object>) this.safeList(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
-            List<Object> isolatedMarginPairs = (List<Object>) this.safeList(this.options, "isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
+            List<Object> crossMarginPairs = this.safeList(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
+            List<Object> isolatedMarginPairs = this.safeList(this.options, "isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             boolean hasCrossMargin = this.inArray(marketId, crossMarginPairs);
             boolean hasIsolatedMargin = this.inArray(marketId, isolatedMarginPairs);
             {
@@ -4092,17 +4092,17 @@ public class Bitget extends BitgetApi
             contract = true;
             inverse = (java.util.Objects.equals(base, settle));
             linear = !Boolean.TRUE.equals(inverse);
-            Object priceDecimals = this.safeInteger(market, "pricePlace");
-            Object amountDecimals = this.safeInteger(market, "volumePlace");
-            String priceStep = this.safeString(market, "priceEndStep");
-            String amountStep = this.safeString(market, "sizeMultiplier");
-            var precise = new Precise(priceStep);
-            precise.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(precise.decimals, priceDecimals);
+            Long pricePlaces = this.safeInteger(market, "pricePlace");
+            Long volumePlaces = this.safeInteger(market, "volumePlace");
+            String priceEndStep = this.safeString(market, "priceEndStep");
+            String sizeMultiplier = this.safeString(market, "sizeMultiplier");
+            var precise = new Precise(priceEndStep);
+            precise.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(precise.decimals, pricePlaces);
             precise.reduce();
             String priceString = String.valueOf(precise);
             pricePrecision = this.parseNumber(priceString);
-            var preciseAmount = new Precise(amountStep);
-            preciseAmount.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(preciseAmount.decimals, amountDecimals);
+            var preciseAmount = new Precise(sizeMultiplier);
+            preciseAmount.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(preciseAmount.decimals, volumePlaces);
             preciseAmount.reduce();
             String amountString = String.valueOf(preciseAmount);
             amountPrecision = this.parseNumber(amountString);
@@ -4185,17 +4185,17 @@ public class Bitget extends BitgetApi
 
             List<String> subTypes = new ArrayList<String>(Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)subTypes).size(); i++)
+            for (var i = 0; i < subTypes.size(); i++)
             {
                 Map<String, Object> req = this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("category", (subTypes == null || i < 0 || i >= subTypes.size() ? null : subTypes.get(i))); yield j39v2; } }));
                 ((List<Object>)promises).add(this.publicUtaGetV3MarketInstruments(req));
             }
-            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)results).size(); i++)
+            for (var i = 0; i < results.size(); i++)
             {
-                Map<String, Object> res = (Map<String, Object>) this.safeDict(results, i, (Object) null);
-                List<Object> data = (List<Object>) this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> res = this.safeDict(results, i, null);
+                List<Object> data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
                 markets = (List<Object>) this.arrayConcat(markets, data);
             }
             //
@@ -4293,7 +4293,7 @@ public class Bitget extends BitgetApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String quoteId = this.safeString(market, "quoteCoin");
@@ -4407,8 +4407,8 @@ public class Bitget extends BitgetApi
         }
         String priceDecimals = this.safeString(market, "pricePrecision");
         String amountDecimals = this.safeString(market, "quantityPrecision");
-        String priceStep = (String) this.parsePrecision(priceDecimals);
-        String amountStep = (String) this.parsePrecision(amountDecimals);
+        String priceStep = this.parsePrecision(priceDecimals);
+        String amountStep = this.parsePrecision(amountDecimals);
         pricePrecision = this.parseNumber(priceStep);
         amountPrecision = this.parseNumber(amountStep);
         String status = this.safeString(market, "status");
@@ -4522,7 +4522,7 @@ public class Bitget extends BitgetApi
             //            },
             //            ...
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -4534,19 +4534,14 @@ public class Bitget extends BitgetApi
         Object entry = rawCurrency;
         String id = this.safeString(entry, "coin"); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
-        List<Object> chains = (List<Object>) this.safeList(entry, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = this.safeList(entry, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object withdraw = null;
-        Object deposit = null;
-        Integer chainsLength = ((List<?>)chains).size();
-        if (java.util.Objects.equals(chainsLength, 0))
-        {
-            withdraw = false;
-            deposit = false;
-        }
+        Boolean withdraw = false;
+        Boolean deposit = false;
+        Integer chainsLength = chains.size();
         for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
-            Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
+            Map<String, Object> chain = this.safeDict(chains, j, null);
             String networkId = this.safeString(chain, "chain");
             Object network = this.networkIdToCode(networkId, code);
             if (java.util.Objects.equals(network, null))
@@ -4558,10 +4553,10 @@ public class Bitget extends BitgetApi
             String rechargeableString = this.safeString(chain, "rechargeable");
             Boolean withdrawable = (java.util.Objects.equals(withdrawableString, "true"));
             Boolean rechargeable = (java.util.Objects.equals(rechargeableString, "true"));
-            withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable));
-            deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable));
+            withdraw = Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable);
+            deposit = Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable);
             String withdrawMinScale = this.safeString(chain, "withdrawMinScale");
-            String precision = (String) this.parsePrecision(withdrawMinScale);
+            String precision = this.parsePrecision(withdrawMinScale);
             networks.put((String)network, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
                 j39v3.put("info", chain);
                 j39v3.put("id", networkId);
@@ -4766,7 +4761,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarketLeverageTiers(result, market);
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
@@ -4824,7 +4819,7 @@ public class Bitget extends BitgetApi
         Object minNotional = 0;
         for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; }); i++)
         {
-            Object item = this.safeValue(info, i);
+            Map<String, Object> item = this.safeDict(info, i, new HashMap<String, Object>() {{}});
             Double minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue", (Object) null);
             if (!java.util.Objects.equals(minimumNotional, null))
             {
@@ -4968,7 +4963,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> rawTransactions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTransactions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(rawTransactions, (Map<String, Object>) null, sinceResolved, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -4994,7 +4989,7 @@ public class Bitget extends BitgetApi
                 put( "orderId", id );
             }};
             List<Transaction> deposits = (this.fetchDeposits(code, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            Map<String, Object> deposit = (Map<String, Object>) this.safeDict(deposits, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> deposit = this.safeDict(deposits, 0, new HashMap<String, Object>() {{}});
             return deposit;
         });
 
@@ -5039,7 +5034,7 @@ public class Bitget extends BitgetApi
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
             Map<String, Object> currency = this.currency((String) (code));
-            Object networkId = this.networkCodeToId(networkCode, code);
+            String networkId = this.networkCodeToId(networkCode, code);
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("coin", currency.get("id"));
             request.put("address", address);
@@ -5069,10 +5064,10 @@ public class Bitget extends BitgetApi
             //          }
             //      }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> result = (Map<String, Object>) this.parseTransaction(data, currency);
             result.put("type", "withdrawal");
-            Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
@@ -5214,7 +5209,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> rawTransactions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTransactions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(rawTransactions, currency, sinceResolved, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -5240,7 +5235,7 @@ public class Bitget extends BitgetApi
                 put( "orderId", id );
             }};
             List<Transaction> withdrawals = (this.fetchWithdrawals(code, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            Map<String, Object> withdrawal = (Map<String, Object>) this.safeDict(withdrawals, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> withdrawal = this.safeDict(withdrawals, 0, new HashMap<String, Object>() {{}});
             return withdrawal;
         });
 
@@ -5433,7 +5428,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
         }).thenApply(DepositAddress::new);
 
@@ -5453,7 +5448,7 @@ public class Bitget extends BitgetApi
         String currencyId = this.safeString(depositAddress, "coin");
         String networkId = this.safeString(depositAddress, "chain");
         String parsedCurrency = this.safeCurrencyCode(currencyId, currency);
-        Object network = null;
+        String network = null;
         if (!java.util.Objects.equals(networkId, null))
         {
             network = this.networkIdToCode(networkId, parsedCurrency);
@@ -5559,7 +5554,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String bidsKey = "bids";
             String asksKey = "asks";
             if (Boolean.TRUE.equals(isStockOrUta))
@@ -5890,7 +5885,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTicker((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(Ticker::new);
 
@@ -5930,7 +5925,7 @@ public class Bitget extends BitgetApi
                 request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, paramsProductType))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTicker((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(Ticker::new);
 
@@ -5993,7 +5988,7 @@ public class Bitget extends BitgetApi
             {
                 if (!java.util.Objects.equals(symbols, null))
                 {
-                    Integer symbolsLength = ((List<?>)symbols).size();
+                    Integer symbolsLength = symbols.size();
                     if (java.util.Objects.equals(symbolsLength, 1))
                     {
                         request.put("symbol", this.safeString(market, "id"));
@@ -6021,7 +6016,7 @@ public class Bitget extends BitgetApi
                 // for returning only tokenized stock symbols
                 symbolsResolved = new ArrayList<String>(Arrays.asList());
                 List<String> allSymbols = this.symbols;
-                for (var i = 0; i < ((List<?>)allSymbols).size(); i++)
+                for (var i = 0; i < allSymbols.size(); i++)
                 {
                     String symbol = (allSymbols == null || i < 0 || i >= allSymbols.size() ? null : allSymbols.get(i));
                     Map<String, Object> entry = this.market(symbol);
@@ -6152,7 +6147,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbolsResolved, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
@@ -6378,7 +6373,7 @@ public class Bitget extends BitgetApi
                     request.put("limit", limit);
                 }
             }
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
             Map<String, Object> response = null;
             String productType = null;
             List<Object> productTypeparamsPaginateVariable = (List<Object>) this.handleProductTypeAndParams(market, ((Map<String, Object>) (switch ((Object) (paramsPaginate)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
@@ -6413,7 +6408,7 @@ public class Bitget extends BitgetApi
                 response = (this.publicUtaGetV3MarketFills(this.extend(request, paramsPaginate))).join();
             } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                Map<String, Object> spotOptions = (Map<String, Object>) this.safeDict(options, "spot", new HashMap<String, Object>() {{}});
+                Map<String, Object> spotOptions = this.safeDict(options, "spot", new HashMap<String, Object>() {{}});
                 String defaultSpotMethod = this.safeString(spotOptions, "method", "publicSpotGetV2SpotMarketFillsHistory");
                 String spotMethod = this.safeString(paramsPaginate, "method", defaultSpotMethod);
                 paramsPaginate = this.omit(paramsPaginate, "method");
@@ -6433,7 +6428,7 @@ public class Bitget extends BitgetApi
                 }
             } else
             {
-                Map<String, Object> swapOptions = (Map<String, Object>) this.safeDict(options, "swap", new HashMap<String, Object>() {{}});
+                Map<String, Object> swapOptions = this.safeDict(options, "swap", new HashMap<String, Object>() {{}});
                 String defaultSwapMethod = this.safeString(swapOptions, "method", "publicMixGetV2MixMarketFillsHistory");
                 String swapMethod = this.safeString(paramsPaginate, "method", defaultSwapMethod);
                 paramsPaginate = this.omit(paramsPaginate, "method");
@@ -6507,7 +6502,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -6562,7 +6557,7 @@ public class Bitget extends BitgetApi
                 //         }
                 //     }
                 //
-                Map<String, Object> utaData = (Map<String, Object>) this.safeDict(utaResponse, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> utaData = this.safeDict(utaResponse, "data", new HashMap<String, Object>() {{}});
                 return this.parseTradingFee(utaData, market);
             }
             String marginMode = null;
@@ -6594,7 +6589,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -6677,11 +6672,11 @@ public class Bitget extends BitgetApi
                 //         ]
                 //     }
                 //
-                List<Object> rows = (List<Object>) this.safeList(utaResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rows = this.safeList(utaResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> utaResult = new HashMap<String, Object>() {{}};
-                for (var i = 0; i < ((List<?>)rows).size(); i++)
+                for (var i = 0; i < rows.size(); i++)
                 {
-                    Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                    Map<String, Object> entry = (Map<String, Object>) (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                     String entryMarketId = this.safeString(entry, "symbol");
                     if ((java.util.Objects.equals(entryMarketId, null)) || (java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(entryMarketId)))
                     {
@@ -6693,7 +6688,7 @@ public class Bitget extends BitgetApi
                     {
                         continue;
                     }
-                    utaResult.put(entrySymbol, this.parseTradingFee((Map<String, Object>) (entry), entryMarket));
+                    utaResult.put(entrySymbol, this.parseTradingFee(entry, entryMarket));
                 }
                 return utaResult;
             }
@@ -6791,15 +6786,15 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
-                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Map<String, Object> entry = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, marketType);
                 Map<String, Object> market = this.market(symbol);
-                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (entry), market);
+                Map<String, Object> fee = this.parseTradingFee(entry, market);
                 result.put(symbol, fee);
             }
             return result;
@@ -6908,12 +6903,12 @@ public class Bitget extends BitgetApi
             Boolean isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || (java.util.Objects.equals(uta, true)));
             if (Boolean.TRUE.equals(isStockOrUta))
             {
-                timeframes = (Map<String, Object>) this.safeDict(timeframesOption, "uta", (Object) null);
+                timeframes = (Map<String, Object>) this.safeDict(timeframesOption, "uta", null);
                 request.put("interval", this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
             } else
             {
                 marketType = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? "spot" : "swap";
-                timeframes = (Map<String, Object>) this.safeDict(timeframesOption, marketType, (Object) null);
+                timeframes = (Map<String, Object>) this.safeDict(timeframesOption, marketType, null);
                 request.put("granularity", this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
             }
             Integer msInDay = 86400000;
@@ -6931,8 +6926,8 @@ public class Bitget extends BitgetApi
             {
                 key = "spot";
             }
-            Map<String, Object> ohlcOptions = (Map<String, Object>) this.safeDict(this.options.get("fetchOHLCV"), key, new HashMap<String, Object>() {{}});
-            Map<String, Object> maxLimitPerTimeframe = (Map<String, Object>) this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new HashMap<String, Object>() {{}});
+            Map<String, Object> ohlcOptions = this.safeDict(this.options.get("fetchOHLCV"), key, new HashMap<String, Object>() {{}});
+            Map<String, Object> maxLimitPerTimeframe = this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new HashMap<String, Object>() {{}});
             Long timeframeLimitValue = this.safeInteger(maxLimitPerTimeframe, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             // the per-timeframe cap only applies to a user-supplied limit
             Long timeframeLimit = (((java.util.Objects.equals(timeframeLimitValue, null)))) ? maxLimitForRecentEndpoint : timeframeLimitValue;
@@ -6942,7 +6937,7 @@ public class Bitget extends BitgetApi
             Long recentLimit = ((((!java.util.Objects.equals(limit, null)) && ((limitCapped != null && (timeframeLimit == null || limitCapped > timeframeLimit)))))) ? timeframeLimit : limitCapped;
             Long limitResolved = recentLimit;
             Long recentDuration = (recentLimit * duration);
-            Map<String, Object> recentEndpointDaysMap = (Map<String, Object>) this.safeDict(this.options.get("fetchOHLCV"), "maxRecentDaysPerTimeframe", new HashMap<String, Object>() {{}});
+            Map<String, Object> recentEndpointDaysMap = this.safeDict(this.options.get("fetchOHLCV"), "maxRecentDaysPerTimeframe", new HashMap<String, Object>() {{}});
             Long recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Boolean historicalEndpointNeeded = (java.util.Objects.equals(useHistoryEndpoint, true));
             // exchange aligns from endTime, so it's important, not startTime
@@ -7164,7 +7159,7 @@ public class Bitget extends BitgetApi
                 } else
                 {
                     response = (this.privateUtaGetV3AccountAssets(this.extend(request, paramsUTA))).join();
-                    Map<String, Object> results = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> results = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     assets = (List<Object>) this.safeList(results, "assets", new ArrayList<Object>(Arrays.asList()));
                 }
                 return this.parseUtaBalance(assets, response);
@@ -7281,7 +7276,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalanceList(data);
         }).thenApply(Balances::new);
 
@@ -7316,9 +7311,9 @@ public class Bitget extends BitgetApi
         //         "balance": "0.01"
         //     }
         //
-        for (var i = 0; i < ((List<?>)balance).size(); i++)
+        for (var i = 0; i < balance.size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(balance, i, (Object) null);
+            Map<String, Object> entry = this.safeDict(balance, i, null);
             Map<String, Object> account = this.account();
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -7388,7 +7383,7 @@ public class Bitget extends BitgetApi
         //
         for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(balance, i, (Object) null);
+            Map<String, Object> entry = this.safeDict(balance, i, null);
             Map<String, Object> account = this.account();
             String currencyId = this.safeString2(entry, "marginCoin", "coin");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -7704,7 +7699,7 @@ public class Bitget extends BitgetApi
         Boolean uta = (!java.util.Objects.equals(category, null));
         if (Boolean.TRUE.equals(uta))
         {
-            Map<String, Object> feeResult = (Map<String, Object>) this.safeDict(feeDetail, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> feeResult = this.safeDict(feeDetail, 0, new HashMap<String, Object>() {{}});
             String utaFee = this.safeString(feeResult, "fee");
             fee = new HashMap<String, Object>() {{
                 put( "cost", Bitget.this.parseNumber(Precise.stringNeg(utaFee)) );
@@ -7717,7 +7712,7 @@ public class Bitget extends BitgetApi
                 Object parsedFeeDetail = Helpers.parseJson(feeDetail);
                 List<Object> feeValues = Helpers.objectValues(parsedFeeDetail);
                 Object feeObject = null;
-                for (var i = 0; i < ((List<?>)feeValues).size(); i++)
+                for (var i = 0; i < feeValues.size(); i++)
                 {
                     Object feeValue = (feeValues == null || i < 0 || i >= feeValues.size() ? null : feeValues.get(i));
                     String feeValueCoinCode = this.safeString(feeValue, "feeCoinCode");
@@ -7915,8 +7910,8 @@ public class Bitget extends BitgetApi
             Double triggerPrice = this.safeNumber2(paramsStock, "stopPrice", "triggerPrice", (Object) null);
             Double stopLossTriggerPrice = this.safeNumber(paramsStock, "stopLossPrice", (Object) null);
             Double takeProfitTriggerPrice = this.safeNumber(paramsStock, "takeProfitPrice", (Object) null);
-            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsStock, "stopLoss", (Object) null);
-            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsStock, "takeProfit", (Object) null);
+            Map<String, Object> stopLoss = this.safeDict(paramsStock, "stopLoss", null);
+            Map<String, Object> takeProfit = this.safeDict(paramsStock, "takeProfit", null);
             String trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
             Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
@@ -7993,7 +7988,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -8039,8 +8034,8 @@ public class Bitget extends BitgetApi
         }
         Double stopLossTriggerPrice = this.safeNumber(paramsProductType, "stopLossPrice", (Object) null);
         Double takeProfitTriggerPrice = this.safeNumber(paramsProductType, "takeProfitPrice", (Object) null);
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsProductType, "stopLoss", (Object) null);
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsProductType, "takeProfit", (Object) null);
+        Map<String, Object> stopLoss = this.safeDict(paramsProductType, "stopLoss", null);
+        Map<String, Object> takeProfit = this.safeDict(paramsProductType, "takeProfit", null);
         Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
         Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
         Boolean isStopLossTrigger = !java.util.Objects.equals(stopLossTriggerPrice, null);
@@ -8214,8 +8209,8 @@ public class Bitget extends BitgetApi
         Double triggerPrice = this.safeNumber2(paramsMarketType, "stopPrice", "triggerPrice", (Object) null);
         Double stopLossTriggerPrice = this.safeNumber(paramsMarketType, "stopLossPrice", (Object) null);
         Double takeProfitTriggerPrice = this.safeNumber(paramsMarketType, "takeProfitPrice", (Object) null);
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsMarketType, "stopLoss", (Object) null);
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsMarketType, "takeProfit", (Object) null);
+        Map<String, Object> stopLoss = this.safeDict(paramsMarketType, "stopLoss", null);
+        Map<String, Object> takeProfit = this.safeDict(paramsMarketType, "takeProfit", null);
         Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
         Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
         Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
@@ -8334,7 +8329,7 @@ public class Bitget extends BitgetApi
                     request.put("executePrice", this.priceToPrecision(symbol, price));
                     if (request.containsKey("price"))
                     {
-                        ((Map<String,Object>)request).remove("price");
+                        request.remove("price");
                     }
                 }
                 if (java.util.Objects.equals(hedged, true))
@@ -8505,12 +8500,12 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> firstOrder = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> firstOrder = this.safeDict(orders, 0, null);
             String symbol = this.safeString(firstOrder, "symbol");
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -8526,7 +8521,7 @@ public class Bitget extends BitgetApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 List<Object> marginResult = (List<Object>) this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
                 String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
@@ -8560,7 +8555,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         });
 
@@ -8599,12 +8594,12 @@ public class Bitget extends BitgetApi
                 return (this.createUtaOrders(orders, paramsUTA)).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> firstOrder = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> firstOrder = this.safeDict(orders, 0, null);
             String symbol = this.safeString(firstOrder, "symbol");
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -8620,7 +8615,7 @@ public class Bitget extends BitgetApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 List<Object> marginResult = (List<Object>) this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
                 String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
@@ -8693,9 +8688,9 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> failure = (List<Object>) this.safeList(data, "failureList", new ArrayList<Object>(Arrays.asList()));
-            List<Object> orderInfo = (List<Object>) this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> failure = this.safeList(data, "failureList", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orderInfo = this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
             List<Object> both = (List<Object>) this.arrayConcat(orderInfo, failure);
             return this.parseOrders(both, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -8763,8 +8758,8 @@ public class Bitget extends BitgetApi
             Boolean isStopLossOrder = !java.util.Objects.equals(stopLossPrice, null);
             Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice", (Object) null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(takeProfitPrice, null);
-            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
-            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
+            Map<String, Object> stopLoss = this.safeDict(parameters, "stopLoss", null);
+            Map<String, Object> takeProfit = this.safeDict(parameters, "takeProfit", null);
             Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
             Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
             String trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", this.numberToString(price));
@@ -8981,7 +8976,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -9186,11 +9181,11 @@ public class Bitget extends BitgetApi
             //         "data": null
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> order = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isContractTriggerEndpoint))
             {
-                List<Object> orderInfo = (List<Object>) this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
+                List<Object> orderInfo = this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
                 order = (Map<String, Object>) this.safeDict(orderInfo, 0, new HashMap<String, Object>() {{}});
             } else
             {
@@ -9247,7 +9242,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         });
 
@@ -9366,8 +9361,8 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -9461,7 +9456,7 @@ public class Bitget extends BitgetApi
                     //     }
                     //
                     Long timestamp = this.safeInteger(response, "requestTime");
-                    Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+                    Map<String, Object> responseData = this.safeDict(response, "data", null);
                     String marketId = this.safeString(responseData, "symbol");
                     HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
                     mapLiteral12.put("info", response);
@@ -9482,7 +9477,7 @@ public class Bitget extends BitgetApi
                     response = (this.privateMixPostV2MixOrderBatchCancelOrders(this.extend(request, paramsMarginMode))).join();
                 }
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            Map<String, Object> data = this.safeDict(response, "data", null);
             List<Object> resultList = (List<Object>) this.safeListN(data, new ArrayList<Object>(Arrays.asList("resultList", "successList", "list")), (Object) null);
             List<Object> failureList = (List<Object>) this.safeList2(data, "failure", "failureList", (Object) null);
             List<Object> responseList = null;
@@ -9673,7 +9668,7 @@ public class Bitget extends BitgetApi
             {
                 response = Helpers.parseJson(response);
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            Map<String, Object> data = this.safeDict(response, "data", null);
             if ((!java.util.Objects.equals(data, null)))
             {
                 if (!(data instanceof List))
@@ -9681,13 +9676,13 @@ public class Bitget extends BitgetApi
                     return this.parseOrder(data, market);
                 }
             }
-            List<Object> dataList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer dataListLength = ((List<?>)dataList).size();
+            List<Object> dataList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Integer dataListLength = dataList.size();
             if (java.util.Objects.equals(dataListLength, 0))
             {
                 throw new OrderNotFound(((((this.id + " fetchOrder() could not find order id ") + id) + " in ") + this.json(response))) ;
             }
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
         }).thenApply(Order::new);
 
@@ -10146,12 +10141,12 @@ public class Bitget extends BitgetApi
             {
                 if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(trigger, true)))
                 {
-                    List<Object> resultList = (List<Object>) this.safeList(data, "orderList", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> resultList = this.safeList(data, "orderList", new ArrayList<Object>(Arrays.asList()));
                     return this.parseOrders(resultList, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
                 }
             } else
             {
-                List<Object> result = (List<Object>) this.safeList(data, "entrustedList", new ArrayList<Object>(Arrays.asList()));
+                List<Object> result = this.safeList(data, "entrustedList", new ArrayList<Object>(Arrays.asList()));
                 return this.parseOrders(result, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
             }
             return this.parseOrders(data, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
@@ -10579,24 +10574,24 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(trigger, true)))
                 {
-                    List<Object> orderList = (List<Object>) this.safeList(data, "orderList", (Object) null);
+                    List<Object> orderList = this.safeList(data, "orderList", null);
                     return this.parseOrders(orderList, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
                 }
             } else
             {
-                List<Object> entrustedList = (List<Object>) this.safeList(data, "entrustedList", (Object) null);
+                List<Object> entrustedList = this.safeList(data, "entrustedList", null);
                 return this.parseOrders(entrustedList, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
             }
             if ((response instanceof String))
             {
                 response = Helpers.parseJson(response);
             }
-            List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -10746,8 +10741,8 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
@@ -10887,8 +10882,8 @@ public class Bitget extends BitgetApi
                     }
                     response = (this.privateUtaGetV3AccountFinancialRecords(this.extend(request, paramsOmitted))).join();
                 }
-                Map<String, Object> utaData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                List<Object> list = (List<Object>) this.safeList(utaData, "list", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> utaData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                List<Object> list = this.safeList(utaData, "list", new ArrayList<Object>(Arrays.asList()));
                 return this.parseLedger(list, currency, since, limit, new HashMap<String, Object>() {{}});
             }
             if (java.util.Objects.equals(marketType, "spot"))
@@ -10954,7 +10949,7 @@ public class Bitget extends BitgetApi
             Object data = this.safeValue(response, "data");
             if ((java.util.Objects.equals(marketType, "swap")) || (java.util.Objects.equals(marketType, "future")))
             {
-                List<Object> bills = (List<Object>) this.safeList(data, "bills", new ArrayList<Object>(Arrays.asList()));
+                List<Object> bills = this.safeList(data, "bills", new ArrayList<Object>(Arrays.asList()));
                 return this.parseLedger(bills, currency, since, limit, new HashMap<String, Object>() {{}});
             }
             return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
@@ -11506,15 +11501,15 @@ public class Bitget extends BitgetApi
             Object data = this.safeValue(response, "data");
             if (java.util.Objects.equals(uta, true))
             {
-                List<Object> fills = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                List<Object> fills = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit, new HashMap<String, Object>() {{}});
             } else if ((Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false)))))
             {
-                List<Object> fills = (List<Object>) this.safeList(data, "fillList", new ArrayList<Object>(Arrays.asList()));
+                List<Object> fills = this.safeList(data, "fillList", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit, new HashMap<String, Object>() {{}});
             } else if (!java.util.Objects.equals(marginMode, null))
             {
-                List<Object> fills = (List<Object>) this.safeList(data, "fills", new ArrayList<Object>(Arrays.asList()));
+                List<Object> fills = this.safeList(data, "fills", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit, new HashMap<String, Object>() {{}});
             }
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
@@ -11596,7 +11591,7 @@ public class Bitget extends BitgetApi
                 //         }
                 //     }
                 //
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 result = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             } else
             {
@@ -11635,7 +11630,7 @@ public class Bitget extends BitgetApi
                 //
                 result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
             return this.parsePosition(first, market);
         }).thenApply(Position::new);
 
@@ -11854,14 +11849,14 @@ public class Bitget extends BitgetApi
             List<Object> position = new ArrayList<Object>(Arrays.asList());
             if ((java.util.Objects.equals(uta, true)) || Boolean.TRUE.equals(isHistory))
             {
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 position = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 position = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)position).size(); i++)
+            for (var i = 0; i < position.size(); i++)
             {
                 Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition((Map<String, Object>) ((position == null || i < 0 || i >= position.size() ? null : position.get(i))), market);
                 ((List<Object>)result).add(parsedPosition);
@@ -12188,7 +12183,7 @@ public class Bitget extends BitgetApi
                 //         }
                 //     }
                 //
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 result = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             } else
             {
@@ -12223,7 +12218,7 @@ public class Bitget extends BitgetApi
                 result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(entry, "symbol");
@@ -12302,7 +12297,7 @@ public class Bitget extends BitgetApi
                     response = (this.publicMixGetV2MixMarketFundingTime(this.extend(request, paramsProductType))).join();
                 }
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRate((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(FundingRate::new);
 
@@ -12418,7 +12413,7 @@ public class Bitget extends BitgetApi
                 response = (this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, paramsMethod))).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
@@ -12621,7 +12616,7 @@ public class Bitget extends BitgetApi
                 requestUntil.put("productType", productType);
                 response = (this.privateMixGetV2MixAccountBill(this.extend(requestUntil, paramsUntil))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object bills = this.safeList2(data, "bills", "list", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(uta, true))
             {
@@ -12677,7 +12672,7 @@ public class Bitget extends BitgetApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)contracts).size(); i++)
         {
-            Map<String, Object> contract = (Map<String, Object>) this.safeDict(contracts, i, (Object) null);
+            Map<String, Object> contract = this.safeDict(contracts, i, null);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
             // const business = this.safeString (contract, 'businessType');
             // if (business !== 'contract_settle_fee') {
@@ -12879,7 +12874,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
@@ -13139,7 +13134,7 @@ public class Bitget extends BitgetApi
                 request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketOpenInterest(this.extend(request, paramsUTA))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(data, market);
         }).thenApply(OpenInterest::new);
 
@@ -13217,7 +13212,7 @@ public class Bitget extends BitgetApi
             paramsMarketType = typeparamsMarketTypeVariable.second();
             String fromAccount = this.safeString(paramsMarketType, "fromAccount", type);
             paramsMarketType = this.omit(paramsMarketType, "fromAccount");
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             type = this.safeString(accountsByType, fromAccount);
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>();
@@ -13256,7 +13251,7 @@ public class Bitget extends BitgetApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -13291,7 +13286,7 @@ public class Bitget extends BitgetApi
             Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromType = this.safeString(accountsByType, fromAccount);
             String toType = this.safeString(accountsByType, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -13327,7 +13322,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             data.put("ts", this.safeInteger(response, "requestTime"));
             return this.parseTransfer(data, currency);
         }).thenApply(TransferEntry::new);
@@ -13364,7 +13359,7 @@ public class Bitget extends BitgetApi
         String status = this.safeStringLower(transfer, "status");
         String currencyId = this.safeString(transfer, "coin");
         String fromAccountRaw = this.safeString(transfer, "fromType");
-        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         String fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
         String toAccountRaw = this.safeString(transfer, "toType");
         String toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
@@ -13413,8 +13408,8 @@ public class Bitget extends BitgetApi
         //         "transfer": "true""
         //     }
         //
-        List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
-        Integer chainsLength = ((List<?>)chains).size();
+        List<Object> chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
+        Integer chainsLength = chains.size();
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Map<String, Object> withdraw = new HashMap<String, Object>() {{
             put( "fee", null );
@@ -13431,7 +13426,7 @@ public class Bitget extends BitgetApi
         }};
         for (var i = 0; (chainsLength != null && i < chainsLength); i++)
         {
-            Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, i, (Object) null);
+            Map<String, Object> chain = this.safeDict(chains, i, null);
             String networkId = this.safeString(chain, "chain");
             String currencyCode = this.safeString(currency, "code");
             String networkCode = this.networkIdToCode(networkId, currencyCode);
@@ -13505,7 +13500,7 @@ public class Bitget extends BitgetApi
             //         "requestTime": "1700120731773"
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
         }).thenApply(DepositWithdrawFees::new);
 
@@ -13548,7 +13543,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency, (Map<String, Object>) null);
         }).thenApply(MarginLoan::new);
 
@@ -13595,7 +13590,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency, market);
         }).thenApply(MarginLoan::new);
 
@@ -13643,7 +13638,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency, market);
         }).thenApply(MarginLoan::new);
 
@@ -13687,7 +13682,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(data, currency, (Map<String, Object>) null);
         }).thenApply(MarginLoan::new);
 
@@ -13878,8 +13873,8 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> liquidations = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> liquidations = this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(liquidations, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
@@ -14000,8 +13995,8 @@ public class Bitget extends BitgetApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "requestTime");
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             first.put("timestamp", timestamp);
             return this.parseIsolatedBorrowRate(first, market);
         }).thenApply(IsolatedBorrowRate::new);
@@ -14073,7 +14068,7 @@ public class Bitget extends BitgetApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
-    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object parameters)
+    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -14136,7 +14131,7 @@ public class Bitget extends BitgetApi
                 //         ]
                 //     }
                 //
-                List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             }
             Long timestamp = this.safeInteger(response, "requestTime");
@@ -14308,8 +14303,8 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rows = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rows = this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             List<Object> interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
@@ -14419,7 +14414,7 @@ public class Bitget extends BitgetApi
                 request.put("productType", productType);
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, paramsUTA))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> order = (List<Object>) this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrder((order == null || 0 >= ((List<?>)order).size() ? null : ((List<?>)order).get(0)), market);
         }).thenApply(Order::new);
@@ -14463,7 +14458,7 @@ public class Bitget extends BitgetApi
                 request.put("productType", productType);
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, paramsUTA))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orderInfo = (List<Object>) this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(orderInfo, (List<String>) null, paramsUTA);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -14526,7 +14521,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
@@ -14577,7 +14572,7 @@ public class Bitget extends BitgetApi
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Integer symbolsLength = ((List<?>)symbols).size();
+                Integer symbolsLength = symbols.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
@@ -14609,8 +14604,8 @@ public class Bitget extends BitgetApi
             {
                 response = (this.privateMixGetV2MixPositionHistoryPosition(this.extend(requestUntil, paramsUTA))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> responseList = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> responseList = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(responseList, symbols, paramsUTA);
             return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -14659,7 +14654,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "fromCoin", fromCode);
             Map<String, Object> fromCurrency = this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
@@ -14724,7 +14719,7 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
             Map<String, Object> toCurrency = this.currency(toCurrencyId);
             return this.parseConversion(data, (Map<String, Object>) null, toCurrency);
@@ -14798,8 +14793,8 @@ public class Bitget extends BitgetApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> dataList = (List<Object>) this.safeList(data, "dataList", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> dataList = this.safeList(data, "dataList", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
 
@@ -14895,8 +14890,8 @@ public class Bitget extends BitgetApi
             //     }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(entry, "coin");
@@ -14977,8 +14972,8 @@ public class Bitget extends BitgetApi
                 request.put("productType", productType);
                 response = (this.publicMixGetV2MixMarketFundingTime(this.extend(request, paramsUTA))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(first, market);
         }).thenApply(FundingRate::new);
 
@@ -15022,7 +15017,7 @@ public class Bitget extends BitgetApi
             {
                 response = (this.publicMarginGetV2MarginMarketLongShortRatio(this.extend(request, parameters))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLongShortRatioHistory(data, market, (Long) null, (Long) null);
         }).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
 

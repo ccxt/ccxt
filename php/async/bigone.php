@@ -1291,17 +1291,15 @@ class bigone extends Exchange {
         if ($makerFeeCost !== null) {
             $makerCode = $makerCurrencyCode;
             if ($takerFeeCost !== null) {
-                $takerCode = $takerCurrencyCode;
                 $result['fees'] = array(
                     array( 'cost' => $makerFeeCost, 'currency' => $makerCode ),
-                    array( 'cost' => $takerFeeCost, 'currency' => $takerCode ),
+                    array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode ),
                 );
             } else {
                 $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCode );
             }
         } elseif ($takerFeeCost !== null) {
-            $takerCode2 = $takerCurrencyCode;
-            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCode2 );
+            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode );
         } else {
             $result['fee'] = null;
         }

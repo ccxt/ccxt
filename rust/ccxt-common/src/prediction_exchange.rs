@@ -11,7 +11,7 @@
 //     Rust's auto-deref on the dot operator (`self.markets`, `self.safe_string`,
 //     `self.derived()`, …), exactly as a normal exchange Core does over
 //     `Exchange`; and
-//   * a prediction venue Core (`KalshiCore { exchange: PredictionExchange }`)
+//   * a prediction venue Core (`Kalshi { exchange: PredictionExchange }`)
 //     `Deref`s to `PredictionExchange`, so its own overrides win, then
 //     PredictionExchange's unified overrides (createOrder, fetchTicker, …), then
 //     the shared `Exchange` base — the correct method-resolution order.
@@ -51,12 +51,13 @@ impl PredictionExchange {
 /// Core. Blanket-impl'd for every `PredictionBase`.
 pub trait PredictionRuntime: crate::prediction_exchange_generated::PredictionBase {
     /// Venue `super.fetchOutcome(outcome)` → the PredictionExchange base impl.
-    fn super_fetch_outcome(&mut self, outcome_symbol: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn super_fetch_outcome(&mut self, outcome_symbol: Value) -> impl ::std::future::Future<Output = Option<crate::types::Market>> + Send { async move {
         <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_outcome(self, outcome_symbol).await
     } }
     /// Base `super.fetchOHLCV(...)` → the shared `Exchange` implementation.
     fn super_fetch_ohlcv(&mut self, symbol: Value, timeframe: Value, since: Value, limit: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        <Self as crate::exchange_generated::ExchangeBase>::fetch_ohlcv(self, symbol, &[timeframe, since, limit, params]).await
+        let typed = <Self as crate::exchange_generated::ExchangeBase>::fetch_ohlcv(self, symbol.as_str().unwrap_or_default(), timeframe.as_str(), since.as_i64(), limit.as_i64(), params).await;
+        crate::types::IntoRaw::into_raw(typed)
     } }
     // NB: `super_set_markets` / `super_set_sandbox_mode` are inherited from
     // `ExchangeRuntime` (identical forwarding to the base) — not redefined here,
@@ -71,4 +72,12 @@ impl std::ops::Deref for PredictionExchange {
 
 impl std::ops::DerefMut for PredictionExchange {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.exchange }
+}
+
+/// Receives the concrete prediction venue picked by id (`prediction::with_exchange`).
+/// `PredictionBase` and `ExchangeBase` share unified names, so call those as
+/// `PredictionBase::fetch_ticker(&mut ex, ..)` inside `visit`.
+pub trait PredictionVisitor {
+    type Output;
+    fn visit<E: crate::exchange::TypedExchange + crate::prediction_exchange_generated::PredictionBase + 'static>(self, exchange: E) -> impl ::std::future::Future<Output = Self::Output> + Send;
 }

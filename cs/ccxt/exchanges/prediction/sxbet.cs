@@ -231,10 +231,10 @@ public partial class sxbet : PredictionExchange
      * @param {int} [params.limit] max number of markets to collect (defaults to options.marketsPageSize * options.maxMarketsPages, 5000)
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"limit"}));
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit"});
         Int64? userLimit = this.safeInteger(parameters, "limit");
         List<object> rawMarkets = await this.fetchRawMarketsPaged(rest, userLimit);
         List<object> markets = new List<object>() {};
@@ -270,7 +270,7 @@ public partial class sxbet : PredictionExchange
             { "limit", userLimit },
         }, "limit");
         string? paginationKey = null;
-        Int64? page = this.parseToInt(0);
+        Int64 page = 0;
         while (true)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -289,7 +289,7 @@ public partial class sxbet : PredictionExchange
                 rawMarkets.Add((pageMarkets != null && i < pageMarkets.Count ? pageMarkets[i] : null));
             }
             paginationKey = this.safeString(result, "nextKey");
-            page = this.parseToInt((page + 1));
+            page = (page + 1);
             Int64? collectedLength = this.parseToInt((rawMarkets?.Count ?? 0));
             if (((pageMarketsLength < pageSize)) || ((maxPages == null || page >= maxPages)) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
             {
@@ -356,11 +356,11 @@ public partial class sxbet : PredictionExchange
         //     }
         //
         string marketHash = this.safeString(raw, "marketHash", "");
-        object teamOneName = this.safeString(raw, "teamOneName");
+        string? teamOneName = this.safeString(raw, "teamOneName");
         string? teamTwoName = this.safeString(raw, "teamTwoName");
         string? outcomeOneName = this.safeString(raw, "outcomeOneName");
         string? outcomeTwoName = this.safeString(raw, "outcomeTwoName");
-        string eventSlug = this.shortenSlug(((object)(teamOneName == null ? null : teamOneName + " " + teamTwoName)));
+        string eventSlug = this.shortenSlug((teamOneName == null ? null : teamOneName + " " + teamTwoName));
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -474,7 +474,7 @@ public partial class sxbet : PredictionExchange
      * @param {int} [params.limit] max number of events to return
      * @returns {object[]} an array of event structures
      */
-    public async override Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> FetchEvents(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.requireEventQuery(parameters);
@@ -488,7 +488,7 @@ public partial class sxbet : PredictionExchange
         {
             queries.Add((tags != null && i < tags.Count ? tags[i] : null));
         }
-        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"}));
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"});
         List<object> rawMarkets = null;
         if ((eventId != null))
         {
@@ -567,7 +567,7 @@ public partial class sxbet : PredictionExchange
         }
         this.populateOutcomes();
         this.setEvents(result);
-        IDictionary<string, object> postParams = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"leagueId", "sportId", "query", "queries", "tags"}));
+        Dictionary<string, object> postParams = this.omit(parameters, new List<object>() {"leagueId", "sportId", "query", "queries", "tags"});
         return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, new List<object>() {}));
     }
 
@@ -580,7 +580,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
+    public async override Task<ccxt.PredictionEvent> FetchEvent(string id, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> rawMarkets = await this.fetchRawMarketsPaged(this.extend(new Dictionary<string, object>() {
@@ -828,11 +828,11 @@ public partial class sxbet : PredictionExchange
         string digits = "0123456789abcdef";
         string lowerHex = hex.ToLower();
         int hexLength = lowerHex.Length;
-        Int64? result = this.parseToInt(0);
+        Int64? result = 0;
         for (int i = 0; i < hexLength; i++)
         {
-            object ch = getValue(lowerHex, i);
-            Int64? digitValue = this.parseToInt(digits.IndexOf(((string)ch), StringComparison.Ordinal));
+            string? ch = ((string)getValue(lowerHex, i));
+            Int64? digitValue = this.parseToInt(digits.IndexOf(ch, StringComparison.Ordinal));
             Int64? shifted = (result * 16);
             result = this.parseToInt(this.sum(shifted, digitValue));
         }
@@ -903,9 +903,9 @@ public partial class sxbet : PredictionExchange
         {
             throw new BadRequest ((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
         }
-        (string?, object) spenderparamsSpenderVariable = this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
+        (string?, IDictionary<string, object>) spenderparamsSpenderVariable = this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
         string? spender = spenderparamsSpenderVariable.Item1;
-        IDictionary<string, object> paramsSpender = ((IDictionary<string, object>)spenderparamsSpenderVariable.Item2);
+        IDictionary<string, object> paramsSpender = (spenderparamsSpenderVariable.Item2);
         if ((spender == null))
         {
             throw new BadRequest ((this.id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender")) ;
@@ -1000,7 +1000,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} [params.externalUserId] partner attribution id echoed back on order, fill and trade reads
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1058,9 +1058,9 @@ public partial class sxbet : PredictionExchange
         {
             defaultTif = "GTC";
         }
-        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
+        (string?, IDictionary<string, object>) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
         string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
+        IDictionary<string, object> paramsTimeInForce = (timeInForceparamsTimeInForceVariable.Item2);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -1257,7 +1257,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1282,7 +1282,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1337,12 +1337,12 @@ public partial class sxbet : PredictionExchange
      * @param {string} [params.eventId] cancels every order across every market of this fixture instead of the account-wide path (params.sportXeventId is accepted too)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? eventId = this.safeString2(parameters, "eventId", "sportXeventId");
-        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"eventId", "sportXeventId"}));
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"eventId", "sportXeventId"});
         bool isEventScoped = ((eventId != null));
         Dictionary<string, object> response = null;
         if (isEventScoped)
@@ -1424,7 +1424,7 @@ public partial class sxbet : PredictionExchange
         {
             outcomeId = ((marketHash + "-2"));
         }
-        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, ((object)market));
+        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, market);
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
         string? percentageOdds = this.safeString(order, "percentageOdds");
@@ -1515,7 +1515,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, sortBy, sortAsc, nextKey)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -1547,7 +1547,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, sortBy, sortAsc, nextKey)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.FetchOpenOrders(outcome, since, limit, parameters);
@@ -1563,7 +1563,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1597,7 +1597,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, nextKey)
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcome == null))
@@ -1639,7 +1639,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. tradeId, orderId, endDate, sortAsc, nextKey)
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1709,7 +1709,7 @@ public partial class sxbet : PredictionExchange
         {
             outcomeId = ((marketHash + "-2"));
         }
-        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, ((object)market));
+        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, market);
         string oneDenom = "100000000000000000000";
         string usdcDecimals = "1000000";
         string? fillOdds = this.safeString(fill, "fillOdds");
@@ -1752,7 +1752,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> obv3 = await this.loadSxObv3Metadata();
@@ -1804,7 +1804,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1827,7 +1827,7 @@ public partial class sxbet : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", this.safeString(parameters, "status", "MATCHED,LOCKED") },
         };
-        IDictionary<string, object> rest = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"status"}));
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"status"});
         Dictionary<string, object> response = await this.sxbetPrivateGetPositionsV3(this.extend(request, rest));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(data, "positions", new List<object>() {});
@@ -1924,7 +1924,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, endDate, sortAsc, nextKey)
      * @returns {object[]} a list of prediction settlement structures
      */
-    public async override Task<List<ccxt.PredictionSettlement>> FetchSettlements(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionSettlement>> FetchSettlements(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1998,7 +1998,7 @@ public partial class sxbet : PredictionExchange
         {
             outcomeId = ((marketHash + "-2"));
         }
-        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, ((object)market));
+        IDictionary<string, object> outcomeObj = this.safeOutcome(outcomeId, market);
         IDictionary<string, object> settlement = this.safeDict(trade, "settlement", new Dictionary<string, object>() {});
         Int64? winner = this.safeInteger(settlement, "outcome");
         bool isVoid = ((winner == 0));
@@ -2075,7 +2075,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<ccxt.PredictionTicker> FetchTicker(string outcome, object parameters = null)
+    public async override Task<ccxt.PredictionTicker> FetchTicker(string outcome, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -2098,7 +2098,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
      */
-    public async virtual Task<List<object>> fetchSxbetBestOdds(object marketHashes, object parameters = null)
+    public async virtual Task<List<object>> fetchSxbetBestOdds(object marketHashes, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2144,7 +2144,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public async override Task<ccxt.PredictionTickers> FetchTickers(IList<object> outcomes = null, object parameters = null)
+    public async override Task<ccxt.PredictionTickers> FetchTickers(IList<object> outcomes = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcomes == null))
@@ -2263,8 +2263,7 @@ public partial class sxbet : PredictionExchange
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        object marketAny = market;
-        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        IDictionary<string, object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         string? outcomeId = this.safeString(outcomeObj, "outcomeId");
         string? marketHash = this.safeString(raw, "marketHash");
         bool isOutcomeOne = ((outcomeId == marketHash));
@@ -2330,7 +2329,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -2659,7 +2658,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -2792,7 +2791,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string outcome, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string outcome, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -2894,7 +2893,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string outcome, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string outcome, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -2997,7 +2996,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.walletAddress == null))
@@ -3056,7 +3055,7 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.walletAddress == null))

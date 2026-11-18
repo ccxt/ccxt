@@ -18,6 +18,7 @@
 * [createOrder](#createorder)
 * [cancelOrders](#cancelorders)
 * [cancelOrder](#cancelorder)
+* [calculateFee](#calculatefee)
 * [fetchOrder](#fetchorder)
 * [fetchOrders](#fetchorders)
 * [fetchOpenOrders](#fetchopenorders)
@@ -311,6 +312,31 @@ cancels an open order
 
 ```javascript
 btcmarkets.cancelOrder (id, symbol, params?)
+```
+
+
+<a name="calculateFee" id="calculatefee"></a>
+
+### calculateFee{docsify-ignore}
+calculates the presumptive fee that would be charged for an order
+
+**Kind**: instance method of [<code>btcmarkets</code>](#btcmarkets)  
+**Returns**: <code>object</code> - contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified market symbol |
+| type | <code>string</code> | not used by btcmarkets.calculateFee |
+| side | <code>string</code> | not used by btcmarkets.calculateFee |
+| amount | <code>float</code> | how much you want to trade, in units of the base currency on most exchanges, or number of contracts |
+| price | <code>float</code> | the price for the order to be filled at, in units of the quote currency |
+| takerOrMaker | <code>string</code> | 'taker' or 'maker' |
+| params | <code>object</code> |  |
+
+
+```javascript
+btcmarkets.calculateFee (symbol, type, side, amount, price, takerOrMaker, params)
 ```
 
 

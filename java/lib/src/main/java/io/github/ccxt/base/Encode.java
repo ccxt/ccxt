@@ -202,9 +202,7 @@ public final class Encode {
     }
 
     public static String binaryToHex(byte[] buff) {
-        StringBuilder sb = new StringBuilder(buff.length * 2);
-        for (byte b : buff) sb.append(String.format("%02x", b));
-        return sb.toString();
+        return java.util.HexFormat.of().formatHex(buff);
     }
 
     public static String binaryToBase16(Object buff2) {

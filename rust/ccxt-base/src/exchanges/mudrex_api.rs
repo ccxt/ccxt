@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::mudrex::MudrexCore;
+use super::mudrex::Mudrex;
 use crate::exchange::ExchangeRuntime;
 
-impl MudrexCore {
+impl Mudrex {
     /// Auto-generated wrapper for the `marketGetPriceKline` implicit endpoint.
     pub async fn market_get_price_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_get_price_kline".into()), optional_args).await

@@ -1302,6 +1302,10 @@ class toobit extends Exchange {
             } else {
                 $request['to'] = $this->sum($since, $duration * $limit * 1000);
             }
+        } elseif (($since !== null) && ($limit !== null)) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $request['endTime'] = min($this->sum($since, $duration * $limit) - 1, $this->milliseconds());
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1658,7 +1662,7 @@ class toobit extends Exchange {
         return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $nextFundingRate = $this->safe_number($contract, 'rate');
@@ -2143,6 +2147,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         $request = array();
         if ($this->safe_string($params, 'clientOrderId') === null) {
             $request['orderId'] = $id;
@@ -2839,9 +2846,8 @@ class toobit extends Exchange {
         // }
         //
         $result = array();
-        $entry = $response;
-        $marketResolved = $this->safe_market($this->safe_string($entry, 'symbol'), $market);
-        $fee = $this->parse_trading_fee($entry, $marketResolved);
+        $marketResolved = $this->safe_market($this->safe_string($response, 'symbol'), $market);
+        $fee = $this->parse_trading_fee($response, $marketResolved);
         $result[$marketResolved['symbol']] = $fee;
         return $result;
     }

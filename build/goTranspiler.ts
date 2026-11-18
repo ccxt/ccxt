@@ -4,6 +4,7 @@ import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
+import { installCcxtGoMarketBoolReads } from './go-worker.js';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
@@ -15,6 +16,7 @@ import { goChanCarrierPass, goChanSelfTest } from './go-chan.js';
 import { goErrValuePass, goErrSelfTest } from './go-err.js';
 import { goChan3Pass, goChan3SelfTest, goChan3Table } from './go-chan3.js';
 import { goStructReturnsPass, goStructReturnsSelfTest } from './go-struct-returns.js';
+import { goPredictionEndpointBodySelfTest } from './go-pred-endpoint.js';
 import {Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
@@ -29,7 +31,7 @@ type dict = { [key: string]: string };
 // required non-symbol string params (order ids, currency codes, addresses): merged into the table below
 const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
     'fetchDepositAddress': [ 0 ], 'createDepositAddress': [ 0 ], 'fetchDepositAddressesByNetwork': [ 0 ],
-    'fetchContractDepositAddress': [ 0 ], 'cancelOrderWs': [ 0 ], 'editOrderWs': [ 0 ], 'fetchOrderWs': [ 0 ],
+    'fetchContractDepositAddress': [ 0 ], 'cancelOrder': [ 0 ], 'cancelOrderWs': [ 0 ], 'editOrderWs': [ 0 ], 'fetchOrderWs': [ 0 ],
     'cancelSpotOrder': [ 0 ], 'cancelContractOrder': [ 0 ], 'fetchOrderStatus': [ 0 ], 'editLimitOrder': [ 0 ],
     'editLimitBuyOrder': [ 0 ], 'editLimitSellOrder': [ 0 ], 'editOrderWithClientOrderId': [ 0 ],
     'fetchOrderWithClientOrderId': [ 0 ], 'cancelOrderWithClientOrderId': [ 0 ], 'createConvertTrade': [ 0, 1, 2 ],
@@ -59,6 +61,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     // createOrders (orders: OrderRequest[]) prints `orders []any` on the base, every venue and
     // ICreateOrders: every caller already hands over a `[]any`
     'createOrders': { 0: '[]any' },
+    // cancelOrders (ids: string[]) on the base, every venue and ICancelOrders
+    'cancelOrders': { 0: '[]string' },
 };
 
 // exchange-local methods no ts/src file calls whose required `string` params are Go strings
@@ -4441,6 +4445,8 @@ function goProvenParseMapMethods (): string[] {
         'ParseADLRank',
         'ParseEvent', 'ParseMarketToEvent', // W18
         'SafePosition', 'ParsePosition', 'ParseOptionPosition',
+        // ral-77g8: ws struct parsers, every override returns a struct->map converter or a map literal
+        'ParseWsBidAsk', 'ParseWsPosition', 'ParseWsMyTrade', 'ParseWsOrderTrade', 'ParseWsUtaTrade', 'ParseWsFundingRate',
         'Sign' ]; // base + every override return a request map literal
 }
 
@@ -5405,7 +5411,6 @@ class NewTranspiler {
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
             [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, '],
             
-            [/Future\)/g, ''],  // Remove C# generics / casts that are invalid in Go
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
@@ -5416,16 +5421,15 @@ class NewTranspiler {
             // the *read* local (`this.trades[symbol]`), never on this one.
             [/stored := NewArrayCache\(limit\)/g, 'var stored *ArrayCache = NewArrayCache(limit)'],
             // Futures
-            [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],
+            // `future.(Resolve|Reject)` on a boxed future: the printer prints the assertion (84g3)
             [/\(<\-future\)/g, '<-future.(<-chan any)'],
             [/<-spawaned/g, '<-spawaned.(<-chan any)'],
-            [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
+            // `promise.Resolve(m)` (assertion + ToGetsLimit) is printed by the printer (90g3 R2)
             // GetsLimit
             [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook
-            [/([a-zA-Z0-9]+).StoreArray/g, '$1.(IOrderBookSide).StoreArray'],
-            [/(bookside|asks|bids|Side).Store/g, '$1.(IOrderBookSide).Store'],
+            // `X.Store` / `X.StoreArray` side assertions are printed by the printer (90g3 R1)
             [/this.ParseWsBidAsk\(this\.Orderbooks\[(\*?symbol)\]/g, 'this.ParseWsBidAsk(UnWrapType(this.Orderbooks[$1])'],
             // Clients
             // AsClient instead of a hard .(*Client) assertion: the transport hands
@@ -5561,6 +5565,8 @@ class NewTranspiler {
                 // ===== RF-go-6-D (end) =====
                 "predictionMapFields": GO_PREDICTION_MAP_FIELDS,
                 "unifiedBoolParams": GO_UNIFIED_BOOL_PARAMS,
+                // PredictionExchange.intToRlpHex (value: Int): callers pass SafeInteger's *int64
+                "unifiedNullableInt64Params": { "intToRlpHex": [ 0 ] },
                 // the two base files declare their own stdlib imports (declareBaseFileStdlibImports); the test
                 // writers cut every @SKIP_START_GO..@SKIP_END_GO span out of the printed Go
                 "baseFileStdlibImportSeamPaths": '(?:base/Exchange(?:\\.nooverloads\\.\\d+)?|base/PredictionExchange)\\.ts$',
@@ -5717,6 +5723,7 @@ class NewTranspiler {
         installCcxtGoTupleSlotReads (this.transpiler.goTranspiler);
         installFmGo5GP08 (this.transpiler.goTranspiler);  // FM-GO5
         installFmGo5OG02 (this.transpiler.goTranspiler);  // FM-GO5
+        installCcxtGoMarketBoolReads (this.transpiler.goTranspiler);
     }
 
     // The base files are assembled from the part of the printed body after its delimiter, which cuts
@@ -8144,6 +8151,7 @@ ${caseStatements.join('\n')}
         // the `any` local carries the plain value, matching every other language port.
         const derefFn = isWs ? 'ccxt.DerefScalar(' : 'DerefScalar(';
         const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601|' + CCXT_GO_STRING_PTR_METHOD_NAMES.join ('|') + ')\\((?:[^()]|\\([^()]*\\))*\\)';
+        const safeCallNoOmitZero = safeCall.replace ('|OmitZero)', ')');
         content = content.replace (new RegExp ('(var \\w+ any = )(' + safeCall + ')', 'g'), ((_m: string, decl: string, call: string) => decl + derefFn + call + ')') as any);
         // A SafeBool* call compared directly to a bool literal has no local for the unwrap
         // above, and the printer emits the comparison raw -- `this.SafeBool(..) == true`.
@@ -8183,7 +8191,10 @@ ${caseStatements.join('\n')}
             });
             const redundantWraps = goDerefWrapRedundantLocals (fn, wrapLines, anyLocals);
             fn = goUnwrapDerefWraps (fn, redundantWraps, safeCall);
-            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCall + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name) && !redundantWraps.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
+            // ral-84g4: OmitZero answers *string (ral-77g4) but an `any` local it reassigns was never
+            // unwrapped (its old `any` return held the plain string); keep those writes unwrapped:
+            // every nil test of such a local is the deref-aware IsEqual (GO_HELPER_RETURN_TYPES)
+            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCallNoOmitZero + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name) && !redundantWraps.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
             // An `any` name can still receive a typed pointer from its caller (an `any` parameter
             // fed a *string by another exchange method), so `name == "literal"` compares an
             // interface against an untyped constant and is always false. Route those via IsEqual.
@@ -9554,7 +9565,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
+        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ()).concat (goPredictionEndpointBodySelfTest ());
         problems.push (...goCacheLocalTypesSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
@@ -10968,7 +10979,6 @@ function goNativeStringAdds (content: string): string {
 // element, or an Add chain that goNativeStringAdds prints natively once X is a string) holds a plain string, as in TS
 // (`let x = ''`): it is `string`, and the Add chains over it print `+`. X must never be nil-compared, asserted or indexed.
 function goStringAnyLocals (content: string): string {
-    if (content.indexOf ('Add(') < 0) { return content; }
     const fileMasked = goTextMaskLiteralsAndComments (content);
     const overridden = new Set<string> ();
     const defRe = /^func \(\w+ \*\w+\) (\w+)\(.*\) (\S+) \{$/gm;
@@ -14204,7 +14214,8 @@ function goDefaultedLimitInt64SelfTest (): string[] {
         installCcxtGoIndexableTypes (t.goTranspiler);
         const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
         const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go defaulted limit int64 self test: ' + msg); } };
-        ok (/var lr int64 = func\(\) int64 \{[\s\S]*?return \*limit/.test (go), 'defaulted *int64 read only as a helper argument types int64: ' + go);
+        // ral-84g7 R1 prints a typed ternary local as if/else instead of an IIFE: either form must type lr int64 and read *limit
+        ok (/var lr int64 = func\(\) int64 \{[\s\S]*?return \*limit/.test (go) || /var lr int64\n\s*if limit == nil \{\n\s*lr = 200\n\s*\} else \{\n\s*lr = \*limit\n/.test (go), 'defaulted *int64 read only as a helper argument types int64: ' + go);
         ok (!/var d int64/.test (go), 'a non-defaulting shape keeps its type');
     } catch (e: any) {
         problems.push ('go defaulted limit int64 self test threw: ' + e.message);

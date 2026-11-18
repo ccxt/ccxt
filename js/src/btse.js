@@ -2533,7 +2533,7 @@ export default class btse extends Exchange {
             request['symbol'] = this.futuresRequestId(this.market(symbol));
             response = await this.privateDeleteFuturesApiV23Order(this.extend(request, paramsMarketType));
         }
-        return this.parseOrders(response, market);
+        return this.parseOrders(this.toArray(response), market);
     }
     /**
      * @method
@@ -3707,14 +3707,14 @@ export default class btse extends Exchange {
             const row = this.safeDict(rows, i);
             const status = this.safeString(row, 'status');
             if (status !== undefined) {
-                let message = this.safeString(row, 'message');
-                const embedded = this.parseJson(message);
+                let rowMessage = this.safeString(row, 'message');
+                const embedded = this.parseJson(rowMessage);
                 if (embedded !== undefined) {
-                    message = this.safeString(embedded, 'default_msg', message);
+                    rowMessage = this.safeString(embedded, 'default_msg', rowMessage);
                 }
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException(this.exceptions['exact'], status, feedback);
-                this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], rowMessage, feedback);
             }
         }
         return undefined;

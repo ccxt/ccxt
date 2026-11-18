@@ -190,8 +190,8 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchTradesForSymbols([symbol], since, limit, params);
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -294,8 +294,8 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol, params = {}) {
-        return this.unWatchTradesForSymbols([symbol], params);
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
     }
     handleTrades(client, message) {
         //
@@ -475,8 +475,8 @@ class okx extends okx$1["default"] {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol, params = {}) {
-        return this.unWatchTickers([symbol], params);
+    async unWatchTicker(symbol, params = {}) {
+        return await this.unWatchTickers([symbol], params);
     }
     /**
      * @method
@@ -1081,8 +1081,8 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        return this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
     }
     /**
      * @method
@@ -1232,12 +1232,12 @@ class okx extends okx$1["default"] {
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol, limit = undefined, params = {}) {
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
         //
         // channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
         // books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
         //
-        return this.watchOrderBookForSymbols([symbol], limit, params);
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -1379,8 +1379,8 @@ class okx extends okx$1["default"] {
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol, params = {}) {
-        return this.unWatchOrderBookForSymbols([symbol], params);
+    async unWatchOrderBook(symbol, params = {}) {
+        return await this.unWatchOrderBookForSymbols([symbol], params);
     }
     handleDelta(bookside, delta) {
         //
@@ -2250,10 +2250,10 @@ class okx extends okx$1["default"] {
         }
     }
     requestId() {
+        // millisecond timestamp plus 3 random digits stays a safe integer
         const ts = this.milliseconds().toString();
-        const randomNumber = this.randNumber(4);
-        const randomPart = randomNumber.toString();
-        return ts + randomPart;
+        const randomPart = this.randNumber(3).toString();
+        return this.parseToInt(ts + randomPart);
     }
     /**
      * @method
@@ -2275,7 +2275,7 @@ class okx extends okx$1["default"] {
         }
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const [op, paramsOp] = this.handleOptionStringAndParams(params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest(symbol, type, side, amount, price, paramsOp);
         const market = this.market(symbol);
@@ -2352,7 +2352,7 @@ class okx extends okx$1["default"] {
         }
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const [op, paramsOp] = this.handleOptionStringAndParams(params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest(id, symbol, type, side, amount, price, paramsOp);
         const market = this.market(symbol);
@@ -2388,7 +2388,7 @@ class okx extends okx$1["default"] {
         }
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         const paramsOmitted = this.omit(params, ['clientOrderId', 'clOrdId']);
         const market = this.market(symbol);
@@ -2432,7 +2432,7 @@ class okx extends okx$1["default"] {
         }
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const args = [];
         const market = this.market(symbol);
         const instIdCode = this.safeInteger(market, 'instIdCode');
@@ -2474,7 +2474,7 @@ class okx extends okx$1["default"] {
             throw new errors.BadRequest(this.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl('private', 'private');
-        const messageHash = this.requestId();
+        const messageHash = this.requestId().toString();
         const request = {
             'id': messageHash,
             'op': 'mass-cancel',

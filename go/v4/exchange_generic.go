@@ -447,10 +447,24 @@ func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 	return outDict
 }
 
-func (this *BaseExchange) OmitZero(value any) any {
+// OmitZero mirrors TS omitZero (stringNumber: string | undefined): string | undefined. The result is
+// the string itself, or a nil pointer for an absent, empty or numerically zero string. A non-string
+// operand (outside the TS signature) keeps its value as its NumberToString text, and nil when zero.
+func (this *BaseExchange) OmitZero(value any) *string {
 	// Safe* accessors pass typed pointers; the type switch must see the value
 	value = derefScalar(value)
 	switch v := value.(type) {
+	case nil:
+		return nil
+	case string:
+		if v == "" {
+			return nil
+		}
+		// a parsable zero is omitted; an unparsable string is kept as it is
+		if parsed, err := strconv.ParseFloat(v, 64); (err == nil) && (parsed == 0) {
+			return nil
+		}
+		return &v
 	case float64:
 		if v == 0.0 {
 			return nil
@@ -459,18 +473,8 @@ func (this *BaseExchange) OmitZero(value any) any {
 		if v == 0 {
 			return nil
 		}
-	case string:
-		// Attempt to parse the string as a float64
-		parsed, err := strconv.ParseFloat(v, 64)
-		if err == nil {
-			// If parsed value is zero, return nil
-			if parsed == 0 {
-				return nil
-			}
-		}
-		// If parsing fails or value is non-zero, return the original string
 	}
-	return value
+	return this.NumberToString(value)
 }
 
 func (this *BaseExchange) Sum(args ...any) any {

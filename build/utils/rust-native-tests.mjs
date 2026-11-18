@@ -10,7 +10,6 @@ export function needsRustNativeTests(paths) {
         // Rust helpers outside the build/rust* family must be listed here.
         [
             'rust/Cargo.toml', 'rust/Cargo.lock',
-            'build/generateRustWrappers.ts',
             'build/granular-rust-build.ts', 'build/cache-remove-call.js',
             'package.json', 'package-lock.json',
             '.github/workflows/rust.yml',

@@ -63,7 +63,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -80,7 +80,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -105,13 +105,13 @@ public partial class apex : ccxt.apex
             string messageHash = ("trade:" + symbol);
             messageHashes.Add(messageHash);
         }
-        object trades = await this.watchTopics(url, messageHashes, topics, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchTopics(url, messageHashes, topics, parameters));
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -162,7 +162,7 @@ public partial class apex : ccxt.apex
         client.resolve(stored, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // public
@@ -212,7 +212,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
@@ -228,7 +228,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -406,7 +406,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -529,12 +529,12 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
+        parameters["callerMethodName"] = "watchOHLCV";
         Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbol) ? result[symbol] : null), timeframeVar));
     }
@@ -550,7 +550,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -641,7 +641,7 @@ public partial class apex : ccxt.apex
         client.resolve(resolveData, messageHash);
     }
 
-    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public override List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -673,7 +673,7 @@ public partial class apex : ccxt.apex
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string messageHash = "myTrades";
@@ -689,13 +689,13 @@ public partial class apex : ccxt.apex
         }
         string? url = this.getWsPrivateUrl();
         await this.authenticate(url);
-        object trades = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {"myTrades"}, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {"myTrades"}, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -709,7 +709,7 @@ public partial class apex : ccxt.apex
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -738,7 +738,7 @@ public partial class apex : ccxt.apex
         if ((cache == null))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized2, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized2, since, limit, true));
         }
         List<object> topics = new List<object>() {"positions"};
         object newPositions = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
@@ -760,7 +760,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -777,13 +777,13 @@ public partial class apex : ccxt.apex
         string? url = this.getWsPrivateUrl();
         await this.authenticate(url);
         List<object> topics = new List<object>() {"orders"};
-        object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object lists)
@@ -1011,19 +1011,18 @@ public partial class apex : ccxt.apex
         if ((authenticated == null))
         {
             // auth sign
-            Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "type", "login" },
-                { "topics", new List<object>() {"ws_zk_accounts_v3"} },
-                { "httpMethod", http_method },
-                { "requestPath", request_path },
-                { "apiKey", this.apiKey },
-                { "passphrase", this.password },
-                { "timestamp", timestamp },
-                { "signature", signature },
-            };
             Dictionary<string, object> message = new Dictionary<string, object>() {
                 { "op", "login" },
-                { "args", new List<object> {json(request)} },
+                { "args", new List<object> {json(new Dictionary<string, object>() {
+    { "type", "login" },
+    { "topics", new List<object>() {"ws_zk_accounts_v3"} },
+    { "httpMethod", http_method },
+    { "requestPath", request_path },
+    { "apiKey", this.apiKey },
+    { "passphrase", this.password },
+    { "timestamp", timestamp },
+    { "signature", signature },
+})} },
             };
             this.watch(url, messageHash, message, messageHash);
         }

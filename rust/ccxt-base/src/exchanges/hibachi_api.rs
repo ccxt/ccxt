@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::hibachi::HibachiCore;
+use super::hibachi::Hibachi;
 use crate::exchange::ExchangeRuntime;
 
-impl HibachiCore {
+impl Hibachi {
     /// Auto-generated wrapper for the `publicGetMarketExchangeInfo` implicit endpoint.
     pub async fn public_get_market_exchange_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_exchange_info".into()), optional_args).await

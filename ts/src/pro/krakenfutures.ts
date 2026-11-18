@@ -245,8 +245,8 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -281,8 +281,8 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
@@ -346,7 +346,7 @@ export default class krakenfutures extends krakenfuturesRest {
             // https://github.com/ccxt/ccxt/issues/29709
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const rawPositions = this.safeList (message, 'positions');
         if (rawPositions === undefined) {
             // an open_positions frame without the positions key is malformed;
@@ -771,12 +771,11 @@ export default class krakenfutures extends krakenfuturesRest {
         //         "reason": 'edited_by_user'
         //     }
         //
-        let orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
-            orders = new ArrayCacheBySymbolById (limit);
-            this.orders = orders;
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const orders = this.orders;
         const order = this.safeDict (message, 'order');
         if (order !== undefined) {
             const marketId = this.safeString (order, 'instrument');
@@ -927,7 +926,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //            ...
         //        ]
         //    }
-        const orders = this.safeList (message, 'orders', []);
+        const orders: Dict[] = this.safeList (message, 'orders', []);
         // reuse the existing cache: replacing it would orphan consumers holding
         // a reference to the old one across a reconnect snapshot
         if (this.orders === undefined) {

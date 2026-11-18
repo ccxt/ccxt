@@ -390,6 +390,10 @@ class gate extends \ccxt\async\gate {
     }
 
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_open_orders_ws(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all unfilled currently open orders
          *
@@ -401,10 +405,14 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        return $this->fetch_orders_by_status_ws('open', $symbol, $since, $limit, $params);
+        return Async\await($this->fetch_orders_by_status_ws('open', $symbol, $since, $limit, $params));
     }
 
     public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_closed_orders_ws(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -416,7 +424,7 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        return $this->fetch_orders_by_status_ws('finished', $symbol, $since, $limit, $params);
+        return Async\await($this->fetch_orders_by_status_ws('finished', $symbol, $since, $limit, $params));
     }
 
     public function fetch_orders_by_status_ws(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -734,13 +742,13 @@ class gate extends \ccxt\async\gate {
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol, $this->order_book(array()));
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
-            $cacheLength = $this->parse_to_int(0);
+            $cacheLength = 0;
             if ($storedOrderBook !== null) {
                 $storedCacheLength = count($storedOrderBook->cache);
                 $cacheLength = $this->parse_to_int($storedCacheLength);
             }
             $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 10));
-            $waitAmount = $this->parse_to_int(0);
+            $waitAmount = 0;
             if ($isSpot) {
                 $waitAmount = $snapshotDelay;
             }
@@ -877,6 +885,10 @@ class gate extends \ccxt\async\gate {
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          *
          * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
@@ -888,7 +900,7 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchBidsAsks', $this->extend(array( 'method' => 'book_ticker' ), $params));
+        return Async\await($this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchBidsAsks', $this->extend(array( 'method' => 'book_ticker' ), $params)));
     }
 
     public function handle_bid_ask(Client $client, array $message) {
@@ -994,6 +1006,10 @@ class gate extends \ccxt\async\gate {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
          * @see https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
@@ -1008,7 +1024,7 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1085,13 +1101,17 @@ class gate extends \ccxt\async\gate {
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the market to fetch trades for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -1242,13 +1262,15 @@ class gate extends \ccxt\async\gate {
         //     "channel": "spot.candlesticks",
         //     "event": "update",
         //     "result": {
-        //       "t": "1606292580", // total volume
-        //       "v": "2362.32035", // volume
+        //       "t": "1606292580", // timestamp
+        //       "v": "2362.32035", // volume in the quote currency
         //       "c": "19128.1", // close
         //       "h": "19128.1", // high
         //       "l": "19128.1", // low
         //       "o": "19128.1", // open
-        //       "n": "1m_BTC_USDT" // sub
+        //       "n": "1m_BTC_USDT", // sub
+        //       "a": "0.12349", // volume in the base currency
+        //       "w": false // window closed
         //     }
         //   }
         //
@@ -1277,6 +1299,17 @@ class gate extends \ccxt\async\gate {
             $marketId = str_replace($prefix, '', $subscription);
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);
+            if ($marketType === 'spot') {
+                // spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
+                $parsed = array(
+                    $this->safe_timestamp($ohlcv, 't'),
+                    $this->safe_number($ohlcv, 'o'),
+                    $this->safe_number($ohlcv, 'h'),
+                    $this->safe_number($ohlcv, 'l'),
+                    $this->safe_number($ohlcv, 'c'),
+                    $this->safe_number($ohlcv, 'a'),
+                );
+            }
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
@@ -1295,8 +1328,8 @@ class gate extends \ccxt\async\gate {
             $timeframe = $marketIds[$symbol];
             $interval = $this->find_timeframe($timeframe);
             $hash = 'candles' . ':' . $interval . ':' . $symbol;
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $interval);
-            $client->resolve($stored, $hash);
+            $symbolOhlcv = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $interval);
+            $client->resolve($symbolOhlcv, $hash);
         }
     }
 
@@ -1326,7 +1359,7 @@ class gate extends \ccxt\async\gate {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id');
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('watchMyTrades', $market, $paramsMarketType);
@@ -1592,7 +1625,7 @@ class gate extends \ccxt\async\gate {
         $this->set_positions_cache($client, $type, $symbolsNormalized);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-        $cache = $this->safe_value($this->positions, $type);
+        $cache = $this->safe_value($this->positionsByType, $type);
         if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($cache === null)) {
             return Async\await($client->future($type . ':fetchPositionsSnapshot'));
         }
@@ -1600,14 +1633,11 @@ class gate extends \ccxt\async\gate {
         if ($this->newUpdates) {
             return $positions;
         }
-        return $this->filter_by_symbols_since_limit($this->safe_value($this->positions, $type), $symbolsNormalized, $since, $limit, true);
+        return $this->filter_by_symbols_since_limit($this->safe_value($this->positionsByType, $type), $symbolsNormalized, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, string $type, ?array $symbols = null) {
-        if ($this->positions === null) {
-            $this->positions = array();
-        }
-        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
+        if (is_array($this->positionsByType) && array_key_exists($type ?? '', $this->positionsByType)) {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
@@ -1618,7 +1648,7 @@ class gate extends \ccxt\async\gate {
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type);
             }
         } else {
-            $this->positions[$type] = new ArrayCacheBySymbolBySide();
+            $this->positionsByType[$type] = new ArrayCacheBySymbolBySide();
         }
     }
 
@@ -1628,8 +1658,8 @@ class gate extends \ccxt\async\gate {
 
     private function do_load_positions_snapshot(Client $client, string $messageHash, string $type) {
         $positions = Async\await($this->fetch_positions(null, array( 'type' => $type )));
-        $this->positions[$type] = new ArrayCacheBySymbolBySide();
-        $cache = $this->positions[$type];
+        $this->positionsByType[$type] = new ArrayCacheBySymbolBySide();
+        $cache = $this->positionsByType[$type];
         for ($i = 0; $i < count($positions); $i++) {
             $position = $positions[$i];
             $contracts = $this->safe_number($position, 'contracts', 0);
@@ -1678,7 +1708,7 @@ class gate extends \ccxt\async\gate {
         //
         $type = $this->get_market_type_by_url($client->url);
         $data = $this->safe_list($message, 'result', array());
-        $cache = $this->positions[$type];
+        $cache = $this->positionsByType[$type];
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];
@@ -1896,6 +1926,10 @@ class gate extends \ccxt\async\gate {
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_liquidations(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watch the public liquidations of a trading pair
          *
@@ -1909,7 +1943,7 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
          * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
          */
-        return $this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2022,15 +2056,31 @@ class gate extends \ccxt\async\gate {
             $this->liquidations = new ArrayCache($limit);
         }
         $cache = $this->liquidations;
+        $liquidationsBySymbol = array();
         for ($i = 0; $i < count($rawLiquidations); $i++) {
             $rawLiquidation = $rawLiquidations[$i];
             $liquidation = $this->parse_ws_liquidation($rawLiquidation);
             $cache->append($liquidation);
+            $newLiquidations[] = $liquidation;
             $symbol = $this->safe_string($liquidation, 'symbol');
-            $symbolLiquidations = $this->safe_list($cache, $symbol, array());
-            $client->resolve($symbolLiquidations, 'myLiquidations::' . $symbol);
+            if ($symbol !== null) {
+                $symbolLiquidations = $this->safe_list($liquidationsBySymbol, $symbol);
+                if ($symbolLiquidations === null) {
+                    $symbolLiquidations = array();
+                }
+                $symbolLiquidations[] = $liquidation;
+                $liquidationsBySymbol[$symbol] = $symbolLiquidations;
+            }
         }
-        $client->resolve($newLiquidations, 'myLiquidations');
+        $symbols = is_array($liquidationsBySymbol) ? array_keys($liquidationsBySymbol) : array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $client->resolve($liquidationsBySymbol[$symbol], 'myLiquidations::' . $symbol);
+        }
+        $numNewLiquidations = count($newLiquidations);
+        if ($numNewLiquidations > 0) {
+            $client->resolve($newLiquidations, 'myLiquidations');
+        }
     }
 
     public function parse_ws_liquidation(array $liquidation, ?array $market = null): array {
@@ -2063,7 +2113,8 @@ class gate extends \ccxt\async\gate {
         //    }
         //
         $marketId = $this->safe_string($liquidation, 'contract');
-        $marketResolved = $this->safe_market($marketId, $market);
+        // liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+        $marketResolved = $this->safe_market($marketId, $market, '_', 'contract');
         $timestamp = $this->safe_integer($liquidation, 'time_ms');
         $originalSize = $this->safe_string($liquidation, 'size');
         $left = $this->safe_string($liquidation, 'left');
@@ -2078,7 +2129,7 @@ class gate extends \ccxt\async\gate {
             'quoteValue' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        ));
+        ), $marketResolved);
     }
 
     public function handle_error_message(Client $client, array $message): ?bool {
@@ -2398,11 +2449,11 @@ class gate extends \ccxt\async\gate {
     }
 
     public function get_url_by_market(mixed $market): string {
-        $baseUrl = $this->urls['api'][$market['type']];
         if ($this->safe_bool($market, 'contract', false)) {
-            return ($this->safe_bool($market, 'linear', false)) ? $baseUrl['usdt'] : $baseUrl['btc'];
+            $settleKey = ($this->safe_bool($market, 'linear', false)) ? 'usdt' : 'btc';
+            return $this->safe_string($this->urls['api'][$market['type']], $settleKey, '');
         } else {
-            return $baseUrl;
+            return $this->safe_string($this->urls['api'], $market['type'], '');
         }
     }
 
@@ -2420,12 +2471,11 @@ class gate extends \ccxt\async\gate {
     }
 
     public function get_url_by_market_type(?string $type, ?bool $isInverse = false): ?string {
-        $api = $this->urls['api'];
-        $url = $this->safe_value($api, $type);
         if (($type === 'swap') || ($type === 'future')) {
-            return $isInverse ? $url['btc'] : $url['usdt'];
+            $settleKey = $isInverse ? 'btc' : 'usdt';
+            return $this->safe_string($this->safe_dict($this->urls['api'], $type), $settleKey);
         } else {
-            return $url;
+            return $this->safe_string($this->urls['api'], $type);
         }
     }
 
@@ -2448,7 +2498,7 @@ class gate extends \ccxt\async\gate {
         return 'spot';
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         // their support said that reqid must be an int32, not documented
         $this->lock_id();
         $reqid = $this->sum($this->safe_integer($this->options, 'reqid', 0), 1);

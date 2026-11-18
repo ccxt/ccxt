@@ -165,6 +165,7 @@ export default class whitebit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
@@ -502,7 +503,7 @@ export default class whitebit extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name whitebit#fetchFundingHistory

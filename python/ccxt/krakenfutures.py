@@ -149,7 +149,6 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'notifications': {'cost': 1},
                         'accounts': {'cost': 1},
                         'openorders': {'cost': 1},
-                        'recentorders': {'cost': 1},
                         'fills': {'cost': 1},
                         'transfers': {'cost': 1},
                         'leveragepreferences': {'cost': 1},
@@ -2253,7 +2252,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 if self.safe_string(item, 'type') == 'EXECUTION':
                     executions.append(item)
                 # Final order (after placement / editing / execution / canceling)
-                orderTrigger = self.safe_value(item, 'orderTrigger')
+                orderTrigger = self.safe_dict(item, 'orderTrigger')
                 if details is None:
                     details = self.safe_value_2(item, 'new', 'order', orderTrigger)
                     if details is not None:
@@ -2923,7 +2922,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             fundingRates.append(parsed)
         return self.index_by(fundingRates, 'symbol')
 
-    def parse_funding_rate(self, ticker: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "PF_ENJUSD",
@@ -3386,7 +3385,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'symbol': self.safe_symbol(marketId, marketResolved),
                 'currency': marketResolved['quote'],
                 'minNotional': minNotional,
-                'maxNotional': self.safe_number_2(self.safe_value(marginLevels, self.sum(i, 1)), 'numNonContractUnits', 'contracts'),
+                'maxNotional': self.safe_number_2(self.safe_dict(marginLevels, self.sum(i, 1)), 'numNonContractUnits', 'contracts'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMargin'),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMargin)),
                 'info': tier,

@@ -440,7 +440,7 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
-		var market any = DerefScalar(rawMarkets[i])
+		var market any = rawMarkets[i]
 		var id *string = this.SafeString(market, "id")
 		var baseId *string = this.SafeString(market, "traded_currency")
 		var quoteId *string = this.SafeString(market, "base_currency")
@@ -953,12 +953,12 @@ func (this *Indodax) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		"tf":     selectedTimeframe,
 		"symbol": market["id"],
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 1000
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	if since != nil {
 		request["from"] = math.Floor(float64(*since) / 1000)
 	} else {
@@ -1282,9 +1282,9 @@ func (this *Indodax) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	var response map[string]any = r1.Value
 	var historyResult map[string]any = SafeMapTyped(response, "return")
 	var orders []any = this.ParseOrders(historyResult["orders"], market)
-	orders = this.FilterBy(orders, "status", "closed")
+	var closedOrders []any = this.FilterBy(orders, "status", "closed")
 
-	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit))}
 	return nil
 }
 
@@ -1329,9 +1329,9 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var priceIsRequired bool = false
 	var quantityIsRequired bool = false
 	var isMarketBuy bool = (typeVar == "market") && (side == "buy")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if isMarketBuy {
-		paramsOmitted = this.Omit(params, "cost")
+		paramsOmitted = this.OmitDict(params, "cost")
 	}
 	if typeVar == "market" {
 		if side == "buy" {
@@ -1394,12 +1394,12 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Indodax) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Indodax) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Indodax) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Indodax) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

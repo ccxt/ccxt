@@ -1938,7 +1938,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseFundingRates(response, symbolsNormalized);
+        return this.parseFundingRates(this.toArray(response), symbolsNormalized);
     }
     /**
      * @method
@@ -2293,7 +2293,6 @@ export default class aster extends Exchange {
         //            "orderListId": "-1"
         //        }
         //
-        const info = order;
         const positionSide = this.safeString(order, 'positionSide');
         let defaultType = 'spot';
         if (positionSide !== undefined) {
@@ -2308,7 +2307,7 @@ export default class aster extends Exchange {
         const stopPriceString = this.safeString(order, 'stopPrice');
         const triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder({
-            'info': info,
+            'info': order,
             'id': this.safeString(order, 'orderId'),
             'clientOrderId': this.safeString(order, 'clientOrderId'),
             'symbol': this.safeSymbol(marketId, marketResolved),
@@ -3030,7 +3029,12 @@ export default class aster extends Exchange {
             request['origClientOrderIdList'] = clientOrderIdList;
         }
         else {
-            request['orderIdList'] = ids;
+            // the api takes LONG[] order ids
+            const orderIdList = [];
+            for (let i = 0; i < ids.length; i++) {
+                orderIdList.push(this.parseToNumeric(ids[i]));
+            }
+            request['orderIdList'] = orderIdList;
         }
         let response;
         if (this.safeBool(market, 'swap', false)) {

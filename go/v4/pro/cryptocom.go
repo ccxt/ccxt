@@ -207,7 +207,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 	if (limit != nil) && (limit == nil || *limit != 0) {
 		limitResolved = limit
 	}
-	var topicParams any = this.SafeValue(params, "params")
+	var topicParams map[string]any = ccxt.SafeMapTyped(params, "params")
 	if topicParams == nil {
 		params["params"] = map[string]any{}
 	}
@@ -271,7 +271,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[b
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	var limit int64 = *this.SafeInteger(params, "limit", 50)
-	var topicParams any = this.SafeValue(params, "params")
+	var topicParams map[string]any = ccxt.SafeMapTyped(params, "params")
 	if topicParams == nil {
 		params["params"] = map[string]any{}
 	}
@@ -306,7 +306,7 @@ func (this *Cryptocom) HandleDelta(bookside any, delta any) {
 }
 func (this *Cryptocom) HandleDeltas(bookside any, deltas any) {
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
-		this.HandleDelta(bookside, this.SafeValue(deltas, i))
+		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
 func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
@@ -391,7 +391,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 		var previousNonce *int64 = this.SafeInteger(data, "pu")
 		var currentNonce *int64 = this.SafeInteger(orderbook, "nonce")
 		if currentNonce != previousNonce && (currentNonce == nil || previousNonce == nil || *currentNonce != *previousNonce) {
-			var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
+			var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 			if checksum == true {
 				panic(ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol))))
 			}
@@ -615,7 +615,7 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 	}
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for j := 0; j < len(parsedTrades); j++ {
-		stored.Append(this.SafeValue(parsedTrades, j))
+		stored.Append(this.SafeDict(parsedTrades, j))
 	}
 	var channelReplaced string = ccxt.Replace(channel, ccxt.Add(".", marketId), "")
 	client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
@@ -1029,7 +1029,7 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccx
 func (this *Cryptocom) HandleBidAsk(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
-	var parsedTicker any = this.ParseWsBidAsk(ticker)
+	var parsedTicker map[string]any = this.ParseWsBidAsk(ticker)
 	var symbol string = *this.SafeString(parsedTicker, "symbol", "")
 	if symbol != "" {
 		this.Bidsasks[symbol] = ccxt.TickerFromMap(parsedTicker)
@@ -1037,7 +1037,7 @@ func (this *Cryptocom) HandleBidAsk(client any, message map[string]any) {
 	var messageHash string = "bidask." + symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Cryptocom) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "i")
@@ -1172,9 +1172,9 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1189,7 +1189,7 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var tick map[string]any = ccxt.SafeMapTyped(data, i)
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1368,8 +1368,8 @@ func (this *Cryptocom) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.Positions == nil) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -1409,7 +1409,7 @@ func (this *Cryptocom) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 func (this *Cryptocom) SetPositionsCache(client any, typeVar any, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -1435,18 +1435,18 @@ func (this *Cryptocom) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool],
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
 		if (contracts != nil) && (*contracts > 0) {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(cache)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	}
 	return nil
@@ -1484,13 +1484,13 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = rawPositions[i]
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
 	for i := 0; i < len(messageHashes); i++ {
@@ -1882,9 +1882,8 @@ func (this *Cryptocom) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], me
 		},
 		"nonce": id,
 	}
-	var message map[string]any = this.DeepExtend(request, params)
 
-	r := <-this.WatchMultiple(url, messageHashes, message, messageHashes)
+	r := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1920,9 +1919,8 @@ func (this *Cryptocom) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool],
 		"subMessageHashes": subMessageHashes,
 		"messageHashes":    messageHashes,
 	}
-	var message map[string]any = this.DeepExtend(request, params)
 
-	r := <-this.WatchMultiple(url, messageHashes, message, messageHashes, this.Extend(subscription, subExtend))
+	r := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes, this.Extend(subscription, subExtend))
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2153,9 +2151,9 @@ func (this *Cryptocom) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		var method string = "public/auth"
 		var nonceValue int64 = this.IncrementingNonce()
 		var nonce *string = this.NumberToString(nonceValue)
@@ -2172,7 +2170,7 @@ func (this *Cryptocom) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2195,8 +2193,8 @@ func (this *Cryptocom) HandleAuthenticate(client any, message map[string]any) {
 	//
 	//  { id: 1648132625434, method: "public/auth", code: 0 }
 	//
-	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
-	future.(*ccxt.Future).Resolve(true)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	future.Resolve(true)
 }
 func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
 	var id *string = this.SafeString(message, "id")

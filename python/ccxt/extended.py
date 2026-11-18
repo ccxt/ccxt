@@ -274,8 +274,11 @@ class extended(Exchange, ImplicitAPI):
                 },
             },
             'fees': {
-                'taker': self.parse_number('0.002'),
-                'maker': self.parse_number('0.002'),
+                'taker': self.parse_number('0.00025'),
+                'maker': self.parse_number('0'),
+                'rwa': {
+                    'taker': self.parse_number('0.0001'),
+                },
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -385,6 +388,7 @@ class extended(Exchange, ImplicitAPI):
         retrieves data on all markets for extended
 
         https://api.docs.extended.exchange/#get-markets
+        https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -557,6 +561,8 @@ class extended(Exchange, ImplicitAPI):
         minAmount = self.safe_number(tradingConfig, 'minOrderSize')
         maxCost = self.safe_number(tradingConfig, 'maxLimitOrderValue')
         created = self.safe_integer(market, 'createdAt')
+        category = self.safe_string_lower(market, 'category')
+        takerFees = self.safe_dict(self.fees, 'rwa', {}) if (category == 'rwa') else self.fees
         settleId = None
         settle = None
         symbol = base + '/' + quote
@@ -597,7 +603,7 @@ class extended(Exchange, ImplicitAPI):
             'contract': not isSpot,
             'linear': linear,
             'inverse': inverse,
-            'taker': self.safe_number(self.fees, 'taker'),
+            'taker': self.safe_number(takerFees, 'taker'),
             'maker': self.safe_number(self.fees, 'maker'),
             'contractSize': contractSize,
             'expiry': None,
@@ -1120,7 +1126,7 @@ class extended(Exchange, ImplicitAPI):
             'rate': self.safe_number(history, 'fundingRate'),
         }
 
-    def parse_funding_histories(self, histories: list[object], market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
+    def parse_funding_histories(self, histories: list[dict], market: Market = None, since: Int = None, limit: Int = None) -> list[FundingHistory]:
         result = []
         for i in range(0, len(histories)):
             result.append(self.parse_funding_history(self.safe_dict(histories, i, {}), market))
@@ -2338,7 +2344,7 @@ class extended(Exchange, ImplicitAPI):
         lastUpdateTimestamp = self.safe_integer_2(position, 'updatedAt', 'updatedTime')
         lastUpdateTimestamp = self.safe_integer(position, 'closedTime', lastUpdateTimestamp)
         side = self.safe_string_lower(position, 'side')
-        margin = self.safe_string(position, 'margin')
+        margin = self.safe_number(position, 'margin')
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
@@ -2350,24 +2356,24 @@ class extended(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'entryPrice': self.safe_string(position, 'openPrice'),
-            'notional': self.safe_string(position, 'value'),
-            'leverage': self.safe_string(position, 'leverage'),
-            'unrealizedPnl': self.safe_string(position, 'unrealisedPnl'),
-            'realizedPnl': self.safe_string(position, 'realisedPnl'),
-            'contracts': self.safe_string(position, 'size'),
-            'contractSize': self.safe_string(marketResolved, 'contractSize'),
+            'entryPrice': self.safe_number(position, 'openPrice'),
+            'notional': self.safe_number(position, 'value'),
+            'leverage': self.safe_number(position, 'leverage'),
+            'unrealizedPnl': self.safe_number(position, 'unrealisedPnl'),
+            'realizedPnl': self.safe_number(position, 'realisedPnl'),
+            'contracts': self.safe_number(position, 'size'),
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'marginRatio': None,
-            'liquidationPrice': self.safe_string(position, 'liquidationPrice'),
-            'markPrice': self.safe_string(position, 'markPrice'),
-            'lastPrice': self.safe_string(position, 'exitPrice'),
+            'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': self.safe_number(position, 'exitPrice'),
             'collateral': margin,
             'marginMode': None,
             'side': side,
             'percentage': None,
             'hedged': None,
-            'stopLossPrice': self.safe_string(position, 'slTriggerPrice'),
-            'takeProfitPrice': self.safe_string(position, 'tpTriggerPrice'),
+            'stopLossPrice': self.safe_number(position, 'slTriggerPrice'),
+            'takeProfitPrice': self.safe_number(position, 'tpTriggerPrice'),
         })
 
     def get_extended_stark_amount(self, amount: str, resolution: Int, roundUp: bool = False) -> str:

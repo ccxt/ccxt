@@ -190,8 +190,8 @@ export default class p2b extends p2bRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -331,7 +331,7 @@ export default class p2b extends p2bRest {
         //    }
         //
         const data = this.safeList (message, 'params', []);
-        const trades = this.safeList (data, 1, []);
+        const trades: Dict[] = this.safeList (data, 1, []);
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol', '');

@@ -54,7 +54,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     public Long requestId()
     {
-        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Long requestId = (this.safeInteger(this.options, "requestId", 0) + 1L);
         this.options.put("requestId", requestId);
         return requestId;
     }
@@ -101,7 +101,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     public void handleTicker(Client client, Map<String, Object> message)
     {
-        Map<String, Object> payload = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
+        Map<String, Object> payload = this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         //
         //     {
         //         "OMSId": 1,
@@ -192,7 +192,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     public void handleTrades(Client client, Map<String, Object> message)
     {
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         // initial snapshot
         //
@@ -214,17 +214,17 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //
         String name = "SubscribeTrades";
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)payload).size(); i++)
+        for (var i = 0; i < payload.size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)), (Map<String, Object>) null);
             String symbol = this.safeString(trade, "symbol");
-            Object tradesArray = (((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) ((((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol));
             if (java.util.Objects.equals(tradesArray, null))
             {
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)limit).intValue());
             }
-            ((io.github.ccxt.ws.ArrayCache) tradesArray).append(trade);
+            tradesArray.append(trade);
             if (!java.util.Objects.equals(symbol, null))
             {
                 this.trades.put(symbol, tradesArray);
@@ -235,14 +235,14 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }
         }
         List<String> symbols = new ArrayList<String>(updates.keySet());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = this.market(symbol);
             String marketId = this.safeString(market, "id", "");
             String messageHash = ((name + ":") + marketId);
-            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
-            client.resolve(tradesArray, messageHash);
+            io.github.ccxt.ws.ArrayCache symbolTrades = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
+            client.resolve(symbolTrades, messageHash);
         }
     }
 
@@ -308,7 +308,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         [
@@ -326,16 +326,16 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //     ]
         //
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)payload).size(); i++)
+        for (var i = 0; i < payload.size(); i++)
         {
-            List<Object> ohlcv = (List<Object>) this.safeList(payload, i, (Object) null);
+            List<Object> ohlcv = this.safeList(payload, i, null);
             String marketId = this.safeString(ohlcv, 8);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
             Map<String, Object> marketUpdates = new HashMap<String, Object>() {{}};
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             List<Object> keys = (this.timeframes == null ? new ArrayList<Object>() : new ArrayList<Object>(this.timeframes.keySet()));
-            for (var j = 0; j < ((List<?>)keys).size(); j++)
+            for (var j = 0; j < keys.size(); j++)
             {
                 Object timeframe = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                 String interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -347,7 +347,13 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 }
                 Long candleTimestamp = this.parseToInt(Helpers.multiply(((((double) timestamp) / ((double) duration))), duration));
                 List<Object> parsed = new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
-                Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
+                io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
+                if (java.util.Objects.equals(stored, null))
+                {
+                    Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                    stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
+                    Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                }
                 Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
                 Object previous = this.safeValue(stored, (((long) length) - 1L));
                 Long previousTimestamp = this.safeInteger(previous, 0);
@@ -375,7 +381,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                             low = previousLow;
                         }
                     }
-                    Helpers.addElementToObject(stored, (((long) length) - 1L), new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(previous, 1), high, low, this.safeFloat(ohlcv, 4), this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5)))));
+                    stored.append(new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(previous, 1), high, low, this.safeFloat(ohlcv, 4), this.sum(this.safeFloat(ohlcv, 5), this.safeFloat(previous, 5)))));
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         marketUpdates.put((String)timeframe, true);
@@ -389,18 +395,12 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                             continue;
                         }
                     }
-                    ((List<Object>)stored).add(parsed);
-                    Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                    if ((limit == null || (length != null && length >= limit)))
-                    {
-                        ((List<Object>)stored).get(0);
-                    }
+                    stored.append(parsed);
                     if (!java.util.Objects.equals(marketId, null))
                     {
                         marketUpdates.put((String)timeframe, true);
                     }
                 }
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
             if (!java.util.Objects.equals(marketId, null))
             {
@@ -409,18 +409,18 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         }
         String name = "SubscribeTicker";
         List<String> marketIds = new ArrayList<String>(updates.keySet());
-        for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+        for (var i = 0; i < marketIds.size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             List<Object> timeframes = ((List<Object>) switch ((Object)((updates == null || marketId == null ? null : updates.get(marketId)))) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            for (var j = 0; j < ((List<?>)timeframes).size(); j++)
+            for (var j = 0; j < timeframes.size(); j++)
             {
                 Object timeframe = (timeframes == null || j < 0 || j >= timeframes.size() ? null : timeframes.get(j));
                 String messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 String symbol = this.safeString(market, "symbol", "");
-                List<Object> stored = (List<Object>) this.safeList(this.safeValue(this.ohlcvs, symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
-                client.resolve(stored, messageHash);
+                io.github.ccxt.ws.ArrayCache symbolOhlcv = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
+                client.resolve(symbolOhlcv, messageHash);
             }
         }
     }
@@ -452,7 +452,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String messageHash = ((name + ":") + marketId);
             String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
             Long requestId = this.requestId();
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
@@ -489,7 +489,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -504,7 +504,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         0,   // 9 Side
         //     ],
         //
-        List<Object> firstBidAsk = (List<Object>) this.safeList(payload, 0, new ArrayList<Object>(Arrays.asList()));
+        List<Object> firstBidAsk = this.safeList(payload, 0, new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(firstBidAsk, 7);
         if (java.util.Objects.equals(marketId, null))
         {
@@ -520,9 +520,9 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
         Long timestamp = this.safeInteger(firstBidAsk, 2);
         Long nonce = this.safeInteger(firstBidAsk, 0);
-        for (var i = 0; i < ((List<?>)payload).size(); i++)
+        for (var i = 0; i < payload.size(); i++)
         {
-            List<Object> bidask = (List<Object>) this.safeList(payload, i, (Object) null);
+            List<Object> bidask = this.safeList(payload, i, null);
             if (java.util.Objects.equals(timestamp, null))
             {
                 timestamp = this.safeInteger(bidask, 2);
@@ -551,17 +551,17 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Double amount = this.safeFloat(bidask, 8);
             Long side = this.safeInteger(bidask, 9);
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            Object orderbookSide = ((((side != null && side == 0)))) ? (orderbook == null ? null : orderbook.get("bids")) : (orderbook == null ? null : orderbook.get("asks"));
+            io.github.ccxt.ws.OrderBookSide orderbookSide = (io.github.ccxt.ws.OrderBookSide) (((((side != null && side == 0)))) ? (orderbook == null ? null : orderbook.get("bids")) : (orderbook == null ? null : orderbook.get("asks")));
             // 0 new, 1 update, 2 remove
             if ((type != null && type == 0))
             {
-                ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, amount);
+                orderbookSide.store(price, amount);
             } else if ((type != null && type == 1))
             {
-                ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, amount);
+                orderbookSide.store(price, amount);
             } else if ((type != null && type == 2))
             {
-                ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, 0);
+                orderbookSide.store(price, 0);
             }
         }
         orderbook.put("nonce", nonce);
@@ -583,7 +583,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         [
@@ -632,7 +632,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Long id = this.safeInteger(message, "i");
-        Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(id, null)))) ? null : this.safeDict(subscriptionsById, id, (Object) null));
+        Map<String, Object> subscription = this.safeDict(subscriptionsById, id, null);
         if (!java.util.Objects.equals(subscription, null))
         {
             Object method = this.safeValue(subscription, "method");

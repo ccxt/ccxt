@@ -21,11 +21,11 @@ export default class toobit extends toobitRest {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
-                // 'watchPosition': false,
             },
             'urls': {
                 'api': {
@@ -181,8 +181,8 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchTradesForSymbols([symbol], since, limit, params);
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -527,8 +527,8 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol, limit = undefined, params = {}) {
-        return this.watchOrderBookForSymbols([symbol], limit, params);
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -1030,7 +1030,7 @@ export default class toobit extends toobitRest {
         const url = this.getUserStreamUrl();
         const client = this.client(url);
         this.setPositionsCache(client, type, symbolsNormalized);
-        const cache = this.safeValue(this.positions, type);
+        const cache = this.safeValue(this.positionsByType, type);
         if (cache === undefined) {
             const snapshot = await client.future(type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
@@ -1042,10 +1042,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true);
     }
     setPositionsCache(client, type, symbols = undefined) {
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
-        if (type in this.positions) {
+        if (type in this.positionsByType) {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
@@ -1057,7 +1054,7 @@ export default class toobit extends toobitRest {
             }
         }
         else {
-            this.positions[type] = new ArrayCacheBySymbolBySide();
+            this.positionsByType[type] = new ArrayCacheBySymbolBySide();
         }
     }
     async loadPositionsSnapshot(client, messageHash, type) {
@@ -1065,8 +1062,8 @@ export default class toobit extends toobitRest {
             'type': type,
         };
         const positions = await this.fetchPositions(undefined, params);
-        this.positions[type] = new ArrayCacheBySymbolBySide();
-        const cache = this.positions[type];
+        this.positionsByType[type] = new ArrayCacheBySymbolBySide();
+        const cache = this.positionsByType[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             cache.append(position);
@@ -1104,13 +1101,10 @@ export default class toobit extends toobitRest {
         // ]
         //
         const accountType = 'swap';
-        if (this.positions === undefined) {
-            this.positions = {};
+        if (!(accountType in this.positionsByType)) {
+            this.positionsByType[accountType] = new ArrayCacheBySymbolBySide();
         }
-        if (!(accountType in this.positions)) {
-            this.positions[accountType] = new ArrayCacheBySymbolBySide();
-        }
-        const cache = this.positions[accountType];
+        const cache = this.positionsByType[accountType];
         // handleMessage's fallback dispatches one item at a time
         const position = this.parseWsPosition(message);
         const newPositions = [position];

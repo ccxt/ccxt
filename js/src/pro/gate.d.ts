@@ -1,5 +1,5 @@
 import gateRest from '../gate.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, OrderRequest, Bool, NullableDict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, OrderRequest, Bool, NullableDict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class gate extends gateRest {
@@ -259,7 +259,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     handleTrades(client: Client, message: Dict): void;
     /**
      * @method
@@ -395,7 +395,7 @@ export default class gate extends gateRest {
     getTypeByMarket(market: Market): Str;
     getUrlByMarketType(type: Str, isInverse?: Bool): Str;
     getMarketTypeByUrl(url: string): string;
-    requestId(): number;
+    requestId(): int;
     subscribePublic(url: Str, messageHash: string, payload: any[], channel: Str, params?: Dict, subscription?: Dict | undefined): Promise<any>;
     subscribePublicMultiple(url: Str, messageHashes: string[], payload: any[], channel: Str, params?: Dict): Promise<any>;
     unSubscribePublicMultiple(url: Str, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], payload: any, channel: Str, params?: Dict): Promise<any>;

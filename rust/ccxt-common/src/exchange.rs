@@ -24,16 +24,12 @@
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 use hmac::{Hmac, Mac};
-use sha2::{Sha256, Sha512, Digest as Sha2Digest};
+use sha2::{Sha256, Sha384, Sha512, Digest as Sha2Digest};
 use sha1::Sha1;
 use md5::Md5;
 use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
 use crate::{Value, ExchangeError, Result};
 
-type HmacSha256 = Hmac<Sha256>;
-type HmacSha512 = Hmac<Sha512>;
-type HmacSha1   = Hmac<Sha1>;
-type HmacMd5    = Hmac<Md5>;
 
 /// Callback type used by derived exchanges to provide their `describe()` data.
 pub type DescribeCallback = Arc<dyn Fn() -> Value + Send + Sync>;
@@ -46,8 +42,8 @@ struct HttpTimings { http_nanos: u64, json_nanos: u64, http_calls: u64 }
 // One owner thread holds the three counters; a caller hands it an add and never
 // waits, so there is no lock on the HTTP path. A read is ordered behind every
 // add this thread already posted.
-static TIMINGS: once_cell::sync::Lazy<crate::value::OwnerThread<HttpTimings>> =
-    once_cell::sync::Lazy::new(|| {
+static TIMINGS: std::sync::LazyLock<crate::value::OwnerThread<HttpTimings>> =
+    std::sync::LazyLock::new(|| {
         crate::value::OwnerThread::spawn("ccxt-http-timings", HttpTimings::default())
     });
 
@@ -172,6 +168,46 @@ pub struct Internals {
     /// `fetchWebEndpoint` treats a miss as fatal — see
     /// `crate::exchange::call_dynamic_required`.
     pub dynamic_dispatch_miss: Option<String>,
+    /// Typed views of `markets_by_id` / `currencies_by_id` / `currencies`, rebuilt only when the source map changes.
+    pub typed_by_id: std::sync::Mutex<TypedByIdStores>,
+}
+
+/// A typed by-id store decoded once from one source dict: `rows[i]` holds the records of the
+/// source's i-th id, so a lookup is one index probe and the keys are never copied.
+pub struct TypedById<T> {
+    source: Option<crate::value::Dict>,
+    rows: Vec<Vec<T>>,
+}
+
+impl<T> Default for TypedById<T> {
+    fn default() -> Self { TypedById { source: None, rows: Vec::new() } }
+}
+
+#[derive(Default)]
+pub struct TypedByIdStores {
+    pub markets:    Arc<TypedById<crate::types::Market>>,
+    pub currencies: Arc<TypedById<crate::types::Currency>>,
+    pub currencies_by_code: Arc<TypedById<crate::types::Currency>>,
+}
+
+impl<T> TypedById<T> {
+    /// The records stored under exchange id `id` (several markets can share one id).
+    pub fn records_by_id(&self, id: &str) -> Option<&[T]> {
+        let index = self.source.as_ref()?.get_index_of(id)?;
+        self.rows.get(index).map(Vec::as_slice)
+    }
+    fn is_from(&self, src: &Value) -> bool {
+        match (&self.source, src) { (Some(a), Value::Dict(b)) => Arc::ptr_eq(a, b), (None, Value::Dict(_)) => false, (None, _) => true, _ => false }
+    }
+    /// The shared store for `src`, decoded only when `src` is not the dict decoded last time.
+    fn refresh(store: &mut Arc<Self>, src: &Value, decode: impl Fn(&Value) -> Vec<T>) -> Arc<Self> {
+        if !store.is_from(src) {
+            let source = match src { Value::Dict(d) => Some(Arc::clone(d)), _ => None };
+            let rows = source.as_deref().map_or_else(Vec::new, |m| m.values().map(&decode).collect());
+            *store = Arc::new(TypedById { source, rows });
+        }
+        Arc::clone(store)
+    }
 }
 
 /// The Go-style "interface" that every derived exchange implements. When
@@ -179,50 +215,57 @@ pub struct Internals {
 /// rewrites it to `self.derived().parse_ticker(...)`; that goes through
 /// this trait's vtable to the derived exchange's override.
 ///
-/// Default impls return `Value::Null` so an unbound Exchange still
-/// compiles and runs (it just gives back empty results).
+/// Default impls delegate to `derived_parent()` and return `Value::Null`
+/// without one, so an unbound Exchange still compiles and runs.
 pub trait DerivedExchange {
+    /// The parent core of a subclass; each default below delegates to it, or returns Null without one.
+    fn derived_parent(&self) -> Option<&impl crate::exchange_generated::ExchangeBase> { None::<&BaseCore> }
+    /// The same parent for the `&mut self` slots (sign, handle_errors).
+    fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange_generated::ExchangeBase> { None::<&mut BaseCore> }
     // ── parsers (the dominant override surface) ──────────────────────────
-    fn parse_ticker(&self, _ticker: Value, _market: Value) -> Value { Value::Null }
-    fn parse_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
-    fn parse_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
-    fn parse_market(&self, _market: Value) -> Value { Value::Null }
-    fn parse_ohlcv(&self, _ohlcv: Value, _market: Value) -> Value { Value::Null }
-    fn parse_order_book(&self, _ob: Value, _symbol: Value, _ts: Value, _bk: Value, _ak: Value, _pk: Value, _ak2: Value, _ck: Value) -> Value { Value::Null }
-    fn parse_balance(&self, _response: Value) -> Value { Value::Null }
-    fn parse_position(&self, _position: Value, _market: Value) -> Value { Value::Null }
-    fn parse_funding_rate(&self, _rate: Value, _market: Value) -> Value { Value::Null }
-    fn parse_deposit(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_deposit_address(&self, _addr: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_last_price(&self, _entry: Value, _market: Value) -> Value { Value::Null }
-    fn parse_withdrawal(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_ledger_entry(&self, _entry: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_transfer(&self, _transfer: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_currency(&self, _currency: Value) -> Value { Value::Null }
-    fn parse_bid_ask(&self, _bidask: Value, _price_key: Value, _amount_key: Value, _market: Value) -> Value { Value::Null }
-    fn parse_open_interest(&self, _interest: Value, _market: Value) -> Value { Value::Null }
-    fn parse_liquidation(&self, _liquidation: Value, _market: Value) -> Value { Value::Null }
-    fn parse_funding_rate_history(&self, _entry: Value, _market: Value) -> Value { Value::Null }
-    fn parse_margin_modification(&self, _data: Value, _market: Value) -> Value { Value::Null }
-    fn parse_account(&self, _account: Value) -> Value { Value::Null }
-    fn parse_my_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
-    fn parse_transaction(&self, _transaction: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_borrow_interest(&self, _info: Value, _market: Value) -> Value { Value::Null }
-    fn parse_adl_rank(&self, _info: Value, _market: Value) -> Value { Value::Null }
-    fn parse_income(&self, _info: Value, _market: Value) -> Value { Value::Null }
-    fn parse_greeks(&self, _greeks: Value, _market: Value) -> Value { Value::Null }
-    fn parse_margin_mode(&self, _margin_mode: Value, _market: Value) -> Value { Value::Null }
-    fn parse_conversion(&self, _conversion: Value, _from_currency: Value, _to_currency: Value) -> Value { Value::Null }
-    fn parse_borrow_rate(&self, _info: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_leverage(&self, _leverage: Value, _market: Value) -> Value { Value::Null }
-    fn parse_market_leverage_tiers(&self, _info: Value, _market: Value) -> Value { Value::Null }
-    fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Value) -> Value { Value::Null }
-    fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
-    fn market(&self, _symbol: Value) -> Value { Value::Null }
+    fn parse_ticker(&self, ticker: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_ticker(p, ticker, market)) }
+    fn parse_trade(&self, trade: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_trade(p, trade, market)) }
+    fn parse_order(&self, order: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_order(p, order, market)) }
+    fn parse_market(&self, market: impl Into<Value>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_market(p, market)) }
+    fn parse_ohlcv(&self, ohlcv: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_ohlcv(p, ohlcv, market)) }
+    fn parse_order_book(&self, ob: impl Into<Value>, symbol: Value, optional_args: &[Value]) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_order_book(p, ob, symbol, optional_args)) }
+    fn parse_balance(&self, response: impl Into<Value>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_balance(p, response)) }
+    fn parse_position(&self, position: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_position(p, position, market)) }
+    fn parse_funding_rate(&self, rate: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_funding_rate(p, rate, market)) }
+    fn parse_deposit(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_deposit(p, tx, currency)) }
+    fn parse_deposit_address(&self, addr: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_deposit_address(p, addr, currency)) }
+    fn parse_last_price(&self, entry: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_last_price(p, entry, market)) }
+    fn parse_withdrawal(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_withdrawal(p, tx, currency)) }
+    fn parse_ledger_entry(&self, entry: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_ledger_entry(p, entry, currency)) }
+    fn parse_transfer(&self, transfer: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_transfer(p, transfer, currency)) }
+    fn parse_currency(&self, currency: impl Into<Value>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_currency(p, currency)) }
+    fn parse_bid_ask(&self, bidask: Value, price_key: Value, amount_key: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_bid_ask(p, bidask, price_key, amount_key, market)) }
+    fn parse_open_interest(&self, interest: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_open_interest(p, interest, market)) }
+    fn parse_liquidation(&self, liquidation: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_liquidation(p, liquidation, market)) }
+    fn parse_funding_rate_history(&self, entry: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_funding_rate_history(p, entry, market)) }
+    fn parse_margin_modification(&self, data: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_margin_modification(p, data, market)) }
+    fn parse_account(&self, account: impl Into<Value>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_account(p, account)) }
+    fn parse_my_trade(&self, trade: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_my_trade(p, trade, market)) }
+    fn parse_transaction(&self, transaction: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_transaction(p, transaction, currency)) }
+    fn parse_borrow_interest(&self, info: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_borrow_interest(p, info, market)) }
+    fn parse_adl_rank(&self, info: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_adl_rank(p, info, market)) }
+    fn parse_income(&self, info: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_income(p, info, market)) }
+    fn parse_greeks(&self, greeks: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_greeks(p, greeks, market)) }
+    fn parse_margin_mode(&self, margin_mode: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_margin_mode(p, margin_mode, market)) }
+    fn parse_conversion(&self, conversion: impl Into<Value>, from_currency: Option<&crate::types::Currency>, to_currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_conversion(p, conversion, from_currency, to_currency)) }
+    fn parse_borrow_rate(&self, info: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_borrow_rate(p, info, currency)) }
+    fn parse_leverage(&self, leverage: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_leverage(p, leverage, market)) }
+    fn parse_market_leverage_tiers(&self, info: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_market_leverage_tiers(p, info, market)) }
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_deposit_withdraw_fee(p, fee, currency)) }
+    fn create_expired_option_market(&self, symbol: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::create_expired_option_market(p, symbol)) }
+    /// Typed like `ExchangeBase::market`, whose dispatch hands the call here unchanged; the default is the parent's, else the base lookup.
+    fn market(&self, symbol: &str) -> Result<crate::types::Market> where Self: crate::exchange_generated::ExchangeBase {
+        match self.derived_parent() { Some(p) => DerivedExchange::market(p, symbol), None => crate::exchange_generated::ExchangeBase::market_non_virtual(self, symbol) }
+    }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
-    fn parse_prediction_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
-    fn parse_prediction_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
-    fn parse_prediction_position(&self, _position: Value, _market: Value) -> Value { Value::Null }
+    fn parse_prediction_trade(&self, trade: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_prediction_trade(p, trade, market)) }
+    fn parse_prediction_order(&self, order: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_prediction_order(p, order, market)) }
+    fn parse_prediction_position(&self, position: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_prediction_position(p, position, market)) }
     // ── signers / error handlers ─────────────────────────────────────────
     /// `nonce()` — the request timestamp. The base default is `seconds()`, but
     /// 47 venues override it (binance: `milliseconds() - timeDifference`), and
@@ -231,9 +274,9 @@ pub trait DerivedExchange {
     /// `ExchangeBase::nonce` at deref step 0 and never looks at the REST
     /// parent's inherent one. Binance spot then signs its ws-api subscribe with
     /// a seconds timestamp and the venue answers -1130.
-    fn nonce(&self) -> Value { Value::Null }
-    fn sign(&self, _path: Value, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
-    fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
+    fn nonce(&self) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::nonce(p)) }
+    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::sign(p, path, optional_args)) }
+    fn handle_errors(&mut self, code: Value, reason: Value, url: Value, method: Value, headers: Value, body: Value, response: Value, request_headers: Value, request_body: Value) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::handle_errors(p, code, reason, url, method, headers, body, response, request_headers, request_body)) }
 }
 
 // `Internals` no longer holds raw pointers, so `Send`/`Sync` are auto-derived
@@ -260,6 +303,7 @@ impl Default for Internals {
             implicit_api:     HashMap::new(),
             dispatch_stack:      Vec::new(),
             dynamic_dispatch_miss: None,
+            typed_by_id:      std::sync::Mutex::new(TypedByIdStores::default()),
         }
     }
 }
@@ -344,7 +388,7 @@ pub struct Exchange {
     pub commonCurrencies:  Value,
     pub baseCurrencies:    Value,
     pub quoteCurrencies:   Value,
-    pub symbols:           Value,
+    pub symbols:           crate::value::List,
     pub ids:               Value,
     pub codes:             Value,
     pub timeframes:        Value,
@@ -363,11 +407,12 @@ pub struct Exchange {
     pub accountsById:      Value,
 
     // runtime state
-    pub orderbooks:        Value,
-    pub orders:            Value,
-    pub trades:            Value,
-    pub myTrades:          Value,
-    pub positions:         Value,
+    pub orderbooks:        crate::pro::order_book::BookMap,
+    pub orders:            Option<crate::pro::cache::Cache>,
+    pub trades:            crate::pro::cache::CacheMap,
+    pub myTrades:          Option<crate::pro::cache::Cache>,
+    pub positions:         Option<crate::pro::cache::Cache>,
+    pub positionsByType:   crate::pro::cache::CacheMap,
     // WS state — mirrors `ts/src/base/Exchange.ts` `newUpdates: boolean = true`.
     // Per-exchange WS code reads `self.newUpdates` to decide whether to call
     // `cache.getLimit(...)` (return only what's new since the last call) or
@@ -375,12 +420,12 @@ pub struct Exchange {
     pub newUpdates:        Value,
     pub tickers:           Value,
     pub bidsasks:          Value,
-    pub ohlcvs:            Value,
+    pub ohlcvs:            crate::pro::cache::CacheShelf,
     pub clients:           Value,
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub balance:           Value,
-    pub liquidations:      Value,
-    pub myLiquidations:    Value,
+    pub liquidations:      Option<crate::pro::cache::Cache>,
+    pub myLiquidations:    Option<crate::pro::cache::Cache>,
     pub fundingRates:      Value,
     pub triggerOrders:     Value,
     pub transactions:      Value,
@@ -692,7 +737,7 @@ impl Exchange {
             },
             baseCurrencies:    Value::Null,
             quoteCurrencies:   Value::Null,
-            symbols:           Value::Null,
+            symbols:           std::sync::Arc::new(Vec::new()),
             ids:               Value::Null,
             codes:             Value::Null,
             timeframes:        Value::Null,
@@ -728,19 +773,20 @@ impl Exchange {
             accounts:          Value::Null,
             accountsById:      Value::Null,
 
-            orderbooks:    Value::Map(HashMap::new()),
-            orders:        Value::Null,
-            trades:        Value::Map(HashMap::new()),
-            myTrades:      Value::Null,
-            positions:     Value::Null,
+            orderbooks:    crate::pro::order_book::BookMap::new(),
+            orders:        None,
+            trades:        crate::pro::cache::CacheMap::new(),
+            myTrades:      None,
+            positions:     None,
+            positionsByType: crate::pro::cache::CacheMap::new(),
             newUpdates:    Value::Bool(true),
             tickers:       Value::Map(HashMap::new()),
             bidsasks:      Value::Map(HashMap::new()),
-            ohlcvs:        Value::Map(HashMap::new()),
+            ohlcvs:        crate::pro::cache::CacheShelf::new(),
             clients:       Value::Map(HashMap::new()),
             balance:       Value::Map(HashMap::new()),
-            liquidations:  Value::Null,
-            myLiquidations: Value::Null,
+            liquidations:  None,
+            myLiquidations: None,
             fundingRates:  Value::Null,
             triggerOrders: Value::Null,
             transactions:  Value::Map(HashMap::new()),
@@ -841,6 +887,10 @@ impl Exchange {
         assign(&mut self.timeframes, get("timeframes"));
         assign(&mut self.fees, get("fees"));
         assign(&mut self.features, get("features"));
+        // `userAgent` (describe() or user config): a string, a `{ 'User-Agent': .. }`
+        // dict, or `false` to send none; `userAgents` replaces the base table.
+        assign(&mut self.userAgent, get("userAgent"));
+        assign(&mut self.userAgents, get("userAgents"));
         let rate_limit = get("rateLimit");
         if matches!(rate_limit, Value::Int(_) | Value::Float(_)) {
             self.rateLimit = rate_limit;
@@ -959,7 +1009,7 @@ impl Exchange {
         self.markets_by_id = Value::Map(
             by_id.into_iter().map(|(k, v)| (k, Value::Array(v))).collect()
         );
-        self.symbols       = Value::Array(symbols);
+        self.symbols       = std::sync::Arc::new(symbols);
     }
 
     // ── http client ─────────────────────────────────────────────────────────
@@ -1027,15 +1077,122 @@ impl Exchange {
         }
     }
 
+    /// The User-Agent sent with every request, picked as Exchange.ts `fetch` does:
+    /// `userAgent`, else `user_agent`, else `userAgents['chrome']` when both are unset;
+    /// a dict value sends its `User-Agent` entry; `false` or `''` sends none.
     fn user_agent_str(&self) -> Option<&str> {
-        match &self.userAgent { Value::Str(s) => Some(s.as_ref()), _ => match &self.user_agent {
-            Value::Str(s) => Some(s.as_ref()), _ => None
-        }}
+        let chosen = match (&self.userAgent, &self.user_agent) {
+            (Value::Null, Value::Null) => self.userAgents.as_map().and_then(|m| m.get("chrome")),
+            (Value::Null, ua) | (ua, _) => Some(ua),
+        };
+        let header = match chosen {
+            Some(Value::Dict(m)) => m.get("User-Agent"),
+            other => other,
+        };
+        match header {
+            Some(Value::Str(s)) if !s.is_empty() => Some(s.as_ref()),
+            _ => None,
+        }
     }
 
 
-    fn is_verbose(&self) -> bool {
+    /// Whether request/response logging is on.
+    pub fn is_verbose(&self) -> bool {
         matches!(self.verbose, Value::Bool(true))
+    }
+
+    // Setup accessors, reached on every exchange through its `Deref<Target = Exchange>`.
+    // Setters take Rust primitives and return `&mut Self` so they chain.
+
+    /// Every loaded market, typed. Empty until markets are loaded.
+    pub fn markets(&self) -> Vec<crate::types::Market> {
+        match &self.markets {
+            Value::Dict(d) => d.values().cloned().map(crate::types::Market::from_value).collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Markets by exchange id (one id can name several markets), typed and shared.
+    pub fn markets_by_id_typed(&self) -> Arc<TypedById<crate::types::Market>> {
+        let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
+        TypedById::refresh(&mut stores.markets, &self.markets_by_id, |v| match v {
+            Value::Arr(a) => a.iter().cloned().map(crate::types::Market::from_value).collect(),
+            _ => Vec::new(),
+        })
+    }
+
+    /// Currencies by exchange id, typed and shared.
+    pub fn currencies_by_id_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
+        let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
+        TypedById::refresh(&mut stores.currencies, &self.currencies_by_id, |v| match v {
+            Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
+            _ => Vec::new(),
+        })
+    }
+
+    /// Currencies by unified code, typed and shared (same store shape as the by-id one).
+    pub fn currencies_by_code_typed(&self) -> Arc<TypedById<crate::types::Currency>> {
+        let mut stores = self.internals.typed_by_id.lock().unwrap_or_else(|e| e.into_inner());
+        TypedById::refresh(&mut stores.currencies_by_code, &self.currencies, |v| match v {
+            Value::Dict(_) => vec![crate::types::Currency::from_value(v.clone())],
+            _ => Vec::new(),
+        })
+    }
+
+    /// Every loaded currency, typed. Empty until markets are loaded.
+    pub fn currencies(&self) -> Vec<crate::types::Currency> {
+        match &self.currencies {
+            Value::Dict(d) => d.values().cloned().map(crate::types::Currency::from_value).collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Unified symbols of every loaded market, sorted.
+    pub fn symbols(&self) -> Vec<String> {
+        let mut out: Vec<String> = self.markets().into_iter().map(|m| m.symbol).collect();
+        out.sort();
+        out
+    }
+
+    /// The ccxt id of this exchange, e.g. binance.
+    pub fn id(&self) -> String {
+        match &self.id { Value::Str(s) => s.to_string(), _ => String::new() }
+    }
+
+    /// Whether sandbox/testnet endpoints are in use.
+    pub fn is_sandbox_mode_enabled(&self) -> bool {
+        matches!(self.isSandboxModeEnabled, Value::Bool(true))
+    }
+
+    /// Log every HTTP request and response to stderr.
+    pub fn set_verbose(&mut self, on: bool) -> &mut Self { self.verbose = Value::Bool(on); self }
+    /// Client-side rate limiting (on by default).
+    pub fn set_enable_rate_limit(&mut self, on: bool) -> &mut Self { self.enableRateLimit = Value::Bool(on); self }
+    /// Milliseconds per rate-limit token; read on every throttled call.
+    pub fn set_rate_limit_ms(&mut self, ms: i64) -> &mut Self { self.rateLimit = Value::Int(ms); self }
+    /// HTTP request timeout in milliseconds.
+    pub fn set_timeout_ms(&mut self, ms: i64) -> &mut Self { self.timeout = Value::Int(ms); self }
+    pub fn set_api_key(&mut self, v: &str) -> &mut Self { self.apiKey = Value::from(v); self }
+    pub fn set_secret(&mut self, v: &str) -> &mut Self { self.secret = Value::from(v); self }
+    pub fn set_password(&mut self, v: &str) -> &mut Self { self.password = Value::from(v); self }
+    pub fn set_uid(&mut self, v: &str) -> &mut Self { self.uid = Value::from(v); self }
+    pub fn set_wallet_address(&mut self, v: &str) -> &mut Self { self.walletAddress = Value::from(v); self }
+    pub fn set_private_key(&mut self, v: &str) -> &mut Self { self.privateKey = Value::from(v); self }
+    pub fn set_token(&mut self, v: &str) -> &mut Self { self.token = Value::from(v); self }
+    /// REST proxies: set at most one (conflicting proxy settings are rejected per request).
+    pub fn set_http_proxy(&mut self, url: &str) -> &mut Self { self.httpProxy = Value::from(url); self }
+    pub fn set_https_proxy(&mut self, url: &str) -> &mut Self { self.httpsProxy = Value::from(url); self }
+    pub fn set_socks_proxy(&mut self, url: &str) -> &mut Self { self.socksProxy = Value::from(url); self }
+    /// WebSocket proxy, dialed with an HTTP CONNECT tunnel by the `watch*` transport.
+    pub fn set_ws_proxy(&mut self, url: &str) -> &mut Self { self.wsProxy = Value::from(url); self }
+
+    /// Merge entries into `options` the way `Config::options` does; nested objects combine.
+    pub fn set_options(&mut self, options: crate::Params) -> &mut Self {
+        let merged = crate::Config::new().options(crate::Params::from(self.options.clone()))
+            .options(options)
+            .into_value();
+        self.options = crate::runtime::get_value(&merged, &Value::Str("options".into()));
+        self
     }
 
 
@@ -1050,17 +1207,17 @@ impl Exchange {
         )).collect::<Vec<_>>().join("&")
     }
 
-    pub fn implode_params(&self, path: Value, params: Value) -> Value {
-        let path_str = match &path { Value::Str(s) => s.clone(), _ => return path };
-        let m = match &params { Value::Dict(m) => m, _ => return Value::Str(path_str) };
+    pub fn implode_params(&self, path: Value, params: Value) -> String {
+        let path_str: String = match &path { Value::Str(s) => s.to_string(), Value::Null => return String::new(), other => return other.to_string() };
+        let m = match &params { Value::Dict(m) => m, _ => return path_str };
         let mut out = path_str;
         for (k, v) in m.iter() {
             let needle = format!("{{{k}}}");
             if out.contains(&needle) {
-                out = out.replace(&needle, &crate::runtime::stringify_param(v)).into();
+                out = out.replace(&needle, &crate::runtime::stringify_param(v));
             }
         }
-        Value::Str(out)
+        out
     }
 
     pub fn json_str(&self, v: &Value) -> String {
@@ -1069,103 +1226,88 @@ impl Exchange {
 
     // ── crypto ──────────────────────────────────────────────────────────────
 
-    pub fn hmac(&self, data: Value, secret: Value, hash: Value, optional_args: &[Value]) -> Value {
+    pub fn hmac(&self, data: impl Into<Value>, secret: impl Into<Value>, hash: Value, optional_args: &[Value]) -> String {
         // `data`/`secret` may be a string OR the byte-array produced by
         // `encode()` (CCXT's `hmac` takes the encoded request/secret).
-        let dbytes = value_to_bytes(&data);
-        let sbytes = value_to_bytes(&secret);
+        let dbytes = value_to_bytes(&data.into());
+        let sbytes = value_to_bytes(&secret.into());
         let h = match &hash { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        match self.hmac_typed(&dbytes, &sbytes, &h, &digest) {
-            Ok(v) => Value::Str(v.into()),
-            Err(_) => Value::Null,
-        }
+        self.hmac_typed(&dbytes, &sbytes, &h, &digest).unwrap_or_default()
     }
 
     pub fn hmac_typed(&self, data: &[u8], secret: &[u8], hash: &str, digest: &str) -> Result<String> {
-        let dbytes = data;
-        let sbytes = secret;
-        let raw: Vec<u8> = match hash.to_ascii_lowercase().as_str() {
-            "sha256" => { let mut m = HmacSha256::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            "sha512" => { let mut m = HmacSha512::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            "sha1"   => { let mut m = HmacSha1::new_from_slice(sbytes).unwrap();   m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            "md5"    => { let mut m = HmacMd5::new_from_slice(sbytes).unwrap();    m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            other    => return Err(ExchangeError::new("BadRequest", format!("unknown hmac: {other}"))),
-        };
+        let raw = hmac_raw(data, secret, hash)
+            .ok_or_else(|| ExchangeError::new("BadRequest", format!("unknown hmac: {}", hash.to_ascii_lowercase())))?;
         Ok(match digest {
             "base64" => B64.encode(&raw),
-            _        => hex::encode(&raw),
+            _        => hex_encode(&raw),
         })
     }
 
-    pub fn hash(&self, data: Value, algo: Value, optional_args: &[Value]) -> Value {
-        // `data` may be a string OR the byte-array produced by `encode()`.
-        let dbytes = value_to_bytes(&data);
+    /// `hash` with a `'hex'` / `'base64'` digest (the default is hex); the `'binary'` digest is `hash_binary`.
+    pub fn hash(&self, data: impl Into<Value>, algo: Value, optional_args: &[Value]) -> String {
+        let dbytes = value_to_bytes(&data.into());
         let a = match &algo { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        let raw = hash_raw(&dbytes, &a);
-        match digest.as_ref() {
-            // `binary` → a byte-array Value (consumed by another crypto step).
-            "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-            "base64" => Value::Str(B64.encode(&raw).into()),
-            _        => Value::Str(hex::encode(&raw).into()),
-        }
+        self.hash_typed(&dbytes, &a, &digest)
+    }
+
+    /// `hash(data, algo, 'binary')`: the raw digest bytes.
+    pub fn hash_binary(&self, data: impl Into<Value>, algo: Value) -> crate::value::Bytes {
+        let a = match &algo { Value::Str(s) => s.as_ref(), _ => "sha256" };
+        crate::value::Bytes::of(&hash_raw(&value_to_bytes(&data.into()), a))
     }
 
     pub fn hash_typed(&self, data: &[u8], algo: &str, digest: &str) -> String {
         let raw = hash_raw(data, algo);
         match digest {
             "base64" => B64.encode(&raw),
-            _        => hex::encode(&raw),
+            _        => hex_encode(&raw),
         }
     }
 
-    pub fn binary_to_base64(&self, data: Value, _optional_args: &[Value]) -> Value {
-        let bytes = value_to_bytes(&data);
-        Value::Str(B64.encode(&bytes).into())
+    pub fn binary_to_base64(&self, data: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let bytes = value_to_bytes(&data.into());
+        B64.encode(&bytes)
     }
-    pub fn base64_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
-        let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
-        match B64.decode(&*str_val) {
-            Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
-            Err(_) => Value::Null,
-        }
+    pub fn base64_to_binary(&self, s: Value, _optional_args: &[Value]) -> crate::value::Bytes {
+        let str_val = match &s { Value::Str(s) => s.clone(), _ => return crate::value::Bytes::default() };
+        crate::value::Bytes::of(&B64.decode(&*str_val).unwrap_or_default())
     }
-    pub fn binary_to_base16(&self, data: Value, _optional_args: &[Value]) -> Value {
-        let bytes = value_to_bytes(&data);
-        Value::Str(hex::encode(&bytes).into())
+    pub fn binary_to_base16(&self, data: impl Into<Value>, _optional_args: &[Value]) -> String {
+        let bytes = value_to_bytes(&data.into());
+        hex_encode(&bytes)
     }
-    pub fn base16_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
-        let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
-        match hex::decode(&*str_val) {
-            Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
-            Err(_) => Value::Null,
-        }
+    pub fn base16_to_binary(&self, s: Value, _optional_args: &[Value]) -> crate::value::Bytes {
+        let str_val = match &s { Value::Str(s) => s.clone(), _ => return crate::value::Bytes::default() };
+        crate::value::Bytes::of(&hex_decode(&*str_val).unwrap_or_default())
     }
 
     // ── time ────────────────────────────────────────────────────────────────
 
-    pub fn milliseconds(&self) -> Value {
-        let n = std::time::SystemTime::now()
+    pub fn milliseconds(&self) -> i64 {
+        std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as i64).unwrap_or(0);
-        Value::Int(n)
+            .map(|d| d.as_millis() as i64).unwrap_or(0)
     }
-    pub fn seconds(&self) -> Value {
-        match self.milliseconds() { Value::Int(n) => Value::Int(n / 1000), v => v }
+    pub fn seconds(&self) -> i64 {
+        self.milliseconds() / 1000
     }
-    pub fn microseconds(&self) -> Value {
-        match self.milliseconds() { Value::Int(n) => Value::Int(n * 1000), v => v }
+    pub fn microseconds(&self) -> i64 {
+        self.milliseconds() * 1000
     }
 
-    pub fn iso8601(&self, ts: Value) -> Value {
-        let n = match ts {
+    /// `ts` takes any `Into<Value>`: a typed `i64` / `Option<i64>` / `f64` local passes as is and converts to the very
+    /// `Int` / `Null` / `Float` its box held, so the answer is the one the boxed call gave.
+    pub fn iso8601(&self, ts: impl Into<Value>) -> Value {
+        let n = match ts.into() {
             Value::Int(n)   => n,
             Value::Float(f) => f as i64,
             Value::Str(ref s) => match s.parse::<i64>() { Ok(v) => v, Err(_) => return Value::Null },
@@ -1179,14 +1321,14 @@ impl Exchange {
             .unwrap_or(Value::Null)
     }
 
-    pub fn parse8601(&self, s: Value) -> Value {
-        let str_val = match s { Value::Str(s) => s, _ => return Value::Null };
+    pub fn parse8601(&self, s: Value) -> Option<i64> {
+        let str_val = match s { Value::Str(s) => s, _ => return None };
         if str_val.is_empty() {
-            return Value::Null;
+            return None;
         }
         // rfc3339 (`T…Z` / `+00:00` offset forms).
         if let Ok(t) = chrono::DateTime::parse_from_rfc3339(&str_val) {
-            return Value::Int(t.timestamp_millis());
+            return Some(t.timestamp_millis());
         }
         // Numeric timezone offset WITHOUT a colon (`+0000`) — not valid
         // rfc3339 but common (e.g. bitso `2024-03-13T10:59:59+0000`). JS
@@ -1196,7 +1338,7 @@ impl Exchange {
             "%Y-%m-%d %H:%M:%S%.f%z", "%Y-%m-%d %H:%M:%S%z",
         ] {
             if let Ok(t) = chrono::DateTime::parse_from_str(&str_val, fmt) {
-                return Value::Int(t.timestamp_millis());
+                return Some(t.timestamp_millis());
             }
         }
         // Lenient fallbacks — naive forms are interpreted as UTC.
@@ -1206,15 +1348,15 @@ impl Exchange {
             "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M",
         ] {
             if let Ok(ndt) = chrono::NaiveDateTime::parse_from_str(&str_val, fmt) {
-                return Value::Int(ndt.and_utc().timestamp_millis());
+                return Some(ndt.and_utc().timestamp_millis());
             }
         }
         if let Ok(d) = chrono::NaiveDate::parse_from_str(&str_val, "%Y-%m-%d") {
             if let Some(ndt) = d.and_hms_opt(0, 0, 0) {
-                return Value::Int(ndt.and_utc().timestamp_millis());
+                return Some(ndt.and_utc().timestamp_millis());
             }
         }
-        Value::Null
+        None
     }
 
     // safe_string/safe_number/safe_integer/safe_bool live on the transpiled
@@ -1505,14 +1647,14 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let err = |id: &Value| Value::Str(format!(
             "[ExchangeError] {} loadOrderBook() failed to synchronize",
             match id { Value::Str(s) => s.as_ref(), _ => "" }).into());
-        if !crate::runtime::in_op(&self.orderbooks, &symbol) {
-            crate::pro::ws_client::value_reject(&client, &[err(&self.id), message_hash]);
+        if !crate::pro::cache::CacheStore::has(&self.orderbooks, &symbol) {
+            crate::pro::ws_client::value_reject(&client, err(&self.id), message_hash.as_str());
             return;
         }
         let max_retries: i64 = 3;
         let mut tries = 0;
         while tries < max_retries {
-            let mut stored = crate::get_value(&self.orderbooks, &symbol);
+            let mut stored = Value::from(crate::pro::cache::CacheStore::at(&self.orderbooks, &symbol));
             let cache = crate::get_value(&stored, &Value::Str("cache".into()));
             let snapshot = self
                 .dispatch_to_derived("fetch_rest_order_book_safe",
@@ -1531,42 +1673,43 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                     .collect();
                 self.dispatch_to_derived("handle_deltas", vec![stored.clone(), Value::List(deltas)]).await;
                 crate::set_value(&mut stored, &Value::Str("cache".into()), Value::List(Vec::new()));
-                crate::pro::ws_client::value_resolve(&client, &[stored.clone(), message_hash.clone()]);
+                crate::pro::ws_client::value_resolve(&client, stored.clone(), message_hash.as_str());
                 return;
             }
             tries += 1;
         }
-        crate::pro::ws_client::value_reject(&client, &[err(&self.id), message_hash]);
+        crate::pro::ws_client::value_reject(&client, err(&self.id), message_hash.as_str());
     } }
 
-    fn watch(
+    fn watch<'a>(
         &mut self,
-        url: Value,
-        message_hash: Value,
-        optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let hash_s = match &message_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
-        let subscribe_hash = optional_args.get(1).cloned().unwrap_or(message_hash.clone());
-        let sub_hash_s = match &subscribe_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
-        self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await
-    } }
+        url: impl Into<Option<&'a str>>,
+        message_hash: impl Into<Option<&'a str>>,
+        message: impl Into<Value>,
+        subscribe_hash: impl Into<Option<&'a str>>,
+        subscription: impl Into<Value>,
+    ) -> impl ::std::future::Future<Output = Value> + Send {
+        let hash_s = message_hash.into().unwrap_or("null").to_string();
+        let (url_s, message, subscription) = (url.into().unwrap_or("null").to_string(), message.into(), subscription.into());
+        let sub_hash_s = match subscribe_hash.into() { Some(s) => s.to_string(), None => hash_s.to_string() };
+        async move { self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await }
+    }
 
-    fn watch_multiple(
+    fn watch_multiple<'a>(
         &mut self,
-        url: Value,
-        message_hashes: Value,
-        optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
-        let hashes = ws_string_list(&message_hashes);
-        let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
-        let subscribe_hashes = ws_string_list(&optional_args.get(1).cloned().unwrap_or(Value::Null));
-        let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
-        self.ws_run(url_s, hashes, message, subscribe_hashes, subscription).await
-    } }
+        url: impl Into<Option<&'a str>>,
+        message_hashes: impl Into<Value>,
+        message: impl Into<Value>,
+        subscribe_hashes: impl Into<Value>,
+        subscription: impl Into<Value>,
+    ) -> impl ::std::future::Future<Output = Value> + Send {
+        let (url_s, message_hashes, message) = (url.into().unwrap_or("null").to_string(), message_hashes.into(), message.into());
+        let (subscribe_hashes, subscription) = (subscribe_hashes.into(), subscription.into());
+        async move {
+            let hashes = ws_string_list(&message_hashes);
+            self.ws_run(url_s, hashes, message, ws_string_list(&subscribe_hashes), subscription).await
+        }
+    }
 
     fn fetch_typed(
         &mut self,
@@ -1712,12 +1855,8 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // Static dispatch to the derived exchange's sign override.
         let signed = crate::exchange::DerivedExchange::sign(
             self,
-            Value::Str(path.to_string().into()),
-            api_arg,
-            Value::Str(verb.to_string().into()),
-            params.clone(),
-            Value::Null,
-            Value::Null,
+            path,
+            &[api_arg, Value::Str(verb.to_string().into()), params.clone(), Value::Null, Value::Null],
         );
         if let Value::Dict(m) = &signed {
             let url = match m.get("url") { Some(Value::Str(s)) => s.to_string(), _ => String::new().into() };
@@ -1737,8 +1876,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             "BadRequest",
             format!("no URL configured for api scope `{scope_lookup}`"),
         ))?;
-        let imploded = self.implode_params(Value::Str(path.to_string().into()), params.clone());
-        let path_str = match &imploded { Value::Str(s) => s.clone(), _ => path.to_string().into() };
+        let path_str = self.implode_params(Value::Str(path.to_string().into()), params.clone());
         let consumed_keys = self.extract_path_params(path);
         let remaining_params = match params {
             Value::Dict(m) => {
@@ -1831,9 +1969,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
     /// Loads markets (and currencies), dispatching `fetch_markets` /
     /// `fetch_currencies` / `set_markets` to the derived overrides.
-    fn load_markets(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let reload = optional_args.get(0).cloned().unwrap_or(Value::Bool(false));
-        let reload_b = matches!(reload, Value::Bool(true));
+    fn load_markets(&mut self, reload: bool, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = Result<crate::types::Markets>> + Send { async move {
+        let _ = params.into();
+        let markets = crate::runtime::call_typed(async move {
+        let reload_b = reload;
         if !reload_b && !self.markets.is_null() {
             return self.markets.clone();
         }
@@ -1846,8 +1985,16 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             if let Some(v) = self.dispatch_to_derived("fetch_currencies", Vec::new()).await {
                 currencies = v;
             }
+            // Exchange.ts loadMarketsHelper: fetchMarkets reads the just-fetched
+            // currencies from `options['cachedCurrencies']` (latoken, kraken, bitso, hyperliquid).
+            // Moved in and taken back out below: one object, as in JS.
+            set_cached_currencies(&mut self.options, std::mem::take(&mut currencies));
         }
-        let fetched = match self.dispatch_to_derived("fetch_markets", Vec::new()).await {
+        let fetched = self.dispatch_to_derived("fetch_markets", Vec::new()).await;
+        if let Some(c) = take_cached_currencies(&mut self.options) {
+            currencies = c;
+        }
+        let fetched = match fetched {
             Some(v) => v,
             None => return Value::Null,
         };
@@ -1891,7 +2038,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 self.markets_by_id = Value::Map(by_id);
             }
         }
+        let _ = (self.markets_by_id_typed(), self.currencies_by_id_typed());
         self.markets.clone()
+        }).await?;
+        Ok(crate::types::FromRaw::from_raw(markets))
     } }
 
     // ── super.X() shims — call the BASE (ExchangeBase) method, fully-qualified
@@ -1900,41 +2050,47 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::describe(self)
     }
     fn super_set_sandbox_mode(&mut self, enabled: Value) {
-        <Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled);
+        crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled.is_truthy()));
     }
-    fn super_safe_market(&self, id: Value, market: Value, delim: Value, market_type: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, &[id, market, delim, market_type])
+    fn super_safe_market(&self, id: Value, market: Option<&crate::types::Market>, delim: Value, market_type: Value) -> crate::types::Market {
+        <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, id, market, &[delim, market_type])
     }
-    fn super_handle_market_type_and_params(&self, method_name: Value, market: Value, params: Value, default_value: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, &[market, params, default_value])
+    fn super_handle_market_type_and_params(&self, method_name: Value, market: Option<&crate::types::Market>, params: Value, default_value: Value) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, market, &[params, default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol)
+        crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol.as_str().unwrap_or_default()))
     }
-    fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
+    fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Option<String> {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)
     }
     fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::handle_margin_mode_and_params(self, method_name, &[params, default_value])
     }
-    fn super_safe_currency_code(&self, currency_id: Value, currency: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::safe_currency_code(self, currency_id, &[currency])
+    fn super_safe_currency_code(&self, currency_id: Value, currency: Option<&crate::types::Currency>) -> Option<String> {
+        <Self as crate::exchange_generated::ExchangeBase>::safe_currency_code(self, currency_id, currency)
     }
     fn super_set_markets(&mut self, markets: Value, currencies: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, markets, &[currencies])
     }
-    fn super_network_id_to_code(&self, optional_args: &[Value]) -> Value {
+    fn super_network_id_to_code(&self, optional_args: &[Value]) -> Option<String> {
         <Self as crate::exchange_generated::ExchangeBase>::network_id_to_code(self, optional_args)
     }
     fn super_network_code_to_id(&self, network_code: Value, optional_args: &[Value]) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::network_code_to_id(self, network_code, optional_args)
     }
     fn super_fetch_deposit_address(&mut self, code: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        self.fetch_deposit_address(code, &[params]).await
+        let typed = <Self as crate::exchange_generated::ExchangeBase>::fetch_deposit_address(self, code.as_str().unwrap_or_default(), params).await;
+        crate::types::IntoRaw::into_raw(typed)
     } }
     fn super_load_markets(&mut self, reload: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        self.load_markets(&[reload, params]).await
+        crate::types::IntoRaw::into_raw(<Self as ExchangeRuntime>::load_markets(self, reload.is_truthy(), params).await)
     } }
+    // `self.X(..)` for the trait slots with no ExchangeBase method, so an override printed only in the trait impl stays callable.
+    fn parse_deposit(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { DerivedExchange::parse_deposit(self, tx, currency) }
+    fn parse_withdrawal(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { DerivedExchange::parse_withdrawal(self, tx, currency) }
+    fn parse_bid_ask(&self, bidask: Value, price_key: Value, amount_key: Value, market: Option<&crate::types::Market>) -> Value { DerivedExchange::parse_bid_ask(self, bidask, price_key, amount_key, market) }
+    fn parse_my_trade(&self, trade: Value, market: Option<&crate::types::Market>) -> Value { DerivedExchange::parse_my_trade(self, trade, market) }
 }
 
 impl<T: crate::exchange_generated::ExchangeBase> ExchangeRuntime for T {}
@@ -2016,6 +2172,24 @@ pub trait CallDynamicChecked: crate::exchange_generated::ExchangeBase {
 
 impl<T: crate::exchange_generated::ExchangeBase> CallDynamicChecked for T {}
 
+/// Every exchange (blanket over `ExchangeBase`): the typed unified methods come from
+/// `ExchangeBase` / `ExchangeRuntime`, so code over any venue is `fn f<E: TypedExchange>(ex: &mut E)`.
+pub trait TypedExchange: crate::exchange_generated::ExchangeBase + ExchangeRuntime {
+    /// A unified method by snake_case name (any unified method or implicit endpoint),
+    /// decoded into its typed return, e.g. `call::<Ticker>("fetch_ticker", args)`.
+    fn call<R: crate::types::FromRaw + Send>(&mut self, method: &str, args: Vec<Value>) -> impl ::std::future::Future<Output = Result<R>> + Send { async move {
+        Ok(R::from_raw(crate::runtime::call_typed(crate::exchange_generated::ExchangeBase::call_dynamic(self, method, args)).await?))
+    } }
+}
+
+impl<T: crate::exchange_generated::ExchangeBase> TypedExchange for T {}
+
+/// Receives the concrete venue picked by id (`with_exchange`), monomorphised per venue.
+pub trait ExchangeVisitor {
+    type Output;
+    fn visit<E: TypedExchange + 'static>(self, exchange: E) -> impl ::std::future::Future<Output = Self::Output> + Send;
+}
+
 /// A minimal Core wrapping a bare `Exchange` with NO overrides. Lets code that
 /// only has an `Exchange` value — `Value` snapshots (value.rs), the constructor
 /// (`after_construct`), and base unit tests — call `ExchangeBase`/`ExchangeRuntime`
@@ -2036,6 +2210,7 @@ impl std::ops::DerefMut for BaseCore {
     fn deref_mut(&mut self) -> &mut Exchange { &mut self.exchange }
 }
 impl DerivedExchange for BaseCore {}
+
 impl crate::exchange_generated::ExchangeBase for BaseCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>>
@@ -2328,6 +2503,7 @@ impl Exchange {
 pub(crate) fn hash_raw(data: &[u8], algo: &str) -> Vec<u8> {
     match algo.to_ascii_lowercase().as_str() {
         "sha256" => { let mut h = Sha256::new(); h.update(data); h.finalize().to_vec() }
+        "sha384" => { let mut h = Sha384::new(); h.update(data); h.finalize().to_vec() }
         "sha512" => { let mut h = Sha512::new(); h.update(data); h.finalize().to_vec() }
         "sha1"   => { let mut h = Sha1::new();   h.update(data); h.finalize().to_vec() }
         "md5"    => { let mut h = Md5::new();    h.update(data); h.finalize().to_vec() }
@@ -2338,6 +2514,32 @@ pub(crate) fn hash_raw(data: &[u8], algo: &str) -> Vec<u8> {
             h.finalize().to_vec()
         }
         _ => Vec::new(),
+    }
+}
+
+/// The one HMAC dispatch for every hmac path; `None` for an unknown algorithm.
+pub(crate) fn hmac_raw(data: &[u8], secret: &[u8], algo: &str) -> Option<Vec<u8>> {
+    fn mac<D: Mac + hmac::digest::KeyInit>(data: &[u8], secret: &[u8]) -> Vec<u8> {
+        let mut m = <D as Mac>::new_from_slice(secret).expect("HMAC accepts any key length");
+        m.update(data);
+        m.finalize().into_bytes().to_vec()
+    }
+    Some(match algo.to_ascii_lowercase().as_str() {
+        "sha256" => mac::<Hmac<Sha256>>(data, secret),
+        "sha384" => mac::<Hmac<Sha384>>(data, secret),
+        "sha512" => mac::<Hmac<Sha512>>(data, secret),
+        "sha1"   => mac::<Hmac<Sha1>>(data, secret),
+        "md5"    => mac::<Hmac<Md5>>(data, secret),
+        _ => return None,
+    })
+}
+
+/// Formats a raw digest: `binary` is a byte-array Value, `base64`, else hex.
+pub(crate) fn digest_value(raw: &[u8], digest: &str) -> Value {
+    match digest {
+        "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
+        "base64" => Value::Str(B64.encode(raw).into()),
+        _        => Value::Str(hex_encode(raw).into()),
     }
 }
 
@@ -2526,10 +2728,39 @@ fn eip712_bytes(v: &Value) -> Vec<u8> {
     match v {
         Value::Str(s) => {
             let h = s.strip_prefix("0x").unwrap_or(s);
-            hex::decode(h).unwrap_or_else(|_| s.as_bytes().to_vec())
+            hex_decode(h).unwrap_or_else(|| s.as_bytes().to_vec())
         }
         _ => value_to_bytes(v),
     }
+}
+
+/// Lowercase hex of `bytes`.
+pub(crate) fn hex_encode(bytes: impl AsRef<[u8]>) -> String {
+    const DIGITS: &[u8; 16] = b"0123456789abcdef";
+    let bytes = bytes.as_ref();
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        out.push(DIGITS[(b >> 4) as usize] as char);
+        out.push(DIGITS[(b & 0x0f) as usize] as char);
+    }
+    out
+}
+
+/// Hex (either case) to bytes; `None` on odd length or a non-hex char.
+pub(crate) fn hex_decode(s: impl AsRef<[u8]>) -> Option<Vec<u8>> {
+    fn nibble(c: u8) -> Option<u8> {
+        match c {
+            b'0'..=b'9' => Some(c - b'0'),
+            b'a'..=b'f' => Some(c - b'a' + 10),
+            b'A'..=b'F' => Some(c - b'A' + 10),
+            _ => None,
+        }
+    }
+    let s = s.as_ref();
+    if s.len() % 2 != 0 {
+        return None;
+    }
+    s.chunks_exact(2).map(|p| Some((nibble(p[0])? << 4) | nibble(p[1])?)).collect()
 }
 
 pub(crate) fn value_to_bytes(v: &Value) -> Vec<u8> {
@@ -2548,6 +2779,88 @@ pub(crate) fn url_pct(s: &str) -> String {
         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
         _ => format!("%{b:02X}"),
     }).collect()
+}
+
+/// Writes `options['cachedCurrencies']`, as Exchange.ts loadMarketsHelper does
+/// before its fetchMarkets call.
+fn set_cached_currencies(options: &mut Value, currencies: Value) {
+    if let Value::Dict(d) = options {
+        Arc::make_mut(d).insert("cachedCurrencies".to_string(), currencies);
+    }
+}
+
+/// Deletes `options['cachedCurrencies']` after fetchMarkets, handing the value back.
+fn take_cached_currencies(options: &mut Value) -> Option<Value> {
+    match options {
+        Value::Dict(d) => Arc::make_mut(d).shift_remove("cachedCurrencies"),
+        _ => None,
+    }
+}
+
+/// `options['cachedCurrencies']` lives only around fetchMarkets.
+#[cfg(test)]
+mod cached_currencies_tests {
+    use super::{set_cached_currencies, take_cached_currencies, Exchange};
+    use crate::Value;
+    use super::HashMap;
+
+    #[test]
+    fn cached_currencies_set_then_removed() {
+        let mut ex = Exchange::new(None);
+        let mut c = HashMap::new();
+        c.insert("BTC".to_string(), Value::Str("x".into()));
+        set_cached_currencies(&mut ex.options, Value::Map(c));
+        let cached = crate::get_value(&ex.options, &Value::Str("cachedCurrencies".into()));
+        assert_eq!(cached.as_map().map(|m| m.len()), Some(1));
+        let back = take_cached_currencies(&mut ex.options);
+        assert_eq!(back.as_ref().and_then(|v| v.as_map()).map(|m| m.len()), Some(1));
+        assert!(crate::get_value(&ex.options, &Value::Str("cachedCurrencies".into())).is_null());
+    }
+}
+
+/// The User-Agent pick, against the real constructor and `initialize_properties`.
+#[cfg(test)]
+mod user_agent_tests {
+    use super::Exchange;
+    use crate::Value;
+    use super::HashMap;
+
+    const CHROME: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36";
+    const CHROME39: &str = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36";
+
+    fn described(user_agent: Value) -> Value {
+        let mut m = HashMap::new();
+        m.insert("userAgent".to_string(), user_agent);
+        Value::Map(m)
+    }
+
+    #[test]
+    fn unset_user_agent_falls_back_to_user_agents_chrome() {
+        let mut ex = Exchange::new(None);
+        assert_eq!(ex.user_agent_str(), Some(CHROME));
+        ex.initialize_properties(described(Value::Null));
+        assert_eq!(ex.user_agent_str(), Some(CHROME));
+    }
+
+    #[test]
+    fn described_user_agent_is_applied() {
+        let mut ex = Exchange::new(None);
+        ex.initialize_properties(described(Value::Str(CHROME39.into())));
+        assert_eq!(ex.user_agent_str(), Some(CHROME39));
+    }
+
+    #[test]
+    fn dict_user_agent_sends_its_header_and_false_sends_none() {
+        let mut ex = Exchange::new(None);
+        let mut header = HashMap::new();
+        header.insert("User-Agent".to_string(), Value::Str("ccxt-test".into()));
+        ex.initialize_properties(described(Value::Map(header)));
+        assert_eq!(ex.user_agent_str(), Some("ccxt-test"));
+        ex.initialize_properties(described(Value::Bool(false)));
+        assert_eq!(ex.user_agent_str(), None);
+        ex.userAgent = Value::Str("".into());
+        assert_eq!(ex.user_agent_str(), None);
+    }
 }
 
 /// Pins the `mock_response` contract that `request_typed` implements: the canned
@@ -2802,7 +3115,7 @@ mod http_error_tests {
         fn deref_mut(&mut self) -> &mut Exchange { &mut self.exchange }
     }
     impl DerivedExchange for EnvelopeCore {
-        fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, response: Value, _request_headers: Value, _request_body: Value) -> Value {
+        fn handle_errors(&mut self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, response: Value, _request_headers: Value, _request_body: Value) -> Value {
             let code = crate::get_value(&response, &Value::Str("code".into()));
             if !matches!(code, Value::Null) && code != Value::Str("0".into()) {
                 panic!("{}", crate::exchange_errors::create_error("InsufficientFunds", "code 51008"));
@@ -2848,5 +3161,78 @@ mod http_error_tests {
         let mut core = BaseCore::new(Exchange::new(None));
         let error = fetch_error(&mut core, url).await;
         assert!(error.contains("ExchangeError"), "{error}");
+    }
+}
+
+#[cfg(test)]
+mod typed_by_id_tests {
+    use super::Exchange;
+    use crate::Value;
+    use indexmap::IndexMap;
+
+    fn market(id: &str, symbol: &str) -> Value {
+        let mut m = IndexMap::new();
+        m.insert("id".to_string(), Value::Str(id.to_string().into()));
+        m.insert("symbol".to_string(), Value::Str(symbol.to_string().into()));
+        Value::Map(m)
+    }
+
+    #[test]
+    fn by_id_stores_decode_once_and_follow_a_replaced_map() {
+        let mut ex = Exchange::new(None);
+        let mut by_id = IndexMap::new();
+        by_id.insert("BTCUSDT".to_string(), Value::Array(vec![market("BTCUSDT", "BTC/USDT"), market("BTCUSDT", "BTC/USDT:USDT")]));
+        ex.markets_by_id = Value::Map(by_id);
+        let first = ex.markets_by_id_typed();
+        let rows = first.records_by_id("BTCUSDT").unwrap();
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[1].symbol, "BTC/USDT:USDT");
+        assert_eq!(rows[0].id.as_deref(), Some("BTCUSDT"));
+        assert!(std::sync::Arc::ptr_eq(&first, &ex.markets_by_id_typed()));
+        assert!(first.records_by_id("ETHUSDT").is_none());
+        let mut cur = IndexMap::new();
+        cur.insert("XBt".to_string(), market("XBt", "BTC"));
+        ex.currencies_by_id = Value::Map(cur);
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].id.as_deref(), Some("XBt"));
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].code, None);
+        assert_eq!(ex.currencies_by_id_typed().records_by_id("XBt").unwrap()[0].active, None);
+        ex.markets_by_id = Value::Null;
+        assert!(ex.markets_by_id_typed().records_by_id("BTCUSDT").is_none());
+    }
+}
+
+#[cfg(test)]
+mod digest_dispatch_tests {
+    use super::*;
+
+    const SHA384_HMAC_JEFE: &str = "af45d2e376484031617f78d2b58a6b1b9c7ef464f5a01b47e42ec3736322445e8e2240ca5e69e2c78b3239ecfab21649";
+
+    #[test]
+    fn every_hmac_path_supports_sha384() {
+        let data = || Value::Str("what do ya want for nothing?".into());
+        let key = || Value::Str("Jefe".into());
+        let ex = Exchange::new(None);
+        let method = ex.hmac(data(), key(), Value::Str("sha384".into()), &[]);
+        let free = crate::runtime::hmac(data(), key(), Value::Str("sha384".into()), Value::Str("hex".into()));
+        let typed = ex.hmac_typed(b"what do ya want for nothing?", b"Jefe", "SHA384", "hex").unwrap();
+        assert_eq!(method, SHA384_HMAC_JEFE); // `hmac` returns String on this branch
+        assert_eq!(free, Value::Str(SHA384_HMAC_JEFE.into()));
+        assert_eq!(typed, SHA384_HMAC_JEFE);
+    }
+
+    #[test]
+    fn hash_supports_sha384() {
+        let ex = Exchange::new(None);
+        assert_eq!(ex.hash_typed(b"abc", "sha384", "hex"),
+            "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7");
+    }
+
+    #[test]
+    fn hex_helpers_match_hex_crate_semantics() {
+        assert_eq!(hex_encode([0x00u8, 0xab, 0xff]), "00abff");
+        assert_eq!(hex_decode("00ABff"), Some(vec![0x00, 0xab, 0xff]));
+        assert_eq!(hex_decode("abc"), None);
+        assert_eq!(hex_decode("zz"), None);
+        assert_eq!(hex_decode(""), Some(vec![]));
     }
 }

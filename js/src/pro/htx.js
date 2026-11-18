@@ -139,7 +139,7 @@ export default class htx extends htxRest {
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId();
-        return requestId.toString();
+        return requestId;
     }
     /**
      * @method
@@ -619,12 +619,12 @@ export default class htx extends htxRest {
         const requestId = this.requestId();
         const request = {
             'req': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
         const snapshotSubscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbol,
             'limit': limit,
@@ -634,7 +634,7 @@ export default class htx extends htxRest {
             'method': this.handleOrderBookSnapshot,
         };
         try {
-            const orderbook = await this.watch(url, requestId, request, requestId, snapshotSubscription);
+            const orderbook = await this.watch(url, requestId.toString(), request, requestId.toString(), snapshotSubscription);
             return orderbook.limit();
         }
         catch (e) {
@@ -1657,12 +1657,13 @@ export default class htx extends htxRest {
         const swap = (type === 'swap');
         const future = (type === 'future');
         const isV5Linear = (linear && (swap || future));
-        const isLinear = (subType === 'linear');
-        const url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
         messageHash = marginMode + ':positions' + messageHash;
         let channel = 'positions.*';
+        // one positions cache per margin mode: linear, inverse and futures symbols never collide
+        let cacheKey = 'isolated';
         if (marginMode === 'cross') {
             channel = 'positions_cross.*';
+            cacheKey = 'cross';
         }
         if (isV5Linear) {
             let v5Market = undefined;
@@ -1681,7 +1682,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.safeValue(this.safeValue(this.positions, url), marginMode), symbolsNormalized, since, limit, false);
+        return this.filterBySymbolsSinceLimit(this.safeValue(this.positionsByType, cacheKey), symbolsNormalized, since, limit, false);
     }
     handlePositions(client, message) {
         //
@@ -1763,18 +1764,10 @@ export default class htx extends htxRest {
         //         ]
         //     }
         //
-        const url = client.url;
         const topic = this.safeString(message, 'topic', '');
         let defaultMarginMode = 'isolated';
         if (topic === 'positions_cross') {
             defaultMarginMode = 'cross';
-        }
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
-        const clientPositions = this.safeDict(this.positions, url);
-        if (clientPositions === undefined) {
-            this.positions[url] = {};
         }
         const rawPositions = this.safeList(message, 'data', []);
         if (this.isEmpty(rawPositions)) {
@@ -1799,10 +1792,10 @@ export default class htx extends htxRest {
             if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
                 marginMode = defaultMarginMode;
             }
-            let cache = this.safeValue(this.positions[url], marginMode);
+            let cache = this.safeValue(this.positionsByType, marginMode);
             if (cache === undefined) {
                 cache = new ArrayCacheBySymbolBySide();
-                this.positions[url][marginMode] = cache;
+                this.positionsByType[marginMode] = cache;
             }
             newPositions.push(position);
             positionsByMarginMode[marginMode] = this.safeList(positionsByMarginMode, marginMode, []);
@@ -2931,10 +2924,10 @@ export default class htx extends htxRest {
         const requestId = this.requestId();
         const request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'symbol': symbol,
             'params': params,
@@ -2948,7 +2941,7 @@ export default class htx extends htxRest {
         const requestId = this.requestId();
         const request = {
             'unsub': subMessageHash,
-            'id': requestId,
+            'id': requestId.toString(),
         };
         const messageHash = 'unsubscribe::' + subMessageHash;
         const isFeed = (topic === 'orderbook');
@@ -2958,7 +2951,7 @@ export default class htx extends htxRest {
         const url = this.getUrlByMarketType(market['type'], market['linear'], false, isFeed);
         const subscription = {
             'unsubscribe': true,
-            'id': requestId,
+            'id': requestId.toString(),
             'subMessageHashes': [subMessageHash],
             'messageHashes': [messageHash],
             'symbols': [market['symbol']],
@@ -2974,7 +2967,7 @@ export default class htx extends htxRest {
     async subscribePrivate(channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
         const requestId = this.requestId();
         const subscription = {
-            'id': requestId,
+            'id': requestId.toString(),
             'messageHash': messageHash,
             'params': params,
         };
@@ -2990,7 +2983,7 @@ export default class htx extends htxRest {
             request = {
                 'op': 'sub',
                 'topic': channel,
-                'cid': requestId,
+                'cid': requestId.toString(),
             };
         }
         const isLinear = subtype === 'linear';
@@ -3077,7 +3070,7 @@ export default class htx extends htxRest {
             }
             const requestId = this.requestId();
             const subscription = {
-                'id': requestId,
+                'id': requestId.toString(),
                 'messageHash': messageHash,
                 'params': params,
             };

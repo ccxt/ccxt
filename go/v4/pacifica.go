@@ -1671,9 +1671,6 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	if since == nil {
-		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"since\" argument"))
-	}
 	var defaultMaxLimit int = 3950 // 4000 by docs, but in fact >~3960 returns error
 	if this.Markets == nil {
 
@@ -1690,42 +1687,47 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes125019 []any = r1.Value
-		if retRes125019 == nil {
+		var retRes124719 []any = r1.Value
+		if retRes124719 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes125019)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes124719)}
 		}
 		return nil
 	}
+	var limitValue int64 = func() int64 {
+		if limit == nil {
+			return int64(defaultMaxLimit)
+		}
+		return *limit
+	}()
 	var tf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var nowMs int64 = this.Milliseconds()
+	var duration int64 = this.ParseTimeframe(tf) * 1000
 	var request map[string]any = map[string]any{
-		"symbol":     market["id"],
-		"interval":   tf,
-		"start_time": since,
+		"symbol":   market["id"],
+		"interval": tf,
 	}
+	var sinceValue any = since
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsPaginate)
-	var nowMillis int64 = this.Milliseconds()
-	var requestedUntil *int64 = this.SafeInteger(requestUntil, "end_time")
-	if requestedUntil == nil {
-		var durationMillis int64 = this.ParseTimeframe(tf) * 1000
-		var candleCount int64 = func() int64 {
-			if limit == nil {
-				return int64(defaultMaxLimit)
-			}
-			return *limit
-		}()
-		if since != nil {
-			var windowEnd int64 = this.ParseToInt(this.Sum(*since-1, (candleCount * durationMillis)))
-			var until int64 = func() int64 {
-				if windowEnd > nowMillis {
-					return nowMillis
-				}
-				return windowEnd
-			}()
-			requestUntil["end_time"] = until
+	if this.SafeInteger(requestUntil, "end_time") == nil {
+		if IsEqual(sinceValue, nil) {
+			sinceValue = (nowMs - (limitValue * duration))
+		}
+		var windowEnd int64 = this.ParseToInt(this.Sum(Subtract(sinceValue, 1), (limitValue * duration)))
+		var until int64
+		if windowEnd > nowMs {
+			until = nowMs
+		} else {
+			until = windowEnd
+		}
+		requestUntil["end_time"] = until
+	} else {
+		if IsEqual(sinceValue, nil) {
+			sinceValue = Subtract(GetValue(requestUntil, "end_time"), (limitValue * duration))
 		}
 	}
+	AddElementToObject(requestUntil, "start_time", sinceValue)
 
 	r2 := <-this.PublicGetKline(this.Extend(requestUntil, paramsUntil))
 	if r2.Err != nil {
@@ -1897,11 +1899,11 @@ func (this *Pacifica) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes139019 []any = r1.Value
-		if retRes139019 == nil {
+		var retRes139219 []any = r1.Value
+		if retRes139219 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes139019)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes139219)}
 		}
 		return nil
 	}
@@ -2095,7 +2097,7 @@ func (this *Pacifica) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, SafeStringPtr(side), amount, price, params)
+	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, &side, amount, price, params)
 	var request map[string]any = requestoperationTypeVariable[0].(map[string]any)
 	var operationType *string = SafeStringPtr(requestoperationTypeVariable[1])
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"})
@@ -2411,10 +2413,10 @@ func (this *Pacifica) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var results []any = SafeListTyped(data, "results")
+	var results []map[string]any = this.SafeListMapsTyped(data, "results")
 	var ordersToReturn []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var order any = results[i]
+		var order map[string]any = results[i]
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var status string
@@ -2447,12 +2449,12 @@ func (this *Pacifica) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Pacifica) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2502,10 +2504,10 @@ func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, op
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var results []any = SafeListTyped(data, "results")
+	var results []map[string]any = this.SafeListMapsTyped(data, "results")
 	var ordersToReturn []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var order any = results[i]
+		var order map[string]any = results[i]
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var status string
@@ -2647,12 +2649,12 @@ func (this *Pacifica) CancelAllOrdersRequest(symbol any, optionalArgs ...any) an
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Pacifica) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Pacifica) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Pacifica) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2781,7 +2783,7 @@ func (this *Pacifica) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		panic(r1.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.EditOrderRequest(SafeStringPtr(id), symbol, typeVar, side, amount, price, market, params)
+	var request any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "clientOrderId"})
 
 	r2 := <-this.PrivatePostOrdersEdit(this.Extend(request, paramsOmitted))
@@ -2887,11 +2889,11 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes211219 []any = r1.Value
-		if retRes211219 == nil {
+		var retRes211419 []any = r1.Value
+		if retRes211419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes211219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes211419)}
 		}
 		return nil
 	}
@@ -2925,10 +2927,10 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	//   "has_more": true
 	// }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "created_at")
 		result = append(result, map[string]any{
 			"info":        entry,
@@ -3317,11 +3319,11 @@ func (this *Pacifica) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes237619 []any = r1.Value
-		if retRes237619 == nil {
+		var retRes237819 []any = r1.Value
+		if retRes237819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes237619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes237819)}
 		}
 		return nil
 	}
@@ -3377,14 +3379,14 @@ func (this *Pacifica) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
 }
-func (this *Pacifica) AddPaginationCursorToResult(response any) any {
-	var data any = this.SafeList(response, "data", []any{})
+func (this *Pacifica) AddPaginationCursorToResult(response any) []any {
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var paginationCursor *string = this.SafeString(response, "next_cursor")
 	var hasMore *bool = this.SafeBool(response, "has_more", false)
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	if hasMore != nil && *hasMore {
 		if (paginationCursor != nil) && (dataLength > 0) {
-			var first any = GetValue(data, 0)
+			var first any = data[0]
 			AddElementToObject(first, "next_cursor", paginationCursor)
 			AddElementToObject(first, "has_more", hasMore)
 			AddElementToObject(data, 0, first)
@@ -3801,12 +3803,12 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) Position 
 	if rawIsolated != nil {
 		isIsolated = (rawIsolated != nil && *rawIsolated == true)
 	}
-	var marginMode string = func() string {
-		if isIsolated {
-			return "isolated"
-		}
-		return "cross"
-	}()
+	var marginMode string
+	if isIsolated {
+		marginMode = "isolated"
+	} else {
+		marginMode = "cross"
+	}
 	var side *string = this.SafeString(position, "side")
 	if side != nil {
 		side = SafeStringPtr(func() string {
@@ -4257,12 +4259,12 @@ func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) OpenI
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(interest, "symbol")
-	var marketResolved any = func() any {
-		if marketId != nil {
-			return this.SafeMarket(marketId, market)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if marketId != nil {
+		marketResolved = this.SafeMarket(marketId, market)
+	} else {
+		marketResolved = market
+	}
 	var symbol *string = nil
 	if marketId != nil {
 		symbol = this.SafeString(marketResolved, "symbol")
@@ -4332,11 +4334,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes311419 []any = r1.Value
-		if retRes311419 == nil {
+		var retRes311619 []any = r1.Value
+		if retRes311619 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311419)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311619)}
 		}
 		return nil
 	}
@@ -4646,11 +4648,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333219 []any = r1.Value
-		if retRes333219 == nil {
+		var retRes333419 []any = r1.Value
+		if retRes333419 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333219)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333419)}
 		}
 		return nil
 	}
@@ -5282,7 +5284,7 @@ func (this *Pacifica) PostActionRequest(operationType string, sigPayload map[str
 		panic(ArgumentsRequired(this.Id + " action: " + operationType + " postActionRequest() requires \"operationType\""))
 	}
 	if !this.IsSandboxModeEnabled {
-		var useBuilder any = this.HandleOption("postActionRequest", "builderFee", true)
+		var useBuilder bool = this.HandleOption("postActionRequest", "builderFee", true) == true
 		var builderCode any = nil
 		if useBuilder == true {
 			builderCode = this.HandleOption("postActionRequest", "builderCode")

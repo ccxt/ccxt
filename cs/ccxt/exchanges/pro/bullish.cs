@@ -98,12 +98,12 @@ public partial class bullish : ccxt.bullish
             { "params", request },
             { "id", id },
         };
-        object wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public");
+        string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " watchPublic() has no public websocket url")) ;
         }
-        return await this.watch(((object)(wsUrl == null ? null : wsUrl + (string)(object)(url))), messageHash, this.deepExtend(message, parameters), messageHash);
+        return await this.watch((wsUrl == null ? null : wsUrl + (string)(object)(url)), messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
     public async virtual Task<object> watchPrivate(object messageHash, object subscribeHash, object request = null, object parameters = null)
@@ -139,7 +139,7 @@ public partial class bullish : ccxt.bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -153,11 +153,11 @@ public partial class bullish : ccxt.bullish
             { "topic", "anonymousTrades" },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object trades = await this.watchPublic(url, messageHash, request, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPublic(url, messageHash, request, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -224,7 +224,7 @@ public partial class bullish : ccxt.bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -314,7 +314,7 @@ public partial class bullish : ccxt.bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -415,7 +415,7 @@ public partial class bullish : ccxt.bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -434,18 +434,18 @@ public partial class bullish : ccxt.bullish
             { "topic", "orders" },
         };
         string? tradingAccountId = this.safeString(parameters, "tradingAccountId");
-        object paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
+        IDictionary<string, object> paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
         if ((tradingAccountId != null))
         {
             request["tradingAccountId"] = tradingAccountId;
         }
-        object orders = await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -548,7 +548,7 @@ public partial class bullish : ccxt.bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -567,16 +567,16 @@ public partial class bullish : ccxt.bullish
             { "topic", "trades" },
         };
         string? tradingAccountId = this.safeString(parameters, "tradingAccountId");
-        object paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
+        IDictionary<string, object> paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
         if ((tradingAccountId != null))
         {
             request["tradingAccountId"] = tradingAccountId;
         }
-        object trades = await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -671,7 +671,7 @@ public partial class bullish : ccxt.bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -683,7 +683,7 @@ public partial class bullish : ccxt.bullish
         };
         string messageHash = "balance";
         string? tradingAccountId = this.safeString(parameters, "tradingAccountId");
-        object paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
+        IDictionary<string, object> paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
         if ((tradingAccountId != null))
         {
             request["tradingAccountId"] = tradingAccountId;
@@ -788,7 +788,7 @@ public partial class bullish : ccxt.bullish
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -815,7 +815,7 @@ public partial class bullish : ccxt.bullish
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(positions, symbolsNormalized, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(positions), symbolsNormalized, since, limit, true));
     }
 
     public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)

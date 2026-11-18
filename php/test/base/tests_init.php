@@ -76,6 +76,7 @@ include_once __DIR__ . '/test_is_json_encoded_object.php';
 include_once __DIR__ . '/test_is_dictionary.php';
 include_once __DIR__ . '/test_encode_decode.php';
 
+// import testParseMarkets from './test.parseMarkets.js';
 function base_tests_init() {
     return Async\async(function () {
         \React\Async\await(test_language_specific());
@@ -143,6 +144,7 @@ function base_tests_init() {
         test_io();
         test_is_json_encoded_object();
         test_encode_decode();
+        // testParseMarkets ();
         return true;
     }) ();
 }

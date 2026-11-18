@@ -786,9 +786,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             // Get the part after the decimal separator
             const decimalPart = this.safeString(priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            let leadingZeros = this.parseToInt(0);
+            let leadingZeros = 0;
             while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
-                leadingZeros = this.parseToInt(leadingZeros + 1);
+                leadingZeros = leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
@@ -869,6 +869,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         const second = this.safeList(response, 1, []);
         const meta = this.safeList(first, 'universe', []);
         const tokens = this.safeList(first, 'tokens', []);
+        // a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+        const tokensByIndex = {};
+        for (let i = 0; i < tokens.length; i++) {
+            const token = this.safeDict(tokens, i, {});
+            const tokenIndex = this.safeString(token, 'index');
+            if (tokenIndex !== undefined) {
+                tokensByIndex[tokenIndex] = token;
+            }
+        }
         const markets = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict(meta, i, {});
@@ -886,10 +895,10 @@ class hyperliquid extends hyperliquid$1["default"] {
             const taker = this.safeNumber(fees, 'taker');
             const maker = this.safeNumber(fees, 'maker');
             const tokensPos = this.safeList(market, 'tokens', []);
-            const baseTokenPos = this.safeInteger(tokensPos, 0);
-            const quoteTokenPos = this.safeInteger(tokensPos, 1);
-            const baseTokenInfo = this.safeDict(tokens, baseTokenPos, {});
-            const quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, {});
+            const baseTokenIndex = this.safeString(tokensPos, 0);
+            const quoteTokenIndex = this.safeString(tokensPos, 1);
+            const baseTokenInfo = this.safeDict(tokensByIndex, baseTokenIndex, {});
+            const quoteTokenInfo = this.safeDict(tokensByIndex, quoteTokenIndex, {});
             const baseName = this.safeString(baseTokenInfo, 'name');
             const quoteId = this.safeString(quoteTokenInfo, 'name');
             if (baseName === undefined || quoteId === undefined) {
@@ -4090,11 +4099,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         };
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if (vaultAddress !== undefined) {
-            if (vaultAddress.startsWith('0x')) {
-                vaultAddress = vaultAddress.replace('0x', '');
-            }
-        }
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -4498,7 +4503,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'type': 'vaultTransfer',
                 'vaultAddress': '0x' + vaultAddress,
                 'isDeposit': false,
-                'usd': amount,
+                // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd': this.parseToInt(Precise["default"].stringMul(this.numberToString(amount), '1000000')),
             };
             sig = this.signL1Action(action, nonce);
         }
@@ -5261,12 +5267,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         const url = this.implodeHostname(apiUrl) + '/' + path;
         const isPost = (method === 'POST');
-        const postHeaders = {
-            'Content-Type': 'application/json',
-        };
         let requestHeaders = undefined;
         if (isPost) {
-            requestHeaders = postHeaders;
+            requestHeaders = {
+                'Content-Type': 'application/json',
+            };
         }
         let requestBody = undefined;
         if (isPost) {

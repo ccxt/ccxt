@@ -185,7 +185,7 @@ export default class derive extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     hashOrderMessage(order: any): string;
     signOrder(order: any, privateKey: string): string;
     /**

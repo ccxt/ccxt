@@ -1,10 +1,10 @@
 import wooRest from '../woo.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool, FundingRate, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool, FundingRate, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class woo extends wooRest {
     describe(): Dict;
-    requestId(url: string): number;
+    requestId(url: string): int;
     watchPublic(messageHash: string, message: Dict): Promise<any>;
     unwatchPublic(subHash: string, symbol: Str, topic: string, params?: Dict): Promise<any>;
     /**

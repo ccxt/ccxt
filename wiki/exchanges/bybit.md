@@ -122,7 +122,6 @@
 enables or disables demo trading mode
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-
 **See**: https://bybit-exchange.github.io/docs/v5/demo  
 
 | Param | Type | Required | Description |

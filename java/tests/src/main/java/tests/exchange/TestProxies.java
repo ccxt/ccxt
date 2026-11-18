@@ -87,9 +87,9 @@ public class TestProxies extends BaseTest {
         var httpsProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(2);
         var socksProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
         List<String> possibleOptionsArray = new ArrayList<String>(Arrays.asList("proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"));
-        for (var i = 0; i < ((List<?>)possibleOptionsArray).size(); i++)
+        for (var i = 0; i < possibleOptionsArray.size(); i++)
         {
-            for (var j = 0; j < ((List<?>)possibleOptionsArray).size(); j++)
+            for (var j = 0; j < possibleOptionsArray.size(); j++)
             {
                 if ((j != i))
                 {

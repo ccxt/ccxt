@@ -15,6 +15,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import RestrictedLocation
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -587,6 +588,7 @@ class kraken(Exchange, ImplicitAPI):
                     ':IInsufficient funds': InsufficientFunds,
                     ':Cancel pending': CancelPending,
                     ':Rate limit exceeded': RateLimitExceeded,
+                    'trading restricted for': RestrictedLocation,  # {"error":["EAccount:Invalid permissions:EUR/JPY trading restricted for AE."]}
                 },
             },
         })
@@ -1769,7 +1771,7 @@ class kraken(Exchange, ImplicitAPI):
     def find_market_by_altname_or_id(self, id: object) -> MarketInterface:
         marketsByAltname = self.safe_dict(self.options, 'marketsByAltname', {})
         if id in marketsByAltname:
-            return marketsByAltname[id]
+            return self.safe_dict(marketsByAltname, id)
         else:
             return self.safe_market(id)
 
@@ -1784,7 +1786,7 @@ class kraken(Exchange, ImplicitAPI):
 
     def get_delisted_market_by_id(self, id: Str) -> object:
         if id is None:
-            return id
+            return None
         market = self.safe_dict(self.options['delistedMarketsById'], id)
         if market is not None:
             return market

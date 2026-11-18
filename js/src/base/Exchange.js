@@ -100,7 +100,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 export class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.92'; }
+    static { this.ccxtVersion = '4.5.93'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -173,6 +173,8 @@ export class BaseExchange {
         this.orders = undefined;
         this.transactions = {};
         this.myLiquidations = undefined;
+        this.positions = undefined;
+        this.positionsByType = {};
         this.requiresWeb3 = false;
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
@@ -365,6 +367,7 @@ export class BaseExchange {
         this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         // response handling flags and properties
@@ -1439,7 +1442,7 @@ export class BaseExchange {
             const onClose = this.onClose.bind(this);
             const onConnected = this.onConnected.bind(this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = this.safeValue(this.options, 'ws', {});
+            const wsOptions = this.safeDict(this.options, 'ws', {});
             // proxy agents
             const [httpProxy, httpsProxy, socksProxy] = this.checkWsProxySettings();
             const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
@@ -1675,7 +1678,7 @@ export class BaseExchange {
         }
         else {
             // server disconnected a working connection
-            if (this.clients[client.url] !== undefined) {
+            if (this.clients[client.url] === client) {
                 delete this.clients[client.url];
             }
         }
@@ -2671,6 +2674,7 @@ export class BaseExchange {
         this.ohlcvs = this.createSafeDictionary(true);
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
     }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -3188,7 +3192,7 @@ export class BaseExchange {
     }
     async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.has['watchMyLiquidationsForSymbols'] !== undefined && this.has['watchMyLiquidationsForSymbols'] !== false) {
-            return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+            return await this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
         }
         throw new NotSupported(this.id + ' watchMyLiquidations() is not supported yet');
     }
@@ -3274,7 +3278,7 @@ export class BaseExchange {
         for (let i = 0; i < markets.length; i++) {
             const market = this.parseMarket(markets[i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (market !== undefined) {
+            if (market !== undefined && this.safeString(market, 'id') !== undefined) {
                 result.push(market);
             }
         }
@@ -3480,8 +3484,8 @@ export class BaseExchange {
     }
     afterConstruct(userConfig = {}) {
         // networksById: inverse of options.networks, explicit options.networksById entries win
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {}));
-        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {}));
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeDict(this.options, 'networks', {}));
+        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeDict(this.options, 'networksById', {}));
         this.featuresGenerator();
         this.hasAutocorrect();
         // init predefined markets if any
@@ -3898,14 +3902,14 @@ export class BaseExchange {
             'quoteId': undefined,
             'settleId': undefined,
             'type': undefined,
-            'spot': undefined,
+            'spot': false,
             'margin': undefined,
-            'swap': undefined,
-            'future': undefined,
-            'option': undefined,
+            'swap': false,
+            'future': false,
+            'option': false,
             'index': undefined,
             'active': undefined,
-            'contract': undefined,
+            'contract': false,
             'linear': undefined,
             'inverse': undefined,
             'subType': undefined,
@@ -4210,7 +4214,7 @@ export class BaseExchange {
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
-            const firstTrade = this.safeValue(rawTrades, 0);
+            const firstTrade = this.safeDict(rawTrades, 0);
             // parse trades if they haven't already been parsed
             const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
             if (!tradesAreParsed) {
@@ -4493,14 +4497,7 @@ export class BaseExchange {
             }
         }
         else {
-            const ids = Object.keys(orders);
-            for (let i = 0; i < ids.length; i++) {
-                const id = ids[i];
-                const idExtended = this.extend({ 'id': id }, orders[id]);
-                const parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                const order = this.extend(parsedOrder, params);
-                results.push(order);
-            }
+            return this.parseOrders(this.addKeyInArrayItems(orders, 'id'), market, since, limit, params);
         }
         results = this.sortBy(results, 'timestamp');
         const symbol = this.safeString(market, 'symbol');
@@ -6208,7 +6205,7 @@ export class BaseExchange {
             }
             else {
                 // still processing the same timeframe -> update opening trade
-                const prevCandle = this.safeValue(ohlcvs, candle);
+                const prevCandle = this.safeList(ohlcvs, candle);
                 const prevHigh = this.safeValue(prevCandle, i_high);
                 const prevLow = this.safeValue(prevCandle, i_low);
                 ohlcvs[candle][i_high] = Math.max((prevHigh === undefined) ? price : prevHigh, price);
@@ -7259,7 +7256,7 @@ export class BaseExchange {
     parseBorrowInterests(response, market = undefined) {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
-            const row = this.safeValue(response, i);
+            const row = this.safeDict(response, i, {});
             interests.push(this.parseBorrowInterest(row, market));
         }
         return interests;
@@ -7270,7 +7267,7 @@ export class BaseExchange {
     parseBorrowRateHistory(response, code, since, limit) {
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const item = this.safeValue(response, i);
+            const item = this.safeDict(response, i);
             const borrowRate = this.parseBorrowRate(item);
             result.push(borrowRate);
         }
@@ -7280,7 +7277,7 @@ export class BaseExchange {
     parseIsolatedBorrowRates(info) {
         const result = {};
         for (let i = 0; i < info.length; i++) {
-            const item = this.safeValue(info, i);
+            const item = this.safeDict(info, i, {});
             const borrowRate = this.parseIsolatedBorrowRate(item);
             const symbol = this.safeString(borrowRate, 'symbol');
             result[symbol] = borrowRate;
@@ -9619,7 +9616,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
     async cancelUnifiedOrder(order, params = {}) {
-        return await this.cancelOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
+        return await this.cancelOrder(this.safeString(order, 'id', ''), this.safeString(order, 'symbol'), params);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if ((this.has['fetchOpenOrders'] !== undefined && this.has['fetchOpenOrders'] !== false) && (this.has['fetchClosedOrders'] !== undefined && this.has['fetchClosedOrders'] !== false)) {

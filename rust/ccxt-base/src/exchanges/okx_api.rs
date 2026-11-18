@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::okx::OkxCore;
+use super::okx::Okx;
 use crate::exchange::ExchangeRuntime;
 
-impl OkxCore {
+impl Okx {
     /// Auto-generated wrapper for the `publicGetMarketTickers` implicit endpoint.
     pub async fn public_get_market_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_tickers".into()), optional_args).await
@@ -300,6 +300,11 @@ impl OkxCore {
     /// Auto-generated wrapper for the `publicGetPublicDeltaHedgeCurrencies` implicit endpoint.
     pub async fn public_get_public_delta_hedge_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_public_delta_hedge_currencies".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetPublicCorporateActions` implicit endpoint.
+    pub async fn public_get_public_corporate_actions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_public_corporate_actions".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetRubikStatTradingDataSupportCoin` implicit endpoint.

@@ -27,8 +27,8 @@ pub fn testToArray() {
             m.insert("b".to_string(), Value::Int(2));
         m
     });
-    let mut result1: Value = exchange.to_array(obj1.clone());
-    let mut result2: Value = exchange.to_array(obj2.clone());
+    let mut result1: Value = exchange.to_array(obj1);
+    let mut result2: Value = exchange.to_array(obj2);
     // we can't guarantee order of values in GO lang
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);

@@ -181,11 +181,8 @@ public partial class poloniex : ccxt.poloniex
             marketIds = this.marketIds(this.toArray(symbols));
         }
         string symbolsSuffix = ((symbols == null)) ? "" : String.Join(",", ((IList<object>)symbols).ToArray());
-        object symbolsHash = null;
-        if (this.isEmpty(symbols))
-        {
-            symbolsHash = messageHash;
-        } else
+        object symbolsHash = messageHash;
+        if (!this.isEmpty(symbols))
         {
             symbolsHash = add(add(messageHash, "::"), symbolsSuffix);
         }
@@ -207,7 +204,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} true once the exchange acknowledges the unsubscribe
      */
-    public async virtual Task<object> unSubscribe(object name, object symbols, object messageHashes, object parameters = null)
+    public async virtual Task<object> unSubscribe(object name, object symbols, object messageHashes, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
@@ -227,7 +224,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> tradeRequest(string name, object parameters = null)
+    public async virtual Task<object> tradeRequest(string name, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private", "");
@@ -262,7 +259,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -292,9 +289,9 @@ public partial class poloniex : ccxt.poloniex
         if (isMarketBuy)
         {
             string? quoteAmount = null;
-            (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
-            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
+            IDictionary<string, object> paramsRequiresPrice = (createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
             double? cost = this.safeNumber(paramsRequiresPrice, "cost");
             paramsOmitted = this.omit(paramsRequiresPrice, "cost");
             if ((cost != null))
@@ -341,14 +338,14 @@ public partial class poloniex : ccxt.poloniex
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId != null))
         {
             List<object> clientOrderIds = this.safeList(parameters, "clientOrderId", new List<object>() {});
-            ((IDictionary<string,object>)parameters)["clientOrderIds"] = this.arrayConcat(clientOrderIds, new List<object>() {clientOrderId});
+            parameters["clientOrderIds"] = this.arrayConcat(clientOrderIds, new List<object>() {clientOrderId});
         }
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrdersWs(new List<object>() {id}, symbol, parameters));
         IDictionary<string, object> order = this.safeDict(orders, 0);
@@ -366,7 +363,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrdersWs(IList<object> ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrdersWs(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -389,7 +386,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -437,7 +434,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -471,7 +468,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -500,7 +497,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -549,7 +546,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -566,7 +563,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -611,7 +608,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
@@ -626,7 +623,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -653,7 +650,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -662,9 +659,9 @@ public partial class poloniex : ccxt.poloniex
         }
         IDictionary<string, object> watchOrderBookOptions = this.safeDict(this.options, "watchOrderBook");
         string? name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-        (string?, object) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
+        (string?, IDictionary<string, object>) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
         string? nameOption = nameOptionparamsNameVariable.Item1;
-        IDictionary<string, object> paramsName = ((IDictionary<string, object>)nameOptionparamsNameVariable.Item2);
+        IDictionary<string, object> paramsName = (nameOptionparamsNameVariable.Item2);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(nameOption, nameOption, false, new List<object>() {symbol}, paramsName));
         return (orderbook as IOrderBook).limit().Copy();
     }
@@ -680,7 +677,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -711,7 +708,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the poloniex strean
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -740,7 +737,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -822,7 +819,7 @@ public partial class poloniex : ccxt.poloniex
         }
     }
 
-    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public override List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -926,7 +923,7 @@ public partial class poloniex : ccxt.poloniex
                 string? symbol = trade.symbol;
                 string type = "trades";
                 string messageHash = ((type + "::") + this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", ""));
-                object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
+                ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)(((symbol == null)) ? null : this.safeValue(this.trades, symbol)));
                 if ((tradesArray == null))
                 {
                     Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -936,14 +933,14 @@ public partial class poloniex : ccxt.poloniex
                         this.trades[(string)symbol] = tradesArray;
                     }
                 }
-                ccxt.pro.BaseCache.appendTo(tradesArray, ccxt.BaseExchange.FromTrade(trade));
+                tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
                 client.resolve(tradesArray, messageHash);
             }
         }
         return message;
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // handleTrade
@@ -1598,7 +1595,7 @@ public partial class poloniex : ccxt.poloniex
         } else if ((type == null))
         {
             this.handleOrderRequest(client, message);
-        } else
+        } else if ((method != null))
         {
             List<object> data = this.safeList(message, "data", new List<object>() {});
             int dataLength = data.Count;

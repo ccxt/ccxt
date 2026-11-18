@@ -19,7 +19,7 @@ class blofin extends blofin$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'blofin',
             'name': 'BloFin',
-            'countries': ['US'],
+            'countries': ['MH'], // Marshall Islands
             'version': 'v1',
             'rateLimit': 200, // 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro': true,
@@ -661,7 +661,6 @@ class blofin extends blofin$1["default"] {
         let maxLeverage = this.safeString(market, 'maxLeverage', '100');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const isActive = (this.safeString(market, 'state') === 'live');
-        const isMargin = spot && (Precise["default"].stringGt(maxLeverage, '1'));
         const contractType = this.safeString(market, 'contractType');
         const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
         const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -677,7 +676,7 @@ class blofin extends blofin$1["default"] {
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': isMargin,
+            'margin': (spot && Precise["default"].stringGt(maxLeverage, '1')),
             'swap': swap,
             'future': future,
             'active': isActive,
@@ -1006,17 +1005,14 @@ class blofin extends blofin$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTrades', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', undefined, 100);
-        }
+        // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        const paramsNoPaginate = this.omit(params, 'paginate');
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -1025,7 +1021,7 @@ class blofin extends blofin$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        const [method, paramsMethod] = this.handleOptionStringAndParams(paramsNoPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if (method === 'publicGetMarketTrades') {
             response = await this.publicGetMarketTrades(this.extend(request, paramsMethod));
         }
@@ -1124,7 +1120,7 @@ class blofin extends blofin$1["default"] {
         let query = undefined;
         [paginate, query] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', query, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, query, 100);
         }
         const market = this.market(symbol);
         const request = {
@@ -1540,8 +1536,11 @@ class blofin extends blofin$1["default"] {
         let fee = undefined;
         if (feeCostString !== undefined) {
             const feeCostSigned = Precise["default"].stringAbs(feeCostString);
-            const feeCurrencyId = this.safeString(order, 'feeCcy', 'USDT');
-            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            const feeCurrencyId = this.safeString(order, 'feeCcy');
+            let feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            if (feeCurrencyCode === undefined) {
+                feeCurrencyCode = this.safeString(marketResolved, 'settle');
+            }
             fee = {
                 'cost': this.parseNumber(feeCostSigned),
                 'currency': feeCurrencyCode,
@@ -2151,8 +2150,7 @@ class blofin extends blofin$1["default"] {
         const currencies = Object.values(dataByCurrencyId);
         return this.parseCurrencies(currencies);
     }
-    parseCurrency(currency) {
-        const chains = currency;
+    parseCurrency(chains) {
         const firstChain = this.safeDict(chains, 0, {});
         const currencyId = this.safeString(firstChain, 'currency');
         const code = this.safeCurrencyCode(currencyId);
@@ -2361,7 +2359,7 @@ class blofin extends blofin$1["default"] {
         // venue ignores the filter and returns the latest records instead
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = this.safeValue(data, i);
+            const entry = this.safeDict(data, i, {});
             if (this.safeString(entry, 'depositId') === id) {
                 return this.parseTransaction(entry, currency);
             }
@@ -2400,7 +2398,7 @@ class blofin extends blofin$1["default"] {
         // case the venue ignores the filter and returns the latest records
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = this.safeValue(data, i);
+            const entry = this.safeDict(data, i, {});
             let matches = false;
             if (id !== undefined) {
                 matches = (this.safeString(entry, 'withdrawId') === id);
@@ -3021,7 +3019,7 @@ class blofin extends blofin$1["default"] {
         const entryPriceString = this.safeString2(position, 'averagePrice', 'openAveragePrice');
         const unrealizedPnlString = this.safeString(position, 'unrealizedPnl');
         const leverageString = this.safeString(position, 'leverage');
-        let initialMarginPercentage = undefined;
+        let initialMarginPercentageString = undefined;
         let collateralString = undefined;
         let marginString = undefined;
         if (marginMode === 'cross') {
@@ -3029,7 +3027,7 @@ class blofin extends blofin$1["default"] {
             collateralString = (unrealizedPnlString !== undefined) ? Precise["default"].stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         }
         else if (marginMode === 'isolated') {
-            initialMarginPercentage = Precise["default"].stringDiv('1', leverageString);
+            initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString);
             const isolatedMarginString = this.omitZero(this.safeString2(position, 'margin', 'initialMargin'));
             if (isolatedMarginString !== undefined) {
                 initialMarginString = isolatedMarginString;
@@ -3040,11 +3038,10 @@ class blofin extends blofin$1["default"] {
         const maintenanceMarginString = this.safeString(position, 'maintenanceMargin');
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
         const maintenanceMarginPercentageString = Precise["default"].stringDiv(maintenanceMarginString, notionalString);
-        if (initialMarginPercentage === undefined) {
-            initialMarginPercentage = this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString, 4));
+        if (initialMarginPercentageString === undefined) {
+            initialMarginPercentageString = Precise["default"].stringDiv(initialMarginString, notionalString, 4);
         }
         else if (initialMarginString === undefined) {
-            const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = Precise["default"].stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
@@ -3092,7 +3089,7 @@ class blofin extends blofin$1["default"] {
             'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateralString),
             'initialMargin': this.parseNumber(initialMarginString),
-            'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
+            'initialMarginPercentage': this.parseNumber(initialMarginPercentageString),
             'leverage': this.parseNumber(leverageString),
             'marginRatio': marginRatio,
             'stopLossPrice': undefined,
@@ -3253,7 +3250,7 @@ class blofin extends blofin$1["default"] {
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
         if (this.markets === undefined) {

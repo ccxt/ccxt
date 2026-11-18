@@ -393,7 +393,7 @@ public class Indodax extends IndodaxApi
             //     }
             //
             return this.safeInteger(response, "server_time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -439,7 +439,7 @@ public class Indodax extends IndodaxApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> rawMarkets = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+            for (var i = 0; i < rawMarkets.size(); i++)
             {
                 Object market = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                 String id = this.safeString(market, "id");
@@ -513,9 +513,9 @@ public class Indodax extends IndodaxApi
 
     public Balances parseBalance(Map<String, Object> response)
     {
-        Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-        Map<String, Object> free = (Map<String, Object>) this.safeDict(balances, "balance", new HashMap<String, Object>() {{}});
-        Map<String, Object> used = (Map<String, Object>) this.safeDict(balances, "balance_hold", new HashMap<String, Object>() {{}});
+        Map<String, Object> balances = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+        Map<String, Object> free = this.safeDict(balances, "balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> used = this.safeDict(balances, "balance_hold", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeTimestamp(balances, "server_time");
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -523,7 +523,7 @@ public class Indodax extends IndodaxApi
             put( "datetime", Indodax.this.iso8601(timestamp) );
         }};
         List<String> currencyIds = new ArrayList<String>(free.keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -702,7 +702,7 @@ public class Indodax extends IndodaxApi
             //         }
             //     }
             //
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -743,10 +743,10 @@ public class Indodax extends IndodaxApi
             // }
             //
             Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
-            Map<String, Object> tickers = (Map<String, Object>) this.safeDict(response, "tickers", new HashMap<String, Object>() {{}});
+            Map<String, Object> tickers = this.safeDict(response, "tickers", new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(tickers.keySet());
             Map<String, Object> parsedTickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object rawTicker = (tickers == null || key == null ? null : tickers.get(key));
@@ -856,7 +856,7 @@ public class Indodax extends IndodaxApi
                 put( "tf", selectedTimeframe );
                 put( "symbol", market.get("id") );
             }};
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("from", (Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000)))))));
@@ -1029,7 +1029,7 @@ public class Indodax extends IndodaxApi
                 put( "order_id", id );
             }};
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
-            Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> orders = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
             }}, orders.get("order")), market);
@@ -1067,7 +1067,7 @@ public class Indodax extends IndodaxApi
                 request.put("pair", market.get("id"));
             }
             Map<String, Object> response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
-            Map<String, Object> openOrdersResult = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> openOrdersResult = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Object rawOrders = openOrdersResult.get("orders");
             // { success: 1, return: { orders: null }} if no orders
             if ((java.util.Objects.equals(rawOrders, null)) || (java.util.Objects.equals(rawOrders, null)))
@@ -1080,10 +1080,10 @@ public class Indodax extends IndodaxApi
                 return this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
             }
             // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-            Map<String, Object> ordersDict = (Map<String, Object>) this.safeDict(openOrdersResult, "orders", new HashMap<String, Object>() {{}});
+            Map<String, Object> ordersDict = this.safeDict(openOrdersResult, "orders", new HashMap<String, Object>() {{}});
             List<String> marketIds = new ArrayList<String>(ordersDict.keySet());
             List<Object> exchangeOrders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Object marketOrders = (ordersDict == null || marketId == null ? null : ordersDict.get(marketId));
@@ -1125,10 +1125,10 @@ public class Indodax extends IndodaxApi
                 put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
-            Map<String, Object> historyResult = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> historyResult = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             List<Object> orders = this.parseOrders(historyResult.get("orders"), market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            orders = this.filterBy(orders, "status", "closed");
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
+            List<Object> closedOrders = this.filterBy(orders, "status", "closed");
+            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1215,7 +1215,7 @@ public class Indodax extends IndodaxApi
                 request.put((String)((String)market.get("baseId")), this.amountToPrecision(symbol, amount));
             }
             Map<String, Object> result = (this.privatePostTrade(this.extend(request, paramsOmitted))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(result, "return", new HashMap<String, Object>() {{}});
             String id = this.safeString(data, "order_id");
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", result );
@@ -1278,7 +1278,7 @@ public class Indodax extends IndodaxApi
             //        }
             //    }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", (Object) null);
+            Map<String, Object> data = this.safeDict(response, "return", null);
             return this.parseOrder(data, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -1317,7 +1317,7 @@ public class Indodax extends IndodaxApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(data, "currency");
             return new HashMap<String, Object>() {{
                 put( "info", response );
@@ -1358,7 +1358,7 @@ public class Indodax extends IndodaxApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(response);
             result.put("withdraw", new HashMap<String, Object>() {{
         put( "fee", Indodax.this.safeNumber(data, "withdraw_fee", (Object) null) );
@@ -1458,21 +1458,21 @@ public class Indodax extends IndodaxApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            Map<String, Object> withdraw = (Map<String, Object>) this.safeDict(data, "withdraw", new HashMap<String, Object>() {{}});
-            Map<String, Object> deposit = (Map<String, Object>) this.safeDict(data, "deposit", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdraw = this.safeDict(data, "withdraw", new HashMap<String, Object>() {{}});
+            Map<String, Object> deposit = this.safeDict(data, "deposit", new HashMap<String, Object>() {{}});
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> currency = null;
             if (java.util.Objects.equals(code, null))
             {
                 List<String> withdrawKeys = new ArrayList<String>(withdraw.keySet());
-                for (var i = 0; i < ((List<?>)withdrawKeys).size(); i++)
+                for (var i = 0; i < withdrawKeys.size(); i++)
                 {
                     String key = (withdrawKeys == null || i < 0 || i >= withdrawKeys.size() ? null : withdrawKeys.get(i));
                     transactions = (List<Object>) this.arrayConcat(transactions, (withdraw == null || key == null ? null : withdraw.get(key)));
                 }
                 List<String> depositKeys = new ArrayList<String>(deposit.keySet());
-                for (var i = 0; i < ((List<?>)depositKeys).size(); i++)
+                for (var i = 0; i < depositKeys.size(); i++)
                 {
                     String key = (depositKeys == null || i < 0 || i >= depositKeys.size() ? null : depositKeys.get(i));
                     transactions = (List<Object>) this.arrayConcat(transactions, (deposit == null || key == null ? null : deposit.get(key)));
@@ -1480,8 +1480,8 @@ public class Indodax extends IndodaxApi
             } else
             {
                 currency = this.currency((String) (code));
-                List<Object> withdraws = (List<Object>) this.safeList(withdraw, currency.get("id"), new ArrayList<Object>(Arrays.asList()));
-                List<Object> deposits = (List<Object>) this.safeList(deposit, currency.get("id"), new ArrayList<Object>(Arrays.asList()));
+                List<Object> withdraws = this.safeList(withdraw, currency.get("id"), new ArrayList<Object>(Arrays.asList()));
+                List<Object> deposits = this.safeList(deposit, currency.get("id"), new ArrayList<Object>(Arrays.asList()));
                 transactions = (List<Object>) this.arrayConcat(withdraws, deposits);
             }
             return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
@@ -1699,12 +1699,12 @@ public class Indodax extends IndodaxApi
             //        }
             //    }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", (Object) null);
-            Map<String, Object> addresses = (Map<String, Object>) this.safeDict(data, "address", new HashMap<String, Object>() {{}});
-            Map<String, Object> networks = (Map<String, Object>) this.safeDict(data, "network", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "return", null);
+            Map<String, Object> addresses = this.safeDict(data, "address", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = this.safeDict(data, "network", new HashMap<String, Object>() {{}});
             List<String> addressKeys = new ArrayList<String>(addresses.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)addressKeys).size(); i++)
+            for (var i = 0; i < addressKeys.size(); i++)
             {
                 String marketId = (addressKeys == null || i < 0 || i >= addressKeys.size() ? null : addressKeys.get(i));
                 String code = this.safeCurrencyCode(marketId, (Map<String, Object>) null);
@@ -1728,7 +1728,7 @@ public class Indodax extends IndodaxApi
                                 throw new ExchangeError((this.id + " fetchDepositAddresses() missing networkId")) ;
                             }
                             List<Object> networkIds = new ArrayList<Object>(Arrays.asList(((String)networkId).split(java.util.regex.Pattern.quote(","))));
-                            for (var j = 0; j < ((List<?>)networkIds).size(); j++)
+                            for (var j = 0; j < networkIds.size(); j++)
                             {
                                 String _netIdTmp = this.networkIdToCode(java.util.Objects.toString((networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j)), null), code);
                                 if (!java.util.Objects.equals(_netIdTmp, null))
@@ -1777,10 +1777,10 @@ public class Indodax extends IndodaxApi
         Boolean isPublic = (java.util.Objects.equals(apiName, "public"));
         if (Boolean.TRUE.equals(isPublic))
         {
-            Object query = this.omit(parameters, this.extractParams(path));
+            Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
             String requestPath = ("/" + this.implodeParams(path, parameters));
             url = (apiUrl + requestPath);
-            if (((Map<String, Object>)query).size() > 0)
+            if (query.size() > 0)
             {
                 url = (((apiUrl + requestPath) + "?") + this.urlencodeWithArrayRepeat(query));
             }

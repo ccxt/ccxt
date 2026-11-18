@@ -167,7 +167,7 @@ export default class blofin extends blofinRest {
     parseWsBalance(message: Dict): Balances;
     /**
      * @method
-     * @name biofin#watchOrders
+     * @name blofin#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://docs.blofin.com/index.html#ws-order-channel
      * @see https://docs.blofin.com/index.html#ws-algo-orders-channel

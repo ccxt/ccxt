@@ -419,7 +419,7 @@ class bitso extends Exchange {
             $cost = Precise::string_abs($amount);
             $fee = array(
                 'cost' => $cost,
-                'currency' => $currencyResolved,
+                'currency' => $code,
             );
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'created_at'));

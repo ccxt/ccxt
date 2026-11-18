@@ -192,10 +192,8 @@ class poloniex extends \ccxt\async\poloniex {
             $marketIds = $this->market_ids($symbols);
         }
         $symbolsSuffix = ($symbols === null) ? '' : implode(',', $symbols);
-        $symbolsHash = null;
-        if ($this->is_empty($symbols)) {
-            $symbolsHash = $messageHash;
-        } else {
+        $symbolsHash = $messageHash;
+        if (!$this->is_empty($symbols)) {
             $symbolsHash = $messageHash . '::' . $symbolsSuffix;
         }
         if ($name !== 'balances') {
@@ -230,7 +228,7 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function trade_request(string $name, $params = array()) {
+    public function trade_request(string $name, $params = array()): PromiseInterface {
         return Async\async(self::do_trade_request(...))($name, $params);
     }
 
@@ -537,6 +535,10 @@ class poloniex extends \ccxt\async\poloniex {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -548,7 +550,7 @@ class poloniex extends \ccxt\async\poloniex {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1537,7 +1539,7 @@ class poloniex extends \ccxt\async\poloniex {
             $this->handle_authenticate($client, $message);
         } elseif ($type === null) {
             $this->handle_order_request($client, $message);
-        } else {
+        } elseif ($method !== null) {
             $data = $this->safe_list($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength > 0) {
