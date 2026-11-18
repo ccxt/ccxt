@@ -1980,9 +1980,9 @@ public class Deepcoin extends DeepcoinApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        List<Object> orderTypeparamsOrderTypeVariable = (List<Object>) this.handleTypePostOnlyAndTimeInForce((String) (type), (Map<String, Object>) (parameters));
-        var orderType = ((List<Object>) orderTypeparamsOrderTypeVariable).get(0);
-        var paramsOrderType = ((List<Object>) orderTypeparamsOrderTypeVariable).get(1);
+        Pair<String, Map<String, Object>> orderTypeparamsOrderTypeVariable = this.handleTypePostOnlyAndTimeInForce((String) (type), (Map<String, Object>) (parameters));
+        String orderType = orderTypeparamsOrderTypeVariable.first();
+        Map<String, Object> paramsOrderType = orderTypeparamsOrderTypeVariable.second();
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("instId", market.get("id"));
         request.put("side", side);
@@ -2044,8 +2044,8 @@ public class Deepcoin extends DeepcoinApi
         } else
         {
             request.put("sz", this.amountToPrecision(symbol, amount));
-            Object paramsOmitted = this.omit(paramsOrderType, keysToOmit);
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", ((Map<String, Object>) (switch ((Object) (paramsOmitted)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), "cross");
+            Map<String, Object> paramsOmitted = this.omit(paramsOrderType, keysToOmit);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, "cross");
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             request.put("tdMode", marginMode);
@@ -2174,7 +2174,7 @@ public class Deepcoin extends DeepcoinApi
         return (Map<String, Object>) (this.extend(request, paramsMrgPosition));
     }
 
-    public Object handleTypePostOnlyAndTimeInForce(String type, Map<String, Object> parameters)
+    public Pair<String, Map<String, Object>> handleTypePostOnlyAndTimeInForce(String type, Map<String, Object> parameters)
     {
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
@@ -2183,13 +2183,13 @@ public class Deepcoin extends DeepcoinApi
         Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
         if (java.util.Objects.equals(timeInForce, "IOC"))
         {
-            return new ArrayList<Object>(Arrays.asList("ioc", paramsOmitted));
+            return new Pair<>("ioc", paramsOmitted);
         }
         if (Boolean.TRUE.equals(postOnly))
         {
-            return new ArrayList<Object>(Arrays.asList("post_only", paramsOmitted));
+            return new Pair<>("post_only", paramsOmitted);
         }
-        return new ArrayList<Object>(Arrays.asList(type, paramsOmitted));
+        return new Pair<>(type, paramsOmitted);
     }
 
     /**

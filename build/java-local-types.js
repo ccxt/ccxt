@@ -14933,6 +14933,11 @@ const PAIR_ELEMENT_TYPES = {
     'handleUntilOption': [ PAIR_MAP, PAIR_MAP ],
 };
 const PAIR_ACCESSORS = [ 'first', 'second' ];
+// venue-only [Str, Dict] producers with no override: every `return [a, b]` must still prove its elements
+const PAIR_VENUE_TYPES = {
+    'handleTypePostOnlyAndTimeInForce': { file: /[\\/]ts[\\/]src[\\/]deepcoin\.ts$/, types: [ 'String', PAIR_MAP ] },
+    'getInstType': { file: /[\\/]ts[\\/]src[\\/]pro[\\/]bitget\.ts$/, types: [ 'String', PAIR_MAP ] },
+};
 
 function pairJavaType (types) {
     return `io.github.ccxt.types.Pair<${types[0]}, ${types[1]}>`;
@@ -14946,6 +14951,10 @@ function pairDeclarationFile (declaration) {
 function pairMethodTypes (printer, declaration) {
     if (declaration === undefined || !ts.isMethodDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
         return undefined;
+    }
+    const venue = Object.hasOwn (PAIR_VENUE_TYPES, declaration.name.text) ? PAIR_VENUE_TYPES[declaration.name.text] : undefined;
+    if (venue !== undefined) {
+        return venue.file.test (pairDeclarationFile (declaration)) ? venue.types : undefined;
     }
     const types = Object.hasOwn (PAIR_ELEMENT_TYPES, declaration.name.text) ? PAIR_ELEMENT_TYPES[declaration.name.text] : undefined;
     if (types === undefined) {
@@ -14968,7 +14977,7 @@ function pairMethodTypes (printer, declaration) {
 function pairCallTypes (printer, node) {
     const call = unwrapParens (node);
     if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)
-        || !Object.hasOwn (PAIR_ELEMENT_TYPES, String (call.expression.name.text))) {
+        || !(Object.hasOwn (PAIR_ELEMENT_TYPES, String (call.expression.name.text)) || Object.hasOwn (PAIR_VENUE_TYPES, String (call.expression.name.text)))) {
         return undefined;
     }
     let declaration;
@@ -15071,8 +15080,16 @@ function pairReturnElementProven (printer, node, element) {
     } catch (e) {
         return false;
     }
-    const bound = declaration === undefined ? undefined : PAIR_BOUND_TYPES.get (declaration);
-    return bound !== undefined && (pairSameType (bound, element) || element === 'Object');
+    let bound = declaration === undefined ? undefined : PAIR_BOUND_TYPES.get (declaration);
+    if (bound === undefined && declaration !== undefined && (ts.isVariableDeclaration (declaration) || ts.isParameter?.(declaration) || ts.isParameterDeclaration?.(declaration))) {
+        // a local/param whose printed declaration already carries the element type
+        try {
+            bound = String (printer.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').replace (/^final\s+/, '') || undefined;
+        } catch (e) {
+            bound = undefined;
+        }
+    }
+    return bound !== undefined && bound !== 'Object' && (pairSameType (bound, element) || element === 'Object');
 }
 
 export function installJavaTuplePairReturns (transpiler) {
