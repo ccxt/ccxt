@@ -389,7 +389,7 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
             const m = masks.get(d.file)!;
             const shadow = new RegExp(`\\blet (mut )?${p.name}\\b`).exec(m.slice(d.bodyOpen, d.end));
             const limit = shadow ? d.bodyOpen + m.slice(d.bodyOpen, d.end).indexOf(';', shadow.index) : d.end;
-            const rx = new RegExp(`(?<![&\\w.])&${p.name}\\b`, 'g');
+            const rx = new RegExp(`(?<![&\\w.])&${p.name}\\b(?![.(\\[])`, 'g');
             rx.lastIndex = d.bodyOpen;
             let u: RegExpExecArray | null;
             while ((u = rx.exec(m)) !== null && u.index < limit) push(d.file, [u.index, 1, '']);
@@ -416,6 +416,35 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
         for (const [at, len, text] of es.sort((a, b) => b[0] - a[0])) src = src.slice(0, at) + text + src.slice(at + len);
         out.set(file, src);
     }
+    return out;
+}
+
+// The base `findMessageHashes` / `cleanUnsubscription` only read their client box: declared `client: &Value`,
+// and every `self.` call lends its first argument (`x.clone()` / `x` become `&x`).
+function lendWsBaseClient(content: string): string {
+    if (!/\b(?:find_message_hashes|clean_unsubscription)\(/.test(content)) return content;
+    const m = rustBorrowMask(content);
+    const edits: Array<[number, number, string]> = [];
+    for (const h of m.matchAll(/\bfn (find_message_hashes|clean_unsubscription)\(&self, (mut client: Value),/g)) {
+        const at = h.index! + h[0].length - h[2].length - 1;
+        edits.push([at, h[2].length, 'client: &Value']);
+        const open = m.indexOf('{', at), end = rustBorrowClose(m, open);
+        for (const u of m.slice(open, end).matchAll(/(?<![&\w.])&client\b(?![.(\[])/g)) edits.push([open + u.index!, 1, '']);
+    }
+    for (const c of m.matchAll(/(self\.|"(?:find_message_hashes|clean_unsubscription)" => self\.)(find_message_hashes|clean_unsubscription)\(/g)) {
+        const open = c.index! + c[0].length - 1;
+        const span = rustBorrowArgs(m, open, rustBorrowClose(m, open))[0];
+        if (span === undefined) continue;
+        const raw = content.slice(span[0], span[1]), text = raw.trim(), at = span[0] + raw.indexOf(text);
+        const id = /^([A-Za-z_]\w*)(\.clone\(\))?$/.exec(text);
+        const got = /^args\.get\((\d+)\)\.cloned\(\)\.unwrap_or\(crate::Value::Null\)$/.exec(text);
+        if (text.startsWith('&')) continue;
+        if (got) edits.push([at, text.length, `args.get(${got[1]}).unwrap_or(&crate::Value::Null)`]);
+        else if (id) edits.push([at, text.length, `&${id[1]}`]);
+        else edits.push([at, 0, '&']);
+    }
+    let out = content;
+    for (const [at, len, text] of edits.sort((a, b) => b[0] - a[0])) out = out.slice(0, at) + text + out.slice(at + len);
     return out;
 }
 
@@ -4676,7 +4705,7 @@ function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(typeHandleOptionTuples(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))));
+    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -11256,7 +11285,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))));
+        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 

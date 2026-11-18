@@ -1010,14 +1010,14 @@ pub struct ClientHandle {
 
 #[allow(dead_code)]
 impl ClientHandle {
-    pub fn from_value(value: Value) -> ClientHandle {
-        let read = |k: &str| crate::get_value(&value, &Value::Str(k.to_string().into()));
+    pub fn from_value(value: &Value) -> ClientHandle {
+        let read = |k: &str| crate::get_value(value, &Value::Str(k.to_string().into()));
         ClientHandle {
             url: read("url"),
             subscriptions: read("subscriptions"),
             futures: read("futures"),
             rejections: read("rejections"),
-            value,
+            value: value.clone(),
         }
     }
 
@@ -1353,9 +1353,9 @@ mod tests {
     // ral-51s: a typed `&str` / `Option<&str>` key writes the same entry the boxed `&Value` key wrote
     #[test]
     fn add_subscription_str_key_matches_the_boxed_key() {
-        let mut boxed = ClientHandle::from_value(Value::Null);
+        let mut boxed = ClientHandle::from_value(&Value::Null);
         boxed.subscriptions = Value::Map(Default::default());
-        let mut typed = ClientHandle::from_value(Value::Null);
+        let mut typed = ClientHandle::from_value(&Value::Null);
         typed.subscriptions = Value::Map(Default::default());
         let key = String::from("unsubscribe:7");
         boxed.add_subscription(&Value::from(key.as_str()), Value::Bool(true));

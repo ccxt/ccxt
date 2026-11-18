@@ -1618,7 +1618,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 eprintln!("[wsmsg] {}", s.chars().take(n).collect::<String>());
             }
             let mut client_handle = crate::pro::ws_client::ClientHandle::from_value(
-                crate::pro::ws_client::client_value(&url));
+                &crate::pro::ws_client::client_value(&url));
             self.ws_handle_message(&mut client_handle, msg).await;
         }
     } }
