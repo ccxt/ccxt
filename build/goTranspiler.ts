@@ -7224,6 +7224,30 @@ const GO_ANY_NIL_SAFE_DEFAULTED = new Set ([
 // DerefScalar folds these scalar-pointer results into a plain value or untyped nil
 const GO_ANY_NIL_DEREF_INNER = /^this\.(?:Safe(?:String|Integer|Number|Float|Bool|Timestamp)\w*|SafeCurrencyCode|NumberToString|PriceToPrecision|AmountToPrecision|Iso8601|Parse8601)\(/;
 const GO_ANY_NIL_SCALAR_TYPES = new Set (['string', 'int64', 'float64', 'bool', 'int']);
+// base readers whose Go result already went through derefScalar (SafeValueN, getValueFromList, GetValue; no venue
+// overrides them): IsEqual's own deref has nothing left to fold, so `x == nil` / `x == "lit"` answer the same
+const GO_ANY_DEREFED_READS = new Set (['this.SafeValue', 'this.SafeValue2', 'this.SafeValueN', 'this.HandleOption', 'this.GetSupportedMapping', 'GetValue']);
+// a whole parenthesised comparison or logical chain is a Go bool
+function goIsBoolExpressionText (text: string): boolean {
+    if (!text.startsWith ('(') || (goCallArgsSpanningText (text, 0) === undefined)) {
+        return false;
+    }
+    let depth = 0;
+    for (let i = 1; i < text.length - 1; i++) {
+        const char = text[i];
+        if (char === '"') {
+            i++;
+            while ((i < text.length) && (text[i] !== '"')) { if (text[i] === '\\') { i++; } i++; }
+        } else if ('([{'.includes (char)) {
+            depth++;
+        } else if (')]}'.includes (char)) {
+            depth--;
+        } else if ((depth === 0) && /^(?: == | != | && | \|\| | <= | >= | < (?!-)| > )/.test (text.slice (i - 1, i + 4))) {
+            return true;
+        }
+    }
+    return false;
+}
 
 // the top-level comma-separated arguments of a call text starting at `open` ('('), or undefined
 // when the call does not close exactly at the end of `text`
@@ -7285,6 +7309,9 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
     if (text === 'this.MyTrades') {
         return true;
     }
+    if (goIsBoolExpressionText (text)) {
+        return true;
+    }
     // Exchange.Positions (and its WsCacheObjGet owner read) is only ever written with an ArrayCache* constructor,
     // a map literal or untyped nil, so the answer is never a typed nil
     if ((text === 'this.Positions') || (text === 'this.WsCacheObjGet("Positions")')) {
@@ -7302,6 +7329,9 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
         return (args.length === 1) && GO_ANY_NIL_DEREF_INNER.test (args[0]) && (goCallArgsSpanningText (args[0], args[0].indexOf ('(')) !== undefined);
     }
     if (GO_ANY_NIL_SAFE_CALLS.has (call[1])) {
+        return true;
+    }
+    if (GO_ANY_DEREFED_READS.has (call[1])) {
         return true;
     }
     // an element of a []string is a string; out of range reads untyped nil
@@ -7478,11 +7508,12 @@ function goAnyLocalNilSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar a any = nil\n\tif true {\n\t\ta = this.SafeDict(p, "x")\n\t} else {\n\t\ta = []any{1}\n\t}\n\tif !IsEqual(a, nil) {\n\t\treturn a\n\t}\n').indexOf ('if (a != nil) {') >= 0, 'SafeDict/literal writes compare natively');
     ok (f ('\tvar s any = DerefScalar(this.SafeString(p, "s"))\n\tvar n int64 = this.Milliseconds()\n\ts = n\n\tif IsEqual(s, nil) {\n\t}\n').indexOf ('if (s == nil) {') >= 0, 'DerefScalar of a scalar accessor and a scalar local are safe');
     ok (f ('\tvar m any = map[string]any{\n\t\t"a": 1,\n\t}\n\tif IsEqual(m, nil) {\n\t}\n').indexOf ('if (m == nil) {') >= 0, 'a multi-line literal is safe');
+    ok (f ('\tvar v any = this.SafeValue2(p, "a", "b")\n\tv = this.HandleOption("m", "o")\n\tvar b any = (v == nil)\n\tif IsEqual(v, nil) || !IsEqual(b, nil) {\n\t}\n').indexOf ('if (v == nil) || (b != nil) {') >= 0, 'derefed base readers and bool expressions compare natively');
+    ok (f ('\tvar v any = this.SafeValue(p, "a")\n\tv = this.ParseIds(v)\n\tif IsEqual(v, nil) {\n\t}\n').indexOf ('IsEqual(v, nil)') >= 0, 'an unproven write keeps the helper');
     ok (f ('\tvar s any = client.(ccxt.ClientInterface).SubscriptionGet("a")\n\tif IsEqual(s, nil) {\n\t}\n').indexOf ('if (s == nil) {') >= 0, 'a ws subscription read is dereferenced, so it compares natively');
     ok (f ('\tvar d any = client.(ccxt.ClientInterface).SubscriptionDict("a")\n\tif IsEqual(d, nil) {\n\t}\n').indexOf ('if (d == nil) {') >= 0, 'a ws subscription dictionary read compares natively');
     const keep = [
         '\tvar v any = this.SafeString(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar v any = this.SafeValue(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = MapTyped(p)\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = this.FilterBy(p, "a", "b")\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = this.SafeDict(p, "v", p)\n\tif IsEqual(v, nil) {\n\t}\n',
@@ -7495,15 +7526,14 @@ function goAnyLocalNilSelfTest (ok: SelfTestOk): void {
         '\tvar v any = DerefScalar(this.SafeValue(p, "a"))\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = Precise.StringAbs(p)\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = this.ParseNumber(p, q)\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar v any = GetValue(p, 0)\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = this.Iso8601(p)\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar s []string = nil\n\ts, ok := p.([]string)\n\tvar v any = GetValue(s, 0)\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = func() any {\n\t\tif true {\n\t\t\treturn this.SafeString(p, "a")\n\t\t}\n\t\treturn nil\n\t}()\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = func() any {\n\t\tf := func() any { return p }\n\t\treturn f()\n\t}()\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar w any = this.SafeValue(p, "w")\n\tvar v any = w\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = nil\n\tvar w any = v\n\tv = w\n\tif IsEqual(v, nil) {\n\t}\n',
     ];
     keep.forEach ((body, index) => ok (f (body).indexOf ('IsEqual(v, nil)') >= 0, 'unproven write must keep the helper #' + index));
+    // SafeValue*/GetValue answer an already-derefScalar'd value, so the helper's deref folds nothing more
+    [ '\tvar v any = this.SafeValue(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n','\tvar v any = GetValue(p, 0)\n\tif IsEqual(v, nil) {\n\t}\n','\tvar s []string = nil\n\ts, ok := p.([]string)\n\tvar v any = GetValue(s, 0)\n\tif IsEqual(v, nil) {\n\t}\n','\tvar w any = this.SafeValue(p, "w")\n\tvar v any = w\n\tif IsEqual(v, nil) {\n\t}\n' ].forEach ((body, index) => ok (f (body).indexOf ('if (v == nil) {') >= 0, 'a derefed reader compares natively #' + index));
     ok (pass ('\nfunc (this *X) f(v any) any {\n\tif IsEqual(v, nil) {\n\t}\n}\n').indexOf ('IsEqual(v, nil)') >= 0, 'a parameter keeps the helper');
     const safe = [
         '\tvar v any = nil\n\tv = Slice(p, 0, 3)\n\tv = ToUpper(Replace(p, "a", "b"))\n\tv = MathMin(p, 2)\n\tv = Iso8601(p)\n',
@@ -7584,7 +7614,7 @@ function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, bo
     if (call[1] === 'GetArg') {
         return (args.length === 3) && GO_STRING_CMP_PLAIN_ARG.test (args[2]);
     }
-    return GO_STRING_CMP_SAFE_CALLS.has (call[1]);
+    return GO_STRING_CMP_SAFE_CALLS.has (call[1]) || GO_ANY_DEREFED_READS.has (call[1]);
 }
 
 function goStringLiteralCompareText (fn: string, isEqualFn: string): string {
@@ -7719,6 +7749,7 @@ function goSliceIndexSelfTest (ok: SelfTestOk): void {
 function goStringLiteralSelfTest (ok: SelfTestOk): void {
     const f = (body: string, sig = 'p any'): string => goStringLiteralNativeCompares ('\nfunc (this *X) f(' + sig + ', optionalArgs ...any) any {\n' + body + '\treturn nil\n}\n', 'IsEqual(');
     ok (f ('\tapi := GetArg(optionalArgs, 0, "public")\n\tif IsEqual(api, "private") || !IsEqual(api, "v2") {\n\t}\n').indexOf ('if (api == "private") || (api != "v2") {') >= 0, 'GetArg with a literal default compares natively');
+    ok (f ('\tvar m any = this.HandleOption("x", "method", "a")\n\tif IsEqual(m, "b") {\n\t}\n').indexOf ('if (m == "b") {') >= 0, 'a HandleOption local compares natively with a string literal');
     ok (f ('\tvar t any = "spot"\n\tvar u string = "x"\n\tif true {\n\t\tt = DerefScalar(this.SafeString(p, "type"))\n\t} else {\n\t\tt = u\n\t}\n\tt = GetValue(p, 0)\n\tif IsEqual(t, "swap") {\n\t}\n').indexOf ('if (t == "swap") {') >= 0, 'literal/DerefScalar/string-local/GetValue writes compare natively');
     ok (f ('\tm, q := this.HandleMarketTypeAndParams("f", nil, p)\n\t_ = q\n\tif IsEqual(m, "spot") && !IsEqual(m, "swap") {\n\t}\n').indexOf ('if (m != nil && *m == "spot") && (m == nil || *m != "swap") {') >= 0, 'a *string tuple result gets the nil-guarded compare');
     ok (f ('\tvar s *string = this.SafeString(p, "a")\n\tif IsEqual(s, "a") {\n\t}\n').indexOf ('(s != nil && *s == "a")') >= 0, 'a *string local gets the nil-guarded compare');
@@ -18133,11 +18164,11 @@ function goAnyNilCompareSelfTest (ok: SelfTestOk): void {
     ok (nil ('\tvar v any = this.SortBy2(p, "a", "b")\n').includes ('if (v == nil) {'), 'SortBy2 literal key');
     ok (nil ('\tvar v any = this.SafeList(p, "a", this.SafeList(p, "b"))\n').includes ('if (v == nil) {'), 'SafeList with a safe default');
     ok (nil ('\tvar v any = this.SafeDict(p, "a", map[string]any{})\n').includes ('if (v == nil) {'), 'SafeDict literal default still native');
+    ok (nil ('\tvar v any = this.SafeDict(p, "a", this.SafeValue(p, "b"))\n').includes ('if (v == nil) {'), 'SafeDict with a derefed SafeValue default');
     for (const keep of [
         '\tvar v any = this.SortBy2(p, k, "b")\n',
         '\tvar v any = this.SafeList(p, "a", p)\n',
         '\tvar r []any = ArrayTyped(p)\n\tvar v any = this.SafeList(p, "a", r)\n',
-        '\tvar v any = this.SafeDict(p, "a", this.SafeValue(p, "b"))\n',
         '\tvar v any = this.ToArray(p)\n',
         '\tvar v any = this.FilterBy(p, "a", "b")\n',
         '\tvar v any = ObjectKeys(p)\n',
