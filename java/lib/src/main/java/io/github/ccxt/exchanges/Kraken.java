@@ -690,6 +690,7 @@ public class Kraken extends KrakenApi
                     put( ":IInsufficient funds", InsufficientFunds.class );
                     put( ":Cancel pending", CancelPending.class );
                     put( ":Rate limit exceeded", RateLimitExceeded.class );
+                    put( "trading restricted for", RestrictedLocation.class );
                 }} );
             }} );
         }});
