@@ -9843,7 +9843,8 @@ export function javaVenueAsyncReturnTable () {
     // awaited results are only handed on stays Object (ral-87j7: native use, not a declaration retype)
     const listRead = javaVenueListReadNames ();
     for (const [ name, spelling ] of [ ...javaVenueReturnTable ]) {
-        if (spelling === 'List<Object>' && !listRead.has (name)) {
+        // isUnifiedEnabled: a proven tuple core whose awaited locals are pairs read by index helpers
+        if (spelling === 'List<Object>' && !listRead.has (name) && !(name === 'isUnifiedEnabled' && javaVenueTupleNames.has (name))) {
             javaVenueReturnTable.delete (name);
         }
     }
