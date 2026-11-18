@@ -19353,6 +19353,12 @@ function integerLiteralArithmeticLiteral (node) {
     return (kind === 'int') || (kind === 'uint') || (kind === 'long');
 }
 
+// a later write the consumers normalise the same way: a non-null int / Int64 expression (`xs.length`)
+function integerLiteralArithmeticWrite (csharp, node) {
+    const kind = nativeArithmeticOperandKind (csharp, node);
+    return (kind === 'int') || (kind === 'Int64');
+}
+
 function integerLiteralArithmeticLocal (csharp, declaration, context) {
     if (!integerLiteralArithmeticLiteral (declaration.initializer) || !isBlockScopedDeclaration (declaration)
             || declaration.parent?.declarations?.length !== 1) {
@@ -19374,7 +19380,7 @@ function integerLiteralArithmeticLocal (csharp, declaration, context) {
             continue;
         }
         if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
-            if (!integerLiteralArithmeticLiteral (parent.right)) {
+            if (!integerLiteralArithmeticLiteral (parent.right) && !integerLiteralArithmeticWrite (csharp, parent.right)) {
                 return undefined;
             }
             continue;
