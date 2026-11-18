@@ -132,13 +132,13 @@ public partial class PredictionExchange : BaseExchange
         // serve them later without another request
         parameters ??= new Dictionary<string, object>();
         this.setEvents(events);
-        object result = events;
+        IList<object> result = events;
         string? eventId = this.safeString(parameters, "eventId");
         string? slug = this.safeString(parameters, "slug");
         if (((eventId != null)) || ((slug != null)))
         {
             List<object> filtered = new List<object>() {};
-            for (int i = 0; i < getArrayLength(result); i++)
+            for (int i = 0; i < (result?.Count ?? 0); i++)
             {
                 IDictionary<string, object> eventVar = this.safeDict(result, i);
                 bool idMatch = ((eventId != null)) && ((this.safeString(eventVar, "id") == eventId));
@@ -150,8 +150,8 @@ public partial class PredictionExchange : BaseExchange
             }
             result = filtered;
         }
-        result = this.filterEventsByStatus(this.toArray(result), this.safeString(parameters, "status"));
-        result = this.filterEventsByTags(this.toArray(result), this.safeList(parameters, "tags"));
+        result = this.filterEventsByStatus(result, this.safeString(parameters, "status"));
+        result = this.filterEventsByTags(result, this.safeList(parameters, "tags"));
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         int queriesLength = 0;
@@ -161,7 +161,7 @@ public partial class PredictionExchange : BaseExchange
         }
         if (queriesLength > 0)
         {
-            result = this.filterEventsBySearchIn(this.toArray(result), queries, this.safeString(parameters, "searchIn"));
+            result = this.filterEventsBySearchIn(result, queries, this.safeString(parameters, "searchIn"));
         }
         string? sort = this.safeString(parameters, "sort");
         if ((sort != null))
@@ -182,9 +182,9 @@ public partial class PredictionExchange : BaseExchange
                 // normalize the sort key on every row first — sortBy reads it with a raw
                 // subscript, which raises KeyError/undefined-index in Python/PHP when a
                 // venue's parsed event omits the field (JS alone tolerates the miss)
-                for (int i = 0; i < getArrayLength(result); i++)
+                for (int i = 0; i < (result?.Count ?? 0); i++)
                 {
-                    ((IDictionary<string,object>)getValue(result, i))[(string)sortKey] = this.safeNumber(getValue(result, i), sortKey, 0);
+                    ((IDictionary<string,object>)result[i])[(string)sortKey] = this.safeNumber(result[i], sortKey, 0);
                 }
                 result = this.sortBy(result, sortKey, true, 0);
             }
@@ -194,7 +194,7 @@ public partial class PredictionExchange : BaseExchange
         {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
-            int resultLength = getArrayLength(result);
+            int resultLength = (result?.Count ?? 0);
             Int64? sliceEnd = limit;
             if ((sliceEnd > resultLength))
             {
@@ -205,7 +205,7 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public virtual object filterEventsByStatus(IList<object> events, string? status = null)
+    public virtual IList<object> filterEventsByStatus(IList<object> events, string? status = null)
     {
         // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
         if (((status == null)) || ((status == "all")))
@@ -227,7 +227,7 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public virtual object filterEventsBySearchIn(IList<object> events, IList<object> queries, string? searchIn = null)
+    public virtual IList<object> filterEventsBySearchIn(IList<object> events, IList<object> queries, string? searchIn = null)
     {
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
         // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
@@ -310,7 +310,7 @@ public partial class PredictionExchange : BaseExchange
         return s;
     }
 
-    public virtual object filterEventsByTags(IList<object> events, IList<object> tags = null)
+    public virtual IList<object> filterEventsByTags(IList<object> events, IList<object> tags = null)
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
