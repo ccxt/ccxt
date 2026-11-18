@@ -3812,6 +3812,8 @@ const HANDLE_ELEMENT_TYPES = {
     'handleOptionBoolAndParams2': { element0: 'Boolean' },
     'handleOptionIntegerAndParams': { element0: 'Long' },
     'handleOptionIntegerAndParams2': { element0: 'Long' },
+    // slot 0 is the typed option, the Int argument or the 1000 default (never null)
+    'handleMaxEntriesPerRequestAndParams': { element0: 'Long' },
     'handleMarginModeAndParams': { element0: 'String' },
     'handleNetworkCodeAndParams': { element0: 'String' },
     'handlePostOnly': { element0: 'Boolean' },

@@ -8677,8 +8677,8 @@ export class BaseExchange {
 
     handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params: Dict = {}): [Int, any] {
         const [ newMaxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (params, method, 'maxEntriesPerRequest');
-        const maxEntriesPerRequestOption = (newMaxEntriesPerRequest !== undefined) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
-        const maxEntriesPerRequestResolved = (maxEntriesPerRequestOption === undefined) ? 1000 : maxEntriesPerRequestOption; // default to 1000
+        const maxEntriesPerRequestOption: Int = (newMaxEntriesPerRequest !== undefined) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
+        const maxEntriesPerRequestResolved: Int = (maxEntriesPerRequestOption === undefined) ? 1000 : maxEntriesPerRequestOption; // default to 1000
         return [ maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest ];
     }
 
