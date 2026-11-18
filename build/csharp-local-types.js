@@ -19589,6 +19589,8 @@ function int64CounterLocal (csharp, declaration, context) {
         return current?.kind === ts.SyntaxKind.Identifier && current.text === name;
     };
     const intOperand = (node) => integerLiteralArithmeticLiteral (stripParens (node)) || intKinds.includes (nativeArithmeticOperandKind (csharp, node));
+    const selfSumWrite = (value) => integerOverloadCallType (value) === 'Int64' && isSelf (value.arguments[0])
+        && [ 'int', 'uint', 'Int64' ].includes (nativeArithmeticOperandKind (csharp, value.arguments[1]));
     let reads = 0;
     let counterWrites = 0;
     for (const n of (indexScope (csharp, scope).identifiers.get (name) ?? [])) {
@@ -19622,6 +19624,11 @@ function int64CounterLocal (csharp, declaration, context) {
                     counterWrites++;
                     continue;
                 }
+                // `n = this.sum (n, <int>)` binds sum(Int64, Int64), the same Int64 box the object sum returns
+                if (selfSumWrite (value) && parent.parent?.kind === ts.SyntaxKind.ExpressionStatement) {
+                    counterWrites++;
+                    continue;
+                }
                 return undefined;
             }
         }
@@ -19635,6 +19642,19 @@ function int64CounterLocal (csharp, declaration, context) {
                 && consumer.parent?.kind === ts.SyntaxKind.BinaryExpression && stripParens (consumer.parent.right) === consumer
                 && consumer.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && isSelf (consumer.parent.left)
                 && integerLiteralArithmeticLiteral (stripParens (consumer.right))) {
+            reads++;
+            continue;
+        }
+        if (consumer?.kind === ts.SyntaxKind.CallExpression && consumer.arguments[0] === operand && selfSumWrite (consumer)
+                && consumer.parent?.kind === ts.SyntaxKind.BinaryExpression && consumer.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                && isSelf (consumer.parent.left)) {
+            reads++;
+            continue;
+        }
+        // this.safeList/safeValue/safeDict (x, n): a list index is read through key.ToString(), same for Int32 / Int64
+        if (consumer?.kind === ts.SyntaxKind.CallExpression && consumer.arguments[1] === operand
+                && consumer.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && consumer.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && [ 'safeList', 'safeValue', 'safeDict' ].includes (consumer.expression.name?.text)) {
             reads++;
             continue;
         }
