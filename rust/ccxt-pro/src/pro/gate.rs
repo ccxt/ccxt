@@ -2705,12 +2705,16 @@ impl GateCore {
         //    }
         //
         let mut rawLiquidations: Vec<Value> = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut newLiquidations: Value = Value::from(vec![]);
+        let mut newLiquidations: Vec<Value> = vec![];
         if (self.liquidations.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
             self.liquidations = ArrayCache::new(limit);
         }
         let mut cache: Value = self.liquidations.clone();
+        let mut liquidationsBySymbol: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_342: bool = true;
@@ -2718,12 +2722,31 @@ impl GateCore {
             let mut rawLiquidation: Value = rawLiquidations.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut liquidation: Value = self.parse_ws_liquidation(rawLiquidation, &[]);
             cache.append(liquidation.clone());
-            let mut symbol: Option<String> = self.safe_string_k_opt(liquidation, "symbol", &[]);
-            let mut symbolLiquidations: Value = self.safe_list(cache.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
-            client.resolve(&[symbolLiquidations, Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())]);
+            newLiquidations.push(liquidation.clone());
+            let mut symbol: Option<String> = self.safe_string_k_opt(liquidation.clone(), "symbol", &[]);
+            if (symbol.is_some()) {
+                let mut symbolLiquidations: Value = self.safe_list(liquidationsBySymbol.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                if (symbolLiquidations == Value::Null) {
+                    symbolLiquidations = Value::from(vec![]);
+                }
+                if let Value::Arr(__a) = &mut symbolLiquidations { std::sync::Arc::make_mut(__a).push(liquidation); };
+                if let Value::Dict(__d) = &mut liquidationsBySymbol { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), symbolLiquidations); }
+            }
         }
         }
-        client.resolve(&[newLiquidations, Value::Str("myLiquidations".into())]);
+        let mut symbols: Vec<Value> = Value::Array(liquidationsBySymbol.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_343: bool = true;
+            while { if !__for_first_343 { i += 1; } __for_first_343 = false; i < (symbols.len() as i64) } {
+            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
+            client.resolve(&[(if let (Some(__m), Some(__k)) = (liquidationsBySymbol.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbol).into())]);
+        }
+        }
+        let mut numNewLiquidations: f64 = ((newLiquidations.len() as i64) as f64);
+        if numNewLiquidations > ((0i64) as f64) {
+            client.resolve(&[Value::Array(newLiquidations), Value::Str("myLiquidations".into())]);
+        }
 }
 
     pub fn parse_ws_liquidation(&self, mut liquidation: Value, optional_args: &[Value]) -> Value {
@@ -2757,7 +2780,8 @@ impl GateCore {
         //    }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(liquidation.clone(), "contract", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
+        // liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into()), Value::Str("contract".into())]);
         let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "time_ms", &[]).as_i64();
         let mut originalSize: Option<String> = self.safe_string_k_opt(liquidation.clone(), "size", &[]);
         let mut left: Option<String> = self.safe_string_k_opt(liquidation.clone(), "left", &[]);
@@ -2767,14 +2791,14 @@ impl GateCore {
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]));
         m.insert("contracts".to_string(), self.parse_number(amount, &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved.clone(), "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number_k(liquidation, "fill_price", &[]));
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
     m
-}), &[]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -2860,8 +2884,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut payload: Vec<Value> = (match __pro_message.get("payload").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
                     {
                                                 let mut i: i64 = 0;
-                        let mut __for_first_343: bool = true;
-                        while { if !__for_first_343 { i += 1; } __for_first_343 = false; i < (payload.len() as i64) } {
+                        let mut __for_first_344: bool = true;
+                        while { if !__for_first_344 { i += 1; } __for_first_344 = false; i < (payload.len() as i64) } {
                         let mut marketType: Value = Value::Null;
                         if (parsedChannel.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_str() == Some("futures")) {
                             marketType = Value::Str("swap".into());
@@ -2951,8 +2975,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut keys: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_345: bool = true;
-            while { if !__for_first_345 { i += 1; } __for_first_345 = false; i < (keys.len() as i64) } {
+            let mut __for_first_346: bool = true;
+            while { if !__for_first_346 { i += 1; } __for_first_346 = false; i < (keys.len() as i64) } {
             let mut messageHash: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(__ch.has_subscription(&messageHash)) {
                 continue;
@@ -2967,8 +2991,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_344: bool = true;
-                    while { if !__for_first_344 { j += 1; } __for_first_344 = false; j < (messageHashes.len() as i64) } {
+                    let mut __for_first_345: bool = true;
+                    while { if !__for_first_345 { j += 1; } __for_first_345 = false; j < (messageHashes.len() as i64) } {
                     let mut unsubHash: Value = messageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut subHash: Value = subMessageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
                     self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
@@ -3180,8 +3204,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut keys: Vec<Value> = Value::Array(findBy.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_346: bool = true;
-            while { if !__for_first_346 { i += 1; } __for_first_346 = false; i < (keys.len() as i64) } {
+            let mut __for_first_347: bool = true;
+            while { if !__for_first_347 { i += 1; } __for_first_347 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = findBy.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if Value::Int(url.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
