@@ -6507,7 +6507,7 @@ export class BaseExchange {
         const transactionsArray = this.toArray (transactions);
         let result: Transaction[] = [];
         for (let i = 0; i < transactionsArray.length; i++) {
-            const transaction = this.extend (this.parseTransaction (transactionsArray[i], currency), params);
+            const transaction = this.extend (this.parseTransaction (this.safeDict (transactionsArray, i, {}), currency), params);
             result.push (transaction);
         }
         result = this.sortBy (result, 'timestamp');
