@@ -26776,7 +26776,8 @@ function j02IdentifierPlain (ctx, identifier, depth) {
     if (ctx.checker === undefined) {
         // callee body read by name: parameters are unknown values
         const scope = ctx.scope;
-        if (scope.parameters?.some ((p) => ts.isIdentifier (p.name) && p.name.text === identifier.text)) {
+        const param = scope.parameters?.find ((p) => ts.isIdentifier (p.name) && p.name.text === identifier.text);
+        if (param !== undefined && !j02ParamPlain (param, depth)) {
             return false;
         }
         let ok = true;
@@ -26793,7 +26794,7 @@ function j02IdentifierPlain (ctx, identifier, depth) {
                 ok = false;
             }
         }
-        return ok && found > 0;
+        return ok && (found > 0 || param !== undefined);
     }
     const checker = ctx.checker;
     const symbol = checker.getSymbolAtLocation (identifier);
@@ -26810,7 +26811,7 @@ function j02IdentifierPlain (ctx, identifier, depth) {
     } else if (ts.isBindingElement (declaration) && ts.isIdentifier (declaration.name)) {
         ok = j02SlotPlain (ctx, declaration, depth);
     } else {
-        ok = false; // parameters: callers may hand any store
+        ok = j02ParamPlain (declaration, depth); // parameters: only when every caller hands a plain store
     }
     const home = enclosingFunction (declaration);
     const walk = (n) => {
@@ -26880,6 +26881,82 @@ function j02TupleCallSlotPlain (ctx, call, index, depth) {
         return returns.length > 0 && returns.every ((r) => r !== undefined && ts.isArrayLiteralExpression (r) && r.elements[index] !== undefined
             && !ts.isSpreadElement (r.elements[index]) && j02Plain (inner, r.elements[index], depth + 1));
     });
+}
+
+// a base-method parameter is plain when every ts/src caller (this./super./exchange.) passes a plain value,
+// no hand-written Java calls the method and no quoted name can dispatch it dynamically
+let j02ParamVerdicts;
+let j02CallerIndex;
+
+function j02Callers () {
+    if (j02CallerIndex !== undefined) {
+        return j02CallerIndex;
+    }
+    const index = { calls: new Map (), quoted: new Set () };
+    const files = [];
+    const collect = (dir) => {
+        for (const e of fs.existsSync (dir) ? fs.readdirSync (dir, { withFileTypes: true }) : []) {
+            const full = path.join (dir, e.name);
+            if (e.isDirectory ()) {
+                collect (full);
+            } else if (isTsIndexSource (e.name) && !/\.nooverloads\./.test (e.name)) {
+                files.push (full);
+            }
+        }
+    };
+    collect (JAVA_FRESH_MAP_TS_ROOT);
+    for (const file of files) {
+        const text = readTsIndexSource (file);
+        if (text === undefined) {
+            continue;
+        }
+        const visit = (n) => {
+            if (ts.isStringLiteralLike (n)) {
+                index.quoted.add (n.text);
+            } else if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression)) {
+                const name = n.expression.name.text;
+                const list = index.calls.get (name) ?? [];
+                list.push (n);
+                index.calls.set (name, list);
+            }
+            n.forEachChild (visit);
+        };
+        ts.createSourceFile (file, text).forEachChild (visit);
+    }
+    j02CallerIndex = index;
+    return index;
+}
+
+function j02ParamPlain (param, depth) {
+    const method = param.parent;
+    if (method === undefined || !ts.isMethodDeclaration (method) || !ts.isIdentifier (method.name) || param.dotDotDotToken !== undefined
+        || param.initializer !== undefined || !BASE_SOURCE_FILE.test (method.getSourceFile ().fileName) || depth > 5) {
+        return false;
+    }
+    const name = method.name.text;
+    const position = method.parameters.indexOf (param);
+    const key = `${name}#${position}`;
+    j02ParamVerdicts ??= new Map ();
+    if (j02ParamVerdicts.has (key)) {
+        return j02ParamVerdicts.get (key) === true;
+    }
+    j02ParamVerdicts.set (key, false); // a recursive caller cycle is not a proof
+    const { calls, quoted } = j02Callers ();
+    const state = javaFreshMapMethods ();
+    let ok = !quoted.has (name) && !state.handWritten.some ((t) => t === undefined || new RegExp (`[.\\s]${name}\\s*\\(`).test (t));
+    for (const call of ok ? (calls.get (name) ?? []) : []) {
+        const owner = call.expression.expression;
+        const scope = enclosingFunction (call);
+        const arg = call.arguments[position];
+        if (!(owner.kind === ts.SyntaxKind.ThisKeyword || owner.kind === ts.SyntaxKind.SuperKeyword || (ts.isIdentifier (owner) && owner.text === 'exchange'))
+            || call.arguments.some ((a) => ts.isSpreadElement (a)) || arg === undefined || scope === undefined || !ts.isFunctionLike (scope)
+            || !j02Plain ({ checker: undefined, scope }, arg, depth + 1)) {
+            ok = false;
+            break;
+        }
+    }
+    j02ParamVerdicts.set (key, ok);
+    return ok;
 }
 
 // `[ n, .. ] = v` or a for-in/of head: a write; `return [ n, .. ]` is a read
@@ -27097,8 +27174,9 @@ export function installJavaLocalElementWrites (transpiler) {
 function j02Rewrite (printer, node, receiver, key, rest) {
     const checker = printer.getChecker ();
     const declaration = checker.getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
-    if (declaration === undefined || ts.isParameterDeclaration (declaration) || !(ts.isVariableDeclaration (declaration) || ts.isBindingElement (declaration))) {
-        return undefined; // parameters and fields belong to other families
+    if (declaration === undefined || !(ts.isVariableDeclaration (declaration) || ts.isBindingElement (declaration)
+        || (ts.isParameterDeclaration (declaration) && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName)))) {
+        return undefined; // venue parameters and fields belong to other families
     }
     const declared = String (printer.javaDeclaredTypeOf?.(receiver) ?? '').trim ();
     const printedKey = printer.printNode (node.left.argumentExpression, 0);
