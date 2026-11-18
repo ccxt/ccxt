@@ -1991,6 +1991,9 @@ const VENUE_RETURN_KINDS = {
     // Precise.stringNeg (public static String); its null seed is parsed through `x as string`
     'getGateFuturesSignedAmount': [ 'String' ],
     'getPrivateWsUrl': [ 'String' ],
+    // grvt convertToBigIntCustom / feeAmountMultiplier (`: int`, one declaration each): parseInt of a
+    // string prints Long.parseLong (never null), feeAmountMultiplier returns that call
+    'convertToBigIntCustom': [ 'Long' ], 'feeAmountMultiplier': [ 'Long' ],
     // prediction `parseEvent (..): PredictionEvent`: every declaration returns this.extend (..), a fresh map
     'parseEvent': [ JAVA_ARRAY_TYPE_MAP () ],
 };
