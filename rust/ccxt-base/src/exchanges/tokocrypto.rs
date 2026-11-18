@@ -452,6 +452,158 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
 
     Value::Null
 }
+    fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
+        let mut market: Value = market.into();
+        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteAsset", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+        let mut lowercaseId: Option<String> = self.safe_string_lower_k_opt(market.clone(), "symbol", &[]);
+        let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "marginAsset", &[]);
+        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        if (base.is_none()) || (quote.is_none()) {
+            return Value::Null;
+        }
+        let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
+        let mut filters: crate::value::List = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]).into_list();
+        let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
+        let mut status: Option<String> = self.safe_string_k_opt(market.clone(), "spotTradingEnable", &[]);
+        let mut active: bool = status.as_deref() == Some("1");
+        let mut permissions: crate::value::List = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]).into_list();
+        {
+                        let mut j: i64 = 0;
+            let mut __for_first_1128: bool = true;
+            while { if !__for_first_1128 { j += 1; } __for_first_1128 = false; j < (permissions.len() as i64) } {
+            if (self.safe_string(&permissions, Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
+                active = false;
+                break;
+            }
+        }
+        }
+        let mut marginTradingEnable: Option<String> = self.safe_string_k_opt(market.clone(), "marginTradingEnable", &[]);
+        let mut costMin: Option<f64> = None;
+        let mut precision: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]));
+                m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]));
+                m.insert("base".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "basePrecision", &[])]), &[]));
+                m.insert("quote".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quotePrecision", &[])]), &[]));
+            m
+        });
+        let mut limits: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::Null);
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+                m.insert("amount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::Null);
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+                m.insert("price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::Null);
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+                m.insert("cost".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), Value::from(costMin));
+        m.insert("max".to_string(), Value::Null);
+    m
+}));
+            m
+        });
+        if (filtersByType.contains_key("PRICE_FILTER")) {
+            let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits.insert("price".into(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(&filter, "minPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filter, "maxPrice", &[]));
+    m
+}));
+            precision.insert("price".into(), crate::value::KeyRead::key_read(&&filter, "tickSize"));
+        }
+        if (filtersByType.contains_key("LOT_SIZE")) {
+            let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "LOT_SIZE", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            precision.insert("amount".into(), self.safe_number_k(&filter, "stepSize", &[]));
+            limits.insert("amount".into(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(&filter, "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filter, "maxQty", &[]));
+    m
+}));
+        }
+        if (filtersByType.contains_key("MARKET_LOT_SIZE")) {
+            let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "MARKET_LOT_SIZE", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            limits.insert("market".into(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("min".to_string(), self.safe_number_k(&filter, "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filter, "maxQty", &[]));
+    m
+}));
+        }
+        let mut entry: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                m.insert("lowercaseId".to_string(), lowercaseId.map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from(symbol));
+                m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
+                m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
+                m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
+                m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+                m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
+                m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
+                m.insert("type".to_string(), Value::Str("spot".into()));
+                m.insert("spot".to_string(), Value::Bool(true));
+                m.insert("margin".to_string(), (Value::Bool(marginTradingEnable.as_deref() == Some("1"))));
+                m.insert("swap".to_string(), Value::Bool(false));
+                m.insert("future".to_string(), Value::Bool(false));
+                m.insert("option".to_string(), Value::Bool(false));
+                m.insert("active".to_string(), Value::Bool(active));
+                m.insert("contract".to_string(), Value::Bool(false));
+                m.insert("linear".to_string(), Value::Null);
+                m.insert("inverse".to_string(), Value::Null);
+                m.insert("contractSize".to_string(), Value::Null);
+                m.insert("expiry".to_string(), Value::Null);
+                m.insert("expiryDatetime".to_string(), Value::Null);
+                m.insert("strike".to_string(), Value::Null);
+                m.insert("optionType".to_string(), Value::Null);
+                m.insert("precision".to_string(), Value::Map(precision));
+                m.insert("limits".to_string(), Value::Map(limits));
+                m.insert("created".to_string(), Value::Null);
+                m.insert("info".to_string(), market);
+            m
+        });
+        if (filtersByType.contains_key("MIN_NOTIONAL")) {
+            let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "MIN_NOTIONAL", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            costMin = self.safe_number2(&filter, Value::Str("minNotional".into()), Value::Str("notional".into()), &[]).as_f64();
+        }
+        return Value::Map(entry);
+
+    Value::Null
+}
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
         return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, Value::Int(5), &[])]);
 
@@ -798,6 +950,7 @@ impl crate::exchange_generated::ExchangeBase for Tokocrypto {
                 "is_native_market" => self.is_native_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
                 "nonce" => self.nonce(),
                 "parse_balance_custom" => self.parse_balance_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref()),
+                "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1827,165 +1980,11 @@ impl Tokocrypto {
             m
         })]).into_dict();
         let mut list: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
-        let mut result: Vec<Value> = Vec::new();
-        {
-                        let mut i: i64 = 0;
-            let mut __for_first_1129: bool = true;
-            while { if !__for_first_1129 { i += 1; } __for_first_1129 = false; i < (list.len() as i64) } {
-            let mut market: crate::value::Dict = list.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
-            let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteAsset", &[]);
-            let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
-            let mut lowercaseId: Option<String> = self.safe_string_lower_k_opt(&market, "symbol", &[]);
-            let mut settleId: Option<String> = self.safe_string_k_opt(&market, "marginAsset", &[]);
-            let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            if (base.is_none()) || (quote.is_none()) {
-                continue;
-            }
-            let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-            let mut filters: crate::value::List = self.safe_list_k(&market, "filters", &[Value::from(vec![])]).into_list();
-            let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
-            let mut status: Option<String> = self.safe_string_k_opt(&market, "spotTradingEnable", &[]);
-            let mut active: bool = status.as_deref() == Some("1");
-            let mut permissions: crate::value::List = self.safe_list_k(&market, "permissions", &[Value::from(vec![])]).into_list();
-            {
-                                let mut j: i64 = 0;
-                let mut __for_first_1128: bool = true;
-                while { if !__for_first_1128 { j += 1; } __for_first_1128 = false; j < (permissions.len() as i64) } {
-                if (self.safe_string(&permissions, Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
-                    active = false;
-                    break;
-                }
-            }
-            }
-            let mut marginTradingEnable: Option<String> = self.safe_string_k_opt(&market, "marginTradingEnable", &[]);
-            let mut costMin: Option<f64> = None;
-            let mut precision: indexmap::IndexMap<String, Value> = ({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "quantityPrecision", &[])]), &[]));
-                    m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "pricePrecision", &[])]), &[]));
-                    m.insert("base".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "basePrecision", &[])]), &[]));
-                    m.insert("quote".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "quotePrecision", &[])]), &[]));
-                m
-            });
-            let mut limits: indexmap::IndexMap<String, Value> = ({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("leverage".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), Value::Null);
-    m
-}));
-                    m.insert("amount".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), Value::Null);
-    m
-}));
-                    m.insert("price".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), Value::Null);
-    m
-}));
-                    m.insert("cost".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), Value::from(costMin));
-        m.insert("max".to_string(), Value::Null);
-    m
-}));
-                m
-            });
-            if (filtersByType.contains_key("PRICE_FILTER")) {
-                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                limits.insert("price".into(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(&filter, "minPrice", &[]));
-        m.insert("max".to_string(), self.safe_number_k(&filter, "maxPrice", &[]));
-    m
-}));
-                precision.insert("price".into(), crate::value::KeyRead::key_read(&&filter, "tickSize"));
-            }
-            if (filtersByType.contains_key("LOT_SIZE")) {
-                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "LOT_SIZE", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
-                precision.insert("amount".into(), self.safe_number_k(&filter, "stepSize", &[]));
-                limits.insert("amount".into(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(&filter, "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(&filter, "maxQty", &[]));
-    m
-}));
-            }
-            if (filtersByType.contains_key("MARKET_LOT_SIZE")) {
-                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "MARKET_LOT_SIZE", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
-                limits.insert("market".into(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(&filter, "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(&filter, "maxQty", &[]));
-    m
-}));
-            }
-            let mut entry: indexmap::IndexMap<String, Value> = ({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("lowercaseId".to_string(), lowercaseId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), Value::from(symbol));
-                    m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("type".to_string(), Value::Str("spot".into()));
-                    m.insert("spot".to_string(), Value::Bool(true));
-                    m.insert("margin".to_string(), (Value::Bool(marginTradingEnable.as_deref() == Some("1"))));
-                    m.insert("swap".to_string(), Value::Bool(false));
-                    m.insert("future".to_string(), Value::Bool(false));
-                    m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), Value::Bool(active));
-                    m.insert("contract".to_string(), Value::Bool(false));
-                    m.insert("linear".to_string(), Value::Null);
-                    m.insert("inverse".to_string(), Value::Null);
-                    m.insert("contractSize".to_string(), Value::Null);
-                    m.insert("expiry".to_string(), Value::Null);
-                    m.insert("expiryDatetime".to_string(), Value::Null);
-                    m.insert("strike".to_string(), Value::Null);
-                    m.insert("optionType".to_string(), Value::Null);
-                    m.insert("precision".to_string(), Value::Map(precision));
-                    m.insert("limits".to_string(), Value::Map(limits));
-                    m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), Value::Dict(market));
-                m
-            });
-            if (filtersByType.contains_key("MIN_NOTIONAL")) {
-                let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "MIN_NOTIONAL", &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                })]).into_dict();
-                costMin = self.safe_number2(&filter, Value::Str("minNotional".into()), Value::Str("notional".into()), &[]).as_f64();
-            }
-            result.push(Value::Map(entry));
-        }
-        }
-        return Value::from(result);
+        return self.parse_markets(&list);
         Value::Null
         }).await?))
     }
+
 
 /*
  * @method
@@ -2527,8 +2526,8 @@ impl Tokocrypto {
         let mut balances: crate::value::List = self.safe_list_k(&data, "accountAssets", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1130: bool = true;
-            while { if !__for_first_1130 { i += 1; } __for_first_1130 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1129: bool = true;
+            while { if !__for_first_1129 { i += 1; } __for_first_1129 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -3598,8 +3597,8 @@ impl Tokocrypto {
             let mut limit: Option<i64> = self.safe_integer_k(&paramsDict, "limit", &[]).as_i64();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1131: bool = true;
-                while { if !__for_first_1131 { i += 1; } __for_first_1131 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_1130: bool = true;
+                while { if !__for_first_1130 { i += 1; } __for_first_1130 = false; i < (byLimit.len() as i64) } {
                 let mut entry: crate::value::List = byLimit.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
                 let mut entryLimit: Option<i64> = self.safe_integer(&entry, Value::Int(0), &[]).as_i64();
                 if (limit.is_some()) && (entryLimit.is_some()) && ((limit.is_some() && entryLimit.is_some() && limit <= entryLimit)) {

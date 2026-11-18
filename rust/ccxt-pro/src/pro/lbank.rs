@@ -895,8 +895,8 @@ if _try_result.is_err() {
         let mut rawTrades: Vec<Value> = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade.map_or(Value::Null, Value::Dict)]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_471: bool = true;
-            while { if !__for_first_471 { i += 1; } __for_first_471 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_472: bool = true;
+            while { if !__for_first_472 { i += 1; } __for_first_472 = false; i < (rawTrades.len() as i64) } {
             let mut trade: crate::value::Dict = self.parse_ws_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
             std::sync::Arc::make_mut(&mut trade).insert("symbol".into(), symbol.clone());
             stored.append(Value::Dict(trade));

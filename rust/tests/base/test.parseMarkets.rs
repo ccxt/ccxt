@@ -40,7 +40,7 @@ pub fn testParseMarkets() {
         m.insert("quote".to_string(), Value::Null);
     m
 })]);
-    let mut parsedMarkets: Value = exchange.parse_markets(markets.clone());
+    let mut parsedMarkets: Value = exchange.parse_markets(markets);
     assert!(ccxt::runtime::is_true(&((Value::Int(parsedMarkets.len() as i64).as_f64() == Some(2.0)))));
     assert!(ccxt::runtime::is_true(&(((parsedMarkets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) != Value::Null) && (parsedMarkets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null).as_str() == Some("BTC"))))));
 }
