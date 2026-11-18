@@ -11697,7 +11697,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (goGofmtNestedParens (goIsEqualSafeLiteral (goTypedIsEqualNative (goNativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (goTypedMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (content))))))))));
+    content = goGofmtSplicedText (goGofmtNestedParens (goIsEqualSafeLiteral (goTypedIsEqualNative (goNativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeBalanceSelfRebind (goSafeListSliceReads (goSafeDictMapReads (goTypedMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (content))))))))))));
     content = goTypedGvMapReads (content);
     content = goTypedNativeDerefs (path, content);
     content = goTypedStrNativeStringHelpers (path, content);
@@ -15322,6 +15322,24 @@ func (this *${className}) Init(userConfig map[string]any) {
 // REST structs into go/v4/pro/exchange_wrapper_structs.go as well.
 type SelfTestOk = (condition: boolean, message: string) => void;
 
+function goSafeListSliceSelfTest (ok: SelfTestOk): void {
+    const f = (body: string) => '\nfunc (this *X) F(r any) any {\n' + body + '}\n';
+    const lit = goSafeListSliceReads (f ('\tvar w []any = nil\n\tw = ListTyped(this.SafeList(r, "a", []any{}))\n\tw = ccxt.ListTyped(this.SafeList(r, "b", []any{"x", 1}))\n'));
+    ok (lit.includes ('w = this.SafeListSlice(r, "a", []any{})') && lit.includes ('w = this.SafeListSlice(r, "b", []any{"x", 1})'), 'literal defaults: ' + lit);
+    const loc = goSafeListSliceReads (f ('\tvar d []any = []any{"spot"}\n\tvar t []any = ListTyped(this.SafeList(r, "t", d))\n'));
+    ok (loc.includes ('var t []any = this.SafeListSlice(r, "t", d)'), 'once-declared []any local: ' + loc);
+    const keep = [ '\tvar t []any = ListTyped(this.SafeList(r, "t"))\n', '\tvar t []any = ListTyped(this.SafeList(r, "t", nil))\n',
+        '\tvar t []any = ListTyped(this.SafeList(r, "t", r))\n', '\tvar d []any = []any{}\n\td, ok := r.([]any)\n\t_ = ok\n\tvar t []any = ListTyped(this.SafeList(r, "t", d))\n',
+        '\tvar d any = []any{}\n\tvar t []any = ListTyped(this.SafeList(r, "t", d))\n', '\tvar t []any = ListTyped(this.SafeList(r, "t", []any{}).([]any))\n' ];
+    keep.forEach ((b, i) => ok (goSafeListSliceReads (f (b)) === f (b), 'negative ' + i));
+    ok (goSafeListSliceReads (lit) === lit, 'idempotent');
+    const bal = goSafeBalanceSelfRebind (f ('\tvar result map[string]any = map[string]any{}\n\tif r != nil {\n\t\tresult = MapTyped(this.SafeBalance(result))\n\t}\n'));
+    ok (bal.includes ('\t\tthis.SafeBalance(result)\n'), 'map local self rebind: ' + bal);
+    const balKeep = [ '\tvar result any = r\n\tresult = MapTyped(this.SafeBalance(result))\n', '\tvar result map[string]any = nil\n\tresult = MapTyped(this.SafeBalance(r))\n',
+        '\tresult := map[string]any{}\n\tvar result map[string]any = nil\n\tresult = MapTyped(this.SafeBalance(result))\n' ];
+    balKeep.forEach ((b, i) => ok (goSafeBalanceSelfRebind (f (b)) === f (b), 'balance negative ' + i));
+}
+
 // one runner for the ok-callback self-test cases: collects every failed message under the case's prefix
 // (a `threw` case also reports an exception as one `<prefix> threw: ` problem instead of aborting the run)
 function runSelfTest (prefix: string, test: (ok: SelfTestOk) => void, threw?: boolean): string[] {
@@ -15368,8 +15386,9 @@ async function runMain () {
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, goSafeStringPtrHoistCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
-            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ],
-            [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck, goTernaryAnyTypedCheck
+            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ],
+            [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck,
+            goTernaryAnyTypedCheck, [ 'go safe list slice: ', goSafeListSliceSelfTest ]
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
@@ -16074,6 +16093,56 @@ function goSafeDictMapReads (content: string): string {
         call.lastIndex = cursor;
     }
     return out + content.substring (cursor);
+}
+
+// the text of the func enclosing `at` (from its `func ` line to the next one)
+function goEnclosingFuncText (content: string, at: number): string {
+    const start = content.lastIndexOf ('\nfunc ', at);
+    const end = content.indexOf ('\nfunc ', at);
+    return content.substring (start < 0 ? 0 : start, end < 0 ? content.length : end);
+}
+
+// `name` is declared exactly once in `body`, as `var name <type> = <init>...` (no := or other var)
+function goOnceDeclaredAs (body: string, name: string, type: string, init: string): boolean {
+    const decls = body.match (new RegExp ('(?:\\bvar ' + name + ' |(?<![.\\w])' + name + '(?:, \\w+)? :=)', 'g')) || [];
+    return (decls.length === 1) && body.includes ('var ' + name + ' ' + type + ' = ' + init);
+}
+
+// `ListTyped(this.SafeList(x, k, d))` with d a `[]any{..}` literal or a once-declared `[]any{..}` local is
+// the typed sibling `this.SafeListSlice(x, k, d)` (exchange_safe.go): SafeList answers d or an IsArray value
+function goSafeListSliceReads (content: string): string {
+    const call = /\b(?:ccxt\.)?ListTyped\(this\.SafeList\(/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = call.exec (content); m !== null; m = call.exec (content)) {
+        const open = m.index + m[0].indexOf ('(');
+        const end = goMatchingCloseText (content, open, '()');
+        const innerOpen = m.index + m[0].length - 1;
+        if ((end < 0) || (goMatchingCloseText (content, innerOpen, '()') !== end - 1)) {
+            continue;
+        }
+        const args = goSplitTopLevelCommas (content.substring (innerOpen + 1, end - 1)).map ((a) => a.trim ());
+        const dflt = (args.length === 3) ? args[2] : '';
+        const proven = /^\[\]any\{.*\}$/s.test (dflt) && (goMatchingCloseText (dflt, 5, '{}') === dflt.length - 1)
+            || /^\w+$/.test (dflt) && goOnceDeclaredAs (goEnclosingFuncText (content, m.index), dflt, '[]any', '[]any{');
+        if (!proven) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + 'this.SafeListSlice(' + content.substring (innerOpen + 1, end);
+        cursor = end + 1;
+        call.lastIndex = cursor;
+    }
+    return out + content.substring (cursor);
+}
+
+// `x = MapTyped(this.SafeBalance(x))` of a once-declared map[string]any local is the bare call: the base
+// SafeBalance writes into its argument and returns it, and MapTyped of a map[string]any is that map
+function goSafeBalanceSelfRebind (content: string): string {
+    if (/\) SafeBalance\(balance any\) any \{/.test (content)) {
+        return content;  // the base declaration itself
+    }
+    return content.replace (/^(\t+)(\w+) = (?:ccxt\.)?MapTyped\(this\.SafeBalance\(\2\)\)$/gm, (line, indent, name, offset) =>
+        goOnceDeclaredAs (goEnclosingFuncText (content, offset), name, 'map[string]any', '') ? indent + 'this.SafeBalance(' + name + ')' : line);
 }
 
 // ===== AwaitResult -> native channel receive in typed wrappers =====
