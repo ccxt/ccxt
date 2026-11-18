@@ -416,11 +416,8 @@ export default class hyperliquid extends hyperliquidRest {
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true);
         let messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
-        const request: Dict = {
-            'method': 'subscribe',
-            'subscription': {
-                'type': 'allMids',
-            },
+        const subscription: Dict = {
+            'type': 'allMids',
         };
         let defaultDex = this.safeString (params, 'dex');
         const firstSymbol = this.safeString (symbolsNormalized, 0);
@@ -434,9 +431,13 @@ export default class hyperliquid extends hyperliquidRest {
         const paramsOmitted: Dict = (defaultDex !== undefined) ? this.omit (params, 'dex') : params;
         if (defaultDex !== undefined) {
             messageHash = 'tickers:' + defaultDex;
-            request['subscription']['type'] = 'allMids';
-            request['subscription']['dex'] = defaultDex;
+            subscription['type'] = 'allMids';
+            subscription['dex'] = defaultDex;
         }
+        const request: Dict = {
+            'method': 'subscribe',
+            'subscription': subscription,
+        };
         // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
         await this.waitForPendingUnsubscribe (url, 'tickers');
         const tickers = await this.watch (url, messageHash, this.extend (request, paramsOmitted), messageHash);

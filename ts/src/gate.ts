@@ -2746,6 +2746,7 @@ export default class gate extends Exchange {
             },
             'networks': {},
         };
+        const networkFees: Dict = {};
         if (withdrawFixOnChains !== undefined) {
             const chainKeys = Object.keys (withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
@@ -2754,7 +2755,7 @@ export default class gate extends Exchange {
                 const code = this.safeCurrencyCode (currencyId, currency);
                 const networkCode = this.networkIdToCode (chainKey, code);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networkFees[networkCode] = {
                         'withdraw': {
                             'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
                             'percentage': false,
@@ -2767,6 +2768,7 @@ export default class gate extends Exchange {
                 }
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
 

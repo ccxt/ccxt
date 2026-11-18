@@ -6770,7 +6770,8 @@ export class BaseExchange {
                 this.setLastRequest (request);
                 const response = await this.fetch (request['url'], request['method'], request['headers'], request['body']);
                 if (fetchData !== undefined) {
-                    fetchData['response']['body'] = response;
+                    const responseData: Dict = { 'body': response };
+                    fetchData['response'] = responseData;
                     this.addFetchCache (fetchData);
                 }
                 return response;

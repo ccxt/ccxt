@@ -5695,7 +5695,8 @@ export default class binance extends binanceRest {
                                 if (feeCostString === undefined) {
                                     feeCostString = '0';
                                 }
-                                order['fee']['cost'] = parseFloat (feeCostString);
+                                fee['cost'] = parseFloat (feeCostString);
+                                order['fee'] = fee;
                             } else if (fee['currency'] === undefined) {
                                 order['fee'] = tradeFee;
                             } else {

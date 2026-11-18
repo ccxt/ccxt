@@ -3779,6 +3779,7 @@ export default class hitbtc extends Exchange {
         //
         const networks: Dict[] = this.safeList (fee, 'networks', []);
         const result = this.depositWithdrawFee (fee);
+        const networkFees: Dict = {};
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = this.safeDict (networks, j);
             const networkId = this.safeString (networkEntry, 'network');
@@ -3799,7 +3800,7 @@ export default class hitbtc extends Exchange {
                 result['withdraw'] = withdrawResult;
             }
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': {
                         'fee': undefined,
@@ -3808,6 +3809,7 @@ export default class hitbtc extends Exchange {
                 };
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
 

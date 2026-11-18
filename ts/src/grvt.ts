@@ -2040,14 +2040,15 @@ export default class grvt extends Exchange {
         const isMarketOrder = (type === 'market');
         const subAccountId = this.getSubAccountId (paramsOmitted3);
         const isReduceOnly = this.safeBool (paramsOmitted3, 'reduceOnly', false);
+        const orderMetadata: Dict = {
+            'client_order_id': clientOrderId,
+        };
         const orderRequest: Dict = {
             'sub_account_id': subAccountId,
             'time_in_force': undefined,
             'legs': [ orderLeg ],
             'signature': this.defaultSignature (),
-            'metadata': {
-                'client_order_id': clientOrderId,
-            },
+            'metadata': orderMetadata,
             'is_market': isMarketOrder,
             'post_only': false,
             'reduce_only': isReduceOnly,
@@ -2113,7 +2114,7 @@ export default class grvt extends Exchange {
             }
             // trigger by
             const triggerPriceType = this.safeStringUpper (paramsTriggerPrices, 'triggerPriceType', 'LAST');
-            orderRequest['metadata']['trigger'] = {
+            orderMetadata['trigger'] = {
                 'trigger_type': selectedType,
                 'tpsl': {
                     'trigger_by': triggerPriceType,
@@ -2121,6 +2122,7 @@ export default class grvt extends Exchange {
                     'close_position': this.safeBool (paramsTriggerPrices, 'closePosition', false),
                 },
             };
+            orderRequest['metadata'] = orderMetadata;
         }
         let paramsTrigger: Dict = paramsTriggerPrices;
         if (isTriggerOrder) {

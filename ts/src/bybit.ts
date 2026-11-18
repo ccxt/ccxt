@@ -8301,6 +8301,7 @@ export default class bybit extends Exchange {
             },
             'networks': {},
         };
+        const networks: Dict = {};
         if (chainsLength !== 0) {
             for (let i = 0; i < chainsLength; i++) {
                 const chain = this.safeDict (chains, i);
@@ -8308,17 +8309,20 @@ export default class bybit extends Exchange {
                 const currencyCode = this.safeString (currency, 'code');
                 const networkCode = this.networkIdToCode (networkId, currencyCode);
                 if (networkCode !== undefined) {
-                    result['networks'][networkCode] = {
+                    networks[networkCode] = {
                         'deposit': { 'fee': undefined, 'percentage': undefined },
                         'withdraw': { 'fee': this.safeNumber (chain, 'withdrawFee'), 'percentage': false },
                     };
                 }
                 if (chainsLength === 1) {
-                    result['withdraw']['fee'] = this.safeNumber (chain, 'withdrawFee');
-                    result['withdraw']['percentage'] = false;
+                    result['withdraw'] = {
+                        'fee': this.safeNumber (chain, 'withdrawFee'),
+                        'percentage': false,
+                    };
                 }
             }
         }
+        result['networks'] = networks;
         return result;
     }
 

@@ -2600,12 +2600,13 @@ export default class kucoin extends Exchange {
                 'networks': {},
             };
             const chains: Dict[] = this.safeList (fee, 'chains', []);
+            const networksNew: Dict = {};
             for (let i = 0; i < chains.length; i++) {
                 const chain = this.safeDict (chains, i);
                 const chainId = this.safeString (chain, 'chainId');
                 const networkCodeNew = this.networkIdToCode (chainId, this.safeString (currency, 'code'));
                 if (networkCodeNew !== undefined) {
-                    resultNew['networks'][networkCodeNew] = {
+                    networksNew[networkCodeNew] = {
                         'withdraw': {
                             'fee': this.safeNumber2 (chain, 'withdrawalMinFee', 'withdrawMinFee'),
                             'percentage': false,
@@ -2617,6 +2618,7 @@ export default class kucoin extends Exchange {
                     };
                 }
             }
+            resultNew['networks'] = networksNew;
             return resultNew;
         }
         const minWithdrawFee = this.safeNumber (fee, 'withdrawMinFee');
@@ -2637,7 +2639,8 @@ export default class kucoin extends Exchange {
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const networkCode = this.networkIdToCode (networkId, this.safeString (currencyResolved, 'code'));
         if (networkCode !== undefined) {
-            result['networks'][networkCode] = {
+            const networks: Dict = {};
+            networks[networkCode] = {
                 'withdraw': {
                     'fee': minWithdrawFee,
                     'percentage': false,
@@ -2647,6 +2650,7 @@ export default class kucoin extends Exchange {
                     'percentage': undefined,
                 },
             };
+            result['networks'] = networks;
         }
         return result;
     }

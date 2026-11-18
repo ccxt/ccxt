@@ -2711,7 +2711,9 @@ export default class coinbase extends Exchange {
             const pagination = this.safeDict (response, 'pagination', {});
             const cursor = this.safeString (pagination, 'next_starting_after');
             if ((cursor !== undefined) && (cursor !== '')) {
-                last['info']['next_starting_after'] = cursor;
+                const lastInfo = this.safeDict (last, 'info', {});
+                lastInfo['next_starting_after'] = cursor;
+                last['info'] = lastInfo;
                 ledger[lastIndex] = last;
             }
         }

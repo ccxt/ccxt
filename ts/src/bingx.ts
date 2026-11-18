@@ -6440,11 +6440,12 @@ export default class bingx extends Exchange {
             },
             'networks': {},
         };
+        const networkFees: Dict = {};
         if (networksLength !== 0) {
             for (let i = 0; i < networksLength; i++) {
                 const networkCode = this.safeString (networkCodes, i, '');
                 const network = this.safeDict (networks, networkCode);
-                result['networks'][networkCode] = {
+                networkFees[networkCode] = {
                     'deposit': { 'fee': undefined, 'percentage': undefined },
                     'withdraw': { 'fee': this.safeNumber (network, 'fee'), 'percentage': false },
                 };
@@ -6456,6 +6457,7 @@ export default class bingx extends Exchange {
                 }
             }
         }
+        result['networks'] = networkFees;
         return result;
     }
 

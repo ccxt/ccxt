@@ -2322,13 +2322,14 @@ export default class blofin extends Exchange {
         //
         const result = this.depositWithdrawFee (fee);
         const chainsLength = (fee as List).length;
+        const networkFees: Dict = {};
         for (let i = 0; i < chainsLength; i++) {
             const chain = this.safeDict (fee, i);
             const networkCode = this.chainIdToNetworkCode (this.safeString (chain, 'chain'));
             if (networkCode === undefined) {
                 continue;
             }
-            result['networks'][networkCode] = {
+            networkFees[networkCode] = {
                 'withdraw': {
                     'fee': this.safeNumber (chain, 'withdrawFee'),
                     'percentage': false,
@@ -2339,6 +2340,7 @@ export default class blofin extends Exchange {
                 },
             };
         }
+        result['networks'] = networkFees;
         if (chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
             const networks: Dict = this.safeDict (result, 'networks', {});

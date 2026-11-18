@@ -1227,14 +1227,15 @@ export default class cryptocom extends cryptocomRest {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        const request: Dict = {
-            'method': 'private/cancel-all-orders',
-            'params': this.extend ({}, params),
-        };
+        const requestParams: Dict = this.extend ({}, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['params']['instrument_name'] = market['id'];
+            requestParams['instrument_name'] = market['id'];
         }
+        const request: Dict = {
+            'method': 'private/cancel-all-orders',
+            'params': requestParams,
+        };
         const messageHash = this.incrementingNonce ();
         return await this.watchPrivateRequest (messageHash, request) as Order[];
     }

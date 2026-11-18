@@ -1652,6 +1652,7 @@ export default class bitstamp extends Exchange {
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
         const feeEntries = this.toArray (fee);
+        const networks: Dict = {};
         for (let j = 0; j < feeEntries.length; j++) {
             const networkEntry = this.safeDict (feeEntries, j);
             const networkCode = this.networkIdToCode (this.safeString (networkEntry, 'network'), code);
@@ -1661,7 +1662,7 @@ export default class bitstamp extends Exchange {
                 'percentage': undefined,
             };
             if (networkCode !== undefined) {
-                result['networks'][networkCode] = {
+                networks[networkCode] = {
                     'withdraw': {
                         'fee': withdrawFee,
                         'percentage': undefined,
@@ -1673,6 +1674,7 @@ export default class bitstamp extends Exchange {
                 };
             }
         }
+        result['networks'] = networks;
         return result;
     }
 
