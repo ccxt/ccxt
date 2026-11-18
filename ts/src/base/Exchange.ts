@@ -8676,9 +8676,9 @@ export class BaseExchange {
     }
 
     handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params: Dict = {}): [Int, any] {
-        const [ newMaxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (params, method, 'maxEntriesPerRequest');
-        const maxEntriesPerRequestOption: Int = (newMaxEntriesPerRequest !== undefined) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
-        const maxEntriesPerRequestResolved: Int = (maxEntriesPerRequestOption === undefined) ? 1000 : maxEntriesPerRequestOption; // default to 1000
+        // the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
+        const maxEntriesPerRequestDefault: Int = (maxEntriesPerRequest === undefined) ? 1000 : maxEntriesPerRequest;
+        const [ maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (params, method, 'maxEntriesPerRequest', maxEntriesPerRequestDefault);
         return [ maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest ];
     }
 
