@@ -1248,7 +1248,7 @@ public partial class btcturk : Exchange
             privateHeaders = new Dictionary<string, object>() {
                 { "X-PCK", this.apiKey },
                 { "X-Stamp", nonce },
-                { "X-Signature", this.hmac(this.encode(auth), secret, sha256, "base64") },
+                { "X-Signature", this.hmac(auth, secret, sha256, "base64") },
                 { "Content-Type", "application/json" },
             };
         }

@@ -3533,7 +3533,7 @@ public partial class myriad : PredictionExchange
         List<object> marketsList = new List<object>() {};
         for (int i = 0; i < rawMarkets.Count; i++)
         {
-            object rawMarket = rawMarkets[i];
+            IDictionary<string, object> rawMarket = ((IDictionary<string, object>)rawMarkets[i]);
             marketsList.Add(this.parseMyriadMarket(rawMarket, questionSlug));
         }
         string? endDate = this.safeString(rawEvent, "expiresAt", this.safeString(rawEvent, "endDate"));

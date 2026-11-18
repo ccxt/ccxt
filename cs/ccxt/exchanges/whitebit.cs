@@ -4938,7 +4938,7 @@ public partial class whitebit : Exchange
             this.checkRequiredCredentials();
             // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
             string nonce = ((object)this.incrementingNonce()).ToString();
-            string? secret = this.encode(this.secret);
+            string? secret = this.secret;
             string request = (((("/" + "api") + "/") + version) + pathWithParams);
             (bool?, IDictionary<string, object>) nonceWindowrequestParamsVariable = this.handleOptionBoolAndParams(parameters, "sign", "nonceWindow", false);
             bool? nonceWindow = nonceWindowrequestParamsVariable.Item1;
@@ -4949,7 +4949,7 @@ public partial class whitebit : Exchange
                 { "nonceWindow", nonceWindow },
             }, requestParams));
             string payload = this.stringToBase64(privateBody);
-            string signature = this.hmac(this.encode(payload), secret, sha512);
+            string signature = this.hmac(payload, secret, sha512);
             privateHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-TXC-APIKEY", this.apiKey },

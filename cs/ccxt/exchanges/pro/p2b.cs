@@ -370,7 +370,7 @@ public partial class p2b : ccxt.p2b
         }
         for (int i = 0; i < trades.Count; i++)
         {
-            object item = trades[i];
+            IDictionary<string, object> item = ((IDictionary<string, object>)trades[i]);
             ccxt.Trade trade = this.parseTrade(item, market);
             tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         }

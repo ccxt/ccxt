@@ -597,7 +597,7 @@ public partial class mexc : ccxt.mexc
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null));
         string timestamp = this.milliseconds().ToString();
         string payload = (this.apiKey + timestamp);
-        string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
+        string signature = this.hmac(payload, this.secret, sha256);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", channel },
             { "param", new Dictionary<string, object>() {

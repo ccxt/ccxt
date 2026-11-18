@@ -2129,7 +2129,7 @@ public partial class binance : PredictionExchange
         string querystring = this.urlencodeNested(extendedParams);
         querystring = querystring.Replace("%5B", (string)"[");
         querystring = querystring.Replace("%5D", (string)"]");
-        string signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256);
+        string signature = this.hmac(querystring, this.secret, sha256);
         querystring = ((querystring + "&signature=") + signature);
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {
             { "X-MBX-APIKEY", this.apiKey },

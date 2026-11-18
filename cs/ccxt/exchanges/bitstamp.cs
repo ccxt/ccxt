@@ -3570,7 +3570,7 @@ public partial class bitstamp : Exchange
                 authBody = postBody;
             }
             string auth = (((((((xAuth + method) + url.Replace("https://", (string)"")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             privateHeaders["X-Auth-Signature"] = signature;
         }
         Dictionary<string, object> requestHeaders = (apiName == "public") ? null : privateHeaders;

@@ -3926,7 +3926,7 @@ public partial class modetrade : Exchange
                 List<object> parts = this.secret.Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);
             }
-            string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
+            string signature = eddsa(auth, this.base58ToBinary(secret), ed25519);
             signedHeaders["orderly-signature"] = this.urlencodeBase64(this.base64ToBinary(signature));
             return new Dictionary<string, object>() {
                 { "url", url },

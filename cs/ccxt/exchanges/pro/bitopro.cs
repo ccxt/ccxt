@@ -471,7 +471,7 @@ public partial class bitopro : ccxt.bitopro
             { "identity", this.login },
         });
         string payload = this.stringToBase64(rawData);
-        string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+        string signature = this.hmac(payload, this.secret, sha384);
         Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {

@@ -1569,7 +1569,7 @@ public partial class bitteam : Exchange
         }
         for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
-            object rawTicker = rawTickers[i];
+            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)rawTickers[i]);
             ccxt.Ticker ticker = this.parseTicker(rawTicker);
             tickers.Add(ccxt.BaseExchange.FromTicker(ticker));
         }

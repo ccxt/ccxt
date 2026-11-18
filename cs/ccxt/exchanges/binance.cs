@@ -16036,11 +16036,11 @@ public partial class binance : Exchange
                     signature = this.encodeURIComponent(rsa(query, this.secret, sha256));
                 } else
                 {
-                    signature = this.encodeURIComponent(eddsa(this.encode(query), this.secret, ed25519));
+                    signature = this.encodeURIComponent(eddsa(query, this.secret, ed25519));
                 }
             } else
             {
-                signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+                signature = this.hmac(query, this.secret, sha256);
             }
             query = query + (("&" + "signature=") + signature);
             signedHeaders = new Dictionary<string, object>() {

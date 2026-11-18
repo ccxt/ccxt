@@ -2476,7 +2476,7 @@ public partial class bittrade : Exchange
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             string payload = ((((((method + "\n") + this.hostname) + "\n") + url) + "\n") + auth);
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(payload, this.secret, sha256, "base64");
             auth = auth + ("&" + this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 }));

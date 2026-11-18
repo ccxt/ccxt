@@ -2015,8 +2015,8 @@ public partial class bit2me : Exchange
                 }
                 message = message + (":" + requestBody);
             }
-            byte[] digest = ((byte[])this.hash(this.encode(message), sha256, "binary"));
-            string signature = this.hmac(digest, this.encode(this.secret), sha512, "base64");
+            byte[] digest = ((byte[])this.hash(message, sha256, "binary"));
+            string signature = this.hmac(digest, this.secret, sha512, "base64");
             requestHeaders = new Dictionary<string, object>() {
                 { "x-api-key", this.apiKey },
                 { "x-nonce", nonce },

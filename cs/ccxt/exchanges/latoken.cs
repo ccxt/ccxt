@@ -2245,7 +2245,7 @@ public partial class latoken : Exchange
         {
             this.checkRequiredCredentials();
             string auth = ((method + request) + urlencodedQuery);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
+            string signature = this.hmac(auth, this.secret, sha512);
             requestHeaders = new Dictionary<string, object>() {
                 { "X-LA-APIKEY", this.apiKey },
                 { "X-LA-SIGNATURE", signature },

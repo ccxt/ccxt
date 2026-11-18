@@ -3533,7 +3533,7 @@ public partial class bitrue : Exchange
                     { "timestamp", this.nonce() },
                     { "recvWindow", recvWindow },
                 }, paramsOmitted));
-                string signature = this.hmac(this.encode(unsignedQuery), this.encode(this.secret), sha256);
+                string signature = this.hmac(unsignedQuery, this.secret, sha256);
                 string signedQuery = (((unsignedQuery + "&") + "signature=") + signature);
                 if (((method == "GET")) || ((method == "DELETE")))
                 {
@@ -3567,7 +3567,7 @@ public partial class bitrue : Exchange
                     {
                         signMessage = signMessage + ("?" + this.urlencode(paramsOmitted));
                     }
-                    string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
+                    string signature = this.hmac(signMessage, this.secret, sha256);
                     requestHeaders = new Dictionary<string, object>() {
                         { "X-CH-APIKEY", this.apiKey },
                         { "X-CH-SIGN", signature },
@@ -3581,7 +3581,7 @@ public partial class bitrue : Exchange
                     }, paramsOmitted);
                     requestBody = this.json(query);
                     signMessage = signMessage + requestBody;
-                    string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
+                    string signature = this.hmac(signMessage, this.secret, sha256);
                     requestHeaders = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },
                         { "X-CH-APIKEY", this.apiKey },

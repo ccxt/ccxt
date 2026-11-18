@@ -3061,7 +3061,7 @@ public partial class ndax : Exchange
             {
                 string nonce = this.nonce().ToString();
                 string auth = ((nonce + this.uid) + this.apiKey);
-                string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                string signature = this.hmac(auth, this.secret, sha256);
                 if (isPost)
                 {
                     headersSigned = new Dictionary<string, object>() {

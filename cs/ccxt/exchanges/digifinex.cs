@@ -5392,7 +5392,7 @@ public partial class digifinex : Exchange
                 nonce = this.seconds().ToString();
                 auth = urlencoded;
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             if ((method == "GET"))
             {
                 if ((urlencoded != ""))

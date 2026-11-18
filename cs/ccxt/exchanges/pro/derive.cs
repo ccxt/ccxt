@@ -729,7 +729,7 @@ public partial class derive : ccxt.derive
         List<object> rawOrders = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            object data = rawOrders[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)rawOrders[i]);
             Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseOrder(data));
             string? symbol = this.safeString(parsed, "symbol");
             string? orderId = this.safeString(parsed, "id");

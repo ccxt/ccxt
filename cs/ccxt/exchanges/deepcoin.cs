@@ -3607,7 +3607,7 @@ public partial class deepcoin : Exchange
                 privateHeaders["Content-Type"] = "application/json";
                 payload = payload + requestBody;
             }
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(payload, this.secret, sha256, "base64");
             privateHeaders["DC-ACCESS-SIGN"] = signature;
             return new Dictionary<string, object>() {
                 { "url", url },

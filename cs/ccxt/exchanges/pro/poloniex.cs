@@ -101,7 +101,7 @@ public partial class poloniex : ccxt.poloniex
         {
             string accessPath = "/ws";
             string requestString = ((("GET\n" + accessPath) + "\nsignTimestamp=") + timestamp);
-            string signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(requestString, this.secret, sha256, "base64");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "event", "subscribe" },
                 { "channel", new List<object>() {"auth"} },
@@ -1320,7 +1320,7 @@ public partial class poloniex : ccxt.poloniex
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object item = data[i];
+            IDictionary<string, object> item = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(item, "symbol");
             if ((marketId != null))
             {

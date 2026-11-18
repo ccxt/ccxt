@@ -1404,7 +1404,7 @@ public partial class bitso : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < payload.Count; i++)
         {
-            object id = payload[i];
+            IDictionary<string, object> id = ((IDictionary<string, object>)payload[i]);
             orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(id, market)));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
@@ -2198,7 +2198,7 @@ public partial class bitso : Exchange
                     request = request + jsonBody;
                 }
             }
-            string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
+            string signature = this.hmac(request, this.secret, sha256);
             string auth = ((((this.apiKey + ":") + nonce) + ":") + signature);
             requestHeaders = new Dictionary<string, object>() {
                 { "Authorization", ("Bitso " + auth) },

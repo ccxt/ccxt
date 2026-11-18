@@ -4670,7 +4670,7 @@ public partial class hashkey : Exchange
             {
                 headersSigned["Content-Type"] = "application/json";
                 bodySigned = this.json(this.safeList(parameters, "orders"));
-                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256);
+                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.secret, sha256);
                 query = this.customUrlencode(this.extend(additionalParams, new Dictionary<string, object>() {
                     { "signature", signature },
                 }));
@@ -4678,7 +4678,7 @@ public partial class hashkey : Exchange
             } else
             {
                 Dictionary<string, object> totalParams = this.extend(additionalParams, parameters);
-                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256);
+                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.secret, sha256);
                 totalParams["signature"] = signature;
                 query = this.customUrlencode(totalParams);
                 if ((method == "GET"))

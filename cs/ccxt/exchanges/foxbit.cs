@@ -2310,7 +2310,7 @@ public partial class foxbit : Exchange
         {
             this.checkRequiredCredentials();
             string preHash = ((((timestamp.ToString() + method) + fullPath) + signatureQuery) + bodyToSignature);
-            string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(preHash, this.secret, sha256, "hex");
             headersValue["X-FB-ACCESS-KEY"] = this.apiKey;
             headersValue["X-FB-ACCESS-TIMESTAMP"] = timestamp.ToString();
             headersValue["X-FB-ACCESS-SIGNATURE"] = signature;

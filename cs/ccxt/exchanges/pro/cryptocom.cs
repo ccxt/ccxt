@@ -1644,7 +1644,7 @@ public partial class cryptocom : ccxt.cryptocom
             Int64? nonceValue = this.incrementingNonce();
             string? nonce = this.numberToString(nonceValue);
             string auth = (((method + nonce) + this.apiKey) + nonce);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", nonce },
                 { "nonce", nonce },

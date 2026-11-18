@@ -4148,7 +4148,7 @@ public partial class kraken : Exchange
             }
             string? auth = this.encode((nonce + bodySigned));
             byte[] hash = ((byte[])this.hash(auth, sha256, "binary"));
-            string? binary = this.encode(url);
+            string? binary = url;
             byte[] binhash = this.binaryConcat(binary, hash);
             byte[] secret = this.base64ToBinary(this.secret);
             string signature = this.hmac(binhash, secret, sha512, "base64");

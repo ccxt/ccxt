@@ -2163,7 +2163,7 @@ public partial class BaseExchange
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
-            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey10 && marketsById.ContainsKey(inOpKey10)))
+            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey11 && marketsById.ContainsKey(inOpKey11)))
             {
                 IList<object> marketsByIdArray = ((IList<object>)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
                 marketsByIdArray.Add(value);
@@ -2446,6 +2446,7 @@ public partial class BaseExchange
             }
             if (isArray && (tradesLength > 0))
             {
+
                 // move properties that are defined in trades up into the order
                 if (parseSymbol)
                 {
@@ -4482,7 +4483,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (transactionsArray?.Count ?? 0); i++)
         {
-            Dictionary<string, object> transaction = this.extend(this.parseTransaction(transactionsArray[i], currency), parameters);
+            Dictionary<string, object> transaction = this.extend(this.parseTransaction(this.safeDict(transactionsArray, i, new Dictionary<string, object>() {}), currency), parameters);
             result.Add(transaction);
         }
         result = this.sortBy(result, "timestamp");
@@ -5271,19 +5272,19 @@ public partial class BaseExchange
         return ccxt.BaseExchange.ToDepositWithdrawFee(this.safeDict(fees, code));
     }
 
-    public virtual string getSupportedMapping(object key, object mapping = null)
+    public virtual string getSupportedMapping(object key, Dictionary<string, object> mapping = null)
     {
         mapping ??= new Dictionary<string, object>();
         if ((key == null))
         {
             throw new ArgumentsRequired ((this.id + " getSupportedMapping() requires a key argument")) ;
         }
-        if (inOp(mapping, key))
+        if ((key is string inOpKey4 && mapping.ContainsKey(inOpKey4)))
         {
-            return ((string)((object)(getValue(mapping, key))));
+            return ((string)((object)((mapping != null && key != null && mapping.ContainsKey((string)key) ? mapping[(string)key] : null))));
         } else
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)mapping).Keys);
+            List<object> keys = new List<object>(mapping.Keys);
             throw new NotSupported ((((((this.id + " ") + (key)) + " does not have a value in mapping") + ", must be one of ") + String.Join(", ", keys.ToArray()))) ;
         }
     }
@@ -6037,10 +6038,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((markets != null && symbol is string inOpKey4 && markets.ContainsKey(inOpKey4)))
+        if ((markets != null && symbol is string inOpKey5 && markets.ContainsKey(inOpKey5)))
         {
             return ccxt.BaseExchange.ToDict((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null));
-        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey5 && marketsById.ContainsKey(inOpKey5))))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey6 && marketsById.ContainsKey(inOpKey6))))
         {
             object marketsList = (marketsById != null && symbol != null && marketsById.ContainsKey((string)symbol) ? marketsById[(string)symbol] : null);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6948,7 +6949,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = this.markets;
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && ((markets != null && account is string inOpKey6 && markets.ContainsKey(inOpKey6)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey7 && marketsById.ContainsKey(inOpKey7)))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey7 && markets.ContainsKey(inOpKey7)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey8 && marketsById.ContainsKey(inOpKey8)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -7216,12 +7217,12 @@ public partial class BaseExchange
 
     public virtual List<object> handleMaxEntriesPerRequestAndParams(object method, object maxEntriesPerRequest = null, IDictionary<string, object> parameters = null)
     {
+        // the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
         parameters ??= new Dictionary<string, object>();
-        (Int64?, object) newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable = this.handleOptionIntegerAndParams(parameters, method, "maxEntriesPerRequest");
-        Int64? newMaxEntriesPerRequest = newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item1;
-        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item2);
-        object maxEntriesPerRequestOption = (!(newMaxEntriesPerRequest == null)) ? newMaxEntriesPerRequest : maxEntriesPerRequest;
-        object maxEntriesPerRequestResolved = ((maxEntriesPerRequestOption == null)) ? 1000 : maxEntriesPerRequestOption; // default to 1000
+        object maxEntriesPerRequestDefault = ((maxEntriesPerRequest == null)) ? 1000 : maxEntriesPerRequest;
+        (Int64?, object) maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable = this.handleOptionIntegerAndParams(parameters, method, "maxEntriesPerRequest", maxEntriesPerRequestDefault);
+        Int64? maxEntriesPerRequestResolved = maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable.Item1;
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable.Item2);
         return new List<object>() {maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest};
     }
 
@@ -7792,7 +7793,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (liquidations?.Count ?? 0); i++)
         {
-            object entry = (liquidations != null && i < liquidations.Count ? liquidations[i] : null);
+            IDictionary<string, object> entry = ((IDictionary<string, object>)(liquidations != null && i < liquidations.Count ? liquidations[i] : null));
             IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseLiquidation(entry, market));
             result.Add(parsed);
         }
@@ -8137,7 +8138,7 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
@@ -8145,7 +8146,7 @@ public partial class BaseExchange
         {
             if (subHashIsPrefix != true)
             {
-                if ((client.subscriptions != null && subHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9)))
+                if ((client.subscriptions != null && subHash is string inOpKey10 && client.subscriptions.ContainsKey(inOpKey10)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
                 }

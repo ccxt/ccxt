@@ -2435,7 +2435,7 @@ public partial class gemini : Exchange
             }, query);
             string payload = this.json(request);
             payload = this.stringToBase64(payload);
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+            string signature = this.hmac(payload, this.secret, sha384);
             headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "text/plain" },
                 { "X-GEMINI-APIKEY", this.apiKey },

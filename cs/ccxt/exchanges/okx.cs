@@ -8312,7 +8312,7 @@ public partial class okx : Exchange
                 }
                 privateHeaders["Content-Type"] = "application/json";
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(auth, this.secret, sha256, "base64");
             privateHeaders["OK-ACCESS-SIGN"] = signature;
         }
         string? requestBody = null;
@@ -10420,7 +10420,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? entryMarketId = this.safeString(entry, "instId");
             if ((entryMarketId == marketId))
             {

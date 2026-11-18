@@ -964,7 +964,7 @@ public partial class bithumb : ccxt.bithumb
                 { "nonce", this.uuid() },
                 { "timestamp", this.milliseconds() },
             };
-            string jwtToken = jwt(payload, this.encode(this.secret), sha256);
+            string jwtToken = jwt(payload, this.secret, sha256);
             wsOptions["token"] = jwtToken;
             wsOptions["options"] = new Dictionary<string, object>() {
                 { "headers", new Dictionary<string, object>() {

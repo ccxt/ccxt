@@ -2534,7 +2534,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object info = data[i];
+            IDictionary<string, object> info = ((IDictionary<string, object>)data[i]);
             ccxt.Ticker ticker = this.parseTicker(info);
             string? symbol = ticker.symbol;
             if ((symbol != null))
@@ -4310,7 +4310,7 @@ public partial class pacifica : Exchange
     public virtual string? signMessage(IDictionary<string, object> header, IDictionary<string, object> payload, object privateKey)
     {
         string? message = this.prepareMessage(header, payload);
-        string? messageBytes = this.encode(message);
+        string? messageBytes = message;
         byte[] secretBytes = this.base58ToBinary(privateKey);
         object seed = this.arraySlice(secretBytes, 0, 32);
         string signatureBase64 = eddsa(messageBytes, seed, ed25519);

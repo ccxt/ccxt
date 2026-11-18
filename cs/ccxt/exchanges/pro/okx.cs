@@ -1072,7 +1072,7 @@ public partial class okx : ccxt.okx
         List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < (rawLiquidations?.Count ?? 0); i++)
         {
-            object rawLiquidation = rawLiquidations[i];
+            IDictionary<string, object> rawLiquidation = ((IDictionary<string, object>)rawLiquidations[i]);
             string? eventType = this.safeString(rawLiquidation, "eventType");
             if (eventType != "liquidation")
             {
@@ -1762,7 +1762,7 @@ public partial class okx : ccxt.okx
         {
             for (int i = 0; i < data.Count; i++)
             {
-                object update = data[i];
+                IDictionary<string, object> update = ((IDictionary<string, object>)data[i]);
                 // reset the existing orderbook instead of replacing it: a consumer
                 // holds a reference to the old object and would never see updates
                 // after a re-subscription snapshot
@@ -1816,7 +1816,7 @@ public partial class okx : ccxt.okx
                 ccxt.pro.IOrderBook bboBook = this.getOrderBook(this.orderbooks, symbol);
                 for (int i = 0; i < data.Count; i++)
                 {
-                    object update = data[i];
+                    IDictionary<string, object> update = ((IDictionary<string, object>)data[i]);
                     Int64? timestamp = this.safeInteger(update, "ts");
                     Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1));
                     bboBook.reset(snapshot);
@@ -1848,7 +1848,7 @@ public partial class okx : ccxt.okx
             string method = "GET";
             string path = "/users/self/verify";
             string auth = ((timestamp + method) + path);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(auth, this.secret, sha256, "base64");
             string operation = "login";
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "op", operation },

@@ -415,7 +415,7 @@ public partial class kalshi : PredictionExchange
             int rawMarketsLength = rawMarkets.Count;
             for (int i = 0; i < rawMarkets.Count; i++)
             {
-                object raw = rawMarkets[i];
+                IDictionary<string, object> raw = ((IDictionary<string, object>)rawMarkets[i]);
                 List<object> parsed = this.parseBinaryMarketToOutcomes(raw);
                 string? eventTicker = this.safeString(raw, "event_ticker");
                 string? eventTitle = this.safeString(raw, "title", eventTicker);
@@ -3008,7 +3008,7 @@ public partial class kalshi : PredictionExchange
         Int64? latestClose = this.parse8601(this.safeString(firstMarket, "close_time"));
         for (int i = 0; i < rawMarkets.Count; i++)
         {
-            object rawMarket = rawMarkets[i];
+            IDictionary<string, object> rawMarket = ((IDictionary<string, object>)rawMarkets[i]);
             Dictionary<string, object> parsed = this.parseMarket(rawMarket);
             marketsList.Add(parsed);
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));

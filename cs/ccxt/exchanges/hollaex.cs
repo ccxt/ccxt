@@ -2264,7 +2264,7 @@ public partial class hollaex : Exchange
                     auth = auth + requestBody;
                 }
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             requestHeaders["api-signature"] = signature;
         }
         string? bodyResult = requestBody;

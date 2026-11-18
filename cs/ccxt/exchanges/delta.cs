@@ -1534,7 +1534,7 @@ public partial class delta : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object rawTicker = tickers[i];
+            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)tickers[i]);
             string? contractType = this.safeString(rawTicker, "contract_type");
             if ((contractType == "options_combos") || (contractType == "binary_call_options") || (contractType == "binary_put_options"))
             {
@@ -4429,7 +4429,7 @@ public partial class delta : Exchange
                 auth = (((method + timestamp) + requestPath) + requestBody);
                 privateHeaders["Content-Type"] = "application/json";
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             privateHeaders["signature"] = signature;
             requestHeaders = privateHeaders;
         }

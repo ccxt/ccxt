@@ -3662,7 +3662,7 @@ public partial class coinbaseinternational : Exchange
                 { "alg", "EdDSA" },
             });
         }
-        return jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
+        return jwt(request, this.secret, sha256, false, new Dictionary<string, object>() {
             { "kid", this.apiKey },
             { "nonce", nonce },
             { "alg", "ES256" },
@@ -3790,7 +3790,7 @@ public partial class coinbaseinternational : Exchange
             }
             string requestData = ((((method + "\n") + signedRequest) + "\n") + "\n"); // eslint-disable-line quotes
             string auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "Authorization", ((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",nonce=") + nonce) },

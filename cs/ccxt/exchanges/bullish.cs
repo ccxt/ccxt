@@ -3387,7 +3387,7 @@ public partial class bullish : Exchange
             if ((method == "GET"))
             {
                 string payload = ((((timestamp + nonce) + method) + "/trading-api/") + path);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
+                string signature = this.hmac(payload, this.secret, sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
                     { "BX-NONCE", nonce },
@@ -3397,7 +3397,7 @@ public partial class bullish : Exchange
             {
                 requestBody = this.json(parameters);
                 string payload = (((((timestamp + nonce) + method) + "/trading-api/") + path) + requestBody);
-                string signature = this.hmac(this.encode(this.hash(this.encode(payload), sha256, "hex")), this.encode(this.secret), sha256, "hex");
+                string signature = this.hmac(this.encode(this.hash(payload, sha256, "hex")), this.secret, sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
                     { "BX-NONCE", nonce },

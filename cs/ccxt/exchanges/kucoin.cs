@@ -13440,14 +13440,14 @@ public partial class kucoin : Exchange
             string? apiKeyVersion = this.safeString(headersSigned, "KC-API-KEY-VERSION");
             if (apiKeyVersion == "2")
             {
-                string passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), sha256, "base64");
+                string passphrase = this.hmac(this.password, this.secret, sha256, "base64");
                 headersSigned["KC-API-PASSPHRASE"] = passphrase;
             } else
             {
                 headersSigned["KC-API-PASSPHRASE"] = this.password;
             }
             string payload = (((timestamp + method) + endpoint) + endpart);
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(payload, this.secret, sha256, "base64");
             headersSigned["KC-API-SIGN"] = signature;
             IDictionary<string, object> partner = this.safeDict(this.options, "partner", new Dictionary<string, object>() {});
             bool isUtaFuturePrivate = isUtaPrivate && (tradeType == "FUTURES");
@@ -13458,7 +13458,7 @@ public partial class kucoin : Exchange
             if (((partnerId != null)) && ((partnerSecret != null)))
             {
                 string partnerPayload = ((timestamp + partnerId) + this.apiKey);
-                string partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, "base64");
+                string partnerSignature = this.hmac(partnerPayload, partnerSecret, sha256, "base64");
                 headersSigned["KC-API-PARTNER-SIGN"] = partnerSignature;
                 headersSigned["KC-API-PARTNER"] = partnerId;
                 headersSigned["KC-API-PARTNER-VERIFY"] = "true";

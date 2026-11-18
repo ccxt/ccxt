@@ -2733,7 +2733,7 @@ public partial class bybit : ccxt.bybit
             string? expires = this.numberToString(expiresInt);
             string path = "GET/realtime";
             string auth = (path + expires);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(auth, this.secret, sha256, "hex");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "op", "auth" },
                 { "args", new List<object>() {this.apiKey, expires, signature} },

@@ -3568,7 +3568,7 @@ public partial class bitfinex : Exchange
             string nonce = ((object)this.incrementingNonce()).ToString();
             requestBody = this.json(query);
             string auth = ((("/api/" + request) + nonce) + requestBody);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384);
+            string signature = this.hmac(auth, this.secret, sha384);
             requestHeaders = new Dictionary<string, object>() {
                 { "bfx-nonce", nonce },
                 { "bfx-apikey", this.apiKey },

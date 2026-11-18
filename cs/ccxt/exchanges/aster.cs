@@ -4972,7 +4972,7 @@ public partial class aster : Exchange
             string? zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Int64? v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
             string? walletAddress = this.safeString(this.options, "cachedWalletAddress");
-            string privateKeyHash = ((string)this.hash(this.encode(this.privateKey), keccak, "hex"));
+            string privateKeyHash = ((string)this.hash(this.privateKey, keccak, "hex"));
             string? cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
             if (((walletAddress == null)) || ((cachedPrivateKeyHash != privateKeyHash)))
             {

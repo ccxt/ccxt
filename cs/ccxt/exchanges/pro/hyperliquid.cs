@@ -848,7 +848,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         List<object> newLiquidations = new List<object>() {};
         for (int i = 0; i < fills.Count; i++)
         {
-            object fill = fills[i];
+            IDictionary<string, object> fill = ((IDictionary<string, object>)fills[i]);
             IDictionary<string, object> liquidation = this.safeDict(fill, "liquidation", new Dictionary<string, object>() {});
             // liquidator fills carry the liquidated counterparty here
             if ((this.safeStringLower(liquidation, "liquidatedUser") == user))

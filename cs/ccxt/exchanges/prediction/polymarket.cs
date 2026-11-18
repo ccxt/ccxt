@@ -2828,12 +2828,12 @@ public partial class polymarket : PredictionExchange
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
-        byte[] orderTypeHash = ((byte[])this.hash(this.encode(orderTypeString), keccak, "binary"));
+        byte[] orderTypeHash = ((byte[])this.hash(orderTypeString, keccak, "binary"));
         byte[] contentsData = this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, new List<object>() {orderTypeHash, this.convertToBigInt((message != null && message.ContainsKey("salt") ? message["salt"] : null)), (message != null && message.ContainsKey("maker") ? message["maker"] : null), (message != null && message.ContainsKey("signer") ? message["signer"] : null), this.convertToBigInt((message != null && message.ContainsKey("tokenId") ? message["tokenId"] : null)), this.convertToBigInt((message != null && message.ContainsKey("makerAmount") ? message["makerAmount"] : null)), this.convertToBigInt((message != null && message.ContainsKey("takerAmount") ? message["takerAmount"] : null)), (message != null && message.ContainsKey("side") ? message["side"] : null), (message != null && message.ContainsKey("signatureType") ? message["signatureType"] : null), this.convertToBigInt((message != null && message.ContainsKey("timestamp") ? message["timestamp"] : null)), this.base16ToBinary(this.remove0xPrefix((message != null && message.ContainsKey("metadata") ? message["metadata"] : null))), this.base16ToBinary(this.remove0xPrefix((message != null && message.ContainsKey("builder") ? message["builder"] : null)))});
         string contentsHash = ("0x" + (this.hash(contentsData, keccak, "hex")));
         byte[] domainTypeHash = ((byte[])this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak, "binary"));
-        byte[] nameHash = ((byte[])this.hash(this.encode(domainName), keccak, "binary"));
-        byte[] versionHash = ((byte[])this.hash(this.encode(domainVersion), keccak, "binary"));
+        byte[] nameHash = ((byte[])this.hash(domainName, keccak, "binary"));
+        byte[] versionHash = ((byte[])this.hash(domainVersion, keccak, "binary"));
         byte[] appDomainData = this.ethAbiEncode(new List<object>() {"bytes32", "bytes32", "bytes32", "uint256", "address"}, new List<object>() {domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress});
         string appDomainSep = ("0x" + (this.hash(appDomainData, keccak, "hex")));
         List<object> typedDataSignStruct = new List<object>() {new Dictionary<string, object>() {
@@ -2877,7 +2877,7 @@ public partial class polymarket : PredictionExchange
         // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         // simple identifier) picks it up instead of leaking a padStart() function call
         string lenHex = (ctLenHex as String).PadLeft(Convert.ToInt32(4), Convert.ToChar("0"));
-        string orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
+        string orderTypeStringHex = this.binaryToBase16(orderTypeString);
         string wrappedSignature = ((((("0x" + innerSig) + this.remove0xPrefix(appDomainSep)) + this.remove0xPrefix(contentsHash)) + orderTypeStringHex) + lenHex);
         // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
         // uppercase hex in some targets); the signature is case-insensitive bytes
@@ -3439,7 +3439,7 @@ public partial class polymarket : PredictionExchange
                 string plusSecret = secret.Replace("-", (string)"+");
                 string normalizedSecret = plusSecret.Replace("_", (string)"/");
                 byte[] secretBytes = this.base64ToBinary(normalizedSecret);
-                string signature = this.hmac(this.encode(auth), secretBytes, sha256, "base64");
+                string signature = this.hmac(auth, secretBytes, sha256, "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = signature.Replace("+", (string)"-");
                 signature = signature.Replace("/", (string)"_");
@@ -3470,7 +3470,7 @@ public partial class polymarket : PredictionExchange
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
         string cleaned = ((string)this.remove0xPrefix(address)).ToLower();
-        string hashHex = ((string)this.hash(this.encode(cleaned), keccak, "hex"));
+        string hashHex = ((string)this.hash(cleaned, keccak, "hex"));
         List<object> addrChars = this.stringToCharsArray(cleaned);
         List<object> hashChars = this.stringToCharsArray(hashHex);
         string upperNibbles = "89abcdef";

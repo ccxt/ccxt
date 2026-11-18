@@ -1155,7 +1155,7 @@ public partial class blofin : ccxt.blofin
         string timestamp = milliseconds.ToString();
         string nonce = ("n_" + timestamp);
         string auth = (((("/users/self/verify" + "GET") + timestamp) + "") + nonce);
-        string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
+        string signature = this.stringToBase64(this.hmac(auth, this.secret, sha256));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "login" },
             { "args", new List<object>() {new Dictionary<string, object>() {

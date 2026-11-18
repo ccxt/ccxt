@@ -4354,7 +4354,7 @@ public partial class hitbtc : Exchange
             this.checkRequiredCredentials();
             string? timestamp = this.numberToString(this.nonce());
             string payloadString = (((((method + "/api/3/") + implodedPath) + getRequest) + bodyString) + timestamp);
-            string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(payloadString, this.secret, sha256, "hex");
             string secondPayload = ((((this.apiKey + ":") + signature) + ":") + timestamp);
             headersValue["Authorization"] = ("HS256 " + this.stringToBase64(secondPayload));
         }

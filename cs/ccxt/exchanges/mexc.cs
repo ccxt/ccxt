@@ -7028,7 +7028,7 @@ public partial class mexc : Exchange
             if (access == "private")
             {
                 this.checkRequiredCredentials();
-                string signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256);
+                string signature = this.hmac(paramsEncoded, this.secret, sha256);
                 url = ((object)(url == null ? null : url + "&signature=" + (string)(object)(signature)));
                 requestHeaders = new Dictionary<string, object>() {
                     { "X-MEXC-APIKEY", this.apiKey },
@@ -7077,7 +7077,7 @@ public partial class mexc : Exchange
                     }
                 }
                 string auth = ((this.apiKey + timestamp) + payload);
-                string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                string signature = this.hmac(auth, this.secret, sha256);
                 requestHeaders = new Dictionary<string, object>() {
                     { "ApiKey", this.apiKey },
                     { "Request-Time", timestamp },

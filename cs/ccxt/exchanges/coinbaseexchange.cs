@@ -2542,7 +2542,7 @@ public partial class coinbaseexchange : Exchange
             {
                 throw new AuthenticationError ((this.id + " sign() invalid base64 secret")) ;
             }
-            string signature = this.hmac(this.encode(what), secret, sha256, "base64");
+            string signature = this.hmac(what, secret, sha256, "base64");
             requestHeaders = new Dictionary<string, object>() {
                 { "CB-ACCESS-KEY", this.apiKey },
                 { "CB-ACCESS-SIGN", signature },

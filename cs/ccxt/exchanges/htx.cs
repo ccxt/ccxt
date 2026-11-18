@@ -9052,7 +9052,7 @@ public partial class htx : Exchange
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 List<object> content = new List<object>() {method, this.hostname, url, auth};
                 string payload = String.Join("\n", content.ToArray()); // eslint-disable-line quotes
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+                string signature = this.hmac(payload, this.secret, sha256, "base64");
                 auth = auth + ("&" + this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 }));
@@ -9164,7 +9164,7 @@ public partial class htx : Exchange
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 List<object> content2 = new List<object>() {method, hostname, url, auth};
                 string payload = String.Join("\n", content2.ToArray()); // eslint-disable-line quotes
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+                string signature = this.hmac(payload, this.secret, sha256, "base64");
                 auth = auth + ("&" + this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 }));

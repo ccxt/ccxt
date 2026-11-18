@@ -155,7 +155,7 @@ public partial class weex : ccxt.weex
         }
         string timestamp = this.nonce().ToString();
         string payload = (timestamp + "/v3/ws/private");
-        string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+        string signature = this.hmac(payload, this.secret, sha256, "base64");
         IDictionary<string, object> originalHeaders = this.safeDict((this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null), "headers");
         string? userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
         Dictionary<string, object> extendedOptions = new Dictionary<string, object>() {

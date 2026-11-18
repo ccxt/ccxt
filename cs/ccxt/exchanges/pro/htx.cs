@@ -3384,7 +3384,7 @@ public partial class htx : ccxt.htx
             signatureParams = this.keysort(signatureParams);
             string auth = this.urlencode(signatureParams, true); // true required in go
             string payload = (((((("GET" + "\n") + hostname) + "\n") + relativePath) + "\n") + auth); // eslint-disable-line quotes
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(payload, this.secret, sha256, "base64");
             Dictionary<string, object> request = null;
             if (type == "spot")
             {

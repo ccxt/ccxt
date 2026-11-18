@@ -1054,7 +1054,7 @@ public partial class gate : ccxt.gate
         bool isTicker = ((objectName == "ticker")); // whether ticker or bid-ask
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
-            object rawTicker = results[i];
+            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)results[i]);
             string? marketId = this.safeString(rawTicker, "s");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "_", marketType);
             ccxt.Ticker parsedItem = this.parseTicker(rawTicker, market);
@@ -1377,7 +1377,7 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < (result?.Count ?? 0); i++)
         {
-            object ohlcv = result[i];
+            IDictionary<string, object> ohlcv = ((IDictionary<string, object>)result[i]);
             string? subscription = this.safeString(ohlcv, "n", "");
             List<object> parts = subscription.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? timeframeId = this.safeString(parts, 0);
@@ -2811,7 +2811,7 @@ public partial class gate : ccxt.gate
         Int64 time = this.seconds();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
         string signatureString = String.Join("\n", ((IList<object>)new List<object>() {eventVar, channel, this.json(reqParams), time.ToString()}).ToArray()); // eslint-disable-line quotes
-        string signature = this.hmac(this.encode(signatureString), this.encode(this.secret), sha512, "hex");
+        string signature = this.hmac(signatureString, this.secret, sha512, "hex");
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "req_id", requestIdResolved },
             { "timestamp", time.ToString() },
@@ -2857,7 +2857,7 @@ public partial class gate : ccxt.gate
         Int64 time = this.seconds();
         string eventVar = "subscribe";
         string signaturePayload = ((((((("channel=" + (channel)) + "&") + "event=") + eventVar) + "&") + "time=") + time.ToString());
-        string signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512, "hex");
+        string signature = this.hmac(signaturePayload, this.secret, sha512, "hex");
         Dictionary<string, object> auth = new Dictionary<string, object>() {
             { "method", "api_key" },
             { "KEY", this.apiKey },

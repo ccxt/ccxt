@@ -1223,7 +1223,7 @@ public partial class bithumb : Exchange
                 }
                 for (int j = 0; j < (tickers?.Count ?? 0); j++)
                 {
-                    object entry = tickers[j];
+                    IDictionary<string, object> entry = ((IDictionary<string, object>)tickers[j]);
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
                     if ((marketId == null))
                     {
@@ -3750,10 +3750,10 @@ public partial class bithumb : Exchange
                 }
                 if (hasQuery)
                 {
-                    request["query_hash"] = this.hash(this.encode(auth), sha512);
+                    request["query_hash"] = this.hash(auth, sha512);
                     request["query_hash_alg"] = "SHA512";
                 }
-                string token = jwt(request, this.encode(this.secret), sha256);
+                string token = jwt(request, this.secret, sha256);
                 requestHeaders["Authorization"] = ("Bearer " + token);
             } else
             {
@@ -3765,7 +3765,7 @@ public partial class bithumb : Exchange
                 requestBody = String.Join("+", bodyParts.ToArray());
                 string? nonce = this.numberToString(this.nonce());
                 string authPayload = ((((endpoint + "\\") + requestBody) + "\\") + nonce); // eslint-disable-line quotes
-                string signature = this.hmac(this.encode(authPayload), this.encode(this.secret), sha512);
+                string signature = this.hmac(authPayload, this.secret, sha512);
                 string signature64 = this.stringToBase64(signature);
                 requestHeaders = new Dictionary<string, object>() {
                     { "Accept", "application/json" },

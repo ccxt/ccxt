@@ -3304,11 +3304,11 @@ public partial class binance : ccxt.binance
                 signature = rsa(query, this.secret, sha256);
             } else
             {
-                signature = eddsa(this.encode(query), this.secret, ed25519);
+                signature = eddsa(query, this.secret, ed25519);
             }
         } else
         {
-            signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+            signature = this.hmac(query, this.secret, sha256);
         }
         extendedParams["signature"] = signature;
         return extendedParams;

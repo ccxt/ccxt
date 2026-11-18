@@ -3960,7 +3960,7 @@ public partial class woo : Exchange
                 auth = ((encodedParams + "|") + ts);
                 signedHeaders["content-type"] = "application/x-www-form-urlencoded";
             }
-            signedHeaders["x-api-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            signedHeaders["x-api-signature"] = this.hmac(auth, this.secret, sha256);
             requestHeaders = signedHeaders;
         }
         return new Dictionary<string, object>() {

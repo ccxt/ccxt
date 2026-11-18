@@ -985,7 +985,7 @@ public partial class zaif : Exchange
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "Key", this.apiKey },
-                { "Sign", this.hmac(this.encode(bodyEncoded), this.encode(this.secret), sha512) },
+                { "Sign", this.hmac(bodyEncoded, this.secret, sha512) },
             };
             return new Dictionary<string, object>() {
                 { "url", url },

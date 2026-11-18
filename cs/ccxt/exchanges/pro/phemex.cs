@@ -355,7 +355,7 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(type, messageHash, paramsMarketType));
     }
 
-    public virtual void handleBalance(string? type, WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, object message, string? type)
     {
         // spot
         //    [
@@ -1822,7 +1822,7 @@ public partial class phemex : ccxt.phemex
                 type = "perpetual";
             }
             List<object> accounts = this.safeListN(message, new List<object>() {"accounts", "accounts_p", "wallets"}, new List<object>() {});
-            this.handleBalance(type, client, accounts);
+            this.handleBalance(client, accounts, type);
         }
     }
 
@@ -1898,7 +1898,7 @@ public partial class phemex : ccxt.phemex
             Int64? expiryDelta = this.safeInteger(this.options, "expires", 120);
             object expiration = (this.seconds() + expiryDelta);
             string payload = (this.apiKey + expiration.ToString());
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
+            string signature = this.hmac(payload, this.secret, sha256);
             string method = "user.auth";
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "method", method },

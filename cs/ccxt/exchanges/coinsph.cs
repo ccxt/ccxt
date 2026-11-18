@@ -2608,7 +2608,7 @@ public partial class coinsph : Exchange
                 }
             }
             string? signedQuery = this.urlEncodeQuery(query);
-            string signature = this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256);
+            string signature = this.hmac(signedQuery, this.secret, sha256);
             url = ((((((apiUrl + "/") + endpoint) + "?") + signedQuery) + "&signature=") + signature);
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "X-COINS-APIKEY", this.apiKey },

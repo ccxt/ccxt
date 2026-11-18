@@ -1448,7 +1448,7 @@ public partial class bitflyer : Exchange
             headersSigned = new Dictionary<string, object>() {
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-TIMESTAMP", nonce },
-                { "ACCESS-SIGN", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
+                { "ACCESS-SIGN", this.hmac(auth, this.secret, sha256) },
                 { "Content-Type", "application/json" },
             };
         }

@@ -1870,7 +1870,7 @@ public partial class predictfun : PredictionExchange
      */
     public virtual string? hashMessage(string message)
     {
-        string? binaryMessage = this.encode(message);
+        string? binaryMessage = message;
         int binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
@@ -3654,7 +3654,7 @@ public partial class predictfun : PredictionExchange
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {
-            object outcomeObj = getValue(cached, (handles != null && i < handles.Count ? handles[i] : null));
+            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3650_32) ? cachedValue3650_32 : null);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             if ((this.safeString(info, "marketId") == marketId))
             {

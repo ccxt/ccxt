@@ -1163,7 +1163,7 @@ public partial class bitfinex : ccxt.bitfinex
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
             Int64? nonce = this.incrementingNonce();
             string payload = ("AUTH" + ((object)nonce).ToString());
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384, "hex");
+            string signature = this.hmac(payload, this.secret, sha384, "hex");
             string eventVar = "auth";
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "apiKey", this.apiKey },

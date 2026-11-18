@@ -3431,7 +3431,7 @@ public partial class lbank : Exchange
                 { "signature_method", finalSig },
                 { "timestamp", timestamp },
             }, signedQuery)));
-            string? encoded = this.encode(auth);
+            string? encoded = auth;
             string uppercaseHash = ((string)this.hash(encoded, md5)).ToUpper();
             string sign = "";
             if (signatureMethod == "RSA")
@@ -3443,7 +3443,7 @@ public partial class lbank : Exchange
                     string? cachedPem = this.safeString(this.options, "pem");
                     if ((cachedPem == null))
                     {
-                        pem = this.convertSecretToPem(this.encode(this.secret));
+                        pem = this.convertSecretToPem(this.secret);
                         this.options["pem"] = pem;
                     } else
                     {
@@ -3451,12 +3451,12 @@ public partial class lbank : Exchange
                     }
                 } else
                 {
-                    pem = this.convertSecretToPem(this.encode(this.secret));
+                    pem = this.convertSecretToPem(this.secret);
                 }
                 sign = rsa(uppercaseHash, pem, sha256);
             } else if (signatureMethod == "HmacSHA256")
             {
-                sign = this.hmac(this.encode(uppercaseHash), this.encode(this.secret), sha256);
+                sign = this.hmac(uppercaseHash, this.secret, sha256);
             }
             signedQuery["sign"] = sign;
             string bodySigned = this.urlencode(this.keysort(signedQuery));

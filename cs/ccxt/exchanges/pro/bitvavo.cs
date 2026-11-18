@@ -184,7 +184,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> result = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object data = tickers[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)tickers[i]);
             string? marketId = this.safeString(data, "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             ccxt.Ticker ticker = this.parseTicker(data, market);
@@ -514,7 +514,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         for (int i = 0; i < candles.Count; i++)
         {
-            object candle = candles[i];
+            IDictionary<string, object> candle = ((IDictionary<string, object>)candles[i]);
             IList<object> parsed = this.parseOHLCV(candle, market);
             stored.append(parsed);
         }
@@ -1992,7 +1992,7 @@ public partial class bitvavo : ccxt.bitvavo
             Int64 timestamp = this.milliseconds();
             string stringTimestamp = timestamp.ToString();
             string auth = (((stringTimestamp + "GET/") + this.version) + "/websocket");
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             string action = "authenticate";
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "action", action },

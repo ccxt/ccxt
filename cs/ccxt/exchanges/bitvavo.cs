@@ -3001,7 +3001,7 @@ public partial class bitvavo : Exchange
             }
             string timestamp = this.milliseconds().ToString();
             string auth = (((timestamp + method) + url) + payload);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(auth, this.secret, sha256);
             string? accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             requestHeaders = new Dictionary<string, object>() {
                 { "BITVAVO-ACCESS-KEY", this.apiKey },

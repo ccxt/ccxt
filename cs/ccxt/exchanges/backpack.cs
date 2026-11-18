@@ -3990,7 +3990,7 @@ public partial class backpack : Exchange
             }
             byte[] secretBytes = this.base64ToBinary(this.secret);
             object seed = this.arraySlice(secretBytes, 0, 32);
-            string signature = eddsa(this.encode(payload), seed, ed25519);
+            string signature = eddsa(payload, seed, ed25519);
             headersSigned = new Dictionary<string, object>() {
                 { "X-Timestamp", ts },
                 { "X-Window", recvWindow },

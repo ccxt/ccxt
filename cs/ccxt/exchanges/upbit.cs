@@ -2741,11 +2741,11 @@ public partial class upbit : Exchange
             }
             if ((auth != null))
             {
-                string hash = ((string)this.hash(this.encode(auth), sha512));
+                string hash = ((string)this.hash(auth, sha512));
                 request["query_hash"] = hash;
                 request["query_hash_alg"] = "SHA512";
             }
-            string token = jwt(request, this.encode(this.secret), sha256);
+            string token = jwt(request, this.secret, sha256);
             headers["Authorization"] = ("Bearer " + token);
         }
         return new Dictionary<string, object>() {

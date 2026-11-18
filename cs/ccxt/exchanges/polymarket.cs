@@ -2876,7 +2876,7 @@ public partial class polymarket : Exchange
         // secret and unique per provisioning, the paradex stark-key idiom
         string nonceMessage = ((("polymarket-perps-proxy:" + this.milliseconds().ToString()) + ":") + this.randNumber(9).ToString());
         string seedSignature = this.signMessage(nonceMessage, this.privateKey);
-        string proxyPrivateKey = ((string)this.hash(this.encode(seedSignature), keccak, "hex"));
+        string proxyPrivateKey = ((string)this.hash(seedSignature, keccak, "hex"));
         string proxyAddress = this.ethGetAddressFromPrivateKey(proxyPrivateKey);
         string owner = this.ethGetAddressFromPrivateKey(this.privateKey);
         Int64 ts = this.milliseconds();

@@ -2981,7 +2981,7 @@ public partial class tokocrypto : Exchange
             {
                 query = this.urlencode(extendedParams);
             }
-            string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+            string signature = this.hmac(query, this.secret, sha256);
             query = query + (("&" + "signature=") + signature);
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },

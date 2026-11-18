@@ -106,7 +106,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 timestampEncoded = "";
             }
-            string signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(timestampEncoded, this.secret, sha256, "hex");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "method", "login" },
                 { "params", new Dictionary<string, object>() {

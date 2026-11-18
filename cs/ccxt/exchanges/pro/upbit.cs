@@ -387,7 +387,7 @@ public partial class upbit : ccxt.upbit
                 { "access_key", this.apiKey },
                 { "nonce", this.uuid() },
             };
-            string token = jwt(auth, this.encode(this.secret), sha256, false);
+            string token = jwt(auth, this.secret, sha256, false);
             wsOptions["token"] = token;
             wsOptions["options"] = new Dictionary<string, object>() {
                 { "headers", new Dictionary<string, object>() {

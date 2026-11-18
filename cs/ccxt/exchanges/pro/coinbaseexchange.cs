@@ -48,7 +48,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string path = "/users/self/verify";
         Int64 nonce = this.nonce();
         string payload = ((nonce.ToString() + "GET") + path);
-        string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
+        string signature = this.hmac(payload, this.base64ToBinary(this.secret), sha256, "base64");
         return new Dictionary<string, object>() {
             { "timestamp", nonce },
             { "key", this.apiKey },

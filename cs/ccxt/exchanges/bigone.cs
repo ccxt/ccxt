@@ -2179,7 +2179,7 @@ public partial class bigone : Exchange
                 { "sub", this.apiKey },
                 { "nonce", nonce },
             };
-            string token = jwt(request, this.encode(this.secret), sha256);
+            string token = jwt(request, this.secret, sha256);
             headersValue["Authorization"] = ("Bearer " + token);
             if ((method == "GET"))
             {

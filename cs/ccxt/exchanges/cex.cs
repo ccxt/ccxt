@@ -2059,7 +2059,7 @@ public partial class cex : Exchange
             string seconds = this.seconds().ToString();
             string bodySigned = this.json(query);
             string auth = ((path + seconds) + bodySigned);
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(auth, this.secret, sha256, "base64");
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-AGGR-KEY", this.apiKey },

@@ -489,7 +489,7 @@ public partial class mudrex : Exchange
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object t = rows[i];
+            IDictionary<string, object> t = ((IDictionary<string, object>)rows[i]);
             string? sym = this.safeString(t, "symbol");
             if ((sym == null))
             {
@@ -1231,7 +1231,7 @@ public partial class mudrex : Exchange
         List<object> outPos = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object p = rows[i];
+            IDictionary<string, object> p = ((IDictionary<string, object>)rows[i]);
             string? symRaw = this.safeString(p, "symbol");
             Dictionary<string, object> m = this.safeMarket(symRaw);
             Dictionary<string, object> pos = this.parsePosition(p, m);

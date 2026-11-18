@@ -1190,7 +1190,7 @@ public partial class mercado : Exchange
             privateHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "TAPI-ID", this.apiKey },
-                { "TAPI-MAC", this.hmac(this.encode(auth), this.encode(this.secret), sha512) },
+                { "TAPI-MAC", this.hmac(auth, this.secret, sha512) },
             };
         }
         string? requestBody = privateBody;

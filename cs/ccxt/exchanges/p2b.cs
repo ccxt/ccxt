@@ -1477,7 +1477,7 @@ public partial class p2b : Exchange
                 { "Content-Type", "application/json" },
                 { "X-TXC-APIKEY", this.apiKey },
                 { "X-TXC-PAYLOAD", payload },
-                { "X-TXC-SIGNATURE", this.hmac(this.encode(payload), this.encode(this.secret), sha512) },
+                { "X-TXC-SIGNATURE", this.hmac(payload, this.secret, sha512) },
             };
             string bodyJson = this.json(paramsOmitted);
             return new Dictionary<string, object>() {

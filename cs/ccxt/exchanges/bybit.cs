@@ -10623,7 +10623,7 @@ public partial class bybit : Exchange
             { "nextPageCursor", cursorValue },
         };
         result[Convert.ToInt32(lastIndex)] = last;
-        return this.toArray(result);
+        return result;
     }
 
     /**
@@ -11886,7 +11886,7 @@ public partial class bybit : Exchange
                     requestBody = "{}";
                 }
                 string payload = ((timestamp + this.apiKey) + requestBody);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
+                string signature = this.hmac(payload, this.secret, sha256, "hex");
                 requestHeaders = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },
                     { "X-BAPI-API-KEY", this.apiKey },
@@ -11924,7 +11924,7 @@ public partial class bybit : Exchange
                     signature = rsa(authFull, this.secret, sha256);
                 } else
                 {
-                    signature = this.hmac(this.encode(authFull), this.encode(this.secret), sha256);
+                    signature = this.hmac(authFull, this.secret, sha256);
                 }
                 requestHeaders["X-BAPI-SIGN"] = signature;
             } else
@@ -11942,7 +11942,7 @@ public partial class bybit : Exchange
                     signature = rsa(auth, this.secret, sha256);
                 } else
                 {
-                    signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                    signature = this.hmac(auth, this.secret, sha256);
                 }
                 if ((method == "POST"))
                 {

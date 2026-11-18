@@ -1255,7 +1255,7 @@ public partial class bitbank : Exchange
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "ACCESS-KEY", this.apiKey },
-                { "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
+                { "ACCESS-SIGNATURE", this.hmac(auth, this.secret, sha256) },
             };
             if (isTimeWindow)
             {

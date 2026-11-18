@@ -4202,7 +4202,7 @@ public partial class blofin : Exchange
                 signedHeaders["Content-Type"] = "application/json";
             }
             string auth = ((((request + method) + timestamp) + timestamp) + sign_body);
-            string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
+            string signature = this.stringToBase64(this.hmac(auth, this.secret, sha256));
             signedHeaders["ACCESS-SIGN"] = signature;
             string? bodyResolved = signedBody;
             return new Dictionary<string, object>() {

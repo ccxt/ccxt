@@ -316,7 +316,7 @@ public partial class backpack : ccxt.backpack
         string payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
         byte[] secretBytes = this.base64ToBinary(this.secret);
         object seed = this.arraySlice(secretBytes, 0, 32);
-        string signature = eddsa(this.encode(payload), seed, ed25519);
+        string signature = eddsa(payload, seed, ed25519);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", topics },
@@ -1336,15 +1336,16 @@ public partial class backpack : ccxt.backpack
         string messageHash = ("orderbook:" + symbol);
         if ((nonce == null))
         {
-            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
+            int cacheSize = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
+            Int64? cacheLength = this.parseToInt(cacheSize);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             Dictionary<string, object> market = this.market(symbol);
             bool isStockMarket = ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)) || (((marketId != null)) && ((marketId.IndexOf(".US_", StringComparison.Ordinal) >= 0) || (marketId.IndexOf(".HK_", StringComparison.Ordinal) >= 0)));
             int defaultSnapshotDelay = isStockMarket ? 0 : 10;
-            object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay);
-            if (isEqual(cacheLength, snapshotDelay))
+            Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay));
+            if ((cacheLength == snapshotDelay))
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
             }

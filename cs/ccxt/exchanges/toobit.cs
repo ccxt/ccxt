@@ -911,7 +911,7 @@ public partial class toobit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < coins.Count; i++)
         {
-            object coin = coins[i];
+            IDictionary<string, object> coin = ((IDictionary<string, object>)coins[i]);
             Dictionary<string, object> parsed = this.parseCurrency(coin);
             if ((parsed != null))
             {
@@ -3022,14 +3022,14 @@ public partial class toobit : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            results.Add(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+            results.Add(this.extend(this.parseTransactionWithType(this.safeDict(response, i, new Dictionary<string, object>() {}), currency, transactType), paramsUntil));
         }
         List<object> sorted = this.sortBy(results, "timestamp");
         string? currencyCode = ((string)(((currency != null)) ? (currency.ContainsKey("code") ? currency["code"] : null) : null));
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,currencyCode, since, limit));
     }
 
-    public virtual object parseTransactionWithType(object transaction, IDictionary<string, object>? currency = null, string? transactType = null)
+    public virtual object parseTransactionWithType(IDictionary<string, object> transaction, IDictionary<string, object>? currency = null, string? transactType = null)
     {
         Dictionary<string, object> result = this.parseTransaction(transaction, currency);
         if ((transactType != null))
@@ -3536,7 +3536,7 @@ public partial class toobit : Exchange
             {
                 payload = (privateBody + queryString);
             }
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(payload, this.secret, sha256, "hex");
             if (queryString != "")
             {
                 queryString = queryString + ("&signature=" + signature);

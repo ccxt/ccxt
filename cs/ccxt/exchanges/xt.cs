@@ -2384,7 +2384,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object rawTicker = tickers[i];
+            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)tickers[i]);
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             string? marketId = this.safeString(rawTicker, "s");
@@ -6906,7 +6906,7 @@ public partial class xt : Exchange
             }
             headersValue["xt-validate-appkey"] = this.apiKey;
             headersValue["xt-validate-timestamp"] = timestamp;
-            headersValue["xt-validate-signature"] = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256);
+            headersValue["xt-validate-signature"] = this.hmac(payloadString, this.secret, sha256);
         } else
         {
             if (urlencoded != "")

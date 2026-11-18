@@ -418,7 +418,7 @@ public partial class limitless : PredictionExchange
         List<object> expandedRaw = this.expandGroupRows(allRaw);
         for (int i = 0; i < (expandedRaw?.Count ?? 0); i++)
         {
-            object raw = expandedRaw[i];
+            IDictionary<string, object> raw = ((IDictionary<string, object>)expandedRaw[i]);
             string? groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
             string? eventKey = null;
             if ((groupId != null) && groupId != "")
@@ -3427,7 +3427,7 @@ public partial class limitless : PredictionExchange
         int rawMarketsLength = (expandedMarkets?.Count ?? 0);
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            object raw = (expandedMarkets != null && i < expandedMarkets.Count ? expandedMarkets[i] : null);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)(expandedMarkets != null && i < expandedMarkets.Count ? expandedMarkets[i] : null));
             string? groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
             string? eventKey = null;
             if ((groupId != null) && groupId != "")
@@ -3667,7 +3667,7 @@ public partial class limitless : PredictionExchange
             string timestamp = this.iso8601(this.milliseconds());
             string newline = "\n"; // eslint-disable-line quotes
             string payload = ((((((timestamp + newline) + method) + newline) + (url)) + newline) + bodyString);
-            string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
+            string signature = this.hmac(payload, this.base64ToBinary(this.secret), sha256, "base64");
             headersValue = this.extend(headersValue, new Dictionary<string, object>() {
                 { "lmts-timestamp", timestamp },
                 { "lmts-signature", signature },

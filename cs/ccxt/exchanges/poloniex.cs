@@ -4558,7 +4558,7 @@ public partial class poloniex : Exchange
                 { "Content-Type", "application/json" },
                 { "key", this.apiKey },
                 { "signTimestamp", timestamp },
-                { "signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64") },
+                { "signature", this.hmac(auth, this.secret, sha256, "base64") },
             };
         }
         string? bodyResolved = bodyJson;

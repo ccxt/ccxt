@@ -1624,7 +1624,7 @@ public partial class btcmarkets : Exchange
                 requestBody = jsonBody;
                 auth = (((method + request) + nonce) + jsonBody);
             }
-            string signature = this.hmac(this.encode(auth), secret, sha512, "base64");
+            string signature = this.hmac(auth, secret, sha512, "base64");
             requestHeaders = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
                 { "Accept-Charset", "UTF-8" },

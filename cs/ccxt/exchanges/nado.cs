@@ -587,9 +587,10 @@ public partial class nado : Exchange
         if (isStopOrder)
         {
             // the final omit drops triggerDirection from the request
-            string? triggerDirection = this.safeString(this.handleTriggerDirectionAndParams(paramsRecvWindow), 0);
+            IList<object> triggerDirectionVariable = (IList<object>)this.handleTriggerDirectionAndParams(paramsRecvWindow);
+            string? triggerDirection = (string)triggerDirectionVariable[0];
             string directionSuffix = "below";
-            if (triggerDirection == "ascending")
+            if ((triggerDirection == "ascending"))
             {
                 directionSuffix = "above";
             }

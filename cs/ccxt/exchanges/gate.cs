@@ -8713,7 +8713,7 @@ public partial class gate : Exchange
                 bodyJson = this.json(query);
             }
             string? bodyPayload = ((bodyJson == null)) ? "" : bodyJson;
-            string bodySignature = ((string)this.hash(this.encode(bodyPayload), sha512));
+            string bodySignature = ((string)this.hash(bodyPayload, sha512));
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt(((double)nonce / 1000));
             string timestampString = ((object)timestamp).ToString();
@@ -8721,7 +8721,7 @@ public partial class gate : Exchange
             List<object> payloadArray = new List<object> {method.ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
             // eslint-disable-next-line quotes
             string payload = String.Join("\n", payloadArray.ToArray());
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            string signature = this.hmac(payload, this.secret, sha512);
             signedHeaders = new Dictionary<string, object>() {
                 { "KEY", this.apiKey },
                 { "Timestamp", timestampString },

@@ -3924,7 +3924,7 @@ public partial class cryptocom : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            object entry = positions[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)positions[i]);
             string? marketId = this.safeString(entry, "instrument_name");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
             result.Add(this.parsePosition(entry, marketInner));
@@ -4250,7 +4250,7 @@ public partial class cryptocom : Exchange
             List<object> paramsKeys = new List<object>(requestParams.Keys);
             string? strSortKey = this.paramsToString(requestParams, 0);
             string payload = ((((path + nonce) + this.apiKey) + strSortKey) + nonce);
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
+            string signature = this.hmac(payload, this.secret, sha256);
             int paramsKeysLength = paramsKeys.Count;
             requestBody = this.json(new Dictionary<string, object>() {
                 { "id", nonce },

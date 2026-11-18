@@ -656,7 +656,7 @@ public partial class sxbet : PredictionExchange
         int rawMarketsLength = getArrayLength(rawMarkets);
         for (int i = 0; i < rawMarketsLength; i++)
         {
-            object raw = getValue(rawMarkets, i);
+            IDictionary<string, object> raw = ((IDictionary<string, object>)getValue(rawMarkets, i));
             object parsed = this.parseSxbetMarket(raw);
             if ((parsed == null))
             {

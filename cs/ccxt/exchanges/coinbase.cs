@@ -2493,7 +2493,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "product_id");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             string? symbol = this.safeString(market, "symbol", "");
@@ -5808,7 +5808,7 @@ public partial class coinbase : Exchange
             object holdAmount = 0;
             if (((totalBalanceFiat != null)) && ((availableBalance != null)) && ((totalBalanceFiat != null && (availableBalance == null || totalBalanceFiat > availableBalance))))
             {
-                holdAmount = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(totalBalanceFiat, availableBalance);
+                holdAmount = (totalBalanceFiat - availableBalance);
             }
             IDictionary<string, object> costBasisDict = this.safeDict(position, "cost_basis", new Dictionary<string, object>() {});
             string? costBasisStr = this.safeString(costBasisDict, "value", "0");
@@ -5915,7 +5915,7 @@ public partial class coinbase : Exchange
         } else
         {
             // ecdsa with p256
-            return ((string?)((object)(jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
+            return ((string?)((object)(jwt(request, this.secret, sha256, false, new Dictionary<string, object>() {
                 { "kid", this.apiKey },
                 { "nonce", nonce },
                 { "alg", "ES256" },
@@ -6036,7 +6036,7 @@ public partial class coinbase : Exchange
                     Int64? timestamp = this.parseToInt(((double?)nonce / 1000));
                     string timestampString = ((object)timestamp).ToString();
                     string auth = (((timestampString + method) + savedPath) + payload);
-                    string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                    string signature = this.hmac(auth, this.secret, sha256);
                     requestHeaders = new Dictionary<string, object>() {
                         { "CB-ACCESS-KEY", this.apiKey },
                         { "CB-ACCESS-SIGN", signature },

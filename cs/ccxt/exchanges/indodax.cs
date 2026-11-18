@@ -1693,7 +1693,7 @@ public partial class indodax : Exchange
             privateHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "Key", this.apiKey },
-                { "Sign", this.hmac(this.encode(privateBody), this.encode(this.secret), sha512) },
+                { "Sign", this.hmac(privateBody, this.secret, sha512) },
             };
         }
         string? requestBody = privateBody;

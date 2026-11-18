@@ -914,8 +914,8 @@ public partial class btcbox : Exchange
                 { "nonce", nonce },
             }, parameters);
             string request = this.urlencode(query);
-            string secret = ((string)this.hash(this.encode(this.secret), md5));
-            query["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
+            string secret = ((string)this.hash(this.secret, md5));
+            query["signature"] = this.hmac(request, secret, sha256);
             string signedBody = this.urlencode(query);
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },

@@ -1133,7 +1133,7 @@ public partial class xt : ccxt.xt
         List<object> newTickers = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object tickerData = data[i];
+            IDictionary<string, object> tickerData = ((IDictionary<string, object>)data[i]);
             ccxt.Ticker ticker = this.parseTicker(tickerData);
             string? symbol = ticker.symbol;
             if ((symbol != null))

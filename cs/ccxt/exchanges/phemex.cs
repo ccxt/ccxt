@@ -5380,7 +5380,7 @@ public partial class phemex : Exchange
                 privateHeaders["Content-Type"] = "application/json";
             }
             string auth = (((requestPath + queryString) + expiryString) + payload);
-            privateHeaders["x-phemex-request-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            privateHeaders["x-phemex-request-signature"] = this.hmac(auth, this.secret, sha256);
         }
         string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((baseApiUrl == null))
@@ -6296,7 +6296,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < ranks.Count; i++)
         {
-            object rank = ranks[i];
+            IDictionary<string, object> rank = ((IDictionary<string, object>)ranks[i]);
             result.Add(this.parseADLRank(rank));
         }
         return ccxt.BaseExchange.ToADLList(this.filterByArrayADLRanks(result, "symbol", symbolsNormalized, false));

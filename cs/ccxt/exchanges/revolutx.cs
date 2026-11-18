@@ -271,7 +271,7 @@ public partial class revolutx : Exchange
             }
             string requestPath = ("/api/" + implodedPath);
             string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + bodyString);
-            string signature = eddsa(this.encode(message), this.privateKey, ed25519);
+            string signature = eddsa(message, this.privateKey, ed25519);
             requestHeaders = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
                 { "X-Revx-Timestamp", timestamp },

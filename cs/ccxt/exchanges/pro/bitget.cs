@@ -113,12 +113,12 @@ public partial class bitget : ccxt.bitget
         (string?, IDictionary<string, object>) instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams(paramsProductType, methodName, "instType", instTypeDefault);
         string? instTypeOption = instTypeOptionparamsInstTypeVariable.Item1;
         IDictionary<string, object> paramsInstType = (instTypeOptionparamsInstTypeVariable.Item2);
-        string? instType = instTypeOption;
         if (uta == true && ((instTypeOption != null)))
         {
-            instType = instTypeOption.ToLower();
+            string instTypeLower = instTypeOption.ToLower();
+            return new List<object>() {instTypeLower, paramsInstType};
         }
-        return new List<object>() {instType, paramsInstType};
+        return new List<object>() {instTypeOption, paramsInstType};
     }
 
     /**
@@ -3079,7 +3079,7 @@ public partial class bitget : ccxt.bitget
         {
             string timestamp = this.seconds().ToString();
             string auth = ((timestamp + "GET") + "/user/verify");
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(auth, this.secret, sha256, "base64");
             string operation = "login";
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "op", operation },

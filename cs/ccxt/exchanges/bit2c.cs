@@ -1218,7 +1218,7 @@ public partial class bit2c : Exchange
             {
                 requestBody = auth;
             }
-            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
+            string signature = this.hmac(auth, this.secret, sha512, "base64");
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "key", this.apiKey },

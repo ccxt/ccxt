@@ -1363,7 +1363,7 @@ public partial class independentreserve : Exchange
                 auth.Add(((key + "=") + value));
             }
             string message = String.Join(",", auth.ToArray());
-            string signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
+            string signature = this.hmac(message, this.secret, sha256);
             Dictionary<string, object> query = new Dictionary<string, object>() {};
             query["apiKey"] = this.apiKey;
             query["nonce"] = nonce;

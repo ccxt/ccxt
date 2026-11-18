@@ -7530,7 +7530,7 @@ public partial class bingx : Exchange
                 encodeRequest = this.rawencode(parsedParams, true);
             }
             string? encodeRequestSafe = ((encodeRequest == null)) ? "" : encodeRequest;
-            string signature = this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256);
+            string signature = this.hmac(encodeRequestSafe, this.secret, sha256);
             requestHeaders = new Dictionary<string, object>() {
                 { "X-BX-APIKEY", this.apiKey },
                 { "X-SOURCE-KEY", this.safeString(this.options, "broker", "CCXT") },

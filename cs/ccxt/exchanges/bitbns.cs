@@ -1472,7 +1472,7 @@ public partial class bitbns : Exchange
                 { "body", requestBody },
             };
             string payload = this.stringToBase64(this.json(auth));
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            string signature = this.hmac(payload, this.secret, sha512);
             requestHeaders["X-BITBNS-PAYLOAD"] = payload;
             requestHeaders["X-BITBNS-SIGNATURE"] = signature;
             requestHeaders["Content-Type"] = "application/x-www-form-urlencoded";

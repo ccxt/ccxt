@@ -4299,7 +4299,7 @@ public partial class krakenfutures : Exchange
                 auth = auth + (apiName + "/");
             }
             auth = auth + endpoint; // 1
-            byte[] hash = ((byte[])this.hash(this.encode(auth), sha256, "binary")); // 2
+            byte[] hash = ((byte[])this.hash(auth, sha256, "binary")); // 2
             byte[] secret = this.base64ToBinary(this.secret); // 3
             string signature = this.hmac(hash, secret, sha512, "base64"); // 4-5
             privateHeaders = new Dictionary<string, object>() {

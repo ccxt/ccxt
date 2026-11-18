@@ -1140,7 +1140,7 @@ public partial class coinspot : Exchange
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "key", this.apiKey },
-                { "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512) },
+                { "sign", this.hmac(requestBody, this.secret, sha512) },
             };
         }
         return new Dictionary<string, object>() {

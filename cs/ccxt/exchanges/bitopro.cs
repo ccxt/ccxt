@@ -2082,7 +2082,7 @@ public partial class bitopro : Exchange
             if ((method == "POST") || (method == "PUT"))
             {
                 string payload = this.stringToBase64(signedBody);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                string signature = this.hmac(payload, this.secret, sha384);
                 requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
                 requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
                 requestHeaders["X-BITOPRO-SIGNATURE"] = signature;
@@ -2098,7 +2098,7 @@ public partial class bitopro : Exchange
                 };
                 string data = this.json(rawData);
                 string payload = this.stringToBase64(data);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                string signature = this.hmac(payload, this.secret, sha384);
                 requestHeaders["X-BITOPRO-APIKEY"] = this.apiKey;
                 requestHeaders["X-BITOPRO-PAYLOAD"] = payload;
                 requestHeaders["X-BITOPRO-SIGNATURE"] = signature;

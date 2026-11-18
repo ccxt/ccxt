@@ -537,7 +537,7 @@ public partial class hollaex : ccxt.hollaex
         }
         string url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         string auth = (("CONNECT" + "/stream") + expires);
-        string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+        string signature = this.hmac(auth, this.secret, sha256);
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "api-key", this.apiKey },
             { "api-signature", signature },

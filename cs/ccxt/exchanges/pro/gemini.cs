@@ -1098,7 +1098,7 @@ public partial class gemini : ccxt.gemini
             { "nonce", this.incrementingNonce() },
         };
         string b64 = this.stringToBase64(this.json(payload));
-        string signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384, "hex");
+        string signature = this.hmac(b64, this.secret, sha384, "hex");
         Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {

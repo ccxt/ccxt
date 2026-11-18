@@ -271,7 +271,7 @@ public partial class coinbase : ccxt.coinbase
         {
             subscribe["api_key"] = this.apiKey;
             subscribe["timestamp"] = timestamp;
-            subscribe["signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            subscribe["signature"] = this.hmac(auth, this.secret, sha256);
         } else
         {
             if (isCloudAPiKey && this.apiKey.StartsWith("-----BEGIN"))
@@ -923,7 +923,7 @@ public partial class coinbase : ccxt.coinbase
             int tradesLength = currentTrades.Count;
             for (Int64 j = 0; j < tradesLength; j++)
             {
-                object item = (currentTrades != null && ((tradesLength - j) - 1) < currentTrades.Count ? currentTrades[(int)((tradesLength - j) - 1)] : null);
+                IDictionary<string, object> item = ((IDictionary<string, object>)(currentTrades != null && ((tradesLength - j) - 1) < currentTrades.Count ? currentTrades[(int)((tradesLength - j) - 1)] : null));
                 tradesArray.append(ccxt.BaseExchange.FromTrade(this.parseTrade(item)));
             }
         }
@@ -982,7 +982,7 @@ public partial class coinbase : ccxt.coinbase
             }
             for (int j = 0; j < responseOrders.Count; j++)
             {
-                object responseOrder = responseOrders[j];
+                IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[j]);
                 ccxt.Order parsed = this.parseWsOrder(responseOrder);
                 ccxt.pro.ArrayCache cachedOrders = this.orders;
                 string? marketId = this.safeString(responseOrder, "product_id");

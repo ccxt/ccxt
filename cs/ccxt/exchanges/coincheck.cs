@@ -1183,7 +1183,7 @@ public partial class coincheck : Exchange
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-NONCE", nonce },
-                { "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
+                { "ACCESS-SIGNATURE", this.hmac(auth, this.secret, sha256) },
             };
         }
         Dictionary<string, object> headersResolved = headersSigned;

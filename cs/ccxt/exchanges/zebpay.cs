@@ -2272,13 +2272,13 @@ public partial class zebpay : Exchange
             {
                 // For GET/DELETE: Append params to URL and sign the query string
                 string queryString = this.urlencode(paramsSigned);
-                signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, "hex");
+                signature = this.hmac(queryString, this.secret, sha256, "hex");
                 suffix = ("?" + queryString);
             } else
             {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 bodySigned = this.json(paramsSigned);
-                signature = this.hmac(this.encode(bodySigned), this.encode(this.secret), sha256, "hex");
+                signature = this.hmac(bodySigned, this.secret, sha256, "hex");
             }
             headersSigned = new Dictionary<string, object>() {
                 { "Referrer", "ccxt" },

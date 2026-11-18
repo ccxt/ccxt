@@ -123,7 +123,7 @@ public partial class whitebit : ccxt.whitebit
         List<object> parameters = this.safeList(message, "params", new List<object>() {});
         for (int i = 0; i < parameters.Count; i++)
         {
-            object data = parameters[i];
+            IDictionary<string, object> data = ((IDictionary<string, object>)parameters[i]);
             string? marketId = this.safeString(data, 7);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));

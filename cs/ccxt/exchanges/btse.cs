@@ -4198,7 +4198,7 @@ public partial class btse : Exchange
                 signPath = this.cleanPath(path);
             }
             string payload = ((signPath + nonce.ToString()) + bodyString);
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+            string signature = this.hmac(payload, this.secret, sha384);
             requestHeaders = new Dictionary<string, object>() {
                 { "request-api", this.apiKey },
                 { "request-nonce", this.numberToString(nonce) },
