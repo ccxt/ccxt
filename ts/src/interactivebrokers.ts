@@ -499,6 +499,7 @@ export default class interactivebrokers extends Exchange {
                     'forexCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'defaultMinCost': 1,
                     'endpointRetries': 3,
+                    'retryDelay': 1000,
                 },
                 'fetchTickers': {
                     // 31 last, 55 symbol, 70 high, 71 low, 82 change, 83 change %, 84 bid, 85 ask size, 86 ask, 88 bid size,
