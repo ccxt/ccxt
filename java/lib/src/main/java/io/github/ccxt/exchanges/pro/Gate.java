@@ -2343,23 +2343,43 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //    }
         //
         List<Object> rawLiquidations = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
-        List<String> newLiquidations = new ArrayList<String>(Arrays.asList());
+        List<Object> newLiquidations = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(this.liquidations, null))
         {
             Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.liquidations;
+        Map<String, Object> liquidationsBySymbol = new HashMap<String, Object>() {{}};
         for (var i = 0; i < rawLiquidations.size(); i++)
         {
             Map<String, Object> rawLiquidation = (Map<String, Object>) (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
             Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation(rawLiquidation, (Map<String, Object>) null);
             cache.append(liquidation);
+            ((List<Object>)newLiquidations).add(liquidation);
             String symbol = this.safeString(liquidation, "symbol");
-            List<Object> symbolLiquidations = this.safeList(cache, symbol, new ArrayList<Object>(Arrays.asList()));
-            client.resolve(symbolLiquidations, ("myLiquidations::" + symbol));
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                List<Object> symbolLiquidations = this.safeList(liquidationsBySymbol, symbol, null);
+                if (java.util.Objects.equals(symbolLiquidations, null))
+                {
+                    symbolLiquidations = new ArrayList<Object>(Arrays.asList());
+                }
+                ((List<Object>)symbolLiquidations).add(liquidation);
+                liquidationsBySymbol.put(symbol, symbolLiquidations);
+            }
         }
-        client.resolve(newLiquidations, "myLiquidations");
+        List<String> symbols = new ArrayList<String>(liquidationsBySymbol.keySet());
+        for (var i = 0; i < symbols.size(); i++)
+        {
+            String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            client.resolve((liquidationsBySymbol == null || symbol == null ? null : liquidationsBySymbol.get(symbol)), ("myLiquidations::" + symbol));
+        }
+        Integer numNewLiquidations = newLiquidations.size();
+        if ((numNewLiquidations != null && numNewLiquidations > 0))
+        {
+            client.resolve(newLiquidations, "myLiquidations");
+        }
     }
 
     public Object parseWsLiquidation(Map<String, Object> liquidation, Map<String, Object> market)
@@ -2393,7 +2413,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //    }
         //
         String marketId = this.safeString(liquidation, "contract");
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        // liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", "contract");
         Long timestamp = this.safeInteger(liquidation, "time_ms");
         String originalSize = this.safeString(liquidation, "size");
         String left = this.safeString(liquidation, "left");
@@ -2408,7 +2429,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             put( "quoteValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Gate.this.iso8601(timestamp) );
-        }}, (Map<String, Object>) null);
+        }}, marketResolved);
     }
 
     public Boolean handleErrorMessage(Client client, Object message)
