@@ -8,7 +8,7 @@ func (this *BaseExchange) HandleMarketTypeAndParams(methodName any, optionalArgs
 	defaultValue := GetArg(optionalArgs, 2, nil)
 	// type from param
 	if typeVar := this.SafeString2(params, "defaultType", "type"); typeVar != nil {
-		return typeVar, MapTyped(this.Omit(params, []any{"defaultType", "type"}))
+		return typeVar, this.OmitDict(params, []any{"defaultType", "type"})
 	}
 	// type from market
 	if market != nil {
@@ -42,7 +42,7 @@ func (this *BaseExchange) HandleSubTypeAndParams(methodName any, optionalArgs ..
 		if (*subTypeInParams == "linear") || (*subTypeInParams == "inverse") {
 			subType = subTypeInParams
 		}
-		return subType, MapTyped(this.Omit(params, []any{"subType", "defaultSubType"}))
+		return subType, this.OmitDict(params, []any{"subType", "defaultSubType"})
 	}
 	// at first, check from market object
 	if market != nil {

@@ -440,8 +440,11 @@ type TradingFeeInterface struct {
 	Info       map[string]any
 }
 
-func NewTradingFeeInterface(data any) TradingFeeInterface {
-	m := MapOrEmpty(data)
+func NewTradingFeeInterface(data map[string]any) TradingFeeInterface {
+	m := data
+	if m == nil {
+		m = map[string]any{}
+	}
 	return TradingFeeInterface{
 		Symbol:     SafeStringTyped(m, "symbol"),
 		Maker:      SafeFloatTyped(m, "maker"),
@@ -698,8 +701,11 @@ type Ticker struct {
 	Info          any
 }
 
-func NewTicker(data any) Ticker {
-	m := MapOrEmpty(data)
+func NewTicker(data map[string]any) Ticker {
+	m := data
+	if m == nil {
+		m = map[string]any{}
+	}
 	return Ticker{
 		Symbol:        SafeStringTyped(m, "symbol"),
 		Timestamp:     SafeInt64Typed(m, "timestamp"),

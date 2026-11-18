@@ -10937,7 +10937,7 @@ export function collapseRedundantNilChecks (content: string): string {
 // Methods whose generated Go signature already returns map[string]any: MapTyped around their call is
 // the identity and a `.(map[string]any)` assertion on it does not compile, so both are dropped.
 const GO_MARKET_ROW_METHODS = [ 'Market', 'SafeMarket' ];
-const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook',
+const GO_MAP_RETURNING_METHODS = [ 'Market', 'MarketOrNull', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook',
     'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
     'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
     'CreateOrderRequest', // only the 8 callers wrapping it: every one sits on a venue whose builder is a map
@@ -13960,7 +13960,9 @@ ${caseStatements.join('\n')}
                     const declared = new RegExp ('\\n[ \\t]*var ' + expr + ' map\\[string\\]any\\b').test (body);
                     return declared && (binds === 1);
                 };
-                const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => mapLocal (expr) ? expr : typed + expr + ')');
+                // `nil` and a DerivedExchange.Market call (IDerivedExchange: map[string]any) need no wrap
+                const bare = (expr: string) => mapLocal (expr) || ((typed === 'MapTyped(') && ((expr === 'nil') || /^this\.DerivedExchange\.Market\(\w+\)$/.test (expr)));
+                const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => bare (expr) ? expr : typed + expr + ')');
                 if ((scanned === undefined) || (scanned.total === 0)) {
                     return content;
                 }
@@ -13999,6 +14001,7 @@ ${caseStatements.join('\n')}
             [ 'BaseExchange', 'Currency', (expr: string) => expr.length > 0, true ],
             [ 'BaseExchange', 'SafeCurrency', (expr: string) => expr.length > 0, true ],
             [ 'BaseExchange', 'SafeMarket', (expr: string) => expr.length > 0, true ],
+            [ 'BaseExchange', 'MarketOrNull', (expr: string) => (expr === 'nil') || /^this\.DerivedExchange\.Market\(symbol\)$/.test (expr), true ],
         ];
         for (let i = 0; i < rows.length; i++) {
             content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], rows[i][2], rows[i][3]);
@@ -14797,7 +14800,7 @@ async function runMain () {
             [ 'go-typed-deref-self-test-str: ', goTypedStrSelfTest ], [ 'go-typed-deref-self-test-len: ', goTypedLenSelfTest ],
             [ 'go-typed-deref-self-test-inop: ', goTypedInopSelfTest ], [ 'w8-futures-pair: ', w8FuturesPairSelfTest ], [ 'gv-list: ', gvListSelfTest ],
             [ 'go-typed-deref-self-test-misc: ', goTypedMiscSelfTest ], goErrSelfTest, goStructReturnsSelfTest, goChan3SelfTest,
-            [ 'go drop redundant typed self: ', goDropRedundantTypedSelfTest ],
+            [ 'go drop redundant typed self: ', goDropRedundantTypedSelfTest ], [ 'go omit of guarded urls: ', goUrlsKeyGuardedSelfTest ],
             [ 'go tuple producer reads self: ', goTupleProducerReadsSelfTest ], [ 'go self map rebind self: ', goSelfMapRebindSelfTest, true ], [ 'go annotated return self test: ', goAnnotatedReturnSelfTest, true ],
             [ 'safe balance self test: ', b02SafeBalanceSelfTest, true ], [ 'go map write nil guard: ', goMapWriteNilGuardSelfTest, true ], [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ], [ 'go async map pair holders: ', goAsyncMapPairHoldersCheck ],
             [ 'go str return self test: ', goStrReturnSelfTest, true ], [ 'go any nil compare self: ', goAnyNilCompareSelfTest, true ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
@@ -15429,7 +15432,7 @@ function goAsyncTupleIndexSelfTest (ok: SelfTestOk): void {
 function goOmitDictOfTypedMaps (content: string): string {
     const lines = content.split ('\n');
     let funcStart = 0;
-    const call = /\b(?:ccxt\.)?MapTyped\(this\.Omit\((\w+),/g;
+    const call = /\b(?:ccxt\.)?MapTyped\(this\.Omit\((\w+|this\.Urls),/g;
     for (let i = 0; i < lines.length; i++) {
         if (/^func /.test (lines[i])) {
             funcStart = i;
@@ -15438,7 +15441,8 @@ function goOmitDictOfTypedMaps (content: string): string {
         call.lastIndex = 0;
         for (let m = call.exec (line); m !== null; m = call.exec (line)) {
             const end = goMatchingCloseText (line, m.index + m[0].indexOf ('('), '()');
-            if ((end < 0) || (line[end - 1] !== ')') || (goNearestLocalType (lines, funcStart, i, m[1]) !== 'map[string]any')) {
+            const typed = goNearestLocalType (lines, funcStart, i, m[1]) === 'map[string]any';
+            if ((end < 0) || (line[end - 1] !== ')') || !(typed || goUrlsKeyGuarded (lines, funcStart, i, line.substring (m.index)))) {
                 continue;
             }
             const inner = line.substring (m.index + m[0].length, end - 1);
@@ -15451,6 +15455,30 @@ function goOmitDictOfTypedMaps (content: string): string {
     return lines.join ('\n');
 }
 
+
+// this.Urls (a map[string]any field) is non-nil inside an enclosing `if _, ok := this.Urls[k]; ok {`
+// (a found key needs a non-nil map), so Omit of it is a fresh map
+function goUrlsKeyGuarded (lines: string[], funcStart: number, at: number, call: string): boolean {
+    if (!/^(?:ccxt\.)?MapTyped\(this\.Omit\(this\.Urls,/.test (call)) {
+        return false;
+    }
+    const indent = (l: string) => /^\t*/.exec (l)[0].length;
+    for (let k = at - 1; k > funcStart; k--) {
+        if (/^\s*this\.Urls = /.test (lines[k])) {
+            return false; // a rebinding may install a nil map
+        }
+        if ((indent (lines[k]) < indent (lines[at])) && (lines[k].trim () !== '')) {
+            return /^(?:} else )?if _, ok := this\.Urls\["\w+"\]; ok \{$/.test (lines[k].trim ());
+        }
+    }
+    return false;
+}
+
+function goUrlsKeyGuardedSelfTest (ok: SelfTestOk): void {
+    const f = (guard: string) => goOmitDictOfTypedMaps ('func (this *X) F() {\n\t' + guard + '\n\t\tthis.Urls["api"] = nil\n\t\tvar u map[string]any = MapTyped(this.Omit(this.Urls, "b"))\n\t\tthis.Urls = u\n\t}\n}\n');
+    ok (f ('} else if _, ok := this.Urls["b"]; ok {').includes ('= this.OmitDict(this.Urls, "b")'), 'guarded urls omit');
+    ok (f ('if true {').includes ('MapTyped(this.Omit(this.Urls'), 'unguarded urls omit kept');
+}
 
 // the Go type of `name` at line `at`: its nearest enclosing `var name T =`, else a `name map[string]any`
 // parameter of the func; undefined when a closure or a `:=` could rebind it in between
