@@ -26956,10 +26956,13 @@ function j02Callers () {
     return index;
 }
 
+// base and venue (rest / pro) methods: callers are indexed by name across ts/src, so overrides are covered
+const J02_PARAM_SOURCE_FILE = /[\\/]ts[\\/]src[\\/](base[\\/]|pro[\\/])?\w+(\.nooverloads\.\d+)?\.ts$/;
+
 function j02ParamPlain (param, depth) {
     const method = param.parent;
     if (method === undefined || !ts.isMethodDeclaration (method) || !ts.isIdentifier (method.name) || param.dotDotDotToken !== undefined
-        || param.initializer !== undefined || !BASE_SOURCE_FILE.test (method.getSourceFile ().fileName) || depth > 5) {
+        || param.initializer !== undefined || !J02_PARAM_SOURCE_FILE.test (method.getSourceFile ().fileName) || depth > 5) {
         return false;
     }
     const name = method.name.text;
@@ -27204,8 +27207,8 @@ function j02Rewrite (printer, node, receiver, key, rest) {
     const checker = printer.getChecker ();
     const declaration = checker.getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
     if (declaration === undefined || !(ts.isVariableDeclaration (declaration) || ts.isBindingElement (declaration)
-        || (ts.isParameterDeclaration (declaration) && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName)))) {
-        return undefined; // venue parameters and fields belong to other families
+        || (ts.isParameterDeclaration (declaration) && J02_PARAM_SOURCE_FILE.test (declaration.getSourceFile ().fileName)))) {
+        return undefined; // fields belong to other families
     }
     const declared = String (printer.javaDeclaredTypeOf?.(receiver) ?? '').trim ();
     const printedKey = printer.printNode (node.left.argumentExpression, 0);
