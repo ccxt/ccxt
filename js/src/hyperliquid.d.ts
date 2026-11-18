@@ -767,6 +767,6 @@ export default class hyperliquid extends Exchange {
     coinToMarketId(coin: Str): Str;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: Dict, config?: Dict): any;
     parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): [Dict, Dict];
 }

@@ -1533,7 +1533,8 @@ export default class htx extends Exchange {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, TRUNCATE, this.market(symbol)['precision']['cost'], this.precisionMode);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(cost, TRUNCATE, market['precision']['cost'], this.precisionMode);
     }
     /**
      * @method

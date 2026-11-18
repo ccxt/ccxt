@@ -2458,7 +2458,8 @@ class bullish extends bullish$1["default"] {
         let response = undefined;
         const code = this.safeString(params, 'code');
         if (code !== undefined) {
-            request['symbol'] = this.currency(code)['id'];
+            const currency = this.currency(code);
+            request['symbol'] = currency['id'];
             response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, params));
             return this.parseBalanceForSingleCurrency(response, code);
         }

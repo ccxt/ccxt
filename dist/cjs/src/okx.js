@@ -8570,9 +8570,13 @@ class okx extends okx$1["default"] {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
+                const feeEntry = this.safeDict(depositWithdrawFees, code, {});
                 if (currencyId !== undefined) {
-                    depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                    const feeEntryInfo = this.safeDict(feeEntry, 'info', {});
+                    feeEntryInfo[currencyId] = feeInfo;
+                    feeEntry['info'] = feeEntryInfo;
                 }
+                depositWithdrawFees[code] = feeEntry;
                 const chain = this.safeString(feeInfo, 'chain');
                 if (chain === undefined) {
                     continue;
@@ -8590,10 +8594,13 @@ class okx extends okx$1["default"] {
                 };
                 const networkCode = this.networkIdToCode(networkId, code);
                 if (networkCode !== undefined) {
-                    depositWithdrawFees[code]['networks'][networkCode] = {
+                    const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
+                    feeEntryNetworks[networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
                     };
+                    feeEntry['networks'] = feeEntryNetworks;
+                    depositWithdrawFees[code] = feeEntry;
                 }
             }
         }

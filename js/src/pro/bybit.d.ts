@@ -387,7 +387,7 @@ export default class bybit extends bybitRest {
     watchBalance(params?: Dict): Promise<Balances>;
     handleBalance(client: Client, message: Dict): void;
     parseWsBalance(balance: Dict, accountType?: Str): void;
-    watchTopics(url: string, messageHashes: string[], topics: any, params?: Dict): Promise<any>;
+    watchTopics(url: string, messageHashes: string[], topics: any[], params?: Dict): Promise<any>;
     unWatchTopics(url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params?: Dict, subExtension?: Dict): Promise<any>;
     authenticate(url: string, params?: Dict): Promise<any>;
     handleErrorMessage(client: Client, message: Dict): Bool;

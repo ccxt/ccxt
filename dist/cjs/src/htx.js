@@ -1532,7 +1532,8 @@ class htx extends htx$1["default"] {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, number.TRUNCATE, this.market(symbol)['precision']['cost'], this.precisionMode);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(cost, number.TRUNCATE, market['precision']['cost'], this.precisionMode);
     }
     /**
      * @method

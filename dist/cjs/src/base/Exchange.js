@@ -3594,16 +3594,19 @@ class BaseExchange {
         }
     }
     featuresMapper(initialFeatures, marketType, subType = undefined) {
-        let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
-        // if exchange does not have that market-type (eg. future>inverse)
-        if (featuresObj === undefined) {
-            return undefined;
+        let featuresObj = this.safeDict(initialFeatures, marketType);
+        if (subType !== undefined) {
+            featuresObj = this.safeDict(featuresObj, subType);
         }
         const extendsStr = this.safeString(featuresObj, 'extends');
         if (extendsStr !== undefined) {
             featuresObj = this.omit(featuresObj, 'extends');
             const extendObj = this.featuresMapper(initialFeatures, extendsStr);
             featuresObj = this.deepExtend(extendObj, featuresObj);
+        }
+        // if exchange does not have that market-type (eg. future>inverse)
+        if (featuresObj === undefined) {
+            return undefined;
         }
         //
         // ### corrections ###
@@ -3677,7 +3680,7 @@ class BaseExchange {
         if (!(marketType in this.features)) {
             return defaultValue; // unsupported marketType, check "exchange.features" for details
         }
-        let methodsContainer = this.features[marketType];
+        let methodsContainer = this.safeDict(this.features, marketType);
         // if marketType dict undefined
         if (methodsContainer === undefined) {
             return defaultValue;
@@ -3691,7 +3694,7 @@ class BaseExchange {
             if (!(subType in methodsContainer)) {
                 return defaultValue; // unsupported subType, check "exchange.features" for details
             }
-            methodsContainer = methodsContainer[subType];
+            methodsContainer = this.safeDict(methodsContainer, subType);
             // if subType dict undefined
             if (methodsContainer === undefined) {
                 return defaultValue;
@@ -3699,7 +3702,10 @@ class BaseExchange {
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (methodName === undefined) {
-            return (defaultValue !== undefined) ? defaultValue : methodsContainer;
+            if (defaultValue !== undefined) {
+                return defaultValue;
+            }
+            return methodsContainer;
         }
         if (!(methodName in methodsContainer)) {
             return defaultValue; // unsupported method, check "exchange.features" for details');
@@ -3710,7 +3716,10 @@ class BaseExchange {
         }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (paramName === undefined) {
-            return (defaultValue !== undefined) ? defaultValue : methodDict;
+            if (defaultValue !== undefined) {
+                return defaultValue;
+            }
+            return methodDict;
         }
         const splited = paramName.split('.'); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         const parentKey = splited[0];
@@ -4983,19 +4992,20 @@ class BaseExchange {
         result[close] = [];
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
-            const ts = ms ? ohlcvs[i][0] : this.parseToInt(ohlcvs[i][0] / 1000);
+            const ohlcv = ohlcvs[i];
+            const ts = ms ? ohlcv[0] : this.parseToInt(ohlcvs[i][0] / 1000);
             const resultTimestamp = result[timestamp];
             resultTimestamp.push(ts);
             const resultOpen = result[open];
-            resultOpen.push(ohlcvs[i][1]);
+            resultOpen.push(ohlcv[1]);
             const resultHigh = result[high];
-            resultHigh.push(ohlcvs[i][2]);
+            resultHigh.push(ohlcv[2]);
             const resultLow = result[low];
-            resultLow.push(ohlcvs[i][3]);
+            resultLow.push(ohlcv[3]);
             const resultClose = result[close];
-            resultClose.push(ohlcvs[i][4]);
+            resultClose.push(ohlcv[4]);
             const resultVolume = result[volume];
-            resultVolume.push(ohlcvs[i][5]);
+            resultVolume.push(ohlcv[5]);
         }
         return result;
     }

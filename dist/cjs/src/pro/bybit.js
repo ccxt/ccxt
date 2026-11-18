@@ -1875,7 +1875,7 @@ class bybit extends bybit$1["default"] {
             'unified': ['order'],
             'usdc': ['user.openapi.perp.order'],
         };
-        const topics = this.safeList(topicsByMarket, this.getPrivateType(url));
+        const topics = this.safeList(topicsByMarket, this.getPrivateType(url), []);
         const orders = await this.watchTopics(url, [messageHash], topics, params);
         let limitResolved = limit;
         if (this.newUpdates) {

@@ -929,7 +929,10 @@ export default class whitebit extends Exchange {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                 }
-                depositWithdrawFees[code]['info'][entry] = feeInfo;
+                const feeEntry = this.safeDict(depositWithdrawFees, code, {});
+                const feeEntryInfo = this.safeDict(feeEntry, 'info', {});
+                feeEntryInfo[entry] = feeInfo;
+                feeEntry['info'] = feeEntryInfo;
                 const networkId = this.safeString(splitEntry, 1);
                 const withdraw = this.safeDict(feeInfo, 'withdraw');
                 const deposit = this.safeDict(feeInfo, 'deposit');
@@ -947,16 +950,19 @@ export default class whitebit extends Exchange {
                     const networkLength = networkId.length;
                     const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
                     if (networkCode !== undefined) {
-                        depositWithdrawFees[code]['networks'][networkCode] = {
+                        const feeEntryNetworks = this.safeDict(feeEntry, 'networks', {});
+                        feeEntryNetworks[networkCode] = {
                             'withdraw': withdrawResult,
                             'deposit': depositResult,
                         };
+                        feeEntry['networks'] = feeEntryNetworks;
                     }
                 }
                 else {
-                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
-                    depositWithdrawFees[code]['deposit'] = depositResult;
+                    feeEntry['withdraw'] = withdrawResult;
+                    feeEntry['deposit'] = depositResult;
                 }
+                depositWithdrawFees[code] = feeEntry;
             }
         }
         const depositWithdrawCodes = Object.keys(depositWithdrawFees);

@@ -688,7 +688,7 @@ export declare class BaseExchange {
     hasAutocorrect(): void;
     initRestRateLimiter(): void;
     featuresGenerator(): void;
-    featuresMapper(initialFeatures: Dict, marketType: Str, subType?: Str): any;
+    featuresMapper(initialFeatures: Dict, marketType: Str, subType?: Str): Dictionary<any> | undefined;
     featureValue(symbol: string, methodName?: Str, paramName?: Str, defaultValue?: any): any;
     featureValueByType(marketType: string, subType: Str, methodName?: Str, paramName?: Str, defaultValue?: any): any;
     orderbookChecksumMessage(symbol: Str): string;

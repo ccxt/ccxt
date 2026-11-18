@@ -1135,7 +1135,8 @@ class paradex extends paradex$1["default"] {
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                target = this.market(symbolsNormalized[0])['id'];
+                const market = this.market(symbolsNormalized[0]);
+                target = market['id'];
             }
         }
         const request = {

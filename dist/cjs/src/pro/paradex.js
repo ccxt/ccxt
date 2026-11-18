@@ -1117,7 +1117,8 @@ class paradex extends paradex$1["default"] {
         const subMessageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.market(symbol)['id'];
+            const market = this.market(symbol);
+            const marketId = market['id'];
             marketIds.push(marketId);
             subscribeHashes.push(channel + '.' + marketId);
             subMessageHashes.push(channel + '.' + symbol);
@@ -1185,7 +1186,8 @@ class paradex extends paradex$1["default"] {
         const channel = 'markets_summary';
         const pendingHashes = [channel, channel + ':scoped'];
         for (let i = 0; i < symbols.length; i++) {
-            pendingHashes.push(channel + '.' + this.market(symbols[i])['id']);
+            const market = this.market(symbols[i]);
+            pendingHashes.push(channel + '.' + market['id']);
         }
         await this.waitForPendingUnsubscribe(url, pendingHashes);
         const client = this.client(url);
@@ -1201,7 +1203,8 @@ class paradex extends paradex$1["default"] {
         const missingHashes = [];
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (let i = 0; i < symbols.length; i++) {
-            const marketId = this.market(symbols[i])['id'];
+            const market = this.market(symbols[i]);
+            const marketId = market['id'];
             const subscribeHash = channel + '.' + marketId;
             subscribeHashes.push(subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {
