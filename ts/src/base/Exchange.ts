@@ -4024,7 +4024,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchLongShortRatioHistory() is not supported yet');
     }
 
-    async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params: Dict = {}): Promise<MarginModification[]> {
+    async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<MarginModification[]> {
         /**
          * @method
          * @name exchange#fetchMarginAdjustmentHistory

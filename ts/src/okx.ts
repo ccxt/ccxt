@@ -9645,7 +9645,7 @@ export default class okx extends Exchange {
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Num = undefined, limit: Num = undefined, params: Dict = {}): Promise<MarginModification[]> {
+    override async fetchMarginAdjustmentHistory (symbol: Str = undefined, type: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<MarginModification[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
