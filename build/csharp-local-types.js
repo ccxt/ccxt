@@ -9378,6 +9378,14 @@ function useProvenElementBox (csharp, declaration) {
 // shape, or undefined (the read keeps the printer's `object`)
 // a row element local whose every use is argument 0 of a pure this.safe* reader (or a null test):
 // the checker row proof below makes the declaration cast exact, and no use site gains a cast
+// parse* cores whose argument 0 prints `object` / `IDictionary<string, object>` on every generated
+// declaration and that have no hand-written C# overload: a dict row binds the same slot uncast
+const ROW_ARG_PARSERS = new Set ([
+    'parseADLRank', 'parseBinaryMarketToOutcomes', 'parseConversion', 'parseCurrency', 'parseEventToMarkets',
+    'parseFundingRateHistory', 'parseGreeks', 'parseIncome', 'parseLiquidation', 'parseMarket', 'parseMyriadMarket',
+    'parseOHLCV', 'parseOpenInterest', 'parseOrder', 'parseOrderBook', 'parsePosition', 'parseSwapMarket',
+    'parseSxbetMarket', 'parseTicker', 'parseTrade', 'parseWSSwapOrder', 'parseWsMyLiquidation', 'parseWsOHLCV', 'parseWsOrder',
+]);
 function dictRowSafeReadOnlyLocal (csharp, declaration) {
     const name = declaration?.name?.text;
     if (name === undefined || declaration.name.kind !== ts.SyntaxKind.Identifier) {
@@ -9395,6 +9403,12 @@ function dictRowSafeReadOnlyLocal (csharp, declaration) {
         const parent = use.parent;
         if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
                 && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && ROW_USE_PURE_READERS.has (parent.expression.name?.text)) {
+            reads++;
+            continue;
+        }
+        // argument 0 of a generated parse* core (object or IDictionary slot): same reference, no cast
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && ROW_ARG_PARSERS.has (parent.expression.name?.text)) {
             reads++;
             continue;
         }
