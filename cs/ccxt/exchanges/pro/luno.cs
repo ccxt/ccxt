@@ -371,7 +371,7 @@ public partial class luno : ccxt.luno
         List<object> tradeUpdates = this.safeList(message, "trade_updates", new List<object>() {});
         for (int i = 0; i < tradeUpdates.Count; i++)
         {
-            object tradeUpdate = tradeUpdates[i];
+            IDictionary<string, object> tradeUpdate = ((IDictionary<string, object>)tradeUpdates[i]);
             string? makerOrderId = this.safeString(tradeUpdate, "maker_order_id");
             string? tradedAmount = this.safeString(tradeUpdate, "base");
             if (((makerOrderId != null)) && ((tradedAmount != null)))

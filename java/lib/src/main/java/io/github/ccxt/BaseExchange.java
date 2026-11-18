@@ -431,7 +431,7 @@ public class BaseExchange {
     public volatile Map<String, Object> markets = null;
     public volatile Map<String, Object> currencies = new HashMap<String, Object>();
     public Object fees = new HashMap<String, Object>();
-    public Object requiredCredentials = new HashMap<String, Object>();
+    public Map<String, Object> requiredCredentials = new HashMap<String, Object>();
     public Map<String, Object> timeframes = new HashMap<String, Object>();
     public double rateLimit;
     public double rollingWindowSize = 60000;

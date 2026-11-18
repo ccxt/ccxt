@@ -904,6 +904,16 @@ impl Exchange {
     pub fn safe_dict_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> Option<crate::value::Dict> { if let Value::Dict(m) = self.safe_value(obj, key.into(), &[]) { Some(m) } else { None } }
     pub fn safe_list_t(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> crate::value::List { self.safe_list_o(obj, key).unwrap_or_default() }
     pub fn safe_list_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>) -> Option<crate::value::List> { if let Value::Arr(a) = self.safe_value(obj, key.into(), &[]) { Some(a) } else { None } }
+    /// Twins of the readers above with a one-value default: the member when it is a map / list, else what the
+    /// default converts to (`Dict`/`List`: the default's container or the empty one; `_o`: `None` for a non-container).
+    pub fn safe_dict_k_or(&self, obj: impl crate::value::KeyRead, key: &str, d: Value) -> crate::value::Dict { self.safe_dict_k_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_dict_k_or_o(&self, obj: impl crate::value::KeyRead, key: &str, d: Value) -> Option<crate::value::Dict> { match (self.safe_dict_k_o(obj, key), d) { (Some(m), _) | (None, Value::Dict(m)) => Some(m), _ => None } }
+    pub fn safe_list_k_or(&self, obj: impl crate::value::KeyRead, key: &str, d: Value) -> crate::value::List { self.safe_list_k_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_list_k_or_o(&self, obj: impl crate::value::KeyRead, key: &str, d: Value) -> Option<crate::value::List> { match (self.safe_list_k_o(obj, key), d) { (Some(a), _) | (None, Value::Arr(a)) => Some(a), _ => None } }
+    pub fn safe_dict_or(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> crate::value::Dict { self.safe_dict_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_dict_or_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> Option<crate::value::Dict> { match (self.safe_dict_o(obj, key), d) { (Some(m), _) | (None, Value::Dict(m)) => Some(m), _ => None } }
+    pub fn safe_list_or(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> crate::value::List { self.safe_list_or_o(obj, key, d).unwrap_or_default() }
+    pub fn safe_list_or_o(&self, obj: impl crate::value::KeyRead, key: impl Into<Value>, d: Value) -> Option<crate::value::List> { match (self.safe_list_o(obj, key), d) { (Some(a), _) | (None, Value::Arr(a)) => Some(a), _ => None } }
 
     pub fn safe_value(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Value {
         // Match TS `prop` semantics: an empty string is treated as
@@ -2057,6 +2067,21 @@ impl Exchange {
         }
     }
 
+    /// Typed twins of `extend` / `deep_extend` / `omit`: the map the boxed result holds (`extend` always builds one),
+    /// else the empty map (`_o`: `None`), exactly what `.into_dict()` / `.into_opt_dict()` answered for a pass-through.
+    pub fn extend_t(&self, a: impl crate::value::ExtendHead, optional_args: impl crate::value::MergeOperands) -> crate::value::Dict {
+        if let Value::Dict(m) = self.extend(a, optional_args) { m } else { crate::value::Dict::default() }
+    }
+    pub fn deep_extend_t(&self, a: impl Into<Value>, optional_args: impl crate::value::MergeOperands) -> crate::value::Dict {
+        if let Value::Dict(m) = self.deep_extend(a, optional_args) { m } else { crate::value::Dict::default() }
+    }
+    pub fn omit_t(&self, obj: impl crate::value::OmitSource, keys: impl crate::value::OmitKeys, optional_args: &[Value]) -> crate::value::Dict {
+        self.omit_o(obj, keys, optional_args).unwrap_or_default()
+    }
+    pub fn omit_o(&self, obj: impl crate::value::OmitSource, keys: impl crate::value::OmitKeys, optional_args: &[Value]) -> Option<crate::value::Dict> {
+        if let Value::Dict(m) = self.omit(obj, keys, optional_args) { Some(m) } else { None }
+    }
+
     pub fn omit_zero(&self, v: Value) -> Option<String> {
         // Mirrors TS `omitZero`: undefined/'' or any value that parses to
         // numeric 0 → undefined. The old `s == "0"` check missed "0.0",
@@ -2100,6 +2125,18 @@ impl Exchange {
 
     pub fn array_concat(&self, a: impl Into<Value>, b: impl Into<Value>) -> Value {
         crate::runtime::concat_arrays(&a.into(), &b.into())
+    }
+
+    /// Typed twins of `to_array` / `array_concat` / `sort_by`: the list the boxed result holds, else the empty list,
+    /// exactly what `.into_list()` answered (a non-list `sort_by` input passes through and converts to empty).
+    pub fn to_array_t(&self, v: impl Into<Value>) -> crate::value::List {
+        if let Value::Arr(a) = self.to_array(v) { a } else { crate::value::List::default() }
+    }
+    pub fn array_concat_t(&self, a: impl Into<Value>, b: impl Into<Value>) -> crate::value::List {
+        if let Value::Arr(l) = self.array_concat(a, b) { l } else { crate::value::List::default() }
+    }
+    pub fn sort_by_t(&self, arr: Value, key: Value, optional_args: &[Value]) -> crate::value::List {
+        if let Value::Arr(l) = self.sort_by(arr, key, optional_args) { l } else { crate::value::List::default() }
     }
 
     pub fn array_slice(&self, v: Value, start: Value, optional_args: &[Value]) -> Value {
@@ -2500,7 +2537,7 @@ impl Exchange {
         put("features", &self.features);
         put("has", &self.has);
         put("exceptions", &self.exceptions);
-        put("urls", &self.urls);
+        put("urls", &Value::Dict(self.urls.clone()));
         put("api", &self.api);
         put("options", &self.options);
         put("headers", &self.headers);

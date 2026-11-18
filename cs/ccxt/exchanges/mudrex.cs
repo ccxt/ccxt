@@ -1384,7 +1384,7 @@ public partial class mudrex : Exchange
             int numCandidates = (candidates?.Count ?? 0);
             if (numCandidates > 0)
             {
-                object found = (candidates != null && 0 < candidates.Count ? candidates[0] : null);
+                IDictionary<string, object> found = ((IDictionary<string, object>)(candidates != null && 0 < candidates.Count ? candidates[0] : null));
                 positionId = this.safeString(found, "id");
             }
         }
@@ -1442,7 +1442,7 @@ public partial class mudrex : Exchange
             int numMatches = (matches?.Count ?? 0);
             if (numMatches > 0)
             {
-                object found = (matches != null && 0 < matches.Count ? matches[0] : null);
+                IDictionary<string, object> found = ((IDictionary<string, object>)(matches != null && 0 < matches.Count ? matches[0] : null));
                 positionId = this.safeString(found, "id");
             }
         }

@@ -444,7 +444,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     "id"               => core.id.clone(),
                     "precisionMode"    => core.precisionMode.clone(),
                     "fees"             => core.fees.clone(),
-                    "urls"             => core.urls.clone(),
+                    "urls"             => Value::Dict(core.urls.clone()),
                     // Describe-derived config blocks. These are large
                     // (binance's `api` alone is hundreds of nested
                     // endpoints) and immutable during a test run, so we

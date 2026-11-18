@@ -148,11 +148,11 @@ mod sandbox_mode_tests {
     #[test]
     fn binance_sandbox_swaps_api_url() {
         let mut b = crate::exchanges::binance::Binance::new(None);
-        let test_url = crate::get_value(&b.exchange.urls, &Value::Str("test".into()));
+        let test_url = b.exchange.urls.get("test").cloned().unwrap_or(Value::Null);
         assert!(!matches!(test_url, Value::Null), "binance describe() has no test url");
         b.set_sandbox_mode(true).expect("binance has a sandbox url");
         assert_eq!(b.exchange.isSandboxModeEnabled, Value::Bool(true));
-        let api_url = crate::get_value(&b.exchange.urls, &Value::Str("api".into()));
+        let api_url = b.exchange.urls.get("api").cloned().unwrap_or(Value::Null);
         assert_eq!(api_url, test_url, "sandbox mode did not switch urls['api'] to urls['test']");
     }
 }

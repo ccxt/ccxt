@@ -1907,7 +1907,7 @@ export default class bybit extends bybitRest {
             'unified': [ 'order' ],
             'usdc': [ 'user.openapi.perp.order' ],
         };
-        const topics = this.safeList (topicsByMarket, this.getPrivateType (url));
+        const topics = this.safeList (topicsByMarket, this.getPrivateType (url), []);
         const orders = await this.watchTopics (url, [ messageHash ], topics, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -2398,7 +2398,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTopics (url: string, messageHashes: string[], topics: any, params: Dict = {}) {
+    async watchTopics (url: string, messageHashes: string[], topics: any[], params: Dict = {}) {
         const client = this.client (url);
         const newTopics: string[] = [];
         const topicsLength = topics.length;

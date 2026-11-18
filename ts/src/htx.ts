@@ -1535,7 +1535,8 @@ export default class htx extends Exchange {
     }
 
     override costToPrecision (symbol: Str, cost: any): string {
-        return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['cost'], this.precisionMode);
+        const market = this.market (symbol);
+        return this.decimalToPrecision (cost, TRUNCATE, market['precision']['cost'], this.precisionMode);
     }
 
     /**

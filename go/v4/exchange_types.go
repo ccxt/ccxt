@@ -587,7 +587,7 @@ func NewTrade(data any) Trade {
 		Type:         SafeStringTyped(m, "type"),
 		Side:         SafeStringTyped(m, "side"),
 		TakerOrMaker: SafeStringTyped(m, "takerOrMaker"),
-		Fee:          NewFee(MapOrEmpty(SafeValue(m, "fee", map[string]any{}))),
+		Fee:          NewFee(SafeValue(m, "fee", map[string]any{})),
 		Fees:         NewFeeArray(m["fees"]),
 		Info:         SafeValue(m, "info", nil),
 	}
@@ -659,7 +659,7 @@ func NewOrder(data any) Order {
 		MarginMode:          SafeStringTyped(m, "marginMode"),
 		Leverage:            SafeFloatTyped(m, "leverage"),
 		Hedged:              SafeBoolTyped(m, "hedged"),
-		Fee:                 NewFee(MapOrEmpty(SafeValue(m, "fee", map[string]any{}))),
+		Fee:                 NewFee(SafeValue(m, "fee", map[string]any{})),
 		Fees:                NewFeeArray(m["fees"]),
 		Trades:              trades,
 		TriggerPrice:        SafeFloatTyped(m, "triggerPrice"),
@@ -2102,7 +2102,7 @@ func NewLedgerEntry(data any) LedgerEntry {
 		Before:           SafeFloatTyped(data, "before"),
 		After:            SafeFloatTyped(data, "after"),
 		Status:           SafeStringTyped(data, "status"),
-		Fee:              NewFee(MapOrEmpty(SafeValue(data, "fee", map[string]any{}))),
+		Fee:              NewFee(SafeValue(data, "fee", map[string]any{})),
 	}
 }
 

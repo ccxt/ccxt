@@ -8573,9 +8573,13 @@ export default class okx extends Exchange {
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});
                 }
+                const feeEntry: Dict = this.safeDict (depositWithdrawFees, code, {});
                 if (currencyId !== undefined) {
-                    depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                    const feeEntryInfo: Dict = this.safeDict (feeEntry, 'info', {});
+                    feeEntryInfo[currencyId] = feeInfo;
+                    feeEntry['info'] = feeEntryInfo;
                 }
+                depositWithdrawFees[code] = feeEntry;
                 const chain = this.safeString (feeInfo, 'chain');
                 if (chain === undefined) {
                     continue;
@@ -8593,10 +8597,13 @@ export default class okx extends Exchange {
                 };
                 const networkCode = this.networkIdToCode (networkId, code);
                 if (networkCode !== undefined) {
-                    depositWithdrawFees[code]['networks'][networkCode] = {
+                    const feeEntryNetworks: Dict = this.safeDict (feeEntry, 'networks', {});
+                    feeEntryNetworks[networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
                     };
+                    feeEntry['networks'] = feeEntryNetworks;
+                    depositWithdrawFees[code] = feeEntry;
                 }
             }
         }

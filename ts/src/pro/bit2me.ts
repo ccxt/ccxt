@@ -7,6 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Trade, Order, Balances, Dict, Num, OrderSide, OrderType, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -103,7 +104,7 @@ export default class bit2me extends bit2meRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
-        const orderbook = await this.subscribePublic ('order-book', symbol, messageHash, params);
+        const orderbook: WsOrderBook = await this.subscribePublic ('order-book', symbol, messageHash, params);
         return orderbook.limit ();
     }
 

@@ -7656,7 +7656,7 @@ export default class gate extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any[], market: Market = undefined): Dict[] {
+    parseSettlements (settlements: Dict[], market: Market = undefined): Dict[] {
         //
         // fetchSettlementHistory
         //

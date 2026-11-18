@@ -133,7 +133,7 @@ func NewPredictionOrder(data any) PredictionOrder {
 		Filled:              SafeFloatTyped(m, "filled"),
 		Remaining:           SafeFloatTyped(m, "remaining"),
 		Cost:                SafeFloatTyped(m, "cost"),
-		Fee:                 NewFee(MapOrEmpty(SafeValue(m, "fee", map[string]any{}))),
+		Fee:                 NewFee(SafeValue(m, "fee", map[string]any{})),
 		ReduceOnly:          SafeBoolTyped(m, "reduceOnly"),
 		PostOnly:            SafeBoolTyped(m, "postOnly"),
 		Outcome:             SafeStringTyped(m, "outcome"),
@@ -190,7 +190,7 @@ func NewPredictionTrade(data any) PredictionTrade {
 		Type:         SafeStringTyped(m, "type"),
 		Side:         SafeStringTyped(m, "side"),
 		TakerOrMaker: SafeStringTyped(m, "takerOrMaker"),
-		Fee:          NewFee(MapOrEmpty(SafeValue(m, "fee", map[string]any{}))),
+		Fee:          NewFee(SafeValue(m, "fee", map[string]any{})),
 		Outcome:      SafeStringTyped(m, "outcome"),
 		OutcomeId:    SafeStringTyped(m, "outcomeId"),
 		Label:        SafeStringTyped(m, "label"),
@@ -486,7 +486,7 @@ func NewPredictionMarket(data any) PredictionMarket {
 		Percentage:       SafeBoolTyped(m, "percentage"),
 		TierBased:        SafeBoolTyped(m, "tierBased"),
 		FeeSide:          SafeStringTyped(m, "feeSide"),
-		Precision:        NewPrecision(MapOrEmpty(SafeValue(m, "precision", map[string]any{}))),
+		Precision:        NewPrecision(SafeValue(m, "precision", map[string]any{})),
 	}
 }
 

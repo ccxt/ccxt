@@ -444,7 +444,7 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 	return ccxt.Slice(str2, idx1, idx2)
 }
 
-func promiseAll(tasksInterface interface{}) <-chan ccxt.AsyncResult[any] {
+func promiseAll(tasksInterface interface{}) <-chan ccxt.AsyncResult[[]any] {
 	return ccxt.PromiseAll(tasksInterface)
 }
 

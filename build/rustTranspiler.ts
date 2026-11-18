@@ -222,6 +222,203 @@ function regionAt (regions: Region[], pos: number): Region | undefined {
     return hit && pos < hit.end ? hit : undefined;
 }
 
+/** Copy of `src` with comments and string literals blanked (same length). */
+function rustBorrowMask (src: string): string {
+    let out = '';
+    for (let i = 0; i < src.length; i++) {
+        const c = src[i];
+        if (c === '/' && src[i + 1] === '/') { while (i < src.length && src[i] !== '\n') { out += ' '; i++; } out += i < src.length ? '\n' : ''; continue; }
+        if (c === '\'' && src[i + 2] === '\'' ) { out += '   '; i += 2; continue; }
+        if (c === '"') {
+            out += ' ';
+            for (i++; i < src.length && src[i] !== '"'; i++) {
+                if (src[i] === '\\') { out += '  '; i++; continue; }
+                out += src[i] === '\n' ? '\n' : ' ';
+            }
+            out += i < src.length ? ' ' : '';
+            continue;
+        }
+        out += c;
+    }
+    return out;
+}
+
+/** Index just past the bracket matching the one at `open` in masked text. */
+function rustBorrowClose (m: string, open: number): number {
+    let d = 0;
+    for (let k = open; k < m.length; k++) {
+        const c = m[k];
+        if (c === '(' || c === '[' || c === '{') d++;
+        else if (c === ')' || c === ']' || c === '}') { d--; if (d === 0) return k + 1; }
+    }
+    return -1;
+}
+
+/** Top-level comma-separated arg spans [start, end) between `open` (the `(`) and its close. */
+function rustBorrowArgs (m: string, open: number, close: number): Array<[number, number]> {
+    const out: Array<[number, number]> = [];
+    let d = 0, cur = open + 1;
+    for (let k = open + 1; k < close - 1; k++) {
+        const c = m[k];
+        if (c === '(' || c === '[' || c === '{') d++;
+        else if (c === ')' || c === ']' || c === '}') d--;
+        else if (c === ',' && d === 0) { out.push([cur, k]); cur = k + 1; }
+    }
+    if (m.slice(cur, close - 1).trim() !== '') out.push([cur, close - 1]);
+    return out;
+}
+
+// `&self` methods of the `Value` client/message box (value.rs) a borrowed handler param may call.
+const RUST_BORROW_VALUE_METHODS = new Set([ 'clone', 'resolve', 'reject', 'future', 'reusable_future', 'send', 'url', 'on_pong',
+    'as_map', 'as_array', 'as_str', 'as_bool', 'as_i64', 'as_f64', 'is_null', 'is_array', 'is_map', 'is_str', 'is_dictionary', 'len', 'is_empty', 'to_json' ]);
+
+/**
+ * WS handler `client` / `message` params: a sync `pub fn` param `mut client|message: Value` becomes `&Value` when every
+ * definition of that (name, index) in the pro crate qualifies, no other crate defines or calls the name, and every
+ * body use is a `&self` read, `&p`, a borrow or a hand-on to another borrowed slot. Callers then pass `&x` / `x`, not `x.clone()`.
+ */
+function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string): Map<string, string> {
+    type Def = { file: string, start: number, bodyOpen: number, end: number, params: Array<{ name: string, idx: number, at: number, len: number, isRef: boolean }> };
+    const defs = new Map<string, Def[]>();
+    const masks = new Map<string, string>();
+    const bad = new Set<string>();
+    const hdr = /^[ \t]*(pub )?(async )?fn ([a-z_][a-z0-9_]*)\(&(mut )?self((?:, [^,)]+)*)\)/gm;
+    for (const [file, src] of files) {
+        const m = rustBorrowMask(src);
+        masks.set(file, m);
+        for (const h of m.matchAll(hdr)) {
+            const name = h[3];
+            const bodyOpen = m.indexOf('{', h.index! + h[0].length);
+            const end = rustBorrowClose(m, bodyOpen);
+            if (h[1] === undefined || bodyOpen < 0 || end < 0) { bad.add(name); continue; }
+            const params: Def['params'] = [];
+            let off = h.index! + h[0].length - h[5].length - 1;
+            h[5].split(', ').slice(1).forEach((p, i) => {
+                off += 2;
+                const pm = /^mut (client|message): Value$/.exec(p) ?? /^(client|message): &Value$/.exec(p);
+                if (pm) params.push({ name: pm[1], idx: i, at: off, len: p.length, isRef: p.endsWith('&Value') });
+                off += p.length;
+            });
+            (defs.get(name) ?? defs.set(name, []).get(name)!).push({ file, start: h.index!, bodyOpen, end, params });
+        }
+    }
+    const why = new Map<string, number>();
+    const no = (r: string) => { why.set(r, (why.get(r) ?? 0) + 1); return false; };
+    const outsideNames = new Set([...rustBorrowMask(outside).matchAll(/\b([a-z_][a-z0-9_]*)\s*\(/g)].map(x => x[1]));
+    const slots = new Set<string>();
+    for (const [name, ds] of defs) {
+        if (bad.has(name) || outsideNames.has(name)) { if (ds.some(d => d.params.length)) no(bad.has(name) ? 'name async/private' : 'name outside ' + name); continue; }
+        const counts = new Map<number, number>();
+        for (const d of ds) for (const p of d.params) counts.set(p.idx, (counts.get(p.idx) ?? 0) + 1);
+        for (const [idx, n] of counts) if (n === ds.length) slots.add(`${name}#${idx}`); else no('mixed sig');
+    }
+    type Call = { file: string, nameAt: number, open: number, close: number, name: string };
+    const calls: Call[] = [];
+    for (const [file, m] of masks) {
+        for (const c of m.matchAll(/([.:]?)\b([a-z_][a-z0-9_]*)\(/g)) {
+            const name = c[2];
+            if (!defs.has(name)) continue;
+            const before = m.slice(Math.max(0, c.index! - 12), c.index! + c[1].length);
+            if (/fn $/.test(before)) continue;
+            if (!/\bself\.$/.test(before)) { if ([...slots].some(k => k.startsWith(name + '#'))) no('foreign call ' + before.trim()); for (const k of [...slots]) if (k.startsWith(name + '#')) slots.delete(k); continue; }
+            const open = c.index! + c[0].length - 1;
+            calls.push({ file, nameAt: c.index!, open, close: rustBorrowClose(m, open), name });
+        }
+    }
+    // body-use check, to a fixpoint (a hand-on is safe only while the receiving slot stays borrowed)
+    const ownerOf = (file: string, pos: number): Def | undefined => {
+        let best: Def | undefined;
+        for (const ds of defs.values()) for (const d of ds) if (d.file === file && d.bodyOpen <= pos && pos < d.end && (!best || d.bodyOpen > best.bodyOpen)) best = d;
+        return best;
+    };
+    const argSlot = (file: string, a: number, b: number): string | undefined => {
+        for (const c of calls) if (c.file === file && c.open < a && b < c.close) {
+            const spans = rustBorrowArgs(masks.get(file)!, c.open, c.close);
+            const i = spans.findIndex(([s, e]) => s <= a && b <= e && masks.get(file)!.slice(s, e).trim() === masks.get(file)!.slice(a, b));
+            if (i >= 0) return `${c.name}#${i}`;
+        }
+        return undefined;
+    };
+        const useOk = (d: Def, p: string): boolean => {
+        const m = masks.get(d.file)!;
+        const body = m.slice(d.bodyOpen, d.end);
+        if (/\bmove\b|\bspawn\b/.test(body)) return no('move/spawn');
+        const shadows = [...body.matchAll(new RegExp(`\\blet (mut )?${p}\\b`, 'g'))];
+        const shadow = shadows[0];
+        if (shadow && (shadows.length > 1 || !/\n {8}$/.test(body.slice(0, shadow.index)))) return no('shadow');
+        const limit = shadow ? d.bodyOpen + body.indexOf(';', shadow.index) : d.end;
+        const rx = new RegExp(`(&?)(?<![\\w.])${p}\\b(\\.([a-z_]+)\\()?`, 'g');
+        rx.lastIndex = d.bodyOpen;
+        let u: RegExpExecArray | null;
+        while ((u = rx.exec(m)) !== null && u.index < limit) {
+            if (u[1] === '&') { if (m[u.index - 1] === '&' || /^\s*mut\b/.test(m.slice(u.index + 1 + p.length))) return no('&&/&mut'); continue; }
+            if (u[3] !== undefined) {
+                if (!RUST_BORROW_VALUE_METHODS.has(u[3])) return no('method ' + u[3]);
+                if (u[3] === 'clone' && m.slice(u.index + u[0].length, u.index + u[0].length + 1) === ')') continue;
+                if (u[3] === 'clone') return no('clone?');
+                continue;
+            }
+            if (/\blet (mut )?$/.test(m.slice(u.index - 8, u.index))) continue;
+            if (/^\s*=[^=]/.test(m.slice(u.index + p.length))) return no('assign');
+            const slot = argSlot(d.file, u.index, u.index + p.length);
+            if (slot === undefined || !slots.has(slot)) return no('handon ' + p + ' ' + (slot ?? m.slice(u.index - 40, u.index + 20).replace(/\s+/g, ' ')));
+        }
+        return true;
+    };
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const k of [...slots]) {
+            const [name, idx] = k.split('#');
+            for (const d of defs.get(name)!) {
+                const p = d.params.find(x => x.idx === Number(idx))!;
+                if (!useOk(d, p.name)) { slots.delete(k); changed = true; break; }
+            }
+        }
+    }
+    // edits: [at, len, text], applied back-to-front per file
+    const edits = new Map<string, Array<[number, number, string]>>();
+    const push = (f: string, e: [number, number, string]) => (edits.get(f) ?? edits.set(f, []).get(f)!).push(e);
+    const borrowedIn = (file: string, pos: number, ident: string): boolean => {
+        const d = ownerOf(file, pos);
+        return d !== undefined && d.params.some(p => p.name === ident && (p.isRef || slots.has(`${nameOfDef(d)}#${p.idx}`)));
+    };
+    const nameOfDef = (d: Def): string => { for (const [n, ds] of defs) if (ds.includes(d)) return n; return ''; };
+    for (const [name, ds] of defs) for (const d of ds) for (const p of d.params) {
+        if (slots.has(`${name}#${p.idx}`) && !p.isRef) {
+            push(d.file, [p.at, p.len, `${p.name}: &Value`]);
+            const m = masks.get(d.file)!;
+            const shadow = new RegExp(`\\blet (mut )?${p.name}\\b`).exec(m.slice(d.bodyOpen, d.end));
+            const limit = shadow ? d.bodyOpen + m.slice(d.bodyOpen, d.end).indexOf(';', shadow.index) : d.end;
+            const rx = new RegExp(`(?<![&\\w.])&${p.name}\\b`, 'g');
+            rx.lastIndex = d.bodyOpen;
+            let u: RegExpExecArray | null;
+            while ((u = rx.exec(m)) !== null && u.index < limit) push(d.file, [u.index, 1, '']);
+        }
+    }
+    for (const c of calls) {
+        const m = masks.get(c.file)!, src = files.get(c.file)!;
+        rustBorrowArgs(m, c.open, c.close).forEach(([s, e], i) => {
+            if (!slots.has(`${c.name}#${i}`)) return;
+            const text = src.slice(s, e).trim();
+            const at = s + src.slice(s, e).indexOf(text);
+            const id = /^([A-Za-z_][A-Za-z0-9_]*)(\.clone\(\))?$/.exec(text);
+            const got = /^args\.get\((\d+)\)\.cloned\(\)\.unwrap_or\(crate::Value::Null\)$/.exec(text);
+            if (text.startsWith('&') || /\.unwrap_or\(&crate::Value::Null\)$/.test(text)) return;
+            if (got) push(c.file, [at, text.length, `args.get(${got[1]}).unwrap_or(&crate::Value::Null)`]);
+            else if (id && borrowedIn(c.file, at, id[1])) push(c.file, [at, text.length, id[1]]);
+            else if (id) push(c.file, [at, text.length, `&${id[1]}`]);
+            else push(c.file, [at, 0, '&']);
+        });
+    }
+    const out = new Map<string, string>();
+    for (const [file, es] of edits) {
+        let src = files.get(file)!;
+        for (const [at, len, text] of es.sort((a, b) => b[0] - a[0])) src = src.slice(0, at) + text + src.slice(at + len);
+        out.set(file, src);
+    }
+    return out;
+}
+
 /** First argument of the call spelled at `text`, or undefined when truncated. */
 function firstArg (text: string): string | undefined {
     const open = text.indexOf('(');
@@ -382,6 +579,47 @@ function typedMapInsert (name: string, body: string, hops: number, keyArg: strin
         : 'if let Some(__rdm) = &mut ' + name + ' { std::sync::Arc::make_mut(__rdm).insert(' + key + ', ' + val + '); }';
 }
 
+/** `x[i] = v` on a typed `List` local where `i` is `0` or `L - 1` (directly or via an i64 local) and `L` is `x.len()`,
+ *  guarded by `L > 0` (or an earlier `L <= 0` return) with `x` untouched since: `i < len`, so the helper never pads. */
+function typedListIndexWrite (name: string, body: string, siteOff: number, keyArg: string, value: string): string | undefined {
+    if (!new RegExp('^[ \\t]*let mut ' + name + '[ \\t]*:[ \\t]*crate::value::List[ \\t]*=', 'm').test(body)) return undefined;
+    if (new RegExp('\\b' + name + '\\b').test(value)) return undefined;
+    const lenDecl = body.match(new RegExp('^[ \\t]*let mut ([A-Za-z_][A-Za-z0-9_]*): i64 = ' + name + '\\.len\\(\\) as i64;$', 'm'));
+    if (lenDecl === null || lenDecl.index === undefined) return undefined;
+    const L = lenDecl[1];
+    // never reassigned after its `let` (`v: i64 = ...` is the only binding)
+    const once = (v: string) => !new RegExp('(^|[^.\\w])' + v + '[ \\t]*[-+*/]?=(?!=)|&mut ' + v + '\\b', 'm').test(body);
+    if (!once(L)) return undefined;
+    const k = keyArg.trim();
+    let idx: string | undefined;
+    if (k === '&Value::Int(0)') idx = '0';
+    else if (k === '&Value::Int((' + L + ' - 1))') idx = '(' + L + ' - 1) as usize';
+    else {
+        const via = k.match(/^&Value::from\(([A-Za-z_][A-Za-z0-9_]*)\)$/);
+        if (via === null || !once(via[1])) return undefined;
+        if (!new RegExp('^[ \\t]*let mut ' + via[1] + ': i64 = \\(' + L + ' - 1\\);$', 'm').test(body)) return undefined;
+        idx = via[1] + ' as usize';
+    }
+    const lenAt = lenDecl.index;
+    if (siteOff <= lenAt) return undefined;
+    const between = body.slice(lenAt + lenDecl[0].length, siteOff);
+    if (new RegExp('&mut ' + name + '\\b|(^|[^.\\w])' + name + '[ \\t]*=(?!=)|make_mut\\(' + name + '\\b').test(between)) return undefined;
+    // the bound: an enclosing `if` with an `L > 0` conjunct, or an `if L <= 0 { return` at the same block
+    const guard = new RegExp('^([ \\t]*)if (?:[^\\n{]*&& )?\\(?' + L + ' > 0\\)?(?: &&[^\\n{]*)? \\{$', 'gm');
+    let m: RegExpExecArray | null;
+    while ((m = guard.exec(between)) !== null) {
+        const open = lenAt + lenDecl[0].length + m.index + m[0].length;
+        if (balancedCloseIndex(body, open) > siteOff) return 'std::sync::Arc::make_mut(&mut ' + name + ')[' + idx + '] = ' + (value.startsWith('Value::') ? value : 'Value::from(' + value + ')') + ';';
+    }
+    const early = between.match(new RegExp('^([ \\t]*)if ' + L + ' <= 0 \\{\\n[ \\t]*return [^\\n]*;\\n\\1\\}$', 'm'));
+    if (early !== null && early.index !== undefined) {
+        const tail = between.slice(early.index + early[0].length);
+        const depthOk = !tail.split('\n').some(l => l.trim().startsWith('}') && l.length - l.trimStart().length < early[1].length);
+        if (depthOk) return 'std::sync::Arc::make_mut(&mut ' + name + ')[' + idx + '] = ' + (value.startsWith('Value::') ? value : 'Value::from(' + value + ')') + ';';
+    }
+    return undefined;
+}
+
 /**
  * Rewrite `x[k] = v` / nested `x[a][b] = v` writes on a proven tag-free
  * receiver into the native `insert` the helper performs on one.
@@ -438,6 +676,14 @@ function nativeInserts (content: string): string {
             if (chain.length > 0 && !NEST_FIELDS.has(name)) continue;
         }
         else if (local !== null) {
+            const listWrite = chain.length === 0 ? typedListIndexWrite(local[1], body, at - region.start, args[1], args[2].trim()) : undefined;
+            if (listWrite !== undefined) {
+                const ls = content.lastIndexOf('\n', at) + 1;
+                let le = content.indexOf('\n', after);
+                if (le < 0) le = content.length;
+                if ((content.slice(ls, at) + listWrite + content.slice(after, le).replace(/^;/, '')).length <= 400) edits.push({ start: at, end: after, text: listWrite });
+                continue;
+            }
             if (!proof.localTagFree(local[1], body, region)) continue;
             const typed = typedMapInsert(local[1], body, chain.length, args[1], args[2].trim());
             if (typed === null) continue;
@@ -3545,6 +3791,21 @@ function plainDictRunPass(content: string): string {
     return out + content.slice(at);
 }
 
+// `self.urls` is a typed `Dict` (never tagged by the runtime, see `PLAIN_DICT_FIELDS`):
+// its reads, key tests and writes are the stdlib map ops on the field itself.
+function typedUrlsField(content: string): string {
+    const get = '.get($1).cloned().unwrap_or(Value::Null)';
+    return content
+        .replace(/self\.urls\.as_map\(\)\.and_then\(\|__m\| __m\.get\(("[^"\\]*")\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)/g, 'self.urls' + get)
+        .replace(/\(if let Some\(__m\) = self\.urls\.as_map\(\) \{ __m\.get\((\w+\.as_str\(\))\)\.cloned\(\)\.unwrap_or\(Value::Null\) \} else \{ Value::Null \}\)/g, 'self.urls' + get)
+        .replace(/crate::value::get_value_k\(&self\.urls, ("[^"\\]*")\)/g, 'self.urls' + get)
+        .replace(/matches!\(&self\.urls, Value::Dict\(__d\) if __d\.contains_key\(("[^"\\]*")\)\)/g, 'self.urls.contains_key($1)')
+        .replace(/if let Value::Dict\(__d\) = &mut self\.urls \{/g, '{ let __d = &mut self.urls;')
+        .replace(/\b(safe_\w+|omit)\(self\.urls\.clone\(\)/g, '$1(&self.urls')
+        // `omit(urls, 'k')` then `urls = ..`: the same key drop, in place.
+        .replace(/let mut (\w+): Value = self\.omit\(&self\.urls, Value::Str\(("[^"\\]*")\.into\(\)\), &\[\]\);\n\s*self\.urls = \1;/g, 'std::sync::Arc::make_mut(&mut self.urls).shift_remove($2);');
+}
+
 function plainDictChains(content: string): string {
     return plainDictRunPass(content);
 }
@@ -3798,6 +4059,33 @@ function rustIntLocalNullSinkOptionI64(content: string): string {
  * the literal was. Any other use (`&X`, `&mut`, a closure, a second binding, a write from
  * another expression) keeps `Value`.
  */
+// A `self.<field>` read only by `==`/`!=` or as a whole `format!` argument is borrowed in place, so its
+// `.clone()` is dropped; a `format!` that also mentions another `self.` or `.await` keeps it (borrow order).
+function rustSelfFieldReadClones (content: string): string {
+    content = content.replace(/\bself\.([a-z_][a-z0-9_]*)\.clone\(\) (==|!=) Value::Null\b/g, 'self.$1 $2 Value::Null');
+    return content.split('format!(').map((part, i) => {
+        if (i === 0) return part;
+        let d = 1, j = 0, inS = false, esc = false;
+        const cuts: number[] = [0];
+        for (; j < part.length && d > 0; j++) {
+            const ch = part[j];
+            if (esc) { esc = false; continue; }
+            if (inS) { if (ch === '\\') esc = true; else if (ch === '"') inS = false; continue; }
+            if (ch === '"') inS = true;
+            else if (ch === '(' || ch === '[' || ch === '{') d++;
+            else if (ch === ')' || ch === ']' || ch === '}') d--;
+            else if (ch === ',' && d === 1) cuts.push(j + 1);
+        }
+        if (d !== 0) return 'format!(' + part;
+        const body = part.slice(0, j - 1);
+        const args = cuts.map((c, k) => body.slice(c, k + 1 < cuts.length ? cuts[k + 1] - 1 : body.length));
+        const field = /^\s*self\.[a-z_][a-z0-9_]*\.clone\(\)\s*$/;
+        if (body.includes('.await') || args.some((a) => a.includes('self.') && !field.test(a))) return 'format!(' + part;
+        const out = args.map((a) => field.test(a) ? a.replace('.clone()', '') : a).join(',');
+        return 'format!(' + out + part.slice(j - 1);
+    }).join('');
+}
+
 // A `safe_dict*` / `safe_list*` read with no or an empty default, taken back with `.into_*()`, calls its typed twin
 // (`_t`: the empty container, `_o`: `None`, exactly what the conversion answered for a non-matching member).
 function rustTypedSafeContainerReads (content: string): string {
@@ -3813,11 +4101,93 @@ function rustTypedSafeContainerReads (content: string): string {
         const tail = args.lastIndexOf (', &[');
         if (tail < 0 || balancedCloseIndex (args, tail + 4) !== args.length - 1) continue;
         const dflt = args.slice (tail + 4, -1).trim ();
-        if (!(dflt === '' || (conv[1] === undefined && empty[m[1]].test (dflt)))) continue;
-        out += content.slice (last, open - 1) + (conv[1] === undefined ? '_t(' : '_o(') + args.slice (0, tail) + ')';
+        const plain = dflt === '' || (conv[1] === undefined && empty[m[1]].test (dflt));
+        // One non-empty default: `_or` keeps it as the fallback container (a non-container default answers empty / None).
+        let flat = dflt.replace (/"(?:[^"\\]|\\.)*"/g, '""'), prev = '';
+        while (prev !== flat) { prev = flat; flat = flat.replace (/\([^()]*\)|\[[^\[\]]*\]|\{[^{}]*\}/g, ''); }
+        if (!plain && /,/.test (flat)) continue;
+        out += content.slice (last, open - 1) + (plain ? '' : '_or') + (conv[1] === undefined ? (plain ? '_t(' : '(') : '_o(') + args.slice (0, tail) + (plain ? ')' : ', ' + dflt + ')');
         last = close + 1 + conv[0].length;
         head.lastIndex = last;
     }
+    return out + content.slice (last);
+}
+
+// `omit` / `extend` / `deep_extend` and `to_array` / `array_concat` / `sort_by` results taken back with `.into_dict()` /
+// `.into_list()` (`omit` also `.into_opt_dict()`) call their typed twin, which answers the same container, empty or None.
+function rustTypedMergeResults (content: string): string {
+    const kinds: Record<string, RegExp> = { omit: /^(opt_)?dict$/, extend: /^dict$/, deep_extend: /^dict$/, to_array: /^list$/, array_concat: /^list$/, sort_by: /^list$/ };
+    const head = /\bself(?:\.parent)?\.(omit|extend|deep_extend|to_array|array_concat|sort_by)\(/g;
+    let out = '', last = 0, m: RegExpExecArray | null;
+    while ((m = head.exec (content)) !== null) {
+        const open = m.index + m[0].length;
+        const close = balancedCloseIndex (content, open);
+        const conv = content.slice (close + 1).match (/^\.into_((?:opt_)?(?:dict|list))\(\)/);
+        if (close >= content.length || conv === null || !kinds[m[1]].test (conv[1])) continue;
+        out += content.slice (last, open - 1) + (conv[1].startsWith ('opt_') ? '_o(' : '_t(') + content.slice (open, close + 1);
+        last = close + 1 + conv[0].length;
+        head.lastIndex = last;
+    }
+    out += content.slice (last);
+    return out === content ? out : rustTypedMergeResults (out);
+}
+
+// A `&str` / `Option<&str>` parameter copied to `Value` (`let mut x: Value = x.into();`) whose every later read is
+// `x.as_str()`, `x.as_str().unwrap_or_default()`, a by-value `x.clone()` or an Option's `x ==/!= Value::Null` keeps the borrow: the copy held
+// exactly `Value::Str(x)` / `Null`, so each read answers the same from the parameter itself.
+function rustStrParamCopyDrop (content: string): string {
+    const bindRe = /^([ \t]*)let mut ([A-Za-z_][A-Za-z0-9_]*): Value = \2\.into\(\);\n/gm;
+    const masked = maskText (content);
+    const edits: Array<{ start: number, end: number, text: string }> = [];
+    let m: RegExpExecArray | null;
+    while ((m = bindRe.exec (masked)) !== null) {
+        const name = m[2];
+        let head = m.index;
+        while (head > 0) {
+            const prev = masked.lastIndexOf ('\n', head - 2) + 1;
+            if (!/^[ \t]*let mut \w+: Value = \w+\.into\(\);\n$/.test (masked.slice (prev, head))) { head = prev; break; }
+            head = prev;
+        }
+        const sig = masked.slice (head, masked.indexOf ('\n', head));
+        if (!/\bfn \w+(?:<[^>]*>)?\(.*\{$/.test (sig)) continue;
+        const typeM = new RegExp ('[(,] ?' + name + ': (&str|Option<&str>)[,)]').exec (sig);
+        const ptype = typeM === null ? undefined : typeM[1];
+        if (ptype === undefined) continue;
+        const bodyStart = m.index + m[0].length;
+        let depth = 1, bodyEnd = bodyStart;
+        for (; bodyEnd < masked.length && depth > 0; bodyEnd++) {
+            if (masked[bodyEnd] === '{') depth++;
+            else if (masked[bodyEnd] === '}') depth--;
+        }
+        const body = masked.slice (bodyStart, bodyEnd);
+        // a later binding of the same name (`let`, closure or match arm) shadows the parameter: keep the copy
+        if (new RegExp ('\\b(?:let (?:mut )?|\\|[^|\\n]*\\b|Some\\()' + name + '\\b').test (body)) continue;
+        const useRe = new RegExp ('(?<![\\w.:$])' + name + '(?![\\w$])', 'g');
+        const local: Array<{ start: number, end: number, text: string }> = [];
+        let ok = true, u: RegExpExecArray | null;
+        while (ok && (u = useRe.exec (body)) !== null) {
+            const after = body.slice (u.index + name.length);
+            const at = bodyStart + u.index;
+            const opt = ptype === 'Option<&str>';
+            // a re-box widens its line: keep the copy rather than push a line past 400 chars
+            if (body.lastIndexOf ('\n', u.index) < 0 ? false : (body.indexOf ('\n', u.index) < 0 ? body.length : body.indexOf ('\n', u.index)) - body.lastIndexOf ('\n', u.index) > 386) { ok = false; break; }
+            let r: RegExpExecArray | null;
+            // a whole argument or element re-boxes from the borrow, the same `Str` / `Null` the copy held
+            if (/(?:\(|\[|, )$/.test (body.slice (Math.max (0, u.index - 2), u.index)) && /^[,);\]]/.test (after)) local.push ({ start: at, end: at + name.length, text: `Value::from(${name})` });
+            else if ((r = /^\.as_str\(\)\.unwrap_or_default\(\)/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? `${name}.unwrap_or_default()` : name });
+            else if (!opt && (r = /^\.as_str\(\) ([=!]=) Some\(("(?:[^"\\\n]|\\.)*")\)/.exec (content.slice (at + name.length))) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `${name} ${r[1]} ${r[2]}` });
+            // a by-value copy re-boxes from the borrow: `Value::from` builds the same `Str` / `Null`
+            else if (body[u.index - 1] !== '&' && (r = /^\.clone\(\)(?=[,);\].])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `Value::from(${name})` });
+            else if ((r = /^\.as_str\(\)/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? name : `Some(${name})` });
+            else if (opt && body[u.index - 1] !== '&' && (r = /^ ([=!])= Value::Null(?![\w:(])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `${name}.${r[1] === '=' ? 'is_none' : 'is_some'}()` });
+            else ok = false;
+        }
+        if (!ok || local.length === 0) continue;
+        edits.push ({ start: m.index, end: bodyStart, text: '' }, ...local);
+    }
+    edits.sort ((a, b) => a.start - b.start);
+    let out = '', last = 0;
+    for (const e of edits) { out += content.slice (last, e.start) + e.text; last = e.end; }
     return out + content.slice (last);
 }
 
@@ -4014,7 +4384,71 @@ function allocLiteralBoxes(content: string): string {
     return content.replace(RUST_LITERAL_BOX_INTO, 'Value::Str($1.to_string())');
 }
 function borrowLiteralBoxes(content: string): string {
-    return content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())');
+    return lendReaderContainers(content.replace(RUST_LITERAL_BOX_ALLOC, 'Value::Str($1.into())'));
+}
+
+// The base safe readers take their container as `impl KeyRead`, which reads `&Value`, `&Dict`, `&List` and
+// `&Option<Dict|List>` exactly as it reads the owned value: a local of one of those types is lent, not cloned.
+const RUST_KEYREAD_READER_CALL = /\b((?:self|exchange\d*)\.safe_(?:value|string|integer|number|float|bool|dict|list|timestamp)\w*\()([A-Za-z_]\w*)\.clone\(\)(?=, )/g;
+const RUST_KEYREAD_LENT_TYPE = /^(?:Value|(?:crate::value::|ccxt::value::)?(?:Dict|List)|Option<(?:crate::value::|ccxt::value::)?(?:Dict|List)>)$/;
+function lendReaderContainers(content: string): string {
+    const fnStarts: number[] = [];
+    for (const m of content.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)) fnStarts.push(m.index as number);
+    const lent = (pos: number, name: string): boolean => {
+        let lo = 0, hi = fnStarts.length - 1, start = 0;
+        while (lo <= hi) { const mid = (lo + hi) >> 1; if (fnStarts[mid] <= pos) { start = fnStarts[mid]; lo = mid + 1; } else hi = mid - 1; }
+        const decl = new RegExp(`(?:\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?|[(,|]\\s*(?:mut )?${name}:\\s*([^,)|]+?)\\s*[,)|])`, 'g');
+        let last: RegExpExecArray | undefined;
+        for (const m of content.slice(start, pos).matchAll(decl)) last = m as RegExpExecArray;
+        if (last === undefined) return false;
+        // a later pattern binding (`for x in`, `|x|`, `Some(x)`, `ref x`) may shadow it with another type
+        const rebind = new RegExp(`\\bfor (?:mut )?${name}\\b|[(|,]\\s*(?:ref )?(?:mut )?${name}\\s*[)|,]`);
+        if (rebind.test(content.slice((last.index as number) + start + last[0].length, pos))) return false;
+        const type = (last[1] ?? last[3])?.trim();
+        return type === undefined ? last[2] !== undefined : RUST_KEYREAD_LENT_TYPE.test(type);
+    };
+    return content.replace(RUST_KEYREAD_READER_CALL, (whole: string, head: string, name: string, offset: number) => {
+        // a later argument that moves the same local (`&[x]` default) cannot follow a borrow of it
+        const rest = content.slice(offset + whole.length, balancedCloseIndex(content, offset + head.length));
+        const moved = new RegExp(`(?<![\\w.&"])${name}\\b(?!\\.clone\\(\\)|:|")`).test(rest);
+        return name !== 'self' && !moved && lent(offset, name) ? `${head}&${name}` : whole;
+    });
+}
+
+// Lend bare locals to base `extend` / `deep_extend` / `omit` instead of cloning them: the base `ExtendHead`,
+// `MergeOperands` and `OmitSource` impls take `&x` and copy only what the cloned box copied.
+function lendMergeOperands(content: string): string {
+    const re = /\bself\.(extend|deep_extend|omit)\(/g;
+    let out = '';
+    let last = 0;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(content)) !== null) {
+        const open = m.index + m[0].length;
+        const args: [number, number][] = [];
+        let depth = 0, start = open, i = open, inStr = false;
+        for (; i < content.length; i++) {
+            const c = content[i];
+            if (inStr) { if (c === '\\') i++; else if (c === '"') inStr = false; continue; }
+            if (c === '"') inStr = true;
+            else if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') { if (depth === 0) break; depth--; }
+            else if (c === ',' && depth === 0) { args.push([start, i]); start = i + 1; }
+        }
+        if (i >= content.length) break;
+        args.push([start, i]);
+        const edits: [number, number, string][] = [];
+        const head = content.slice(args[0][0], args[0][1]);
+        const hm = /^(\s*)(?:Value::Map\(([A-Za-z_]\w*)\.clone\(\)\)|([A-Za-z_]\w*)\.clone\(\))(\s*)$/.exec(head);
+        if (hm !== null && (m[1] !== 'deep_extend' && (hm[2] !== undefined ? m[1] === 'extend' : true))) edits.push([args[0][0], args[0][1], `${hm[1]}&${hm[2] ?? hm[3]}${hm[4]}`]);
+        if (m[1] !== 'omit' && args.length === 2) {
+            const om = /^(\s*)&\[([A-Za-z_]\w*)\.clone\(\)\](\s*)$/.exec(content.slice(args[1][0], args[1][1]));
+            if (om !== null) edits.push([args[1][0], args[1][1], `${om[1]}&[&${om[2]}]${om[3]}`]);
+        }
+        const call = content.slice(open, i);
+        const solo = (name: string) => (call.match(new RegExp(`\\b${name}\\b`, 'g')) ?? []).length === 1;
+        for (const [a, b, t] of edits) if (a >= last && solo(t.replace(/^[\s&\[]*|[\s\]]*$/g, ''))) { out += content.slice(last, a) + t; last = b; }
+    }
+    return out + content.slice(last);
 }
 
 // Break every emitted line over 400 chars at whitespace that sits between Rust
@@ -4102,7 +4536,7 @@ function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(borrowLiteralBoxes(content));
+    content = splitLongRustLines(lendMergeOperands(typedUrlsField(borrowLiteralBoxes(content))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -9811,6 +10245,9 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustIntLocalNullSinkOptionI64(rustContent);
                 rustContent = rustStrLiteralLocalNativeString(rustContent);
                 rustContent = rustTypedSafeContainerReads(rustContent);
+                rustContent = rustTypedMergeResults(rustContent);
+                rustContent = rustStrParamCopyDrop(rustContent);
+                rustContent = rustSelfFieldReadClones(rustContent);
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
                 // the whole inherent item (signature line to its matching `}`) replaces its forwarder item.
                 {
@@ -10653,6 +11090,9 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustIntLocalNullSinkOptionI64(finalFile);
         finalFile = rustStrLiteralLocalNativeString(finalFile);
         finalFile = rustTypedSafeContainerReads(finalFile);
+        finalFile = rustTypedMergeResults(finalFile);
+        finalFile = rustStrParamCopyDrop(finalFile);
+        finalFile = rustSelfFieldReadClones(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -10674,7 +11114,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(borrowLiteralBoxes(finalFile)));
+        fs.writeFileSync(outFile, splitLongRustLines(lendMergeOperands(typedUrlsField(borrowLiteralBoxes(finalFile)))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
@@ -12069,6 +12509,26 @@ impl std::ops::DerefMut for ${coreName} {
         const options = { rustFolder: EXCHANGES_WS_FOLDER, exchanges: inputExchanges };
         await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, true);
         this.writeRustRegistries();
+        this.borrowWsHandlerParams();
+    }
+
+    /** Whole-crate pass over the emitted pro files; reads the other crates only to find foreign callers. */
+    borrowWsHandlerParams() {
+        const files = new Map<string, string>();
+        for (const f of fs.readdirSync(EXCHANGES_WS_FOLDER)) if (f.endsWith('.rs') && f !== 'mod.rs') files.set(f, fs.readFileSync(`${EXCHANGES_WS_FOLDER}/${f}`, 'utf8'));
+        const outside: string[] = [];
+        const walk = (d: string) => {
+            if (!fs.existsSync(d)) return;
+            for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+                const full = `${d}/${e.name}`;
+                if (e.isDirectory()) { if (full !== EXCHANGES_WS_FOLDER && e.name !== 'target' && e.name !== 'prediction') walk(full); }
+                else if (e.name.endsWith('.rs')) outside.push(fs.readFileSync(full, 'utf8'));
+            }
+        };
+        walk('./rust');
+        for (const [f, src] of rustBorrowWsHandlerParams(files, outside.join('\n'))) {
+            if (src !== files.get(f)) fs.writeFileSync(`${EXCHANGES_WS_FOLDER}/${f}`, src);
+        }
     }
 
     // ── main entry ─────────────────────────────────────────────────────────────

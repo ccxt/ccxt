@@ -2455,13 +2455,13 @@ func Slice(str2 any, idx1 any, idx2 any) string {
 
 type Task func() any
 
-func PromiseAll(tasksInterface any) <-chan AsyncResult[any] {
+func PromiseAll(tasksInterface any) <-chan AsyncResult[[]any] {
 	return promiseAll(tasksInterface)
 }
 
 // promiseAll awaits every task; the first failing task by index fails the whole call.
-func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func promiseAll(tasksInterface any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any])
 
 	go func() {
 		defer close(ch)
@@ -2469,7 +2469,7 @@ func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
 
 		tasks, ok := tasksInterface.([]any)
 		if !ok {
-			ch <- AsyncResult[any]{} // not a slice of tasks: nil, as before
+			ch <- AsyncResult[[]any]{} // not a slice of tasks: nil, as before
 			return
 		}
 
@@ -2493,11 +2493,11 @@ func promiseAll(tasksInterface any) <-chan AsyncResult[any] {
 		wg.Wait()
 		for _, err := range failures {
 			if err != nil {
-				ch <- AsyncResult[any]{Err: err}
+				ch <- AsyncResult[[]any]{Err: err}
 				return
 			}
 		}
-		ch <- AsyncResult[any]{Value: results}
+		ch <- AsyncResult[[]any]{Value: results}
 	}()
 
 	return ch

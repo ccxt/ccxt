@@ -1703,7 +1703,7 @@ public partial class aster : ccxt.aster
         string? wallet = this.safeString(this.options, "wallet", "wb");
         for (int i = 0; i < B.Count; i++)
         {
-            object entry = B[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)B[i]);
             string? currencyId = this.safeString(entry, "a");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

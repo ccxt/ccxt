@@ -150,9 +150,9 @@ func TestPromiseAllValues(t *testing.T) {
 	close(typed)
 	fut := NewFuture()
 	fut.Resolve("future")
-	r, _ := receiveWithin(t, PromiseAll([]any{resolvedTask(1), (<-chan EndpointResult[map[string]any])(typed), fut}))
-	values, ok := r.Value.([]any)
-	if r.Err != nil || !ok || len(values) != 3 || values[0] != 1 || values[1] != "raw" || values[2] != "future" {
+	r := <-PromiseAll([]any{resolvedTask(1), (<-chan EndpointResult[map[string]any])(typed), fut})
+	values := r.Value
+	if r.Err != nil || len(values) != 3 || values[0] != 1 || values[1] != "raw" || values[2] != "future" {
 		t.Fatalf("unexpected result %#v", r)
 	}
 }
@@ -161,7 +161,7 @@ func TestPromiseAllFirstFailureByIndex(t *testing.T) {
 	first := NetworkError("first")
 	second := ExchangeError("second")
 	// the index-1 task fails later than the index-2 one; index order still wins
-	r, _ := receiveWithin(t, PromiseAll([]any{resolvedTask(1), failedTask(first, 50*time.Millisecond), failedTask(second, 0)}))
+	r := <-PromiseAll([]any{resolvedTask(1), failedTask(first, 50*time.Millisecond), failedTask(second, 0)})
 	if r.Err != first {
 		t.Fatalf("expected the first failure by index, got %#v", r.Err)
 	}

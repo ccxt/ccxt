@@ -1983,6 +1983,9 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'fetchLatestBlockHeight': 'Int64',
     // htx fetchAccountIdByType: sole declaration is Task<string> (every path safeString)
     'fetchAccountIdByType': 'string?',
+    // CSHARP_AWAITED_CORE_RETURNS lists, proven per declaration (single declaration each)
+    'fetchSecurities': 'List<object>',
+    'completeRawTopics': 'List<object>',
 };
 
 // Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
@@ -3836,7 +3839,26 @@ function integerOrNullArgumentKind (csharp, node, context) {
         // the object sum return the double itself, so it proves nothing.
         return (ARITHMETIC_SMALL_INT.includes (kind) || kind === 'Int64?') ? kind : undefined;
     }
+    // `a - b` / `a * b` with an Int64? operand: lifted Int64 arithmetic (or the Int64? twin), Int64 or null
+    const chain = liftedIntegerChain (csharp, node, context);
+    if (chain !== undefined && chain.nullable) {
+        return 'Int64?';
+    }
     return (csharpTypeOfValue (csharp, node, context) === 'Int64?') ? 'Int64?' : undefined;
+}
+
+// a nested `-` / `*` chain over int-like and Int64? leaves (nullable when a leaf is Int64?)
+function liftedIntegerChain (csharp, node, context) {
+    let inner = node;
+    while (inner?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        inner = inner.expression;
+    }
+    if (inner?.kind !== ts.SyntaxKind.BinaryExpression || (inner.operatorToken.kind !== ts.SyntaxKind.MinusToken && inner.operatorToken.kind !== ts.SyntaxKind.AsteriskToken)) {
+        return nullableIntegerOperand (csharp, inner, context);
+    }
+    const left = liftedIntegerChain (csharp, inner.left, context);
+    const right = liftedIntegerChain (csharp, inner.right, context);
+    return (left === undefined || right === undefined) ? undefined : { kind: 'Int64?', nullable: left.nullable || right.nullable };
 }
 
 // `a % b` prints `mod(a, b)`. Exchange.TranspileHelpers.cs declares mod(Int64, Int64) /
@@ -3881,6 +3903,9 @@ function mathMinMaxBoxType (csharp, initializer, context) {
         return { type: 'int', cast: 'int' };
     }
     const int64Family = (box) => (box === 'Int64' || box === 'Int64?');
+    if (left === 'Int64' && right === 'Int64') {
+        return { type: 'Int64', cast: 'Int64' };
+    }
     if (int64Family (left) && int64Family (right) && (left === 'Int64?' || right === 'Int64?')) {
         return { type: 'Int64?', cast: 'Int64?' };
     }
@@ -7310,7 +7335,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                             // ral-87c4 R3: the uninitialised `let x: string;` whose every write is such a call
                             || definiteStringDefaultWrites87c4 (csharp, scope, declaration, varName, context));
                         const guardedSelfWrite = guardedSelfConcatWrite (csharp, declaration, parent.right, csharpType, context) || selfPadWrite92c7 (parent.right, varName, csharpType)
-                            || (csharpType === 'Int64?' && int64ChainCandidates.has (declaration) && int64ChainValue (csharp, declaration, parent.right, 0));
+                            || (csharpType === 'Int64?' && int64ChainCandidates.has (declaration) && int64ChainValue (csharp, declaration, parent.right, 0))
+                            || (csharpType === 'Int64' && selfMinMaxInt64WriteType (csharp, context, declaration, parent.right) === 'Int64');
                         if (!selfConcat && !selfStringWrite && !nonNullWrite && !nonNullDefaultWrite && !selfOmit && !selfTernary && !guardedSelfWrite && !assignable (csharpType, selfRead)) {
                             return false;
                         }
@@ -9338,8 +9364,41 @@ function useProvenElementBox (csharp, declaration) {
 
 // `IDictionary<string, object>` when the checker proves the element of `recv[key]` is a ccxt row
 // shape, or undefined (the read keeps the printer's `object`)
+// a row element local whose every use is argument 0 of a pure this.safe* reader (or a null test):
+// the checker row proof below makes the declaration cast exact, and no use site gains a cast
+function dictRowSafeReadOnlyLocal (csharp, declaration) {
+    const name = declaration?.name?.text;
+    if (name === undefined || declaration.name.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    let reads = 0;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && ROW_USE_PURE_READERS.has (parent.expression.name?.text)) {
+            reads++;
+            continue;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (parent.operatorToken.kind)) {
+            const other = (parent.left === use) ? parent.right : parent.left;
+            if ((other?.kind === ts.SyntaxKind.Identifier && other.text === 'undefined') || other?.kind === ts.SyntaxKind.NullKeyword) {
+                continue;
+            }
+        }
+        return false;
+    }
+    return reads > 0;
+}
+
 function dictRowElementReadType (csharp, declaration) {
-    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text) && !dictRowNativeWriteLocal (csharp, declaration)) {
+    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text) && !dictRowNativeWriteLocal (csharp, declaration) && !dictRowSafeReadOnlyLocal (csharp, declaration)) {
         return undefined;
     }
     // the generated tests hold the exchange in a parameter and call the BaseTest getValue
@@ -13434,6 +13493,35 @@ function safeNumberSwapMember (declaration) {
         .every ((w) => w.operatorToken.kind === ts.SyntaxKind.EqualsToken && w.right.kind === ts.SyntaxKind.Identifier && member (w.right.text, 0));
 }
 
+// `x = Math.min/max (x, y)` with x the Int64 being classified and y an Int64 / null-tested Int64? read:
+// Math.Min/Max returns the same Int64 value the helper boxes (an operand, both Int64), so the write stays Int64
+function selfMinMaxInt64WriteType (csharp, context, declaration, node) {
+    let call = node;
+    while (call?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        call = call.expression;
+    }
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || call.arguments?.length !== 2 || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== ts.SyntaxKind.Identifier || callee.expression.text !== 'Math'
+            || (callee.name?.text !== 'min' && callee.name?.text !== 'max') || typeof csharp.csharpIntegralOperand !== 'function') {
+        return undefined;
+    }
+    const self = call.arguments.filter ((a) => a.kind === ts.SyntaxKind.Identifier && a.text === declaration.name.text);
+    const other = call.arguments.filter ((a) => !self.includes (a));
+    if (self.length !== 1 || other.length !== 1 || other[0].kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    {
+        // the self read is still `object` to the printer here, so ask it about the other operand only:
+        // its declared kind and, for Int64?, the dominating null test that prints `.Value`
+        const operand = csharp.csharpIntegralOperand (other[0]);
+        if ((operand?.kind !== 'Int64' && operand?.kind !== 'Int64?') || !csharp.csharpMinMaxResultIsPlainValue (call)) {
+            return undefined;
+        }
+        return (csharp.csharpIntegralNonNullText (call, operand, 'v') === undefined) ? undefined : 'Int64';
+    }
+}
+
 // the declaration whose later write is being resolved right now, with the type a read of it
 // will have once the declaration is retyped (see selfReadWriteType)
 const selfReadStack = [];
@@ -13584,6 +13672,9 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // value would move is still rejected by joinTypes below.
             written = selfReadWriteType (csharp, context, declaration, type, parent.right);
         }
+        // `x = Math.min (x, y)` / `Math.max` on an Int64 local: native only when the printer itself prints
+        // Math.Min/Max over Int64 / null-tested Int64? reads (no literal: the helper would keep its Int32 box)
+        written ??= (type === 'Int64' && !sawNull) ? selfMinMaxInt64WriteType (csharp, context, declaration, parent.right) : undefined;
         if (written === undefined) {
             // `x = c ? D : x` — the default-if-unset ternary write: the value reads this very
             // local, so the write's contribution is the OTHER arm's type (selfTernaryWriteType);
@@ -16027,6 +16118,10 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     'getMarketsPaginated': 'List<object>',
     // apex: return this.safeString (this.options, 'accountId') — one string? box
     'getAccountId': 'string?',
+    // backpack fetchSecurities returns its List<object> api response; prediction binance
+    // completeRawTopics returns its List<object> result local
+    'fetchSecurities': 'List<object>',
+    'completeRawTopics': 'List<object>',
 };
 
 // cores whose Dictionary and IDictionary return arms join to the interface (collectionArmWidening)

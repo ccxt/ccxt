@@ -337,7 +337,7 @@ public partial class binance : PredictionExchange
      * @param {object[]} rawTopics raw market topic objects
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public async virtual Task<object> completeRawTopics(object rawTopics)
+    public async virtual Task<List<object>> completeRawTopics(object rawTopics)
     {
         List<object> result = new List<object>() {};
         int rawTopicsLength = getArrayLength(rawTopics);
@@ -428,7 +428,7 @@ public partial class binance : PredictionExchange
         {
             this.markets = this.createSafeDictionary();
         }
-        object rawTopics = new List<object>() {};
+        List<object> rawTopics = new List<object>() {};
         if (allQueriesLength > 0)
         {
             rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchEventsByQuery(allQueries, fetchCap, rest));
@@ -471,11 +471,11 @@ public partial class binance : PredictionExchange
             List<object> listed = ccxt.BaseExchange.FromDictList(await this.FetchRawTopics(fetchCap, this.extend(listingRequest, rest)));
             rawTopics = await this.completeRawTopics(listed);
         }
-        int rawTopicsLength = getArrayLength(rawTopics);
+        int rawTopicsLength = (rawTopics?.Count ?? 0);
         List<object> result = new List<object>() {};
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
+            Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
             result.Add(parsedEvent);
             List<object> parsedMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
             int parsedMarketsLength = parsedMarkets.Count;

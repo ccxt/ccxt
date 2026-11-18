@@ -55,7 +55,11 @@ import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
 import { installJ84j6StringListLocals } from './java-local-types.js';
 import { installJavaPredictionMapLocals } from './java-local-types.js';
 import { installJavaListParamSlots } from './java-local-types.js';
+import { installJavaEventsParamsSlots } from './java-local-types.js';
 import { installJavaNonNullMapPuts } from './java-local-types.js';
+import { installJavaLocalElementWrites } from './java-local-types.js';
+import { installJavaStringListIndexOf } from './java-local-types.js';
+import { installJavaMapCopyLocals } from './java-local-types.js';
 import log from 'ololog'
 import { readFileSync, existsSync } from 'fs';
 import { dirname, resolve as resolvePath } from 'path';
@@ -242,6 +246,10 @@ export default async ({ transpilerConfig, configKey, file, files, roots, handed,
         installJavaListParamSlots (cachedTranspiler);
         installJavaTypedBaseFields (cachedTranspiler);
         installJavaNonNullMapPuts (cachedTranspiler);
+        installJavaLocalElementWrites (cachedTranspiler);
+        installJavaStringListIndexOf (cachedTranspiler);
+        installJavaMapCopyLocals (cachedTranspiler);
+        installJavaEventsParamsSlots (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

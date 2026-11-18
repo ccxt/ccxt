@@ -25,10 +25,10 @@ import io.github.ccxt.types.PredictionTradingFee;
 import java.util.stream.Collectors;
 
 public class PredictionExchange extends BaseExchange implements PredictionTypedSurface {
-    public volatile Object outcomes = null;
-    public volatile Object outcomes_by_id = null;
-    public volatile Object events = null;
-    public volatile Object events_by_slug = null;
+    public volatile Map<String, Object> outcomes = null;
+    public volatile Map<String, Object> outcomes_by_id = null;
+    public volatile Map<String, Object> events = null;
+    public volatile Map<String, Object> events_by_slug = null;
 
     public PredictionExchange () {
         super();

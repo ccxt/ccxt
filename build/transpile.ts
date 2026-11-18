@@ -2457,7 +2457,9 @@ class Transpiler {
                         // overrides as `params: Dict = {}`, which would emit `array` here, so keep
                         // any `params` argument that defaults to `{}` untyped to match the base.
                         const isUntypedParamsBag = (variable === 'params') && (secondPart.length === 2) && (secondPart[1].trim () === '{}')
-                        if (isUntypedParamsBag) {
+                        // an override cannot narrow the base's untyped `params` box either (PHP contravariance)
+                        const isNarrowedOverrideParams = (variable === 'params') && (secondPart.length === 1) && /^\s*override\s/.test (lines[0])
+                        if (isUntypedParamsBag || isNarrowedOverrideParams) {
                             return '$' + variable + endpart
                         }
                         // Normalise union parameter types so we never emit invalid PHP like

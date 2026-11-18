@@ -1566,7 +1566,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.extend(orderbook, new Dictionary<string, object>() {             { "nonce", nonce },         }));
     }
 
-    public virtual object toEn(object n, object scale)
+    public virtual object toEn(object n, Int64? scale)
     {
         if (((n == null)) || ((scale == null)))
         {
@@ -1574,7 +1574,7 @@ public partial class phemex : Exchange
         }
         string? stringN = this.numberToString(n);
         var precise = new Precise(stringN);
-        precise.decimals = this.sum(precise.decimals, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(scale, -1));
+        precise.decimals = this.sum(precise.decimals, (scale * (-1)));
         precise.reduce();
         string preciseString = ((object)precise).ToString();
         return this.parseToNumeric(preciseString);

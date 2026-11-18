@@ -71,7 +71,11 @@ import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaPredictionMapLocals } from './java-local-types.js';
 import { installJavaListParamSlots } from './java-local-types.js';
+import { installJavaEventsParamsSlots } from './java-local-types.js';
 import { installJavaNonNullMapPuts } from './java-local-types.js';
+import { installJavaLocalElementWrites } from './java-local-types.js';
+import { installJavaStringListIndexOf } from './java-local-types.js';
+import { installJavaMapCopyLocals } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
 import { installJ6ReaderLocals } from './java-local-types.js';
 import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
@@ -1917,6 +1921,8 @@ class NewTranspiler {
             installJavaListParamSlots,
             installJavaTypedBaseFields,
             installJavaNonNullMapPuts,
+            installJavaLocalElementWrites,
+            installJavaStringListIndexOf,
             installJavaR77j2ConditionalLocals,
             installJ6ReaderLocals,
             installJavaJ8CopyLocals,
@@ -1957,6 +1963,8 @@ class NewTranspiler {
             installJavaR92j2MapSlotHandOff,
             installJavaR92j2StringSlotLocals,
             installJavaR93j2ListLocals,
+            installJavaMapCopyLocals,
+            installJavaEventsParamsSlots,
         ];
         for (const install of installers) {
             install(this.transpiler);
@@ -3649,6 +3657,10 @@ class NewTranspiler {
         }
         if (ws) {
             javaSource = nativeJavaWsHandlerDispatch(javaSource)
+        }
+        const apiPath = path.join(javaFolder ?? '', '..', 'api', this.capitalize(fileNameNoExt) + 'Api.java')
+        if (!ws && !prediction && fs.existsSync(apiPath)) {
+            javaSource = nativeJavaLiteralApiDispatch(javaSource, fs.readFileSync(apiPath, 'utf8'))
         }
 
         if (javaFolder) {
@@ -9401,19 +9413,28 @@ function nativeJavaWsHandlerDispatch (content: string): string {
     }
     const norm = (t: string) => t.replace (/java\.util\./g, '').replace (/\s+/g, ' ');
     const edits: { from: number, to: number, text: string }[] = [];
+    const masked = content.replace (/^[ \t]*\/\/.*$/gm, (c) => ' '.repeat (c.length));
+    const seen = new Set<number> ();
     const callRe = /^([ \t]+)Helpers\.callDynamically\(this, (\w+), new Object\[\] \{([\w, ]*)\}\);$/gm;
     let call;
     while ((call = callRe.exec (content)) !== null) {
-        const [ whole, indent, v, argText ] = call;
+        const [ , indent, v, argText ] = call;
         // scope: the block declaring the dispatch local (a method can hold two `method` locals)
         const declAt = content.lastIndexOf (`Object ${v} = `, call.index);
         let start = declAt, depth = 0;
         for (; start > 0 && depth >= 0; start--) depth += content[start - 1] === '}' ? 1 : content[start - 1] === '{' ? -1 : 0;
         let end = start + 1;
         for (depth = 1; end < content.length && depth > 0; end++) depth += content[end] === '{' ? 1 : content[end] === '}' ? -1 : 0;
-        if (declAt < 0 || content.lastIndexOf ('\n    public ', call.index) > declAt || end <= call.index) continue;
-        const body = content.slice (start, end);
-        const method = content.slice (content.lastIndexOf ('\n    public ', call.index), call.index);
+        if (declAt < 0 || content.lastIndexOf ('\n    public ', call.index) > declAt || end <= call.index || seen.has (declAt)) continue;
+        seen.add (declAt);
+        const body = masked.slice (start, end);
+        const memberFrom = content.lastIndexOf ('\n    public ', call.index);
+        const memberTo = content.indexOf ('\n    }\n', call.index);
+        const method = content.slice (memberFrom, call.index);
+        const member = masked.slice (memberFrom, memberTo);
+        // every dispatch through this local, all with the same argument list
+        const sites = [ ...body.matchAll (new RegExp (`^([ \\t]+)Helpers\\.callDynamically\\(this, ${v}, new Object\\[\\] \\{([\\w, ]*)\\}\\);$`, 'gm')) ];
+        if (sites.some ((m) => m[2] !== argText)) continue;
         const args = argText.split (',').map ((a) => a.trim ()).filter ((a) => a !== '');
         const decl = body.match (new RegExp (`\\n\\s*Object ${v} = ([^;\\n]+);`, 'g')) ?? [];
         const writes = [ ...body.matchAll (new RegExp (`(?<![\\w.])${v} = ([^;\\n]+);`, 'g')) ].map ((w) => w[1].trim ());
@@ -9422,7 +9443,7 @@ function nativeJavaWsHandlerDispatch (content: string): string {
         const uses = (body.match (new RegExp (`(?<![\\w."])${v}(?![\\w"])`, 'g')) ?? []).length;
         const nullTests = (body.match (new RegExp (`java\\.util\\.Objects\\.equals\\(${v}, null\\)`, 'g')) ?? []).length;
         const calls = (body.match (new RegExp (`Helpers\\.callDynamically\\(this, ${v}, `, 'g')) ?? []).length;
-        if (calls !== 1 || uses !== writes.length + nullTests + 1) continue;
+        if (calls !== sites.length || uses !== writes.length + nullTests + calls) continue;
         const tables = new Set<string> (), names = new Set<string> (), reads: [ string, string ][] = [];
         let ok = true;
         for (const w of writes) {
@@ -9436,14 +9457,19 @@ function nativeJavaWsHandlerDispatch (content: string): string {
             ok = false;
         }
         if (!ok) continue;
-        const keyOk = (k: string) => /^"\w+"$/.test (k) || new RegExp (`(?:\\n\\s*|\\()String ${k}(?: =|,|\\))`).test (method);
+        const keyOk = (k: string) => /^"\w+"$/.test (k) || new RegExp (`(?:\\n\\s*|\\()String ${k}(?: =|,|\\))`).test (member);
         if (!reads.every (([ , g ]) => keyOk (g.slice (g.indexOf ('(') + 1, -1)))) continue;
         if (!writes.every ((w) => !/\.get\((\w+)\)/.test (w) || keyOk (/\.get\((\w+)\)/.exec (w)[1]))) continue;
         const retypes: [ string, string ][] = [];
         for (const t of tables) {
-            const lit = new RegExp (`\\n(\\s*)(?:java\\.util\\.)?Map<String, Object> ${t} = new (?:java\\.util\\.)?HashMap<String, Object>\\(\\) \\{\\{\\n((?:\\s*put\\( "[^"\\n]*", "\\w+"\\);\\n)+)\\s*\\}\\};`).exec (body);
-            const tUses = (body.match (new RegExp (`(?<![\\w."])${t}(?![\\w"])`, 'g')) ?? []).length;
-            const tReads = (body.match (new RegExp (`(?:this\\.safeValue\\(${t}, |${t}\\.(?:get|containsKey)\\(|\\(${t} == null)`, 'g')) ?? []).length;
+            const litRe = new RegExp (`\\n([ \\t]*)(?:java\\.util\\.)?Map<String, (?:Object|String)> ${t} = new (?:java\\.util\\.)?HashMap<String, (?:Object|String)>\\(\\) \\{\\{\\n((?:\\s*put\\( ?"[^"\\n]*", "\\w+"\\);\\n)+)\\s*\\}\\};`, 'g');
+            // the table is the dispatch block's own, or the member's only one
+            const scope = (body.match (litRe) ?? []).length === 1 ? body : member;
+            const lits = [ ...scope.matchAll (litRe) ];
+            if (lits.length !== 1) { ok = false; break; }
+            const lit = lits[0];
+            const tUses = (scope.match (new RegExp (`(?<![\\w."])${t}(?![\\w"])`, 'g')) ?? []).length;
+            const tReads = (scope.match (new RegExp (`(?:this\\.safeValue\\(${t}, |${t}\\.(?:get|containsKey)\\(|\\(${t} == null)`, 'g')) ?? []).length;
             if (!lit || tUses !== 1 + tReads) { ok = false; break; }
             for (const n of lit[2].matchAll (/"(\w+)"\);/g)) names.add (n[1]);
             retypes.push ([ lit[0], lit[0].replace (/Map<String, Object>/, 'Map<String, String>').replace (/HashMap<String, Object>/, 'HashMap<String, String>') ]);
@@ -9462,14 +9488,41 @@ function nativeJavaWsHandlerDispatch (content: string): string {
         }
         if (!ok) continue;
         const miss = `"Method not found: " + ${v} + " with ${args.length} args on " + this.getClass().getName()`;
-        const sw = [ `${indent}switch (${v})`, `${indent}{`, ...arms, `${indent}    case null, default -> throw new RuntimeException(${miss});`, `${indent}}` ].join ('\n');
-        let newBody = body.slice (0, call.index - start) + sw + body.slice (call.index - start + whole.length);
+        let newBody = content.slice (start, end);
+        for (const m of sites.reverse ()) {
+            const ind = m[1];
+            const sw = [ `${ind}switch (${v})`, `${ind}{`, ...arms.map ((a) => ind + a.slice (indent.length)), `${ind}    case null, default -> throw new RuntimeException(${miss});`, `${ind}}` ].join ('\n');
+            newBody = newBody.slice (0, m.index) + sw + newBody.slice (m.index + m[0].length);
+        }
         newBody = newBody.replace (new RegExp (`(\\n\\s*)Object ${v} = `), `$1String ${v} = `);
         for (const [ w, g ] of reads) newBody = newBody.split (`${v} = ${w};`).join (`${v} = ${g};`);
-        for (const [ a, b ] of retypes) newBody = newBody.replace (a, b);
-        edits.push ({ from: start, to: end, text: newBody });
+        // a table declared above the dispatch block is retyped in place
+        const outer: { from: number, to: number, text: string }[] = [];
+        for (const [ a, b ] of retypes) {
+            const at = newBody.includes (a) ? start : content.indexOf (a, memberFrom);
+            if (at < 0 || at > start) { ok = false; break; }
+            if (at < start) outer.push ({ from: at, to: at + a.length, text: b });
+            else newBody = newBody.replace (a, b);
+        }
+        if (!ok) continue;
+        edits.push ({ from: start, to: end, text: newBody }, ...outer);
     }
     let out = content;
     for (const e of edits.sort ((a, b) => b.from - a.from)) out = out.slice (0, e.from) + e.text + out.slice (e.to);
     return out;
+}
+
+// `this[name] (args)` on a String local bound once to a literal that names a generated implicit-API method
+// (varargs, declared only in api/<X>Api.java): a direct call, which is what reflection resolves to.
+function nativeJavaLiteralApiDispatch (content: string, apiSource: string): string {
+    const re = /\(\((?:java\.util\.concurrent\.)?CompletableFuture<Object>\)(?:io\.github\.ccxt\.)?Helpers\.callDynamically\(this, (\w+), new Object\[\] \{ ([^{}\n]*) \}\)\)\.join\(\)/g;
+    return content.replace (re, (whole, v, args) => {
+        const decls = [ ...content.matchAll (new RegExp (`\\b(?:String|Object) ${v} = "(\\w+)";`, 'g')) ];
+        const uses = (content.match (new RegExp (`(?<![\\w."])${v}(?![\\w"])`, 'g')) ?? []).length;
+        if (decls.length !== 1 || uses !== 2) return whole;
+        const name = decls[0][1];
+        const apiDecls = apiSource.match (new RegExp (`\\n    public CompletableFuture<[\\w<>, ]+>\\s+${name} \\(Object\\.\\.\\. optionalArgs\\)`, 'g')) ?? [];
+        if (apiDecls.length !== 1 || new RegExp (`\\b${name}\\(`).test (content)) return whole;
+        return `(this.${name}(${args})).join()`;
+    });
 }

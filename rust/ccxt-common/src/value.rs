@@ -863,6 +863,15 @@ impl MergeOperands for &[&Dict; 1] {
     fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Dict(Arc::clone(self[0]))) }
 }
 /// An optional dict local lent to `extend`: `Some` merges its map, `None` merges nothing (as the boxed `Null` did).
+/// A boxed local lent as the sole extra operand: merges as the cloned box did.
+impl MergeOperands for &[&Value; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { if let Value::Dict(m) = self[0] { f(m) } }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(self[0].clone()) }
+}
+impl MergeOperands for &[&HashMap<String, Value>; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { f(self[0]) }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Map(self[0].clone())) }
+}
 impl MergeOperands for &[&Option<Dict>; 1] {
     fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { if let Some(m) = self[0] { f(m) } }
     fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::from(self[0])) }
@@ -878,6 +887,9 @@ impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**se
 /// exactly as the boxed `Value::Null` head did.
 impl ExtendHead for Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.map(ExtendHead::into_head).unwrap_or_default() } }
 impl ExtendHead for &Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.as_ref().map(ExtendHead::into_head).unwrap_or_default() } }
+/// A map local lent as the head: copied here, exactly as the boxed `Value::Map(x.clone())` head was.
+impl ExtendHead for &HashMap<String, Value> { fn into_head(self) -> HashMap<String, Value> { self.clone() } }
+impl ExtendHead for &&mut HashMap<String, Value> { fn into_head(self) -> HashMap<String, Value> { (**self).clone() } }
 
 /// ral-43c: the key of the runtime `get_value`: a boxed `&Value`, or a typed string local (`&str`, `Option<&str>`) that is
 /// boxed here to the same `Str` / `Null` key the boxed read used, so the lookup is unchanged.
@@ -890,6 +902,7 @@ impl ValueKey for Option<&str> { fn with_key<R>(self, f: impl FnOnce(&Value) -> 
 /// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
 pub trait OmitSource { fn into_operand(self) -> Value; }
 impl OmitSource for Value { fn into_operand(self) -> Value { self } }
+impl OmitSource for &Value { fn into_operand(self) -> Value { self.clone() } }
 impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
 /// ral-48d: an optional map local (`safeDict` with no default, a nil-declared map rewritten by its own omit): `None`
 /// answers `Value::Null` exactly as the boxed Null passed through `omit`; `Some(m)` drops keys from the shared map.

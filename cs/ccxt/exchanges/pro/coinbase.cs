@@ -629,11 +629,11 @@ public partial class coinbase : ccxt.coinbase
         string timeframe = "5m";
         for (int i = 0; i < events.Count; i++)
         {
-            object eventVar = events[i];
+            IDictionary<string, object> eventVar = ((IDictionary<string, object>)events[i]);
             List<object> candles = this.safeList(eventVar, "candles", new List<object>() {});
             for (int j = 0; j < candles.Count; j++)
             {
-                object candle = candles[j];
+                IDictionary<string, object> candle = ((IDictionary<string, object>)candles[j]);
                 string? marketId = this.safeString(candle, "product_id");
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));

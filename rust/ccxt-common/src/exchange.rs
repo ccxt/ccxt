@@ -398,7 +398,8 @@ pub struct Exchange {
     pub features:          Value,
     pub has:               Value,
     pub exceptions:        Value,
-    pub urls:              Value,
+    /// Plain dict, never tagged: reads and writes are the stdlib map ops.
+    pub urls:              crate::value::Dict,
     pub api:               Value,
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub options:           Value,
@@ -590,12 +591,12 @@ fn base_fees() -> Value {
     ])
 }
 
-fn base_urls() -> Value {
-    vmap(&[
+fn base_urls() -> crate::value::Dict {
+    Arc::new([
         ("logo", Value::Null), ("api", Value::Null), ("test", Value::Null),
         ("www", Value::Null), ("doc", Value::Null), ("api_management", Value::Null),
         ("fees", Value::Null), ("referral", Value::Null),
-    ])
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect())
 }
 
 fn base_status() -> Value {
@@ -875,7 +876,7 @@ impl Exchange {
             }
         };
         assign(&mut self.api, get("api"));
-        assign(&mut self.urls, get("urls"));
+        if let Value::Dict(m) = get("urls") { self.urls = m; }
         assign(&mut self.has, get("has"));
         assign(&mut self.hostname, get("hostname"));
         assign(&mut self.version, get("version"));
@@ -940,7 +941,7 @@ impl Exchange {
         let fetch_history_cache_size = crate::get_value(cfg, &Value::Str("fetchHistoryCacheSize".into()));
         if matches!(fetch_history_cache_size, Value::Int(_) | Value::Float(_)) { self.fetchHistoryCacheSize = fetch_history_cache_size; }
         let urls = crate::get_value(cfg, &Value::Str("urls".into()));
-        if let Value::Dict(_) = urls { self.urls = deep_merge(&self.urls, &urls); }
+        if let (Value::Dict(_), Value::Dict(m)) = (&urls, deep_merge(&Value::Dict(self.urls.clone()), &urls)) { self.urls = m; }
         if let Some(v) = safe_string(cfg, "apiKey",        None) { self.apiKey        = Value::Str(v.into()); }
         if let Some(v) = safe_string(cfg, "secret",        None) { self.secret        = Value::Str(v.into()); }
         if let Some(v) = safe_string(cfg, "password",      None) { self.password      = Value::Str(v.into()); }
@@ -2438,7 +2439,7 @@ impl Exchange {
     /// Resolves the base URL for a given api scope. Looks up
     /// `urls.api.<scope>`; if that's itself a map, prefers `rest`.
     fn url_for_scope(&self, scope: &str) -> Option<String> {
-        let api = crate::get_value(&self.urls, &Value::Str("api".into()));
+        let api = self.urls.get("api").cloned().unwrap_or(Value::Null);
         // Try scoped first (binance-style: urls.api.public, urls.api.private).
         let scoped = crate::get_value(&api, &Value::Str(scope.to_string().into()));
         let raw = match scoped {

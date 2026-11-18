@@ -36,10 +36,10 @@ pub fn testLiquidation(mut exchange: Value, mut skippedProperties: Value, mut me
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("price".into()).clone(), Value::Str("0".into()).clone()]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("baseValue".into()).clone(), Value::Str("0".into()).clone()]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("quoteValue".into()).clone(), Value::Str("0".into()).clone()]);
-    let mut contracts: Value = exchange.safe_string(entry.clone(), Value::Str("contracts".into()), &[]);
-    let mut contractSize: Value = exchange.safe_string(entry.clone(), Value::Str("contractSize".into()), &[]);
-    let mut price: Value = exchange.safe_string(entry.clone(), Value::Str("price".into()), &[]);
-    let mut baseValue: Value = exchange.safe_string(entry.clone(), Value::Str("baseValue".into()), &[]);
+    let mut contracts: Value = exchange.safe_string(&entry, Value::Str("contracts".into()), &[]);
+    let mut contractSize: Value = exchange.safe_string(&entry, Value::Str("contractSize".into()), &[]);
+    let mut price: Value = exchange.safe_string(&entry, Value::Str("price".into()), &[]);
+    let mut baseValue: Value = exchange.safe_string(&entry, Value::Str("baseValue".into()), &[]);
     if (contracts != Value::Null) && (contracts.as_str() != Some("")) && (contractSize != Value::Null) && (contractSize.as_str() != Some("")) {
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&contracts, &contractSize)))));
         if (price != Value::Null) && (price.as_str() != Some("")) {

@@ -3231,7 +3231,7 @@ export default class nado extends Exchange {
         return marketId;
     }
 
-    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
         if (('byType' in config) && ('type' in params)) {

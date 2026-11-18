@@ -2958,7 +2958,8 @@ public class Bullish extends BullishApi
             String code = this.safeString(parameters, "code");
             if (!java.util.Objects.equals(code, null))
             {
-                request.put("symbol", ((Map<String, Object>)this.currency(code)).get("id"));
+                Map<String, Object> currency = this.currency(code);
+                request.put("symbol", currency.get("id"));
                 response = (this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters))).join();
                 return this.parseBalanceForSingleCurrency((Map<String, Object>) (response), code);
             } else

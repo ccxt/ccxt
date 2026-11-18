@@ -555,6 +555,11 @@ function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType
         const owner = takeType (clientUrl[1]);
         return ((owner !== undefined) && (owner.type === 'WebSocketClient')) ? { kind: 'name', type: 'string' } : undefined;
     }
+    // a whole base `this.safeString(..)` / `this.safeInteger(..)` call: the accessor returns string? / Int64?
+    const safeCall = /^this\.(safeString2?|safeInteger2?)\(/.exec (maskedArg);
+    if ((safeCall !== null) && (csharpHelperCallEnd (maskedArg, safeCall[0].length - 1) === maskedArg.length - 1)) {
+        return { kind: 'name', type: safeCall[1].startsWith ('safeString') ? 'string?' : 'Int64?' };
+    }
     const field = CSHARP_OPERATOR_FIELD_TYPES[maskedArg];
     if (field !== undefined) {
         return { kind: 'name', type: field };
@@ -1558,7 +1563,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'hibachi': { 'FetchMySettlementHistory': [ 0 ], 'createOrderRequest': [ 1, 2, 3 ], 'editOrderRequest': [ 2, 3, 4 ], 'orderMessage': [ 3, 4 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'hitbtc': { 'FetchTransactionsHelper': [ 0, 1 ], 'createOrderRequest': [ 1, 2, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
     'hollaex': { 'parseOrderStatus': [ 0 ] },
-    'htx': { 'CreateSpotOrderRequest': [ 1 ], 'FetchClosedContractOrders': [ 0 ], 'FetchClosedSpotOrders': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'FetchSpotOrders': [ 0 ], 'FetchTradingLimitsById': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'createContractOrderRequest': [ 1, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTradingLimits': [ 1 ], 'parseTransactionStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
+    'htx': { 'CreateSpotOrderRequest': [ 1 ], 'FetchWithdrawAddresses': [ 1, 2 ], 'FetchClosedContractOrders': [ 0 ], 'FetchClosedSpotOrders': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'FetchSpotOrders': [ 0 ], 'FetchTradingLimitsById': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'createContractOrderRequest': [ 1, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTradingLimits': [ 1 ], 'parseTransactionStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
     'hyperliquid': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseCreateEditOrderArgs': [ 2, 3 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
     'independentreserve': { 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
     'indodax': { 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
@@ -1578,7 +1583,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'okx': { 'FetchFundingHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'editOrderRequest': [ 0, 2, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseBalanceByType': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'onetrading': { 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
     'pacifica': { 'FetchFundingHistory': [ 0 ], 'cancelAllOrdersRequest': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'editOrderRequest': [ 0, 2, 3 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
-    'paradex': { 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'encodeMarginMode': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'paradex': { 'FetchFundingHistory': [ 0 ], 'filterTransactionsByKind': [ 1 ], 'FetchMyLiquidations': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'encodeMarginMode': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'paymium': { 'parseTransferStatus': [ 0 ] },
     'phemex': { 'FetchFundingHistory': [ 0 ], 'parseMarginStatus': [ 0 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'poloniex': { 'FetchTransactionsHelper': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'orderRequest': [ 0, 1, 2 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
@@ -1625,6 +1630,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:nado': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ], 'watchPrivate': [ 0 ] },
     'pro:okx': { 'subscribe': [ 1 ], 'subscribeMultiple': [ 1 ], 'unWatchTrades': [ 0 ] },
     'pro:onetrading': { 'parseTradingOrderStatus': [ 0 ], 'parseWsOrderStatus': [ 0 ] },
+    'pro:paradex': { 'handleUnsubscribeReply': [ 1 ] },
     'pro:pacifica': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:phemex': { 'handleBalance': [ 0 ] },
     'pro:poloniex': { 'parseStatus': [ 0 ], 'subscribe': [ 0, 1 ] },
@@ -1649,7 +1655,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
 // Non-core helper `object since/limit/until/amount/price` parameters narrowed to the box every caller
 // passes (exact Int64?/double?/null, no conversion), keyed by method -> position across the whole tree
 // (overrides are invariant); body uses must be identities and positions needing a shadow are excluded.
-const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price', 'status', 'outcomeSide', 'marketCount', 'id' ];
+const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price', 'status', 'outcomeSide', 'marketCount', 'id', 'marketId', 'scale' ];
 
 const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'amountToPredictionPrecision': { 1: 'double?' },
@@ -1673,7 +1679,7 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'handlePaginationParams': { 1: 'Int64?' },
     'internalFetchTransfers': { 2: 'Int64?', 3: 'Int64?' },
     'opinionOrderRawAmounts': { 2: 'double?', 3: 'double?' },
-    'opinionOutcomeByMarketIdSide': { 1: 'Int64?' },
+    'opinionOutcomeByMarketIdSide': { 0: 'Int64?', 1: 'Int64?' },
     'orderRequestWs': { 4: 'double?', 5: 'double?' },
     'parseBorrowRateHistories': { 2: 'Int64?', 3: 'Int64?' },
     'parseContractOrderBook': { 2: 'Int64?' },
@@ -1701,6 +1707,8 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'seedOrderBook': { 2: 'Int64?' },
     'signAndCreateOrder': { 5: 'double?' },
     'titleForMarketSymbol': { 2: 'Int64?' },
+    // phemex: every caller passes a safeInteger / Int64? valueScale
+    'toEn': { 1: 'Int64?' },
     'tokenizedConvertHistory': { 0: 'Int64?', 1: 'Int64?' },
 };
 
@@ -4892,6 +4900,7 @@ class NewTranspiler {
     // helper's null->0 as `x?.Count ?? 0`; an `object` receiver is left untouched.
     nativeListHelperCalls (content: string): string {
         content = this.csharpOrderbookCacheCasts (content);
+        content = this.csharpListResultToArray (content);
         const masked = this.maskCsharpLiterals (content);
         const lines = content.split ('\n');
         const maskedLines = masked.split ('\n');
@@ -5246,6 +5255,32 @@ class NewTranspiler {
     // (and the printer's doubly-cast spelling of it) is an identity conversion on the member read.
     csharpOrderbookCacheCasts (content: string): string {
         return this.csharpReplaceUnmasked (content, CSHARP_ORDERBOOK_CACHE_CAST, (match) => '(' + match[1] + ' as ccxt.pro.OrderBook).cache.Add(');
+    }
+
+    // `this.toArray(p)` where p is a call declared to return List<object>/IList<object> (base methods
+    // below, or toArray itself): toArray hands any IList<object> back as the same reference and null as
+    // null, so only the call p remains; skipped where `var` would pick up the narrower static type
+    csharpListResultToArray (content: string): string {
+        const masked = this.maskCsharpLiterals (content);
+        const re = /\bthis\.toArray\(this\.(toArray|sortBy|sortBy2|safeList|getListFromObjectValues|parseOrderBookBidAsk|arrayConcat)\(/g;
+        let out = '';
+        let cursor = 0;
+        let match: RegExpExecArray | null;
+        while ((match = re.exec (masked)) !== null) {
+            const at = match.index;
+            if ((at > 0) && /[\w.]/.test (masked[at - 1])) {
+                continue;
+            }
+            const innerOpen = at + match[0].length - 1;
+            const innerClose = csharpMatchingClose (masked, innerOpen);
+            if ((innerClose < 0) || (masked[innerClose + 1] !== ')') || /\bvar\s+\w+\s*=\s*$/.test (masked.substring (Math.max (0, at - 80), at))) {
+                continue;
+            }
+            out += content.substring (cursor, at) + content.substring (at + 'this.toArray('.length, innerClose + 1);
+            cursor = innerClose + 2;
+            re.lastIndex = cursor;
+        }
+        return (cursor === 0) ? content : out + content.substring (cursor);
     }
 
     // replace each match of the global `re` outside literals and comments by `replace` (undefined keeps it);
@@ -7294,6 +7329,11 @@ function declaredIntMinMax (region: CsharpRegion, original: string, masked: stri
         const prev = (region.lines[line - 2] ?? '').trim ();
         return (region.lines[line - 1] ?? '').trim () === '{' && (prev === `if ((${x} != null))` || prev === `if (${x} != null)`);
     };
+    // two Int64 names, or an Int64 beside a dominated-non-null Int64? (boxed as Int64): one Int64 box either way
+    const wide = (t, x) => (t === 'Int64') || ((t === 'Int64?') && guarded (x));
+    if (wide (ta, a) && wide (tb, b) && ((ta === 'Int64') || (tb === 'Int64'))) {
+        return `Math.${name}(${(ta === 'Int64?') ? a + '.Value' : a}, ${(tb === 'Int64?') ? b + '.Value' : b})`;
+    }
     const field = /^[ ]*(?:[A-Za-z_]\w*\["[^"]*"\][ ]*=[ ]*(?:mathMin|mathMax)\([^;]*\);|\{[ ]*"[^"]*",[ ]*(?:mathMin|mathMax)\([^;]*\)[ ]*\},?)[ ]*$/.test (masked);
     if (!field) return undefined;
     if ((ta === 'Int64?') && (tb === 'int') && guarded (a)) return `Math.${name}(${a}.Value, ${b})`;

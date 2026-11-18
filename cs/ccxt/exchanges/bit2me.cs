@@ -1056,7 +1056,7 @@ public partial class bit2me : Exchange
         };
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object wallet = getValue(response, i);
+            IDictionary<string, object> wallet = ((IDictionary<string, object>)getValue(response, i));
             string? currencyId = this.safeString(wallet, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

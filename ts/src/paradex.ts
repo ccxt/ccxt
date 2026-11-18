@@ -1145,7 +1145,8 @@ export default class paradex extends Exchange {
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
-                target = this.market (symbolsNormalized[0])['id'] as string;
+                const market = this.market (symbolsNormalized[0]);
+                target = market['id'] as string;
             }
         }
         const request: Dict = {
