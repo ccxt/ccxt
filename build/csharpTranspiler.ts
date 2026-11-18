@@ -9180,7 +9180,7 @@ export function csharpWsAndIndexGetValue (content: string): string {
     const listTypes = [ 'List<object>', 'IList<object>' ];
     // SlimConcurrentList<object> subclasses: GetValue takes its IList<object> branch
     const cacheTypes = [ 'ccxt.pro.ArrayCache', 'ccxt.pro.ArrayCacheByTimestamp', 'ccxt.pro.ArrayCacheBySymbolById', 'ccxt.pro.ArrayCacheBySymbolBySide' ];
-    return csharpTwoArgCallPass (content, 'getValue', (region, i, { a: r, b: keyMask, bText: k }) => {
+    return csharpTwoArgCallPass (content, 'getValue', (region, i, { start: at, a: r, b: keyMask, bText: k }) => {
         const { start, params, lines: masked } = region;
         // the one typed binding of `name` in the method, when no lambda parameter and no ref/out sink rebinds it
         const bindingType = (name: string): string | undefined => {
@@ -9233,6 +9233,13 @@ export function csharpWsAndIndexGetValue (content: string): string {
             if ((el !== null) && listTypes.includes ((bindingType (el[1]) ?? '').replace (/\s+/g, '')) && (bindingType (el[2]) === 'int')) {
                 return dictionaryGetValue (r, k, 'object');
             }
+            // a guarded element read of a declared list by an int name (an `object` key): read once into
+            // TryGetValue; a null key reads null and a non-string key throws, as GetValue's `(string)key`
+            const g = /^\(([A-Za-z_]\w*) != null && ([A-Za-z_]\w*) < \1\.Count \? \1\[\2\] : null\)$/.exec (keyMask);
+            if ((g !== null) && listTypes.includes ((bindingType (g[1]) ?? '').replace (/\s+/g, '')) && (bindingType (g[2]) === 'int')) {
+                const v = r + 'Value' + i + '_' + at;
+                return `(${r} != null && ${k} != null && ${r}.TryGetValue((string)${k}, out var ${v}) ? ${v} : null)`;
+            }
         }
         return undefined;
     });
@@ -9248,6 +9255,7 @@ function wsAndIndexGetValueSelfTest (): string[] {
         [ 'Int64? index', '        Int64? r = this.parseToInt("1");\n        object a = getValue(xs, r);', '(xs != null && r != null && r < xs.Count ? xs[(int)r] : null)' ],
         [ 'mixed int/Int64 expression', '        int n = (xs?.Count ?? 0);\n        for (Int64 i = 0; i < n; i++)\n        {\n            object a = getValue(xs, ((n - i) - 1));\n        }', '(xs != null && ((n - i) - 1) < xs.Count ? xs[(int)((n - i) - 1)] : null)' ],
         [ 'array cache int index', '        ccxt.pro.ArrayCache stored = this.orders;\n        for (int i = 0; i < (stored?.Count ?? 0); i++)\n        {\n            object a = getValue(stored, i);\n        }', '(stored != null && i < stored.Count ? stored[i] : null)' ],
+        [ 'guarded keys element key', '        List<object> ks = new List<object>(d.Keys);\n        for (int i = 0; i < ks.Count; i++)\n        {\n            object a = getValue(d, (ks != null && i < ks.Count ? ks[i] : null));\n        }', '(d != null && (ks != null && i < ks.Count ? ks[i] : null) != null && d.TryGetValue((string)(ks != null && i < ks.Count ? ks[i] : null), out var dValue8_23) ? dValue8_23 : null)' ],
         [ 'keys element key', '        List<object> ks = new List<object>(d.Keys);\n        for (int i = 0; i < ks.Count; i++)\n        {\n            object a = getValue(d, ks[i]);\n        }', '(d != null && ks[i] != null && d.ContainsKey((string)ks[i]) ? d[(string)ks[i]] : null)' ],
     ];
     const keeps: [string, string][] = [
@@ -9257,6 +9265,8 @@ function wsAndIndexGetValueSelfTest (): string[] {
         [ 'object list index', '        object j = 0;\n        object a = getValue(xs, j);' ],
         [ 'Int64? in expression', '        Int64? r = this.parseToInt("1");\n        object a = getValue(xs, (r - 1));' ],
         [ 'double index', '        double r = 1;\n        object a = getValue(xs, r);' ],
+        [ 'guarded object list key', '        object ks = new List<object>();\n        int i = 0;\n        object a = getValue(d, (ks != null && i < ks.Count ? ks[i] : null));' ],
+        [ 'guarded list key, Int64 index', '        List<object> ks = new List<object>();\n        Int64 i = 0;\n        object a = getValue(d, (ks != null && i < ks.Count ? ks[i] : null));' ],
         [ 'object list keys', '        object ks = new List<object>();\n        int i = 0;\n        object a = getValue(d, ks[i]);' ],
         [ 'object receiver', '        object o = d;\n        object a = getValue(o, "k");' ],
     ];
