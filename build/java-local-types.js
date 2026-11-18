@@ -8088,16 +8088,54 @@ function patchJavaStringReceiverCall (printer, method, rebuild) {
         const receiver = (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression))
             ? node.expression.expression : undefined;
         const clean = receiver === undefined ? undefined : javaEmittedStringReceiverText (printer, receiver, name);
-        // a printer-native replace (guarded replaceFirst) needs no receiver rebuild
-        const nativeReplace = clean !== undefined && method === 'printReplaceCall' ? upstream.apply (printer, arguments) : undefined;
-        if (typeof nativeReplace === 'string' && !nativeReplace.startsWith ('Helpers.replace(')) {
+        // a printer-native replace/replaceAll (guarded replaceFirst/replace) needs no receiver rebuild
+        const isReplace = method === 'printReplaceCall' || method === 'printReplaceAllCall';
+        const nativeReplace = clean !== undefined && isReplace ? upstream.apply (printer, arguments) : undefined;
+        if (typeof nativeReplace === 'string' && !/^Helpers\.replace(?:All)?\(/.test (nativeReplace)) {
             return nativeReplace;
+        }
+        const typedReplace = clean !== undefined && method === 'printReplaceCall' ? javaStringLocalsReplaceText (printer, node, clean) : undefined;
+        if (typedReplace !== undefined) {
+            return typedReplace;
         }
         if (clean !== undefined) {
             return rebuild (clean, parsedArg, parsedArg2);
         }
         return upstream.apply (printer, arguments);
     };
+}
+
+// `s.replace (a, b)` with s, a, b String-declared locals or literals: Helpers.replace is a literal
+// first-occurrence replace, null receiver -> null and a null a/b read as "" (Objects.toString)
+function javaStringLocalsReplaceText (printer, node, clean) {
+    const args = node.arguments;
+    if (args?.length !== 2) {
+        return undefined;
+    }
+    const parts = [];
+    for (const arg of args) {
+        const bare = unwrapParens (arg);
+        if (bare !== undefined && ts.isStringLiteral (bare)) {
+            const printed = printer.printNode (bare, 0);
+            if (!/^"[^"\\]*"$/.test (printed) || printed !== JSON.stringify (bare.text)) {
+                return undefined;
+            }
+            parts.push ({ text: printed, literal: bare.text });
+            continue;
+        }
+        const local = javaEmittedStringReceiverText (printer, arg, undefined);
+        if (local === undefined || !/^[\w$]+$/.test (local)) {
+            return undefined;
+        }
+        parts.push ({ text: `java.util.Objects.toString(${local}, "")` });
+    }
+    if (parts.every ((p) => p.literal !== undefined)) {
+        return undefined; // literal pairs belong to the literal-replace pass
+    }
+    const [ find, repl ] = parts;
+    const pattern = (find.literal !== undefined && !/[\\^$.|?*+()[\]{}]/.test (find.literal)) ? find.text : `java.util.regex.Pattern.quote(${find.text})`;
+    const replacement = (repl.literal !== undefined && !/[$\\]/.test (repl.literal)) ? repl.text : `java.util.regex.Matcher.quoteReplacement(${repl.text})`;
+    return `(${clean} == null ? null : ((String)${clean}).replaceFirst(${pattern}, ${replacement}))`;
 }
 
 // ===== map put/get channel String casts =====
