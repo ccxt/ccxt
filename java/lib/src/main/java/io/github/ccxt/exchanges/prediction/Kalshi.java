@@ -3003,7 +3003,7 @@ public class Kalshi extends KalshiApi
                 for (var page = 0; (maxPages != null && page < maxPages); page++)
                 {
                     Long reqLimit = pageLimit;
-                    if (Boolean.TRUE.equals(hasLimit) && (!java.util.Objects.equals(limitValue, null)))
+                    if (Boolean.TRUE.equals(hasLimit))
                     {
                         Integer collectedSoFar = rawEvents.size();
                         Long remaining = this.parseToInt((limitValue - ((long) collectedSoFar)));

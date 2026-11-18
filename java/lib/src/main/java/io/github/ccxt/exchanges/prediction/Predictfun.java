@@ -1957,10 +1957,10 @@ public class Predictfun extends PredictfunApi
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        String rRaw = (String) signature.get("r");
-        String sRaw = (String) signature.get("s");
-        String r = (rRaw.length() >= 64 ? rRaw.substring(rRaw.length() - 64) : String.format("%" + (64 - rRaw.length()) + "s", "").replace(' ', '0') + rRaw);
-        String s = (sRaw.length() >= 64 ? sRaw.substring(sRaw.length() - 64) : String.format("%" + (64 - sRaw.length()) + "s", "").replace(' ', '0') + sRaw);
+        String rRaw = this.safeString(signature, "r", "");
+        String sRaw = this.safeString(signature, "s", "");
+        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
+        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
         String v = this.intToBase16(this.sum(27, signature.get("v")));
         // assign before toLowerCase so the php regex matches, it only handles a bare identifier
@@ -2092,7 +2092,7 @@ public class Predictfun extends PredictfunApi
 }}));
         // ethEncodeStructuredData returns the EIP-712 digest, which is both what gets signed and
         // the order hash the venue indexes the order by
-        byte[] encoded = this.ethEncodeStructuredData(domain, new HashMap<String, Object>() {{
+        Object encoded = this.ethEncodeStructuredData(domain, new HashMap<String, Object>() {{
             put( "Order", orderStruct );
         }}, order);
         // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,

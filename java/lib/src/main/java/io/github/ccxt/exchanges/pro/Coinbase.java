@@ -1308,7 +1308,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public void handleMessage(Client client, Map<String, Object> message)
     {
         String channel = this.safeString(message, "channel");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "subscriptions", "handleSubscriptionStatus");
             put( "ticker", "handleTickers");
             put( "ticker_batch", "handleTickers");
@@ -1330,10 +1330,20 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             throw new ExchangeError(errorMessageValue) ;
         }
-        Object method = this.safeValue(methods, channel);
+        String method = methods.get(channel);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method)
+            {
+                case "handleHeartbeats" -> this.handleHeartbeats(client, message);
+                case "handleOHLCV" -> this.handleOHLCV(client, message);
+                case "handleOrder" -> this.handleOrder(client, message);
+                case "handleOrderBook" -> this.handleOrderBook(client, message);
+                case "handleSubscriptionStatus" -> this.handleSubscriptionStatus(client, message);
+                case "handleTickers" -> this.handleTickers(client, message);
+                case "handleTrade" -> this.handleTrade(client, message);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
         }
     }
 }

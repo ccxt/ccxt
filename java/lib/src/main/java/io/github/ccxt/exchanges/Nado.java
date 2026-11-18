@@ -3549,7 +3549,7 @@ public class Nado extends NadoApi
         if (java.util.Objects.requireNonNullElse(left, true))
         {
             String paddedLeft = (zeros + value);
-            Object start = Helpers.subtract(paddedLeft.length(), this.parseToInt(length));
+            Long start = (((long) paddedLeft.length()) - this.parseToInt(length));
             return Helpers.slice(paddedLeft, start, paddedLeft.length());
         }
         String paddedRight = (value + zeros);
@@ -3585,7 +3585,7 @@ public class Nado extends NadoApi
     put( "type", "uint128" );
 }})) );
         }};
-        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
+        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -3612,7 +3612,7 @@ public class Nado extends NadoApi
     put( "type", "uint64" );
 }})) );
         }};
-        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
+        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -3636,7 +3636,7 @@ public class Nado extends NadoApi
     put( "type", "uint64" );
 }})) );
         }};
-        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
+        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -3657,7 +3657,7 @@ public class Nado extends NadoApi
     put( "type", "uint64" );
 }})) );
         }};
-        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
+        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 

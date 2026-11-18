@@ -838,10 +838,10 @@ public class Sxbet extends SxbetApi
         Map<String,Object> signature = ecdsa((digest == null ? null : ((String)digest).substring(Math.max(((String)digest).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        String rRaw = (String) signature.get("r");
-        String sRaw = (String) signature.get("s");
-        String r = (rRaw.length() >= 64 ? rRaw.substring(rRaw.length() - 64) : String.format("%" + (64 - rRaw.length()) + "s", "").replace(' ', '0') + rRaw);
-        String s = (sRaw.length() >= 64 ? sRaw.substring(sRaw.length() - 64) : String.format("%" + (64 - sRaw.length()) + "s", "").replace(' ', '0') + sRaw);
+        String rRaw = this.safeString(signature, "r", "");
+        String sRaw = this.safeString(signature, "s", "");
+        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
+        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         String v = this.intToBase16(this.sum(27, signature.get("v")));
         return ((("0x" + r) + s) + v);
     }
@@ -2575,7 +2575,7 @@ public class Sxbet extends SxbetApi
     {
         Map<String, Object> entry = new HashMap<String, Object>() {{}};
         entry.put(key, value);
-        Helpers.addElementToObject(this.options, group, this.extend(this.safeDict(this.options, group, new HashMap<String, Object>() {{}}), entry));
+        this.options.put(group, this.extend(this.safeDict(this.options, group, new HashMap<String, Object>() {{}}), entry));
     }
 
     public Long requestId(String url)

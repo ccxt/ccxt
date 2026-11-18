@@ -1832,11 +1832,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<String> symbolsNormalized = symbols;
             if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
-                symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            }
-            if ((!java.util.Objects.equals(symbolsNormalized, null)) && !this.isEmpty(symbolsNormalized))
-            {
-                messageHash = ("::" + String.join(",", (List<String>)symbolsNormalized));
+                List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, true, false, false);
+                symbolsNormalized = marketSymbols;
+                messageHash = ("::" + String.join(",", (List<String>)marketSymbols));
             }
             String firstSymbol = this.safeString(symbolsNormalized, 0);
             String url = (this.getUrlByMarketType(firstSymbol, true, method, parameters)).join();
@@ -1852,8 +1850,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            List<String> topics = new ArrayList<String>(Arrays.asList("position"));
-            List<Object> newPositions = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList("position")), parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;

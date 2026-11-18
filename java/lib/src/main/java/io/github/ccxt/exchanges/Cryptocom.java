@@ -3759,7 +3759,7 @@ public class Cryptocom extends CryptocomApi
         }};
     }
 
-    public List<Object> parseSettlements(Object settlements, Map<String, Object> market)
+    public List<Object> parseSettlements(List<Object> settlements, Map<String, Object> market)
     {
         //
         //     [
@@ -3772,7 +3772,7 @@ public class Cryptocom extends CryptocomApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)settlements).size(); i++)
+        for (var i = 0; i < settlements.size(); i++)
         {
             ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (this.safeDict(settlements, i, new HashMap<String, Object>() {{}})), market));
         }
@@ -3844,7 +3844,7 @@ public class Cryptocom extends CryptocomApi
         Object fundingTimestamp = null;
         if (!java.util.Objects.equals(timestamp, null))
         {
-            fundingTimestamp = ((this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) timestamp) / ((double) 3600000))))))) * 3600000L); // end of the next hour
+            fundingTimestamp = (this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) timestamp) / ((double) 3600000)))))) * 3600000L); // end of the next hour
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -4439,7 +4439,7 @@ public class Cryptocom extends CryptocomApi
             {
                 String paramsString = "{}";
                 String arrayString = "[]";
-                requestBody = Helpers.replace(requestBody, (String)arrayString, (String)paramsString);
+                requestBody = (requestBody == null ? null : ((String)requestBody).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(arrayString, "")), java.util.regex.Matcher.quoteReplacement(java.util.Objects.toString(paramsString, ""))));
             }
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

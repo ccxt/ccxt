@@ -1276,13 +1276,15 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         previousOrder.put("average", this.parseNumber(Precise.stringDiv(totalCost, totalAmount)));
                     }
                     previousOrder.put("cost", this.parseNumber(totalCost));
-                    if (!java.util.Objects.equals(previousOrder.get("filled"), null))
+                    String previousOrderFilledRaw = this.safeString(previousOrder, "filled");
+                    if (!java.util.Objects.equals(previousOrderFilledRaw, null))
                     {
                         String tradeAmount = this.numberToString(trade.get("amount"));
                         String previousOrderFilled = this.numberToString(previousOrder.get("filled"));
                         previousOrderFilled = Precise.stringAdd(previousOrderFilled, tradeAmount);
                         Helpers.addElementToObject(previousOrder, "filled", previousOrderFilled);
-                        if (!java.util.Objects.equals(previousOrder.get("amount"), null))
+                        String previousOrderAmountRaw = this.safeString(previousOrder, "amount");
+                        if (!java.util.Objects.equals(previousOrderAmountRaw, null))
                         {
                             String previousOrderAmount = this.numberToString(previousOrder.get("amount"));
                             previousOrder.put("remaining", this.parseNumber(Precise.stringSub(previousOrderAmount, previousOrderFilled)));

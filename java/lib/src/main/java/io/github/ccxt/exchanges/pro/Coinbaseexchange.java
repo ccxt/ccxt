@@ -871,7 +871,8 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         Map<String, Object> previousOrderFee = this.safeDict(previousOrder, "fee", new HashMap<String, Object>() {{}});
                         if ((!java.util.Objects.equals(this.safeNumber(previousOrderFee, "cost", (Object) null), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
                         {
-                            Helpers.addElementToObject(previousOrder.get("fee"), "cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(trade.get("fee"), "cost"))));
+                            previousOrderFee.put("cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(trade.get("fee"), "cost"))));
+                            previousOrder.put("fee", previousOrderFee);
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);
@@ -1190,7 +1191,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
     public void handleMessage(Client client, Map<String, Object> message)
     {
         String type = this.safeString(message, "type");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "snapshot", "handleOrderBook");
             put( "l2update", "handleOrderBook");
             put( "subscribe", "handleSubscriptionStatus");
@@ -1202,7 +1203,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             put( "error", "handleErrorMessage");
         }};
         Boolean authenticated = ((String)client.url).endsWith("?");
-        Object method = this.safeValue(methods, type);
+        String method = methods.get(type);
         if (java.util.Objects.equals(method, null))
         {
             if (java.util.Objects.equals(type, "match"))
@@ -1218,7 +1219,15 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             }
         } else
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method)
+            {
+                case "handleErrorMessage" -> this.handleErrorMessage(client, message);
+                case "handleOrder" -> this.handleOrder(client, message);
+                case "handleOrderBook" -> this.handleOrderBook(client, message);
+                case "handleSubscriptionStatus" -> this.handleSubscriptionStatus(client, message);
+                case "handleTicker" -> this.handleTicker(client, message);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
         }
     }
 }

@@ -492,7 +492,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             List<String> channelKeys = new ArrayList<String>(subscriptions.keySet());
             for (var i = 0; i < channelKeys.size(); i++)
             {
-                ((List<Object>)message).add(Helpers.GetValue(subscriptions, (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i))));
+                ((List<Object>)message).add((subscriptions == null || (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i)) == null ? null : subscriptions.get((channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i)))));
             }
             return (this.watch(url, messageHashResolved, message, messageHashResolved, null)).join();
         });

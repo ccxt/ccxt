@@ -728,7 +728,7 @@ public class Polymarket extends PolymarketApi
                 } else
                 {
                     Long optionMaxPages = this.safeInteger(this.options, "maxSearchPages", 5);
-                    Long maxSearchPages = this.safeInteger(parameters, "maxSearchPages", optionMaxPages);
+                    Long maxSearchPages = this.parseToInt(this.safeInteger(parameters, "maxSearchPages", optionMaxPages));
                     if ((totalPages != null && (maxSearchPages == null || maxSearchPages < totalPages)))
                     {
                         totalPages = maxSearchPages;
@@ -1715,34 +1715,34 @@ public class Polymarket extends PolymarketApi
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             Long fidelityMin = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), 1); // fidelity in minutes
             Long nowS = this.seconds();
-            Object startS = null;
-            Object endS = nowS;
+            Long startS = this.parseToInt(0);
+            Long endS = this.parseToInt(nowS);
             if (!java.util.Objects.equals(since, null))
             {
                 startS = this.parseToInt((((double) since) / ((double) 1000)));
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    Object endBound = this.sum(startS, ((limit * fidelityMin) * 60L));
-                    endS = (((((nowS != null && !(((Number) endBound).doubleValue() >= nowS)))))) ? endBound : nowS;
+                    Long endBound = this.parseToInt(this.sum(startS, ((limit * fidelityMin) * 60L)));
+                    endS = ((((nowS != null && (endBound == null || endBound < nowS))))) ? endBound : nowS;
                 }
             } else
             {
                 Long barCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100;
-                startS = (nowS - (((barCount * fidelityMin) * 60L)));
+                startS = this.parseToInt((nowS - (((barCount * fidelityMin) * 60L))));
             }
             // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
             // regardless of fidelity, so clamp the window to the cap: keep the requested
             // `since` anchor (oldest chunk first, consistent with since/limit paging),
             // or the most recent window when no `since` was given
             Long maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test((Helpers.subtract(endS, startS)), maxWindow))
+            if (((maxWindow == null || ((endS - startS)) > maxWindow)))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    endS = this.sum(startS, maxWindow);
+                    endS = this.parseToInt(this.sum(startS, maxWindow));
                 } else
                 {
-                    startS = Helpers.subtract(endS, maxWindow);
+                    startS = this.parseToInt((endS - maxWindow));
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1773,7 +1773,7 @@ public class Polymarket extends PolymarketApi
                     continue;
                 }
                 Long rawMs = (t * 1000L);
-                Long snappedMs = (Long) Helpers.multiply(this.parseToInt((((double) rawMs) / ((double) resolutionMs))), resolutionMs);
+                Long snappedMs = (this.parseToInt((((double) rawMs) / ((double) resolutionMs))) * resolutionMs);
                 // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
                 // rather than fabricating a 0, probing s/v in case the field ever appears
                 Double vol = this.safeNumber(item, "s", (Object) null);
@@ -1803,7 +1803,7 @@ public class Polymarket extends PolymarketApi
             List<Object> unsortedCandles = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < bucketKeys.size(); i++)
             {
-                ((List<Object>)unsortedCandles).add(Helpers.GetValue(buckets, (bucketKeys == null || i < 0 || i >= bucketKeys.size() ? null : bucketKeys.get(i))));
+                ((List<Object>)unsortedCandles).add((buckets == null || (bucketKeys == null || i < 0 || i >= bucketKeys.size() ? null : bucketKeys.get(i)) == null ? null : buckets.get((bucketKeys == null || i < 0 || i >= bucketKeys.size() ? null : bucketKeys.get(i)))));
             }
             List<Object> candles = this.sortBy(unsortedCandles, 0);
             Integer candlesLength = candles.size();
@@ -2964,12 +2964,12 @@ public class Polymarket extends PolymarketApi
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         Object orderTypeHash = this.hash(this.encode(orderTypeString), keccak(), "binary");
-        byte[] contentsData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new ArrayList<Object>(Arrays.asList(orderTypeHash, this.convertToBigInt(message.get("salt")), message.get("maker"), message.get("signer"), this.convertToBigInt(message.get("tokenId")), this.convertToBigInt(message.get("makerAmount")), this.convertToBigInt(message.get("takerAmount")), message.get("side"), message.get("signatureType"), this.convertToBigInt(message.get("timestamp")), this.base16ToBinary(this.remove0xPrefix(message.get("metadata"))), this.base16ToBinary(this.remove0xPrefix(message.get("builder"))))));
+        Object contentsData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new ArrayList<Object>(Arrays.asList(orderTypeHash, this.convertToBigInt(message.get("salt")), message.get("maker"), message.get("signer"), this.convertToBigInt(message.get("tokenId")), this.convertToBigInt(message.get("makerAmount")), this.convertToBigInt(message.get("takerAmount")), message.get("side"), message.get("signatureType"), this.convertToBigInt(message.get("timestamp")), this.base16ToBinary(this.remove0xPrefix(message.get("metadata"))), this.base16ToBinary(this.remove0xPrefix(message.get("builder"))))));
         String contentsHash = ("0x" + this.hash(contentsData, keccak(), "hex"));
         Object domainTypeHash = this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak(), "binary");
         Object nameHash = this.hash(this.encode(domainName), keccak(), "binary");
         Object versionHash = this.hash(this.encode(domainVersion), keccak(), "binary");
-        byte[] appDomainData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "bytes32", "bytes32", "uint256", "address")), new ArrayList<Object>(Arrays.asList(domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress)));
+        Object appDomainData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "bytes32", "bytes32", "uint256", "address")), new ArrayList<Object>(Arrays.asList(domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress)));
         String appDomainSep = ("0x" + this.hash(appDomainData, keccak(), "hex"));
         List<Object> typedDataSignStruct = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
     put( "name", "contents" );
@@ -3592,8 +3592,8 @@ public class Polymarket extends PolymarketApi
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                String plusSecret = Helpers.replaceAll(secret, (String)"-", (String)"+");
-                String normalizedSecret = Helpers.replaceAll(plusSecret, (String)"_", (String)"/");
+                String plusSecret = (secret == null ? null : ((String)secret).replace("-", "+"));
+                String normalizedSecret = (plusSecret == null ? null : ((String)plusSecret).replace("_", "/"));
                 byte[] secretBytes = this.base64ToBinary(normalizedSecret);
                 Object signature = this.hmac(this.encode(auth), secretBytes, sha256(), "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
@@ -3652,10 +3652,10 @@ public class Polymarket extends PolymarketApi
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        String rRaw = (String) signature.get("r");
-        String sRaw = (String) signature.get("s");
-        String r = (rRaw.length() >= 64 ? rRaw.substring(rRaw.length() - 64) : String.format("%" + (64 - rRaw.length()) + "s", "").replace(' ', '0') + rRaw);
-        String s = (sRaw.length() >= 64 ? sRaw.substring(sRaw.length() - 64) : String.format("%" + (64 - sRaw.length()) + "s", "").replace(' ', '0') + sRaw);
+        String rRaw = this.safeString(signature, "r", "");
+        String sRaw = this.safeString(signature, "s", "");
+        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
+        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         return new HashMap<String, Object>() {{
             put( "r", ("0x" + r) );
             put( "s", ("0x" + s) );

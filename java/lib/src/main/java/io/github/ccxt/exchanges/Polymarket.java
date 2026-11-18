@@ -3191,7 +3191,7 @@ public class Polymarket extends PolymarketApi
                 {
                     return credentials;
                 }
-                Long refreshAfter = (expires - margin);
+                Long refreshAfter = this.parseToInt((expires - margin));
                 if ((refreshAfter != null && (this.milliseconds()) < refreshAfter))
                 {
                     return credentials;

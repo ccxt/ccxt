@@ -577,17 +577,20 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String messageType = this.getTypeByMarket(market);
             String messageHash = (("orderbook" + ":") + symbolValue);
             // max 100 atm, max 50 for options
-            Integer defaultLimit = 100;
+            Long limitResolved = this.parseToInt(100);
             if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) || (java.util.Objects.equals(messageType, "options")))
             {
-                defaultLimit = 50;
+                limitResolved = this.parseToInt(50);
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+            if (!java.util.Objects.equals(limit, null))
+            {
+                limitResolved = this.parseToInt(limit);
+            }
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
                 Long maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
-                limitResolved = (limitResolved == null || maxSpotLimit == null ? null : (((Number) limitResolved).doubleValue() < ((Number) maxSpotLimit).doubleValue() ? (Object) (limitResolved) : (Object) (maxSpotLimit)));
+                limitResolved = this.parseToInt(Math.min(limitResolved, maxSpotLimit));
             }
             List<Object> payload = new ArrayList<Object>(Arrays.asList());
             String channel = "";
@@ -599,7 +602,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 channel = "spot.obu";
                 String finalInterval = interval;
-                if (java.util.Objects.equals((limitResolved == null ? null : ((Number) limitResolved).longValue()), 400L))
+                if ((limitResolved != null && limitResolved == 400))
                 {
                     finalInterval = "400";
                 }
@@ -653,14 +656,15 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String intervalOption = intervalOptionparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalOptionparamsIntervalVariable.second();
             String messageType = this.getTypeByMarket(market);
-            Object limit = this.safeInteger(paramsInterval, "limit");
-            if (java.util.Objects.equals(limit, null))
+            Long limitParam = this.safeInteger(paramsInterval, "limit");
+            Long limit = this.parseToInt(((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? 50 : 100); // max 100 atm
+            if (java.util.Objects.equals(messageType, "options"))
             {
-                limit = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? 50 : 100; // max 100 atm
-                if (java.util.Objects.equals(messageType, "options"))
-                {
-                    limit = 50; // max 50 for options
-                }
+                limit = this.parseToInt(50); // max 50 for options
+            }
+            if (!java.util.Objects.equals(limitParam, null))
+            {
+                limit = this.parseToInt(limitParam);
             }
             List<Object> payload = new ArrayList<Object>(Arrays.asList());
             String channel = "";
@@ -672,7 +676,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 channel = "spot.obu";
                 String finalInterval = intervalOption;
-                if (java.util.Objects.equals((limit == null ? null : ((Number) limit).longValue()), 400L))
+                if ((limit != null && limit == 400))
                 {
                     finalInterval = "400";
                 }
@@ -1490,7 +1494,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String timeframeId = this.safeString(parts, 0);
             String timeframe = this.findTimeframe(timeframeId, (Object) null);
             String prefix = (timeframe + "_");
-            String marketId = Helpers.replace(subscription, (String)prefix, (String)"");
+            String marketId = (subscription == null ? null : ((String)subscription).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(prefix, "")), ""));
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", marketType);
             List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, (Map<String, Object>) null);
             if (java.util.Objects.equals(marketType, "spot"))

@@ -1659,7 +1659,7 @@ public class Apex extends ApexApi
             request.put("size", orderSize);
             request.put("price", finalOrderPrice);
             request.put("limitFee", limitFee);
-            request.put("expiration", ((this.parseToInt((((double) timeNow) / ((double) 1000)))) + (((30L * 24L) * 60L) * 60L)));
+            request.put("expiration", (this.parseToInt((((double) timeNow) / ((double) 1000))) + (((30L * 24L) * 60L) * 60L)));
             request.put("timeInForce", timeInForce);
             request.put("clientId", finalClientOrderId);
             request.put("brokerId", this.safeString(this.options, "brokerId", "6956"));

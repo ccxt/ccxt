@@ -3814,15 +3814,15 @@ public class Okx extends OkxApi
             String timezone = this.safeString(options, "timezone", "UTC");
             Boolean limitIsUndefined = (java.util.Objects.equals(limit, null));
             // default 100, max 300, only 100 if 'mark' or 'index'
-            Long requestMaxLimit = 300L;
+            Integer requestMaxLimit = 300;
             if (isMarkOrIndex)
             {
-                requestMaxLimit = 100L;
+                requestMaxLimit = 100;
             }
-            Long limitResolved = 100L;
+            Long limitResolved = this.parseToInt(100);
             if (!java.util.Objects.equals(limit, null))
             {
-                limitResolved = Math.min(limit, requestMaxLimit);
+                limitResolved = this.parseToInt((limit == null || requestMaxLimit == null ? null : (((Number) limit).doubleValue() < ((Number) requestMaxLimit).doubleValue() ? (Object) (limit) : (Object) (requestMaxLimit))));
             }
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String bar = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -3889,9 +3889,9 @@ public class Okx extends OkxApi
             {
                 if (Boolean.TRUE.equals(isHistoryCandles))
                 {
-                    if (Boolean.TRUE.equals(limitIsUndefined) && (java.util.Objects.equals(limitResolved, 100L)))
+                    if (Boolean.TRUE.equals(limitIsUndefined) && ((limitResolved != null && limitResolved == 100)))
                     {
-                        limitResolved = 300L;
+                        limitResolved = this.parseToInt(300);
                         request.put("limit", 300); // reassign to 300, but this whole logic needs to be simplified...
                     }
                     response = (this.publicGetMarketHistoryCandles(this.extend(request, paramsType))).join();
@@ -4516,26 +4516,27 @@ public class Okx extends OkxApi
                     Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (orderParams), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                     Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
-                    Object notional = this.safeNumber2(paramsRequiresPrice, "cost", "sz", (Object) null);
+                    Double notionalParam = this.safeNumber2(paramsRequiresPrice, "cost", "sz", (Object) null);
+                    Object notional = notionalParam;
                     orderParams = this.omit(paramsRequiresPrice, new ArrayList<Object>(Arrays.asList("cost", "sz")));
                     if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (!java.util.Objects.equals(price, null))
                         {
-                            if (java.util.Objects.equals(notional, null))
+                            if (java.util.Objects.equals(notionalParam, null))
                             {
                                 String amountString = this.numberToString(amount);
                                 String priceString = this.numberToString(price);
                                 String quoteAmount = Precise.stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
-                        } else if (java.util.Objects.equals(notional, null))
+                        } else if (java.util.Objects.equals(notionalParam, null))
                         {
                             throw new InvalidOrder((this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")) ;
                         }
                     } else
                     {
-                        notional = (((java.util.Objects.equals(notional, null)))) ? amount : notional;
+                        notional = (((java.util.Objects.equals(notionalParam, null)))) ? amount : notionalParam;
                     }
                     request.put("sz", this.costToPrecision(symbol, notional));
                 }
@@ -4878,12 +4879,18 @@ public class Okx extends OkxApi
             {
                 Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String marketId = this.safeString(rawOrder, "symbol");
-                if (java.util.Objects.equals(marketId, null))
-                {
-                    throw new ArgumentsRequired((this.id + " createOrders() requires a symbol for each order")) ;
-                }
                 String type = this.safeString(rawOrder, "type", "");
                 String side = this.safeString(rawOrder, "side");
+                if ((java.util.Objects.equals(marketId, null)) || (java.util.Objects.equals(side, null)))
+                {
+                    // a missing side is the createOrderRequest () error
+                    String reason = " requires a side argument";
+                    if (java.util.Objects.equals(marketId, null))
+                    {
+                        reason = " createOrders() requires a symbol for each order";
+                    }
+                    throw new ArgumentsRequired((this.id + reason)) ;
+                }
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
@@ -10595,7 +10602,7 @@ public class Okx extends OkxApi
         }};
     }
 
-    public List<Object> parseSettlements(Object settlements, Map<String, Object> market)
+    public List<Object> parseSettlements(List<Object> settlements, Map<String, Object> market)
     {
         //
         //     {
@@ -10610,7 +10617,7 @@ public class Okx extends OkxApi
         //     }
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)settlements).size(); i++)
+        for (var i = 0; i < settlements.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(settlements, i, null);
             Long timestamp = this.safeInteger(entry, "ts");
@@ -11378,8 +11385,7 @@ public class Okx extends OkxApi
             //         "msg": ""
             //     }
             //
-            List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseConversions(rows, code, "baseCcy", "quoteCcy", since, limit, new HashMap<String, Object>() {{}});
+            return this.parseConversions(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())), code, "baseCcy", "quoteCcy", since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
 
     }

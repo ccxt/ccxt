@@ -1143,7 +1143,7 @@ public class TestMain extends BaseTest
                         String marketPart = (String) Helpers.GetValue(handleParts, 0);
                         Object lowerPart = marketPart.toLowerCase();
                         String dedashed = (lowerPart == null ? null : ((String)lowerPart).replace("-", " "));
-                        eventQuery = Helpers.replaceAll(dedashed, (String)"_", (String)" ");
+                        eventQuery = (dedashed == null ? null : ((String)dedashed).replace("_", " "));
                     }
                     Map<String, Object> eventParams = new HashMap<String, Object>() {{}};
                     if (!java.util.Objects.equals(eventQuery, null))

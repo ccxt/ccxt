@@ -11158,6 +11158,7 @@ public class Htx extends HtxApi
         List<Object> chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeString(currency, "code");
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < chains.size(); j++)
         {
             Map<String, Object> chainEntry = this.safeDict(chains, j, null);
@@ -11187,20 +11188,21 @@ public class Htx extends HtxApi
             }
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(result.get("networks"), networkCode, (switch (0) { default -> { HashMap<String, Object> j39v21 = new HashMap<String, Object>();
-                    j39v21.put("withdraw", withdrawResult);
-                    j39v21.put("deposit", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                mapLiteral9.put("withdraw", withdrawResult);
+                mapLiteral9.put("deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
     }});
-                    yield j39v21; } }));
+                networks.put(networkCode, mapLiteral9);
+                result.put("networks", networks);
             }
             this.assignDefaultDepositWithdrawFees(result, currency);
         }
         return result;
     }
 
-    public List<Object> parseSettlements(Object settlements, Object market)
+    public List<Object> parseSettlements(List<Object> settlements, Object market)
     {
         //
         // coin-m swap, fetchSettlementHistory
@@ -11251,7 +11253,7 @@ public class Htx extends HtxApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(settlements)) { case null -> 0; case List<?> j39v22 -> j39v22.size(); case String j39v23 -> j39v23.length(); case Object j39v24 -> j39v24.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v24) : 0; }); i++)
+        for (var i = 0; i < (settlements == null ? 0 : settlements.size()); i++)
         {
             Map<String, Object> settlement = this.safeDict(settlements, i, null);
             List<Object> list = this.safeList(settlement, "list", null);
@@ -11274,7 +11276,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), (Map<String, Object>) (market)));
+                ((List<Object>)result).add(this.parseSettlement((settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i)), (Map<String, Object>) (market)));
             }
         }
         return result;

@@ -912,7 +912,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (Boolean.TRUE.equals(rpi) && java.util.Objects.equals(type, "linear"))
             {
                 name = "rpiDepth";
-                watchOrderBookRate = "500";
+                watchOrderBookRate = this.numberToString(500);
             }
             List<String> subParams = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -928,7 +928,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() watchOrderBookRate is required")) ;
                 }
-                String symbolHash = (((subscriptionHash + "@") + String.valueOf(watchOrderBookRate)) + "ms");
+                String symbolHash = (((subscriptionHash + "@") + watchOrderBookRate) + "ms");
                 subParams.add(symbolHash);
             }
             Integer messageHashesLength = messageHashes.size();
@@ -3807,7 +3807,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
                     mapLiteral6.put("listenKey", listenKey);
                     mapLiteral6.put("lastAuthenticatedTime", time);
-                    Helpers.addElementToObject(this.options, type, this.extend(options, mapLiteral6));
+                    this.options.put(type, this.extend(options, mapLiteral6));
                     // hoisted out of the delay call: the transpilers garble an inline
                     // dict literal nested inside a delay argument
                     Map<String, Object> delayParams = paramsOmitted;
@@ -3944,7 +3944,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                     client.reject(error, messageHash);
                 }
-                Helpers.addElementToObject(this.options, type, this.extend(options, new HashMap<String, Object>() {{
+                this.options.put(type, this.extend(options, new HashMap<String, Object>() {{
         put( "listenKey", null );
         put( "lastAuthenticatedTime", 0 );
     }}));
@@ -3953,7 +3953,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
             mapLiteral7.put("listenKey", listenKey);
             mapLiteral7.put("lastAuthenticatedTime", time);
-            Helpers.addElementToObject(this.options, type, this.extend(options, mapLiteral7));
+            this.options.put(type, this.extend(options, mapLiteral7));
             // whether or not to schedule another listenKey keepAlive request
             List<Object> clients = Helpers.objectValues(this.clients);
             String refreshRateKey = "listenKeyRefreshRate";
@@ -6606,11 +6606,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
+                symbolResolved = this.symbol(symbol);
             }
-            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             var typesubTypeparamsAuthVariable = this.resolveAuthType("watchMyTrades", market, parameters);
             String type = (String) ((List<Object>) typesubTypeparamsAuthVariable).get(0);
             var subType = ((List<Object>) typesubTypeparamsAuthVariable).get(1);
@@ -6732,7 +6733,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                 {
                                     feeCostString = "0";
                                 }
-                                Helpers.addElementToObject(order.get("fee"), "cost", Double.parseDouble(feeCostString));
+                                fee.put("cost", Double.parseDouble(feeCostString));
+                                order.put("fee", fee);
                             } else if (java.util.Objects.equals(fee.get("currency"), null))
                             {
                                 order.put("fee", tradeFee);
@@ -6950,7 +6952,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         // reset connection if 5xx error
         String codeString = this.safeString(error, "code");
-        if ((!java.util.Objects.equals(codeString, null)) && (java.util.Objects.equals((codeString == null || 0 >= codeString.length() ? null : String.valueOf(codeString.charAt(0))), "5")))
+        if ((!java.util.Objects.equals(codeString, null)) && (codeString.startsWith(((String)"5"))))
         {
             var resetError = new ExchangeError(((this.id + " ") + this.json(message)));
             client.reset(resetError);

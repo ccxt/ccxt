@@ -2877,7 +2877,7 @@ public class Weex extends WeexApi
                 throw new BadRequest((this.id + " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
             }
             request.put("clientAlgoId", clientOrderId);
-            Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+            parameters.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             if (Boolean.TRUE.equals(isMarketOrder))
             {
                 parameters.put("type", "STOP_MARKET");
@@ -2893,7 +2893,7 @@ public class Weex extends WeexApi
                 String stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if (!java.util.Objects.equals(stopLossPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
+                    parameters.put("SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
                 }
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
@@ -2903,7 +2903,7 @@ public class Weex extends WeexApi
                 String takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if (!java.util.Objects.equals(takeProfitPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
+                    parameters.put("TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
                 }
             }
         } else if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
@@ -2931,9 +2931,9 @@ public class Weex extends WeexApi
                 String stopLossPriceType = this.safeString2(parameters, "stopLossPriceType", "triggerPriceType");
                 if (!java.util.Objects.equals(stopLossPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
+                    parameters.put("SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
                 }
-                Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, stopLossPrice));
+                parameters.put("triggerPrice", this.priceToPrecision(symbol, stopLossPrice));
                 if (Boolean.TRUE.equals(isMarketOrder))
                 {
                     orderType = "STOP_MARKET";
@@ -2946,9 +2946,9 @@ public class Weex extends WeexApi
                 String takeProfitPriceType = this.safeString2(parameters, "takeProfitPriceType", "triggerPriceType");
                 if (!java.util.Objects.equals(takeProfitPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
+                    parameters.put("TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
                 }
-                Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
+                parameters.put("triggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
                 if (Boolean.TRUE.equals(isMarketOrder))
                 {
                     orderType = "TAKE_PROFIT_MARKET";
@@ -2972,7 +2972,7 @@ public class Weex extends WeexApi
                 String stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if (!java.util.Objects.equals(stopLossPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
+                    parameters.put("SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
                 }
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
@@ -2982,7 +2982,7 @@ public class Weex extends WeexApi
                 String takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if (!java.util.Objects.equals(takeProfitPriceType, null))
                 {
-                    Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
+                    parameters.put("TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
                 }
             }
         }

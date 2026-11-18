@@ -3637,7 +3637,7 @@ public class Lbank extends LbankApi
                 put( "signature_method", finalSig );
                 put( "timestamp", timestamp );
             }}, signedQuery)));
-            byte[] encoded = this.encode(auth);
+            Object encoded = this.encode(auth);
             String uppercaseHash = ((String)this.hash(encoded, md5())).toUpperCase();
             Object sign = "";
             if (java.util.Objects.equals(signatureMethod, "RSA"))

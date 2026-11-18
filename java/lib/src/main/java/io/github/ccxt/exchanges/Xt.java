@@ -1613,10 +1613,10 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseMarkets(Object markets)
+    public Object parseMarkets(List<Object> markets)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)markets).size(); i++)
+        for (var i = 0; i < markets.size(); i++)
         {
             MarketInterface parsed = this.parseMarket(this.safeValue(markets, i));
             if (!java.util.Objects.equals(parsed, null))
@@ -1943,7 +1943,7 @@ public class Xt extends XtApi
                 // window start return one pre-since candle, shifting paginated windows and
                 // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
                 Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                request.put("startTime", ((this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration))))))) * duration));
+                request.put("startTime", (this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration)))))) * duration));
             }
             Long limitResolved = limit;
             if (!java.util.Objects.equals(limit, null))

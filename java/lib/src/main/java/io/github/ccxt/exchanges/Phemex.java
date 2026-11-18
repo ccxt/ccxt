@@ -1771,7 +1771,7 @@ public class Phemex extends PhemexApi
                         {
                             // when since is defined 'to' is mandatory
                             Long now = this.seconds();
-                            Long to = this.parseToInt(((this.parseToInt(fromSeconds)) + (((long) maxLimit) * ((long) candleDuration))));
+                            Long to = this.parseToInt((this.parseToInt(fromSeconds) + ((((long) maxLimit) * ((long) candleDuration)))));
                             request.put("to", ((((to != null && (now == null || to > now))))) ? now : to);
                         }
                     } else if (!java.util.Objects.equals(until, null))
@@ -1879,8 +1879,9 @@ public class Phemex extends PhemexApi
         Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         Object last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), marketResolved);
         Object quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), marketResolved);
-        Object baseVolume = this.safeString(ticker, "volume");
-        if (java.util.Objects.equals(baseVolume, null))
+        String volume = this.safeString(ticker, "volume");
+        Object baseVolume = volume;
+        if (java.util.Objects.equals(volume, null))
         {
             baseVolume = this.fromEv(this.safeString2(ticker, "volumeEv", "volumeRq"), marketResolved);
         }
@@ -3030,8 +3031,9 @@ public class Phemex extends PhemexApi
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         String side = this.parseOrderSide(this.safeStringLower(order, "side"));
         String type = this.parseOrderType(this.safeString(order, "orderType"));
-        Object price = this.safeString(order, "priceRp");
-        if (java.util.Objects.equals(price, null))
+        String priceRp = this.safeString(order, "priceRp");
+        Object price = priceRp;
+        if (java.util.Objects.equals(priceRp, null))
         {
             price = this.fromEp(this.safeString(order, "priceEp"), marketResolved);
         }
@@ -6017,7 +6019,7 @@ public class Phemex extends PhemexApi
             {
                 if (!(this.inArray(code, stableCoins)))
                 {
-                    networkId = java.util.Objects.toString(currency.get("id"), null);
+                    networkId = this.safeString(currency, "id", currency.get("id"));
                 } else
                 {
                     throw new ArgumentsRequired((this.id + " withdraw () requires an extra argument params[\"network\"]")) ;

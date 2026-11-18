@@ -288,9 +288,9 @@ public class Binance extends BinanceApi
             while (true)
             {
                 Integer collectedLength = collected.size();
-                Object remaining = (maxTopicsResolved - ((long) collectedLength));
-                Object reqLimit = (((((pageLimit != null && !(((Number) remaining).doubleValue() >= pageLimit)))))) ? remaining : pageLimit;
-                if ((reqLimit == null || (!(((Number) reqLimit).doubleValue() > 0))))
+                Long remaining = this.parseToInt((maxTopicsResolved - ((long) collectedLength)));
+                Long reqLimit = ((((pageLimit != null && (remaining == null || remaining < pageLimit))))) ? remaining : pageLimit;
+                if ((reqLimit == null || reqLimit <= 0))
                 {
                     break;
                 }
@@ -337,7 +337,7 @@ public class Binance extends BinanceApi
                     ((List<Object>)collected).add((pageTopics == null || i < 0 || i >= pageTopics.size() ? null : pageTopics.get(i)));
                 }
                 Boolean hasMore = (Boolean) this.safeBool(response, "hasMore", false);
-                if ((!Boolean.TRUE.equals(hasMore)) || ((!(pageTopicsLength == null && reqLimit == null) && pageTopicsLength == null || (reqLimit != null && !(pageTopicsLength >= ((Number) reqLimit).doubleValue())))))
+                if ((!Boolean.TRUE.equals(hasMore)) || ((reqLimit != null && (pageTopicsLength == null || pageTopicsLength < reqLimit))))
                 {
                     break;
                 }
@@ -1193,13 +1193,8 @@ public class Binance extends BinanceApi
             String marketId = this.safeString(order, "marketId");
             String outcome = this.safeStringUpper(order, "outcome");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            String outcomeName = this.safeString(market, "market");
-            if (java.util.Objects.equals(outcomeName, null))
-            {
-                outcomeName = marketId;
-            }
-            outcomeName = (outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Map<String, Object>) null);
+            String marketName = this.safeString(market, "market", marketId);
+            outcomeObjResolved = this.safeOutcome((String) (((marketName + ":") + outcome)), (Map<String, Object>) null);
         }
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "createTime");
@@ -1604,19 +1599,14 @@ public class Binance extends BinanceApi
      */
     public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> outcomeObj)
     {
-        Object outcomeObjResolved = outcomeObj;
+        Map<String, Object> outcomeObjResolved = outcomeObj;
         if (java.util.Objects.equals(outcomeObjResolved, null))
         {
             String marketId = this.safeString(position, "marketId");
             String outcome = this.safeStringUpper(position, "outcomeName");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            String outcomeName = this.safeString(market, "market");
-            if (java.util.Objects.equals(outcomeName, null))
-            {
-                outcomeName = marketId;
-            }
-            outcomeName = (outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Map<String, Object>) null);
+            String marketName = this.safeString(market, "market", marketId);
+            outcomeObjResolved = this.safeOutcome((String) (((marketName + ":") + outcome)), (Map<String, Object>) null);
         }
         Long timestamp = this.safeInteger(position, "createdTime");
         Double totalCost = this.parseNumber(this.safeString(position, "totalCost"));
@@ -1803,13 +1793,8 @@ public class Binance extends BinanceApi
             String marketId = this.safeString(trade, "marketId");
             String outcome = this.safeStringUpper(trade, "outcome");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            String outcomeName = this.safeString(market, "market");
-            if (java.util.Objects.equals(outcomeName, null))
-            {
-                outcomeName = marketId;
-            }
-            outcomeName = (outcomeName + (":" + outcome));
-            outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Map<String, Object>) null);
+            String marketName = this.safeString(market, "market", marketId);
+            outcomeObjResolved = this.safeOutcome((String) (((marketName + ":") + outcome)), (Map<String, Object>) null);
         }
         Long timestamp = this.safeInteger(trade, "createTime");
         String filled = this.safeString(trade, "filledShareQty");
@@ -2279,8 +2264,8 @@ public class Binance extends BinanceApi
             extendedParams.put("recvWindow", defaultRecvWindow);
         }
         String querystring = this.urlencodeNested(extendedParams);
-        querystring = querystring.replace("%5B", "[");
-        querystring = querystring.replace("%5D", "]");
+        querystring = (querystring == null ? null : ((String)querystring).replace("%5B", "["));
+        querystring = (querystring == null ? null : ((String)querystring).replace("%5D", "]"));
         String signature = (String) this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
         querystring = ((querystring + "&signature=") + signature);
         Map<String, Object> headersValue = new HashMap<String, Object>() {{

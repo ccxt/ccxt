@@ -1157,7 +1157,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 {
                     limitResolved = 100;
                 }
-                request.put("start_timestamp", this.sum(now, Helpers.multiply(Helpers.multiply(this.parseToInt(limitResolved), duration), -1000)));
+                request.put("start_timestamp", this.sum(now, Helpers.multiply((this.parseToInt(limitResolved) * duration), -1000)));
                 request.put("end_timestamp", now);
             } else
             {
@@ -1168,7 +1168,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     request.put("end_timestamp", now);
                 } else
                 {
-                    request.put("end_timestamp", this.sum(sinceResolved, Helpers.multiply(Helpers.multiply(this.parseToInt(limitResolved), duration), 1000)));
+                    request.put("end_timestamp", this.sum(sinceResolved, ((this.parseToInt(limitResolved) * duration) * 1000L)));
                 }
             }
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -3764,7 +3764,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         request.put("sub", this.apiKey);
         request.put("iss", iss);
         request.put("nbf", seconds);
-        request.put("exp", ((Object) (switch ((Object) (this.parseToInt(seconds))) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 120L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 120L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 120L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "120"); default -> (Object) null; })));
+        request.put("exp", (this.parseToInt(seconds) + 120L));
         request.put("iat", seconds);
         if (!java.util.Objects.equals(uri, null))
         {

@@ -1468,7 +1468,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             var tradesArrayCache = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, tradesArrayCache);
         }
-        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         Integer dataLength = data.size();
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {

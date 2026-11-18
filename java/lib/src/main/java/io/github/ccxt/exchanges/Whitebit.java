@@ -2385,17 +2385,17 @@ public class Whitebit extends WhitebitApi
                 // It refuses an end past its own clock, which may be behind this one, so an end within a
                 // timeframe of now is left out, and the latest candles it then returns cover the range
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                Object endTime = null;
+                Long endTime = null;
                 if (!java.util.Objects.equals(until, null))
                 {
-                    endTime = this.sum(this.parseToInt((((double) until) / ((double) 1000))), duration);
+                    endTime = this.parseToInt(this.sum(this.parseToInt((((double) until) / ((double) 1000))), duration));
                 }
                 if (!java.util.Objects.equals(since, null))
                 {
                     Long start = this.parseToInt((((double) since) / ((double) 1000)));
                     request.put("start", start);
-                    Object rangeEnd = this.sum(start, Helpers.multiply(duration, cappedLimit));
-                    if ((java.util.Objects.equals(endTime, null)) || (((endTime != null && !(((Number) rangeEnd).doubleValue() >= ((Number) endTime).doubleValue())))))
+                    Long rangeEnd = this.parseToInt(this.sum(start, Helpers.multiply(duration, cappedLimit)));
+                    if ((java.util.Objects.equals(endTime, null)) || ((endTime != null && (rangeEnd == null || rangeEnd < endTime))))
                     {
                         endTime = rangeEnd;
                     }

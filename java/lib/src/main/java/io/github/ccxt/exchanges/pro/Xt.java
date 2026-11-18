@@ -1874,7 +1874,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         } else if (!java.util.Objects.equals(eventVar, null))
         {
             String topic = this.safeString(message, "topic");
-            Map<String, Object> methods = new HashMap<String, Object>() {{
+            Map<String, String> methods = new HashMap<String, String>() {{
                 put( "kline", "handleOHLCV");
                 put( "depth", "handleOrderBook");
                 put( "depth_update", "handleOrderBook");
@@ -1887,7 +1887,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 put( "position", "handlePosition");
                 put( "fund_rate", "handleFundingRate");
             }};
-            Object method = (((java.util.Objects.equals(topic, null)))) ? null : this.safeValue(methods, topic);
+            String method = methods.get(topic);
             if (java.util.Objects.equals(topic, "trade"))
             {
                 Map<String, Object> data = this.safeDict(message, "data", null);
@@ -1901,7 +1901,20 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                switch (method)
+                {
+                    case "handleBalance" -> this.handleBalance(client, message);
+                    case "handleFundingRate" -> this.handleFundingRate(client, message);
+                    case "handleMyTrades" -> this.handleMyTrades(client, message);
+                    case "handleOHLCV" -> this.handleOHLCV(client, message);
+                    case "handleOrder" -> this.handleOrder(client, message);
+                    case "handleOrderBook" -> this.handleOrderBook(client, message);
+                    case "handlePosition" -> this.handlePosition(client, message);
+                    case "handleTicker" -> this.handleTicker(client, message);
+                    case "handleTickers" -> this.handleTickers(client, message);
+                    case "handleTrade" -> this.handleTrade(client, message);
+                    case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+                }
             }
         } else
         {

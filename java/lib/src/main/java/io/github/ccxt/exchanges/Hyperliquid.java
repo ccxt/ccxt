@@ -5813,7 +5813,7 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("dex", dexName);
             }
             Object swapMarkets = (this.fetchSwapMarkets(this.extend(request, parameters))).join();
-            return this.parseOpenInterests(swapMarkets, symbolsNormalized);
+            return this.parseOpenInterests((List<Object>) (swapMarkets), symbolsNormalized);
         }).thenApply(OpenInterests::new);
 
     }
@@ -6158,9 +6158,10 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> statuses = this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < statuses.size(); i++)
             {
-                message = this.safeString((statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i)), "error");
-                if (!java.util.Objects.equals(message, null))
+                String statusError = this.safeString((statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i)), "error");
+                if (!java.util.Objects.equals(statusError, null))
                 {
+                    message = statusError;
                     break;
                 }
             }

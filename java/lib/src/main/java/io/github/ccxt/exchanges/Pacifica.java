@@ -1569,27 +1569,26 @@ public class Pacifica extends PacificaApi
                 put( "symbol", market.get("id") );
                 put( "interval", tf );
             }};
-            Object sinceValue = since;
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            if (java.util.Objects.equals(this.safeInteger(requestUntil, "end_time"), null))
+            Long untilEnd = this.safeInteger(requestUntil, "end_time");
+            Long startTime = this.parseToInt((nowMs - (limitValue * duration)));
+            if (!java.util.Objects.equals(untilEnd, null))
             {
-                if (java.util.Objects.equals(sinceValue, null))
-                {
-                    sinceValue = (nowMs - (limitValue * duration));
-                }
-                Long windowEnd = this.parseToInt(this.sum(Helpers.subtract(sinceValue, 1), (limitValue * duration)));
+                startTime = this.parseToInt((untilEnd - (limitValue * duration)));
+            }
+            if (!java.util.Objects.equals(since, null))
+            {
+                startTime = this.parseToInt(since);
+            }
+            if (java.util.Objects.equals(untilEnd, null))
+            {
+                Long windowEnd = this.parseToInt(this.sum((startTime - 1L), (limitValue * duration)));
                 Long until = ((((windowEnd != null && (nowMs == null || windowEnd > nowMs))))) ? nowMs : windowEnd;
                 ((Map<String, Object>)requestUntil).put("end_time", until);
-            } else
-            {
-                if (java.util.Objects.equals(sinceValue, null))
-                {
-                    sinceValue = Helpers.subtract(((Map<String, Object>)requestUntil).get("end_time"), (limitValue * duration));
-                }
             }
-            ((Map<String, Object>)requestUntil).put("start_time", sinceValue);
+            ((Map<String, Object>)requestUntil).put("start_time", startTime);
             Map<String, Object> response = (this.publicGetKline(this.extend(requestUntil, paramsUntil))).join();
             //
             // {
@@ -4616,7 +4615,8 @@ public class Pacifica extends PacificaApi
         Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsExpiryWindow), "postActionRequest", "agentAddress", (String) null);
         String agentAddress = agentAddressparamsAgentAddressVariable.first();
         Map<String, Object> paramsAgentAddress = agentAddressparamsAgentAddressVariable.second();
-        String originAddress = (String) ((List<Object>)this.handleOriginAndSingleAddress("postActionRequest", (Map<String, Object>) (paramsAgentAddress))).get(0);
+        List<Object> originAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("postActionRequest", (Map<String, Object>) (paramsAgentAddress));
+        String originAddress = (String) ((List<Object>) originAddressVariable).get(0);
         if (java.util.Objects.equals(originAddress, null))
         {
             throw new ArgumentsRequired((((this.id + " action: ") + operationType) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;

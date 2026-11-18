@@ -1745,7 +1745,7 @@ public class Bingx extends BingxApi
                 put( "symbol", market.get("id") );
             }};
             request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
-            Object requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500 : (limit == null || maxLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxLimit).doubleValue() ? (Object) (limit) : (Object) (maxLimit)));
+            Long requestLimit = this.parseToInt((((java.util.Objects.equals(limit, null)))) ? 500 : (limit == null || maxLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxLimit).doubleValue() ? (Object) (limit) : (Object) (maxLimit))));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", Math.max((since - 1L), 0));
@@ -1763,13 +1763,13 @@ public class Bingx extends BingxApi
                 {
                     // the exchange aligns the window to endTime, so keep it within limit candles of since
                     Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                    endTime = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(until, this.sum(since, Helpers.multiply(duration, requestLimit)));
+                    endTime = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(until, this.sum(since, (duration * requestLimit)));
                 }
                 request.put("endTime", endTime);
             } else if (Boolean.TRUE.equals((this.safeBool(market, "inverse", false))) && (!java.util.Objects.equals(since, null)))
             {
                 Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                request.put("endTime", this.sum(since, Helpers.multiply(duration, requestLimit)));
+                request.put("endTime", this.sum(since, (duration * requestLimit)));
             }
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
@@ -6356,7 +6356,7 @@ public class Bingx extends BingxApi
         {
             if (!java.util.Objects.equals(network, null))
             {
-                code = Helpers.replace(code, (String)network, (String)"");
+                code = (code == null ? null : ((String)code).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(network, "")), ""));
             }
         }
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
@@ -6868,13 +6868,14 @@ public class Bingx extends BingxApi
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
+        Map<String, Object> networkFees = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(networksLength, 0))
         {
             for (var i = 0; (networksLength != null && i < networksLength); i++)
             {
                 String networkCode = this.safeString(networkCodes, i, "");
                 Map<String, Object> network = this.safeDict(networks, networkCode, null);
-                Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+                networkFees.put(networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
@@ -6893,6 +6894,7 @@ public class Bingx extends BingxApi
                 }
             }
         }
+        result.put("networks", networkFees);
         return result;
     }
 

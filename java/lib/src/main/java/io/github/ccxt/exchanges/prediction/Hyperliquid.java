@@ -221,7 +221,7 @@ public class Hyperliquid extends HyperliquidApi
      */
     public String outcomeCoin(Object encoding)
     {
-        return ("#" + String.valueOf(encoding));
+        return ("#" + String.valueOf(this.parseToInt(encoding)));
     }
 
     /**
@@ -234,7 +234,7 @@ public class Hyperliquid extends HyperliquidApi
      */
     public String outcomeToken(Object encoding)
     {
-        return ("+" + String.valueOf(encoding));
+        return ("+" + String.valueOf(this.parseToInt(encoding)));
     }
 
     /**
@@ -725,7 +725,7 @@ public class Hyperliquid extends HyperliquidApi
         String intPart = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
         Integer intPartLength = intPart.length();
         Long szDecimalsInt = this.parseToInt(szDecimals);
-        Long maxDecimals = (8L - szDecimalsInt);
+        Long maxDecimals = this.parseToInt((8L - szDecimalsInt));
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         Long digitsLeft = 0L;
         if ((intPartLength == null || intPartLength <= 5))
@@ -2492,10 +2492,10 @@ public class Hyperliquid extends HyperliquidApi
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        String rRaw = (String) signature.get("r");
-        String sRaw = (String) signature.get("s");
-        String r = (rRaw.length() >= 64 ? rRaw.substring(rRaw.length() - 64) : String.format("%" + (64 - rRaw.length()) + "s", "").replace(' ', '0') + rRaw);
-        String s = (sRaw.length() >= 64 ? sRaw.substring(sRaw.length() - 64) : String.format("%" + (64 - sRaw.length()) + "s", "").replace(' ', '0') + sRaw);
+        String rRaw = this.safeString(signature, "r", "");
+        String sRaw = this.safeString(signature, "s", "");
+        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
+        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
         return new HashMap<String, Object>() {{
             put( "r", ("0x" + r) );
             put( "s", ("0x" + s) );

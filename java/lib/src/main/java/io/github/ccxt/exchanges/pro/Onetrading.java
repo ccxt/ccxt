@@ -509,7 +509,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
     }
 
-    public void handleBookDeltas(io.github.ccxt.ws.WsOrderBook orderbook, Object deltas)
+    public void handleBookDeltas(io.github.ccxt.ws.WsOrderBook orderbook, List<Object> deltas)
     {
         //
         //    [
@@ -517,9 +517,9 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //       [ 'SELL', "0.053698", "0" ]
         //    ]
         //
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
+            this.handleBookDelta(orderbook, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 
@@ -572,7 +572,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
             orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, false);
-            Integer numOrders = (switch ((Object)(orders)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; });
+            Integer numOrders = (switch ((Object)(orders)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
             if ((numOrders != null && numOrders == 0))
             {
                 return (this.watchOrders(symbolResolved, since, limitResolved, parameters)).join();

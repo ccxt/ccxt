@@ -1325,7 +1325,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             this.handleSubscriptionStatus(client, message, id);
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "market_update", "handleTicker");
             put( "trades_update", "handleTrades");
             put( "depth_update", "handleOrderBook");
@@ -1337,10 +1337,20 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             put( "deals_update", "handleMyTrades");
         }};
         String topic = this.safeString(message, "method");
-        Object method = this.safeValue(methods, topic);
+        String method = methods.get(topic);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method)
+            {
+                case "handleBalance" -> this.handleBalance(client, message);
+                case "handleMyTrades" -> this.handleMyTrades(client, message, null);
+                case "handleOHLCV" -> this.handleOHLCV(client, message);
+                case "handleOrder" -> this.handleOrder(client, message, null);
+                case "handleOrderBook" -> this.handleOrderBook(client, message);
+                case "handleTicker" -> this.handleTicker(client, message);
+                case "handleTrades" -> this.handleTrades(client, message);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
         }
     }
 

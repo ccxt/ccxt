@@ -3202,6 +3202,7 @@ public class Kucoin extends KucoinApi
                 put( "networks", new HashMap<String, Object>() {{}} );
             }};
             List<Object> chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> networksNew = new HashMap<String, Object>() {{}};
             for (var i = 0; i < chains.size(); i++)
             {
                 Map<String, Object> chain = this.safeDict(chains, i, null);
@@ -3209,7 +3210,7 @@ public class Kucoin extends KucoinApi
                 String networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(networkCodeNew, null))
                 {
-                    Helpers.addElementToObject(resultNew.get("networks"), networkCodeNew, new HashMap<String, Object>() {{
+                    networksNew.put(networkCodeNew, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", Kucoin.this.safeNumber2(chain, "withdrawalMinFee", "withdrawMinFee", (Object) null) );
         put( "percentage", false );
@@ -3221,6 +3222,7 @@ public class Kucoin extends KucoinApi
 }});
                 }
             }
+            resultNew.put("networks", networksNew);
             return resultNew;
         }
         Double minWithdrawFee = this.safeNumber(fee, "withdrawMinFee", (Object) null);
@@ -3242,7 +3244,8 @@ public class Kucoin extends KucoinApi
         String networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, "code"));
         if (!java.util.Objects.equals(networkCode, null))
         {
-            Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+            Map<String, Object> networks = new HashMap<String, Object>() {{}};
+            networks.put(networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", minWithdrawFee );
         put( "percentage", false );
@@ -3252,6 +3255,7 @@ public class Kucoin extends KucoinApi
         put( "percentage", null );
     }} );
 }});
+            result.put("networks", networks);
         }
         return result;
     }
@@ -13635,23 +13639,21 @@ public class Kucoin extends KucoinApi
                 throw new ArgumentsRequired((this.id + " fetchLeverageTiers() requires a symbols argument")) ;
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, "swap", false, true, false);
-            String marginMode = "cross";
-            Map<String, Object> paramsRequest = null;
-            Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchLeverageTiers", "marginMode", marginMode);
-            marginMode = marginModeparamsRequestVariable.first();
-            paramsRequest = marginModeparamsRequestVariable.second();
-            marginMode = marginMode.toUpperCase();
-            if (!java.util.Objects.equals(marginMode, "CROSS"))
+            Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchLeverageTiers", "marginMode", "cross");
+            String marginMode = marginModeparamsRequestVariable.first();
+            Map<String, Object> paramsRequest = marginModeparamsRequestVariable.second();
+            if (!java.util.Objects.equals(((String)marginMode).toUpperCase(), "CROSS"))
             {
                 throw new BadRequest((this.id + " fetchLeverageTiers() supports cross margin only")) ;
             }
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("tradeType", "FUTURES");
-            request.put("marginMode", marginMode);
-            request.put("data", "RISK_LIMIT");
-            request.put("accountType", "UNIFIED");
-            request.put("symbol", String.join(",", (List<String>)marketIds));
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "tradeType", "FUTURES" );
+                put( "marginMode", "CROSS" );
+                put( "data", "RISK_LIMIT" );
+                put( "accountType", "UNIFIED" );
+                put( "symbol", String.join(",", (List<String>)marketIds) );
+            }};
             Map<String, Object> response = (this.utaGetMarketPositionTiers(this.extend(request, paramsRequest))).join();
             //
             //     {

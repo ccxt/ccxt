@@ -997,7 +997,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         List<String> keys = new ArrayList<String>(subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            ((List<Object>)request).add(Helpers.GetValue(subscriptions, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))));
+            ((List<Object>)request).add((subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)))));
         }
         return request;
     }

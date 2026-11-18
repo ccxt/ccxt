@@ -2845,6 +2845,7 @@ public class Blofin extends BlofinApi
         //
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
         Integer chainsLength = ((List<?>)fee).size();
+        Map<String, Object> networkFees = new HashMap<String, Object>() {{}};
         for (var i = 0; (chainsLength != null && i < chainsLength); i++)
         {
             Map<String, Object> chain = this.safeDict(fee, i, null);
@@ -2853,7 +2854,7 @@ public class Blofin extends BlofinApi
             {
                 continue;
             }
-            Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+            networkFees.put(networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", Blofin.this.safeNumber(chain, "withdrawFee", (Object) null) );
         put( "percentage", false );
@@ -2864,6 +2865,7 @@ public class Blofin extends BlofinApi
     }} );
 }});
         }
+        result.put("networks", networkFees);
         if (java.util.Objects.equals(chainsLength, 1))
         {
             // a single network means the currency-level fee is unambiguous

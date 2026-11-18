@@ -1039,7 +1039,7 @@ public class Bitopro extends BitoproApi
             } else
             {
                 Long timeframeInMilliseconds = (((long) timeframeInSeconds) * 1000L);
-                alignedSince = ((this.parseToInt((Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) timeframeInMilliseconds)))))))) * timeframeInMilliseconds);
+                alignedSince = (this.parseToInt((Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) timeframeInMilliseconds))))))) * timeframeInMilliseconds);
                 Double fromSeconds = (Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))));
                 request.put("from", fromSeconds);
                 request.put("to", this.sum(fromSeconds, (limitResolved * ((long) timeframeInSeconds))));

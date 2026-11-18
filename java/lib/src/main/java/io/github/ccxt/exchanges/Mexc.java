@@ -7011,6 +7011,7 @@ public class Mexc extends MexcApi
         //
         List<Object> networkList = this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < networkList.size(); j++)
         {
             Map<String, Object> networkEntry = this.safeDict(networkList, j, null);
@@ -7018,7 +7019,7 @@ public class Mexc extends MexcApi
             String networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+                networks.put(networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", Mexc.this.safeNumber(networkEntry, "withdrawFee", (Object) null) );
         put( "percentage", null );
@@ -7030,6 +7031,7 @@ public class Mexc extends MexcApi
 }});
             }
         }
+        result.put("networks", networks);
         return this.assignDefaultDepositWithdrawFees(result, (Map<String, Object>) null);
     }
 

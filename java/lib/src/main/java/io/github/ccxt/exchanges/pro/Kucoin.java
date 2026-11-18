@@ -1549,7 +1549,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             var stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         cache.append(trade);
         client.resolve(cache, messageHash);
     }
@@ -1583,7 +1583,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             var stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         cache.append(trade);
         client.resolve(cache, messageHash);
     }
@@ -4185,17 +4185,25 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public void handleMessage(Client client, Map<String, Object> message)
     {
         String type = this.safeString2(message, "type", "message");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "welcome", "handleSystemStatus");
             put( "ack", "handleSubscriptionStatus");
             put( "message", "handleSubject");
             put( "pong", "handlePong");
             put( "error", "handleErrorMessage");
         }};
-        Object method = this.safeValue(methods, type);
+        String method = methods.get(type);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method)
+            {
+                case "handleErrorMessage" -> this.handleErrorMessage(client, message);
+                case "handlePong" -> this.handlePong(client, message);
+                case "handleSubject" -> this.handleSubject(client, message);
+                case "handleSubscriptionStatus" -> this.handleSubscriptionStatus(client, message);
+                case "handleSystemStatus" -> this.handleSystemStatus(client, message);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
         } else if (message.containsKey("T"))
         {
             this.handleSubject(client, message);

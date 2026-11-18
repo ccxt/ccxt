@@ -554,7 +554,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             stored.append(this.safeDict(parsedTrades, j, null));
         }
-        String channelReplaced = Helpers.replace(channel, (String)("." + marketId), (String)"");
+        String channelReplaced = (channel == null ? null : ((String)channel).replaceFirst(java.util.regex.Pattern.quote(("." + marketId)), ""));
         client.resolve(stored, symbolSpecificMessageHash);
         client.resolve(stored, channelReplaced);
     }
@@ -1508,15 +1508,16 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "private/cancel-all-orders" );
-                put( "params", Cryptocom.this.extend(new HashMap<String, Object>() {{}}, parameters) );
-            }};
+            Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request.get("params"), "instrument_name", market.get("id"));
+                requestParams.put("instrument_name", market.get("id"));
             }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "private/cancel-all-orders" );
+                put( "params", requestParams );
+            }};
             Long messageHash = this.incrementingNonce();
             return (this.watchPrivateRequest(messageHash, request)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

@@ -2381,11 +2381,12 @@ public class Kraken extends KrakenApi
             {
                 descriptionType = ((part4 + " ") + part5); // eg. stop loss, take profit, trailing stop
             }
-            if (java.util.Objects.equals(descriptionType, "stop loss") || java.util.Objects.equals(descriptionType, "take profit"))
+            // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
+            if ((java.util.Objects.equals(part4, "stop") && java.util.Objects.equals(part5, "loss")) || (java.util.Objects.equals(part4, "take") && java.util.Objects.equals(part5, "profit")))
             {
                 triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
-            } else if (java.util.Objects.equals(descriptionType, "limit"))
+            } else if (java.util.Objects.equals(part4, "limit"))
             {
                 price = this.safeString(parts, 5);
             }
@@ -2579,10 +2580,10 @@ public class Kraken extends KrakenApi
         {
             if (java.util.Objects.equals(cost, null) && (!java.util.Objects.equals(amount, null)))
             {
-                Helpers.addElementToObject(request, "volume", this.costToPrecision(symbol, this.numberToString(amount)));
+                request.put("volume", this.costToPrecision(symbol, this.numberToString(amount)));
             } else
             {
-                Helpers.addElementToObject(request, "volume", this.costToPrecision(symbol, cost));
+                request.put("volume", this.costToPrecision(symbol, cost));
             }
             String extendedOflags = "viqc";
             if (!java.util.Objects.equals(flags, null))
@@ -2592,14 +2593,14 @@ public class Kraken extends KrakenApi
             request.put("oflags", extendedOflags);
         } else if (Boolean.TRUE.equals(isLimitOrder) && !Boolean.TRUE.equals(isTrailingAmountOrder) && !Boolean.TRUE.equals(isTrailingPercentOrder))
         {
-            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+            request.put("price", this.priceToPrecision(symbol, price));
         }
         Boolean reduceOnly = (Boolean) this.safeBool2(paramsOmitted2, "reduceOnly", "reduce_only", (Object) null);
         if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
         {
             if (Boolean.TRUE.equals(isStopLossTriggerOrder))
             {
-                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                request.put("price", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     request.put("ordertype", "stop-loss-limit");
@@ -2609,7 +2610,7 @@ public class Kraken extends KrakenApi
                 }
             } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
             {
-                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                request.put("price", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     request.put("ordertype", "take-profit-limit");
@@ -2620,7 +2621,7 @@ public class Kraken extends KrakenApi
             }
             if (Boolean.TRUE.equals(isLimitOrder))
             {
-                Helpers.addElementToObject(request, "price2", this.priceToPrecision(symbol, price));
+                request.put("price2", this.priceToPrecision(symbol, price));
             }
         } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder))
         {
@@ -2640,22 +2641,22 @@ public class Kraken extends KrakenApi
                 if (!java.util.Objects.equals(trailingLimitPercent, null))
                 {
                     String trailingLimitPercentString = (((((String)trailingLimitPercent).endsWith(((String)"%"))))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
-                    Helpers.addElementToObject(request, "price", trailingPercentString);
+                    request.put("price", trailingPercentString);
                     request.put("price2", trailingLimitPercentString);
                 } else if (!java.util.Objects.equals(trailingLimitAmount, null))
                 {
-                    Helpers.addElementToObject(request, "price", trailingAmountString);
-                    Helpers.addElementToObject(request, "price2", trailingLimitAmountString);
+                    request.put("price", trailingAmountString);
+                    request.put("price2", trailingLimitAmountString);
                 }
             } else
             {
                 request.put("ordertype", "trailing-stop");
                 if (!java.util.Objects.equals(trailingPercent, null))
                 {
-                    Helpers.addElementToObject(request, "price", trailingPercentString);
+                    request.put("price", trailingPercentString);
                 } else
                 {
-                    Helpers.addElementToObject(request, "price", trailingAmountString);
+                    request.put("price", trailingAmountString);
                 }
             }
         }
@@ -3091,7 +3092,7 @@ public class Kraken extends KrakenApi
             List<String> ids = new ArrayList<String>(trades.keySet());
             for (var i = 0; i < ids.size(); i++)
             {
-                Helpers.addElementToObject(Helpers.GetValue(trades, (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))), "id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
+                Helpers.addElementToObject((trades == null || (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)) == null ? null : trades.get((ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)))), "id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
             }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3614,14 +3615,14 @@ public class Kraken extends KrakenApi
         }
     }
 
-    public Object parseTransactionsByType(String type, Object transactions, String code, Long since, Long limit)
+    public Object parseTransactionsByType(String type, List<Object> transactions, String code, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(transactions)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+        for (var i = 0; i < (transactions == null ? 0 : transactions.size()); i++)
         {
             Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
-            }}, Helpers.GetValue(transactions, i))), (Map<String, Object>) null);
+            }}, (transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)))), (Map<String, Object>) null);
             ((List<Object>)result).add(transaction);
         }
         return this.filterByCurrencySinceLimit(result, code, since, limit, false);
@@ -3815,7 +3816,7 @@ public class Kraken extends KrakenApi
             {
                 rawWithdrawals = result;
             }
-            return this.parseTransactionsByType("withdrawal", rawWithdrawals, code, since, limit);
+            return this.parseTransactionsByType("withdrawal", (List<Object>) (rawWithdrawals), code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -4344,7 +4345,7 @@ public class Kraken extends KrakenApi
                 mapLiteral14.put("nonce", nonce);
                 bodySigned = this.urlencodeNested(this.extend(mapLiteral14, parameters));
             }
-            byte[] auth = this.encode((nonce + bodySigned));
+            Object auth = this.encode((nonce + bodySigned));
             Object hash = this.hash(auth, sha256(), "binary");
             byte[] binary = this.encode(url);
             byte[] binhash = this.binaryConcat(binary, hash);
@@ -4430,7 +4431,7 @@ public class Kraken extends KrakenApi
                     }
                 }
                 // handleCreateOrdersErrors:
-                if ((switch ((Object)(response)) { case List<?> j39v8 -> j39v8.contains("result"); case Map<?, ?> j39v7 -> j39v7.containsKey("result"); case null, default -> false; }))
+                if ((switch ((Object)(response)) { case List<?> j39v5 -> j39v5.contains("result"); case Map<?, ?> j39v4 -> j39v4.containsKey("result"); case null, default -> false; }))
                 {
                     Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                     if (result.containsKey("orders"))

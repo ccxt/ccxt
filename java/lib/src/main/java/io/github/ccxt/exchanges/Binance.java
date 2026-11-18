@@ -5534,6 +5534,72 @@ public class Binance extends BinanceApi
             }
         }
         Map<String, Object> feesTrading = this.safeDict(fees, "trading", new HashMap<String, Object>() {{}});
+        Map<String, Object> precision = new HashMap<String, Object>() {{
+            put( "amount", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString2(market, "quantityPrecision", "quantityScale"))) );
+            put( "price", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString2(market, "pricePrecision", "priceScale"))) );
+            put( "base", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString(market, "baseAssetPrecision"))) );
+            put( "quote", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString(market, "quotePrecision"))) );
+        }};
+        Map<String, Object> costLimits = new HashMap<String, Object>() {{
+            put( "min", Binance.this.safeNumber(market, "minNotional", (Object) null) );
+            put( "max", Binance.this.safeNumber(market, "maxNotional", (Object) null) );
+        }};
+        if ((filtersByType.containsKey("MIN_NOTIONAL")) || (filtersByType.containsKey("NOTIONAL")))
+        {
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new HashMap<String, Object>() {{}});
+            costLimits.put("min", this.safeNumber2(filter, "minNotional", "notional", (Object) null));
+            costLimits.put("max", this.safeNumber(filter, "maxNotional", (Object) null));
+        }
+        Map<String, Object> limits = new HashMap<String, Object>() {{
+            put( "leverage", new HashMap<String, Object>() {{
+                put( "min", null );
+                put( "max", null );
+            }} );
+            put( "amount", new HashMap<String, Object>() {{
+                put( "min", Binance.this.safeNumber(market, "minQty", (Object) null) );
+                put( "max", Binance.this.safeNumber(market, "maxQty", (Object) null) );
+            }} );
+            put( "price", new HashMap<String, Object>() {{
+                put( "min", null );
+                put( "max", null );
+            }} );
+            put( "cost", costLimits );
+        }};
+        Double stepSize = this.safeNumber(market, "stepSize", (Object) null);
+        if (!java.util.Objects.equals(stepSize, null))
+        {
+            precision.put("amount", stepSize);
+        }
+        if (filtersByType.containsKey("PRICE_FILTER"))
+        {
+            Map<String, Object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits.put("price", new HashMap<String, Object>() {{
+    put( "min", Binance.this.safeNumber(filter, "minPrice", (Object) null) );
+    put( "max", Binance.this.safeNumber(filter, "maxPrice", (Object) null) );
+}});
+            precision.put("price", this.safeNumber(filter, "tickSize", (Object) null));
+        }
+        if (filtersByType.containsKey("LOT_SIZE"))
+        {
+            Map<String, Object> filter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+            precision.put("amount", this.safeNumber(filter, "stepSize", (Object) null));
+            limits.put("amount", new HashMap<String, Object>() {{
+    put( "min", Binance.this.safeNumber(filter, "minQty", (Object) null) );
+    put( "max", Binance.this.safeNumber(filter, "maxQty", (Object) null) );
+}});
+        }
+        if (filtersByType.containsKey("MARKET_LOT_SIZE"))
+        {
+            Map<String, Object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
+            limits.put("market", new HashMap<String, Object>() {{
+    put( "min", Binance.this.safeNumber(filter, "minQty", (Object) null) );
+    put( "max", Binance.this.safeNumber(filter, "maxQty", (Object) null) );
+}});
+        }
         Map<String, Object> entry = new HashMap<String, Object>();
         entry.put("id", id);
         entry.put("lowercaseId", lowercaseId);
@@ -5564,73 +5630,10 @@ public class Binance extends BinanceApi
         entry.put("expiryDatetime", this.iso8601(expiry));
         entry.put("strike", parsedStrike);
         entry.put("optionType", this.safeStringLower(market, "side"));
-        entry.put("precision", new HashMap<String, Object>() {{
-                put( "amount", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString2(market, "quantityPrecision", "quantityScale"))) );
-                put( "price", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString2(market, "pricePrecision", "priceScale"))) );
-                put( "base", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString(market, "baseAssetPrecision"))) );
-                put( "quote", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString(market, "quotePrecision"))) );
-            }});
-        entry.put("limits", new HashMap<String, Object>() {{
-                put( "leverage", new HashMap<String, Object>() {{
-                    put( "min", null );
-                    put( "max", null );
-                }} );
-                put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Binance.this.safeNumber(market, "minQty", (Object) null) );
-                    put( "max", Binance.this.safeNumber(market, "maxQty", (Object) null) );
-                }} );
-                put( "price", new HashMap<String, Object>() {{
-                    put( "min", null );
-                    put( "max", null );
-                }} );
-                put( "cost", new HashMap<String, Object>() {{
-                    put( "min", Binance.this.safeNumber(market, "minNotional", (Object) null) );
-                    put( "max", Binance.this.safeNumber(market, "maxNotional", (Object) null) );
-                }} );
-            }});
+        entry.put("precision", precision);
+        entry.put("limits", limits);
         entry.put("info", market);
         entry.put("created", this.safeInteger2(market, "onboardDate", "listingTime"));
-        Double stepSize = this.safeNumber(market, "stepSize", (Object) null);
-        if (!java.util.Objects.equals(stepSize, null))
-        {
-            Helpers.addElementToObject(entry.get("precision"), "amount", stepSize);
-        }
-        if (filtersByType.containsKey("PRICE_FILTER"))
-        {
-            Map<String, Object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-            // PRICE_FILTER reports zero values for maxPrice
-            // since they updated filter types in November 2018
-            // https://github.com/ccxt/ccxt/issues/4286
-            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-            Helpers.addElementToObject(entry.get("limits"), "price", new HashMap<String, Object>() {{
-    put( "min", Binance.this.safeNumber(filter, "minPrice", (Object) null) );
-    put( "max", Binance.this.safeNumber(filter, "maxPrice", (Object) null) );
-}});
-            Helpers.addElementToObject(entry.get("precision"), "price", this.safeNumber(filter, "tickSize", (Object) null));
-        }
-        if (filtersByType.containsKey("LOT_SIZE"))
-        {
-            Map<String, Object> filter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(entry.get("precision"), "amount", this.safeNumber(filter, "stepSize", (Object) null));
-            Helpers.addElementToObject(entry.get("limits"), "amount", new HashMap<String, Object>() {{
-    put( "min", Binance.this.safeNumber(filter, "minQty", (Object) null) );
-    put( "max", Binance.this.safeNumber(filter, "maxQty", (Object) null) );
-}});
-        }
-        if (filtersByType.containsKey("MARKET_LOT_SIZE"))
-        {
-            Map<String, Object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(entry.get("limits"), "market", new HashMap<String, Object>() {{
-    put( "min", Binance.this.safeNumber(filter, "minQty", (Object) null) );
-    put( "max", Binance.this.safeNumber(filter, "maxQty", (Object) null) );
-}});
-        }
-        if ((filtersByType.containsKey("MIN_NOTIONAL")) || (filtersByType.containsKey("NOTIONAL")))
-        {
-            Map<String, Object> filter = (Map<String, Object>) this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(Helpers.GetValue(entry.get("limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional", (Object) null));
-            Helpers.addElementToObject(Helpers.GetValue(entry.get("limits"), "cost"), "max", this.safeNumber(filter, "maxNotional", (Object) null));
-        }
         return this.safeMarketStructure(entry);
     }
 
@@ -7001,12 +7004,14 @@ public class Binance extends BinanceApi
             String price = this.safeString(paramsPaginate, "price");
             Long until = this.safeInteger(paramsPaginate, "until");
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("price", "until")));
-            Object limitRequested = limit;
-            if (!java.util.Objects.equals(since, null) && !java.util.Objects.equals(until, null) && java.util.Objects.equals(limit, null))
+            Long limitValue = this.parseToInt(defaultLimit);
+            if (!java.util.Objects.equals(limit, null))
             {
-                limitRequested = maxLimit;
+                limitValue = this.parseToInt((limit == null || maxLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxLimit).doubleValue() ? (Object) (limit) : (Object) (maxLimit))));
+            } else if ((!java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(until, null)))
+            {
+                limitValue = this.parseToInt(maxLimit);
             }
-            Object limitValue = (((java.util.Objects.equals(limitRequested, null)))) ? defaultLimit : (limitRequested == null || maxLimit == null ? null : (((Number) limitRequested).doubleValue() < ((Number) maxLimit).doubleValue() ? (Object) (limitRequested) : (Object) (maxLimit)));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
             request.put("limit", limitValue);
@@ -7037,9 +7042,9 @@ public class Binance extends BinanceApi
                     if ((since > 0))
                     {
                         int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                        Object endTime = this.sum(since, Helpers.subtract(Helpers.multiply(Helpers.multiply(limitValue, duration), 1000), 1));
+                        Long endTime = (Long) this.sum(since, (((limitValue * ((long) duration)) * 1000L) - 1L));
                         Long now = this.milliseconds();
-                        request.put("endTime", (now == null ? null : (((Number) now).doubleValue() < ((Number) endTime).doubleValue() ? (Object) (now) : (Object) (endTime))));
+                        request.put("endTime", (now == null || endTime == null ? null : (((Number) now).doubleValue() < ((Number) endTime).doubleValue() ? (Object) (now) : (Object) (endTime))));
                     }
                 }
             }
@@ -7114,7 +7119,7 @@ public class Binance extends BinanceApi
             //         }
             //     ]
             //
-            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, ((Long) (switch ((Object) (limitValue)) { case null -> (Long) null; case Long hx4J40v3 -> hx4J40v3; case Number hx4J40v3 -> Long.valueOf(hx4J40v3.longValue()); case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v3.getClass().getName()); })), false);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitValue, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -13194,6 +13199,7 @@ public class Binance extends BinanceApi
         String code = this.safeString(currency, "code");
         List<Object> networkList = this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < networkList.size(); j++)
         {
             Map<String, Object> networkEntry = this.safeDict(networkList, j, null);
@@ -13210,7 +13216,7 @@ public class Binance extends BinanceApi
             }
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+                networks.put(networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", withdrawFee );
         put( "percentage", null );
@@ -13222,6 +13228,7 @@ public class Binance extends BinanceApi
 }});
             }
         }
+        result.put("networks", networks);
         return result;
     }
 
@@ -14115,11 +14122,15 @@ public class Binance extends BinanceApi
         {
             timestamp = null;
         }
-        Boolean isolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
-        if (java.util.Objects.equals(isolated, null))
+        Boolean isolatedRaw = (Boolean) this.safeBool(position, "isolated", (Object) null);
+        Boolean isolated = false;
+        if (java.util.Objects.equals(isolatedRaw, null))
         {
             String isolatedMarginRaw = this.safeString(position, "isolatedMargin");
             isolated = !Precise.stringEq(isolatedMarginRaw, "0");
+        } else
+        {
+            isolated = (java.util.Objects.equals(isolatedRaw, true));
         }
         String marginMode = null;
         String collateralString = null;
@@ -14359,7 +14370,7 @@ public class Binance extends BinanceApi
         Double unrealizedPnl = this.parseNumber(unrealizedPnlString);
         String liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         Double liquidationPrice = this.parseNumber(liquidationPriceString);
-        Object collateralString = null;
+        String collateralString = null;
         String marginMode = this.safeString(position, "marginType");
         if (java.util.Objects.equals(marginMode, null) && !java.util.Objects.equals(isolatedMarginString, null))
         {
@@ -14428,7 +14439,10 @@ public class Binance extends BinanceApi
         {
             collateralString = this.safeString(position, "isolatedMargin");
         }
-        collateralString = (((java.util.Objects.equals(collateralString, null)))) ? "0" : collateralString;
+        if (java.util.Objects.equals(collateralString, null))
+        {
+            collateralString = this.numberToString(0);
+        }
         Double collateral = this.parseNumber(collateralString);
         Double markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Long timestamp = this.safeInteger(position, "updateTime");
@@ -15854,7 +15868,7 @@ public class Binance extends BinanceApi
         }};
     }
 
-    public List<Object> parseSettlements(Object settlements, Map<String, Object> market)
+    public List<Object> parseSettlements(List<Object> settlements, Map<String, Object> market)
     {
         //
         // fetchSettlementHistory
@@ -15891,7 +15905,7 @@ public class Binance extends BinanceApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)settlements).size(); i++)
+        for (var i = 0; i < settlements.size(); i++)
         {
             ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (this.safeValue(settlements, i)), market));
         }

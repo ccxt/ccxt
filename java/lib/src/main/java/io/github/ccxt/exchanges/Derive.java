@@ -1056,7 +1056,7 @@ public class Derive extends DeriveApi
                 put( "instrument_type", "erc20" );
             }};
             Object instruments = (this.getMarketsPaginated(request, parameters)).join();
-            return this.parseMarkets(instruments);
+            return this.parseMarkets((List<Object>) (instruments));
         });
 
     }
@@ -1071,7 +1071,7 @@ public class Derive extends DeriveApi
                 put( "instrument_type", "perp" );
             }};
             Object instruments = (this.getMarketsPaginated(request, parameters)).join();
-            return this.parseMarkets(instruments);
+            return this.parseMarkets((List<Object>) (instruments));
         });
 
     }
@@ -1086,7 +1086,7 @@ public class Derive extends DeriveApi
                 put( "instrument_type", "option" );
             }};
             Object instruments = (this.getMarketsPaginated(request, parameters)).join();
-            return this.parseMarkets(instruments);
+            return this.parseMarkets((List<Object>) (instruments));
         });
 
     }
@@ -1721,12 +1721,12 @@ public class Derive extends DeriveApi
         }
     }
 
-    public List<Object> parseSettlements(Object settlements, Map<String, Object> market)
+    public List<Object> parseSettlements(List<Object> settlements, Map<String, Object> market)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)settlements).size(); i++)
+        for (var i = 0; i < settlements.size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i))), market));
         }
         return result;
     }

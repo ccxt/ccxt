@@ -1422,16 +1422,16 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 return true;
             }
             // the markets left in the scoped subscription once these are removed
-            long remaining = 0;
+            Boolean othersRemain = false;
             List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
             for (var i = 0; i < keys.size(); i++)
             {
                 if (((((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))).indexOf((channel + ".")) == 0)) && !this.inArray((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)), subscribeHashes))
                 {
-                    remaining = (remaining + 1L);
+                    othersRemain = true;
                 }
             }
-            if ((java.util.Objects.equals(symbolsLength, 0)) || ((client.subscriptions.containsKey(scopedHash)) && ((remaining == 0))))
+            if ((java.util.Objects.equals(symbolsLength, 0)) || ((client.subscriptions.containsKey(scopedHash)) && !Boolean.TRUE.equals(othersRemain)))
             {
                 // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
                 Map<String, Object> channelSubscription = new HashMap<String, Object>();

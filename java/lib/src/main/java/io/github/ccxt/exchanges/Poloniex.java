@@ -937,7 +937,7 @@ public class Poloniex extends PoloniexApi
                 // without an end time the exchange returns the latest candles, not the ones starting at since,
                 // so end the window at the start of the limit-th candle from the first one at or after since
                 Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                Long firstCandle = (Long) Helpers.multiply(this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration)))))), duration);
+                Long firstCandle = (this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration)))))) * duration);
                 Long endTimeByLimit = (Long) this.sum(firstCandle, (duration * ((limit - 1L))));
                 ((Map<String, Object>)requestUntil).put(keyEnd, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(endTimeByLimit, this.milliseconds()));
             }
@@ -4060,7 +4060,7 @@ public class Poloniex extends PoloniexApi
                     for (var j = 0; j < childChains.size(); j++)
                     {
                         String rawNetworkId = this.safeString(childChains, j, "");
-                        String networkId = Helpers.replace(rawNetworkId, (String)code, (String)"");
+                        String networkId = (rawNetworkId == null ? null : ((String)rawNetworkId).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(code, "")), ""));
                         String networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
                         Map<String, Object> networkInfo = this.safeDict(response, networkId, null);
                         Map<String, Object> networkObject = new HashMap<String, Object>() {{}};

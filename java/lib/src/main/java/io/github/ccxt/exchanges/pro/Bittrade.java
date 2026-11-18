@@ -511,7 +511,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
-    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
         //
         //     {
@@ -545,12 +545,12 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             List<Object> asks = this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
-            Helpers.addElementToObject(orderbook, "nonce", seqNum);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            orderbook.put("nonce", seqNum);
             Long timestamp = this.safeInteger(message, "ts");
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", this.iso8601(timestamp));
         }
         return orderbook;
     }

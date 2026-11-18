@@ -339,7 +339,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             {
                 Object timeframe = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                 String interval = this.safeString(this.timeframes, timeframe, timeframe);
-                Long duration = (Long) Helpers.multiply(this.parseToInt(interval), 1000);
+                Long duration = (this.parseToInt(interval) * 1000L);
                 Long timestamp = this.safeInteger(ohlcv, 0);
                 if (java.util.Objects.equals(timestamp, null))
                 {

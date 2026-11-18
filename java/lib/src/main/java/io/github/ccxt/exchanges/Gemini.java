@@ -882,7 +882,7 @@ public class Gemini extends GeminiApi
                 String pricePrecisionString = cell3.replaceFirst("<td>", "");
                 List<Object> pricePrecisionParts = new ArrayList<Object>(Arrays.asList(((String)pricePrecisionString).split(java.util.regex.Pattern.quote(" "))));
                 String quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
-                String baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace(marketId, (String)quoteId, (String)""));
+                String baseId = this.safeStringLower(amountPrecisionParts, 1, (marketId == null ? null : ((String)marketId).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(quoteId, "")), "")));
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
@@ -1458,8 +1458,8 @@ public class Gemini extends GeminiApi
         String quote = null;
         if ((!java.util.Objects.equals(marketId, null)) && (java.util.Objects.equals(marketResolved, null)))
         {
-            Long idLength = (((long) marketId.length()) - 0L);
-            if ((idLength != null && idLength == 7))
+            Integer idLength = marketId.length();
+            if (java.util.Objects.equals(idLength, 7))
             {
                 baseId = (marketId == null ? null : ((String)marketId).substring(0, Math.min(4, ((String)marketId).length())));
                 quoteId = (marketId == null ? null : ((String)marketId).substring(Math.min(4, ((String)marketId).length()), Math.min(7, ((String)marketId).length())));

@@ -3173,7 +3173,9 @@ public class Coinbase extends CoinbaseApi
                 String cursor = this.safeString(pagination, "next_starting_after");
                 if ((!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
                 {
-                    Helpers.addElementToObject(last.get("info"), "next_starting_after", cursor);
+                    Map<String, Object> lastInfo = this.safeDict(last, "info", new HashMap<String, Object>() {{}});
+                    lastInfo.put("next_starting_after", cursor);
+                    last.put("info", lastInfo);
                     Helpers.addElementToObject(ledger, lastIndex, last);
                 }
             }

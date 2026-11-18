@@ -493,7 +493,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             // an old or replayed frame, discard it
             return false;
         }
-        Long expectedSequence = (Long) ((Object) (switch ((Object) (this.parseToInt(storedNonce))) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 1L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 1L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "1"); default -> (Object) null; }));
+        Long expectedSequence = (this.parseToInt(storedNonce) + 1L);
         if (!java.util.Objects.equals(messageSequence, expectedSequence))
         {
             // a gap in the sequence means a lost message and the book is

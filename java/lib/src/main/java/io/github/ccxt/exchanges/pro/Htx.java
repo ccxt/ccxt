@@ -1526,9 +1526,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             return;
         }
         String lowercaseId = this.safeStringLower(market, "lowercaseId", "");
-        String genericMessageHash = Helpers.replace(messageHash, (String)("." + lowercaseId), (String)"");
+        String genericMessageHash = (messageHash == null ? null : ((String)messageHash).replaceFirst(java.util.regex.Pattern.quote(("." + lowercaseId)), ""));
         String lowerCaseBaseId = this.safeStringLower(market, "baseId", "");
-        genericMessageHash = Helpers.replace(genericMessageHash, (String)("." + lowerCaseBaseId), (String)"");
+        genericMessageHash = (genericMessageHash == null ? null : ((String)genericMessageHash).replaceFirst(java.util.regex.Pattern.quote(("." + lowerCaseBaseId)), ""));
         client.resolve(this.orders, genericMessageHash);
     }
 
@@ -3165,9 +3165,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 String lowercaseId = this.safeStringLower(market, "lowercaseId", "");
-                String genericOrderHash = Helpers.replace(messageHash, (String)("." + lowercaseId), (String)"");
+                String genericOrderHash = (messageHash == null ? null : ((String)messageHash).replaceFirst(java.util.regex.Pattern.quote(("." + lowercaseId)), ""));
                 String lowerCaseBaseId = this.safeStringLower(market, "baseId", "");
-                genericOrderHash = Helpers.replace(genericOrderHash, (String)("." + lowerCaseBaseId), (String)"");
+                genericOrderHash = (genericOrderHash == null ? null : ((String)genericOrderHash).replaceFirst(java.util.regex.Pattern.quote(("." + lowerCaseBaseId)), ""));
                 String genericTradesHash = ((genericOrderHash + ":") + "trade");
                 client.resolve(this.myTrades, genericTradesHash);
             }
@@ -3451,7 +3451,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             this.checkRequiredCredentials(true);
             String messageHash = "auth";
-            String relativePath = Helpers.replace(url, (String)("wss://" + hostname), (String)"");
+            String relativePath = (url == null ? null : ((String)url).replaceFirst(java.util.regex.Pattern.quote(("wss://" + hostname)), ""));
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;

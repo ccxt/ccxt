@@ -2565,7 +2565,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)c).split(java.util.regex.Pattern.quote("@"))));
             channel = this.safeString(parts, 1, "");
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "public.deals.v3.api", "handleTrades");
             put( "push.deal", "handleTrades");
             put( "public.kline.v3.api", "handleOHLCV");
@@ -2586,10 +2586,23 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             put( "pong", "handlePong");
             put( "push.funding.rate", "handleFundingRate");
         }};
-        Object method = this.safeValue(methods, channel);
+        String method = methods.get(channel);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method)
+            {
+                case "handleBalance" -> this.handleBalance(client, message);
+                case "handleFundingRate" -> this.handleFundingRate(client, message);
+                case "handleMyTrade" -> this.handleMyTrade(client, message, null);
+                case "handleOHLCV" -> this.handleOHLCV(client, message);
+                case "handleOrder" -> this.handleOrder(client, message);
+                case "handleOrderBook" -> this.handleOrderBook(client, message);
+                case "handlePong" -> this.handlePong(client, message);
+                case "handleTicker" -> this.handleTicker(client, message);
+                case "handleTickers" -> this.handleTickers(client, message);
+                case "handleTrades" -> this.handleTrades(client, message);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
         }
     }
 

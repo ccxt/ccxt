@@ -436,8 +436,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Map<String, Object> currency = this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
             Map<String, Object> account = this.account();
-            String used = this.safeString(balance, "totalUsedBalanceRv");
-            if (java.util.Objects.equals(used, null))
+            String usedRv = this.safeString(balance, "totalUsedBalanceRv");
+            String used = usedRv;
+            if (java.util.Objects.equals(usedRv, null))
             {
                 String usedEv = this.safeString(balance, "totalUsedBalanceEv");
                 if (java.util.Objects.equals(usedEv, null))
@@ -448,8 +449,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 }
                 used = this.fromEn((String) (usedEv), scale);
             }
-            String total = this.safeString(balance, "accountBalanceRv");
-            if (java.util.Objects.equals(total, null))
+            String totalRv = this.safeString(balance, "accountBalanceRv");
+            String total = totalRv;
+            if (java.util.Objects.equals(totalRv, null))
             {
                 String totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
                 total = this.fromEn((String) (totalEv), scale);

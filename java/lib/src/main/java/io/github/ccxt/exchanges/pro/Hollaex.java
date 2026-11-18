@@ -723,7 +723,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             this.handlePong(client, message);
             return;
         }
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "trade", "handleTrades");
             put( "orderbook", "handleOrderBook");
             put( "order", "handleOrder");
@@ -731,10 +731,18 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             put( "usertrade", "handleMyTrades");
         }};
         String topic = this.safeString(message, "topic");
-        Object method = this.safeValue(methods, topic);
+        String method = methods.get(topic);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            switch (method)
+            {
+                case "handleBalance" -> this.handleBalance(client, message);
+                case "handleMyTrades" -> this.handleMyTrades(client, message, null);
+                case "handleOrder" -> this.handleOrder(client, message, null);
+                case "handleOrderBook" -> this.handleOrderBook(client, message);
+                case "handleTrades" -> this.handleTrades(client, message);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
         }
     }
 

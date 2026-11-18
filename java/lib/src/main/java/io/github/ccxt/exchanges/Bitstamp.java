@@ -2347,6 +2347,7 @@ public class Bitstamp extends BitstampApi
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
         String code = this.safeString(currency, "code");
         List<Object> feeEntries = this.toArray(fee);
+        Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < feeEntries.size(); j++)
         {
             Map<String, Object> networkEntry = this.safeDict(feeEntries, j, null);
@@ -2358,7 +2359,7 @@ public class Bitstamp extends BitstampApi
 }});
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+                networks.put(networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", withdrawFee );
         put( "percentage", null );
@@ -2370,6 +2371,7 @@ public class Bitstamp extends BitstampApi
 }});
             }
         }
+        result.put("networks", networks);
         return result;
     }
 

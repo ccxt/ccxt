@@ -591,12 +591,12 @@ public class Bitvavo extends BitvavoApi
 
     }
 
-    public Object parseMarkets(Object markets)
+    public Object parseMarkets(List<Object> markets)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> defaultFees = this.safeDict(this.fees, "trading", new HashMap<String, Object>() {{}});
         Map<String, Object> feesByCategory = this.safeDict(this.fees, "byCategory", new HashMap<String, Object>() {{}});
-        for (var i = 0; i < ((List<?>)markets).size(); i++)
+        for (var i = 0; i < markets.size(); i++)
         {
             Map<String, Object> market = this.safeDict(markets, i, null);
             String id = this.safeString(market, "market");
@@ -3077,13 +3077,15 @@ public class Bitvavo extends BitvavoApi
             networkId = currencyCode;
         }
         String networkCode = this.networkIdToCode(networkId, currencyCode);
+        Map<String, Object> networkFees = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(networkCode, null))
         {
-            Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+            networkFees.put(networkCode, new HashMap<String, Object>() {{
     put( "deposit", result.get("deposit") );
     put( "withdraw", result.get("withdraw") );
 }});
         }
+        result.put("networks", networkFees);
         return result;
     }
 

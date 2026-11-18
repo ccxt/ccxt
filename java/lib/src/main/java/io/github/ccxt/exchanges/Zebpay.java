@@ -1413,15 +1413,15 @@ public class Zebpay extends ZebpayApi
             {
                 throw new ExchangeError((this.id + " spot market orders require cost in params")) ;
             }
-            Helpers.addElementToObject(request, "quoteOrderAmount", this.costToPrecision(symbol, quoteOrderQty));
+            request.put("quoteOrderAmount", this.costToPrecision(symbol, quoteOrderQty));
         } else
         {
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                Helpers.addElementToObject(request, "stopLossPrice", this.priceToPrecision(symbol, triggerPrice));
+                request.put("stopLossPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
-            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+            request.put("amount", this.amountToPrecision(symbol, amount));
+            request.put("price", this.priceToPrecision(symbol, price));
         }
         return this.extend(request, paramsOmitted);
     }

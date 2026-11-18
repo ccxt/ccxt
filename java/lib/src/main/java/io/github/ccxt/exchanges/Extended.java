@@ -1747,7 +1747,7 @@ public class Extended extends ExtendedApi
             //     }
             //
             List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterestsHistory(data, market, ((Long) (switch ((Object) (sinceResolved)) { case null -> (Long) null; case Long hx4J40v3 -> hx4J40v3; case Number hx4J40v3 -> Long.valueOf(hx4J40v3.longValue()); case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v3.getClass().getName()); })), limitResolved);
+            return this.parseOpenInterestsHistory(data, market, ((Long) (switch ((Object) (sinceResolved)) { case null -> (Long) null; case Long hx4J40v2 -> hx4J40v2; case Number hx4J40v2 -> Long.valueOf(hx4J40v2.longValue()); case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v2.getClass().getName()); })), limitResolved);
         }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
     }
@@ -2826,7 +2826,7 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })), parameters)).join();
+            List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
             return this.safeDict(positions, 0, null);
         }).thenApply(Position::new);
 
@@ -2911,7 +2911,7 @@ public class Extended extends ExtendedApi
                 }
                 ((List<Object>)result).add(entry);
             }
-            Object positions = this.parsePositions(result, ((List<String>) (switch ((Object) (symbolsList)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), new HashMap<String, Object>() {{}});
+            Object positions = this.parsePositions(result, ((List<String>) (switch ((Object) (symbolsList)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
             return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -3063,7 +3063,7 @@ public class Extended extends ExtendedApi
     public Map<String, Object> createWithdrawalSettlementData(String address, String amountString, Map<String, Object> currency, Map<String, Object> account, Map<String, Object> parameters)
     {
         Long now = this.milliseconds();
-        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", (((this.parseToInt((((double) ((now + 999L))) / ((double) 1000)))) + 1209600L) + 60L));
+        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", ((this.parseToInt((((double) ((now + 999L))) / ((double) 1000))) + 1209600L) + 60L));
         Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String positionId = this.safeString2(parameters, "positionId", "l2Vault", this.safeString(account, "l2Vault"));
         String recipient = this.safeString(parameters, "recipient", address);
@@ -3097,7 +3097,7 @@ public class Extended extends ExtendedApi
     public Map<String, Object> createTransferSettlementData(String amountString, Map<String, Object> currency, Map<String, Object> account, String toVault, String toL2Key, Map<String, Object> parameters)
     {
         Long now = this.milliseconds();
-        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", ((this.parseToInt((((double) ((now + 999L))) / ((double) 1000)))) + 1814400L));
+        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", (this.parseToInt((((double) ((now + 999L))) / ((double) 1000))) + 1814400L));
         Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String fromVault = this.safeString2(parameters, "fromVault", "senderPositionId", this.safeString(account, "l2Vault"));
         String fromL2Key = this.safeString2(parameters, "fromL2Key", "senderPublicKey", this.safeString(account, "l2Key"));
@@ -3195,7 +3195,7 @@ public class Extended extends ExtendedApi
             }
             Long now = this.milliseconds();
             Long expiryEpochMillis = this.safeInteger(paramsBuilder, "expiryEpochMillis", (now + 3600000L));
-            Object settlementDefault = (((!java.util.Objects.equals(expiryEpochMillis, null)))) ? ((Object) (switch ((Object) (this.parseToInt((((double) ((expiryEpochMillis + 999L))) / ((double) 1000))))) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 1209600L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1209600L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 1209600L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "1209600"); default -> (Object) null; })) : null;
+            Long settlementDefault = (((!java.util.Objects.equals(expiryEpochMillis, null)))) ? (this.parseToInt((((double) ((expiryEpochMillis + 999L))) / ((double) 1000))) + 1209600L) : null;
             Long settlementExpiration = this.safeInteger(paramsBuilder, "settlementExpiration", settlementDefault);
             String nonce = this.numberToString(this.nonce());
             Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();

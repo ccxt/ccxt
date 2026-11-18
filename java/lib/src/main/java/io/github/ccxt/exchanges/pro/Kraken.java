@@ -2130,7 +2130,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 String execType = this.safeString(first, "exec_type");
                 channel = (((java.util.Objects.equals(execType, "trade")))) ? "myTrades" : "orders";
             }
-            Map<String, Object> methods = new HashMap<String, Object>() {{
+            Map<String, String> methods = new HashMap<String, String>() {{
                 put( "balances", "handleBalance");
                 put( "book", "handleOrderBook");
                 put( "ohlc", "handleOHLCV");
@@ -2139,10 +2139,20 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "myTrades", "handleMyTrades");
                 put( "orders", "handleOrders");
             }};
-            Object method = this.safeValue(methods, channel);
+            String method = methods.get(channel);
             if (!java.util.Objects.equals(method, null))
             {
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                switch (method)
+                {
+                    case "handleBalance" -> this.handleBalance(client, message);
+                    case "handleMyTrades" -> this.handleMyTrades(client, message, null);
+                    case "handleOHLCV" -> this.handleOHLCV(client, message);
+                    case "handleOrderBook" -> this.handleOrderBook(client, message);
+                    case "handleOrders" -> this.handleOrders(client, message, null);
+                    case "handleTicker" -> this.handleTicker(client, message);
+                    case "handleTrades" -> this.handleTrades(client, message);
+                    case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+                }
             }
         }
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))

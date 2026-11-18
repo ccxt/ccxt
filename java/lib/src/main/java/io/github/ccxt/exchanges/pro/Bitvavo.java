@@ -900,7 +900,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
         //
         //     {
@@ -919,9 +919,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Long currentNonce = this.safeInteger(orderbook, "nonce");
         if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(currentNonce, null)) && ((nonce != null && (currentNonce == null || nonce > currentNonce))))
         {
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
-            Helpers.addElementToObject(orderbook, "nonce", nonce);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
+            orderbook.put("nonce", nonce);
         }
         return orderbook;
     }

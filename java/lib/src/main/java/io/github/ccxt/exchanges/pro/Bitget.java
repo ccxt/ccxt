@@ -128,17 +128,15 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     public List<Object> getInstType(String methodName, Map<String, Object> market, Object uta, Map<String, Object> parameters)
     {
         Boolean useProductType = (java.util.Objects.equals(market, null)) || Boolean.TRUE.equals((this.safeBool(market, "swap", false))) || Boolean.TRUE.equals((this.safeBool(market, "future", false)));
-        Object productTypeAndParams = new ArrayList<Object>(Arrays.asList(null, new HashMap<String, Object>() {{}}));
+        String instTypeDefault = "SPOT";
+        Object paramsProductType = parameters;
         if (Boolean.TRUE.equals(useProductType))
         {
-            productTypeAndParams = this.handleProductTypeAndParams(market, parameters);
-        } else
-        {
-            productTypeAndParams = new ArrayList<Object>(Arrays.asList("SPOT", parameters));
+            List<Object> instTypeDefaultparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
+            instTypeDefault = (String) ((List<Object>) instTypeDefaultparamsProductTypeVariable).get(0);
+            paramsProductType = ((List<Object>) instTypeDefaultparamsProductTypeVariable).get(1);
         }
-        Object instTypeDefault = ((List<Object>)productTypeAndParams).get(0);
-        Object paramsProductType = ((List<Object>)productTypeAndParams).get(1);
-        Pair<String, Map<String, Object>> instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsProductType), (String) (methodName), "instType", java.util.Objects.toString(instTypeDefault, null));
+        Pair<String, Map<String, Object>> instTypeOptionparamsInstTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsProductType), (String) (methodName), "instType", instTypeDefault);
         String instTypeOption = instTypeOptionparamsInstTypeVariable.first();
         Map<String, Object> paramsInstType = instTypeOptionparamsInstTypeVariable.second();
         Object instType = instTypeOption;

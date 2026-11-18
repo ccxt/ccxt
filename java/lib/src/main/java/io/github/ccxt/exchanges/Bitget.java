@@ -3973,7 +3973,7 @@ public class Bitget extends BitgetApi
                     continue;
                 }
                 MarketInterface parsedMarket = this.parseMarket(market);
-                if ((!java.util.Objects.equals(parsedMarket, null)) && Helpers.isTrue(((Map<String, Object>)parsedMarket).get("spot")))
+                if ((!java.util.Objects.equals(parsedMarket, null)) && Boolean.TRUE.equals(this.safeBool(parsedMarket, "spot", false)))
                 {
                     Object marketId = ((Map<String, Object>)parsedMarket).get("id");
                     Map<String, Object> instrument = this.safeDict(spotInstruments, marketId, null);
@@ -9216,7 +9216,8 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String productType = (String) ((List<Object>)this.handleProductTypeAndParams(market, parameters)).get(0);
+            List<Object> productTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
+            String productType = (String) ((List<Object>) productTypeVariable).get(0);
             List<Object> requestList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {

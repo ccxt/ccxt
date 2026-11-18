@@ -514,11 +514,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String messageHash = "tickers";
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", "subscribe" );
-                put( "subscription", new HashMap<String, Object>() {{
-                    put( "type", "allMids" );
-                }} );
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "type", "allMids" );
             }};
             String defaultDex = this.safeString(parameters, "dex");
             String firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -535,9 +532,13 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             if (!java.util.Objects.equals(defaultDex, null))
             {
                 messageHash = ("tickers:" + defaultDex);
-                Helpers.addElementToObject(request.get("subscription"), "type", "allMids");
-                Helpers.addElementToObject(request.get("subscription"), "dex", defaultDex);
+                subscription.put("type", "allMids");
+                subscription.put("dex", defaultDex);
             }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "subscribe" );
+                put( "subscription", subscription );
+            }};
             // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
             (this.waitForPendingUnsubscribe(url, "tickers")).join();
             Object tickers = (this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, null)).join();

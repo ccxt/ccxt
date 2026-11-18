@@ -1268,7 +1268,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsOmitted = this.omit(paramsUntil, new ArrayList<Object>(Arrays.asList("price")));
             // exchange has undocumented limit slightly above, but 1000 is reliable limit
             Long limitResolved = ((((java.util.Objects.equals(limit, null)) || ((limit > 1000))))) ? 1000 : limit;
-            Long windowLength = this.parseToInt(Helpers.multiply(Helpers.multiply(duration, (((Object) (switch ((Object) (this.parseToInt(limitResolved))) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 1L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 1L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 1L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "1"); default -> (Object) null; })))), 1000));
+            Long windowLength = this.parseToInt(((((long) duration) * ((this.parseToInt(limitResolved) + 1L))) * 1000L));
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)requestUntil).put("start_at", since);
@@ -2265,7 +2265,8 @@ public class Paradex extends ParadexApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
+        Boolean reduceOnlyParam = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
+        Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyParam, true));
         String orderType = ((String)type).toUpperCase();
         String orderSide = ((String)side).toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();

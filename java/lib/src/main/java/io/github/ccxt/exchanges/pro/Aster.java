@@ -2487,7 +2487,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
         Map<String, Object> messageInner = (Map<String, Object>) this.safeDict(message, "data", message); // can be either wrapped in 'data' or full object itself
         String eventVar = this.safeString(messageInner, "e");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
+        Map<String, String> methods = new HashMap<String, String>() {{
             put( "24hrTicker", "handleTicker");
             put( "aggTrade", "handleTrade");
             put( "depthUpdate", "handleOrderBook");
@@ -2499,10 +2499,21 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             put( "executionReport", "handleOrderUpdate");
             put( "ORDER_TRADE_UPDATE", "handleOrderUpdate");
         }};
-        Object method = (((java.util.Objects.equals(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
+        String method = methods.get(eventVar);
         if (!java.util.Objects.equals(method, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, messageInner});
+            switch (method)
+            {
+                case "handleBalance" -> this.handleBalance(client, messageInner);
+                case "handleBalanceAndPosition" -> this.handleBalanceAndPosition(client, messageInner);
+                case "handleBidAsk" -> this.handleBidAsk(client, messageInner);
+                case "handleOHLCV" -> this.handleOHLCV(client, messageInner);
+                case "handleOrderBook" -> this.handleOrderBook(client, messageInner);
+                case "handleOrderUpdate" -> this.handleOrderUpdate(client, messageInner);
+                case "handleTicker" -> this.handleTicker(client, messageInner);
+                case "handleTrade" -> this.handleTrade(client, messageInner);
+                case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());
+            }
         }
     }
 }

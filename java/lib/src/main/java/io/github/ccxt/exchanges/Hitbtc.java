@@ -4399,6 +4399,7 @@ public class Hitbtc extends HitbtcApi
         //
         List<Object> networks = this.safeList(fee, "networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
+        Map<String, Object> networkFees = new HashMap<String, Object>() {{}};
         for (var j = 0; j < networks.size(); j++)
         {
             Map<String, Object> networkEntry = this.safeDict(networks, j, null);
@@ -4422,7 +4423,7 @@ public class Hitbtc extends HitbtcApi
             }
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
+                networkFees.put(networkCode, new HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
@@ -4431,6 +4432,7 @@ public class Hitbtc extends HitbtcApi
 }});
             }
         }
+        result.put("networks", networkFees);
         return result;
     }
 

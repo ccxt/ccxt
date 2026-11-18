@@ -2524,17 +2524,18 @@ public class Grvt extends GrvtApi
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
             String subAccountId = this.getSubAccountId(paramsOmitted3);
             Boolean isReduceOnly = (Boolean) this.safeBool(paramsOmitted3, "reduceOnly", false);
-            Map<String, Object> orderRequest = new HashMap<String, Object>();
-            orderRequest.put("sub_account_id", subAccountId);
-            orderRequest.put("time_in_force", null);
-            orderRequest.put("legs", new ArrayList<Object>(Arrays.asList(orderLeg)));
-            orderRequest.put("signature", this.defaultSignature());
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("client_order_id", clientOrderId);
-            orderRequest.put("metadata", mapLiteral3);
-            orderRequest.put("is_market", isMarketOrder);
-            orderRequest.put("post_only", false);
-            orderRequest.put("reduce_only", isReduceOnly);
+            Map<String, Object> orderMetadata = new HashMap<String, Object>();
+            orderMetadata.put("client_order_id", clientOrderId);
+            Map<String, Object> orderRequest = new HashMap<String, Object>() {{
+                put( "sub_account_id", subAccountId );
+                put( "time_in_force", null );
+                put( "legs", new ArrayList<Object>(Arrays.asList(orderLeg)) );
+                put( "signature", Grvt.this.defaultSignature() );
+                put( "metadata", orderMetadata );
+                put( "is_market", isMarketOrder );
+                put( "post_only", false );
+                put( "reduce_only", isReduceOnly );
+            }};
             String timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
             Boolean postOnly = this.isPostOnly(isMarketOrder, (Boolean) (null), paramsOmitted3);
             if (Boolean.TRUE.equals(postOnly))
@@ -2615,14 +2616,15 @@ public class Grvt extends GrvtApi
                 }
                 // trigger by
                 String triggerPriceType = this.safeStringUpper(paramsTriggerPrices, "triggerPriceType", "LAST");
-                Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("trigger_type", selectedType);
-                    j39v2.put("tpsl", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("trigger_by", triggerPriceType);
-            j39v1.put("trigger_price", selectedPrice);
-            j39v1.put("close_position", this.safeBool(paramsTriggerPrices, "closePosition", false));
-            yield j39v1; } }));
-                    yield j39v2; } }));
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("trigger_type", selectedType);
+                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                mapLiteral4.put("trigger_by", triggerPriceType);
+                mapLiteral4.put("trigger_price", selectedPrice);
+                mapLiteral4.put("close_position", this.safeBool(paramsTriggerPrices, "closePosition", false));
+                mapLiteral3.put("tpsl", mapLiteral4);
+                orderMetadata.put("trigger", mapLiteral3);
+                orderRequest.put("metadata", orderMetadata);
             }
             Object paramsTrigger = paramsTriggerPrices;
             if (Boolean.TRUE.equals(isTriggerOrder))
@@ -2970,36 +2972,36 @@ public class Grvt extends GrvtApi
         {
             positionMargin = this.safeNumber(position, "isolated_balance", (Object) null);
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", position);
-        mapLiteral4.put("id", null);
-        mapLiteral4.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-        mapLiteral4.put("notional", this.parseNumber(Precise.stringAbs(this.safeString(position, "notional"))));
-        mapLiteral4.put("marginMode", marginMode);
-        mapLiteral4.put("liquidationPrice", this.safeNumber(position, "est_liquidation_price", (Object) null));
-        mapLiteral4.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
-        mapLiteral4.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
-        mapLiteral4.put("realizedPnl", this.safeNumber(position, "realized_pnl", (Object) null));
-        mapLiteral4.put("percentage", null);
-        mapLiteral4.put("contracts", this.parseNumber(Precise.stringAbs(sizeRaw)));
-        mapLiteral4.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
-        mapLiteral4.put("lastPrice", null);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("hedged", null);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("lastUpdateTimestamp", this.safeInteger(position, "lastUpdateTime"));
-        mapLiteral4.put("maintenanceMargin", this.safeNumber2(position, "isolated_mm", "maintenanceMargin", (Object) null));
-        mapLiteral4.put("maintenanceMarginPercentage", null);
-        mapLiteral4.put("positionMargin", positionMargin);
-        mapLiteral4.put("collateral", null);
-        mapLiteral4.put("initialMargin", this.safeNumber2(position, "isolated_im", "initialMargin", (Object) null));
-        mapLiteral4.put("initialMarginPercentage", null);
-        mapLiteral4.put("leverage", this.safeNumber(position, "leverage", (Object) null));
-        mapLiteral4.put("marginRatio", null);
-        mapLiteral4.put("stopLossPrice", null);
-        mapLiteral4.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral4);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", position);
+        mapLiteral5.put("id", null);
+        mapLiteral5.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral5.put("notional", this.parseNumber(Precise.stringAbs(this.safeString(position, "notional"))));
+        mapLiteral5.put("marginMode", marginMode);
+        mapLiteral5.put("liquidationPrice", this.safeNumber(position, "est_liquidation_price", (Object) null));
+        mapLiteral5.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
+        mapLiteral5.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
+        mapLiteral5.put("realizedPnl", this.safeNumber(position, "realized_pnl", (Object) null));
+        mapLiteral5.put("percentage", null);
+        mapLiteral5.put("contracts", this.parseNumber(Precise.stringAbs(sizeRaw)));
+        mapLiteral5.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
+        mapLiteral5.put("lastPrice", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("hedged", null);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastUpdateTimestamp", this.safeInteger(position, "lastUpdateTime"));
+        mapLiteral5.put("maintenanceMargin", this.safeNumber2(position, "isolated_mm", "maintenanceMargin", (Object) null));
+        mapLiteral5.put("maintenanceMarginPercentage", null);
+        mapLiteral5.put("positionMargin", positionMargin);
+        mapLiteral5.put("collateral", null);
+        mapLiteral5.put("initialMargin", this.safeNumber2(position, "isolated_im", "initialMargin", (Object) null));
+        mapLiteral5.put("initialMarginPercentage", null);
+        mapLiteral5.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral5.put("marginRatio", null);
+        mapLiteral5.put("stopLossPrice", null);
+        mapLiteral5.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral5);
     }
 
     /**
@@ -3660,31 +3662,31 @@ public class Grvt extends GrvtApi
         }
         Long timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("id", this.safeString(order, "order_id"));
-        mapLiteral5.put("clientOrderId", this.safeString(metadata, "client_order_id"));
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", null);
-        mapLiteral5.put("lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001));
-        mapLiteral5.put("status", this.parseOrderStatus(this.safeString(stateObj, "status")));
-        mapLiteral5.put("symbol", this.safeString(marketResolved, "symbol"));
-        mapLiteral5.put("type", orderType);
-        mapLiteral5.put("timeInForce", timeInForce);
-        mapLiteral5.put("postOnly", isPostOnly);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("price", price);
-        mapLiteral5.put("triggerPrice", null);
-        mapLiteral5.put("cost", null);
-        mapLiteral5.put("average", avgPrice);
-        mapLiteral5.put("amount", size);
-        mapLiteral5.put("filled", filled);
-        mapLiteral5.put("remaining", null);
-        mapLiteral5.put("trades", null);
-        mapLiteral5.put("fees", null);
-        mapLiteral5.put("reduceOnly", isReduceOnly);
-        mapLiteral5.put("info", order);
-        return this.safeOrder(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", this.safeString(order, "order_id"));
+        mapLiteral6.put("clientOrderId", this.safeString(metadata, "client_order_id"));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("lastTradeTimestamp", null);
+        mapLiteral6.put("lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001));
+        mapLiteral6.put("status", this.parseOrderStatus(this.safeString(stateObj, "status")));
+        mapLiteral6.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral6.put("type", orderType);
+        mapLiteral6.put("timeInForce", timeInForce);
+        mapLiteral6.put("postOnly", isPostOnly);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("triggerPrice", null);
+        mapLiteral6.put("cost", null);
+        mapLiteral6.put("average", avgPrice);
+        mapLiteral6.put("amount", size);
+        mapLiteral6.put("filled", filled);
+        mapLiteral6.put("remaining", null);
+        mapLiteral6.put("trades", null);
+        mapLiteral6.put("fees", null);
+        mapLiteral6.put("reduceOnly", isReduceOnly);
+        mapLiteral6.put("info", order);
+        return this.safeOrder(mapLiteral6, marketResolved);
     }
 
     public String parseTimeInForce(String type)
@@ -3888,20 +3890,20 @@ public class Grvt extends GrvtApi
         }
         Map<String, Object> domainData = this.eipDomainData();
         Map<String, Object> definitions = this.eipDefinitions();
-        byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, (definitions == null || structureType == null ? null : definitions.get(structureType)), messageData);
+        Object ethEncodedMessage = this.ethEncodeStructuredData(domainData, (definitions == null || structureType == null ? null : definitions.get(structureType)), messageData);
         Boolean usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         String privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Map<String,Object> signature = ecdsa(this.hash(ethEncodedMessage, keccak(), "hex"), privateKeyWithoutZero, secp256k1(), null);
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
-        mapLiteral6.put("r", this.formatSignatureRS((String) (signature.get("r"))));
-        mapLiteral6.put("s", this.formatSignatureRS((String) (signature.get("s"))));
-        mapLiteral6.put("v", this.sum(27, signature.get("v")));
-        mapLiteral6.put("expiration", requestSignature.get("expiration"));
-        mapLiteral6.put("nonce", requestSignature.get("nonce"));
-        mapLiteral6.put("chain_id", requestSignature.get("chain_id"));
-        request.put("signature", mapLiteral6);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
+        mapLiteral7.put("r", this.formatSignatureRS((String) (signature.get("r"))));
+        mapLiteral7.put("s", this.formatSignatureRS((String) (signature.get("s"))));
+        mapLiteral7.put("v", this.sum(27, signature.get("v")));
+        mapLiteral7.put("expiration", requestSignature.get("expiration"));
+        mapLiteral7.put("nonce", requestSignature.get("nonce"));
+        mapLiteral7.put("chain_id", requestSignature.get("chain_id"));
+        request.put("signature", mapLiteral7);
         return request;
     }
 
