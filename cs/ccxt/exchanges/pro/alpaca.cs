@@ -215,7 +215,7 @@ public partial class alpaca : ccxt.alpaca
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["1m"] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)["1m"] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message);
         stored.append(parsed);

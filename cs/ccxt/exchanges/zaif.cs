@@ -623,7 +623,7 @@ public partial class zaif : Exchange
         //          }, ...
         //      ]
         //
-        IList<object> trades = this.toArray(response);
+        IList<object> trades = response;
         int numTrades = (trades?.Count ?? 0);
         if ((numTrades == 1))
         {

@@ -3057,7 +3057,7 @@ public partial class okx : Exchange
                 type = "fiat";
             }
             List<object> idParts = networkId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            List<object> parts = ((List<object>)this.arraySlice(idParts, 1));
+            IList<object> parts = this.arraySlice(idParts, 1);
             string chainPart = String.Join("-", parts.ToArray());
             string? networkCode = this.networkIdToCode(chainPart, code);
             if ((networkCode != null))
@@ -3891,7 +3891,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rate = data[i];
+            IDictionary<string, object> rate = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", rate },
@@ -7430,7 +7430,7 @@ public partial class okx : Exchange
         if ((chain != null))
         {
             List<object> chainParts = chain.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            List<object> networkParts = ((List<object>)this.arraySlice(chainParts, 1));
+            IList<object> networkParts = this.arraySlice(chainParts, 1);
             string networkId = String.Join("-", networkParts.ToArray());
             network = this.networkIdToCode(networkId, code);
         }
@@ -8612,7 +8612,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "ts");
             string? instId = this.safeString(entry, "instId");
             Dictionary<string, object> marketInner = this.safeMarket(instId);
@@ -9633,7 +9633,11 @@ public partial class okx : Exchange
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         string? marketType = null;
         object paramsSubType = new Dictionary<string, object>() {};
@@ -11132,7 +11136,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))

@@ -800,7 +800,7 @@ public partial class upbit : Exchange
         //                               "bid_size": 0.4650305 }    ] }   ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> orderbooks = this.toArray(response);
+        IList<object> orderbooks = response;
         for (int i = 0; i < (orderbooks?.Count ?? 0); i++)
         {
             IDictionary<string, object> orderbook = this.safeDict(orderbooks, i, new Dictionary<string, object>() {});
@@ -1357,7 +1357,7 @@ public partial class upbit : Exchange
         //         }
         //     ]
         //
-        IList<object> ohlcvs = this.toArray(response);
+        IList<object> ohlcvs = response;
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 

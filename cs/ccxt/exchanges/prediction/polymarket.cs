@@ -1001,7 +1001,7 @@ public partial class polymarket : PredictionExchange
         //
         for (int mi = 0; mi < rawMarkets.Count; mi++)
         {
-            object market = rawMarkets[mi];
+            IDictionary<string, object> market = ((IDictionary<string, object>)rawMarkets[mi]);
             string? conditionId = this.safeString(market, "conditionId");
             string? marketId = this.safeString(market, "id");
             string? marketSlug = this.safeString(market, "slug", conditionId);
@@ -1460,7 +1460,7 @@ public partial class polymarket : PredictionExchange
             int booksLength = (books?.Count ?? 0);
             for (int i = 0; i < booksLength; i++)
             {
-                object book = (books != null && i < books.Count ? books[i] : null);
+                IDictionary<string, object> book = ((IDictionary<string, object>)(books != null && i < books.Count ? books[i] : null));
                 string? tokenId = this.safeString(book, "asset_id");
                 if (((tokenId == null)) || !(((tokenId != null) && outcomesByTokenId.ContainsKey(tokenId))))
                 {

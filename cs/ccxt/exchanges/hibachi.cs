@@ -1110,7 +1110,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < responseOrders.Count; i++)
         {
-            object responseOrder = responseOrders[i];
+            IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[i]);
             ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -1225,7 +1225,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < responseOrders.Count; i++)
         {
-            object responseOrder = responseOrders[i];
+            IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[i]);
             ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -1303,7 +1303,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; i < responseOrders.Count; i++)
         {
-            object responseOrder = responseOrders[i];
+            IDictionary<string, object> responseOrder = ((IDictionary<string, object>)responseOrders[i]);
             ret.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },

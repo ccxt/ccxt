@@ -907,6 +907,7 @@ public partial class deribit : ccxt.deribit
         }
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> ohlcvs = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, parameters);
+
         return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolValue != null && ohlcvs.ContainsKey(symbolValue) ? ohlcvs[symbolValue] : null), timeframeVar));
     }
 
@@ -976,14 +977,14 @@ public partial class deribit : ccxt.deribit
         if ((this.safeDict((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), unifiedTimeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), unifiedTimeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && unifiedTimeframe != null && ohlcvsRow1.TryGetValue(unifiedTimeframe, out var ohlcvsValue1) ? ohlcvsValue1 : null));
         IDictionary<string, object> ohlcv = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         // data contains a single OHLCV candle
         List<object> parsed = this.parseWsOHLCV(ohlcv, market);
         stored.append(parsed);
-        ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = stored;
+        (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)unifiedTimeframe] = stored;
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
         string messageHash = ((("chart.trades|" + symbol) + "|") + this.safeString(parts, 3, ""));
         client.resolve(resolveData, messageHash);

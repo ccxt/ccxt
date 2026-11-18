@@ -133,13 +133,13 @@ public partial class whitebit : ccxt.whitebit
             {
                 this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
             }
-            if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown")))
+            if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && ohlcvsRow1.ContainsKey("unknown"))))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 var stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["unknown"] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)["unknown"] = stored;
             }
-            ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown"));
+            ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && ohlcvsRow2.TryGetValue("unknown", out var ohlcvsValue2) ? ohlcvsValue2 : null));
             ohlcv.append(parsed);
             client.resolve(ohlcv, messageHash);
         }

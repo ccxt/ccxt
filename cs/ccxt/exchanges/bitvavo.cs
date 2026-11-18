@@ -1293,7 +1293,7 @@ public partial class bitvavo : Exchange
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     public virtual Dictionary<string, object> parseBalanceList(object response)

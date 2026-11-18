@@ -1378,7 +1378,7 @@ public partial class okx : ccxt.okx
                 stored = new ArrayCacheByTimestamp(limit);
                 if ((symbol != null) && (timeframe != null))
                 {
-                    ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                    (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
                 }
             }
             stored.append(parsed);
@@ -3134,9 +3134,9 @@ public partial class okx : ccxt.okx
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
         this.cleanUnsubscription(client, ((channel + ":") + this.marketId(symbol)), null);
-        if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[(string)symbol] : null), timeframe))
+        if ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe)))
         {
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[(string)symbol] : null)).Remove(timeframe);
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[(string)symbol] : null).Remove(timeframe);
         }
     }
 

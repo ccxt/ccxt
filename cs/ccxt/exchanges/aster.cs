@@ -1553,7 +1553,7 @@ public partial class aster : Exchange
                 response = await this.sapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted));
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
@@ -2114,7 +2114,7 @@ public partial class aster : Exchange
         {
             throw new NullResponse ((this.id + " fetchLastPrices() returned empty response")) ;
         }
-        IList<object> rows = this.toArray(response);
+        IList<object> rows = response;
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
@@ -3619,7 +3619,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbols, "symbol"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(response, symbols, "symbol"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -3706,10 +3706,10 @@ public partial class aster : Exchange
         //     ]
         //
         //
-        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap"));
+        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(response, symbols, "symbol", "swap"));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3732,11 +3732,11 @@ public partial class aster : Exchange
         //
         string? marketId = this.safeString(marginMode, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "swap");
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(marketResolved, "symbol") },
             { "marginMode", this.safeStringLower(marginMode, "marginType") },
-        };
+        })));
     }
 
     /**
@@ -3795,7 +3795,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        List<object> modifications = this.parseMarginModifications(this.toArray(response));
+        List<object> modifications = this.parseMarginModifications(response);
         return ccxt.BaseExchange.ToMarginModificationList(this.filterBySymbolSinceLimit(modifications, symbol, since, limit));
     }
 
@@ -4321,7 +4321,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        IList<object> rawPositions = this.toArray(response);
+        IList<object> rawPositions = response;
         List<object> result = new List<object>() {};
         for (int i = 0; i < (rawPositions?.Count ?? 0); i++)
         {
@@ -4683,7 +4683,7 @@ public partial class aster : Exchange
             //                ...
             //
             this.options["leverageBrackets"] = this.createSafeDictionary();
-            IList<object> entries = this.toArray(response);
+            IList<object> entries = response;
             for (int i = 0; i < (entries?.Count ?? 0); i++)
             {
                 IDictionary<string, object> entry = this.safeDict(entries, i);
@@ -5154,7 +5154,7 @@ public partial class aster : Exchange
         //        }
         //    ]
         //
-        IList<object> approvedBuilders = this.toArray(result);
+        IList<object> approvedBuilders = result;
         int length = (approvedBuilders?.Count ?? 0);
         bool found = false;
         string? builderAddress = this.safeString(this.options, "builder");

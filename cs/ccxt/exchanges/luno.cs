@@ -606,7 +606,7 @@ public partial class luno : Exchange
         List<object> markets = this.safeList(response, "markets", new List<object>() {});
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "market_id");
             string? baseId = this.safeString(market, "base_currency");
             string? quoteId = this.safeString(market, "counter_currency");

@@ -248,7 +248,7 @@ public partial class mudrex : ccxt.mudrex
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (tf != null))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)tf] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)tf] = stored;
             }
         }
         stored.append(parsed);
@@ -261,7 +261,7 @@ public partial class mudrex : ccxt.mudrex
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object t = data[i];
+            IDictionary<string, object> t = ((IDictionary<string, object>)data[i]);
             string? s = this.safeString(t, "s");
             if ((s == null))
             {

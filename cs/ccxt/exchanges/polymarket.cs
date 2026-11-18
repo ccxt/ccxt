@@ -472,7 +472,7 @@ public partial class polymarket : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < instruments.Count; i++)
         {
-            object instrument = instruments[i];
+            IDictionary<string, object> instrument = ((IDictionary<string, object>)instruments[i]);
             string? baseId = this.safeString(instrument, "base_asset");
             if ((baseId == null))
             {
@@ -517,7 +517,7 @@ public partial class polymarket : Exchange
         });
         for (int i = 0; i < assets.Count; i++)
         {
-            object asset = assets[i];
+            IDictionary<string, object> asset = ((IDictionary<string, object>)assets[i]);
             string? currencyId = this.safeString(asset, "asset");
             if ((currencyId == null))
             {
@@ -1219,7 +1219,7 @@ public partial class polymarket : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "timestamp");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2333,7 +2333,7 @@ public partial class polymarket : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(entry, "instrument_id");
             Int64? timestamp = this.safeInteger(entry, "timestamp");
             result.Add(new Dictionary<string, object>() {
@@ -2847,7 +2847,7 @@ public partial class polymarket : Exchange
 
     public virtual string? signHash(object hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), slice(privateKey, -64, null), secp256k1, null);
         string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
         string? sVal = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));

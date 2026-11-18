@@ -2965,7 +2965,7 @@ public partial class bybit : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseCoin");
             string? quoteId = this.safeString(market, "quoteCoin");
@@ -3135,7 +3135,7 @@ public partial class bybit : Exchange
         string? category = this.safeString(data, "category");
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             if ((category == null))
             {
                 category = this.safeString(market, "category");
@@ -3341,7 +3341,7 @@ public partial class bybit : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseCoin");
             string? quoteId = this.safeString(market, "quoteCoin");
@@ -4030,12 +4030,16 @@ public partial class bybit : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
-            Dictionary<string, object> symbolMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-            market = symbolMarket;
-            int symbolsLength = (symbolsNormalized?.Count ?? 0);
-            if ((symbolsLength == 1))
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
             {
-                request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
+                Dictionary<string, object> symbolMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+                market = symbolMarket;
+                int symbolsLength = (symbolsNormalized?.Count ?? 0);
+                if ((symbolsLength == 1))
+                {
+                    request["symbol"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
+                }
             }
         }
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
@@ -4196,7 +4200,7 @@ public partial class bybit : Exchange
         List<object> resultList = this.safeList(result, "list", new List<object>() {});
         for (int i = 0; i < resultList.Count; i++)
         {
-            object entry = resultList[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)resultList[i]);
             Int64? timestamp = this.safeInteger(entry, "fundingRateTimestamp");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -11212,7 +11216,7 @@ public partial class bybit : Exchange
         List<object> coins = this.safeList(data, "coins", new List<object>() {});
         for (int i = 0; i < coins.Count; i++)
         {
-            object entry = coins[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)coins[i]);
             string? id = this.safeString(entry, "coin");
             bool? disableFrom = this.safeBool(entry, "disableFrom", false);
             bool? disableTo = this.safeBool(entry, "disableTo", false);
@@ -11821,14 +11825,14 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(result, market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marginType = this.safeString(marginMode, "marginMode");
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(null, market) },
             { "marginMode", this.parseMarginModeType(marginType) },
-        };
+        })));
     }
 
     public virtual string? parseMarginModeType(string? marginMode)

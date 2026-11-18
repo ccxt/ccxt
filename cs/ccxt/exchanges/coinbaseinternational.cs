@@ -1005,7 +1005,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int i = 0; i < rawNetworks.Count; i++)
         {
-            object rawNetwork = rawNetworks[i];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[i]);
             string? networkId = this.safeString(rawNetwork, "resource_name");
             string? network = this.networkIdToCode(networkId, code);
             if ((network != null))

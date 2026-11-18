@@ -392,7 +392,7 @@ public partial class BaseExchange
         this.orders = null;
         this.trades = this.createSafeDictionary(true);
         this.transactions = this.createSafeDictionary();
-        this.ohlcvs = this.createSafeDictionary(true);
+        this.ohlcvs = this.createSafeDictionary<IDictionary<string, object>>(true);
         this.myTrades = null;
         this.positions = null;
         this.positionsByType = new Dictionary<string, object>() {};
@@ -1832,11 +1832,6 @@ public partial class BaseExchange
         {
             return defaultValue;  // unsupported method, check "exchange.features" for details');
         }
-        object methodDict = (methodsContainer != null && methodName != null && methodsContainer.ContainsKey(methodName) ? methodsContainer[methodName] : null);
-        if ((methodDict == null))
-        {
-            return defaultValue;
-        }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if ((paramName == null))
         {
@@ -1844,12 +1839,17 @@ public partial class BaseExchange
             {
                 return defaultValue;
             }
-            return methodDict;
+            return (methodsContainer != null && methodName != null && methodsContainer.ContainsKey(methodName) ? methodsContainer[methodName] : null);
+        }
+        IDictionary<string, object> methodDict = this.safeDict(methodsContainer, methodName);
+        if ((methodDict == null))
+        {
+            return defaultValue;
         }
         List<object> splited = paramName.Split(new [] {"."}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
-        object parentKey = (splited != null && 0 < splited.Count ? splited[0] : null);
+        string? parentKey = ((string)(splited != null && 0 < splited.Count ? splited[0] : null));
         string? subKey = this.safeString(splited, 1);
-        if (!(inOp(methodDict, parentKey)))
+        if (!(((parentKey != null) && (methodDict?.ContainsKey(parentKey) == true))))
         {
             return defaultValue;  // unsupported paramName, check "exchange.features" for details');
         }
@@ -1857,20 +1857,20 @@ public partial class BaseExchange
         if ((dictionary == null))
         {
             // if the value is not dictionary but a scalar value (or undefined), return as is
-            return getValue(methodDict, parentKey);
+            return (methodDict != null && parentKey != null && methodDict.ContainsKey(parentKey) ? methodDict[parentKey] : null);
         } else
         {
             // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
             if ((subKey == null))
             {
-                return getValue(methodDict, parentKey);
+                return (methodDict != null && parentKey != null && methodDict.ContainsKey(parentKey) ? methodDict[parentKey] : null);
             }
             // throw an exception for unsupported subKey
-            if (!(inOp(getValue(methodDict, parentKey), subKey)))
+            if (!(inOp((methodDict != null && parentKey != null && methodDict.ContainsKey(parentKey) ? methodDict[parentKey] : null), subKey)))
             {
                 return defaultValue;  // unsupported subKey, check "exchange.features" for details
             }
-            return getValue(getValue(methodDict, parentKey), subKey);
+            return this.safeValue(dictionary, subKey);
         }
     }
 
@@ -3562,16 +3562,12 @@ public partial class BaseExchange
             {
                 throw new ArgumentsRequired ((this.id + " empty list of symbols is not supported")) ;
             }
-            return symbols;
+            return null;
         }
         int symbolsLength = (symbols?.Count ?? 0);
-        if ((symbolsLength == 0))
+        if (((symbolsLength == 0)) && allowEmpty != true)
         {
-            if (allowEmpty != true)
-            {
-                throw new ArgumentsRequired ((this.id + " empty list of symbols is not supported")) ;
-            }
-            return symbols;
+            throw new ArgumentsRequired ((this.id + " empty list of symbols is not supported")) ;
         }
         List<object> result = new List<object>() {};
         string? marketType = null;
@@ -7229,7 +7225,7 @@ public partial class BaseExchange
         return new List<object>() {maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest};
     }
 
-    public async virtual Task<object> fetchPaginatedCallDynamic(object method, object symbol = null, object since = null, object limit = null, object parameters = null, object maxEntriesPerRequest = null, bool? removeRepeated = null)
+    public async virtual Task<IList<object>> fetchPaginatedCallDynamic(object method, object symbol = null, object since = null, object limit = null, object parameters = null, object maxEntriesPerRequest = null, bool? removeRepeated = null)
     {
         parameters ??= new Dictionary<string, object>();
         removeRepeated ??= true;
@@ -7397,7 +7393,7 @@ public partial class BaseExchange
         return new List<object>() {};
     }
 
-    public async virtual Task<object> fetchPaginatedCallDeterministic(object method, object symbol = null, Int64? since = null, object limit = null, string timeframe = null, object parameters = null, object maxEntriesPerRequest = null)
+    public async virtual Task<IList<object>> fetchPaginatedCallDeterministic(object method, object symbol = null, Int64? since = null, object limit = null, string timeframe = null, object parameters = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
@@ -7475,7 +7471,7 @@ public partial class BaseExchange
 
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
-    public async virtual Task<object> fetchPaginatedCallCursor(string method, object symbol = null, object since = null, object limit = null, object parameters = null, string? cursorReceived = null, string? cursorSent = null, object cursorIncrement = null, object maxEntriesPerRequest = null)
+    public async virtual Task<IList<object>> fetchPaginatedCallCursor(string method, object symbol = null, object since = null, object limit = null, object parameters = null, string? cursorReceived = null, string? cursorSent = null, object cursorIncrement = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
@@ -7601,7 +7597,7 @@ public partial class BaseExchange
         return this.filterBySinceLimit(this.toArray(sorted), since, limit, key);
     }
 
-    public async virtual Task<object> fetchPaginatedCallIncremental(string method, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null, string? pageKey = null, object maxEntriesPerRequest = null)
+    public async virtual Task<IList<object>> fetchPaginatedCallIncremental(string method, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null, string? pageKey = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
@@ -7873,7 +7869,7 @@ public partial class BaseExchange
         return marginModeStructures;
     }
 
-    public virtual object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parseMarginMode () is not supported yet")) ;
     }
@@ -8207,9 +8203,9 @@ public partial class BaseExchange
                 }
                 if (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol))))
                 {
-                    if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
+                    if ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe)))
                     {
-                        ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+                        (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null).Remove(timeframe);
                     }
                 }
             }

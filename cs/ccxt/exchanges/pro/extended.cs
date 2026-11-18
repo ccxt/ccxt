@@ -924,7 +924,7 @@ public partial class extended : ccxt.extended
             Int64? defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)cacheKey] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)cacheKey] = stored;
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");

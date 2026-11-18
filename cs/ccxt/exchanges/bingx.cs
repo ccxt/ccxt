@@ -1331,7 +1331,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < (networkList?.Count ?? 0); j++)
         {
-            object rawNetwork = networkList[j];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)networkList[j]);
             string? network = this.safeString(rawNetwork, "network");
             string? networkCode = this.networkIdToCode(network, code);
             Dictionary<string, object> limits = new Dictionary<string, object>() {
@@ -7213,7 +7213,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
         string? marginType = this.safeStringLower(marginMode, "marginType");
@@ -7221,11 +7221,11 @@ public partial class bingx : Exchange
         {
             marginType = "cross";
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market, "-", "swap") },
             { "marginMode", marginType },
-        };
+        })));
     }
 
     /**

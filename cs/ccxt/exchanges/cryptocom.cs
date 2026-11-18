@@ -1029,7 +1029,7 @@ public partial class cryptocom : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? inst_type = this.safeString(market, "inst_type");
             bool spot = inst_type == "CCY_PAIR";
             bool swap = inst_type == "PERPETUAL_SWAP";
@@ -3794,7 +3794,7 @@ public partial class cryptocom : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "t");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -3885,7 +3885,10 @@ public partial class cryptocom : Exchange
                 {
                     throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                 }
-                symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                if ((symbolsLength == 1))
+                {
+                    symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                }
             } else
             {
                 symbol = symbolsNormalized;

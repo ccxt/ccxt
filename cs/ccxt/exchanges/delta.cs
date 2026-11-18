@@ -951,7 +951,7 @@ public partial class delta : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? type = this.safeString(market, "contract_type");
             if ((type == "options_combos") || (type == "binary_call_options") || (type == "binary_put_options"))
             {
@@ -3827,18 +3827,18 @@ public partial class delta : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(result, market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? symbol = null;
         if ((market != null))
         {
             symbol = this.safeString(market, "symbol");
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", symbol },
             { "marginMode", this.safeString(marginMode, "margin_mode") },
-        };
+        })));
     }
 
     /**

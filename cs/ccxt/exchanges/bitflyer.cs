@@ -366,12 +366,12 @@ public partial class bitflyer : Exchange
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        List<object> markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
-        markets = this.arrayConcat(markets, this.toArray(eu_markets));
+        List<object> markets = this.arrayConcat(jp_markets, this.toArray(us_markets));
+        markets = this.arrayConcat(markets, eu_markets);
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "product_code");
             List<object> currencies = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? marketType = this.safeString(market, "market_type");

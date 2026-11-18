@@ -361,9 +361,9 @@ public partial class backpack : ccxt.backpack
                 string? timeframe = this.safeString(splitHashes, 3);
                 if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
                 {
-                    if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
+                    if ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe)))
                     {
-                        ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+                        (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null).Remove(timeframe);
                     }
                 }
             } else if ((messageHash?.IndexOf("orderbook", StringComparison.Ordinal) ?? -1) >= 0)
@@ -786,6 +786,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCV", parameters);
         Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, query));
+
         return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbol) ? result[symbol] : null), timeframeVar));
     }
 
@@ -932,13 +933,13 @@ public partial class backpack : ccxt.backpack
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && timeframe != null && ohlcvsRow2.ContainsKey(timeframe))))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
-        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow3) && ohlcvsRow3 != null && timeframe != null && ohlcvsRow3.TryGetValue(timeframe, out var ohlcvsValue3) ? ohlcvsValue3 : null));
         List<object> parsed = this.parseWsOHLCV(data);
         ohlcv.append(parsed);
         string messageHash = ((("candles:" + symbol) + ":") + timeframe);

@@ -1166,7 +1166,7 @@ public partial class kucoin : ccxt.kucoin
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         bool isContractMarket = (topic.IndexOf("contractMarket", StringComparison.Ordinal) >= 0);
         int baseVolumeIndex = 5;
@@ -1213,7 +1213,7 @@ public partial class kucoin : ccxt.kucoin
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         List<object> parsed = new List<object> {this.safeIntegerProduct(data, "O", 1000), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
         stored.append(parsed);
@@ -1882,7 +1882,7 @@ public partial class kucoin : ccxt.kucoin
             Int64? deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
             if ((nonce == null))
             {
-                int cacheLength = ((orderbook as ccxt.pro.OrderBook).cache?.Count ?? 0);
+                Int64? cacheLength = this.parseToInt(((orderbook as ccxt.pro.OrderBook).cache?.Count ?? 0));
                 List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
                 object subscription = null;
                 for (int i = 0; i < subscriptions.Count; i++)
@@ -1895,8 +1895,8 @@ public partial class kucoin : ccxt.kucoin
                     }
                 }
                 Int64? limit = this.safeInteger(subscription, "limit");
-                object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 5);
-                if (isEqual(cacheLength, snapshotDelay))
+                Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 5));
+                if ((cacheLength == snapshotDelay))
                 {
                     this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}});
                 }
@@ -1956,14 +1956,14 @@ public partial class kucoin : ccxt.kucoin
             Int64? deltaEnd = this.safeInteger(data, "C");
             if ((nonce == null))
             {
-                int cacheLength = ((orderbook as ccxt.pro.OrderBook).cache?.Count ?? 0);
+                Int64? cacheLength = this.parseToInt(((orderbook as ccxt.pro.OrderBook).cache?.Count ?? 0));
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
                 Int64? limit = this.safeInteger(subscription, "limit");
-                object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 5);
+                Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 5));
                 Dictionary<string, object> utaParams = new Dictionary<string, object>() {
                     { "uta", true },
                 };
-                if (isEqual(cacheLength, snapshotDelay))
+                if ((cacheLength == snapshotDelay))
                 {
                     this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, utaParams});
                 }

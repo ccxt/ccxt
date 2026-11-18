@@ -2102,7 +2102,9 @@ public partial class grvt : Exchange
         for (int i = 0; i < (transfers?.Count ?? 0); i++)
         {
             object transfer = (transfers != null && i < transfers.Count ? transfers[i] : null);
-            if ((onlyMainAccount == true && (this.safeString(transfer, "fromAccount") == "0") && (this.safeString(transfer, "toAccount") == "0")) || (onlyMainAccount != true && ((this.safeString(transfer, "fromAccount") != "0") || (this.safeString(transfer, "toAccount") != "0"))))
+            string? fromAccount = this.safeString(transfer, "fromAccount", "");
+            string? toAccount = this.safeString(transfer, "toAccount", "");
+            if ((onlyMainAccount == true && fromAccount == "0" && toAccount == "0") || (onlyMainAccount != true && (fromAccount != "0" || toAccount != "0")))
             {
                 string? metadata = this.safeString(this.safeDict(transfer, "info", new Dictionary<string, object>() {}), "transfer_metadata");
                 object parsedMetadata = this.parseJson(metadata);
@@ -3011,7 +3013,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToMarginModes(this.parseLeverages(results, symbols));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         //
         // fetchMarginModes
@@ -3025,11 +3027,11 @@ public partial class grvt : Exchange
         //            },
         //
         string? marketId = this.safeString(marginMode, "symbol");
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market) },
             { "marginMode", this.safeStringLower(marginMode, "margin_type") },
-        };
+        })));
     }
 
     /**

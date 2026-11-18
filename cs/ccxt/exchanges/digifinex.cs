@@ -831,7 +831,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object market = response[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)response[i]);
             string? id = this.safeString2(market, "symbol", "instrument_id");
             string? baseId = this.safeString2(market, "base_asset", "base_currency");
             string? quoteId = this.safeString2(market, "quote_asset", "quote_currency");
@@ -951,7 +951,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "market");
             if ((id == null))
             {
@@ -4245,7 +4245,7 @@ public partial class digifinex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(data, "instrument_id");
             string? symbolInner = this.safeSymbol(marketId);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -4352,7 +4352,10 @@ public partial class digifinex : Exchange
                 {
                     throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                 }
-                symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                if ((symbolsLength == 1))
+                {
+                    symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                }
             } else
             {
                 symbol = symbolsNormalized;

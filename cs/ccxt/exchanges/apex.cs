@@ -1231,7 +1231,7 @@ public partial class apex : Exchange
         List<object> resultList = this.safeList(data, "historyFunds", new List<object>() {});
         for (int i = 0; i < resultList.Count; i++)
         {
-            object entry = resultList[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)resultList[i]);
             Int64? timestamp = this.safeInteger(entry, "fundingTimestamp");
             string? marketId = this.safeString(entry, "symbol");
             rates.Add(new Dictionary<string, object>() {

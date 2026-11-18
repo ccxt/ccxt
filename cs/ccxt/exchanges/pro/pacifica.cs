@@ -1330,7 +1330,7 @@ public partial class pacifica : ccxt.pacifica
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ohlcv = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = ohlcv;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = ohlcv;
         }
         IList<object> parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);
@@ -1595,9 +1595,9 @@ public partial class pacifica : ccxt.pacifica
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (((symbol != null)) && (((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
         {
-            if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
+            if ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe)))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null).Remove(timeframe);
             }
         }
     }

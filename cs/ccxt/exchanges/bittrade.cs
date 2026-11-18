@@ -785,7 +785,7 @@ public partial class bittrade : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? baseId = this.safeString(market, "base-currency");
             string? quoteId = this.safeString(market, "quote-currency");
             string? bs = this.safeCurrencyCode(baseId);

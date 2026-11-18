@@ -1031,7 +1031,7 @@ public partial class onetrading : Exchange
         //     ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> rawTickers = this.toArray(response);
+        IList<object> rawTickers = response;
         for (int i = 0; i < (rawTickers?.Count ?? 0); i++)
         {
             ccxt.Ticker ticker = this.parseTicker(rawTickers[i]);

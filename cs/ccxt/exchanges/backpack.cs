@@ -732,7 +732,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; j++)
         {
-            object network = networks[j];
+            IDictionary<string, object> network = ((IDictionary<string, object>)networks[j]);
             string? networkId = this.safeString(network, "blockchain");
             string? networkIdLowerCase = this.safeStringLower(network, "blockchain");
             string? networkCode = this.networkIdToCode(networkIdLowerCase, code);
@@ -887,7 +887,7 @@ public partial class backpack : Exchange
         {
             for (int i = 0; i < (securities?.Count ?? 0); i++)
             {
-                object security = securities[i];
+                IDictionary<string, object> security = ((IDictionary<string, object>)securities[i]);
                 string? assetId = this.safeString(security, "asset");
                 if ((assetId == null))
                 {
@@ -1982,7 +1982,7 @@ public partial class backpack : Exchange
             request["priceType"] = this.capitalize(price);
         }
         List<object> response = await this.publicGetApiV1Klines(this.extend(request, paramsOmitted));
-        IList<object> ohlcvs = this.toArray(response);
+        IList<object> ohlcvs = response;
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
@@ -2166,10 +2166,10 @@ public partial class backpack : Exchange
         //     ]
         //
         List<object> rates = new List<object>() {};
-        IList<object> rawRates = this.toArray(response);
+        IList<object> rawRates = response;
         for (int i = 0; i < (rawRates?.Count ?? 0); i++)
         {
-            object rate = rawRates[i];
+            IDictionary<string, object> rate = ((IDictionary<string, object>)rawRates[i]);
             string? datetime = this.safeString(rate, "intervalEndTimestamp");
             Int64? timestamp = this.parse8601(datetime);
             rates.Add(new Dictionary<string, object>() {
@@ -2228,7 +2228,7 @@ public partial class backpack : Exchange
         {
             response = await this.publicGetApiV1Trades(this.extend(request, query));
         }
-        IList<object> responseList = this.toArray(response);
+        IList<object> responseList = response;
         return this.parseTrades(responseList, market, since, limit);
     }
 
@@ -2339,7 +2339,7 @@ public partial class backpack : Exchange
             request["fillType"] = "User"; // default
         }
         List<object> response = await this.privateGetWapiV1HistoryFills(this.extend(paramsOmitted, request));
-        IList<object> responseList = this.toArray(response);
+        IList<object> responseList = response;
         return this.parseTrades(responseList, market, since, limit);
     }
 

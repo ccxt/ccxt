@@ -1772,7 +1772,7 @@ public partial class weex : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         List<object> response = await this.publicGetApiV3MarketKlines(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     /**
@@ -1901,7 +1901,7 @@ public partial class weex : Exchange
                 response = await this.contractGetCapiV3MarketKlines(this.extend(request, paramsOmitted));
             }
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitResolved));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1960,7 +1960,7 @@ public partial class weex : Exchange
         IList<object> responseList = new List<object>() {};
         if ((response != null))
         {
-            responseList = this.toArray(response);
+            responseList = response;
         }
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -3911,7 +3911,7 @@ public partial class weex : Exchange
         IList<object> responseList = new List<object>() {};
         if ((response != null))
         {
-            responseList = this.toArray(response);
+            responseList = response;
         }
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -4007,7 +4007,7 @@ public partial class weex : Exchange
             var requestUntil = requestUntilparamsUntilVariable[0];
             IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
             List<object> billsResponse = await this.privatePostApiV3AccountBills(this.extend(requestUntil, paramsUntil));
-            items = this.toArray(billsResponse);
+            items = billsResponse;
         }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(items, currency, since, limit));
     }
@@ -4618,18 +4618,18 @@ public partial class weex : Exchange
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.contractPrivateGetCapiV3AccountSymbolConfig(parameters);
-        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(response), symbolsNormalized, "symbol", "swap"));
+        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(response, symbolsNormalized, "symbol", "swap"));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
         string? marginType = this.safeString(marginMode, "marginType");
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market, null, "swap") },
             { "marginMode", this.parseMarginType(marginType) },
-        };
+        })));
     }
 
     public virtual string? parseMarginType(string? marginType)
@@ -4727,7 +4727,7 @@ public partial class weex : Exchange
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         List<object> response = await this.contractPrivateGetCapiV3AccountSymbolConfig(parameters);
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbolsNormalized, "symbol", "swap"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(response, symbolsNormalized, "symbol", "swap"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)

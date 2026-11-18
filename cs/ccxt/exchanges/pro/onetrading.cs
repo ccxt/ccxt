@@ -1285,7 +1285,7 @@ public partial class onetrading : ccxt.onetrading
         stored.append(parsed);
         if ((symbol != null) && (timeframe != null))
         {
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         client.resolve(stored, channel);
     }

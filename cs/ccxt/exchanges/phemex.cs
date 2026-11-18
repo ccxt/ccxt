@@ -4861,7 +4861,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object entry = rows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
             Int64? timestamp = this.safeInteger(entry, "createTime");
             string? execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
             string? currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
@@ -5784,7 +5784,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rates.Count; i++)
         {
-            object item = rates[i];
+            IDictionary<string, object> item = ((IDictionary<string, object>)rates[i]);
             Int64? timestamp = this.safeInteger(item, "fundingTime");
             result.Add(new Dictionary<string, object>() {
                 { "info", item },

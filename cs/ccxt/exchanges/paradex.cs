@@ -2634,7 +2634,7 @@ public partial class paradex : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
-            object result = results[i];
+            IDictionary<string, object> result = ((IDictionary<string, object>)results[i]);
             string? marketId = this.safeString(result, "market");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? status = this.safeString(result, "status");
@@ -3301,7 +3301,7 @@ public partial class paradex : Exchange
         if ((paginate == true))
         {
             // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
-            object transactions = await this.fetchPaginatedCallCursor("fetchDeposits", code, since, null, this.extend(paramsPaginate, new Dictionary<string, object>() {
+            IList<object> transactions = await this.fetchPaginatedCallCursor("fetchDeposits", code, since, null, this.extend(paramsPaginate, new Dictionary<string, object>() {
                 { "allKinds", true },
             }), "next", "cursor", null, 100);
             List<object> transactionsOfKind = this.filterTransactionsByKind(transactions, "DEPOSIT");
@@ -3389,7 +3389,7 @@ public partial class paradex : Exchange
         if ((paginate == true))
         {
             // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
-            object transactions = await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, null, this.extend(paramsPaginate, new Dictionary<string, object>() {
+            IList<object> transactions = await this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, null, this.extend(paramsPaginate, new Dictionary<string, object>() {
                 { "allKinds", true },
             }), "next", "cursor", null, 100);
             List<object> transactionsOfKind = this.filterTransactionsByKind(transactions, "WITHDRAWAL");
@@ -3689,16 +3689,16 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(this.safeDict(configs, 0), market));
     }
 
-    public override object parseMarginMode(object rawMarginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object rawMarginMode, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(rawMarginMode, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? marginMode = this.safeStringLower(rawMarginMode, "margin_type");
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", rawMarginMode },
             { "symbol", this.safeString(marketResolved, "symbol") },
             { "marginMode", marginMode },
-        };
+        })));
     }
 
     /**
@@ -4193,7 +4193,7 @@ public partial class paradex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
-            object rate = results[i];
+            IDictionary<string, object> rate = ((IDictionary<string, object>)results[i]);
             Int64? timestamp = this.safeInteger(rate, "created_at");
             string? datetime = this.iso8601(timestamp);
             rates.Add(new Dictionary<string, object>() {

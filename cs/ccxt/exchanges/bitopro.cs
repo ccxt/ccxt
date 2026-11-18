@@ -1025,7 +1025,7 @@ public partial class bitopro : Exchange
         }
         object i = 0;
         int candleLength = candles?.Count ?? 0;
-        object resultLength = 0;
+        Int64 resultLength = 0;
         while ((isLessThan(resultLength, limit)) && (isLessThan(i, candleLength)))
         {
             List<object> candle = this.safeList(candles, i, new List<object>() {});
@@ -1041,7 +1041,7 @@ public partial class bitopro : Exchange
             }
             timestamp = this.sum(timestamp, distanceInMs);
             resultLength = (result?.Count ?? 0);
-            copyFrom = this.safeList(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(resultLength, 1));
+            copyFrom = this.safeList(result, (resultLength - 1));
         }
         return result;
     }

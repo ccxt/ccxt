@@ -357,10 +357,10 @@ public partial class bitbns : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        IList<object> rawMarkets = this.toArray(response);
+        IList<object> rawMarkets = response;
         for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
-            object market = rawMarkets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)rawMarkets[i]);
             string? id = this.safeString(market, "id");
             string? baseId = this.safeString(market, "base");
             string? quoteId = this.safeString(market, "quote");

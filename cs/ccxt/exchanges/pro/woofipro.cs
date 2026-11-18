@@ -71,7 +71,8 @@ public partial class woofipro : ccxt.woofipro
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        options[(string)url] = newValue;
+        this.options["requestId"] = options;
         return newValue;
     }
 
@@ -486,7 +487,7 @@ public partial class woofipro : ccxt.woofipro
             stored = new ArrayCacheByTimestamp(limit);
             if (((symbol != null)) && ((timeframe != null)))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
         }
         stored.append(parsed);

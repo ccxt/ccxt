@@ -1894,7 +1894,7 @@ public partial class zebpay : Exchange
         List<object> markets = this.safeList(data, "symbols", new List<object>() {});
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
@@ -1980,7 +1980,7 @@ public partial class zebpay : Exchange
         List<object> markets = this.safeList(data, "symbols", new List<object>() {});
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");

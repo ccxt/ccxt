@@ -4340,7 +4340,7 @@ public partial class woo : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < rows.Count; i++)
         {
-            object entry = rows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "fundingRateTimestamp");
             rates.Add(new Dictionary<string, object>() {
@@ -5091,7 +5091,7 @@ public partial class woo : Exchange
         List<object> data = this.safeList(response, "rows", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(entry, "token");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))

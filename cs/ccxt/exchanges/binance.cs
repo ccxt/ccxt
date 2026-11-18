@@ -4875,7 +4875,7 @@ public partial class binance : Exchange
         bool isETF = false;
         for (int j = 0; j < networkList.Count; j++)
         {
-            object networkItem = networkList[j];
+            IDictionary<string, object> networkItem = ((IDictionary<string, object>)networkList[j]);
             string? network = this.safeString(networkItem, "network");
             string? networkCode = this.networkIdToCode(network, code);
             isETF = (network == "ETF"); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
@@ -7010,7 +7010,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitValue));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitValue));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
@@ -7512,7 +7512,7 @@ public partial class binance : Exchange
         IList<object> responseList = new List<object>() {};
         if ((response != null))
         {
-            responseList = this.toArray(response);
+            responseList = response;
         }
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -11998,7 +11998,7 @@ public partial class binance : Exchange
         IList<object> responseList = new List<object>() {};
         if ((response != null))
         {
-            responseList = this.toArray(response);
+            responseList = response;
         }
         for (int i = 0; i < (responseList?.Count ?? 0); i++)
         {
@@ -12828,7 +12828,7 @@ public partial class binance : Exchange
         //  ]
         //
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
-        IList<object> coins = this.toArray(response);
+        IList<object> coins = response;
         for (int i = 0; i < (coins?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(coins, i);
@@ -14311,7 +14311,7 @@ public partial class binance : Exchange
             {
                 throw new NullResponse ((this.id + " loadLeverageBrackets() returned empty response")) ;
             }
-            IList<object> entries = this.toArray(response);
+            IList<object> entries = response;
             for (int i = 0; i < (entries?.Count ?? 0); i++)
             {
                 IDictionary<string, object> entry = this.safeDict(entries, i);
@@ -14456,7 +14456,7 @@ public partial class binance : Exchange
         List<object> tiers = new List<object>() {};
         for (int j = 0; j < brackets.Count; j++)
         {
-            object bracket = brackets[j];
+            IDictionary<string, object> bracket = ((IDictionary<string, object>)brackets[j]);
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeNumber(bracket, "bracket") },
                 { "symbol", this.safeSymbol(marketId, marketResolved) },
@@ -14551,7 +14551,10 @@ public partial class binance : Exchange
                 {
                     throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                 }
-                symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                if ((symbolsLength == 1))
+                {
+                    symbol = (symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null);
+                }
             } else
             {
                 symbol = symbolsNormalized;
@@ -14584,7 +14587,7 @@ public partial class binance : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        IList<object> positions = this.toArray(response);
+        IList<object> positions = response;
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             result.Add(this.parseOptionPosition(positions[i], market));
@@ -14951,7 +14954,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " method() returned empty response")) ;
         }
-        IList<object> positions = this.toArray(response);
+        IList<object> positions = response;
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawPosition = ((IDictionary<string, object>)positions[i]);
@@ -17787,7 +17790,11 @@ public partial class binance : Exchange
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
@@ -17856,7 +17863,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(this.safeValue(response, 0), market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -17871,11 +17878,11 @@ public partial class binance : Exchange
         {
             reMarginMode = (marginTypeRaw == "crossed") ? "cross" : "isolated";
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(marketResolved, "symbol") },
             { "marginMode", reMarginMode },
-        };
+        })));
     }
 
     /**
@@ -18051,7 +18058,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " parseMarginModifications() returned empty response")) ;
         }
-        List<object> modifications = this.parseMarginModifications(this.toArray(response));
+        List<object> modifications = this.parseMarginModifications(response);
         return ccxt.BaseExchange.ToMarginModificationList(this.filterBySymbolSinceLimit(modifications, symbol, since, limit));
     }
 
@@ -18080,10 +18087,10 @@ public partial class binance : Exchange
         //     ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> assets = this.toArray(response);
+        IList<object> assets = response;
         for (int i = 0; i < (assets?.Count ?? 0); i++)
         {
-            object entry = assets[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)assets[i]);
             string? id = this.safeString(entry, "asset");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))
@@ -18453,7 +18460,11 @@ public partial class binance : Exchange
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         string type = "swap";
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchFundingIntervals", market, parameters, "linear");
@@ -18679,7 +18690,7 @@ public partial class binance : Exchange
         IList<object> responseList = new List<object>() {};
         if ((response != null))
         {
-            responseList = this.toArray(response);
+            responseList = response;
         }
         return ccxt.BaseExchange.ToADLList(this.parseADLRanks(responseList, symbolsNormalized));
     }

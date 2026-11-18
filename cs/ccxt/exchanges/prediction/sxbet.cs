@@ -1309,7 +1309,7 @@ public partial class sxbet : PredictionExchange
                 end = this.parseToInt(idsLength);
             }
             List<object> orderItems = new List<object>() {};
-            List<object> chunkIds = ((List<object>)this.arraySlice(ids, start, end));
+            IList<object> chunkIds = this.arraySlice(ids, start, end);
             int chunkIdsLength = (chunkIds?.Count ?? 0);
             for (int i = 0; i < chunkIdsLength; i++)
             {
@@ -2196,7 +2196,7 @@ public partial class sxbet : PredictionExchange
             {
                 end = this.parseToInt(hashesLength);
             }
-            List<object> chunk = ((List<object>)this.arraySlice(hashesOrder, start, end));
+            IList<object> chunk = this.arraySlice(hashesOrder, start, end);
             List<object> rows = await this.fetchSxbetBestOdds(chunk, parameters);
             int rowsLength = (rows?.Count ?? 0);
             for (int j = 0; j < rowsLength; j++)
@@ -2343,16 +2343,16 @@ public partial class sxbet : PredictionExchange
         Dictionary<string, object> response = await this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters));
         IDictionary<string, object> snapshot = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> sides = ((IDictionary<string, object>)this.parseSxbetV3BookSides(snapshot, isOutcomeOne));
-        object sortedBids = this.safeList(sides, "bids", new List<object>() {});
-        object sortedAsks = this.safeList(sides, "asks", new List<object>() {});
+        IList<object> sortedBids = this.safeList(sides, "bids", new List<object>() {});
+        IList<object> sortedAsks = this.safeList(sides, "asks", new List<object>() {});
         if ((limit != null))
         {
-            int bidsLength = getArrayLength(sortedBids);
+            int bidsLength = (sortedBids?.Count ?? 0);
             if ((limit < bidsLength))
             {
                 sortedBids = this.arraySlice(sortedBids, 0, limit);
             }
-            int asksLength = getArrayLength(sortedAsks);
+            int asksLength = (sortedAsks?.Count ?? 0);
             if ((limit < asksLength))
             {
                 sortedAsks = this.arraySlice(sortedAsks, 0, limit);

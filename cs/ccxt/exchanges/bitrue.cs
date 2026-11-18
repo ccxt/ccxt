@@ -854,7 +854,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < networkDetails.Count; j++)
         {
-            object entry = networkDetails[j];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)networkDetails[j]);
             string? networkId = this.safeString(entry, "chain");
             string? network = this.networkIdToCode(networkId, code);
             if ((network != null))
@@ -1741,7 +1741,7 @@ public partial class bitrue : Exchange
             } else if ((this.safeBool(market, "spot", false) == true))
             {
                 response = await this.spotV1PublicGetTicker24hr(this.extend(request, parameters));
-                data = this.toArray(response);
+                data = response;
             } else
             {
                 throw new NotSupported ((this.id + " fetchTickers only support spot & swap markets")) ;
@@ -1756,7 +1756,7 @@ public partial class bitrue : Exchange
                 throw new NotSupported ((this.id + " fetchTickers only support spot when symbols are not proved")) ;
             }
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, paramsMarketType));
-            data = this.toArray(response);
+            data = response;
         }
         //
         // spot

@@ -402,10 +402,10 @@ public partial class indodax : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        IList<object> rawMarkets = this.toArray(response);
+        IList<object> rawMarkets = response;
         for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
-            object market = rawMarkets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)rawMarkets[i]);
             string? id = this.safeString(market, "id");
             string? baseId = this.safeString(market, "traded_currency");
             string? quoteId = this.safeString(market, "base_currency");
@@ -826,7 +826,7 @@ public partial class indodax : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitResolved));
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1655,7 +1655,7 @@ public partial class indodax : Exchange
                 }
             }
         }
-        return ccxt.BaseExchange.ToDepositAddressList(this.toArray(result));
+        return ccxt.BaseExchange.ToDepositAddressList(result);
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

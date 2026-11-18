@@ -1595,7 +1595,7 @@ public partial class nado : ccxt.nado
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         IList<object> parsed = this.parseOHLCV(message, market);
         stored.append(parsed);
@@ -2071,9 +2071,9 @@ public partial class nado : ccxt.nado
             List<object> parts = messageHash.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
             string? timeframe = this.safeString(parts, 1);
             string? symbol = this.safeString(parts, 2);
-            if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+            if (((symbol != null)) && ((timeframe != null)) && (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))) && ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe))))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null).Remove(timeframe);
             }
         } else if ((messageHash.IndexOf("ticker:", StringComparison.Ordinal) == 0))
         {

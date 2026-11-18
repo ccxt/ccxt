@@ -1000,7 +1000,7 @@ public partial class modetrade : Exchange
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; j < networks.Count; j++)
         {
-            object network = networks[j];
+            IDictionary<string, object> network = ((IDictionary<string, object>)networks[j]);
             // TODO: transform chain id to human readable name
             string? networkId = this.safeString(network, "chain_id", "");
             string? precision = this.parsePrecision(this.safeString(network, "decimals"));
@@ -1398,7 +1398,7 @@ public partial class modetrade : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "funding_rate_timestamp");
             rates.Add(new Dictionary<string, object>() {

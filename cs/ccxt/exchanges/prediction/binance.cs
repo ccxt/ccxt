@@ -560,7 +560,7 @@ public partial class binance : PredictionExchange
                 }
             }
         }
-        object capped = collected;
+        IList<object> capped = collected;
         int collectedLength = (collected?.Count ?? 0);
         if (((limitResolved == null || collectedLength > limitResolved)))
         {

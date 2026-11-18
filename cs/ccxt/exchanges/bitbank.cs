@@ -632,7 +632,7 @@ public partial class bitbank : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < pairs.Count; i++)
         {
-            object pair = pairs[i];
+            IDictionary<string, object> pair = ((IDictionary<string, object>)pairs[i]);
             string? marketId = this.safeString(pair, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = this.safeString(market, "symbol", "");

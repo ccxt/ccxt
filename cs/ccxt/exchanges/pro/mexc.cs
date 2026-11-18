@@ -757,7 +757,7 @@ public partial class mexc : ccxt.mexc
             stored = new ArrayCacheByTimestamp(limit);
             if ((timeframe != null))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
         }
         stored.append(parsed);

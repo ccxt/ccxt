@@ -212,7 +212,8 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        options[(string)url] = newValue;
+        this.options["requestId"] = options;
         return newValue;
     }
 
@@ -237,7 +238,8 @@ public partial class binance : ccxt.binance
             stream = this.numberToString(normalizedIndex);
             if ((subscriptionHash != null))
             {
-                ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("streamBySubscriptionsHash") ? this.options["streamBySubscriptionsHash"] : null))[(string)subscriptionHash] = stream;
+                streamBySubscriptionsHash[(string)subscriptionHash] = stream;
+                this.options["streamBySubscriptionsHash"] = streamBySubscriptionsHash;
             }
             IDictionary<string, object> subscriptionsByStreams = this.safeDict(this.options, "numSubscriptionsByStream");
             if ((subscriptionsByStreams == null))
@@ -1910,6 +1912,7 @@ public partial class binance : ccxt.binance
         }
         paramsStock["callerMethodName"] = "watchOHLCV";
         Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock);
+
         return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
     }
 
@@ -2243,7 +2246,7 @@ public partial class binance : ccxt.binance
             stored = new ArrayCacheByTimestamp(limit);
             if ((symbol != null) && (unifiedTimeframe != null))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[(string)unifiedTimeframe] = stored;
             }
         }
         stored.append(parsed);
@@ -2743,7 +2746,11 @@ public partial class binance : ccxt.binance
         bool symbolsDefined = ((symbolsNormalized != null));
         if ((symbolsNormalized != null))
         {
-            firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                firstMarket = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         string? userDefaultType = this.safeString(this.options, "defaultType");
         string? defaultMarket = null;

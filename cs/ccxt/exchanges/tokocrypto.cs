@@ -1311,7 +1311,7 @@ public partial class tokocrypto : Exchange
         //         }
         //     ]
         //
-        IList<object> responseList = this.toArray(response);
+        IList<object> responseList = response;
         return this.parseTrades(responseList, market, since, limit);
     }
 

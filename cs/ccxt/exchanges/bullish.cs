@@ -1627,7 +1627,7 @@ public partial class bullish : Exchange
         //         }, ...
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1693,10 +1693,10 @@ public partial class bullish : Exchange
         //     ]
         //
         List<object> rates = new List<object>() {};
-        IList<object> result = this.toArray(response);
+        IList<object> result = response;
         for (int i = 0; i < (result?.Count ?? 0); i++)
         {
-            object entry = result[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)result[i]);
             string? datetime = this.safeString(entry, "updatedAtDatetime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2593,7 +2593,7 @@ public partial class bullish : Exchange
         if ((tradingAccountId == null))
         {
             List<object> response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
-            IList<object> accounts = this.toArray(response);
+            IList<object> accounts = response;
             for (int i = 0; i < (accounts?.Count ?? 0); i++)
             {
                 IDictionary<string, object> account = this.safeDict(accounts, i);
@@ -2746,7 +2746,7 @@ public partial class bullish : Exchange
         //         }
         //     ]
         //
-        IList<object> safeResponse = this.toArray(response);
+        IList<object> safeResponse = response;
         int length = (safeResponse?.Count ?? 0);
         IDictionary<string, object> data = this.safeDict(safeResponse, 0, new Dictionary<string, object>() {});
         (string?, object) networkAndParams = this.handleNetworkCodeAndParams(parameters);

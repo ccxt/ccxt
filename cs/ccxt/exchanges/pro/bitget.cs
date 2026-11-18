@@ -785,7 +785,7 @@ public partial class bitget : ccxt.bitget
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+            (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
@@ -2894,7 +2894,7 @@ public partial class bitget : ccxt.bitget
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object rawBalance = data[i];
+            IDictionary<string, object> rawBalance = ((IDictionary<string, object>)data[i]);
             if (instType == "uta")
             {
                 List<object> coins = this.safeList(rawBalance, "coin", new List<object>() {});
@@ -2938,7 +2938,7 @@ public partial class bitget : ccxt.bitget
                     account["debt"] = Precise.stringAdd(borrow, interest);
                 }
                 string freeQuery = "available";
-                if (inOp(rawBalance, "maxTransferOut"))
+                if ((rawBalance != null && rawBalance.ContainsKey("maxTransferOut")))
                 {
                     freeQuery = "maxTransferOut";
                 }
@@ -3506,9 +3506,9 @@ public partial class bitget : ccxt.bitget
         }
         if (((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol))))
         {
-            if (((timeframe != null)) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+            if (((timeframe != null)) && ((this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframe != null && ohlcvsRow1.ContainsKey(timeframe))))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null).Remove(timeframe);
             }
         }
         this.cleanUnsubscription(client, subMessageHash, messageHash);

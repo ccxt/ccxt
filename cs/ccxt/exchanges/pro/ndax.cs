@@ -322,7 +322,7 @@ public partial class ndax : ccxt.ndax
                 {
                     Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                     stored = new ArrayCacheByTimestamp(limit);
-                    ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                    (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
                 }
                 int length = (stored?.Count ?? 0);
                 object previous = this.safeValue(stored, (length - 1));

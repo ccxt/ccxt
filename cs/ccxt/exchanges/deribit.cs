@@ -1241,7 +1241,7 @@ public partial class deribit : Exchange
             List<object> instrumentsResult = this.safeList(instrumentsResponses[i], "result", new List<object>() {});
             for (int k = 0; k < instrumentsResult.Count; k++)
             {
-                object market = instrumentsResult[k];
+                IDictionary<string, object> market = ((IDictionary<string, object>)instrumentsResult[k]);
                 string? kind = this.safeString(market, "kind");
                 bool isSpot = (kind == "spot");
                 string? id = this.safeString(market, "instrument_name");
@@ -2140,7 +2140,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> optionFee = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            object feeEntry = fees[i];
+            IDictionary<string, object> feeEntry = ((IDictionary<string, object>)fees[i]);
             string? instrumentType = this.safeString(feeEntry, "instrument_type");
             if (instrumentType == "future")
             {

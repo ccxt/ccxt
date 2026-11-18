@@ -495,7 +495,7 @@ public partial class coinmate : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(market, "name");
             string? baseId = this.safeString(market, "firstCurrency");
             string? quoteId = this.safeString(market, "secondCurrency");

@@ -763,7 +763,7 @@ public partial class coinsph : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < networkList.Count; j++)
         {
-            object networkItem = networkList[j];
+            IDictionary<string, object> networkItem = ((IDictionary<string, object>)networkList[j]);
             string? network = this.safeString(networkItem, "network");
             string? networkCode = this.networkIdToCode(network, code);
             if ((networkCode != null))
@@ -957,7 +957,7 @@ public partial class coinsph : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
@@ -1306,7 +1306,7 @@ public partial class coinsph : Exchange
         //         ]
         //     ]
         //
-        IList<object> ohlcvs = this.toArray(response);
+        IList<object> ohlcvs = response;
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
@@ -2141,7 +2141,7 @@ public partial class coinsph : Exchange
         //     ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> fees = this.toArray(response);
+        IList<object> fees = response;
         for (int i = 0; i < (fees?.Count ?? 0); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(fees[i]);

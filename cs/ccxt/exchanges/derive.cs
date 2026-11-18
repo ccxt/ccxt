@@ -2123,7 +2123,7 @@ public partial class derive : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "timestamp");
             rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -2820,8 +2820,8 @@ public partial class derive : Exchange
         if ((paginate == true))
         {
             // paginate without a symbol: the venue cannot filter the order history by instrument, so an inner call filtering by symbol could return an empty page and stop the pagination loop prematurely
-            object allOrders = await this.fetchPaginatedCallIncremental("fetchCanceledAndClosedOrders", null, since, null, paramsPaginate, "page", 500);
-            return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(allOrders), symbol, since, limit));
+            IList<object> allOrders = await this.fetchPaginatedCallIncremental("fetchCanceledAndClosedOrders", null, since, null, paramsPaginate, "page", 500);
+            return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(allOrders, symbol, since, limit));
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});

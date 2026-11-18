@@ -371,7 +371,7 @@ public partial class predictfun : PredictionExchange
         {
             this.markets = this.createSafeDictionary();
         }
-        object rawTopics = new List<object>() {};
+        IList<object> rawTopics = new List<object>() {};
         if ((slug != null))
         {
             Dictionary<string, object> response = await this.predictfunGetV1CategoriesSlug(this.extend(new Dictionary<string, object>() {
@@ -564,7 +564,7 @@ public partial class predictfun : PredictionExchange
             //
             List<object> data = this.safeList(rawTopicsResponse, "data", new List<object>() {});
             rawTopics = this.arrayConcat(rawTopics, data);
-            int topicsLength = getArrayLength(rawTopics);
+            int topicsLength = (rawTopics?.Count ?? 0);
             while ((topicsLength < fetchCap))
             {
                 string? nextPageToken = this.safeString(rawTopicsResponse, "cursor");
@@ -576,18 +576,18 @@ public partial class predictfun : PredictionExchange
                 rawTopicsResponse = await this.predictfunGetV1Categories(extendedRequest);
                 data = this.safeList(rawTopicsResponse, "data", new List<object>() {});
                 rawTopics = this.arrayConcat(rawTopics, data);
-                topicsLength = getArrayLength(rawTopics);
+                topicsLength = (rawTopics?.Count ?? 0);
             }
             if (((fetchCap == null || topicsLength > fetchCap)))
             {
                 rawTopics = this.arraySlice(rawTopics, 0, fetchCap);
             }
         }
-        int rawTopicsLength = getArrayLength(rawTopics);
+        int rawTopicsLength = (rawTopics?.Count ?? 0);
         List<object> result = new List<object>() {};
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
+            Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
             result.Add(parsedEvent);
             List<object> parsedMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
             int parsedMarketsLength = parsedMarkets.Count;
@@ -635,7 +635,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
-    public async virtual Task<object> fetchRawTopicsByQueries(IList<object> queries, IDictionary<string, object>? parameters = null)
+    public async virtual Task<List<object>> fetchRawTopicsByQueries(IList<object> queries, IDictionary<string, object>? parameters = null)
     {
         // always ask for the venue's maximum page size - this is the per-type page size of the
         // search endpoint (it caps at 25 and defaults to 10), not the caller's event limit, which

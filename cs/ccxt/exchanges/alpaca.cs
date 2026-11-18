@@ -2206,7 +2206,7 @@ public partial class alpaca : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     /**
@@ -2224,7 +2224,7 @@ public partial class alpaca : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     /**
@@ -2242,7 +2242,7 @@ public partial class alpaca : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)

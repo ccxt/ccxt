@@ -14193,18 +14193,18 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marginType = this.safeString(marginMode, "marginMode");
         if (marginType == "crossed")
         {
             marginType = "cross";
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginType },
-        };
+        })));
     }
 
     /**
@@ -14540,7 +14540,7 @@ public partial class bitget : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(entry, "coin");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))

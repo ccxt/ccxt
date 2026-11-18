@@ -980,7 +980,7 @@ public partial class dydx : Exchange
         List<object> rows = this.safeList(response, "historicalFunding", new List<object>() {});
         for (int i = 0; i < rows.Count; i++)
         {
-            object entry = rows[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
             Int64? timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
             string? marketId = this.safeString(entry, "ticker");
             rates.Add(new Dictionary<string, object>() {
@@ -1384,7 +1384,7 @@ public partial class dydx : Exchange
 
     public virtual Dictionary<string, object> signHash(object hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), slice(privateKey, -64, null), secp256k1, null);
         string? r = this.safeString(signature, "r", "");
         string? s = this.safeString(signature, "s", "");
         return new Dictionary<string, object>() {

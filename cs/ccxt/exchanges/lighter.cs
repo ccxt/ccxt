@@ -1524,7 +1524,7 @@ public partial class lighter : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             string? id = this.safeString(market, "market_id");
             string? type = this.safeString(market, "market_type");
             if (type == "perp")

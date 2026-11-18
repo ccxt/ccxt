@@ -1006,7 +1006,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
             // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
             List<object> rawOhlcvs = this.safeList(data, marketId, new List<object>() {});

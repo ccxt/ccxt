@@ -351,7 +351,7 @@ public partial class mercado : Exchange
         //
         List<object> result = new List<object>() {};
         IDictionary<string, object> amountLimits = this.safeDict(this.options, "limits", new Dictionary<string, object>() {});
-        IList<object> coins = this.toArray(response);
+        IList<object> coins = response;
         for (int i = 0; i < (coins?.Count ?? 0); i++)
         {
             string? coin = this.safeString(coins, i, "");

@@ -1323,7 +1323,7 @@ public partial class btse : Exchange
                 double? minNotional = null;
                 for (int j = 0; j < levels.Count; j++)
                 {
-                    object level = levels[j];
+                    IDictionary<string, object> level = ((IDictionary<string, object>)levels[j]);
                     double? maxNotional = this.safeNumber(level, "value");
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
@@ -3819,7 +3819,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3837,11 +3837,11 @@ public partial class btse : Exchange
         {
             marginModeValue = "isolated";
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "marginMode", marginModeValue },
-        };
+        })));
     }
 
     /**

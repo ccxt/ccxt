@@ -2255,7 +2255,7 @@ public partial class kucoin : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (symbolsData?.Count ?? 0); i++)
         {
-            object market = symbolsData[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)symbolsData[i]);
             string? id = this.safeString(market, "symbol");
             if ((id == null))
             {
@@ -2416,7 +2416,7 @@ public partial class kucoin : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? id = this.safeString(market, "symbol");
             Int64? expiry = this.safeInteger(market, "expireDate");
             bool future = (this.safeString(market, "nextFundingRateTime") == null);
@@ -2603,7 +2603,7 @@ public partial class kucoin : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (symbolsData?.Count ?? 0); i++)
         {
-            object market = symbolsData[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)symbolsData[i]);
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseCurrency");
             string? quoteId = this.safeString(market, "quoteCurrency");
@@ -11944,7 +11944,7 @@ public partial class kucoin : Exchange
         List<object> fees = new List<object>() {};
         for (int i = 0; i < (dataList?.Count ?? 0); i++)
         {
-            object listItem = dataList[i];
+            IDictionary<string, object> listItem = ((IDictionary<string, object>)dataList[i]);
             Int64? timestamp = this.safeInteger2(listItem, "timePoint", "settlementTime");
             string? marketId = this.safeString(listItem, "symbol");
             fees.Add(new Dictionary<string, object>() {
@@ -12833,15 +12833,15 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marginType = this.safeString(marginMode, "marginMode");
         marginType = (marginType == "ISOLATED") ? "isolated" : "cross";
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginType },
-        };
+        })));
     }
 
     /**
@@ -12886,7 +12886,7 @@ public partial class kucoin : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToDict(this.parseMarginMode(data, market));  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
+        return this.parseMarginMode(data, market);  // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
     }
 
     /**

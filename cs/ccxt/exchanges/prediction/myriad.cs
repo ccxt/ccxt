@@ -3953,7 +3953,7 @@ public partial class myriad : PredictionExchange
             int makersLength = makers.Count;
             for (int i = 0; i < makersLength; i++)
             {
-                object maker = (makers != null && i < makers.Count ? makers[i] : null);
+                IDictionary<string, object> maker = ((IDictionary<string, object>)(makers != null && i < makers.Count ? makers[i] : null));
                 string? makerTrader = this.safeStringLower(maker, "trader");
                 if ((makerTrader == myWallet))
                 {
@@ -4113,7 +4113,7 @@ public partial class myriad : PredictionExchange
         IDictionary<string, object> cachedTickers = this.safeDict(this.options, "wsTickers", new Dictionary<string, object>() {});
         for (int i = 0; i < outcomesLength; i++)
         {
-            object oc = (outcomes != null && i < outcomes.Count ? outcomes[i] : null);
+            IDictionary<string, object> oc = ((IDictionary<string, object>)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             string? outcomeId = this.safeString(oc, "outcome");
             string? sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
             if ((sym == null))

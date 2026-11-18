@@ -713,7 +713,7 @@ public partial class coinbaseexchange : Exchange
         List<object> supportedNetworks = this.safeList(rawCurrency, "supported_networks", new List<object>() {});
         for (int j = 0; j < supportedNetworks.Count; j++)
         {
-            object network = supportedNetworks[j];
+            IDictionary<string, object> network = ((IDictionary<string, object>)supportedNetworks[j]);
             string? networkId = this.safeString(network, "id");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -824,10 +824,10 @@ public partial class coinbaseexchange : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        IList<object> rawMarkets = this.toArray(response);
+        IList<object> rawMarkets = response;
         for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
-            object market = rawMarkets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)rawMarkets[i]);
             string? id = this.safeString(market, "id");
             List<object> parts = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
@@ -931,7 +931,7 @@ public partial class coinbaseexchange : Exchange
         //         },
         //     ]
         //
-        IList<object> accounts = this.toArray(response);
+        IList<object> accounts = response;
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts, parameters));
     }
 
@@ -1544,7 +1544,7 @@ public partial class coinbaseexchange : Exchange
         //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitResolved));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitResolved));
     }
 
     /**
@@ -2178,7 +2178,7 @@ public partial class coinbaseexchange : Exchange
         }
         IDictionary<string, object> paramsUntil = ((until != null)) ? this.omit(parameters, new List<object>() {"until"}) : parameters;
         List<object> response = await this.privateGetAccountsIdLedger(this.extend(request, paramsUntil));
-        IList<object> entries = this.toArray(response);
+        IList<object> entries = response;
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
             ((IDictionary<string,object>)entries[i])["currency"] = code;
@@ -2264,7 +2264,7 @@ public partial class coinbaseexchange : Exchange
             //        }
             //    ]
             //
-            response = this.toArray(transfers);
+            response = transfers;
             for (int i = 0; i < (response?.Count ?? 0); i++)
             {
                 string? account_id = this.safeString(response[i], "account_id");
@@ -2301,7 +2301,7 @@ public partial class coinbaseexchange : Exchange
             //        }
             //    ]
             //
-            response = this.toArray(accountTransfers);
+            response = accountTransfers;
             for (int i = 0; i < (response?.Count ?? 0); i++)
             {
                 ((IDictionary<string,object>)response[i])["currency"] = code;

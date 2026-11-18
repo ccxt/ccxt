@@ -1313,7 +1313,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < currenciesData.Count; i++)
         {
-            object entry = currenciesData[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)currenciesData[i]);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             IDictionary<string, object> networkEntry = this.safeDict(chainsDataIndexed, currencyId, new Dictionary<string, object>() {});
@@ -1321,7 +1321,7 @@ public partial class xt : Exchange
             Dictionary<string, object> networks = new Dictionary<string, object>() {};
             for (int j = 0; j < rawNetworks.Count; j++)
             {
-                object rawNetwork = rawNetworks[j];
+                IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[j]);
                 string? networkId = this.safeString(rawNetwork, "chain");
                 string? networkCode = this.networkIdToCode(networkId, code);
                 if ((networkCode != null))
@@ -2209,7 +2209,11 @@ public partial class xt : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
@@ -2313,7 +2317,11 @@ public partial class xt : Exchange
         IDictionary<string, object> market = null;
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -5688,7 +5696,7 @@ public partial class xt : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < items.Count; i++)
         {
-            object entry = items[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)items[i]);
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId, market);
             Int64? timestamp = this.safeInteger(entry, "createdTime");

@@ -53,7 +53,8 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        options[(string)url] = newValue;
+        this.options["requestId"] = options;
         return newValue;
     }
 

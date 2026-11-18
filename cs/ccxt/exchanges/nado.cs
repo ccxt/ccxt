@@ -1985,7 +1985,7 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.gatewayV2PublicGetAssets(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        IList<object> assets = this.toArray(response);
+        IList<object> assets = response;
         for (int i = 0; i < (assets?.Count ?? 0); i++)
         {
             object currency = this.safeValue(assets, i);

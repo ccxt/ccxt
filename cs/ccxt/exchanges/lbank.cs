@@ -666,7 +666,7 @@ public partial class lbank : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(market, "symbol");
             List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
@@ -770,7 +770,7 @@ public partial class lbank : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            object market = data[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)data[i]);
             string? marketId = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseCurrency");
             string? settleId = this.safeString(market, "clearCurrency");

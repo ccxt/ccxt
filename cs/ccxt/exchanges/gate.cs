@@ -3214,7 +3214,7 @@ public partial class gate : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < addresses.Count; i++)
         {
-            object entry = addresses[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)addresses[i]);
             //
             //    {
             //        "chain": "ETH",
@@ -4550,7 +4550,7 @@ public partial class gate : Exchange
         {
             response = await this.publicSpotGetCandlesticks(this.extend(request, paramsOmitted));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limitValue));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitValue));
     }
 
     public async virtual Task<List<ccxt.OHLCV>> FetchOptionOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
@@ -4569,7 +4569,7 @@ public partial class gate : Exchange
         IDictionary<string, object> paramsValue = ((IDictionary<string, object>)requestparamsValueVariable[1]);
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         List<object> response = await this.publicOptionsGetCandlesticks(this.extend(request, paramsValue));
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     /**
@@ -8083,7 +8083,7 @@ public partial class gate : Exchange
         IList<object> responseList = new List<object>() {};
         if ((response != null))
         {
-            responseList = this.toArray(response);
+            responseList = response;
         }
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbolsNormalized));
     }
@@ -9620,7 +9620,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(response, market, since, limit));
     }
 
     /**
@@ -9711,7 +9711,7 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(response, market, since, limit));
     }
 
     public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
@@ -10017,7 +10017,7 @@ public partial class gate : Exchange
         {
             response = await this.publicMarginGetCurrencyPairs(paramsOmitted); // deprecated
         }
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbolsNormalized, marketIdRequest, "spot"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(response, symbolsNormalized, marketIdRequest, "spot"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -10162,7 +10162,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(this.toArray(response), null, "name"));
+        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(response, null, "name"));
     }
 
     public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)
@@ -10319,7 +10319,7 @@ public partial class gate : Exchange
         IList<object> responseList = new List<object>() {};
         if ((response != null))
         {
-            responseList = this.toArray(response);
+            responseList = response;
         }
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbols, paramsValue));
     }

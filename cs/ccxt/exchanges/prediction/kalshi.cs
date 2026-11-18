@@ -763,7 +763,7 @@ public partial class kalshi : PredictionExchange
             int eventPartsLength = eventParts.Count;
             if (eventPartsLength > 1)
             {
-                List<object> seriesParts = ((List<object>)this.arraySlice(eventParts, 0, (eventPartsLength - 1)));
+                IList<object> seriesParts = this.arraySlice(eventParts, 0, (eventPartsLength - 1));
                 seriesTicker = String.Join("-", seriesParts.ToArray());
             }
         }

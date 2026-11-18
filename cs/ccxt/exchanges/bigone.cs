@@ -729,7 +729,7 @@ public partial class bigone : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < markets.Count; i++)
         {
-            object market = markets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)markets[i]);
             IDictionary<string, object> baseAsset = this.safeDict(market, "base_asset", new Dictionary<string, object>() {});
             IDictionary<string, object> quoteAsset = this.safeDict(market, "quote_asset", new Dictionary<string, object>() {});
             string? baseId = this.safeString(baseAsset, "symbol");
@@ -794,7 +794,7 @@ public partial class bigone : Exchange
         IList<object> contractMarkets = this.toArray(contractResponse);
         for (int i = 0; i < (contractMarkets?.Count ?? 0); i++)
         {
-            object market = contractMarkets[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)contractMarkets[i]);
             string? baseId = this.safeString(market, "baseCurrency");
             string? quoteId = this.safeString(market, "quoteCurrency");
             string? settleId = this.safeString(market, "settleCurrency");
@@ -1063,7 +1063,7 @@ public partial class bigone : Exchange
         } else
         {
             List<object> instruments = await this.contractPublicGetInstruments(paramsMarketType);
-            data = this.toArray(instruments);
+            data = instruments;
         }
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickerMap(this.parseTickers(data, symbolsNormalized));
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsNormalized));

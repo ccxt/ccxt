@@ -2477,7 +2477,7 @@ public partial class pacifica : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object entry = data[i];
+            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
             Int64? timestamp = this.safeInteger(entry, "created_at");
             result.Add(new Dictionary<string, object>() {
                 { "info", entry },

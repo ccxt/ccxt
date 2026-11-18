@@ -529,7 +529,7 @@ public partial class krakenfutures : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < instruments.Count; i++)
         {
-            object market = instruments[i];
+            IDictionary<string, object> market = ((IDictionary<string, object>)instruments[i]);
             string? id = this.safeString(market, "symbol");
             string? marketType = this.safeString(market, "type");
             string? type = null;

@@ -1041,7 +1041,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < rawNetworks.Count; j++)
         {
-            object rawNetwork = rawNetworks[j];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[j]);
             string? networkId = this.safeString2(rawNetwork, "protocol", "network");
             string? rawNetworkCode = this.networkIdToCode(networkId, code);
             string? networkCodeUpper = ((rawNetworkCode != null)) ? rawNetworkCode.ToUpper() : null;
@@ -1791,7 +1791,7 @@ public partial class hitbtc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("DEPOSIT,WITHDRAW", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     /**
@@ -1809,7 +1809,7 @@ public partial class hitbtc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("DEPOSIT", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     /**
@@ -1827,7 +1827,7 @@ public partial class hitbtc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("WITHDRAW", code, since, limit, parameters));
-        return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
+        return ccxt.BaseExchange.ToTransactionList(transactions);
     }
 
     /**
@@ -2109,7 +2109,7 @@ public partial class hitbtc : Exchange
         //         },
         //     ]
         //
-        IList<object> ohlcvs = this.toArray(response);
+        IList<object> ohlcvs = response;
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
     }
 
@@ -2986,7 +2986,11 @@ public partial class hitbtc : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+            }
         }
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMarginMode", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -3006,14 +3010,14 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(config, symbolsNormalized, "symbol"));
     }
 
-    public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(marginMode, "symbol");
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", this.safeSymbol(marketId, market) },
             { "marginMode", this.safeStringLower(marginMode, "margin_mode") },
-        };
+        })));
     }
 
     /**
@@ -3208,9 +3212,13 @@ public partial class hitbtc : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
-            market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
-            IList<object> queryMarketIds = this.marketIds(symbolsNormalized);
-            request["symbols"] = String.Join(",", queryMarketIds.ToArray());
+            int normalizedLength = (symbolsNormalized?.Count ?? 0);
+            if (normalizedLength > 0)
+            {
+                market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+                IList<object> queryMarketIds = this.marketIds(symbolsNormalized);
+                request["symbols"] = String.Join(",", queryMarketIds.ToArray());
+            }
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -3325,7 +3333,7 @@ public partial class hitbtc : Exchange
             List<object> fundingRateData = this.safeList(response, marketId, new List<object>() {});
             for (int j = 0; j < fundingRateData.Count; j++)
             {
-                object entry = fundingRateData[j];
+                IDictionary<string, object> entry = ((IDictionary<string, object>)fundingRateData[j]);
                 string? symbolInner = this.safeSymbol((marketInner != null && marketInner.ContainsKey("symbol") ? marketInner["symbol"] : null));
                 double? fundingRate = this.safeNumber(entry, "funding_rate");
                 string? datetime = this.safeString(entry, "timestamp");

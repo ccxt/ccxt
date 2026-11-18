@@ -1220,7 +1220,7 @@ public partial class xt : ccxt.xt
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
+                (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = stored;
             }
             stored.append(parsed);
             string? eventVar = this.safeString(message, "event");
@@ -1384,9 +1384,9 @@ public partial class xt : ccxt.xt
             Int64? nonce = this.safeInteger(orderbook, "nonce");
             if ((nonce == null))
             {
-                int cacheLength = ((orderbook as ccxt.pro.OrderBook).cache?.Count ?? 0);
-                object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
-                if (isEqual(cacheLength, snapshotDelay))
+                Int64? cacheLength = this.parseToInt(((orderbook as ccxt.pro.OrderBook).cache?.Count ?? 0));
+                Int64? snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 25));
+                if ((cacheLength == snapshotDelay))
                 {
                     this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
                 }

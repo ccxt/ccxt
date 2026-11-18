@@ -562,7 +562,7 @@ public partial class latoken : Exchange
         IDictionary<string, object> currencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
         Dictionary<string, object> currenciesById = this.indexBy(currencies, "id");
         List<object> result = new List<object>() {};
-        IList<object> rawMarkets = this.toArray(response);
+        IList<object> rawMarkets = response;
         for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
             IDictionary<string, object> market = this.safeDict(rawMarkets, i);
@@ -708,7 +708,7 @@ public partial class latoken : Exchange
         // no params on this one - they belong to the currency request, not to the bindings
         List<object> bindingsResponse = await this.publicGetTransactionBindings();
         Dictionary<string, object> bindingsById = this.indexBy(bindingsResponse, "id");
-        IList<object> rawCurrencies = this.toArray(response);
+        IList<object> rawCurrencies = response;
         List<object> merged = new List<object>() {};
         for (int i = 0; i < (rawCurrencies?.Count ?? 0); i++)
         {
@@ -738,7 +738,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int i = 0; i < bindings.Count; i++)
         {
-            object binding = bindings[i];
+            IDictionary<string, object> binding = ((IDictionary<string, object>)bindings[i]);
             string? networkId = this.safeString(binding, "providerName");
             string? networkCode = this.networkIdToCode(networkId, code);
             // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both

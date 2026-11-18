@@ -930,7 +930,7 @@ public partial class toobit : Exchange
         List<object> rawNetworks = this.safeList(rawCurrency, "chainTypes", new List<object>() {});
         for (int j = 0; j < rawNetworks.Count; j++)
         {
-            object rawNetwork = rawNetworks[j];
+            IDictionary<string, object> rawNetwork = ((IDictionary<string, object>)rawNetworks[j]);
             string? networkId = this.safeString(rawNetwork, "chainType");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
