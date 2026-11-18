@@ -7265,8 +7265,8 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
 
 // `this.encode(x)` is `(string)x` (Exchange.Encode.cs): on an operand declared `string`/`string?`
 // (every declaration of the name in the member, or a string credential field) it is `x` itself
-const CSHARP_STRING_FIELDS = new Set ([ 'this.secret', 'this.password', 'this.privateKey', 'this.apiKey', 'this.uid', 'this.walletAddress' ]);
 function csharpStringEncodeIdentity (content: string): string {
+    const stringFields = [ 'this.secret', 'this.password', 'this.privateKey', 'this.apiKey', 'this.uid', 'this.walletAddress' ];
     if (!content.includes ('encode(')) {
         return content;
     }
@@ -7278,12 +7278,12 @@ function csharpStringEncodeIdentity (content: string): string {
             continue;
         }
         let start = i;
-        while ((start > 0) && !CSHARP_MEMBER_START_RE.test (lines[start])) start--;
+        while ((start > 0) && !/^    (?:public|private|protected|internal)\b/.test (lines[start])) start--;
         let end = i + 1;
-        while ((end < lines.length) && !CSHARP_MEMBER_START_RE.test (lines[end])) end++;
+        while ((end < lines.length) && !/^    (?:public|private|protected|internal)\b/.test (lines[end])) end++;
         const proven = (name: string): boolean => {
             if (name.startsWith ('this.')) {
-                return CSHARP_STRING_FIELDS.has (name);
+                return stringFields.includes (name);
             }
             const decl = new RegExp ('(?:^|[(,{;]|\\s)([A-Za-z_][\\w.<>\\[\\], ]*?\\??)\\s+' + name + '\\s*(?:=(?!=)|;|,|\\)|\\bin\\b)', 'g');
             let seen = 0;
