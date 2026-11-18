@@ -9,6 +9,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
+import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
@@ -885,130 +886,129 @@ public class Tokocrypto extends TokocryptoApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
-            List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)list).size(); i++)
-            {
-                Object market = (list == null || i < 0 || i >= list.size() ? null : list.get(i));
-                String baseId = this.safeString(market, "baseAsset");
-                String quoteId = this.safeString(market, "quoteAsset");
-                String id = this.safeString(market, "symbol");
-                String lowercaseId = this.safeStringLower(market, "symbol");
-                String settleId = this.safeString(market, "marginAsset");
-                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
-                String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
-                {
-                    continue;
-                }
-                String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-                String symbol = ((base + "/") + quote);
-                List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
-                Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
-                String status = this.safeString(market, "spotTradingEnable");
-                Boolean active = (java.util.Objects.equals(status, "1"));
-                List<Object> permissions = (List<Object>) this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)permissions).size(); j++)
-                {
-                    if (java.util.Objects.equals(this.safeString(permissions, j), "TRD_GRP_003"))
-                    {
-                        active = false;
-                        break;
-                    }
-                }
-                String marginTradingEnable = this.safeString(market, "marginTradingEnable");
-                Double costMin = null;
-                Map<String, Object> precision = new HashMap<String, Object>() {{
-                    put( "amount", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quantityPrecision"))) );
-                    put( "price", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "pricePrecision"))) );
-                    put( "base", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "basePrecision"))) );
-                    put( "quote", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quotePrecision"))) );
-                }};
-                Map<String, Object> limits = new HashMap<String, Object>();
-                limits.put("leverage", new HashMap<String, Object>() {{
-                        put( "min", null );
-                        put( "max", null );
-                    }});
-                limits.put("amount", new HashMap<String, Object>() {{
-                        put( "min", null );
-                        put( "max", null );
-                    }});
-                limits.put("price", new HashMap<String, Object>() {{
-                        put( "min", null );
-                        put( "max", null );
-                    }});
-                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                mapLiteral1.put("min", costMin);
-                mapLiteral1.put("max", null);
-                limits.put("cost", mapLiteral1);
-                if (filtersByType.containsKey("PRICE_FILTER"))
-                {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-                    // PRICE_FILTER reports zero values for maxPrice
-                    // since they updated filter types in November 2018
-                    // https://github.com/ccxt/ccxt/issues/4286
-                    // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                    limits.put("price", new HashMap<String, Object>() {{
-        put( "min", Tokocrypto.this.safeNumber(filter, "minPrice", (Object) null) );
-        put( "max", Tokocrypto.this.safeNumber(filter, "maxPrice", (Object) null) );
-    }});
-                    precision.put("price", filter.get("tickSize"));
-                }
-                if (filtersByType.containsKey("LOT_SIZE"))
-                {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
-                    precision.put("amount", this.safeNumber(filter, "stepSize", (Object) null));
-                    limits.put("amount", new HashMap<String, Object>() {{
-        put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
-        put( "max", Tokocrypto.this.safeNumber(filter, "maxQty", (Object) null) );
-    }});
-                }
-                if (filtersByType.containsKey("MARKET_LOT_SIZE"))
-                {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
-                    limits.put("market", new HashMap<String, Object>() {{
-        put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
-        put( "max", Tokocrypto.this.safeNumber(filter, "maxQty", (Object) null) );
-    }});
-                }
-                Map<String, Object> entry = new HashMap<String, Object>();
-                entry.put("id", id);
-                entry.put("lowercaseId", lowercaseId);
-                entry.put("symbol", symbol);
-                entry.put("base", base);
-                entry.put("quote", quote);
-                entry.put("settle", settle);
-                entry.put("baseId", baseId);
-                entry.put("quoteId", quoteId);
-                entry.put("settleId", settleId);
-                entry.put("type", "spot");
-                entry.put("spot", true);
-                entry.put("margin", (java.util.Objects.equals(marginTradingEnable, "1")));
-                entry.put("swap", false);
-                entry.put("future", false);
-                entry.put("option", false);
-                entry.put("active", active);
-                entry.put("contract", false);
-                entry.put("linear", null);
-                entry.put("inverse", null);
-                entry.put("contractSize", null);
-                entry.put("expiry", null);
-                entry.put("expiryDatetime", null);
-                entry.put("strike", null);
-                entry.put("optionType", null);
-                entry.put("precision", precision);
-                entry.put("limits", limits);
-                entry.put("created", null);
-                entry.put("info", market);
-                if (filtersByType.containsKey("MIN_NOTIONAL"))
-                {
-                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
-                    costMin = this.safeNumber2(filter, "minNotional", "notional", (Object) null);
-                }
-                ((List<Object>)result).add(entry);
-            }
-            return result;
+            return this.parseMarkets(list);
         });
 
+    }
+
+    public MarketInterface parseMarket(Object market)
+    {
+        String baseId = this.safeString(market, "baseAsset");
+        String quoteId = this.safeString(market, "quoteAsset");
+        String id = this.safeString(market, "symbol");
+        String lowercaseId = this.safeStringLower(market, "symbol");
+        String settleId = this.safeString(market, "marginAsset");
+        String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+        String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
+        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        String symbol = ((base + "/") + quote);
+        List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
+        Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
+        String status = this.safeString(market, "spotTradingEnable");
+        Boolean active = (java.util.Objects.equals(status, "1"));
+        List<Object> permissions = (List<Object>) this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
+        for (var j = 0; j < ((List<?>)permissions).size(); j++)
+        {
+            if (java.util.Objects.equals(this.safeString(permissions, j), "TRD_GRP_003"))
+            {
+                active = false;
+                break;
+            }
+        }
+        String marginTradingEnable = this.safeString(market, "marginTradingEnable");
+        Double costMin = null;
+        Map<String, Object> precision = new HashMap<String, Object>() {{
+            put( "amount", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quantityPrecision"))) );
+            put( "price", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "pricePrecision"))) );
+            put( "base", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "basePrecision"))) );
+            put( "quote", Tokocrypto.this.parseNumber(Tokocrypto.this.parsePrecision(Tokocrypto.this.safeString(market, "quotePrecision"))) );
+        }};
+        Map<String, Object> limits = new HashMap<String, Object>();
+        limits.put("leverage", new HashMap<String, Object>() {{
+                put( "min", null );
+                put( "max", null );
+            }});
+        limits.put("amount", new HashMap<String, Object>() {{
+                put( "min", null );
+                put( "max", null );
+            }});
+        limits.put("price", new HashMap<String, Object>() {{
+                put( "min", null );
+                put( "max", null );
+            }});
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("min", costMin);
+        mapLiteral1.put("max", null);
+        limits.put("cost", mapLiteral1);
+        if (filtersByType.containsKey("PRICE_FILTER"))
+        {
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits.put("price", new HashMap<String, Object>() {{
+    put( "min", Tokocrypto.this.safeNumber(filter, "minPrice", (Object) null) );
+    put( "max", Tokocrypto.this.safeNumber(filter, "maxPrice", (Object) null) );
+}});
+            precision.put("price", filter.get("tickSize"));
+        }
+        if (filtersByType.containsKey("LOT_SIZE"))
+        {
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+            precision.put("amount", this.safeNumber(filter, "stepSize", (Object) null));
+            limits.put("amount", new HashMap<String, Object>() {{
+    put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
+    put( "max", Tokocrypto.this.safeNumber(filter, "maxQty", (Object) null) );
+}});
+        }
+        if (filtersByType.containsKey("MARKET_LOT_SIZE"))
+        {
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
+            limits.put("market", new HashMap<String, Object>() {{
+    put( "min", Tokocrypto.this.safeNumber(filter, "minQty", (Object) null) );
+    put( "max", Tokocrypto.this.safeNumber(filter, "maxQty", (Object) null) );
+}});
+        }
+        Map<String, Object> entry = new HashMap<String, Object>();
+        entry.put("id", id);
+        entry.put("lowercaseId", lowercaseId);
+        entry.put("symbol", symbol);
+        entry.put("base", base);
+        entry.put("quote", quote);
+        entry.put("settle", settle);
+        entry.put("baseId", baseId);
+        entry.put("quoteId", quoteId);
+        entry.put("settleId", settleId);
+        entry.put("type", "spot");
+        entry.put("spot", true);
+        entry.put("margin", (java.util.Objects.equals(marginTradingEnable, "1")));
+        entry.put("swap", false);
+        entry.put("future", false);
+        entry.put("option", false);
+        entry.put("active", active);
+        entry.put("contract", false);
+        entry.put("linear", null);
+        entry.put("inverse", null);
+        entry.put("contractSize", null);
+        entry.put("expiry", null);
+        entry.put("expiryDatetime", null);
+        entry.put("strike", null);
+        entry.put("optionType", null);
+        entry.put("precision", precision);
+        entry.put("limits", limits);
+        entry.put("created", null);
+        entry.put("info", market);
+        if (filtersByType.containsKey("MIN_NOTIONAL"))
+        {
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
+            costMin = this.safeNumber2(filter, "minNotional", "notional", (Object) null);
+        }
+        return new MarketInterface(entry);
     }
 
     /**

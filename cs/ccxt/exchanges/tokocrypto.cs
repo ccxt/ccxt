@@ -849,130 +849,129 @@ public partial class tokocrypto : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> list = this.safeList(data, "list", new List<object>() {});
-        List<object> result = new List<object>() {};
-        for (int i = 0; i < list.Count; i++)
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(list));
+    }
+
+    public override Dictionary<string, object> parseMarket(object market)
+    {
+        string? baseId = this.safeString(market, "baseAsset");
+        string? quoteId = this.safeString(market, "quoteAsset");
+        string? id = this.safeString(market, "symbol");
+        string? lowercaseId = this.safeStringLower(market, "symbol");
+        string? settleId = this.safeString(market, "marginAsset");
+        string? bs = this.safeCurrencyCode(baseId);
+        string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
         {
-            object market = list[i];
-            string? baseId = this.safeString(market, "baseAsset");
-            string? quoteId = this.safeString(market, "quoteAsset");
-            string? id = this.safeString(market, "symbol");
-            string? lowercaseId = this.safeStringLower(market, "symbol");
-            string? settleId = this.safeString(market, "marginAsset");
-            string? bs = this.safeCurrencyCode(baseId);
-            string? quote = this.safeCurrencyCode(quoteId);
-            if (((bs == null)) || ((quote == null)))
-            {
-                continue;
-            }
-            string? settle = this.safeCurrencyCode(settleId);
-            string symbol = ((bs + "/") + quote);
-            List<object> filters = this.safeList(market, "filters", new List<object>() {});
-            Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
-            string? status = this.safeString(market, "spotTradingEnable");
-            bool active = (status == "1");
-            List<object> permissions = this.safeList(market, "permissions", new List<object>() {});
-            for (int j = 0; j < permissions.Count; j++)
-            {
-                if ((this.safeString(permissions, j) == "TRD_GRP_003"))
-                {
-                    active = false;
-                    break;
-                }
-            }
-            string? marginTradingEnable = this.safeString(market, "marginTradingEnable");
-            double? costMin = null;
-            Dictionary<string, object> precision = new Dictionary<string, object>() {
-                { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision"))) },
-                { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
-                { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "basePrecision"))) },
-                { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
-            };
-            Dictionary<string, object> limits = new Dictionary<string, object>() {
-                { "leverage", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-                { "amount", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-                { "price", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-                { "cost", new Dictionary<string, object>() {
-                    { "min", costMin },
-                    { "max", null },
-                } },
-            };
-            if (filtersByType.ContainsKey("PRICE_FILTER"))
-            {
-                IDictionary<string, object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                limits["price"] = new Dictionary<string, object>() {
-                    { "min", this.safeNumber(filter, "minPrice") },
-                    { "max", this.safeNumber(filter, "maxPrice") },
-                };
-                precision["price"] = (filter != null && filter.ContainsKey("tickSize") ? filter["tickSize"] : null);
-            }
-            if (filtersByType.ContainsKey("LOT_SIZE"))
-            {
-                IDictionary<string, object> filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
-                precision["amount"] = this.safeNumber(filter, "stepSize");
-                limits["amount"] = new Dictionary<string, object>() {
-                    { "min", this.safeNumber(filter, "minQty") },
-                    { "max", this.safeNumber(filter, "maxQty") },
-                };
-            }
-            if (filtersByType.ContainsKey("MARKET_LOT_SIZE"))
-            {
-                IDictionary<string, object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
-                limits["market"] = new Dictionary<string, object>() {
-                    { "min", this.safeNumber(filter, "minQty") },
-                    { "max", this.safeNumber(filter, "maxQty") },
-                };
-            }
-            Dictionary<string, object> entry = new Dictionary<string, object>() {
-                { "id", id },
-                { "lowercaseId", lowercaseId },
-                { "symbol", symbol },
-                { "base", bs },
-                { "quote", quote },
-                { "settle", settle },
-                { "baseId", baseId },
-                { "quoteId", quoteId },
-                { "settleId", settleId },
-                { "type", "spot" },
-                { "spot", true },
-                { "margin", (marginTradingEnable == "1") },
-                { "swap", false },
-                { "future", false },
-                { "option", false },
-                { "active", active },
-                { "contract", false },
-                { "linear", null },
-                { "inverse", null },
-                { "contractSize", null },
-                { "expiry", null },
-                { "expiryDatetime", null },
-                { "strike", null },
-                { "optionType", null },
-                { "precision", precision },
-                { "limits", limits },
-                { "created", null },
-                { "info", market },
-            };
-            if (filtersByType.ContainsKey("MIN_NOTIONAL"))
-            {
-                IDictionary<string, object> filter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
-                costMin = this.safeNumber2(filter, "minNotional", "notional");
-            }
-            result.Add(entry);
+            return null;
         }
-        return ccxt.BaseExchange.ToMarketInterfaceList(result);
+        string? settle = this.safeCurrencyCode(settleId);
+        string symbol = ((bs + "/") + quote);
+        List<object> filters = this.safeList(market, "filters", new List<object>() {});
+        Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
+        string? status = this.safeString(market, "spotTradingEnable");
+        bool active = (status == "1");
+        List<object> permissions = this.safeList(market, "permissions", new List<object>() {});
+        for (int j = 0; j < permissions.Count; j++)
+        {
+            if ((this.safeString(permissions, j) == "TRD_GRP_003"))
+            {
+                active = false;
+                break;
+            }
+        }
+        string? marginTradingEnable = this.safeString(market, "marginTradingEnable");
+        double? costMin = null;
+        Dictionary<string, object> precision = new Dictionary<string, object>() {
+            { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision"))) },
+            { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision"))) },
+            { "base", this.parseNumber(this.parsePrecision(this.safeString(market, "basePrecision"))) },
+            { "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))) },
+        };
+        Dictionary<string, object> limits = new Dictionary<string, object>() {
+            { "leverage", new Dictionary<string, object>() {
+                { "min", null },
+                { "max", null },
+            } },
+            { "amount", new Dictionary<string, object>() {
+                { "min", null },
+                { "max", null },
+            } },
+            { "price", new Dictionary<string, object>() {
+                { "min", null },
+                { "max", null },
+            } },
+            { "cost", new Dictionary<string, object>() {
+                { "min", costMin },
+                { "max", null },
+            } },
+        };
+        if (filtersByType.ContainsKey("PRICE_FILTER"))
+        {
+            IDictionary<string, object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits["price"] = new Dictionary<string, object>() {
+                { "min", this.safeNumber(filter, "minPrice") },
+                { "max", this.safeNumber(filter, "maxPrice") },
+            };
+            precision["price"] = (filter != null && filter.ContainsKey("tickSize") ? filter["tickSize"] : null);
+        }
+        if (filtersByType.ContainsKey("LOT_SIZE"))
+        {
+            IDictionary<string, object> filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
+            precision["amount"] = this.safeNumber(filter, "stepSize");
+            limits["amount"] = new Dictionary<string, object>() {
+                { "min", this.safeNumber(filter, "minQty") },
+                { "max", this.safeNumber(filter, "maxQty") },
+            };
+        }
+        if (filtersByType.ContainsKey("MARKET_LOT_SIZE"))
+        {
+            IDictionary<string, object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
+            limits["market"] = new Dictionary<string, object>() {
+                { "min", this.safeNumber(filter, "minQty") },
+                { "max", this.safeNumber(filter, "maxQty") },
+            };
+        }
+        Dictionary<string, object> entry = new Dictionary<string, object>() {
+            { "id", id },
+            { "lowercaseId", lowercaseId },
+            { "symbol", symbol },
+            { "base", bs },
+            { "quote", quote },
+            { "settle", settle },
+            { "baseId", baseId },
+            { "quoteId", quoteId },
+            { "settleId", settleId },
+            { "type", "spot" },
+            { "spot", true },
+            { "margin", (marginTradingEnable == "1") },
+            { "swap", false },
+            { "future", false },
+            { "option", false },
+            { "active", active },
+            { "contract", false },
+            { "linear", null },
+            { "inverse", null },
+            { "contractSize", null },
+            { "expiry", null },
+            { "expiryDatetime", null },
+            { "strike", null },
+            { "optionType", null },
+            { "precision", precision },
+            { "limits", limits },
+            { "created", null },
+            { "info", market },
+        };
+        if (filtersByType.ContainsKey("MIN_NOTIONAL"))
+        {
+            IDictionary<string, object> filter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
+            costMin = this.safeNumber2(filter, "minNotional", "notional");
+        }
+        return entry;
     }
 
     /**

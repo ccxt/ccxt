@@ -665,6 +665,7 @@ func (this *Kraken) Describe() map[string]any {
 				":IInsufficient funds":      InsufficientFunds,
 				":Cancel pending":           CancelPending,
 				":Rate limit exceeded":      RateLimitExceeded,
+				"trading restricted for":    RestrictedLocation,
 			},
 		},
 	})
@@ -1491,11 +1492,11 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes122219 []any = r1.Value
-		if retRes122219 == nil {
+		var retRes122319 []any = r1.Value
+		if retRes122319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes122219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes122319)}
 		}
 		return nil
 	}
@@ -4189,11 +4190,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes321919 []any = r1.Value
-		if retRes321919 == nil {
+		var retRes322019 []any = r1.Value
+		if retRes322019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes321919)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes322019)}
 		}
 		return nil
 	}

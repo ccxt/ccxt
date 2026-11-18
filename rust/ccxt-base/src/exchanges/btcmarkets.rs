@@ -1011,8 +1011,8 @@ impl BtcmarketsCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_472: bool = true;
-            while { if !__for_first_472 { i += 1; } __for_first_472 = false; i < (response.len() as i64) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { i += 1; } __for_first_474 = false; i < (response.len() as i64) } {
             let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "assetName", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1478,8 +1478,8 @@ impl BtcmarketsCore {
         let mut numericIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (ids.len() as i64) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (ids.len() as i64) } {
             // numericIds[i] = parseInt (ids[i]);
             numericIds.push(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[])));
         }

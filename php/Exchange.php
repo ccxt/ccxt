@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.92';
+$version = '4.5.93';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.92';
+    const VERSION = '4.5.93';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.92';
+    public static $ccxt_version = '4.5.93';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -371,6 +371,7 @@ class BaseExchange {
         'binanceusdm',
         'bingx',
         'bit2c',
+        'bit2me',
         'bitbank',
         'bitbns',
         'bitfinex',
@@ -4233,7 +4234,7 @@ class BaseExchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->parse_market($markets[$i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if ($market !== null) {
+            if ($market !== null && $this->safe_string($market, 'id') !== null) {
                 $result[] = $market;
             }
         }

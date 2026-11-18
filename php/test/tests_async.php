@@ -2648,11 +2648,41 @@ class testMainClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb(), $this->test_extended()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb(), $this->test_extended(), $this->test_bit2me()];
             \React\Async\await(\React\Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
             exit_script(0);
+            return true;
+        }) ();
+    }
+
+    public function test_bit2me() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('bit2me');
+            $id = 'CCXT';
+            \React\Async\await($exchange->load_markets());
+            assert($exchange->options['brokerId'] === $id, 'bit2me - brokerId not in options');
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC', 'limit', 'buy', 0.0001, 36000));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $client_order_id = $request['clientOrderId'];
+            assert(str_starts_with($client_order_id, $id . '-'), 'bit2me - clientOrderId: ' . $client_order_id . ' does not start with the broker id ' . $id);
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDC', 'limit', 'buy', 0.0001, 36000, array(
+                    'clientOrderId' => 'my-order',
+                )));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $custom_client_order_id = $request['clientOrderId'];
+            assert($custom_client_order_id === 'my-order', 'bit2me - custom clientOrderId: ' . $custom_client_order_id . ' should be sent as given, the broker id is only added when none is provided');
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
             return true;
         }) ();
     }
@@ -3693,22 +3723,26 @@ class testMainClass {
         }) ();
     }
 
-    // async testHyperliquid () {
-    //     const exchange = this.initOfflineExchange ('hyperliquid');
-    //     const id = '1';
-    //     let request: NullableDict = undefined;
-    //     try {
-    //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-    //     } catch (e) {
-    //         request = jsonParse (exchange.last_request_body);
-    //     }
-    //     const brokerId = (request['action']['brokerCode']).toString ();
-    //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-    //     if (!isSync ()) {
-    //         await close (exchange);
-    //     }
-    //     return true;
-    // }
+    public function test_hyperliquid() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('hyperliquid');
+            $exchange->options['approvedBuilderFee'] = true;
+            $id = strtolower('0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            $request = array();
+            try {
+                \React\Async\await($exchange->create_order('SOL/USDC:USDC', 'limit', 'buy', 1, 100));
+            } catch(\Throwable $e) {
+                $request = json_parse($exchange->last_request_body);
+            }
+            $broker_id = ((string) ($request['action']['builder']['b']));
+            assert($broker_id === $id, 'hyperliquid - brokerId: ' . $broker_id . ' does not start with id: ' . $id);
+            if (!is_sync()) {
+                \React\Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
     public function test_coinbaseinternational() {
         return Async\async(function () {
             $exchange = $this->init_offline_exchange('coinbaseinternational');

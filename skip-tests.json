@@ -284,6 +284,14 @@
             }
         }
     },
+    "bit2me": {
+        "skipMethods": {
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "thin markets report a quoteVolume below baseVolume * low",
+                "compareOHLC": "the venue reports an open outside the 24h high/low on thin markets, e.g. PRIME/EUR open 0.136 with high 0.135"
+            }
+        }
+    },
     "bit2c": {
         "skipMethods": {
             "loadMarkets": {

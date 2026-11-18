@@ -570,6 +570,7 @@ class kraken extends kraken$1["default"] {
                     ':IInsufficient funds': errors.InsufficientFunds,
                     ':Cancel pending': errors.CancelPending,
                     ':Rate limit exceeded': errors.RateLimitExceeded,
+                    'trading restricted for': errors.RestrictedLocation, // {"error":["EAccount:Invalid permissions:EUR/JPY trading restricted for AE."]}
                 },
             },
         });

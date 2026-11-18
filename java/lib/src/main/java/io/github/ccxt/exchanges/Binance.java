@@ -650,6 +650,9 @@ public class Binance extends BinanceApi
                         put( "sub-account/transaction-statistics", new HashMap<String, Object>() {{
                             put( "cost", 0.40002 );
                         }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
                         put( "sub-account/subAccountApi/ipRestriction", new HashMap<String, Object>() {{
                             put( "cost", 20.001 );
                         }} );
@@ -1196,6 +1199,12 @@ public class Binance extends BinanceApi
                         put( "sub-account/virtualSubAccount", new HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
+                        put( "sub-account/subAccountApiPermission", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
                         put( "sub-account/margin/transfer", new HashMap<String, Object>() {{
                             put( "cost", 4.0002 );
                         }} );
@@ -1566,6 +1575,9 @@ public class Binance extends BinanceApi
                         put( "algo/futures/order", new HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
+                        }} );
                         put( "sub-account/subAccountApi/ipRestriction/ipList", new HashMap<String, Object>() {{
                             put( "cost", 20.001 );
                         }} );
@@ -1610,6 +1622,9 @@ public class Binance extends BinanceApi
                     put( "post", new HashMap<String, Object>() {{
                         put( "eth-staking/eth/stake", new HashMap<String, Object>() {{
                             put( "cost", 15 );
+                        }} );
+                        put( "sub-account/subAccountApi", new HashMap<String, Object>() {{
+                            put( "cost", 20.001 );
                         }} );
                         put( "sub-account/subAccountApi/ipRestriction", new HashMap<String, Object>() {{
                             put( "cost", 20.001 );
@@ -8787,7 +8802,19 @@ public class Binance extends BinanceApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String symbol = (String) marketResolved.get("symbol");
         String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("executedQty", "filledQty", "actualQty")), "0"); // actualQty: algo orders
-        Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"))); // order of the keys matters here
+        Long timestamp = this.safeInteger2(order, "time", "createTime"); // order of the keys matters here
+        if (java.util.Objects.equals(timestamp, null))
+        {
+            // spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            Long workingTime = this.safeInteger(order, "workingTime");
+            if ((!java.util.Objects.equals(workingTime, null)) && ((workingTime != null && workingTime > 0)))
+            {
+                timestamp = workingTime;
+            } else
+            {
+                timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("transactTime", "updateTime", "createdAt")));
+            }
+        }
         Long lastTradeTimestamp = null;
         if ((((Map<?, ?>)order).containsKey("transactTime")) || (((Map<?, ?>)order).containsKey("updateTime")) || (((Map<?, ?>)order).containsKey("updatedAt")))
         {
@@ -13721,7 +13748,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000L, true)).join();
             }
             String defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "swap");
             String type = this.safeString(paramsPaginate, "type", defaultType);

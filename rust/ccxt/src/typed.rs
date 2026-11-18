@@ -1310,6 +1310,8 @@ pub use crate::exchanges::binanceusdm_typed::Binanceusdm;
 pub use crate::exchanges::bingx_typed::Bingx;
 #[cfg(feature = "bit2c")]
 pub use crate::exchanges::bit2c_typed::Bit2c;
+#[cfg(feature = "bit2me")]
+pub use crate::exchanges::bit2me_typed::Bit2me;
 #[cfg(feature = "bitbank")]
 pub use crate::exchanges::bitbank_typed::Bitbank;
 #[cfg(feature = "bitbns")]
@@ -1523,6 +1525,8 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "bingx" => Some(Box::new(Bingx::new(config))),
         #[cfg(feature = "bit2c")]
         "bit2c" => Some(Box::new(Bit2c::new(config))),
+        #[cfg(feature = "bit2me")]
+        "bit2me" => Some(Box::new(Bit2me::new(config))),
         #[cfg(feature = "bitbank")]
         "bitbank" => Some(Box::new(Bitbank::new(config))),
         #[cfg(feature = "bitbns")]

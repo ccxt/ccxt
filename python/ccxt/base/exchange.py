@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.92'
+__version__ = '4.5.93'
 
 # -----------------------------------------------------------------------------
 
@@ -3711,7 +3711,7 @@ class BaseExchange(object):
         for i in range(0, len(markets)):
             market = self.parse_market(markets[i])
             # parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if market is not None:
+            if market is not None and self.safe_string(market, 'id') is not None:
                 result.append(market)
         return result
 

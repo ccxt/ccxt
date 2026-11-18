@@ -100,7 +100,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 export class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.92'; }
+    static { this.ccxtVersion = '4.5.93'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -1675,7 +1675,7 @@ export class BaseExchange {
         }
         else {
             // server disconnected a working connection
-            if (this.clients[client.url] !== undefined) {
+            if (this.clients[client.url] === client) {
                 delete this.clients[client.url];
             }
         }
@@ -3274,7 +3274,7 @@ export class BaseExchange {
         for (let i = 0; i < markets.length; i++) {
             const market = this.parseMarket(markets[i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (market !== undefined) {
+            if (market !== undefined && this.safeString(market, 'id') !== undefined) {
                 result.push(market);
             }
         }

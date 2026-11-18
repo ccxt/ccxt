@@ -2646,7 +2646,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTickers", "stock", false);
+            // a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
+            // option lookup would consume callerMethodName, so it is resolved once for both lookups below
+            List<Object> methodNameparamsMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTickers");
+            String methodName = (String) ((List<Object>) methodNameparamsMethodNameVariable).get(0);
+            Map<String, Object> paramsMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsMethodNameVariable).get(1);
+            Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMethodName), methodName, "stock", false);
             Boolean stock = stockparamsStockVariable.first();
             Map<String, Object> paramsStock = stockparamsStockVariable.second();
             List<String> symbolsNormalized = symbols;
@@ -2664,7 +2669,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 }
                 return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
             }
-            Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsStock), "watchTickers", "name", "miniTicker");
+            Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsStock), methodName, "name", "miniTicker");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
             Map<String, Object> paramsName = channelNameparamsNameVariable.second();
             if (java.util.Objects.equals(channelName, "bookTicker"))
@@ -2702,7 +2707,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "name", "ticker");
+            // same channel lookup as watchTickers, so that the stream that was subscribed is the one that is unsubscribed
+            Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "name", "miniTicker");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
             Map<String, Object> paramsName = channelNameparamsNameVariable.second();
             if (java.util.Objects.equals(channelName, "bookTicker"))
@@ -2803,7 +2809,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+            // read the channel under watchTicker's options, the stream watchTicker subscribed
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), this.extend(parameters, new HashMap<String, Object>() {{
+                put( "callerMethodName", "watchTicker" );
+            }}))).join();
         });
 
     }

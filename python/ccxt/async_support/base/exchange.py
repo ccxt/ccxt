@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.92'
+__version__ = '4.5.93'
 
 # -----------------------------------------------------------------------------
 
@@ -634,7 +634,7 @@ class BaseExchange(SyncExchange):
             pass
         else:
             # server disconnected a working connection
-            if client.url in self.clients:
+            if self.clients.get(client.url) is client:
                 del self.clients[client.url]
 
     async def close_ws_clients(self):

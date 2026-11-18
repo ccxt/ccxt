@@ -3639,7 +3639,7 @@ func (this *testMainClass) runBrokerIdTestsBody(ch chan ccxt.AsyncResult[any]) a
 	//  -----------------------------------------------------------------------------
 	//  --- Init of brokerId tests functions-----------------------------------------
 	//  -----------------------------------------------------------------------------
-	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync(), this.TestExtendedAsync()}
+	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestHyperliquidAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync(), this.TestExtendedAsync(), this.TestBit2meAsync()}
 
 	r := <-promiseAll(promises)
 	if r.Err != nil {
@@ -3648,6 +3648,87 @@ func (this *testMainClass) runBrokerIdTestsBody(ch chan ccxt.AsyncResult[any]) a
 	var successMessage any = Add(Add("[", this.Lang), "][TEST_SUCCESS] brokerId tests passed.")
 	Dump(Add("[INFO]", successMessage))
 	ExitScript(0)
+
+	ch <- ccxt.AsyncResult[any]{Value: true}
+	return nil
+}
+func (this *testMainClass) TestBit2meAsync() <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.testBit2meBody(ch)
+	return ch
+}
+func (this *testMainClass) testBit2meBody(ch chan ccxt.AsyncResult[any]) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bit2me")
+	var id string = "CCXT"
+
+	r := <-exchange.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "bit2me - brokerId not in options")
+	var request any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r1 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC", "limit", "buy", 0.0001, 36000)
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var clientOrderId any = GetValue(request, "clientOrderId")
+	Assert(StartsWith(clientOrderId, id+"-"), Add(Add(Add("bit2me - clientOrderId: ", clientOrderId), " does not start with the broker id "), id))
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r2 := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("BTC/USDC", "limit", "buy", 0.0001, 36000, map[string]any{
+				"clientOrderId": "my-order",
+			})
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var customClientOrderId any = GetValue(request, "clientOrderId")
+	Assert((customClientOrderId == "my-order"), Add(Add("bit2me - custom clientOrderId: ", customClientOrderId), " should be sent as given, the broker id is only added when none is provided"))
+	if !EvalTruthy(IsSync()) {
+
+		<-Close(exchange)
+	}
 
 	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
@@ -6128,24 +6209,53 @@ func (this *testMainClass) testBlofinBody(ch chan ccxt.AsyncResult[any]) any {
 	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
 }
+func (this *testMainClass) TestHyperliquidAsync() <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.testHyperliquidBody(ch)
+	return ch
+}
+func (this *testMainClass) testHyperliquidBody(ch chan ccxt.AsyncResult[any]) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("hyperliquid")
+	AddElementToObject(exchange.GetOptions(), "approvedBuilderFee", true)
+	var id string = strings.ToLower("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6")
+	var request any = map[string]any{}
 
-// async testHyperliquid () {
-//     const exchange = this.initOfflineExchange ('hyperliquid');
-//     const id = '1';
-//     let request: NullableDict = undefined;
-//     try {
-//         await exchange.GetcreateOrder() ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-//     } catch (e) {
-//         request = jsonParse (exchange.Getlast_request_body());
-//     }
-//     const brokerId = (request['action']['brokerCode']).toString ();
-//     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-//     if (!isSync ()) {
-//         await close (exchange);
-//     }
-//     return true;
-// }
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						request = JsonParse(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
 
+			r := <-exchange.(ccxt.ICreateOrder).CreateOrderAsync("SOL/USDC:USDC", "limit", "buy", 1, 100)
+			if r.Err != nil {
+				panic(r.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var brokerId string = ToString((GetValue(GetValue(GetValue(request, "action"), "builder"), "b")))
+	Assert((brokerId == id), "hyperliquid - brokerId: "+brokerId+" does not start with id: "+id)
+	if !EvalTruthy(IsSync()) {
+
+		<-Close(exchange)
+	}
+
+	ch <- ccxt.AsyncResult[any]{Value: true}
+	return nil
+}
 func (this *testMainClass) TestCoinbaseinternationalAsync() <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.testCoinbaseinternationalBody(ch)

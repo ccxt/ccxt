@@ -418,6 +418,9 @@ public class Okx extends OkxApi
                         put( "public/delta-hedge-currencies", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "public/corporate-actions", new HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "rubik/stat/trading-data/support-coin", new HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
@@ -3800,12 +3803,13 @@ public class Okx extends OkxApi
             Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 200L)).join();
-            }
             String priceType = this.safeString(paramsPaginate, "price");
             boolean isMarkOrIndex = this.inArray(priceType, new ArrayList<Object>(Arrays.asList("mark", "index")));
+            if (Boolean.TRUE.equals(paginate))
+            {
+                Long maxEntriesPerRequest = ((isMarkOrIndex)) ? 100L : 200L;
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxEntriesPerRequest)).join();
+            }
             Map<String, Object> paramsPrice = this.omit(paramsPaginate, "price");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
             String timezone = this.safeString(options, "timezone", "UTC");
@@ -3850,7 +3854,11 @@ public class Okx extends OkxApi
             Long until = this.safeInteger(paramsPrice, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("after", until);
+                Long afterSince = this.safeInteger(request, "after");
+                if ((java.util.Objects.equals(afterSince, null)) || ((afterSince != null && (until == null || until < afterSince))))
+                {
+                    request.put("after", until);
+                }
             }
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPrice, "until") : paramsPrice;
             defaultType = this.safeString(options, "type", defaultType); // Candles or HistoryCandles
@@ -3919,6 +3927,7 @@ public class Okx extends OkxApi
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -3940,7 +3949,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100L)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 400L, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3954,7 +3963,13 @@ public class Okx extends OkxApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.publicGetPublicFundingRateHistory(this.extend(request, paramsPaginate))).join();
+            Long until = this.safeInteger(paramsPaginate, "until");
+            if (!java.util.Objects.equals(until, null))
+            {
+                request.put("after", until);
+            }
+            Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, "until") : paramsPaginate;
+            Map<String, Object> response = (this.publicGetPublicFundingRateHistory(this.extend(request, paramsUntil))).join();
             //
             //     {
             //         "code":"0",

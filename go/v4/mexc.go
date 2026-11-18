@@ -7059,6 +7059,7 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) Position {
 		"collateral":                  this.ParseNumber(collateralString),
 		"side":                        side,
 		"unrealizedPnl":               this.ParseNumber(unrealizedPnl),
+		"realizedPnl":                 this.SafeNumber(position, "realised"),
 		"leverage":                    this.ParseNumber(leverage),
 		"percentage":                  nil,
 		"marginMode":                  marginType,

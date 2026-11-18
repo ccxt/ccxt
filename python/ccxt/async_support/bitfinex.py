@@ -628,99 +628,103 @@ class bitfinex(Exchange, ImplicitAPI):
         futuresMarketsInfo = self.safe_list(response, 1, [])
         marginIds = self.safe_list(response, 3, [])
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
-        result = []
-        for i in range(0, len(markets)):
-            pairObj = self.safe_list(markets, i)
-            id = self.safe_string_upper(pairObj, 0, '')
-            market = self.safe_list(pairObj, 1, [])
-            spot = True
-            type = None
-            if id.find('F0') >= 0:
-                spot = False
-                type = 'swap'
-            else:
-                type = 'spot'
-            swap = type == 'swap'
-            baseId = None
-            quoteId = None
-            if id.find(':') >= 0:
-                parts = id.split(':')
-                baseId = parts[0]
-                quoteId = parts[1]
-            else:
-                baseId = id[0:3]
-                quoteId = id[3:6]
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            splitBase = base.split('F0')
-            splitQuote = quote.split('F0')
-            base = self.safe_string(splitBase, 0)
-            quote = self.safe_string(splitQuote, 0)
-            if (base is None) or (quote is None):
-                continue
-            symbol = base + '/' + quote
-            # baseId = 'f' + baseId;
-            # quoteId = 'f' + quoteId;
-            settle = None
-            settleId = None
-            if swap:
-                settle = quote
-                settleId = quote
-                symbol = symbol + ':' + settle
-            minOrderSizeString = self.safe_string(market, 3)
-            maxOrderSizeString = self.safe_string(market, 4)
-            result.append({
-                'id': 't' + id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': spot,
-                'margin': (spot and self.in_array(id, marginIds)),
-                'swap': swap,
-                'future': False,
-                'option': False,
-                'active': True,
-                'contract': not spot,
-                'linear': True if swap else None,
-                'inverse': False if swap else None,
-                'maker': self.safe_number(self.fees['trading'], 'maker'),
-                'taker': self.safe_number(self.fees['trading'], 'taker'),
-                'contractSize': self.parse_number('1') if swap else None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': int('8'),  # https://github.com/ccxt/ccxt/issues/7310
-                    'price': int('5'),
+        self.options['marginIds'] = marginIds
+        return self.parse_markets(markets)
+
+    def parse_market(self, pairObj: dict) -> Market:
+        #
+        #     [ 'AAVE:USD', [ null, null, null, "0.02", "5000.0", null, null, null, null, null, null, null ] ]
+        #
+        marginIds = self.safe_list(self.options, 'marginIds', [])
+        id = self.safe_string_upper(pairObj, 0, '')
+        market = self.safe_list(pairObj, 1, [])
+        spot = True
+        type = None
+        if id.find('F0') >= 0:
+            spot = False
+            type = 'swap'
+        else:
+            type = 'spot'
+        swap = type == 'swap'
+        baseId = None
+        quoteId = None
+        if id.find(':') >= 0:
+            parts = id.split(':')
+            baseId = parts[0]
+            quoteId = parts[1]
+        else:
+            baseId = id[0:3]
+            quoteId = id[3:6]
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        splitBase = base.split('F0')
+        splitQuote = quote.split('F0')
+        base = self.safe_string(splitBase, 0)
+        quote = self.safe_string(splitQuote, 0)
+        if (base is None) or (quote is None):
+            return None
+        symbol = base + '/' + quote
+        # baseId = 'f' + baseId;
+        # quoteId = 'f' + quoteId;
+        settle = None
+        settleId = None
+        if swap:
+            settle = quote
+            settleId = quote
+            symbol = symbol + ':' + settle
+        minOrderSizeString = self.safe_string(market, 3)
+        maxOrderSizeString = self.safe_string(market, 4)
+        return {
+            'id': 't' + id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': spot,
+            'margin': (spot and self.in_array(id, marginIds)),
+            'swap': swap,
+            'future': False,
+            'option': False,
+            'active': True,
+            'contract': not spot,
+            'linear': True if swap else None,
+            'inverse': False if swap else None,
+            'maker': self.safe_number(self.fees['trading'], 'maker'),
+            'taker': self.safe_number(self.fees['trading'], 'taker'),
+            'contractSize': self.parse_number('1') if swap else None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': int('8'),  # https://github.com/ccxt/ccxt/issues/7310
+                'price': int('5'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.parse_number(minOrderSizeString),
-                        'max': self.parse_number(maxOrderSizeString),
-                    },
-                    'price': {
-                        'min': self.parse_number('1e-8'),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.parse_number(minOrderSizeString),
+                    'max': self.parse_number(maxOrderSizeString),
                 },
-                'created': None,  # todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': self.parse_number('1e-8'),
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,  # todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
+            'info': market,
+        }
 
     async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
