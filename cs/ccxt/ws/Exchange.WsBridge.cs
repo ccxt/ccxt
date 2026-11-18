@@ -347,7 +347,7 @@ public partial class Exchange
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue((inOp(this.orderbooks, symbol))))
+        if (!inOp(this.orderbooks, symbol))
         {
             (client).reject(new ExchangeError(add(this.id, " loadOrderBook() orderbook is not initiated")), messageHash);
             return;
@@ -363,7 +363,7 @@ public partial class Exchange
                 var cache = stored.cache;
                 object orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
                 object index = this.getCacheIndex(orderBook, cache);
-                if (isTrue(isGreaterThanOrEqual(index, 0)))
+                if (isGreaterThanOrEqual(index, 0))
                 {
                     stored.reset(orderBook);
                     this.handleBookDeltas(stored, (IList<object>)arraySlice(cache, index));

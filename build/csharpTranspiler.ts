@@ -5235,7 +5235,10 @@ class NewTranspiler {
             return region;
         }
         // a match that is the tail of a longer name stays
-        return this.csharpReplaceUnmasked (region, CSHARP_IDENTITY_LIST_CAST, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !names.has (match[1])) ? undefined : match[1] + match[2]);
+        region = this.csharpReplaceUnmasked (region, CSHARP_IDENTITY_LIST_CAST, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !names.has (match[1])) ? undefined : match[1] + match[2]);
+        // toArray returns every IList<object> (ws caches are List<object>) as the same reference and null as null:
+        // on a name this method declares only IList<object> the call is an identity of the same static type
+        return this.csharpReplaceUnmasked (region, /\bthis\.toArray\(([A-Za-z_]\w*)\)/g, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || (lists.get (match[1]) !== 'IList<object>')) ? undefined : match[1]);
     }
 
     // `((IList<object>)(x as ccxt.pro.OrderBook).cache).Add(v)` — `cache` is declared
