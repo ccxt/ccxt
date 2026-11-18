@@ -6503,13 +6503,11 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	var trigger *bool = this.SafeBool2(paramsPaginate, "stop", "trigger")
 	var trailing *bool = this.SafeBool(paramsPaginate, "trailing", false)
 	var isTrigger bool = (trigger != nil && *trigger == true)
-	if (trailing != nil && *trailing) || isTrigger || ((ordType != nil) && (func() bool {
-		if ordType == nil {
-			return false
-		}
-		_, ok := algoOrderTypes[*ordType]
-		return ok
-	}())) {
+	var ordTypeInAlgoOrderTypes bool
+	if ordType != nil {
+		_, ordTypeInAlgoOrderTypes = algoOrderTypes[*ordType]
+	}
+	if (trailing != nil && *trailing) || isTrigger || ((ordType != nil) && (ordTypeInAlgoOrderTypes)) {
 		methodStr := "privateGetTradeOrdersAlgoPending"
 		method = &methodStr
 	}
@@ -6698,17 +6696,15 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isTrigger bool = (trigger != nil && *trigger == true)
+	var ordTypeInAlgoOrderTypes bool
+	if ordType != nil {
+		_, ordTypeInAlgoOrderTypes = algoOrderTypes[*ordType]
+	}
 	if trailing != nil && *trailing {
 		methodStr := "privateGetTradeOrdersAlgoHistory"
 		method = &methodStr
 		request["ordType"] = "move_order_stop"
-	} else if isTrigger || ((ordType != nil) && (func() bool {
-		if ordType == nil {
-			return false
-		}
-		_, ok := algoOrderTypes[*ordType]
-		return ok
-	}())) {
+	} else if isTrigger || ((ordType != nil) && (ordTypeInAlgoOrderTypes)) {
 		methodStr2 := "privateGetTradeOrdersAlgoHistory"
 		method = &methodStr2
 		var algoId *string = this.SafeString(params, "algoId")
@@ -6931,13 +6927,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	var ordType *string = this.SafeString(paramsPaginate, "ordType")
 	var trigger *bool = this.SafeBool2(paramsPaginate, "stop", "trigger")
 	var trailing *bool = this.SafeBool(paramsPaginate, "trailing", false)
-	if (trailing != nil && *trailing) || (trigger != nil && *trigger == true) || ((ordType != nil) && (func() bool {
-		if ordType == nil {
-			return false
-		}
-		_, ok := algoOrderTypes[*ordType]
-		return ok
-	}())) {
+	var ordTypeInAlgoOrderTypes bool
+	if ordType != nil {
+		_, ordTypeInAlgoOrderTypes = algoOrderTypes[*ordType]
+	}
+	if (trailing != nil && *trailing) || (trigger != nil && *trigger == true) || ((ordType != nil) && (ordTypeInAlgoOrderTypes)) {
 		methodStr := "privateGetTradeOrdersAlgoHistory"
 		method = &methodStr
 		request["state"] = "effective"

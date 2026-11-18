@@ -3530,7 +3530,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 	}
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		results = append(results, this.Extend(this.ParseTransactionWithType(GetValue(response, i), currency, transactType), paramsUntil))
+		results = append(results, this.Extend(this.ParseTransactionWithType(this.SafeDict(response, i, map[string]any{}), currency, transactType), paramsUntil))
 	}
 	var sorted []any = this.SortBy(results, "timestamp")
 	var currencyCode any = func() any {

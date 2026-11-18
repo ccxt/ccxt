@@ -1437,7 +1437,7 @@ func (this *Myriad) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	for i := 0; i < ordersLength; i++ {
 		var __oc *string = this.SafeString(orders[i], "outcome")
 		if __oc != nil {
-			orderOutcomes = append(orderOutcomes, __oc)
+			orderOutcomes = append(orderOutcomes, *__oc)
 		}
 	}
 
@@ -5453,21 +5453,19 @@ func (this *Myriad) HandlePosition(client any, data any) {
 	// the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance)
 	// apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
 	var deltaStr *string = this.SafeString(data, "delta", "0")
-	var firstChar string = func() string {
-		if deltaStr == nil {
-			return ""
-		}
+	var deltaStrPart string
+	if deltaStr != nil {
 		str := *deltaStr
-		return str[0:min(1, len(str))]
-	}()
+		deltaStrPart = str[0:min(1, len(str))]
+	}
+	var firstChar string = deltaStrPart
 	if firstChar == "+" {
-		deltaStrStr := func() string {
-			if deltaStr == nil {
-				return ""
-			}
+		var deltaStrPart2 string
+		if deltaStr != nil {
 			str := *deltaStr
-			return str[1:]
-		}()
+			deltaStrPart2 = str[1:]
+		}
+		deltaStrStr := deltaStrPart2
 		deltaStr = &deltaStrStr
 	}
 	var deltaShares *string = ccxt.Precise.StringDiv(deltaStr, "1000000000000000000")

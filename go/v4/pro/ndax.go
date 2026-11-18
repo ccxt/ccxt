@@ -604,9 +604,9 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 			orderbookSide.(ccxt.IOrderBookSide).Store(price, 0)
 		}
 	}
-	ccxt.AddElementToObject(orderbook, "nonce", nonce)
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetNonce(nonce)
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	var name string = "SubscribeLevel2"
 	var messageHash string = name + ":" + *marketId
 	this.Orderbooks[symbol] = orderbook

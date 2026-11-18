@@ -1065,7 +1065,10 @@ func (this *Opinion) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outc
 	_ = params
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 	if interval == nil {
-		var supportedKeys []string = ccxt.ObjectKeys(this.Timeframes)
+		var supportedKeys []string = make([]string, 0, len(this.Timeframes))
+		for objectKey := range this.Timeframes {
+			supportedKeys = append(supportedKeys, objectKey)
+		}
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() unsupported timeframe " + timeframe + ", supported timeframes are " + strings.Join(supportedKeys, ", ")))
 	}
 

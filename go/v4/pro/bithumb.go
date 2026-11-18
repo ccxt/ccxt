@@ -431,43 +431,37 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) map[string]a
 	}
 	var date *string = this.SafeString(ticker, "date", "")
 	var time *string = this.SafeString(ticker, "time", "")
-	var kstDatetime string = func() string {
-		if date == nil {
-			return ""
-		}
+	var datePart string
+	if date != nil {
 		str := *date
-		return str[0:min(4, len(str))]
-	}() + "-" + func() string {
-		if date == nil {
-			return ""
-		}
+		datePart = str[0:min(4, len(str))]
+	}
+	var datePart2 string
+	if date != nil {
 		str := *date
-		return str[4:min(6, len(str))]
-	}() + "-" + func() string {
-		if date == nil {
-			return ""
-		}
+		datePart2 = str[4:min(6, len(str))]
+	}
+	var datePart3 string
+	if date != nil {
 		str := *date
-		return str[6:min(8, len(str))]
-	}() + "T" + func() string {
-		if time == nil {
-			return ""
-		}
+		datePart3 = str[6:min(8, len(str))]
+	}
+	var timePart string
+	if time != nil {
 		str := *time
-		return str[0:min(2, len(str))]
-	}() + ":" + func() string {
-		if time == nil {
-			return ""
-		}
+		timePart = str[0:min(2, len(str))]
+	}
+	var timePart2 string
+	if time != nil {
 		str := *time
-		return str[2:min(4, len(str))]
-	}() + ":" + func() string {
-		if time == nil {
-			return ""
-		}
+		timePart2 = str[2:min(4, len(str))]
+	}
+	var timePart3 string
+	if time != nil {
 		str := *time
-		return str[4:min(6, len(str))]
-	}()
+		timePart3 = str[4:min(6, len(str))]
+	}
+	var kstDatetime string = datePart + "-" + datePart2 + "-" + datePart3 + "T" + timePart + ":" + timePart2 + ":" + timePart3
 	// date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
 	var timestamp any = nil
 	var kstTimestamp *int64 = this.Parse8601(kstDatetime)
@@ -626,13 +620,12 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 		if timestampStr == nil {
 			return
 		}
-		var legacyTimestamp int64 = this.ParseToInt(func() string {
-			if timestampStr == nil {
-				return ""
-			}
+		var timestampStrPart string
+		if timestampStr != nil {
 			str := *timestampStr
-			return str[0:min(13, len(str))]
-		}())
+			timestampStrPart = str[0:min(13, len(str))]
+		}
+		var legacyTimestamp int64 = this.ParseToInt(timestampStrPart)
 		if !(legacySymbol != nil && this.Orderbooks[*legacySymbol] != nil) {
 			var ob ccxt.OrderBookInterface = this.OrderBook()
 			ob.SetSymbol(legacySymbol)
@@ -663,13 +656,12 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	var gen2TimestampStr *string = this.SafeString2(message, "timestamp", "datetime")
 	var timestamp int64 = this.Milliseconds()
 	if gen2TimestampStr != nil {
-		timestamp = this.ParseToInt(func() string {
-			if gen2TimestampStr == nil {
-				return ""
-			}
+		var gen2TimestampStrPart string
+		if gen2TimestampStr != nil {
 			str := *gen2TimestampStr
-			return str[0:min(13, len(str))]
-		}())
+			gen2TimestampStrPart = str[0:min(13, len(str))]
+		}
+		timestamp = this.ParseToInt(gen2TimestampStrPart)
 	}
 	var bidsSnapshot []any = []any{}
 	var asksSnapshot []any = []any{}

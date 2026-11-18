@@ -935,12 +935,12 @@ func (this *Coinbase) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coinbase) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Coinbase) WatchTradesForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+func (this *Coinbase) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1188,12 +1188,12 @@ func (this *Coinbase) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Coinbase) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Coinbase) WatchOrderBookForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
+func (this *Coinbase) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1332,14 +1332,14 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 			var marketId *string = this.SafeString(responseOrder, "product_id")
 			if marketId != nil {
 				if !(ccxt.InOp(marketIds, marketId)) {
-					marketIds = append(marketIds, marketId)
+					marketIds = append(marketIds, *marketId)
 				}
 			}
 			cachedOrders.Append(parsed)
 		}
 	}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId *string = ccxt.SafeStringPtr(ccxt.DerefScalar(marketIds[i]))
+		var marketId *string = ccxt.SafeStringPtr(marketIds[i])
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash string = "user::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
@@ -1774,7 +1774,7 @@ func (this *Coinbase) WatchTradesForSymbols(symbols []string, options ...ccxt.Wa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1919,7 +1919,7 @@ func (this *Coinbase) WatchOrderBookForSymbols(symbols []string, options ...ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	r := <-this.WatchOrderBookForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Limit, opts.Params)
 	if r.Err != nil {
 		return ccxt.OrderBook{}, r.Err
 	}

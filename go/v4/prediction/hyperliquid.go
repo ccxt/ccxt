@@ -531,25 +531,22 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeI
 			if expPartsLength >= 2 {
 				hm = expParts[1]
 			}
-			var isoStr string = func() string {
-				if ymd == nil {
-					return ""
-				}
+			var ymdPart string
+			if ymd != nil {
 				str := *ymd
-				return str[0:min(4, len(str))]
-			}() + "-" + func() string {
-				if ymd == nil {
-					return ""
-				}
+				ymdPart = str[0:min(4, len(str))]
+			}
+			var ymdPart2 string
+			if ymd != nil {
 				str := *ymd
-				return str[4:min(6, len(str))]
-			}() + "-" + func() string {
-				if ymd == nil {
-					return ""
-				}
+				ymdPart2 = str[4:min(6, len(str))]
+			}
+			var ymdPart3 string
+			if ymd != nil {
 				str := *ymd
-				return str[6:min(8, len(str))]
-			}() + "T" + hm[0:min(2, len(hm))] + ":" + hm[2:min(4, len(hm))] + ":00Z"
+				ymdPart3 = str[6:min(8, len(str))]
+			}
+			var isoStr string = ymdPart + "-" + ymdPart2 + "-" + ymdPart3 + "T" + hm[0:min(2, len(hm))] + ":" + hm[2:min(4, len(hm))] + ":00Z"
 			expiryMs = this.Parse8601(isoStr)
 			expiryDatetimeStr := isoStr
 			expiryDatetime = &expiryDatetimeStr
@@ -1306,23 +1303,20 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 			continue
 		}
 		// the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
-		var tradeCoin string = "#" + func() string {
-			if coin == nil {
-				return ""
-			}
+		var coinPart string
+		if coin != nil {
 			str := *coin
-			return str[1:]
-		}()
+			coinPart = str[1:]
+		}
+		var tradeCoin string = "#" + coinPart
 		var outcomeObj map[string]any = this.SafeOutcome(tradeCoin)
 		if outcomes != nil {
 			var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
-			if (outcomeHandle == nil) || !(func() bool {
-				if outcomeHandle == nil {
-					return false
-				}
-				_, ok := requestedOutcomeSymbols[*outcomeHandle]
-				return ok
-			}()) {
+			var outcomeHandleInRequestedOutcomeSymbols bool
+			if outcomeHandle != nil {
+				_, outcomeHandleInRequestedOutcomeSymbols = requestedOutcomeSymbols[*outcomeHandle]
+			}
+			if (outcomeHandle == nil) || !(outcomeHandleInRequestedOutcomeSymbols) {
 				continue
 			}
 		}
@@ -2622,25 +2616,22 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 			if partsLength >= 2 {
 				hm = parts[1]
 			}
-			var isoStr string = func() string {
-				if ymd == nil {
-					return ""
-				}
+			var ymdPart string
+			if ymd != nil {
 				str := *ymd
-				return str[0:min(4, len(str))]
-			}() + "-" + func() string {
-				if ymd == nil {
-					return ""
-				}
+				ymdPart = str[0:min(4, len(str))]
+			}
+			var ymdPart2 string
+			if ymd != nil {
 				str := *ymd
-				return str[4:min(6, len(str))]
-			}() + "-" + func() string {
-				if ymd == nil {
-					return ""
-				}
+				ymdPart2 = str[4:min(6, len(str))]
+			}
+			var ymdPart3 string
+			if ymd != nil {
 				str := *ymd
-				return str[6:min(8, len(str))]
-			}() + "T" + hm[0:min(2, len(hm))] + ":" + hm[2:min(4, len(hm))] + ":00Z"
+				ymdPart3 = str[6:min(8, len(str))]
+			}
+			var isoStr string = ymdPart + "-" + ymdPart2 + "-" + ymdPart3 + "T" + hm[0:min(2, len(hm))] + ":" + hm[2:min(4, len(hm))] + ":00Z"
 			expiryMs = this.Parse8601(isoStr)
 			expiryDatetimeStr := isoStr
 			expiryDatetime = &expiryDatetimeStr

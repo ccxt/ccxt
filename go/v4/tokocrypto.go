@@ -3127,13 +3127,12 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) T
 	}
 	var txid *string = this.SafeString(transaction, "txId")
 	if (txid != nil) && (strings.Index(*txid, "Internal transfer ") >= 0) {
-		txidStr := func() string {
-			if txid == nil {
-				return ""
-			}
+		var txidPart string
+		if txid != nil {
 			str := *txid
-			return str[18:]
-		}()
+			txidPart = str[18:]
+		}
+		txidStr := txidPart
 		txid = &txidStr
 	}
 	var currencyId *string = this.SafeString2(transaction, "coin", "fiatCurrency")

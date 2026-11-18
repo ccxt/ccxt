@@ -1906,7 +1906,7 @@ func (this *Exchange) WatchTradesForSymbols(symbols []string, options ...WatchTr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -2018,7 +2018,7 @@ func (this *Exchange) WatchOrderBookForSymbols(symbols []string, options ...Watc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	r := <-this.WatchOrderBookForSymbolsAsync(StringSliceToList(symbols), opts.Limit, opts.Params)
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}

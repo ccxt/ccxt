@@ -2872,7 +2872,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 		} else if marketType != orderMarketType && (marketType == nil || orderMarketType == nil || *marketType != *orderMarketType) {
 			panic(BadRequest(this.Id + " cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)"))
 		}
-		ids = append(ids, id)
+		ids = append(ids, *id)
 		symbols = append(symbols, market["symbol"])
 		AddElementToObject(symbolsById, id, market["symbol"])
 	}

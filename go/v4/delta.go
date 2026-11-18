@@ -450,25 +450,22 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 		}
 		return 3
 	}(), "")
-	var expiry string = func() string {
-		if rawExpiry == nil {
-			return ""
-		}
+	var rawExpiryPart string
+	if rawExpiry != nil {
 		str := *rawExpiry
-		return str[4:]
-	}() + func() string {
-		if rawExpiry == nil {
-			return ""
-		}
+		rawExpiryPart = str[4:]
+	}
+	var rawExpiryPart2 string
+	if rawExpiry != nil {
 		str := *rawExpiry
-		return str[2:min(4, len(str))]
-	}() + func() string {
-		if rawExpiry == nil {
-			return ""
-		}
+		rawExpiryPart2 = str[2:min(4, len(str))]
+	}
+	var rawExpiryPart3 string
+	if rawExpiry != nil {
 		str := *rawExpiry
-		return str[0:min(2, len(str))]
-	}()
+		rawExpiryPart3 = str[0:min(2, len(str))]
+	}
+	var expiry string = rawExpiryPart + rawExpiryPart2 + rawExpiryPart3
 	var settle string = quote
 	var strike string = *this.SafeString(optionParts, 2, "")
 	var datetime any = this.ConvertExpireDate(expiry)

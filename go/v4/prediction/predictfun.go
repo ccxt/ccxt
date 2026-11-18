@@ -786,16 +786,14 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 		for ci := 0; ci < categoriesLength; ci++ {
 			var category any = this.SafeDict(categories, ci)
 			var categorySlug *string = this.SafeString(category, "slug")
+			var categorySlugInSeenSlugs bool
+			if categorySlug != nil {
+				_, categorySlugInSeenSlugs = seenSlugs[*categorySlug]
+			}
 			if categorySlug == nil {
 				// nothing to key a duplicate on, keep the row rather than drop it
 				result = append(result, category)
-			} else if !(func() bool {
-				if categorySlug == nil {
-					return false
-				}
-				_, ok := seenSlugs[*categorySlug]
-				return ok
-			}()) {
+			} else if !(categorySlugInSeenSlugs) {
 				if categorySlug != nil {
 					seenSlugs[*categorySlug] = true
 				}
@@ -824,7 +822,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 					ccxt.AddElementToObject(orphanMarkets, marketSlug, bucket)
 				} else {
 					orphanMarkets[*marketSlug] = []any{rawMarket}
-					orphanSlugs = append(orphanSlugs, marketSlug)
+					orphanSlugs = append(orphanSlugs, *marketSlug)
 				}
 			}
 		}
@@ -833,14 +831,12 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 	// topic from the market rows themselves, without spending a request per slug
 	var orphanSlugsLength int = len(orphanSlugs)
 	for i := 0; i < orphanSlugsLength; i++ {
-		var orphanSlug *string = ccxt.SafeStringPtr(ccxt.DerefScalar(orphanSlugs[i]))
-		if !(func() bool {
-			if orphanSlug == nil {
-				return false
-			}
-			_, ok := seenSlugs[*orphanSlug]
-			return ok
-		}()) {
+		var orphanSlug *string = ccxt.SafeStringPtr(orphanSlugs[i])
+		var orphanSlugInSeenSlugs bool
+		if orphanSlug != nil {
+			_, orphanSlugInSeenSlugs = seenSlugs[*orphanSlug]
+		}
+		if !(orphanSlugInSeenSlugs) {
 			if orphanSlug != nil {
 				seenSlugs[*orphanSlug] = true
 			}
@@ -3427,7 +3423,7 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		var operators []any = []any{}
 		var explicitOperator *string = this.SafeString(params, "spender")
 		if explicitOperator != nil {
-			operators = append(operators, explicitOperator)
+			operators = append(operators, *explicitOperator)
 		} else if outcome == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " approve() requires an \"outcome\" to resolve the contracts to approve for selling, or an explicit \"spender\" parameter"))
 		} else {
@@ -3628,7 +3624,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], out
 	for i := 0; i < outcomesLength; i++ {
 		var handle *string = this.SafeString(outcomes[i], "outcome")
 		if handle != nil {
-			handles = append(handles, handle)
+			handles = append(handles, *handle)
 			subMessageHashes = append(subMessageHashes, "orderbook::"+*handle)
 			messageHashes = append(messageHashes, "unsubscribe::orderbook::"+*handle)
 		}

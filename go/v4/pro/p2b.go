@@ -318,12 +318,12 @@ func (this *P2b) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *P2b) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *P2b) WatchTradesForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *P2b) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+func (this *P2b) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -835,7 +835,7 @@ func (this *P2b) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

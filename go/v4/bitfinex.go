@@ -937,20 +937,18 @@ func (this *Bitfinex) ParseMarket(pairObj any) map[string]any {
 		baseId = parts[0]
 		quoteId = parts[1]
 	} else {
-		baseId = func() string {
-			if id == nil {
-				return ""
-			}
+		var idPart string
+		if id != nil {
 			str := *id
-			return str[0:min(3, len(str))]
-		}()
-		quoteId = func() string {
-			if id == nil {
-				return ""
-			}
+			idPart = str[0:min(3, len(str))]
+		}
+		baseId = idPart
+		var idPart2 string
+		if id != nil {
 			str := *id
-			return str[3:min(6, len(str))]
-		}()
+			idPart2 = str[3:min(6, len(str))]
+		}
+		quoteId = idPart2
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)

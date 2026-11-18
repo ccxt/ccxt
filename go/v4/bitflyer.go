@@ -446,20 +446,18 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 				// no alias:
 				// { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
 				// TODO this will break if there are products with 4 chars
-				baseId = func() string {
-					if id == nil {
-						return ""
-					}
+				var idPart string
+				if id != nil {
 					str := *id
-					return str[0:min(3, len(str))]
-				}()
-				quoteId = func() string {
-					if id == nil {
-						return ""
-					}
+					idPart = str[0:min(3, len(str))]
+				}
+				baseId = idPart
+				var idPart2 string
+				if id != nil {
 					str := *id
-					return str[3:min(6, len(str))]
-				}()
+					idPart2 = str[3:min(6, len(str))]
+				}
+				quoteId = idPart2
 				// last 9 chars are expiry date
 				var expiryDate string = func() string {
 					if id == nil {
@@ -472,13 +470,12 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			} else {
 				var splitAlias []string = strings.Split(*alias, "_")
 				var currencyIds *string = this.SafeString(splitAlias, 0)
-				baseId = func() string {
-					if currencyIds == nil {
-						return ""
-					}
+				var currencyIdsPart string
+				if currencyIds != nil {
 					str := *currencyIds
-					return str[0 : len(str)-3]
-				}()
+					currencyIdsPart = str[0 : len(str)-3]
+				}
+				baseId = currencyIdsPart
 				quoteId = func() string {
 					if currencyIds == nil {
 						return ""

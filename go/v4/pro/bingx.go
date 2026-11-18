@@ -1082,7 +1082,7 @@ func (this *Bingx) HandleOHLCV(client any, message map[string]any) {
 		if *this.SafeBool(market, "inverse", false) {
 			candles = []any{this.SafeDict(message, "data", map[string]any{})}
 		} else {
-			candles = ccxt.ListTyped(this.SafeList(message, "data", []any{}))
+			candles = this.SafeListSlice(message, "data", []any{})
 		}
 	} else {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
@@ -1915,12 +1915,7 @@ func (this *Bingx) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = this.SafeString(messageHashes, i, "")
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(parts) {
-				return parts[1]
-			}
-			return nil
-		}())
+		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
 		var filteredSymbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", filteredSymbols, false)
 		if !this.IsEmpty(positions) {

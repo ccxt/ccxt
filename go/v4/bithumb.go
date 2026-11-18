@@ -1999,7 +1999,7 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a symbol"))
 		}
-		orderSymbols = append(orderSymbols, symbol)
+		orderSymbols = append(orderSymbols, *symbol)
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		if typeVar == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a type"))

@@ -454,7 +454,7 @@ func (this *Paradex) unsubscribeChannelAtBody(ch chan ccxt.AsyncResult[any], url
 	var hashes []any = []any{ccxt.GetValue(subMessageHashes, index)}
 	var channelSymbols []any = []any{}
 	if symbol != nil {
-		channelSymbols = append(channelSymbols, symbol)
+		channelSymbols = append(channelSymbols, *symbol)
 		if topic == "trades" {
 			// the liquidations of a market come from its trades channel
 			hashes = append(hashes, "liquidations:"+*symbol)
@@ -789,12 +789,12 @@ func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Paradex) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Paradex) WatchTradesForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+func (this *Paradex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1125,12 +1125,12 @@ func (this *Paradex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
  * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Paradex) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Paradex) WatchOrderBookForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
+func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -3769,7 +3769,7 @@ func (this *Paradex) WatchTradesForSymbols(symbols []string, options ...ccxt.Wat
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -3893,7 +3893,7 @@ func (this *Paradex) WatchOrderBookForSymbols(symbols []string, options ...ccxt.
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	r := <-this.WatchOrderBookForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Limit, opts.Params)
 	if r.Err != nil {
 		return ccxt.OrderBook{}, r.Err
 	}

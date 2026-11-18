@@ -548,7 +548,7 @@ func (this *BaseExchange) GetCacheIndex(orderbook any, deltas []any) any {
 func (this *BaseExchange) ArraysConcat(arraysOfArrays []any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(arraysOfArrays); i++ {
-		result = this.ArrayConcat(result, GetValue(arraysOfArrays, i))
+		result = this.ArrayConcat(result, arraysOfArrays[i])
 	}
 	return result
 }
@@ -798,7 +798,10 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 }
 func (this *BaseExchange) FindMessageHashes(client *Client, element any) any {
 	var result []any = []any{}
-	var messageHashes []string = ObjectKeys(client.Futures)
+	var messageHashes []string = make([]string, 0, len(client.Futures))
+	for objectKey := range client.Futures {
+		messageHashes = append(messageHashes, objectKey)
+	}
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash string = messageHashes[i]
 		if GetIndexOf(messageHash, element) >= 0 {
@@ -3715,12 +3718,12 @@ func (this *BaseExchange) ConvertOHLCVToTradingView(ohlcvs any, optionalArgs ...
 	}
 	return result
 }
-func (this *BaseExchange) FetchWebEndpointAsync(method any, endpointMethod any, returnAsJson any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *BaseExchange) FetchWebEndpointAsync(method string, endpointMethod any, returnAsJson any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.fetchWebEndpointBody(ch, method, endpointMethod, returnAsJson, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method any, endpointMethod any, returnAsJson any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method string, endpointMethod any, returnAsJson any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	chSent := false
@@ -3742,7 +3745,7 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 					ret_ = func(this *BaseExchange) any {
 						// catch block:
 						if !(muteOnFailure != nil && *muteOnFailure) {
-							panic(BadResponse(Add(Add(this.Id+" ", method), "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.")))
+							panic(BadResponse(this.Id + " " + method + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser."))
 						}
 						return nil
 					}(this)
@@ -4727,7 +4730,7 @@ func (this *BaseExchange) ParseTransactions(transactions any, optionalArgs ...an
 	var transactionsArray []any = this.ToArray(transactions)
 	var result []any = []any{}
 	for i := 0; i < len(transactionsArray); i++ {
-		var transaction map[string]any = this.Extend(TransactionToMap(this.DerivedExchange.ParseTransaction(DerefScalar(transactionsArray[i]), currency)), params)
+		var transaction map[string]any = this.Extend(TransactionToMap(this.DerivedExchange.ParseTransaction(this.SafeDict(transactionsArray, i, map[string]any{}), currency)), params)
 		result = append(result, transaction)
 	}
 	result = this.SortBy(result, "timestamp")
@@ -5390,7 +5393,7 @@ func (this *BaseExchange) ParseOrderBookBidAskL3(bidask any, optionalArgs ...any
 	var countOrId *string = this.SafeString(bidask, countOrIdKey)
 	var bidAsk []any = []any{price, amount}
 	if countOrId != nil {
-		bidAsk = append(bidAsk, countOrId)
+		bidAsk = append(bidAsk, *countOrId)
 	}
 	return bidAsk
 }
@@ -5508,7 +5511,10 @@ func (this *BaseExchange) CheckRequiredCredentials(optionalArgs ...any) bool {
 	 */
 	var error bool = GetArgBool(optionalArgs, 0, true)
 	_ = error
-	var keys []string = ObjectKeys(this.RequiredCredentials)
+	var keys []string = make([]string, 0, len(this.RequiredCredentials))
+	for objectKey := range this.RequiredCredentials {
+		keys = append(keys, objectKey)
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var credentialValue any = GetValue(this, key)
@@ -5676,11 +5682,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes706815 map[string]any = r.Value
-	if retRes706815 == nil {
+	var retRes706915 map[string]any = r.Value
+	if retRes706915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes706815}
+		ch <- AsyncResult[map[string]any]{Value: retRes706915}
 	}
 	return nil
 }
@@ -7199,7 +7205,7 @@ func (this *BaseExchange) HandleTriggerPricesAndParams(symbol any, params any, o
 	}()
 	return []any{triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted}
 }
-func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalArgs ...any) []any {
+func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalArgs ...any) (*string, map[string]any) {
 	/**
 	 * @ignore
 	 * @method
@@ -7231,7 +7237,7 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalAr
 		triggerDirectionStr2 := "descending"
 		triggerDirection = &triggerDirectionStr2
 	}
-	return []any{triggerDirection, paramsOmitted}
+	return triggerDirection, MapTyped(paramsOmitted)
 }
 func (this *BaseExchange) HandleTriggerAndParams(params any) any {
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
@@ -7673,7 +7679,7 @@ func (this *BaseExchange) CheckRequiredArgument(methodName string, argument any,
 		panic(ArgumentsRequired(message))
 	}
 }
-func (this *BaseExchange) CheckRequiredMarginArgument(methodName any, symbol any, marginMode any) {
+func (this *BaseExchange) CheckRequiredMarginArgument(methodName string, symbol any, marginMode any) {
 	/**
 	 * @ignore
 	 * @method
@@ -7682,9 +7688,9 @@ func (this *BaseExchange) CheckRequiredMarginArgument(methodName any, symbol any
 	 * @param {string} marginMode is either 'isolated' or 'cross'
 	 */
 	if (marginMode == "isolated") && (IsEqual(symbol, nil)) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a symbol argument for isolated margin")))
+		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument for isolated margin"))
 	} else if (marginMode == "cross") && (!IsEqual(symbol, nil)) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() cannot have a symbol argument for cross margin")))
+		panic(ArgumentsRequired(this.Id + " " + methodName + "() cannot have a symbol argument for cross margin"))
 	}
 }
 func (this *BaseExchange) ParseDepositWithdrawFees(response any, optionalArgs ...any) map[string]any {
@@ -7926,36 +7932,33 @@ func (this *BaseExchange) CreateOHLCVObject(symbol any, timeframe any, data any)
 	return res
 }
 func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, optionalArgs ...any) any {
-	maxEntriesPerRequest := GetArg(optionalArgs, 0, nil)
+	// the option wins, then the argument, then 1000; the default goes through the integer reader so every port gets an integer
+	var maxEntriesPerRequest *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = maxEntriesPerRequest
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxEntriesPerRequest")
-	var newMaxEntriesPerRequest *int64 = nil
-	if p, ok := newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0].(*int64); ok {
-		newMaxEntriesPerRequest = p
+	var maxEntriesPerRequestDefault int64
+	if maxEntriesPerRequest == nil {
+		maxEntriesPerRequestDefault = 1000
+	} else {
+		maxEntriesPerRequestDefault = *maxEntriesPerRequest
 	}
-	paramsMaxEntriesPerRequest := newMaxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]
-	var maxEntriesPerRequestOption any = func() any {
-		if newMaxEntriesPerRequest != nil {
-			return newMaxEntriesPerRequest
+	var maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "maxEntriesPerRequest", maxEntriesPerRequestDefault)
+	maxEntriesPerRequestResolved := func() any {
+		if p, _ := maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable[0].(*int64); p != nil {
+			return *p
 		}
-		return maxEntriesPerRequest
+		return nil
 	}()
-	var maxEntriesPerRequestResolved any = func() any {
-		if IsEqual(maxEntriesPerRequestOption, nil) {
-			return 1000
-		}
-		return maxEntriesPerRequestOption
-	}() // default to 1000
+	paramsMaxEntriesPerRequest := maxEntriesPerRequestResolvedparamsMaxEntriesPerRequestVariable[1]
 	return []any{maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest}
 }
-func (this *BaseExchange) FetchPaginatedCallDynamicAsync(method any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+func (this *BaseExchange) FetchPaginatedCallDynamicAsync(method string, optionalArgs ...any) <-chan AsyncResult[[]any] {
 	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPaginatedCallDynamicBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]any], method any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]any], method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
@@ -8184,12 +8187,12 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan AsyncResult[any], me
 	ch <- AsyncResult[any]{Value: []any{}}
 	return nil
 }
-func (this *BaseExchange) FetchPaginatedCallDeterministicAsync(method any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+func (this *BaseExchange) FetchPaginatedCallDeterministicAsync(method string, optionalArgs ...any) <-chan AsyncResult[[]any] {
 	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPaginatedCallDeterministicBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResult[[]any], method any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResult[[]any], method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8255,7 +8258,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 		if IsGreaterThanOrEqual(currentSince, current) {
 			break
 		}
-		tasks = append(tasks, this.SafeDeterministicCallAsync(StringArg(method), symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted))
+		tasks = append(tasks, this.SafeDeterministicCallAsync(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted))
 		// this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
 		currentSince = Subtract(this.Sum(currentSince, step), 1)
 	}
@@ -8283,12 +8286,12 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 
 // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
 // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
-func (this *BaseExchange) FetchPaginatedCallCursorAsync(method any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+func (this *BaseExchange) FetchPaginatedCallCursorAsync(method string, optionalArgs ...any) <-chan AsyncResult[[]any] {
 	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPaginatedCallCursorBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any], method any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any], method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
@@ -8402,7 +8405,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 					if cursorValue != nil {
 						cursorString = ToString(cursorValue)
 					}
-					var cursorMessage *string = SafeStringPtr(Add(Add(Add(Add(Add("Cursor pagination call "+strconv.Itoa((i+1))+" method ", method), " response length "), strconv.Itoa(responseLength)), " cursor "), cursorString))
+					var cursorMessage string = "Cursor pagination call " + strconv.Itoa((i + 1)) + " method " + method + " response length " + strconv.Itoa(responseLength) + " cursor " + cursorString
 					this.Log(cursorMessage)
 				}
 				if responseLength == 0 {
@@ -8455,12 +8458,12 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(sorted, since, limit, key)}
 	return nil
 }
-func (this *BaseExchange) FetchPaginatedCallIncrementalAsync(method any, optionalArgs ...any) <-chan AsyncResult[[]any] {
+func (this *BaseExchange) FetchPaginatedCallIncrementalAsync(method string, optionalArgs ...any) <-chan AsyncResult[[]any] {
 	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPaginatedCallIncrementalBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[[]any], method any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[[]any], method string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
@@ -8527,7 +8530,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 				var responseLength int = GetArrayLength(response)
 				if this.Verbose {
 					var iteration any = (i + 1)
-					var incrementalMessage *string = SafeStringPtr(Add(Add(Add("Incremental pagination call "+ToString(iteration)+" method ", method), " response length "), strconv.Itoa(responseLength)))
+					var incrementalMessage string = "Incremental pagination call " + ToString(iteration) + " method " + method + " response length " + strconv.Itoa(responseLength)
 					this.Log(incrementalMessage)
 				}
 				if responseLength == 0 {
@@ -8575,13 +8578,11 @@ func (this *BaseExchange) RemoveRepeatedElementsFromArray(input []any, optionalA
 		if fallbackToTimestamp == true {
 			uniqValue = this.SafeStringN(entry, []any{"id", "timestamp", 0})
 		}
-		if (uniqValue != nil) && !(func() bool {
-			if uniqValue == nil {
-				return false
-			}
-			_, ok := uniqueDic[*uniqValue]
-			return ok
-		}()) {
+		var uniqValueInUniqueDic bool
+		if uniqValue != nil {
+			_, uniqValueInUniqueDic = uniqueDic[*uniqValue]
+		}
+		if (uniqValue != nil) && !(uniqValueInUniqueDic) {
 			if uniqValue != nil {
 				uniqueDic[*uniqValue] = 1
 			}
@@ -9161,7 +9162,10 @@ func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsub
 					client.SubscriptionDel(sub)
 				}
 			}
-			var clientFutures []string = ObjectKeys(client.Futures)
+			var clientFutures []string = make([]string, 0, len(client.Futures))
+			for objectKey := range client.Futures {
+				clientFutures = append(clientFutures, objectKey)
+			}
 			for i := 0; i < len(clientFutures); i++ {
 				var future string = clientFutures[i]
 				if StartsWith(future, subHash) {
@@ -9470,12 +9474,12 @@ func (this *Exchange) watchMyTradesForSymbolsBody(ch chan AsyncResult[[]Trade], 
 	_ = params
 	panic(NotSupported(this.Id + " watchMyTradesForSymbols() is not supported yet"))
 }
-func (this *Exchange) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+func (this *Exchange) WatchTradesForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
 	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Exchange) watchTradesForSymbolsBody(ch chan AsyncResult[[]Trade], symbols any, optionalArgs ...any) any {
+func (this *Exchange) watchTradesForSymbolsBody(ch chan AsyncResult[[]Trade], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -9605,12 +9609,12 @@ func (this *Exchange) fetchL3OrderBookBody(ch chan AsyncResult[OrderBookL3], sym
 	_ = params
 	panic(BadRequest(this.Id + " fetchL3OrderBook() is not supported yet"))
 }
-func (this *Exchange) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface] {
+func (this *Exchange) WatchOrderBookForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface] {
 	ch := make(chan AsyncResult[OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Exchange) watchOrderBookForSymbolsBody(ch chan AsyncResult[OrderBookInterface], symbols any, optionalArgs ...any) any {
+func (this *Exchange) watchOrderBookForSymbolsBody(ch chan AsyncResult[OrderBookInterface], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -11514,12 +11518,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048515Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048515 []any = retRes1048515Recv
-	if retRes1048515 == nil {
+	retRes1048615Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048615 []any = retRes1048615Recv
+	if retRes1048615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048615)}
 	}
 	return nil
 }

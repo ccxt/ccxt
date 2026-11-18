@@ -2760,13 +2760,11 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	for i := 0; i < len(ratesIds); i++ {
 		var currencyId string = ratesIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (code == nil) || !(func() bool {
-			if code == nil {
-				return false
-			}
-			_, ok := result[*code]
-			return ok
-		}()) {
+		var codeInResult bool
+		if code != nil {
+			_, codeInResult = result[*code]
+		}
+		if (code == nil) || !(codeInResult) {
 			if code != nil {
 				result[*code] = this.SafeCurrencyStructure(map[string]any{
 					"info":     map[string]any{},

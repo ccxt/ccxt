@@ -915,13 +915,11 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		}())
 		if market != nil {
 			var marketId *string = this.SafeString(market, "id")
-			if (marketId == nil) || (func() bool {
-				if marketId == nil {
-					return false
-				}
-				_, ok := marketIds[*marketId]
-				return ok
-			}()) {
+			var marketIdInMarketIds bool
+			if marketId != nil {
+				_, marketIdInMarketIds = marketIds[*marketId]
+			}
+			if (marketId == nil) || (marketIdInMarketIds) {
 				continue
 			}
 			marketIds[*marketId] = true
@@ -1235,7 +1233,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
  * @param {object} [market] resolved market
  * @returns {Array} stock flag and remaining parameters
  */
-func (this *Backpack) HandleStockParams(methodName any, params any, optionalArgs ...any) []any {
+func (this *Backpack) HandleStockParams(methodName string, params any, optionalArgs ...any) []any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var defaultStock *bool = this.SafeBool(market, "stock", false)
@@ -1248,7 +1246,7 @@ func (this *Backpack) HandleStockParams(methodName any, params any, optionalArgs
 		return nil
 	}()
 	if (market != nil) && EvalTruthy(stock) && !(*this.SafeBool(market, "stock", false)) {
-		panic(BadSymbol(Add(Add(this.Id+" ", methodName), "() requires a stock market")))
+		panic(BadSymbol(this.Id + " " + methodName + "() requires a stock market"))
 	}
 	return []any{stock, query}
 }
@@ -1716,7 +1714,7 @@ func (this *Backpack) createConvertTradeBody(ch chan AsyncResult[Conversion], id
  * @param {object} [market] resolved market
  * @returns {object} market data parameters
  */
-func (this *Backpack) StockDataRequest(methodName any, params any, optionalArgs ...any) map[string]any {
+func (this *Backpack) StockDataRequest(methodName string, params any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var selection []any = this.HandleStockParams(methodName, params, market)
@@ -1736,17 +1734,17 @@ func (this *Backpack) StockDataRequest(methodName any, params any, optionalArgs 
 		source = &sourceStr
 	}
 	if (source == nil || *source != "Venue") && (source == nil || *source != "External") {
-		panic(BadRequest(Add(Add(this.Id+" ", methodName), "() source must be Venue or External")))
+		panic(BadRequest(this.Id + " " + methodName + "() source must be Venue or External"))
 	}
 	if source != nil && *source == "External" {
 		if !(stock != nil && *stock) {
-			panic(BadRequest(Add(Add(this.Id+" ", methodName), "() External provider data requires a stock market symbol or params.stock=true when no symbol is provided")))
+			panic(BadRequest(this.Id + " " + methodName + "() External provider data requires a stock market symbol or params.stock=true when no symbol is provided"))
 		}
 		if (market != nil) && !(*this.SafeBool(market, "stock", false)) {
-			panic(BadSymbol(Add(Add(this.Id+" ", methodName), "() External data requires a stock market")))
+			panic(BadSymbol(this.Id + " " + methodName + "() External data requires a stock market"))
 		}
 		request["source"] = source
-		if IsEqual(methodName, "fetchOHLCV") {
+		if methodName == "fetchOHLCV" {
 			var priceType string = *this.SafeString(query, "priceType", "Last")
 			var price *string = this.SafeString(query, "price")
 			if (priceType != "Last") || ((price != nil) && (price == nil || *price != "last")) {
@@ -1756,7 +1754,7 @@ func (this *Backpack) StockDataRequest(methodName any, params any, optionalArgs 
 		} else {
 			var interval *string = this.SafeString(query, "interval", "1d")
 			if interval == nil || *interval != "1d" {
-				panic(BadRequest(Add(Add(this.Id+" ", methodName), "() External tickers require interval=1d")))
+				panic(BadRequest(this.Id + " " + methodName + "() External tickers require interval=1d"))
 			}
 			request["interval"] = interval
 		}

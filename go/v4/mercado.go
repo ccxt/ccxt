@@ -1079,12 +1079,14 @@ func (this *Mercado) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		"address":  address,
 	}
 	if code == "BRL" {
-		var account_ref bool = (func() bool { _, ok := paramsWithdrawTag["account_ref"]; return ok }())
+		var account_ref bool
+		_, account_ref = paramsWithdrawTag["account_ref"]
 		if !account_ref {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires account_ref parameter to withdraw " + code))
 		}
 	} else if code != "LTC" {
-		var tx_fee bool = (func() bool { _, ok := paramsWithdrawTag["tx_fee"]; return ok }())
+		var tx_fee bool
+		_, tx_fee = paramsWithdrawTag["tx_fee"]
 		if !tx_fee {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires tx_fee parameter to withdraw " + code))
 		}

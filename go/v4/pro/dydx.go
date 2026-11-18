@@ -361,7 +361,7 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	if orderbook == nil {
 		orderbook = this.OrderBook()
 	}
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
+	orderbook.SetSymbol(symbol)
 	var asks []any = ccxt.SafeListTypedDefault(content, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(content, "bids", []any{})
 	this.HandleDeltas(orderbook.GetAsks(), asks)

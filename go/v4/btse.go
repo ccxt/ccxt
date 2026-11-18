@@ -3086,12 +3086,12 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	if triggerPrice != nil {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
-	var query any = func() any {
-		if triggerPrice != nil {
-			return this.Omit(paramsOmitted, "triggerPrice")
-		}
-		return paramsOmitted
-	}()
+	var query map[string]any
+	if triggerPrice != nil {
+		query = this.OmitDict(paramsOmitted, "triggerPrice")
+	} else {
+		query = paramsOmitted
+	}
 	if amount != nil {
 		request["orderSize"] = this.AmountToPrecision(symbol, amount)
 	}

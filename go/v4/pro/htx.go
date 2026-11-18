@@ -905,7 +905,7 @@ func (this *Htx) HandleDelta(bookside any, delta any) {
 }
 func (this *Htx) HandleDeltas(bookside any, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
 func (this *Htx) HandleOrderBookMessage(client any, message any) {

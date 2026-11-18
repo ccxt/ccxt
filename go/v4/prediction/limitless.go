@@ -1446,7 +1446,7 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 			if slug != nil {
 				outcomesBySlug[*slug] = []any{}
 			}
-			slugs = append(slugs, slug)
+			slugs = append(slugs, *slug)
 		}
 		// reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
 		var grouped any = this.SafeList(outcomesBySlug, slug, []any{})
@@ -1457,7 +1457,7 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	}
 	var promises []any = []any{}
 	for i := 0; i < len(slugs); i++ {
-		var slug any = ccxt.DerefScalar(slugs[i])
+		var slug any = slugs[i]
 		promises = append(promises, this.LimitlessPublicGetMarketsAddressOrSlug(this.Extend(map[string]any{
 			"addressOrSlug": slug,
 		}, params)))
@@ -1472,7 +1472,7 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	}
 	var responses []any = r1.Value
 	for i := 0; i < len(slugs); i++ {
-		var slug any = ccxt.DerefScalar(slugs[i])
+		var slug any = slugs[i]
 		var detailIndex int64 = int64(i) * 2
 		var detail any = this.SafeDict(responses, detailIndex)
 		var book any = this.SafeDict(responses, detailIndex+1)
@@ -4041,7 +4041,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 			}
 		}
 		if matched && (categoryId != nil) {
-			categoryIds = append(categoryIds, categoryId)
+			categoryIds = append(categoryIds, *categoryId)
 		}
 	}
 	var categoryIdsLength int = len(categoryIds)
@@ -4052,7 +4052,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 	var allRaw []any = []any{}
 	for ci := 0; ci < categoryIdsLength; ci++ {
 
-		r := <-this.FetchRawActiveMarketsAsync(params, ccxt.DerefScalar(categoryIds[ci]))
+		r := <-this.FetchRawActiveMarketsAsync(params, categoryIds[ci])
 		if r.Err != nil {
 			panic(r.Err)
 		}

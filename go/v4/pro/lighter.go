@@ -208,7 +208,7 @@ func (this *Lighter) HandleDelta(bookside any, delta any) {
 }
 func (this *Lighter) HandleDeltas(bookside any, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
 func (this *Lighter) HandleOrderBookMessage(client any, message map[string]any, orderbook ccxt.OrderBookInterface) any {

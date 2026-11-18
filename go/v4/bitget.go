@@ -3829,10 +3829,10 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var defaultMarkets []any = []any{"spot", "swap"}
 	if fetchMarketsOptions != nil {
-		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultMarkets))
+		types = this.SafeListSlice(fetchMarketsOptions, "types", defaultMarkets)
 	} else {
 		// for backward-compatibility
-		types = ListTyped(this.SafeList(this.Options, "fetchMarkets", defaultMarkets))
+		types = this.SafeListSlice(this.Options, "fetchMarkets", defaultMarkets)
 	}
 	var promises []any = []any{}
 	var fetchMargins bool = false
@@ -4073,26 +4073,24 @@ func (this *Bitget) ParseMarket(market any) map[string]any {
 			var expiryParts []string = strings.Split(*expiryIso, "-")
 			var yearPart *string = this.SafeString(expiryParts, 0, "")
 			var dayPart *string = this.SafeString(expiryParts, 2, "")
-			var year string = func() string {
-				if yearPart == nil {
-					return ""
-				}
+			var yearPartPart string
+			if yearPart != nil {
 				str := *yearPart
-				return str[2:min(4, len(str))]
-			}()
+				yearPartPart = str[2:min(4, len(str))]
+			}
+			var year string = yearPartPart
 			var month *string = SafeStringPtr(func() any {
 				if 1 >= 0 && 1 < len(expiryParts) {
 					return expiryParts[1]
 				}
 				return nil
 			}())
-			var day string = func() string {
-				if dayPart == nil {
-					return ""
-				}
+			var dayPartPart string
+			if dayPart != nil {
 				str := *dayPart
-				return str[0:min(2, len(str))]
-			}()
+				dayPartPart = str[0:min(2, len(str))]
+			}
+			var day string = dayPartPart
 			var monthDay string = *month + day
 			var expiryString string = year + monthDay
 			typeVarStr3 := "future"
@@ -4400,26 +4398,24 @@ func (this *Bitget) ParseUtaMarket(market any, stock bool) map[string]any {
 			var expiryParts []string = strings.Split(*expiryIso, "-")
 			var yearPart *string = this.SafeString(expiryParts, 0, "")
 			var dayPart *string = this.SafeString(expiryParts, 2, "")
-			var year string = func() string {
-				if yearPart == nil {
-					return ""
-				}
+			var yearPartPart string
+			if yearPart != nil {
 				str := *yearPart
-				return str[2:min(4, len(str))]
-			}()
+				yearPartPart = str[2:min(4, len(str))]
+			}
+			var year string = yearPartPart
 			var month *string = SafeStringPtr(func() any {
 				if 1 >= 0 && 1 < len(expiryParts) {
 					return expiryParts[1]
 				}
 				return nil
 			}())
-			var day string = func() string {
-				if dayPart == nil {
-					return ""
-				}
+			var dayPartPart string
+			if dayPart != nil {
 				str := *dayPart
-				return str[0:min(2, len(str))]
-			}()
+				dayPartPart = str[0:min(2, len(str))]
+			}
+			var day string = dayPartPart
 			var monthDay string = *month + day
 			var expiryString string = year + monthDay
 			typeVarStr3 := "future"
@@ -12369,7 +12365,7 @@ func (this *Bitget) fetchPositionBody(ch chan AsyncResult[Position], symbol any,
 		//     }
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
-		result = ListTyped(this.SafeList(data, "list", []any{}))
+		result = this.SafeListSlice(data, "list", []any{})
 	} else {
 		request["marginCoin"] = market["settleId"]
 		request["productType"] = productType
@@ -12409,7 +12405,7 @@ func (this *Bitget) fetchPositionBody(ch chan AsyncResult[Position], symbol any,
 		//         ]
 		//     }
 		//
-		result = ListTyped(this.SafeList(response, "data", []any{}))
+		result = this.SafeListSlice(response, "data", []any{})
 	}
 	var first map[string]any = this.SafeDictMap(result, 0, map[string]any{})
 
@@ -12994,7 +12990,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		//     }
 		//
 		var data map[string]any = SafeMapTyped(response, "data")
-		result = ListTyped(this.SafeList(data, "resultList", []any{}))
+		result = this.SafeListSlice(data, "resultList", []any{})
 	} else {
 		var paginate bool = false
 		paginate, paramsProductType = this.HandleOptionBoolAndParams(paramsProductType, "fetchFundingRateHistory", "paginate", false)
@@ -13036,7 +13032,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		//         ]
 		//     }
 		//
-		result = ListTyped(this.SafeList(response, "data", []any{}))
+		result = this.SafeListSlice(response, "data", []any{})
 	}
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {

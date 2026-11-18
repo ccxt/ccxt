@@ -2305,21 +2305,21 @@ func (this *Aster) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice]
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
-	var response any = nil
+	var response []any = nil
 	if marketType != nil && *marketType == "swap" {
 
 		r1 := <-this.FapiPublicGetV3TickerPrice(paramsMarketType)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else if marketType != nil && *marketType == "spot" {
 
 		r2 := <-this.SapiPublicGetV3TickerPrice(paramsMarketType)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	}
 	//
 	// both SPOT & SWAP has same format

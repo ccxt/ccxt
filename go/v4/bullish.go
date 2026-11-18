@@ -1040,13 +1040,12 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 			expiryDatetime = this.SafeString(market, "expiryDatetime")
 			var idParts []string = strings.Split(*id, "-")
 			var datePart *string = this.SafeString(idParts, 2)
-			var dateYmd string = func() string {
-				if datePart == nil {
-					return ""
-				}
+			var datePartPart string
+			if datePart != nil {
 				str := *datePart
-				return str[2:]
-			}()
+				datePartPart = str[2:]
+			}
+			var dateYmd string = datePartPart
 			symbol = Add(symbol, "-"+dateYmd)
 			if typeVar != nil && *typeVar == "future" {
 				future = true

@@ -1312,12 +1312,12 @@ func (this *Backpack) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
  * @param {string} [params.source] Venue only
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Backpack) WatchTradesForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+func (this *Backpack) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1591,12 +1591,12 @@ func (this *Backpack) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Backpack) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Backpack) WatchOrderBookForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
+func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1771,7 +1771,8 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 	var deltaNonce *int64 = this.SafeInteger(data, "u")
 	var messageHash string = "orderbook:" + *symbol
 	if nonce == nil {
-		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.GetCache())
+		var cacheSize int = ccxt.GetArrayLength(storedOrderBook.GetCache())
+		var cacheLength int64 = this.ParseToInt(cacheSize)
 		// cache the triggering delta before a synchronous snapshot can inspect the cache
 		storedOrderBook.AppendCache(data)
 		// stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
@@ -1783,8 +1784,8 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 			}
 			return 10
 		}()
-		var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay)
-		if ccxt.IsEqual(cacheLength, snapshotDelay) {
+		var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay))
+		if cacheLength == snapshotDelay {
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})
 		}
 		return
@@ -3032,7 +3033,7 @@ func (this *Backpack) WatchTradesForSymbols(symbols []string, options ...ccxt.Wa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -3112,7 +3113,7 @@ func (this *Backpack) WatchOrderBookForSymbols(symbols []string, options ...ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	r := <-this.WatchOrderBookForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Limit, opts.Params)
 	if r.Err != nil {
 		return ccxt.OrderBook{}, r.Err
 	}

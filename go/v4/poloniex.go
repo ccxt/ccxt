@@ -3392,7 +3392,7 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
 		"false": "closed",
 	}
 	var found string
-	if func() bool { _, ok := indexed[id]; return ok }() {
+	if _, indexedHas := indexed[id]; indexedHas {
 		found = "true"
 	} else {
 		found = "false"

@@ -3495,7 +3495,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	var request map[string]any = map[string]any{
 		"type": "step0",
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if *this.SafeBool(market, "linear", false) {
 		request["contract_code"] = market["id"]
 
@@ -3503,7 +3503,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else if *this.SafeBool(market, "inverse", false) {
 		if *this.SafeBool(market, "future", false) {
 			request["symbol"] = market["id"]
@@ -3512,7 +3512,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			response = r2.Raw
+			response = r2.Value
 		} else if *this.SafeBool(market, "swap", false) {
 			request["contract_code"] = market["id"]
 
@@ -3520,7 +3520,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			response = r3.Raw
+			response = r3.Value
 		}
 	} else {
 		if limit != nil {
@@ -3541,7 +3541,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 		if r4.Err != nil {
 			panic(r4.Err)
 		}
-		response = r4.Raw
+		response = r4.Value
 	}
 	//
 	// spot, future, swap
@@ -5100,7 +5100,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 				result[*code] = account
 			}
 		}
-		result = MapTyped(this.SafeBalance(result))
+		this.SafeBalance(result)
 	} else if spot || margin {
 		if isolated {
 			for i := 0; i < GetArrayLength(data); i++ {
@@ -5127,7 +5127,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 					result = this.MergeBalanceAccount(result, subCode, subResult[subCode])
 				}
 			}
-			result = MapTyped(this.SafeBalance(result))
+			this.SafeBalance(result)
 		} else {
 			var balances []any = SafeListTyped(data, "list")
 			for i := 0; i < len(balances); i++ {
@@ -5138,7 +5138,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 					AddElementToObject(result, code, this.ParseMarginBalanceHelper(balance, *code, result))
 				}
 			}
-			result = MapTyped(this.SafeBalance(result))
+			this.SafeBalance(result)
 		}
 	} else if inverse {
 		for i := 0; i < GetArrayLength(data); i++ {
@@ -5152,7 +5152,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 				result[*code] = account
 			}
 		}
-		result = MapTyped(this.SafeBalance(result))
+		this.SafeBalance(result)
 	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(result)}

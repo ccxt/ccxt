@@ -619,7 +619,7 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 		}
 		if _, ok := grouped[*sportXeventId]; !ok {
 			grouped[*sportXeventId] = []any{}
-			order = append(order, sportXeventId)
+			order = append(order, *sportXeventId)
 		}
 		retRes48412 := func() any {
 			if sportXeventId == nil {
@@ -635,7 +635,7 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 	var result []any = []any{}
 	var orderLength int = len(order)
 	for i := 0; i < orderLength; i++ {
-		var fixtureId *string = ccxt.SafeStringPtr(ccxt.DerefScalar(order[i]))
+		var fixtureId *string = ccxt.SafeStringPtr(order[i])
 		var event map[string]any = this.ParseEvent(fixtureId, func() any {
 			if fixtureId == nil {
 				return nil

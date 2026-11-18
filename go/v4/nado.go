@@ -627,7 +627,7 @@ func (this *Nado) createOrderRequestBody(ch chan AsyncResult[map[string]any], sy
 	var isTriggerOrder bool = isStopOrder || isStopLossOrder || isTakeProfitOrder
 	if isStopOrder {
 		// the final omit drops triggerDirection from the request
-		var triggerDirection *string = this.SafeString(this.HandleTriggerDirectionAndParams(paramsRecvWindow), 0)
+		triggerDirection, _ := this.HandleTriggerDirectionAndParams(paramsRecvWindow)
 		var directionSuffix string = "below"
 		if triggerDirection != nil && *triggerDirection == "ascending" {
 			directionSuffix = "above"
@@ -4157,13 +4157,12 @@ func (this *Nado) RemoveMarketSuffix(marketId *string) any {
 		return nil
 	}
 	if strings.HasSuffix(*marketId, "-PERP") {
-		return func() string {
-			if marketId == nil {
-				return ""
-			}
+		var marketIdPart string
+		if marketId != nil {
 			str := *marketId
-			return str[0 : len(str)-5]
-		}()
+			marketIdPart = str[0 : len(str)-5]
+		}
+		return marketIdPart
 	}
 	return marketId
 }

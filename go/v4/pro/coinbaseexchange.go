@@ -331,12 +331,12 @@ func (this *Coinbaseexchange) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coinbaseexchange) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Coinbaseexchange) WatchTradesForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -345,7 +345,7 @@ func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var symbolsLength int = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = len(symbols)
 	if symbolsLength == 0 {
 		panic(ccxt.BadRequest(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
@@ -598,19 +598,19 @@ func (this *Coinbaseexchange) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Or
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Coinbaseexchange) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Coinbaseexchange) WatchOrderBookForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var symbolsLength int = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = len(symbols)
 	if symbolsLength == 0 {
 		panic(ccxt.BadRequest(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
@@ -1203,7 +1203,7 @@ func (this *Coinbaseexchange) HandleDelta(bookside any, delta any) {
 }
 func (this *Coinbaseexchange) HandleDeltas(bookside any, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
-		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
+		this.HandleDelta(bookside, deltas[i])
 	}
 }
 func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any) {
@@ -1466,7 +1466,7 @@ func (this *Coinbaseexchange) WatchTradesForSymbols(symbols []string, options ..
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -1590,7 +1590,7 @@ func (this *Coinbaseexchange) WatchOrderBookForSymbols(symbols []string, options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	r := <-this.WatchOrderBookForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Limit, opts.Params)
 	if r.Err != nil {
 		return ccxt.OrderBook{}, r.Err
 	}

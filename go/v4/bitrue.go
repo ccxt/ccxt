@@ -975,10 +975,10 @@ func (this *Bitrue) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var defaultTypes []any = []any{"spot", "linear", "inverse"}
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	if fetchMarketsOptions != nil {
-		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultTypes))
+		types = this.SafeListSlice(fetchMarketsOptions, "types", defaultTypes)
 	} else {
 		// for backward-compatibility
-		types = ListTyped(this.SafeList(this.Options, "fetchMarkets", defaultTypes))
+		types = this.SafeListSlice(this.Options, "fetchMarkets", defaultTypes)
 	}
 	for i := 0; i < len(types); i++ {
 		var marketType *string = SafeStringPtr(func() any {
@@ -2491,12 +2491,12 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		if triggerPrice != nil {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
-		var paramsSpot any = func() any {
-			if triggerPrice != nil {
-				return this.Omit(paramsNoClientOrderId, []any{"triggerPrice", "stopPrice"})
-			}
-			return paramsNoClientOrderId
-		}()
+		var paramsSpot map[string]any
+		if triggerPrice != nil {
+			paramsSpot = this.OmitDict(paramsNoClientOrderId, []any{"triggerPrice", "stopPrice"})
+		} else {
+			paramsSpot = paramsNoClientOrderId
+		}
 
 		r3 := <-this.SpotV1PrivatePostOrder(this.Extend(request, paramsSpot))
 		if r3.Err != nil {

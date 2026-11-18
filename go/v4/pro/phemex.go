@@ -360,7 +360,7 @@ func (this *Phemex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Phemex) HandleBalance(typeVar string, client any, message any) {
+func (this *Phemex) HandleBalance(client any, message any, typeVar string) {
 	// spot
 	//    [
 	//       {
@@ -2018,7 +2018,7 @@ func (this *Phemex) HandleMessage(client any, message map[string]any) {
 			typeVar = "perpetual"
 		}
 		var accounts any = this.SafeListN(message, []any{"accounts", "accounts_p", "wallets"}, []any{})
-		this.HandleBalance(typeVar, client, accounts)
+		this.HandleBalance(client, accounts, typeVar)
 	}
 }
 func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {

@@ -8185,7 +8185,7 @@ func (this *Binance) editContractOrderBody(ch chan AsyncResult[Order], id string
 	var market map[string]any = this.Market(symbol)
 	isPortfolioMargin, paramsPapi := this.HandleOptionBoolAndParams2(params, "editContractOrder", "papi", "portfolioMargin", false)
 	var request map[string]any = this.EditContractOrderRequest(&id, &symbol, &typeVar, &side, amount, price, paramsPapi)
-	var response any = nil
+	var response map[string]any = nil
 	if *this.SafeBool(market, "linear", false) {
 		if isPortfolioMargin {
 
@@ -8193,14 +8193,14 @@ func (this *Binance) editContractOrderBody(ch chan AsyncResult[Order], id string
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			response = r1.Raw
+			response = r1.Value
 		} else {
 
 			r2 := <-this.FapiPrivatePutOrder(this.Extend(request, paramsPapi))
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			response = r2.Raw
+			response = r2.Value
 		}
 	} else if *this.SafeBool(market, "inverse", false) {
 		if isPortfolioMargin {
@@ -8209,14 +8209,14 @@ func (this *Binance) editContractOrderBody(ch chan AsyncResult[Order], id string
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			response = r3.Raw
+			response = r3.Value
 		} else {
 
 			r4 := <-this.DapiPrivatePutOrder(this.Extend(request, paramsPapi))
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
-			response = r4.Raw
+			response = r4.Value
 		}
 	}
 	//
@@ -11169,7 +11169,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, o
 		}
 	}
 	request[orderIdRequest] = id
-	var response any = nil
+	var response map[string]any = nil
 	if *this.SafeBool(market, "linear", false) {
 		if isPortfolioMargin {
 			if isConditional != nil && *isConditional == true {
@@ -11178,14 +11178,14 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, o
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
-				response = r1.Raw
+				response = r1.Value
 			} else {
 
 				r2 := <-this.PapiGetUmOpenOrder(this.Extend(request, paramsOmitted))
 				if r2.Err != nil {
 					panic(r2.Err)
 				}
-				response = r2.Raw
+				response = r2.Value
 			}
 		} else {
 
@@ -11193,7 +11193,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, o
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			response = r3.Raw
+			response = r3.Value
 		}
 	} else if *this.SafeBool(market, "inverse", false) {
 		if isPortfolioMargin {
@@ -11203,14 +11203,14 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, o
 				if r4.Err != nil {
 					panic(r4.Err)
 				}
-				response = r4.Raw
+				response = r4.Value
 			} else {
 
 				r5 := <-this.PapiGetCmOpenOrder(this.Extend(request, paramsOmitted))
 				if r5.Err != nil {
 					panic(r5.Err)
 				}
-				response = r5.Raw
+				response = r5.Value
 			}
 		} else {
 
@@ -11218,7 +11218,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, o
 			if r6.Err != nil {
 				panic(r6.Err)
 			}
-			response = r6.Raw
+			response = r6.Value
 		}
 	} else {
 		if *this.SafeBool(market, "option", false) {
@@ -12804,13 +12804,11 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "fiatOnly")
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, "until")
-	if (fiatOnly != nil && *fiatOnly) || ((code != nil) && (func() bool {
-		if code == nil {
-			return false
-		}
-		_, ok := legalMoney[*code]
-		return ok
-	}())) {
+	var codeInLegalMoney bool
+	if code != nil {
+		_, codeInLegalMoney = legalMoney[*code]
+	}
+	if (fiatOnly != nil && *fiatOnly) || ((code != nil) && (codeInLegalMoney)) {
 		if code != nil {
 			currency = this.Currency(code)
 		}
@@ -12933,13 +12931,11 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	}
 	var response any = nil
 	var currency map[string]any = nil
-	if (fiatOnly != nil && *fiatOnly) || ((code != nil) && (func() bool {
-		if code == nil {
-			return false
-		}
-		_, ok := legalMoney[*code]
-		return ok
-	}())) {
+	var codeInLegalMoney bool
+	if code != nil {
+		_, codeInLegalMoney = legalMoney[*code]
+	}
+	if (fiatOnly != nil && *fiatOnly) || ((code != nil) && (codeInLegalMoney)) {
 		if code != nil {
 			currency = this.Currency(code)
 		}
@@ -13105,13 +13101,12 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	}
 	var txid *string = this.SafeString(transaction, "txId")
 	if (txid != nil) && (strings.Index(*txid, "Internal transfer ") >= 0) {
-		txidStr := func() string {
-			if txid == nil {
-				return ""
-			}
+		var txidPart string
+		if txid != nil {
 			str := *txid
-			return str[18:]
-		}()
+			txidPart = str[18:]
+		}
+		txidStr := txidPart
 		txid = &txidStr
 	}
 	var currencyId *string = this.SafeString2(transaction, "coin", "fiatCurrency")
@@ -17440,7 +17435,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 				var orderidlist []any = SafeListTyped(extendedParams, "orderidlist")
 				var origclientorderidlist []any = SafeList2Typed(extendedParams, "origclientorderidlist", "origClientOrderIdList")
 				extendedParams = this.OmitDict(extendedParams, []any{"orderidlist", "origclientorderidlist", "origClientOrderIdList"})
-				if func() bool { _, ok := extendedParams["symbol"]; return ok }() {
+				if _, extendedParamsHas := extendedParams["symbol"]; extendedParamsHas {
 					AddElementToObject(extendedParams, "symbol", this.EncodeURIComponent(this.SafeString(extendedParams, "symbol", "")))
 				}
 				query = this.Rawencode(extendedParams)

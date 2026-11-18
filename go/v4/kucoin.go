@@ -2354,20 +2354,16 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		var takerFeeRate *string = this.SafeString(ticker, "takerFeeRate")
 		var makerCoefficient *string = this.SafeString(ticker, "makerCoefficient")
 		var takerCoefficient *string = this.SafeString(ticker, "takerCoefficient")
-		var hasCrossMargin bool = (func() bool {
-			if id == nil {
-				return false
-			}
-			_, ok := crossById[*id]
-			return ok
-		}())
-		var hasIsolatedMargin bool = (func() bool {
-			if id == nil {
-				return false
-			}
-			_, ok := isolatedById[*id]
-			return ok
-		}())
+		var idInCrossById bool
+		if id != nil {
+			_, idInCrossById = crossById[*id]
+		}
+		var hasCrossMargin bool = (idInCrossById)
+		var idInIsolatedById bool
+		if id != nil {
+			_, idInIsolatedById = isolatedById[*id]
+		}
+		var hasIsolatedMargin bool = (idInIsolatedById)
 		var isMarginable bool = (*this.SafeBool(market, "isMarginEnabled", false)) || hasCrossMargin || hasIsolatedMargin
 		result = append(result, map[string]any{
 			"id":       id,
@@ -12428,13 +12424,12 @@ func (this *Kucoin) ParseBorrowRate(info any, optionalArgs ...any) map[string]an
 	var timestampId *string = this.SafeString2(info, "createdAt", "timestamp")
 	var timestamp any = nil
 	if timestampId != nil {
-		timestamp = this.ParseToInt(func() string {
-			if timestampId == nil {
-				return ""
-			}
+		var timestampIdPart string
+		if timestampId != nil {
 			str := *timestampId
-			return str[0:min(13, len(str))]
-		}())
+			timestampIdPart = str[0:min(13, len(str))]
+		}
+		timestamp = this.ParseToInt(timestampIdPart)
 	}
 	var currencyId *string = this.SafeString(info, "currency")
 	var rate *string = this.SafeStringN(info, []any{"dailyIntRate", "dayRatio", "currentRateDaily"})

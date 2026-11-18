@@ -2070,13 +2070,12 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 	var expiry *string = this.SafeString(optionParts, 1, "")
 	if GetIndexOf(symbol, "/") == -1 {
 		base = this.SafeString(marketIdBase, 0, "")
-		expiryStr := func() string {
-			if expiry == nil {
-				return ""
-			}
+		var expiryPart string
+		if expiry != nil {
 			str := *expiry
-			return str[2:min(8, len(str))]
-		}()
+			expiryPart = str[2:min(8, len(str))]
+		}
+		expiryStr := expiryPart
 		expiry = &expiryStr // convert 20230728 to 230728
 	}
 	var strike string = *this.SafeString(optionParts, 2, "")
@@ -2832,7 +2831,7 @@ func (this *Gate) fetchOptionUnderlyingsBody(ch chan AsyncResult[[]string]) any 
 		var underlying map[string]any = SafeMapTyped(underlyingsResponse, i)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
-			underlyings = append(underlyings, name)
+			underlyings = append(underlyings, *name)
 		}
 	}
 
@@ -5803,13 +5802,12 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var msString *string = this.SafeString(trade, "create_time_ms")
 	if msString != nil {
 		msString = Precise.StringMul(msString, "1000")
-		msStringStr := func() string {
-			if msString == nil {
-				return ""
-			}
+		var msStringPart string
+		if msString != nil {
 			str := *msString
-			return str[0:min(13, len(str))]
-		}()
+			msStringPart = str[0:min(13, len(str))]
+		}
+		msStringStr := msStringPart
 		msString = &msStringStr
 		timestamp = this.ParseToInt(msString)
 	} else {
@@ -9028,28 +9026,28 @@ func (this *Gate) fetchPositionBody(ch chan AsyncResult[Position], symbol any, o
 	var request map[string]any = requestparamsValueVariable[0].(map[string]any)
 	var paramsValue map[string]any = requestparamsValueVariable[1].(map[string]any)
 	var extendedRequest map[string]any = this.Extend(request, paramsValue)
-	var response any = nil
+	var response map[string]any = nil
 	if *this.SafeBool(market, "swap", false) {
 
 		r1 := <-this.PrivateFuturesGetSettlePositionsContract(extendedRequest)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else if *this.SafeBool(market, "future", false) {
 
 		r2 := <-this.PrivateDeliveryGetSettlePositionsContract(extendedRequest)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	} else if market["type"] == "option" {
 
 		r3 := <-this.PrivateOptionsGetPositionsContract(extendedRequest)
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response = r3.Raw
+		response = r3.Value
 	}
 	//
 	// swap and future
@@ -11035,7 +11033,7 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan AsyncResult[[]string], optio
 		var underlying map[string]any = SafeMapTyped(response, i)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
-			underlyings = append(underlyings, name)
+			underlyings = append(underlyings, *name)
 		}
 	}
 

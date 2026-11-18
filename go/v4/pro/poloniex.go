@@ -804,12 +804,12 @@ func (this *Poloniex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Poloniex) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Poloniex) WatchTradesForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1540,7 +1540,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 					// fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
 					var parsedOrder map[string]any = this.ParseWsOrder(order)
 					orders.Append(parsedOrder)
-					marketIds = append(marketIds, marketId)
+					marketIds = append(marketIds, *marketId)
 					continue
 				}
 				if ccxt.IsEqual(previousOrder["trades"], nil) {
@@ -1612,11 +1612,11 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				// update the newUpdates count
 				orders.Append(previousOrder)
 			}
-			marketIds = append(marketIds, marketId)
+			marketIds = append(marketIds, *marketId)
 		}
 	}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId *string = ccxt.SafeStringPtr(ccxt.DerefScalar(marketIds[i]))
+		var marketId *string = ccxt.SafeStringPtr(marketIds[i])
 		var market map[string]any = this.Market(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
 		var messageHash string = "orders::" + *symbol
@@ -1740,12 +1740,7 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) any {
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(messageHashes[i])
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(parts) {
-				return parts[1]
-			}
-			return nil
-		}())
+		var symbolsString *string = ccxt.SafeStringPtr(parts[1])
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
 		if !this.IsEmpty(tickers) {
@@ -1855,9 +1850,9 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 					asksSide.Store(price, amount)
 				}
 			}
-			ccxt.AddElementToObject(orderbook, "symbol", symbol)
-			ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-			ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+			orderbook.SetSymbol(symbol)
+			orderbook.SetTimestamp(timestamp)
+			orderbook.SetDatetime(this.Iso8601(timestamp))
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		}
 	}
@@ -2388,7 +2383,7 @@ func (this *Poloniex) WatchTradesForSymbols(symbols []string, options ...ccxt.Wa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

@@ -555,9 +555,9 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook() did not recognize message type " + typeVar))
 	}
-	ccxt.AddElementToObject(orderbook, "nonce", timestamp)
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetNonce(timestamp)
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
 	}

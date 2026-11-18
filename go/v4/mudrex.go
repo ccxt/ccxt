@@ -706,13 +706,12 @@ func (this *Mudrex) ParseMarket(asset any) map[string]any {
 	var ms *string = this.SafeString(asset, "symbol")
 	var base *string = ms
 	if (ms != nil) && strings.HasSuffix(*ms, "USDT") {
-		baseStr := func() string {
-			if ms == nil {
-				return ""
-			}
+		var msPart string
+		if ms != nil {
 			str := *ms
-			return str[0 : len(str)-4]
-		}()
+			msPart = str[0 : len(str)-4]
+		}
+		baseStr := msPart
 		base = &baseStr
 	}
 	var quote string = "USDT"

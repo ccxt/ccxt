@@ -6004,13 +6004,12 @@ func (this *Weex) FromSandboxMarketId(marketId *string) any {
 		return marketId // a live market id, not a demo one
 	}
 	if strings.HasSuffix(*marketId, "SUSDT") {
-		return func() string {
-			if marketId == nil {
-				return ""
-			}
+		var marketIdPart string
+		if marketId != nil {
 			str := *marketId
-			return str[0 : len(str)-5]
-		}() + "USDT"
+			marketIdPart = str[0 : len(str)-5]
+		}
+		return marketIdPart + "USDT"
 	}
 	return marketId
 }

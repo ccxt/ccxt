@@ -3114,12 +3114,12 @@ func (this *Mexc) CreateSpotOrderRequest(market map[string]any, typeVar *string,
 	if clientOrderId != nil {
 		request["newClientOrderId"] = clientOrderId
 	}
-	var paramsWithoutClientOrderId any = func() any {
-		if clientOrderId != nil {
-			return this.Omit(paramsWithoutCost, []any{"type", "clientOrderId"})
-		}
-		return paramsWithoutCost
-	}()
+	var paramsWithoutClientOrderId map[string]any
+	if clientOrderId != nil {
+		paramsWithoutClientOrderId = this.OmitDict(paramsWithoutCost, []any{"type", "clientOrderId"})
+	} else {
+		paramsWithoutClientOrderId = paramsWithoutCost
+	}
 	if marginMode != nil {
 		if marginMode == nil || *marginMode != "isolated" {
 			panic(BadRequest(this.Id + " createOrder() does not support marginMode " + *marginMode + " for spot-margin trading"))
@@ -3389,19 +3389,7 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 	var response map[string]any = nil
 	if (triggerPrice != nil) && (triggerPrice == nil || *triggerPrice != 0) {
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
-		var triggerDirectionparamsTriggerDirectionVariable []any = this.HandleTriggerDirectionAndParams(paramsOmitted, "triggerType", true)
-		var triggerDirection *string = SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(triggerDirectionparamsTriggerDirectionVariable) {
-				return triggerDirectionparamsTriggerDirectionVariable[0]
-			}
-			return nil
-		}())
-		var paramsTriggerDirection map[string]any = MapTyped(func() any {
-			if 1 >= 0 && 1 < len(triggerDirectionparamsTriggerDirectionVariable) {
-				return triggerDirectionparamsTriggerDirectionVariable[1]
-			}
-			return nil
-		}())
+		triggerDirection, paramsTriggerDirection := this.HandleTriggerDirectionAndParams(paramsOmitted, "triggerType", true)
 		var triggerType any = (*this.SafeInteger(paramsTriggerDirection, "triggerType", 1))
 		if triggerDirection != nil && *triggerDirection == "ascending" {
 			triggerType = 1
@@ -5122,11 +5110,11 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) map[string]an
 	var isSwapType bool = (IsEqual(marketType, "swap"))
 	var wallet []any = nil
 	if isMarginType {
-		wallet = ListTyped(this.SafeList(response, "assets", []any{}))
+		wallet = this.SafeListSlice(response, "assets", []any{})
 	} else if isSwapType {
-		wallet = ListTyped(this.SafeList(response, "data", []any{}))
+		wallet = this.SafeListSlice(response, "data", []any{})
 	} else {
-		wallet = ListTyped(this.SafeList(response, "balances", []any{}))
+		wallet = this.SafeListSlice(response, "balances", []any{})
 	}
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -6296,13 +6284,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 		// createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
 		var networkUnified *string = this.NetworkIdToCode(networkCode, code)
 		var networks map[string]any = SafeMapTyped(currency, "networks")
-		if (networkUnified != nil) && (func() bool {
-			if networkUnified == nil {
-				return false
-			}
-			_, ok := networks[*networkUnified]
-			return ok
-		}()) {
+		var networkUnifiedInNetworks bool
+		if networkUnified != nil {
+			_, networkUnifiedInNetworks = networks[*networkUnified]
+		}
+		if (networkUnified != nil) && (networkUnifiedInNetworks) {
 			var network any = func() any {
 				if networkUnified == nil {
 					return map[string]any{}
@@ -6382,13 +6368,11 @@ func (this *Mexc) createDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	var networkId *string = nil
 	var networkUnified *string = this.NetworkIdToCode(networkCode, code)
 	var networks map[string]any = SafeMapTyped(currency, "networks")
-	if (networkUnified != nil) && (func() bool {
-		if networkUnified == nil {
-			return false
-		}
-		_, ok := networks[*networkUnified]
-		return ok
-	}()) {
+	var networkUnifiedInNetworks bool
+	if networkUnified != nil {
+		_, networkUnifiedInNetworks = networks[*networkUnified]
+	}
+	if (networkUnified != nil) && (networkUnifiedInNetworks) {
 		var network any = func() any {
 			if networkUnified == nil {
 				return map[string]any{}

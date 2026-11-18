@@ -2938,10 +2938,10 @@ func (this *Bybit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	var defaultTypes []any = []any{"spot", "linear", "inverse", "option"}
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	if fetchMarketsOptions != nil {
-		types = ListTyped(this.SafeList(fetchMarketsOptions, "types", defaultTypes))
+		types = this.SafeListSlice(fetchMarketsOptions, "types", defaultTypes)
 	} else {
 		// for backward-compatibility
-		types = ListTyped(this.SafeList(this.Options, "fetchMarkets", defaultTypes))
+		types = this.SafeListSlice(this.Options, "fetchMarkets", defaultTypes)
 	}
 	for i := 0; i < len(types); i++ {
 		var marketType *string = SafeStringPtr(GetValue(types, i))

@@ -1556,35 +1556,31 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	if (marketId != nil) && (marketResolved == nil) {
 		var idLength int = len(*marketId)
 		if idLength == 7 {
-			baseId = func() string {
-				if marketId == nil {
-					return ""
-				}
+			var marketIdPart string
+			if marketId != nil {
 				str := *marketId
-				return str[0:min(4, len(str))]
-			}()
-			quoteId = func() string {
-				if marketId == nil {
-					return ""
-				}
+				marketIdPart = str[0:min(4, len(str))]
+			}
+			baseId = marketIdPart
+			var marketIdPart2 string
+			if marketId != nil {
 				str := *marketId
-				return str[4:min(7, len(str))]
-			}()
+				marketIdPart2 = str[4:min(7, len(str))]
+			}
+			quoteId = marketIdPart2
 		} else {
-			baseId = func() string {
-				if marketId == nil {
-					return ""
-				}
+			var marketIdPart3 string
+			if marketId != nil {
 				str := *marketId
-				return str[0:min(3, len(str))]
-			}()
-			quoteId = func() string {
-				if marketId == nil {
-					return ""
-				}
+				marketIdPart3 = str[0:min(3, len(str))]
+			}
+			baseId = marketIdPart3
+			var marketIdPart4 string
+			if marketId != nil {
 				str := *marketId
-				return str[3:min(6, len(str))]
-			}()
+				marketIdPart4 = str[3:min(6, len(str))]
+			}
+			quoteId = marketIdPart4
 		}
 		base = this.SafeCurrencyCode(baseId)
 		quote = this.SafeCurrencyCode(quoteId)

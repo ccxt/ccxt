@@ -183,12 +183,12 @@ func (this *Nado) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
  */
-func (this *Nado) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Nado) WatchTradesForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Nado) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+func (this *Nado) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -202,7 +202,7 @@ func (this *Nado) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var symbolsLength int = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = len(symbols)
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
@@ -374,12 +374,12 @@ func (this *Nado) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.OrderBook} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
  */
-func (this *Nado) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Nado) WatchOrderBookForSymbolsAsync(symbols []any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Nado) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
+func (this *Nado) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -391,7 +391,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var symbolsLength int = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = len(symbols)
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
@@ -3044,7 +3044,7 @@ func (this *Nado) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchT
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	r := <-this.WatchTradesForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Since, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -3140,7 +3140,7 @@ func (this *Nado) WatchOrderBookForSymbols(symbols []string, options ...ccxt.Wat
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	r := <-this.WatchOrderBookForSymbolsAsync(ccxt.StringSliceToList(symbols), opts.Limit, opts.Params)
 	if r.Err != nil {
 		return ccxt.OrderBook{}, r.Err
 	}

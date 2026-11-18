@@ -655,22 +655,19 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 		}
 		var baseTicker *string = outcomeSymbol
 		if strings.HasSuffix(*outcomeSymbol, "-NO") {
-			baseTickerStr := func() string {
-				if outcomeSymbol == nil {
-					return ""
-				}
+			var outcomeSymbolPart string
+			if outcomeSymbol != nil {
 				str := *outcomeSymbol
-				return str[0 : len(str)-3]
-			}()
+				outcomeSymbolPart = str[0 : len(str)-3]
+			}
+			baseTickerStr := outcomeSymbolPart
 			baseTicker = &baseTickerStr
 		}
-		if !(func() bool {
-			if baseTicker == nil {
-				return false
-			}
-			_, ok := seen[*baseTicker]
-			return ok
-		}()) {
+		var baseTickerInSeen bool
+		if baseTicker != nil {
+			_, baseTickerInSeen = seen[*baseTicker]
+		}
+		if !(baseTickerInSeen) {
 			if baseTicker != nil {
 				seen[*baseTicker] = true
 			}
@@ -1395,7 +1392,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 		}
 		if _, ok := outcomesByTicker[*ticker]; !ok {
 			outcomesByTicker[*ticker] = []any{}
-			tickers = append(tickers, ticker)
+			tickers = append(tickers, *ticker)
 		}
 		// reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
 		var grouped any = this.SafeList(outcomesByTicker, ticker, []any{})
@@ -1409,7 +1406,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	var chunk []any = []any{}
 	// flush a request every chunkSize tickers and once more for the trailing partial chunk
 	for ti := 0; ti < tickersLength; ti++ {
-		chunk = append(chunk, ccxt.DerefScalar(tickers[ti]))
+		chunk = append(chunk, tickers[ti])
 		var chunkLength int = len(chunk)
 		if (chunkSize != nil && int64(chunkLength) < *chunkSize) && (int64(ti) < lastTickerIndex) {
 			continue
@@ -1429,13 +1426,11 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 		for i := 0; i < len(rawMarkets); i++ {
 			var raw any = rawMarkets[i]
 			var marketTicker *string = this.SafeString(raw, "ticker")
-			if (marketTicker == nil) || !(func() bool {
-				if marketTicker == nil {
-					return false
-				}
-				_, ok := outcomesByTicker[*marketTicker]
-				return ok
-			}()) {
+			var marketTickerInOutcomesByTicker bool
+			if marketTicker != nil {
+				_, marketTickerInOutcomesByTicker = outcomesByTicker[*marketTicker]
+			}
+			if (marketTicker == nil) || !(marketTickerInOutcomesByTicker) {
 				continue
 			}
 			var grouped any = func() any {
@@ -1619,7 +1614,10 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	if periodMin == nil {
 		// reject an unsupported timeframe locally instead of silently returning 1-minute candles.
 		// hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
-		var tfKeys []string = ccxt.ObjectKeys(this.Timeframes)
+		var tfKeys []string = make([]string, 0, len(this.Timeframes))
+		for objectKey := range this.Timeframes {
+			tfKeys = append(tfKeys, objectKey)
+		}
 		var supported string = strings.Join(tfKeys, ", ")
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() does not support the " + timeframe + " timeframe (supported: " + supported + ")"))
 	}
@@ -3214,7 +3212,7 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string
 				var already *string = this.SafeString(seen, et)
 				if already == nil {
 					seen[*et] = *et
-					eventTickers = append(eventTickers, et)
+					eventTickers = append(eventTickers, *et)
 				}
 			}
 		}
@@ -3253,7 +3251,7 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string
 				}()
 				// try block:
 
-				r1 := <-this.FetchRawEventByTickerAsync(ccxt.DerefScalar(eventTickers[ei]), rest)
+				r1 := <-this.FetchRawEventByTickerAsync(eventTickers[ei], rest)
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
@@ -3348,7 +3346,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
 		for si := 0; si < seriesListLength; si++ {
 			var st *string = this.SafeString(seriesList[si], "ticker")
 			if st != nil {
-				collected = append(collected, st)
+				collected = append(collected, *st)
 			}
 		}
 	}
@@ -3367,7 +3365,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
 		for si := 0; si < seriesListLength; si++ {
 			var st *string = this.SafeString(seriesList[si], "ticker")
 			if st != nil {
-				collected = append(collected, st)
+				collected = append(collected, *st)
 			}
 		}
 	}
@@ -3389,7 +3387,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
 		var already *string = this.SafeString(seen, st)
 		if (st != nil) && (st == nil || *st != "") && (already == nil) {
 			seen[*st] = *st
-			ordered = append(ordered, st)
+			ordered = append(ordered, *st)
 		}
 	}
 

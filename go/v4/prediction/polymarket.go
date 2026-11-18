@@ -1527,7 +1527,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 		if tokenId != nil {
 			if _, ok := outcomesByTokenId[*tokenId]; !ok {
 				outcomesByTokenId[*tokenId] = outcomeObj
-				tokenIds = append(tokenIds, tokenId)
+				tokenIds = append(tokenIds, *tokenId)
 			}
 		}
 	}
@@ -1583,13 +1583,11 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 		for i := 0; i < booksLength; i++ {
 			var book any = ccxt.GetValue(books, i)
 			var tokenId *string = this.SafeString(book, "asset_id")
-			if (tokenId == nil) || !(func() bool {
-				if tokenId == nil {
-					return false
-				}
-				_, ok := outcomesByTokenId[*tokenId]
-				return ok
-			}()) {
+			var tokenIdInOutcomesByTokenId bool
+			if tokenId != nil {
+				_, tokenIdInOutcomesByTokenId = outcomesByTokenId[*tokenId]
+			}
+			if (tokenId == nil) || !(tokenIdInOutcomesByTokenId) {
 				continue
 			}
 			var outcomeObj any = func() any {
@@ -2960,7 +2958,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		var o map[string]any = ccxt.SafeMapTyped(orders, i)
 		var __oc *string = this.SafeString(o, "outcome")
 		if __oc != nil {
-			orderOutcomes = append(orderOutcomes, __oc)
+			orderOutcomes = append(orderOutcomes, *__oc)
 		}
 	}
 
@@ -3882,7 +3880,7 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 	for ti := 0; ti < rawTagsLength; ti++ {
 		var tagLabel *string = this.SafeString2(rawTags[ti], "label", "slug")
 		if tagLabel != nil {
-			parsedTags = append(parsedTags, tagLabel)
+			parsedTags = append(parsedTags, *tagLabel)
 		}
 	}
 	return this.Extend(map[string]any{
