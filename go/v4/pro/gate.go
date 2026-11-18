@@ -1616,7 +1616,8 @@ func (this *Gate) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".candlesticks")
-	var messageHash *string = ccxt.SafeStringPtr("candles:" + *interval + ":" + market["symbol"].(string))
+	messageHashStr := "candles:" + *interval + ":" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var url any = this.GetUrlByMarket(market)
 	var payload []any = []any{interval, marketId}
 
@@ -2431,12 +2432,11 @@ func (this *Gate) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	// see https://github.com/ccxt/ccxt/issues/27202
 	var suffix string = ".orders"
 	if isTrigger == true {
-		suffix = func() string {
-			if ccxt.IsEqual(typeId, "spot") {
-				return ".priceorders"
-			}
-			return ".autoorders"
-		}()
+		if ccxt.IsEqual(typeId, "spot") {
+			suffix = ".priceorders"
+		} else {
+			suffix = ".autoorders"
+		}
 	}
 	var channel any = ccxt.Add(typeId, suffix)
 	var messageHash any = "orders"
@@ -2928,12 +2928,7 @@ func (this *Gate) HandleErrorMessage(client any, message map[string]any) bool {
 										marketType = parsedChannel[0]
 									}
 									var symbol *string = this.SafeSymbol(payload[i], nil, "_", marketType)
-									var messageHashSymbol any = ccxt.Add(ccxt.Add(func() any {
-										if 1 >= 0 && 1 < len(parsedChannel) {
-											return parsedChannel[1]
-										}
-										return nil
-									}(), ":"), symbol)
+									var messageHashSymbol any = ccxt.Add(ccxt.Add(parsedChannel[1], ":"), symbol)
 									if (messageHashSymbol != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(messageHashSymbol)) {
 										client.(ccxt.ClientInterface).SubscriptionDel(messageHashSymbol)
 									}

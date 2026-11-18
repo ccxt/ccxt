@@ -1899,19 +1899,17 @@ func (this *Pacifica) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	}
 	var request map[string]any = map[string]any{}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsOriginAndSingleAddress)
-	requestUntil["account"] = func() any {
-		if v := userAddress; v != nil {
-			return *v
-		}
-		return nil
-	}()
+	if userAddress != nil {
+		requestUntil["account"] = *userAddress
+	} else {
+		requestUntil["account"] = nil
+	}
 	if symbol != nil {
-		requestUntil["symbol"] = func() any {
-			if v := this.SafeString(market, "id"); v != nil {
-				return *v
-			}
-			return nil
-		}()
+		if ptrValue := this.SafeString(market, "id"); ptrValue != nil {
+			requestUntil["symbol"] = *ptrValue
+		} else {
+			requestUntil["symbol"] = nil
+		}
 	}
 	if limit != nil {
 		requestUntil["limit"] = *limit
@@ -2011,12 +2009,11 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var orderId *string = this.SafeString(trade, "order_id")
 	var takerOrMaker any = nil
 	if eventType != nil {
-		takerOrMaker = func() string {
-			if eventType != nil && *eventType == "fulfill_maker" {
-				return "maker"
-			}
-			return "taker"
-		}()
+		if eventType != nil && *eventType == "fulfill_maker" {
+			takerOrMaker = "maker"
+		} else {
+			takerOrMaker = "taker"
+		}
 	}
 	// public trades have no orderId
 	if orderId == nil {
@@ -3624,12 +3621,12 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
 	var side *string = this.SafeString(order, "side", "d")
 	if side != nil {
-		sideStr := func() string {
-			if side != nil && *side == "bid" {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if side != nil && *side == "bid" {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 	}
 	var totalAmount *string = this.SafeString2(order, "initial_amount", "a")
@@ -3800,12 +3797,12 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) Position 
 	}
 	var side *string = this.SafeString(position, "side")
 	if side != nil {
-		sideStr := func() string {
-			if side != nil && *side == "bid" {
-				return "long"
-			}
-			return "short"
-		}()
+		var sideStr string
+		if side != nil && *side == "bid" {
+			sideStr = "long"
+		} else {
+			sideStr = "short"
+		}
 		side = &sideStr
 	}
 	var createdAt *int64 = this.SafeInteger(position, "created_at")
@@ -3882,7 +3879,7 @@ func (this *Pacifica) setMarginModeBody(ch chan AsyncResult[map[string]any], mar
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	// {
 	//     "success": true
@@ -3936,7 +3933,7 @@ func (this *Pacifica) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	// {
 	//     "success": true
@@ -4777,12 +4774,12 @@ func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) TransferE
 	var success *bool = this.SafeBool(transfer, "success")
 	var status *string = nil
 	if success != nil {
-		statusStr := func() string {
-			if success != nil && *success {
-				return "ok"
-			}
-			return "failed"
-		}()
+		var statusStr string
+		if success != nil && *success {
+			statusStr = "ok"
+		} else {
+			statusStr = "failed"
+		}
 		status = &statusStr
 	}
 	return TransferEntryFromMap(map[string]any{
@@ -4876,7 +4873,7 @@ func (this *Pacifica) createSubAccountBody(ch chan AsyncResult[map[string]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	//
 	// {

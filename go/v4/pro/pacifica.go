@@ -1441,12 +1441,11 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	var eventType *string = this.SafeString(trade, "te")
 	var takerOrMaker any = nil
 	if eventType != nil {
-		takerOrMaker = func() string {
-			if eventType != nil && *eventType == "fulfill_maker" {
-				return "maker"
-			}
-			return "taker"
-		}()
+		if eventType != nil && *eventType == "fulfill_maker" {
+			takerOrMaker = "maker"
+		} else {
+			takerOrMaker = "taker"
+		}
 	}
 	var orderId *string = this.SafeString(trade, "i")
 	// public trades have no orderId

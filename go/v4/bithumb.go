@@ -547,7 +547,8 @@ func (this *Bithumb) SafeMarket(optionalArgs ...any) map[string]any {
 }
 func (this *Bithumb) AmountToPrecision(symbol any, amount any) *string {
 	var market map[string]any = this.Market(symbol)
-	return SafeStringPtr(this.DecimalToPrecision(amount, TRUNCATE, this.SafeValue(market["precision"], "amount"), DECIMAL_PLACES))
+	retStr := this.DecimalToPrecision(amount, TRUNCATE, this.SafeValue(market["precision"], "amount"), DECIMAL_PLACES)
+	return &retStr
 }
 func (this *Bithumb) GetGen2MarketId(market any) any {
 	var marketId *string = this.SafeString(market, "id")
@@ -698,7 +699,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var results []any = ListTyped(r1.Value)
+		var results []any = r1.Value
 		for i := 0; i < len(quotes); i++ {
 			var quote string = quotes[i]
 			var response map[string]any = SafeMapTyped(results, i)
@@ -3592,7 +3593,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan AsyncResult[[]map[stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response []any = r1.Value
 
 	//
 	//     [

@@ -1007,7 +1007,7 @@ func (this *Coinbaseexchange) ParseAccount(account any) map[string]any {
 		"info": account,
 	}
 }
-func (this *Coinbaseexchange) ParseBalanceList(response any) map[string]any {
+func (this *Coinbaseexchange) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1398,12 +1398,12 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 		cost = this.SafeString(trade, costField)
 		var liquidity *string = this.SafeString(trade, "liquidity")
 		if liquidity != nil {
-			takerOrMakerStr := func() string {
-				if liquidity != nil && *liquidity == "T" {
-					return "taker"
-				}
-				return "maker"
-			}()
+			var takerOrMakerStr string
+			if liquidity != nil && *liquidity == "T" {
+				takerOrMakerStr = "taker"
+			} else {
+				takerOrMakerStr = "maker"
+			}
 			takerOrMaker = &takerOrMakerStr
 			feeRate = this.SafeString(marketResolved, takerOrMaker)
 		}
@@ -1425,12 +1425,11 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var makerOrderId *string = this.SafeString(trade, "maker_order_id")
 	var takerOrderId *string = this.SafeString(trade, "taker_order_id")
 	if (orderId != nil) || ((makerOrderId != nil) && (takerOrderId != nil)) {
-		side = func() string {
-			if rawSide != nil && *rawSide == "buy" {
-				return "buy"
-			}
-			return "sell"
-		}()
+		if rawSide != nil && *rawSide == "buy" {
+			side = "buy"
+		} else {
+			side = "sell"
+		}
 	}
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "size")

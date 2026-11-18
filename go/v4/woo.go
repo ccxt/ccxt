@@ -1289,12 +1289,12 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString2(trade, "is_maker", "isMaker") != nil && *this.SafeString2(trade, "is_maker", "isMaker") == "1")
-		takerOrMakerStr := func() string {
-			if isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
@@ -2410,7 +2410,7 @@ func (this *Woo) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any], t
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	// {
@@ -4370,12 +4370,11 @@ func (this *Woo) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry 
 	var success *bool = this.SafeBool(transfer, "success")
 	var status any = nil
 	if success != nil {
-		status = func() string {
-			if success != nil && *success {
-				return "ok"
-			}
-			return "failed"
-		}()
+		if success != nil && *success {
+			status = "ok"
+		} else {
+			status = "failed"
+		}
 	}
 	var fromAccount map[string]any = SafeMapTyped(transfer, "from")
 	var toAccount map[string]any = SafeMapTyped(transfer, "to")
@@ -4684,21 +4683,17 @@ func (this *Woo) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var amount any
-	if derefPtr := this.SafeString(income, "fundingFee"); derefPtr != nil {
-		amount = *derefPtr
-	}
+	var amount *string = this.SafeString(income, "fundingFee")
 	var code *string = this.SafeCurrencyCode("USD")
 	var id *string = this.SafeString(income, "id")
 	var timestamp *int64 = this.SafeInteger(income, "updatedTime")
 	var rate *float64 = this.SafeNumber(income, "fundingRate")
 	var paymentType *string = this.SafeString(income, "paymentType")
-	amount = func() any {
-		if paymentType != nil && *paymentType == "Pay" {
-			return Precise.StringNeg(amount)
-		}
-		return amount
-	}()
+	if paymentType != nil && *paymentType == "Pay" {
+		amount = Precise.StringNeg(amount)
+	} else {
+		amount = amount
+	}
 	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
@@ -5175,7 +5170,7 @@ func (this *Woo) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	//
 	//     {

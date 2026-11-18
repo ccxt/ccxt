@@ -826,7 +826,7 @@ func (this *Opinion) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var priceResponsebookResponseVariable []any = ccxt.ListTyped(r1.Value)
+	var priceResponsebookResponseVariable []any = r1.Value
 	priceResponse := priceResponsebookResponseVariable[0]
 	bookResponse := priceResponsebookResponseVariable[1]
 	var response map[string]any = map[string]any{
@@ -949,7 +949,7 @@ func (this *Opinion) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var responses []any = ccxt.ListTyped(r1.Value)
+	var responses []any = r1.Value
 	var result map[string]any = map[string]any{}
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = this.Outcome(outcomes[i])
@@ -1404,7 +1404,7 @@ func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	maker := r3.Value
+	var maker *string = r3.Value
 	// Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
 	// against a differently-cased walletAddress with strict equality would pick the wrong
 	// signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
@@ -1523,7 +1523,8 @@ func (this *Opinion) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	// error responses with an errno never reach this line, handleErrors throws on them
 	var status *string = func() *string {
 		if canceled != nil && *canceled {
-			return ccxt.SafeStringPtr("canceled")
+			retStr := "canceled"
+			return &retStr
 		}
 		return nil
 	}()
@@ -2321,7 +2322,7 @@ func (this *Opinion) deleteApiKeyBody(ch chan ccxt.AsyncResult[map[string]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 	this.Options["apiKey"] = nil
 	// sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
 	// exchange.apiKey would keep being used for private calls after the key is revoked.

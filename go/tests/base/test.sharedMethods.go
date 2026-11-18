@@ -623,12 +623,11 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var nonstrictOpen bool = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
 	if AssertedStatus == "open" {
-		condition = func() bool {
-			if EvalTruthy(strictCheck) {
-				return strictOpen
-			}
-			return nonstrictOpen
-		}()
+		if EvalTruthy(strictCheck) {
+			condition = strictOpen
+		} else {
+			condition = nonstrictOpen
+		}
 		Assert(condition, msg)
 		return
 	}
@@ -641,12 +640,11 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var closedNonStrict bool = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringEq(filled, amount))
 	// check
 	if AssertedStatus == "closed" {
-		condition = func() bool {
-			if EvalTruthy(strictCheck) {
-				return closedStrict
-			}
-			return closedNonStrict
-		}()
+		if EvalTruthy(strictCheck) {
+			condition = closedStrict
+		} else {
+			condition = closedNonStrict
+		}
 		Assert(condition, msg)
 		return
 	}
@@ -659,12 +657,11 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var canceledNonStrict bool = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
 	if AssertedStatus == "canceled" {
-		condition = func() bool {
-			if EvalTruthy(strictCheck) {
-				return canceledStrict
-			}
-			return canceledNonStrict
-		}()
+		if EvalTruthy(strictCheck) {
+			condition = canceledStrict
+		} else {
+			condition = canceledNonStrict
+		}
 		Assert(condition, msg)
 		return
 	}

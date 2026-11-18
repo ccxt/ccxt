@@ -1783,12 +1783,11 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var taker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker string
 	if taker != nil {
-		takerOrMaker = func() string {
-			if taker != nil && *taker {
-				return "taker"
-			}
-			return "maker"
-		}()
+		if taker != nil && *taker {
+			takerOrMaker = "taker"
+		} else {
+			takerOrMaker = "maker"
+		}
 	} else {
 		takerOrMaker = "taker" // the only case when `taker` field is missing, is public fetchTrades and it must be taker
 	}
@@ -4671,7 +4670,8 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan AsyncResult[MarginModificatio
 		if stringAmount == nil || *stringAmount != "0" {
 			return this.AmountToPrecision(symbol, stringAmount)
 		}
-		return SafeStringPtr("0")
+		retStr := "0"
+		return &retStr
 	}()
 	var request map[string]any = map[string]any{
 		"symbol":         market["id"],
@@ -5225,7 +5225,8 @@ func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	var isMargin *bool = this.SafeBool(params, "margin", false)
 	marginMode, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
 	if (marginMode == nil) && ((defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin)) {
-		return SafeStringPtr("isolated"), paramsMarginMode
+		retStr := "isolated"
+		return &retStr, paramsMarginMode
 	}
 	return SafeStringPtr(marginMode), paramsMarginMode
 }

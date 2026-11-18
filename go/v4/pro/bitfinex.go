@@ -822,12 +822,12 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 	var amount *float64 = this.ParseNumber(ccxt.Precise.StringAbs(amountString))
 	var side *string = nil
 	if amount != nil {
-		sideStr := func() string {
-			if ccxt.Precise.StringGt(amountString, "0") {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if ccxt.Precise.StringGt(amountString, "0") {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 	}
 	var symbol *string = this.SafeSymbol(marketId, marketResolved)
@@ -844,12 +844,12 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 	var maker *int64 = this.SafeInteger(trade, 8)
 	var takerOrMaker *string = nil
 	if maker != nil {
-		takerOrMakerStr := func() string {
-			if maker != nil && *maker == int64(-1) {
-				return "taker"
-			}
-			return "maker"
-		}()
+		var takerOrMakerStr string
+		if maker != nil && *maker == int64(-1) {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{

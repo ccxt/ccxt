@@ -1529,7 +1529,8 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) map[string]any {
 		privateHeaders["sign"] = signature
 		var privateBody *string = func() *string {
 			if method != "GET" {
-				return SafeStringPtr(jsonParams)
+				retStr := jsonParams
+				return &retStr
 			}
 			return nil
 		}()

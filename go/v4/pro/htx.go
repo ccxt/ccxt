@@ -1969,12 +1969,12 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 	var aggressor *bool = this.SafeBool(trade, "aggressor")
 	var takerOrMaker *string = nil
 	if aggressor != nil {
-		takerOrMakerStr := func() string {
-			if aggressor != nil && *aggressor {
-				return "taker"
-			}
-			return "maker"
-		}()
+		var takerOrMakerStr string
+		if aggressor != nil && *aggressor {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
@@ -3399,12 +3399,12 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var aggressor *bool = this.SafeBool(trade, "aggressor")
 	var takerOrMaker *string = nil
 	if aggressor != nil {
-		takerOrMakerStr := func() string {
-			if aggressor != nil && *aggressor {
-				return "taker"
-			}
-			return "maker"
-		}()
+		var takerOrMakerStr string
+		if aggressor != nil && *aggressor {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	} else {
 		takerOrMaker = this.SafeStringLower(trade, "role")

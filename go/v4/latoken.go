@@ -1270,12 +1270,12 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var makerBuyer *bool = this.SafeBool(trade, "makerBuyer", false)
 	var side *string = this.SafeString(trade, "direction")
 	if side == nil {
-		sideStr := func() string {
-			if makerBuyer != nil && *makerBuyer {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if makerBuyer != nil && *makerBuyer {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	} else {
 		if side != nil && *side == "TRADE_DIRECTION_BUY" {

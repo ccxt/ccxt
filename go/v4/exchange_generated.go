@@ -1999,23 +1999,21 @@ func (this *BaseExchange) FeaturesGenerator() {
 	}
 }
 func (this *BaseExchange) FeaturesMapper(initialFeatures any, marketType any, optionalArgs ...any) any {
-	subType := GetArg(optionalArgs, 0, nil)
+	var subType *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subType
-	var featuresObj any = func() any {
-		if subType != nil {
-			return GetValue(GetValue(initialFeatures, marketType), subType)
-		}
-		return GetValue(initialFeatures, marketType)
-	}()
-	// if exchange does not have that market-type (eg. future>inverse)
-	if IsEqual(featuresObj, nil) {
-		return nil
+	var featuresObj any = this.SafeDict(initialFeatures, marketType)
+	if subType != nil {
+		featuresObj = this.SafeDict(featuresObj, subType)
 	}
 	var extendsStr *string = this.SafeString(featuresObj, "extends")
 	if extendsStr != nil {
 		featuresObj = this.Omit(featuresObj, "extends")
 		var extendObj any = this.FeaturesMapper(initialFeatures, extendsStr)
 		featuresObj = this.DeepExtend(extendObj, featuresObj)
+	}
+	// if exchange does not have that market-type (eg. future>inverse)
+	if IsEqual(featuresObj, nil) {
+		return nil
 	}
 	//
 	// ### corrections ###
@@ -2102,7 +2100,7 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	if !(InOp(this.Features, marketType)) {
 		return defaultValue // unsupported marketType, check "exchange.features" for details
 	}
-	var methodsContainer any = GetValue(this.Features, marketType)
+	var methodsContainer any = this.SafeDict(this.Features, marketType)
 	// if marketType dict undefined
 	if methodsContainer == nil {
 		return defaultValue
@@ -2115,7 +2113,7 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 		if !(InOp(methodsContainer, subType)) {
 			return defaultValue // unsupported subType, check "exchange.features" for details
 		}
-		methodsContainer = GetValue(methodsContainer, subType)
+		methodsContainer = this.SafeDict(methodsContainer, subType)
 		// if subType dict undefined
 		if methodsContainer == nil {
 			return defaultValue
@@ -2123,12 +2121,10 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	}
 	// if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
 	if methodName == nil {
-		return func() any {
-			if !IsEqual(defaultValue, nil) {
-				return defaultValue
-			}
-			return methodsContainer
-		}()
+		if !IsEqual(defaultValue, nil) {
+			return defaultValue
+		}
+		return methodsContainer
 	}
 	if !(InOp(methodsContainer, methodName)) {
 		return defaultValue // unsupported method, check "exchange.features" for details');
@@ -2139,12 +2135,10 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	}
 	// if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
 	if paramName == nil {
-		return func() any {
-			if !IsEqual(defaultValue, nil) {
-				return defaultValue
-			}
-			return methodDict
-		}()
+		if !IsEqual(defaultValue, nil) {
+			return defaultValue
+		}
+		return methodDict
 	}
 	var splited []string = Split(paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
 	var parentKey *string = SafeStringPtr(func() any {
@@ -4227,12 +4221,12 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 	if IsArray(response) {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var item any = this.SafeValue(response, i)
-			var id *string = func() *string {
-				if marketIdKey == nil {
-					return nil
-				}
-				return this.SafeString(item, marketIdKey)
-			}()
+			var id *string
+			if marketIdKey == nil {
+				id = nil
+			} else {
+				id = this.SafeString(item, marketIdKey)
+			}
 
 			var market any = this.DerivedExchange.SafeMarket(id, nil, nil, "swap")
 			PanicOnError(market)
@@ -5682,11 +5676,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes706115 map[string]any = r.Value
-	if retRes706115 == nil {
+	var retRes707115 map[string]any = r.Value
+	if retRes707115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes706115}
+		ch <- AsyncResult[map[string]any]{Value: retRes707115}
 	}
 	return nil
 }
@@ -6817,7 +6811,8 @@ func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ..
 		return SafeStringPtr(this.ForceString(fee))
 	} else {
 		var roundingMode *int64 = this.SafeInteger(this.Options, "currencyToPrecisionRoundingMode", ROUND)
-		return SafeStringPtr(this.DecimalToPrecision(fee, roundingMode, precision, this.PrecisionMode, this.PaddingMode))
+		retStr := this.DecimalToPrecision(fee, roundingMode, precision, this.PrecisionMode, this.PaddingMode)
+		return &retStr
 	}
 }
 func (this *BaseExchange) ForceString(value any) any {
@@ -6901,7 +6896,7 @@ func (this *BaseExchange) loadTimeDifferenceBody(ch chan AsyncResult[int64], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	serverTime := r.Value
+	var serverTime *int64 = r.Value
 	var after int64 = this.Milliseconds()
 	if IsEqual(serverTime, nil) {
 		panic(ExchangeError(this.Id + " loadTimeDifference() missing serverTime"))
@@ -8322,7 +8317,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	var result []any = []any{}
 	for i := 0; i < len(results); i++ {
 		result = this.ArrayConcat(result, results[i])
@@ -8790,19 +8785,19 @@ func (this *BaseExchange) ParseOptionChain(response any, optionalArgs ...any) ma
 	var optionStructures map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
-		var currencyId *string = func() *string {
-			if currencyKey == nil {
-				return nil
-			}
-			return this.SafeString(info, currencyKey)
-		}()
+		var currencyId *string
+		if currencyKey == nil {
+			currencyId = nil
+		} else {
+			currencyId = this.SafeString(info, currencyKey)
+		}
 		var currency map[string]any = this.SafeCurrency(currencyId)
-		var marketId *string = func() *string {
-			if symbolKey == nil {
-				return nil
-			}
-			return this.SafeString(info, symbolKey)
-		}()
+		var marketId *string
+		if symbolKey == nil {
+			marketId = nil
+		} else {
+			marketId = this.SafeString(info, symbolKey)
+		}
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "option")
 		AddElementToObject(optionStructures, market["symbol"], OptionToMap(this.DerivedExchange.ParseOption(info, currency, market)))
@@ -8825,12 +8820,12 @@ func (this *BaseExchange) ParseMarginModes(response any, optionalArgs ...any) ma
 	}() // default to swap
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
-		var marketId *string = func() *string {
-			if symbolKey == nil {
-				return nil
-			}
-			return this.SafeString(info, symbolKey)
-		}()
+		var marketId *string
+		if symbolKey == nil {
+			marketId = nil
+		} else {
+			marketId = this.SafeString(info, symbolKey)
+		}
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketTypeResolved)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
@@ -8860,12 +8855,12 @@ func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) map[
 	}() // default to swap
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
-		var marketId *string = func() *string {
-			if symbolKey == nil {
-				return nil
-			}
-			return this.SafeString(info, symbolKey)
-		}()
+		var marketId *string
+		if symbolKey == nil {
+			marketId = nil
+		} else {
+			marketId = this.SafeString(info, symbolKey)
+		}
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketTypeResolved)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
@@ -8898,18 +8893,18 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 	var toCurrency map[string]any = nil
 	for i := 0; i < len(conversionsArray); i++ {
 		var entry any = DerefScalar(conversionsArray[i])
-		var fromId *string = func() *string {
-			if fromCurrencyKey == nil {
-				return nil
-			}
-			return this.SafeString(entry, fromCurrencyKey)
-		}()
-		var toId *string = func() *string {
-			if toCurrencyKey == nil {
-				return nil
-			}
-			return this.SafeString(entry, toCurrencyKey)
-		}()
+		var fromId *string
+		if fromCurrencyKey == nil {
+			fromId = nil
+		} else {
+			fromId = this.SafeString(entry, fromCurrencyKey)
+		}
+		var toId *string
+		if toCurrencyKey == nil {
+			toId = nil
+		} else {
+			toId = this.SafeString(entry, toCurrencyKey)
+		}
 		if fromId != nil {
 			fromCurrency = this.SafeCurrency(fromId)
 		}
@@ -9078,12 +9073,12 @@ func (this *BaseExchange) ParseMarginModifications(response any, optionalArgs ..
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var info any = GetValue(response, i)
-		var marketId *string = func() *string {
-			if symbolKey == nil {
-				return nil
-			}
-			return this.SafeString(info, symbolKey)
-		}()
+		var marketId *string
+		if symbolKey == nil {
+			marketId = nil
+		} else {
+			marketId = this.SafeString(info, symbolKey)
+		}
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
@@ -11572,12 +11567,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1047815Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1047815 []any = retRes1047815Recv
-	if retRes1047815 == nil {
+	retRes1048815Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048815 []any = retRes1048815Recv
+	if retRes1048815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048815)}
 	}
 	return nil
 }

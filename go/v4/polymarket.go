@@ -527,7 +527,7 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
+	var responses []any = r.Value
 	var instruments []map[string]any = this.SafeListMapsTyped(responses, 0)
 	var assets []map[string]any = this.SafeListMapsTyped(responses, 1)
 	var result map[string]any = map[string]any{}
@@ -811,7 +811,7 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var responses []any = ListTyped(r1.Value)
+	var responses []any = r1.Value
 	//
 	// tickers
 	//
@@ -1145,12 +1145,12 @@ func (this *Polymarket) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isTaker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker *string = nil
 	if isTaker != nil {
-		takerOrMakerStr := func() string {
-			if isTaker != nil && *isTaker {
-				return "taker"
-			}
-			return "maker"
-		}()
+		var takerOrMakerStr string
+		if isTaker != nil && *isTaker {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var feeCost *string = this.SafeString(trade, "fee")
@@ -1924,7 +1924,10 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	signed := r1.Value
+	var signed any = nil
+	if r1.Value != nil {
+		signed = r1.Value
+	}
 
 	responseRecv := <-this.TradePostTradeOrders(signed)
 	if responseRecv.Err != nil {
@@ -2051,7 +2054,10 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []str
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		signed := r1.Value
+		var signed any = nil
+		if r1.Value != nil {
+			signed = r1.Value
+		}
 
 		responseRecv := <-this.TradeDeleteTradeOrdersCoid(signed)
 		if responseRecv.Err != nil {
@@ -2073,7 +2079,10 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []str
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		signed := r2.Value
+		var signed any = nil
+		if r2.Value != nil {
+			signed = r2.Value
+		}
 
 		responseRecv := <-this.TradeDeleteTradeOrders(signed)
 		if responseRecv.Err != nil {
@@ -2155,7 +2164,10 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan AsyncResult[[]Order], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	signed := r1.Value
+	var signed any = nil
+	if r1.Value != nil {
+		signed = r1.Value
+	}
 
 	r2 := <-this.TradeDeleteTradeOrdersAll(signed)
 	if r2.Err != nil {
@@ -2212,13 +2224,16 @@ func (this *Polymarket) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	signed := r1.Value
+	var signed any = nil
+	if r1.Value != nil {
+		signed = r1.Value
+	}
 
 	r2 := <-this.TradePatchTradeAutoCancel(signed)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	response := r2.Value
+	var response map[string]any = r2.Value
 
 	//
 	//     { "status": "ok", "deadline": 1788546570789 }
@@ -2281,7 +2296,10 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	signed := r1.Value
+	var signed any = nil
+	if r1.Value != nil {
+		signed = r1.Value
+	}
 
 	responseRecv := <-this.TradePatchTradeOrders(signed)
 	if responseRecv.Err != nil {
@@ -2393,24 +2411,24 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 	var isBuy *bool = this.SafeBool(order, "buy")
 	var side *string = nil
 	if isBuy != nil {
-		sideStr := func() string {
-			if isBuy != nil && *isBuy {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if isBuy != nil && *isBuy {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 	}
 	var price *string = this.OmitZero(this.SafeString2(order, "price", "p"))
 	var typeVar *string = nil
 	var tif *string = this.SafeString(order, "tif")
 	if tif != nil {
-		typeVarStr := func() string {
-			if price == nil {
-				return "market"
-			}
-			return "limit"
-		}()
+		var typeVarStr string
+		if price == nil {
+			typeVarStr = "market"
+		} else {
+			typeVarStr = "limit"
+		}
 		typeVar = &typeVarStr
 	}
 	var tpsl map[string]any = SafeMapTyped(order, "tpsl")
@@ -2631,23 +2649,23 @@ func (this *Polymarket) ParsePosition(position any, optionalArgs ...any) Positio
 	var side *string = nil
 	if size != nil {
 		var isLong bool = Precise.StringGt(size, "0")
-		sideStr := func() string {
-			if isLong {
-				return "long"
-			}
-			return "short"
-		}()
+		var sideStr string
+		if isLong {
+			sideStr = "long"
+		} else {
+			sideStr = "short"
+		}
 		side = &sideStr
 	}
 	var isCross *bool = this.SafeBool(position, "cross")
 	var marginMode *string = nil
 	if isCross != nil {
-		marginModeStr := func() string {
-			if isCross != nil && *isCross {
-				return "cross"
-			}
-			return "isolated"
-		}()
+		var marginModeStr string
+		if isCross != nil && *isCross {
+			marginModeStr = "cross"
+		} else {
+			marginModeStr = "isolated"
+		}
 		marginMode = &marginModeStr
 	}
 	var timestamp *int64 = this.SafeInteger(position, "timestamp")
@@ -3113,12 +3131,12 @@ func (this *Polymarket) ParseTransaction(transaction any, optionalArgs ...any) T
 	var timestamp *int64 = this.SafeInteger(transaction, "created_timestamp")
 	var rawHash *string = this.SafeString(transaction, "hash")
 	// the venue reports the literal 0x prefix while the transaction is unmined
-	var txid *string = func() *string {
-		if rawHash != nil && *rawHash == "0x" {
-			return nil
-		}
-		return rawHash
-	}()
+	var txid *string
+	if rawHash != nil && *rawHash == "0x" {
+		txid = nil
+	} else {
+		txid = rawHash
+	}
 	var feeCost *string = this.SafeString(transaction, "fee")
 	var fee map[string]any = nil
 	if feeCost != nil {
@@ -3456,12 +3474,12 @@ func (this *Polymarket) ParseLeverage(leverage any, optionalArgs ...any) Leverag
 	var isCross *bool = this.SafeBool(leverage, "cross")
 	var marginMode *string = nil
 	if isCross != nil {
-		marginModeStr := func() string {
-			if isCross != nil && *isCross {
-				return "cross"
-			}
-			return "isolated"
-		}()
+		var marginModeStr string
+		if isCross != nil && *isCross {
+			marginModeStr = "cross"
+		} else {
+			marginModeStr = "isolated"
+		}
 		marginMode = &marginModeStr
 	}
 	var value *int64 = this.SafeInteger(leverage, "leverage")
@@ -3560,13 +3578,16 @@ func (this *Polymarket) setLeverageBody(ch chan AsyncResult[map[string]any], lev
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	signed := r1.Value
+	var signed any = nil
+	if r1.Value != nil {
+		signed = r1.Value
+	}
 
 	r2 := <-this.TradePatchTradeLeverage(signed)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	response := r2.Value
+	var response map[string]any = r2.Value
 
 	//
 	//     { "status": "ok", "instrument_id": 1, "leverage": 10, "cross": true }
@@ -3672,7 +3693,10 @@ func (this *Polymarket) modifyMarginHelperBody(ch chan AsyncResult[map[string]an
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	signed := r1.Value
+	var signed any = nil
+	if r1.Value != nil {
+		signed = r1.Value
+	}
 
 	r2 := <-this.TradePatchTradeMargin(signed)
 	if r2.Err != nil {
@@ -3925,12 +3949,12 @@ func (this *Polymarket) loadProxyCredentialsBody(ch chan AsyncResult[any], optio
  * @param {object} bodyOp the structured operation object transmitted to the venue
  * @returns {object} the signed request body with the op, sig, salt and ts fields
  */
-func (this *Polymarket) SignPerpsOpAsync(signable []any, bodyOp any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Polymarket) SignPerpsOpAsync(signable []any, bodyOp any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.signPerpsOpBody(ch, signable, bodyOp, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable []any, bodyOp any, optionalArgs ...any) any {
+func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[map[string]any], signable []any, bodyOp any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3984,7 +4008,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable []any
 		envelope["exp"] = exp
 	}
 
-	ch <- AsyncResult[any]{Value: envelope}
+	ch <- AsyncResult[map[string]any]{Value: envelope}
 	return nil
 }
 

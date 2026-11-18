@@ -1090,23 +1090,23 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 		var option bool = (inst_type != nil && *inst_type == "WARRANT")
 		var baseId *string = this.SafeString(market, "base_ccy")
 		var quoteId *string = this.SafeString(market, "quote_ccy")
-		var settleId *string = func() *string {
-			if spot {
-				return nil
-			}
-			return quoteId
-		}()
+		var settleId *string
+		if spot {
+			settleId = nil
+		} else {
+			settleId = quoteId
+		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		if (base == nil) || (quote == nil) {
 			continue
 		}
-		var settle *string = func() *string {
-			if spot {
-				return nil
-			}
-			return this.SafeCurrencyCode(settleId)
-		}()
+		var settle *string
+		if spot {
+			settle = nil
+		} else {
+			settle = this.SafeCurrencyCode(settleId)
+		}
 		var optionType *string = this.SafeStringLower(market, "put_call")
 		var strike *string = this.SafeString(market, "strike")
 		var marginBuyEnabled *bool = this.SafeBool(market, "margin_buy_enabled", false)
@@ -2809,12 +2809,7 @@ func (this *Cryptocom) ParseAddress(addressString *string) []any {
 	if (addressString != nil) && (strings.Index(*addressString, "?") > 0) {
 		var addressParts []string = strings.Split(*addressString, "?")
 		var address *string = SafeStringPtr(addressParts[0])
-		var rawTag *string = SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(addressParts) {
-				return addressParts[1]
-			}
-			return nil
-		}())
+		var rawTag *string = SafeStringPtr(addressParts[1])
 		var splitted []string = strings.Split(*rawTag, "=")
 		return []any{address, func() any {
 			if 1 >= 0 && 1 < len(splitted) {

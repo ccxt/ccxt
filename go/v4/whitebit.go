@@ -1145,21 +1145,19 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 		var code *string = this.SafeCurrencyCode(currency)
 		var withdraw map[string]any = SafeMapTyped(data, "withdraw")
 		if code != nil {
-			withdrawFees[*code] = func() any {
-				if v := this.SafeString(withdraw, "fixed"); v != nil {
-					return *v
-				}
-				return nil
-			}()
+			if ptrValue := this.SafeString(withdraw, "fixed"); ptrValue != nil {
+				withdrawFees[*code] = *ptrValue
+			} else {
+				withdrawFees[*code] = nil
+			}
 		}
 		var deposit map[string]any = SafeMapTyped(data, "deposit")
 		if code != nil {
-			depositFees[*code] = func() any {
-				if v := this.SafeString(deposit, "fixed"); v != nil {
-					return *v
-				}
-				return nil
-			}()
+			if ptrValue := this.SafeString(deposit, "fixed"); ptrValue != nil {
+				depositFees[*code] = *ptrValue
+			} else {
+				depositFees[*code] = nil
+			}
 		}
 	}
 
@@ -1312,7 +1310,10 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 			if depositWithdrawFee == nil {
 				depositWithdrawFees[*code] = this.DepositWithdrawFee(map[string]any{})
 			}
-			AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "info"), entry, feeInfo)
+			var feeEntry map[string]any = this.SafeDictMap(depositWithdrawFees, code, map[string]any{})
+			var feeEntryInfo map[string]any = this.SafeDictMap(feeEntry, "info", map[string]any{})
+			feeEntryInfo[entry] = feeInfo
+			feeEntry["info"] = feeEntryInfo
 			var networkId *string = this.SafeString(splitEntry, 1)
 			var withdraw map[string]any = SafeMapTyped(feeInfo, "withdraw")
 			var deposit map[string]any = SafeMapTyped(feeInfo, "deposit")
@@ -1340,15 +1341,18 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				var networkLength int = len(*networkId)
 				var networkCode *string = this.NetworkIdToCode(Slice(networkId, 1, networkLength-1), code)
 				if networkCode != nil {
-					AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
+					var feeEntryNetworks map[string]any = this.SafeDictMap(feeEntry, "networks", map[string]any{})
+					feeEntryNetworks[*networkCode] = map[string]any{
 						"withdraw": withdrawResult,
 						"deposit":  depositResult,
-					})
+					}
+					feeEntry["networks"] = feeEntryNetworks
 				}
 			} else {
-				AddElementToObject(GetValue(depositWithdrawFees, code), "withdraw", withdrawResult)
-				AddElementToObject(GetValue(depositWithdrawFees, code), "deposit", depositResult)
+				feeEntry["withdraw"] = withdrawResult
+				feeEntry["deposit"] = depositResult
 			}
+			depositWithdrawFees[*code] = feeEntry
 		}
 	}
 	var depositWithdrawCodes []string = nil
@@ -1607,7 +1611,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var responses []any = ListTyped(r1.Value)
+	var responses []any = r1.Value
 	var currenciesData map[string]any = SafeMapTyped(responses, 0)
 	var feesData map[string]any = SafeMapTyped(responses, 1)
 	//
@@ -2527,12 +2531,12 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var role *int64 = this.SafeInteger(trade, "role")
 	var takerOrMaker *string = nil
 	if role != nil {
-		takerOrMakerStr := func() string {
-			if role != nil && *role == 1 {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if role != nil && *role == 1 {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil
@@ -3339,7 +3343,7 @@ func (this *Whitebit) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]an
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -5854,11 +5858,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes424019 []any = r.Value
-		if retRes424019 == nil {
+		var retRes424619 []any = r.Value
+		if retRes424619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes424019)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes424619)}
 		}
 		return nil
 	}

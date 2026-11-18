@@ -4402,12 +4402,12 @@ func (this *Binance) Market(symbol any) map[string]any {
 			var markets []any = SafeListTyped(this.Markets_by_id, symbol)
 			// begin diff
 			if isDerivative {
-				defaultTypeStr := func() string {
-					if defaultSubType != nil && *defaultSubType == "inverse" {
-						return "inverse"
-					}
-					return "linear"
-				}()
+				var defaultTypeStr string
+				if defaultSubType != nil && *defaultSubType == "inverse" {
+					defaultTypeStr = "inverse"
+				} else {
+					defaultTypeStr = "linear"
+				}
 				defaultType = &defaultTypeStr
 			} else if defaultType == nil {
 				defaultType = defaultSubType
@@ -4770,7 +4770,7 @@ func (this *Binance) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	var responseCurrencies any = this.SafeValue(results, 0)
 	var marginablesById any = nil
 	if fetchMargins != nil && *fetchMargins {
@@ -4927,12 +4927,11 @@ func (this *Binance) ParseCurrency(rawCurrency any) map[string]any {
 		var depositEnable *bool = this.SafeBool(networkItem, "depositEnable")
 		var withdrawEnable *bool = this.SafeBool(networkItem, "withdrawEnable")
 		if networkCode != nil {
-			fees[*networkCode] = func() any {
-				if v := withdrawFee; v != nil {
-					return *v
-				}
-				return nil
-			}()
+			if withdrawFee != nil {
+				fees[*networkCode] = *withdrawFee
+			} else {
+				fees[*networkCode] = nil
+			}
 		}
 		var isDefault *bool = this.SafeBool(networkItem, "isDefault", false)
 		if (isDefault != nil && *isDefault) || (fee == nil) {
@@ -5075,7 +5074,7 @@ func (this *Binance) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	var markets []any = []any{}
 	this.Options["crossMarginPairsData"] = []any{}
 	this.Options["isolatedMarginPairsData"] = []any{}
@@ -5722,13 +5721,16 @@ func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) map[s
 			}
 		}
 	}
-	result["timestamp"] = func() any {
-		if v := timestamp; v != nil {
-			return *v
-		}
-		return nil
-	}()
-	AddElementToObject(result, "datetime", this.Iso8601(timestamp))
+	if timestamp != nil {
+		result["timestamp"] = *timestamp
+	} else {
+		result["timestamp"] = nil
+	}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		result["datetime"] = *ptrValue
+	} else {
+		result["datetime"] = nil
+	}
 	return this.SafeBalance(result).(map[string]any)
 }
 
@@ -6353,12 +6355,12 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		marketType = &marketTypeStr
 	}
 	if marketType == nil {
-		marketTypeStr2 := func() string {
-			if InOp(ticker, "bidQty") {
-				return "spot"
-			}
-			return "contract"
-		}()
+		var marketTypeStr2 string
+		if InOp(ticker, "bidQty") {
+			marketTypeStr2 = "spot"
+		} else {
+			marketTypeStr2 = "contract"
+		}
 		marketType = &marketTypeStr2
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
@@ -7523,23 +7525,23 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var buyerMaker *bool = this.SafeBool2(trade, "m", "isBuyerMaker")
 	var takerOrMaker *string = nil
 	if buyerMaker != nil {
-		sideStr := func() string {
-			if buyerMaker != nil && *buyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if buyerMaker != nil && *buyerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr // this is reversed intentionally
 	} else if InOp(trade, "side") {
 		side = this.SafeStringLower(trade, "side")
 	} else {
 		if InOp(trade, "isBuyer") {
-			sideStr2 := func() string {
-				if *this.SafeBool(trade, "isBuyer", false) {
-					return "buy"
-				}
-				return "sell"
-			}()
+			var sideStr2 string
+			if *this.SafeBool(trade, "isBuyer", false) {
+				sideStr2 = "buy"
+			} else {
+				sideStr2 = "sell"
+			}
 			side = &sideStr2 // this is a true side
 		}
 	}
@@ -7551,21 +7553,21 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	if InOp(trade, "isMaker") {
-		takerOrMakerStr := func() string {
-			if *this.SafeBool(trade, "isMaker", false) {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if *this.SafeBool(trade, "isMaker", false) {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	if InOp(trade, "maker") {
-		takerOrMakerStr2 := func() string {
-			if *this.SafeBool(trade, "maker", false) {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr2 string
+		if *this.SafeBool(trade, "maker", false) {
+			takerOrMakerStr2 = "maker"
+		} else {
+			takerOrMakerStr2 = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr2
 	}
 	if (InOp(trade, "optionSide")) || (*this.SafeBool(marketResolved, "option", false)) {
@@ -7578,12 +7580,12 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 		}
 		if (side == nil || *side != "buy") && (side == nil || *side != "sell") {
-			sideStr3 := func() string {
-				if side != nil && *side == "1" {
-					return "buy"
-				}
-				return "sell"
-			}()
+			var sideStr3 string
+			if side != nil && *side == "1" {
+				sideStr3 = "buy"
+			} else {
+				sideStr3 = "sell"
+			}
 			side = &sideStr3
 		}
 		if InOp(trade, "optionSide") {
@@ -9542,12 +9544,12 @@ func (this *Binance) GenerateClientOrderId(optionalArgs ...any) string {
 			idMarketTypeStr := "option"
 			idMarketType = &idMarketTypeStr
 		} else if *this.SafeBool(market, "linear", false) {
-			idMarketTypeStr2 := func() string {
-				if *this.SafeBool(market, "swap", false) {
-					return "swap"
-				}
-				return "future"
-			}()
+			var idMarketTypeStr2 string
+			if *this.SafeBool(market, "swap", false) {
+				idMarketTypeStr2 = "swap"
+			} else {
+				idMarketTypeStr2 = "future"
+			}
 			idMarketType = &idMarketTypeStr2
 		} else if *this.SafeBool(market, "inverse", false) {
 			idMarketTypeStr3 := "inverse"
@@ -9823,37 +9825,33 @@ func (this *Binance) CreateOrderRequest(symbol *string, typeVar *string, side *s
 		stopPrice = stopLossPrice
 		if isMarketOrder {
 			// spot STOP_LOSS market orders are not a valid order type
-			uppercaseType = func() string {
-				if *this.SafeBool(market, "contract", false) {
-					return "STOP_MARKET"
-				}
-				return "STOP_LOSS"
-			}()
+			if *this.SafeBool(market, "contract", false) {
+				uppercaseType = "STOP_MARKET"
+			} else {
+				uppercaseType = "STOP_LOSS"
+			}
 		} else if isLimitOrder {
-			uppercaseType = func() string {
-				if *this.SafeBool(market, "contract", false) {
-					return "STOP"
-				}
-				return "STOP_LOSS_LIMIT"
-			}()
+			if *this.SafeBool(market, "contract", false) {
+				uppercaseType = "STOP"
+			} else {
+				uppercaseType = "STOP_LOSS_LIMIT"
+			}
 		}
 	} else if isTakeProfit {
 		stopPrice = takeProfitPrice
 		if isMarketOrder {
 			// spot TAKE_PROFIT market orders are not a valid order type
-			uppercaseType = func() string {
-				if *this.SafeBool(market, "contract", false) {
-					return "TAKE_PROFIT_MARKET"
-				}
-				return "TAKE_PROFIT"
-			}()
+			if *this.SafeBool(market, "contract", false) {
+				uppercaseType = "TAKE_PROFIT_MARKET"
+			} else {
+				uppercaseType = "TAKE_PROFIT"
+			}
 		} else if isLimitOrder {
-			uppercaseType = func() string {
-				if *this.SafeBool(market, "contract", false) {
-					return "TAKE_PROFIT"
-				}
-				return "TAKE_PROFIT_LIMIT"
-			}()
+			if *this.SafeBool(market, "contract", false) {
+				uppercaseType = "TAKE_PROFIT"
+			} else {
+				uppercaseType = "TAKE_PROFIT_LIMIT"
+			}
 		}
 	}
 	if *this.SafeBool(market, "option", false) {
@@ -10099,20 +10097,19 @@ func (this *Binance) CreateOrderRequest(symbol *string, typeVar *string, side *s
 		var positionSide *string = side
 		if reduceOnly != nil && *reduceOnly {
 			omitKeys = append(omitKeys, "reduceOnly")
-			positionSideStr := func() string {
-				if side != nil && *side == "buy" {
-					return "sell"
-				}
-				return "buy"
-			}()
+			var positionSideStr string
+			if side != nil && *side == "buy" {
+				positionSideStr = "sell"
+			} else {
+				positionSideStr = "buy"
+			}
 			positionSide = &positionSideStr
 		}
-		request["positionSide"] = func() string {
-			if positionSide != nil && *positionSide == "buy" {
-				return "LONG"
-			}
-			return "SHORT"
-		}()
+		if positionSide != nil && *positionSide == "buy" {
+			request["positionSide"] = "LONG"
+		} else {
+			request["positionSide"] = "SHORT"
+		}
 	}
 	// unified stp
 	selfTradePrevention, paramsStp := this.HandleOptionStringAndParams(paramsPapi, "createOrder", "selfTradePrevention")
@@ -11160,12 +11157,11 @@ func (this *Binance) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, o
 	}
 	var orderIdRequest string = "orderId"
 	if isPortfolioMarginConditional == true {
-		orderIdRequest = func() string {
-			if *this.SafeBool(market, "linear", false) {
-				return "algoId"
-			}
-			return "strategyId"
-		}()
+		if *this.SafeBool(market, "linear", false) {
+			orderIdRequest = "algoId"
+		} else {
+			orderIdRequest = "strategyId"
+		}
 	}
 	request[orderIdRequest] = id
 	var response any = nil
@@ -13125,12 +13121,12 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	if typeVar == nil {
 		var txType *string = this.SafeString(transaction, "transactionType")
 		if txType != nil {
-			typeVarStr := func() string {
-				if txType != nil && *txType == "0" {
-					return "deposit"
-				}
-				return "withdrawal"
-			}()
+			var typeVarStr string
+			if txType != nil && *txType == "0" {
+				typeVarStr = "deposit"
+			} else {
+				typeVarStr = "withdrawal"
+			}
 			typeVar = &typeVarStr
 		}
 		var legalMoneyCurrenciesById map[string]any = SafeMapTyped(this.Options, "legalMoneyCurrenciesById")
@@ -13149,12 +13145,11 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	var internalInteger *int64 = this.SafeInteger(transaction, "transferType")
 	var internal any = nil
 	if internalInteger != nil {
-		internal = func() bool {
-			if internalInteger == nil || *internalInteger != 0 {
-				return true
-			}
-			return false
-		}()
+		if internalInteger == nil || *internalInteger != 0 {
+			internal = true
+		} else {
+			internal = false
+		}
 	}
 	var networkId *string = this.SafeString(transaction, "network")
 	var network *string = this.NetworkIdToCode(networkId, code)
@@ -15006,12 +15001,12 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 	if Precise.StringEquals(notionalString, "0") {
 		entryPrice = nil
 	} else {
-		sideStr := func() string {
-			if Precise.StringLt(notionalString, "0") {
-				return "short"
-			}
-			return "long"
-		}()
+		var sideStr string
+		if Precise.StringLt(notionalString, "0") {
+			sideStr = "short"
+		} else {
+			sideStr = "long"
+		}
 		side = &sideStr
 		marginRatio = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4))
 		percentage = this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100"))
@@ -15214,12 +15209,12 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var collateralString *string = nil
 	var marginMode *string = this.SafeString(position, "marginType")
 	if (marginMode == nil) && (isolatedMarginString != nil) {
-		marginModeStr := func() string {
-			if Precise.StringEq(isolatedMarginString, "0") {
-				return "cross"
-			}
-			return "isolated"
-		}()
+		var marginModeStr string
+		if Precise.StringEq(isolatedMarginString, "0") {
+			marginModeStr = "cross"
+		} else {
+			marginModeStr = "isolated"
+		}
 		marginMode = &marginModeStr
 	}
 	var side *string = nil
@@ -16716,22 +16711,22 @@ func (this *Binance) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var marginModeRaw *bool = this.SafeBool(leverage, "isolated")
 	var marginMode *string = nil
 	if marginModeRaw != nil {
-		marginModeStr := func() string {
-			if marginModeRaw != nil && *marginModeRaw {
-				return "isolated"
-			}
-			return "cross"
-		}()
+		var marginModeStr string
+		if marginModeRaw != nil && *marginModeRaw {
+			marginModeStr = "isolated"
+		} else {
+			marginModeStr = "cross"
+		}
 		marginMode = &marginModeStr
 	}
 	var marginTypeRaw *string = this.SafeStringLower(leverage, "marginType")
 	if marginTypeRaw != nil {
-		marginModeStr2 := func() string {
-			if marginTypeRaw != nil && *marginTypeRaw == "crossed" {
-				return "cross"
-			}
-			return "isolated"
-		}()
+		var marginModeStr2 string
+		if marginTypeRaw != nil && *marginTypeRaw == "crossed" {
+			marginModeStr2 = "cross"
+		} else {
+			marginModeStr2 = "isolated"
+		}
 		marginMode = &marginModeStr2
 	}
 	var side *string = this.SafeStringLower(leverage, "positionSide")
@@ -16972,7 +16967,7 @@ func (this *Binance) ParseSettlement(settlement any, market any) map[string]any 
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Binance) ParseSettlements(settlements any, market any) []any {
+func (this *Binance) ParseSettlements(settlements []any, market any) []any {
 	//
 	// fetchSettlementHistory
 	//
@@ -17008,7 +17003,7 @@ func (this *Binance) ParseSettlements(settlements any, market any) []any {
 	//     ]
 	//
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(settlements); i++ {
+	for i := 0; i < len(settlements); i++ {
 		result = append(result, this.ParseSettlement(this.SafeValue(settlements, i), market))
 	}
 	return result
@@ -18278,7 +18273,7 @@ func (this *Binance) redeemGiftCodeBody(ch chan AsyncResult[map[string]any], gif
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	//
 	//     {
@@ -18322,7 +18317,7 @@ func (this *Binance) verifyGiftCodeBody(ch chan AsyncResult[map[string]any], id 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	//
 	//     {
@@ -19751,22 +19746,22 @@ func (this *Binance) ParseMarginMode(marginMode any, optionalArgs ...any) Margin
 	var marginModeRaw *bool = this.SafeBool(marginMode, "isolated")
 	var reMarginMode *string = nil
 	if marginModeRaw != nil {
-		reMarginModeStr := func() string {
-			if marginModeRaw != nil && *marginModeRaw {
-				return "isolated"
-			}
-			return "cross"
-		}()
+		var reMarginModeStr string
+		if marginModeRaw != nil && *marginModeRaw {
+			reMarginModeStr = "isolated"
+		} else {
+			reMarginModeStr = "cross"
+		}
 		reMarginMode = &reMarginModeStr
 	}
 	var marginTypeRaw *string = this.SafeStringLower(marginMode, "marginType")
 	if marginTypeRaw != nil {
-		reMarginModeStr2 := func() string {
-			if marginTypeRaw != nil && *marginTypeRaw == "crossed" {
-				return "cross"
-			}
-			return "isolated"
-		}()
+		var reMarginModeStr2 string
+		if marginTypeRaw != nil && *marginTypeRaw == "crossed" {
+			reMarginModeStr2 = "cross"
+		} else {
+			reMarginModeStr2 = "isolated"
+		}
 		reMarginMode = &reMarginModeStr2
 	}
 	return MarginModeFromMap(map[string]any{

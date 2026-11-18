@@ -1726,12 +1726,12 @@ func (this *Backpack) StockDataRequest(methodName any, params any, optionalArgs 
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var isRfq bool = (market != nil) && (this.SafeString(marketInfo, "marketType") != nil && *this.SafeString(marketInfo, "marketType") == "RFQ")
 	if source == nil {
-		sourceStr := func() string {
-			if isRfq {
-				return "External"
-			}
-			return "Venue"
-		}()
+		var sourceStr string
+		if isRfq {
+			sourceStr = "External"
+		} else {
+			sourceStr = "Venue"
+		}
 		source = &sourceStr
 	}
 	if (source == nil || *source != "Venue") && (source == nil || *source != "External") {
@@ -2709,22 +2709,22 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	} else if isBuyerMaker != nil {
 		takerOrMakerStr2 := "taker"
 		takerOrMaker = &takerOrMakerStr2
-		sideStr := func() string {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if isBuyerMaker != nil && *isBuyerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	var orderId *string = this.SafeString2(trade, "orderId", "rfqId")

@@ -2155,7 +2155,7 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			latestBlockHeight := r1.Value
+			var latestBlockHeight *int64 = r1.Value
 			goodTillBlock = Add(latestBlockHeight, 20)
 		}
 	}
@@ -2271,7 +2271,7 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		latestBlockHeight := r1.Value
+		var latestBlockHeight *int64 = r1.Value
 		goodTillBlock = Add(latestBlockHeight, 20)
 	}
 	var credentials any = this.RetrieveCredentials()

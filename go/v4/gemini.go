@@ -828,7 +828,7 @@ func (this *Gemini) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var promisesResult []any = ListTyped(r.Value)
+		var promisesResult []any = r.Value
 
 		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(promisesResult[0], promisesResult[1]))}
 		return nil
@@ -1076,7 +1076,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var responses []any = ListTyped(r.Value)
+		var responses []any = r.Value
 		for i := 0; i < len(responses); i++ {
 			var parsed map[string]any = this.ParseMarket(responses[i])
 			if parsed != nil {
@@ -1812,11 +1812,11 @@ func (this *Gemini) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
 }
-func (this *Gemini) ParseBalanceList(response any) map[string]any {
+func (this *Gemini) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)

@@ -1163,10 +1163,22 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 			var filledString *string = this.NumberToString(trade["amount"])
 			var stringOrderFilled *string = this.SafeString(previousOrder, "filled", "0")
 			var totalFilled *string = ccxt.Precise.StringAdd(stringOrderFilled, filledString)
-			ccxt.AddElementToObject(previousOrder, "filled", totalFilled)
+			if previousOrder != nil {
+				if totalFilled != nil {
+					previousOrder["filled"] = *totalFilled
+				} else {
+					previousOrder["filled"] = nil
+				}
+			}
 			var prevAmountString *string = this.SafeString(previousOrder, "amount")
 			var remaining *string = ccxt.Precise.StringSub(prevAmountString, totalFilled)
-			ccxt.AddElementToObject(previousOrder, "remaining", remaining)
+			if previousOrder != nil {
+				if remaining != nil {
+					previousOrder["remaining"] = *remaining
+				} else {
+					previousOrder["remaining"] = nil
+				}
+			}
 			if ccxt.IsEqual(previousOrder["fee"], nil) {
 				if previousOrder != nil {
 					previousOrder["fee"] = map[string]any{

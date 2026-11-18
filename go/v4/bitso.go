@@ -2540,7 +2540,8 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transa
 	var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currencyResolved, "code"))
 	var networkCodeUpper *string = func() *string {
 		if networkCode != nil {
-			return SafeStringPtr(strings.ToUpper(*networkCode))
+			retStr := strings.ToUpper(*networkCode)
+			return &retStr
 		}
 		return nil
 	}()

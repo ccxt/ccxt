@@ -820,11 +820,11 @@ func (this *Btcmarkets) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs 
 	ch <- AsyncResult[*int64]{Value: this.Parse8601(this.SafeString(response, "timestamp"))}
 	return nil
 }
-func (this *Btcmarkets) ParseBalanceList(response any) map[string]any {
+func (this *Btcmarkets) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "assetName")
 		var code *string = this.SafeCurrencyCode(currencyId)

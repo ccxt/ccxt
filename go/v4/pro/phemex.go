@@ -583,12 +583,11 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	var settleIsUSDT bool = (market["settle"] == "USDT")
 	var name string = "spot_market24h"
 	if isSwap != nil && *isSwap == true {
-		name = func() string {
-			if settleIsUSDT {
-				return "perp_market24h_pack_p"
-			}
-			return "market24h"
-		}()
+		if settleIsUSDT {
+			name = "perp_market24h_pack_p"
+		} else {
+			name = "market24h"
+		}
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()
@@ -647,12 +646,11 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var settleIsUSDT bool = (market["settle"] == "USDT")
 	var name string = "spot_market24h"
 	if isSwap != nil && *isSwap == true {
-		name = func() string {
-			if settleIsUSDT {
-				return "perp_market24h_pack_p"
-			}
-			return "market24h"
-		}()
+		if settleIsUSDT {
+			name = "perp_market24h_pack_p"
+		} else {
+			name = "market24h"
+		}
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var requestId int64 = this.RequestId()

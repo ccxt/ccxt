@@ -1208,20 +1208,20 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var orderId *string = this.SafeString(trade, "i")
 	if ccxt.InOp(trade, "m") {
 		if side == nil {
-			sideStr := func() string {
-				if *this.SafeBool(trade, "m", false) {
-					return "sell"
-				}
-				return "buy"
-			}()
+			var sideStr string
+			if *this.SafeBool(trade, "m", false) {
+				sideStr = "sell"
+			} else {
+				sideStr = "buy"
+			}
 			side = &sideStr // this is reversed intentionally
 		}
-		takerOrMakerStr := func() string {
-			if *this.SafeBool(trade, "m", false) {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if *this.SafeBool(trade, "m", false) {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil

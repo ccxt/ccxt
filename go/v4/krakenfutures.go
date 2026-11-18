@@ -561,12 +561,11 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			linear = (strings.Index(*marketType, "_vanilla") >= 0)
 			inverse = !(linear == true)
 			var settleTime *string = this.SafeString(market, "lastTradingTime")
-			typeVar = func() string {
-				if settleTime == nil {
-					return "swap"
-				}
-				return "future"
-			}()
+			if settleTime == nil {
+				typeVar = "swap"
+			} else {
+				typeVar = "future"
+			}
 			if derefPtr := this.Parse8601(settleTime); derefPtr != nil {
 				expiry = *derefPtr
 			} else {
@@ -1202,12 +1201,11 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 		request["from"] = fromTimestamp
 		var toTimestamp int64 = this.ParseToInt(fromTimestamp + (windowSize * duration) - 1)
 		var currentTimestamp int64 = this.Seconds()
-		request["to"] = func() int64 {
-			if toTimestamp < currentTimestamp {
-				return toTimestamp
-			}
-			return currentTimestamp
-		}()
+		if toTimestamp < currentTimestamp {
+			request["to"] = toTimestamp
+		} else {
+			request["to"] = currentTimestamp
+		}
 	} else if limitResolved != nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
 		var toTimestamp int64 = this.Seconds()
@@ -2186,7 +2184,7 @@ func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan AsyncResult[map[stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -3688,8 +3686,20 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 	}
 	var balance map[string]any = this.ParseBalance(account)
 	AddElementToObject(balance, "info", response)
-	AddElementToObject(balance, "timestamp", this.Parse8601(datetime))
-	AddElementToObject(balance, "datetime", datetime)
+	if balance != nil {
+		if ptrValue := this.Parse8601(datetime); ptrValue != nil {
+			balance["timestamp"] = *ptrValue
+		} else {
+			balance["timestamp"] = nil
+		}
+	}
+	if balance != nil {
+		if datetime != nil {
+			balance["datetime"] = *datetime
+		} else {
+			balance["datetime"] = nil
+		}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(balance)}
 	return nil
@@ -4853,7 +4863,8 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) map[string]any
 	var url *string = SafeStringPtr(Add(apiUrl, query))
 	var requestBody *string = func() *string {
 		if path == "batchorder" {
-			return SafeStringPtr(postData)
+			retStr := postData
+			return &retStr
 		}
 		return nil
 	}()

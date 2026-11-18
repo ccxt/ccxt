@@ -1009,7 +1009,7 @@ func (this *Poloniex) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	markets := r.Value
+	var markets map[string]any = r.Value
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexBy(this.Currencies, "numericId")
@@ -1044,7 +1044,7 @@ func (this *Poloniex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(results[0], results[1]))}
 	return nil
@@ -2810,12 +2810,11 @@ func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, a
 		if marginMode != nil {
 			this.CheckRequiredArgument("createOrder", marginMode, "marginMode", []any{"cross", "isolated"})
 			// the argument check above leaves only 'cross' or 'isolated'
-			result["mgnMode"] = func() string {
-				if marginMode != nil && *marginMode == "isolated" {
-					return "ISOLATED"
-				}
-				return "CROSS"
-			}()
+			if marginMode != nil && *marginMode == "isolated" {
+				result["mgnMode"] = "ISOLATED"
+			} else {
+				result["mgnMode"] = "CROSS"
+			}
 		}
 		if (hedged != nil) && (hedged == nil || *hedged != "") {
 			if marginMode == nil {
@@ -2834,12 +2833,11 @@ func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, a
 		if !(*this.SafeBool(market, "spot", false)) {
 			panic(InvalidOrder(this.Id + " createOrder() does not support trigger orders for " + *this.SafeString(market, "type", "") + " markets"))
 		}
-		upperCaseType = func() string {
-			if price == nil {
-				return "STOP"
-			}
-			return "STOP_LIMIT"
-		}()
+		if price == nil {
+			upperCaseType = "STOP"
+		} else {
+			upperCaseType = "STOP_LIMIT"
+		}
 		result["stopPrice"] = triggerPrice
 	} else if isPostOnly {
 		upperCaseType = "LIMIT_MAKER"
@@ -4262,7 +4260,7 @@ func (this *Poloniex) fetchTransactionsHelperBody(ch chan AsyncResult[map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -4829,7 +4827,7 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
@@ -5030,7 +5028,7 @@ func (this *Poloniex) setPositionModeBody(ch chan AsyncResult[map[string]any], h
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	//
 	//    {
@@ -5157,11 +5155,11 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) Position 
 	var initialMargin *string = this.SafeString(position, "im")
 	var notional *string = Precise.StringMul(leverage, initialMargin)
 	var positionMargin *string = nil
-	var collateral any = nil
+	var collateral *string = nil
 	if marginMode != nil && *marginMode == "isolated" {
 		positionMargin = this.OmitZero(this.SafeString(position, "mgn"))
 		var upl *string = this.SafeString(position, "upl")
-		collateral = func() any {
+		collateral = func() *string {
 			if (positionMargin != nil) && (upl != nil) {
 				return Precise.StringAdd(positionMargin, upl)
 			}

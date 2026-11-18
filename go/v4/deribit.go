@@ -2171,12 +2171,12 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if liquidity != nil {
 		// M = maker, T = taker, MT = both
-		takerOrMakerStr := func() string {
-			if liquidity != nil && *liquidity == "M" {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if liquidity != nil && *liquidity == "M" {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
@@ -4522,12 +4522,11 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
 		var maxUntil int64 = this.ParseToInt(sinceResolved + *limit*duration)
-		request["end_timestamp"] = func() int64 {
-			if endTimestamp < maxUntil {
-				return endTimestamp
-			}
-			return maxUntil
-		}()
+		if endTimestamp < maxUntil {
+			request["end_timestamp"] = endTimestamp
+		} else {
+			request["end_timestamp"] = maxUntil
+		}
 	}
 
 	r2 := <-this.PublicGetGetFundingRateHistory(this.Extend(request, paramsOmitted))

@@ -749,7 +749,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var restResponses []any = ccxt.ListTyped(r1.Value)
+		var restResponses []any = r1.Value
 		var allEvents []any = []any{}
 		for fi := 0; fi < len(firstEvents); fi++ {
 			allEvents = append(allEvents, firstEvents[fi])
@@ -929,7 +929,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[[]map[st
 		var restPromises []any = []any{}
 		for oi := 0; oi < len(offsets); oi++ {
 			var pageRequest map[string]any = map[string]any{
-				"offset": ccxt.DerefScalar(offsets[oi]),
+				"offset": offsets[oi],
 			}
 			pageRequest = this.Extend(pageRequest, baseRequest)
 			restPromises = append(restPromises, this.GammaPublicGetEvents(pageRequest))
@@ -939,7 +939,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[[]map[st
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var restPages []any = ccxt.ListTyped(r2.Value)
+		var restPages []any = r2.Value
 		for ri := 0; ri < len(restPages); ri++ {
 			var page []any = ccxt.SafeListTyped(restPages, ri)
 			var pageLength int = len(page)
@@ -1436,7 +1436,7 @@ func (this *Polymarket) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var midpointResponsebookResponselastTradeResponseVariable []any = ccxt.ListTyped(r1.Value)
+	var midpointResponsebookResponselastTradeResponseVariable []any = r1.Value
 	midpointResponse := midpointResponsebookResponselastTradeResponseVariable[0]
 	bookResponse := midpointResponsebookResponselastTradeResponseVariable[1]
 	lastTradeResponse := midpointResponsebookResponselastTradeResponseVariable[2]
@@ -1552,7 +1552,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var responses []any = ccxt.ListTyped(r1.Value)
+		var responses []any = r1.Value
 		var booksResponse any = responses[0]
 		var midpoints any = responses[1]
 		var lastTradesResponse any = responses[2]
@@ -1853,12 +1853,11 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 		startS = this.ParseToInt(float64(*since) / 1000)
 		if limit != nil {
 			var endBound int64 = this.ParseToInt(this.Sum(startS, ccxt.Multiply(ccxt.Multiply(limit, fidelityMin), 60)))
-			endS = func() int64 {
-				if endBound < nowS {
-					return endBound
-				}
-				return nowS
-			}()
+			if endBound < nowS {
+				endS = endBound
+			} else {
+				endS = nowS
+			}
 		}
 	} else {
 		var barCount any = func() any {
@@ -3061,12 +3060,12 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 		}
 	}
 	if orderTypeStr == nil {
-		orderTypeStrStr5 := func() string {
-			if isMarket {
-				return "FOK"
-			}
-			return "GTC"
-		}()
+		var orderTypeStrStr5 string
+		if isMarket {
+			orderTypeStrStr5 = "FOK"
+		} else {
+			orderTypeStrStr5 = "GTC"
+		}
 		orderTypeStr = &orderTypeStrStr5
 	}
 	var priceResolved any = price
@@ -3368,12 +3367,14 @@ func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress st
 	// raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
 	var orderTypeHash any = this.Hash(this.Encode(orderTypeString), ccxt.Keccak, "binary")
 	var contentsData any = this.EthAbiEncode([]any{"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, []any{orderTypeHash, this.ConvertToBigInt(message["salt"]), message["maker"], message["signer"], this.ConvertToBigInt(message["tokenId"]), this.ConvertToBigInt(message["makerAmount"]), this.ConvertToBigInt(message["takerAmount"]), message["side"], message["signatureType"], this.ConvertToBigInt(message["timestamp"]), this.Base16ToBinary(this.Remove0xPrefix(message["metadata"])), this.Base16ToBinary(this.Remove0xPrefix(message["builder"]))})
-	var contentsHash *string = ccxt.SafeStringPtr("0x" + this.HashString(contentsData, ccxt.Keccak, "hex"))
+	contentsHashStr := "0x" + this.HashString(contentsData, ccxt.Keccak, "hex")
+	var contentsHash *string = &contentsHashStr
 	var domainTypeHash any = this.Hash(this.Encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), ccxt.Keccak, "binary")
 	var nameHash any = this.Hash(this.Encode(domainName), ccxt.Keccak, "binary")
 	var versionHash any = this.Hash(this.Encode(domainVersion), ccxt.Keccak, "binary")
 	var appDomainData any = this.EthAbiEncode([]any{"bytes32", "bytes32", "bytes32", "uint256", "address"}, []any{domainTypeHash, nameHash, versionHash, this.ConvertToBigInt(this.NumberToString(chainIdValue)), exchangeAddress})
-	var appDomainSep *string = ccxt.SafeStringPtr("0x" + this.HashString(appDomainData, ccxt.Keccak, "hex"))
+	appDomainSepStr := "0x" + this.HashString(appDomainData, ccxt.Keccak, "hex")
+	var appDomainSep *string = &appDomainSepStr
 	var typedDataSignStruct []any = []any{map[string]any{
 		"name": "contents",
 		"type": "Order",

@@ -1725,23 +1725,23 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {
-		sideStr := func() string {
-			if isBuyer != nil && *isBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if isBuyer != nil && *isBuyer {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 	}
 	var takerOrMaker *string = nil
 	var isMaker *bool = this.SafeBool2(trade, "isMaker", "isMarker")
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var isBuyerMaker *bool = this.SafeBool(trade, "ibm")
@@ -1749,12 +1749,12 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if isBuyerMaker != nil {
 		takerOrMakerStr2 := "taker"
 		takerOrMaker = &takerOrMakerStr2
-		sideStr2 := func() string {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr2 string
+		if isBuyerMaker != nil && *isBuyerMaker {
+			sideStr2 = "sell"
+		} else {
+			sideStr2 = "buy"
+		}
 		side = &sideStr2
 	}
 	var feeCost *string = this.SafeString(trade, "commission")

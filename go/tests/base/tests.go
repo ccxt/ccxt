@@ -731,7 +731,7 @@ func (this *testMainClass) runTestsBody(ch chan ccxt.AsyncResult[any], exchange 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	// now count which test-methods retuned `false` from "testSafe" and dump that info below
 	var failedMethods []string = []string{}
 	for i := 0; i < len(testNames); i++ {
@@ -2981,7 +2981,7 @@ func (this *testMainClass) testWsStaticallyBody(ch chan ccxt.AsyncResult[any], e
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
-				var results []any = ListTyped(r1.Value)
+				var results []any = r1.Value
 				var unifiedResult any = JsonParse(JsonStringify(func() any {
 					if 0 >= 0 && 0 < len(results) {
 						return results[0]

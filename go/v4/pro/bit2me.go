@@ -168,7 +168,8 @@ func (this *Bit2me) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
+	messageHashStr := "orderbook:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 
 	r1 := <-this.SubscribePublicAsync("order-book", symbol, *messageHash, params)
 	if r1.Err != nil {
@@ -242,7 +243,8 @@ func (this *Bit2me) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("trades:" + market["symbol"].(string))
+	messageHashStr := "trades:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 
 	r1 := <-this.SubscribePublicAsync("public-trades", symbol, *messageHash, params)
 	if r1.Err != nil {
@@ -322,12 +324,12 @@ func (this *Bit2me) ParseWsTrade(trade any, optionalArgs ...any) map[string]any 
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil

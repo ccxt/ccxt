@@ -2185,7 +2185,8 @@ func (this *Predictfun) SignPredictfunOrder(order map[string]any, isNegRisk bool
 	}, order)
 	// ccxt.EthEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
 	// the digest that gets signed - and that the venue indexes the order by - is its ccxt.Keccak
-	var hash *string = ccxt.SafeStringPtr("0x" + this.HashString(encoded, ccxt.Keccak, "hex"))
+	hashStr := "0x" + this.HashString(encoded, ccxt.Keccak, "hex")
+	var hash *string = &hashStr
 	return map[string]any{
 		"hash":      hash,
 		"signature": this.SignHash(hash, this.PrivateKey),
@@ -2260,7 +2261,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	// create_order_price_out_of_range (it wants 0 < price < 1)
 	var amountString *string = this.NumberToString(amount)
 	var priceString *string = this.NumberToString(price)
-	var priceToProvide any = priceString
+	var priceToProvide *string = priceString
 	// read through the extractor rather than off the instance, so one call can opt in without
 	// reconfiguring the exchange - and so the key is taken out of params instead of riding
 	// along into the request body
@@ -2274,12 +2275,11 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		// allows: 0.99 crosses any ask, 0.01 is crossed by any bid. the fill happens at the
 		// book's own prices, this is only the worst price the order accepts - which is also
 		// the collateral the maker leg has to cover
-		priceToProvide = func() any {
-			if isBuy {
-				return this.NumberToString(this.SafeNumber(this.Options, "marketBuyPrice", 0.99))
-			}
-			return this.NumberToString(this.SafeNumber(this.Options, "marketSellPrice", 0.01))
-		}()
+		if isBuy {
+			priceToProvide = this.NumberToString(this.SafeNumber(this.Options, "marketBuyPrice", 0.99))
+		} else {
+			priceToProvide = this.NumberToString(this.SafeNumber(this.Options, "marketSellPrice", 0.01))
+		}
 	}
 	var quantityWei *string = ccxt.Precise.StringMul(amountString, "1000000000000000000")
 	var priceWei *string = ccxt.Precise.StringMul(priceToProvide, "1000000000000000000")
@@ -2636,12 +2636,12 @@ func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...an
 	var payout any = nil
 	if settled {
 		won = (outcomeStatus != nil && *outcomeStatus == "WON")
-		settleFractionStr := func() string {
-			if won == true {
-				return "1"
-			}
-			return "0"
-		}()
+		var settleFractionStr string
+		if won == true {
+			settleFractionStr = "1"
+		} else {
+			settleFractionStr = "0"
+		}
 		settleFraction = &settleFractionStr
 		// a winning share redeems for one unit of collateral, a losing one for nothing
 		payout = func() any {
@@ -3456,7 +3456,8 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 				panic(ccxt.ArgumentsRequired(this.Id + " approve() could not resolve the operator to approve for chain " + *chainKey))
 			}
 			// setApprovalForAll(operator, approved) -> selector 0xa22cb465
-			var approvalData *string = ccxt.SafeStringPtr("0xa22cb465" + this.PadHexAddress(operatorAddress) + approvedHex)
+			approvalDataStr := "0xa22cb465" + this.PadHexAddress(operatorAddress) + approvedHex
+			var approvalData *string = &approvalDataStr
 			// each receipt is awaited before the next transaction goes out, so the nonce the
 			// second one looks up already counts the first
 
@@ -3464,7 +3465,7 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			approvalHash := r1.Value
+			var approvalHash *string = r1.Value
 
 			r2 := <-this.WaitForTransactionReceiptAsync(rpcUrl, approvalHash)
 			if r2.Err != nil {
@@ -3503,13 +3504,14 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		amountHex = (strings.Repeat("0", max(64-len(amountBase16), 0)) + amountBase16)[max(len(amountBase16)-64, 0):]
 	}
 	// approve(spender, amount) -> selector 0x095ea7b3
-	var approveData *string = ccxt.SafeStringPtr("0x095ea7b3" + this.PadHexAddress(spender) + amountHex)
+	approveDataStr := "0x095ea7b3" + this.PadHexAddress(spender) + amountHex
+	var approveData *string = &approveDataStr
 
 	r3 := <-this.SendEvmTransactionAsync(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit)
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	txHash := r3.Value
+	var txHash *string = r3.Value
 
 	r4 := <-this.WaitForTransactionReceiptAsync(rpcUrl, txHash)
 	if r4.Err != nil {
@@ -3993,7 +3995,7 @@ func (this *Predictfun) walletEventsTopicBody(ch chan ccxt.AsyncResult[*string])
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	walletToken := r.Value
+	var walletToken *string = r.Value
 
 	var resolved *string
 	switch resolvedBox := ccxt.Add("predictWalletEvents/", walletToken).(type) {
@@ -4622,12 +4624,12 @@ func (this *Predictfun) ParseWalletEventTrade(event any, order any) any {
 	var isMaker *bool = this.SafeBool(event, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var rawFee map[string]any = ccxt.SafeMapTyped(event, "fee")

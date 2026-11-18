@@ -617,7 +617,7 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promises []any = ListTyped(r.Value)
+	var promises []any = r.Value
 	var result []any = []any{}
 	for i := 0; i < len(promises); i++ {
 		result = this.ArrayConcat(result, this.SafeList(promises, i, []any{}))
@@ -724,7 +724,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var promises []any = ListTyped(r1.Value)
+	var promises []any = r1.Value
 	this.Options["hip3TokensByName"] = map[string]any{}
 	var markets []any = []any{}
 	for i := 0; i < len(promises); i++ {
@@ -757,7 +757,8 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 						if safeCode == nil {
 							return name
 						}
-						return SafeStringPtr(strings.Replace(*safeCode, ":", "-", 1))
+						retStr := strings.Replace(*safeCode, ":", "-", 1)
+						return &retStr
 					}()
 					AddElementToObject(this.Options["hip3TokensByName"], name, map[string]any{
 						"quote": collateralTokenCode,
@@ -2021,7 +2022,8 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 		maxDecimals = 8
 	}
 	var subtractedValue int64 = int64(maxDecimals) - int64(this.PrecisionFromString(this.SafeString(market["precision"], "amount")))
-	return SafeStringPtr(this.DecimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.PaddingMode))
+	retStr := this.DecimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.PaddingMode)
+	return &retStr
 }
 func (this *Hyperliquid) HashMessage(message any) any {
 	return "0x" + this.HashString(message, keccak, "hex")
@@ -2759,7 +2761,7 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan AsyncResult[map[string]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
@@ -3594,12 +3596,11 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order]
 		}()
 		cancelReq = append(cancelReq, cancelObj)
 	}
-	cancelAction["type"] = func() string {
-		if cancelByCloid {
-			return "cancelByCloid"
-		}
-		return "cancel"
-	}()
+	if cancelByCloid {
+		cancelAction["type"] = "cancelByCloid"
+	} else {
+		cancelAction["type"] = "cancel"
+	}
 	cancelAction["cancels"] = cancelReq
 	var fast *bool = this.SafeBool(params, "fast", false)
 	if fast != nil && *fast {
@@ -3701,7 +3702,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	response := r2.Value
+	var response map[string]any = r2.Value
 
 	//
 	//     {
@@ -4041,7 +4042,7 @@ func (this *Hyperliquid) createVaultBody(ch chan AsyncResult[map[string]any], na
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	// {
@@ -4726,12 +4727,12 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 	var orderOmitted any = this.Omit(order, []any{"ccxtStatus"})
 	var side *string = this.SafeString(entry, "side")
 	if side != nil {
-		sideStr := func() string {
-			if side != nil && *side == "A" {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if side != nil && *side == "A" {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	var totalAmount *string = this.SafeString2(entry, "origSz", "totalSz")
@@ -4939,24 +4940,24 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
-		sideStr := func() string {
-			if side != nil && *side == "A" {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if side != nil && *side == "A" {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	var fee *string = this.SafeString(trade, "fee")
 	var takerOrMaker *string = nil
 	var crossed *bool = this.SafeBool(trade, "crossed")
 	if crossed != nil {
-		takerOrMakerStr := func() string {
-			if crossed != nil && *crossed {
-				return "taker"
-			}
-			return "maker"
-		}()
+		var takerOrMakerStr string
+		if crossed != nil && *crossed {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var builderFee *string = this.SafeString(trade, "builderFee")
@@ -5107,12 +5108,12 @@ func (this *Hyperliquid) ParseLiquidation(liquidation any, optionalArgs ...any) 
 	}
 	var side *string = this.SafeString(liquidation, "side")
 	if side != nil {
-		sideStr := func() string {
-			if side != nil && *side == "A" {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if side != nil && *side == "A" {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	var amount *string = this.SafeString(liquidation, "sz")
@@ -5337,12 +5338,12 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) Positi
 	var size *string = rawSize
 	var side *string = nil
 	if size != nil {
-		sideStr := func() string {
-			if Precise.StringGt(rawSize, "0") {
-				return "long"
-			}
-			return "short"
-		}()
+		var sideStr string
+		if Precise.StringGt(rawSize, "0") {
+			sideStr = "long"
+		} else {
+			sideStr = "short"
+		}
 		side = &sideStr
 		size = Precise.StringAbs(size)
 	}
@@ -5461,7 +5462,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan AsyncResult[map[string]any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -5541,7 +5542,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -6878,7 +6879,7 @@ func (this *Hyperliquid) reserveRequestWeightBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
@@ -6923,7 +6924,7 @@ func (this *Hyperliquid) createSubAccountBody(ch chan AsyncResult[map[string]any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
@@ -6962,9 +6963,9 @@ func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) []an
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter inside 'params' or the wallet address set"))
 }
-func (this *Hyperliquid) CoinToMarketId(coin any) any {
+func (this *Hyperliquid) CoinToMarketId(coin *string) any {
 	// handle also hip3 tokens like flx:CRCL
-	if IsEqual(coin, nil) {
+	if coin == nil {
 		return nil
 	}
 	var hi3TokensByname map[string]any = SafeMapTyped(this.Options, "hip3TokensByName")
@@ -6974,13 +6975,14 @@ func (this *Hyperliquid) CoinToMarketId(coin any) any {
 		var code *string = this.SafeString(hip3Dict, "code", coin)
 		return *code + "/" + quote + ":" + quote
 	}
-	if (GetIndexOf(coin, "/") > -1) || (GetIndexOf(coin, "@") > -1) {
+	if (strings.Index(*coin, "/") > -1) || (strings.Index(*coin, "@") > -1) {
 		return coin // spot
 	}
 	// hip3
-	var coinId any = coin
-	if GetIndexOf(coin, ":") > -1 {
-		coinId = Replace(coin, ":", "-")
+	var coinId *string = coin
+	if strings.Index(*coin, ":") > -1 {
+		coinIdStr := strings.Replace(*coin, ":", "-", 1)
+		coinId = &coinIdStr
 	}
 	return Add(this.SafeCurrencyCode(coinId), "/USDC:USDC")
 }

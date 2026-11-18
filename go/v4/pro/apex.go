@@ -1165,7 +1165,7 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promises []any = ccxt.ListTyped(r.Value)
+	var promises []any = r.Value
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(promises); i++ {

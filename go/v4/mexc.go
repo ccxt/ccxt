@@ -2271,12 +2271,12 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 				"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
 			}
 			var isTaker *bool = this.SafeBool2(trade, "isTaker", "taker", false)
-			takerOrMakerStr2 := func() string {
-				if isTaker != nil && *isTaker {
-					return "taker"
-				}
-				return "maker"
-			}()
+			var takerOrMakerStr2 string
+			if isTaker != nil && *isTaker {
+				takerOrMakerStr2 = "taker"
+			} else {
+				takerOrMakerStr2 = "maker"
+			}
 			takerOrMaker = &takerOrMakerStr2
 		} else {
 			timestamp = this.SafeInteger2(trade, "time", "T")
@@ -2286,30 +2286,30 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 			var isMaker *bool = this.SafeBool(trade, "isMaker")
 			var buyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
 			if isMaker != nil {
-				takerOrMakerStr3 := func() string {
-					if isMaker != nil && *isMaker {
-						return "maker"
-					}
-					return "taker"
-				}()
+				var takerOrMakerStr3 string
+				if isMaker != nil && *isMaker {
+					takerOrMakerStr3 = "maker"
+				} else {
+					takerOrMakerStr3 = "taker"
+				}
 				takerOrMaker = &takerOrMakerStr3
 			}
 			if isBuyer != nil {
-				sideStr := func() string {
-					if isBuyer != nil && *isBuyer {
-						return "buy"
-					}
-					return "sell"
-				}()
+				var sideStr string
+				if isBuyer != nil && *isBuyer {
+					sideStr = "buy"
+				} else {
+					sideStr = "sell"
+				}
 				side = &sideStr
 			}
 			if buyerMaker != nil {
-				sideStr2 := func() string {
-					if buyerMaker != nil && *buyerMaker {
-						return "sell"
-					}
-					return "buy"
-				}()
+				var sideStr2 string
+				if buyerMaker != nil && *buyerMaker {
+					sideStr2 = "sell"
+				} else {
+					sideStr2 = "buy"
+				}
 				side = &sideStr2
 				takerOrMakerStr4 := "taker"
 				takerOrMaker = &takerOrMakerStr4
@@ -5592,7 +5592,7 @@ func (this *Mexc) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -7399,12 +7399,12 @@ func (this *Mexc) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry
 	var currencyId *string = this.SafeString2(transfer, "currency", "asset")
 	var id *string = this.SafeStringN(transfer, []any{"transact_id", "txid", "tranId"})
 	var timestamp *int64 = this.SafeInteger2(transfer, "createTime", "timestamp")
-	var datetime *string = func() *string {
-		if timestamp != nil {
-			return this.Iso8601(timestamp)
-		}
-		return nil
-	}()
+	var datetime *string
+	if timestamp != nil {
+		datetime = this.Iso8601(timestamp)
+	} else {
+		datetime = nil
+	}
 	var direction *string = this.SafeString(transfer, "type")
 	var accountFrom any = nil
 	var accountTo any = nil
@@ -7414,18 +7414,16 @@ func (this *Mexc) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry
 		accountFrom = fromAccountType
 		accountTo = toAccountType
 	} else if direction != nil {
-		accountFrom = func() string {
-			if direction != nil && *direction == "IN" {
-				return "MAIN"
-			}
-			return "CONTRACT"
-		}()
-		accountTo = func() string {
-			if direction != nil && *direction == "IN" {
-				return "CONTRACT"
-			}
-			return "MAIN"
-		}()
+		if direction != nil && *direction == "IN" {
+			accountFrom = "MAIN"
+		} else {
+			accountFrom = "CONTRACT"
+		}
+		if direction != nil && *direction == "IN" {
+			accountTo = "CONTRACT"
+		} else {
+			accountTo = "MAIN"
+		}
 	} else {
 		if derefPtr := this.SafeString(transfer, "from"); derefPtr != nil {
 			accountFrom = *derefPtr
@@ -7601,7 +7599,7 @@ func (this *Mexc) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	//
 	//     {
@@ -7723,12 +7721,12 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any], 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseTransactionFees(response, codes)}
 	return nil
 }
-func (this *Mexc) ParseTransactionFees(response any, optionalArgs ...any) map[string]any {
+func (this *Mexc) ParseTransactionFees(response []any, optionalArgs ...any) map[string]any {
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var withdrawFees map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var entry any = GetValue(response, i)
+	for i := 0; i < len(response); i++ {
+		var entry any = response[i]
 		var currencyId *string = this.SafeString(entry, "coin")
 		var currency map[string]any = this.SafeCurrency(currencyId)
 		var code *string = this.SafeString(currency, "code")
@@ -7780,7 +7778,13 @@ func (this *Mexc) ParseTransactionFee(transaction any, optionalArgs ...any) map[
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.SafeString(this.Options["networks"], networkId, networkId)
 		var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
-		AddElementToObject(result, networkCode, fee)
+		if networkCode != nil {
+			if fee != nil {
+				result[*networkCode] = *fee
+			} else {
+				result[*networkCode] = nil
+			}
+		}
 	}
 	return result
 }
@@ -7991,12 +7995,12 @@ func (this *Mexc) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 		} else if positionType != nil && *positionType == 2 {
 			shortLeverage = this.SafeInteger(entry, "leverage")
 		}
-		marginModeStr := func() string {
-			if openType != nil && *openType == 1 {
-				return "isolated"
-			}
-			return "cross"
-		}()
+		var marginModeStr string
+		if openType != nil && *openType == 1 {
+			marginModeStr = "isolated"
+		} else {
+			marginModeStr = "cross"
+		}
 		marginMode = &marginModeStr
 	}
 	return LeverageFromMap(map[string]any{
@@ -8024,7 +8028,8 @@ func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any)
 	var isMargin *bool = this.SafeBool(params, "margin", false)
 	marginMode, paramsMarginMode := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
 	if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin) {
-		return SafeStringPtr("isolated"), paramsMarginMode
+		retStr := "isolated"
+		return &retStr, paramsMarginMode
 	}
 	return SafeStringPtr(marginMode), paramsMarginMode
 }

@@ -90,7 +90,8 @@ func (this *Coinone) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
+	messageHashStr := "orderbook:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
@@ -197,7 +198,8 @@ func (this *Coinone) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("ticker:" + market["symbol"].(string))
+	messageHashStr := "ticker:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
@@ -351,7 +353,8 @@ func (this *Coinone) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("trade:" + market["symbol"].(string))
+	messageHashStr := "trade:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var request map[string]any = map[string]any{
 		"request_type": "SUBSCRIBE",
@@ -432,12 +435,12 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side *string = nil
 	if isSellerMaker != nil {
-		sideStr := func() string {
-			if isSellerMaker != nil && *isSellerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if isSellerMaker != nil && *isSellerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	var priceString *string = this.SafeString(trade, "price")

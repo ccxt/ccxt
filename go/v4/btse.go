@@ -2116,12 +2116,11 @@ func (this *Btse) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = func() any {
-			if v := this.SafeString(market, "id"); v != nil {
-				return *v
-			}
-			return nil
-		}()
+		if ptrValue := this.SafeString(market, "id"); ptrValue != nil {
+			request["symbol"] = *ptrValue
+		} else {
+			request["symbol"] = nil
+		}
 	}
 	if since != nil {
 		request["startTime"] = *since
@@ -2176,12 +2175,11 @@ func (this *Btse) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		// the futures endpoint does not support a count parameter, the limit is applied client-side
 		request = this.OmitDict(request, "count")
 		if symbol != nil {
-			request["symbol"] = func() any {
-				if v := this.FuturesRequestId(this.Market(symbol)); v != nil {
-					return *v
-				}
-				return nil
-			}()
+			if ptrValue := this.FuturesRequestId(this.Market(symbol)); ptrValue != nil {
+				request["symbol"] = *ptrValue
+			} else {
+				request["symbol"] = nil
+			}
 		}
 		//
 		//     {
@@ -4858,7 +4856,7 @@ func (this *Btse) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil

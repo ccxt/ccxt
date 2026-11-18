@@ -2154,7 +2154,7 @@ func (this *Binance) fetchQuoteBody(ch chan ccxt.AsyncResult[map[string]any], re
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 
 	//
 	// {
@@ -2195,7 +2195,8 @@ func (this *Binance) PriceToPrecision(outcome any, price any) *string {
 	if (prec != nil) && (*prec > 0) {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
-	return ccxt.SafeStringPtr(this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode))
+	retStr := this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
+	return &retStr
 }
 func (this *Binance) AmountToPrecision(outcome any, amount any) *string {
 	var market map[string]any = this.Market(outcome)
@@ -2205,7 +2206,8 @@ func (this *Binance) AmountToPrecision(outcome any, amount any) *string {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	// amounts truncate so a rounded-up value can never exceed the caller's balance
-	return ccxt.SafeStringPtr(this.DecimalToPrecision(amount, ccxt.TRUNCATE, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode))
+	retStr := this.DecimalToPrecision(amount, ccxt.TRUNCATE, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
+	return &retStr
 }
 
 /**

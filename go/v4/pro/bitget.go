@@ -1697,19 +1697,17 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) map[string]any 
 	var category *string = this.SafeString(trade, "category")
 	var defaultType string
 	if category != nil {
-		defaultType = func() string {
-			if category == nil || *category != "SPOT" {
-				return "contract"
-			}
-			return "spot"
-		}()
+		if category == nil || *category != "SPOT" {
+			defaultType = "contract"
+		} else {
+			defaultType = "spot"
+		}
 	} else {
-		defaultType = func() string {
-			if posMode != nil {
-				return "contract"
-			}
-			return "spot"
-		}()
+		if posMode != nil {
+			defaultType = "contract"
+		} else {
+			defaultType = "spot"
+		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(func() any {
 		if market == nil {
@@ -2584,12 +2582,12 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		price = this.SafeNumber(order, "executePrice")
 	}
 	var avgPriceString *string = this.SafeStringLowerN(order, []any{"priceAvg", "fillPrice", "avgPrice"})
-	var avgPrice *string = func() *string {
-		if avgPriceString == nil {
-			return nil
-		}
-		return this.OmitZero(avgPriceString)
-	}()
+	var avgPrice *string
+	if avgPriceString == nil {
+		avgPrice = nil
+	} else {
+		avgPrice = this.OmitZero(avgPriceString)
+	}
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "orderType")
 	var accBaseVolumeString *string = this.SafeString2(order, "accBaseVolume", "cumExecQty")

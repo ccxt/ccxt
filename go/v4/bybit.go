@@ -2393,7 +2393,7 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan AsyncResult[[]any], optionalArgs
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var promises []any = ListTyped(r.Value)
+		var promises []any = r.Value
 		var response map[string]any = SafeMapTyped(promises, 0)
 		var accountInfo map[string]any = SafeMapTyped(promises, 1)
 		//
@@ -2967,7 +2967,7 @@ func (this *Bybit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var promises []any = ListTyped(r1.Value)
+	var promises []any = r1.Value
 	var result []any = []any{}
 	for i := 0; i < len(promises); i++ {
 		var parsedMarket any = promises[i]
@@ -3155,7 +3155,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var promises []any = ListTyped(r1.Value)
+		var promises []any = r1.Value
 		response = this.SafeDictMap(promises, 0, map[string]any{})
 		preLaunchMarkets = this.SafeDict(promises, 1, map[string]any{})
 	}
@@ -4604,12 +4604,11 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var category *string = this.SafeString(trade, "category")
 	if category != nil {
-		marketType = func() string {
-			if category != nil && *category == "spot" {
-				return "spot"
-			}
-			return "contract"
-		}()
+		if category != nil && *category == "spot" {
+			marketType = "spot"
+		} else {
+			marketType = "contract"
+		}
 	}
 	if market != nil {
 		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
@@ -4628,24 +4627,24 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if side == nil {
 		var isBuyer *int64 = this.SafeInteger(trade, "isBuyer")
 		if isBuyer != nil {
-			sideStr := func() string {
-				if isBuyer == nil || *isBuyer != 0 {
-					return "buy"
-				}
-				return "sell"
-			}()
+			var sideStr string
+			if isBuyer == nil || *isBuyer != 0 {
+				sideStr = "buy"
+			} else {
+				sideStr = "sell"
+			}
 			side = &sideStr
 		}
 	}
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	} else {
 		var lastLiquidityInd *string = this.SafeString(trade, "lastLiquidityInd")
@@ -4657,12 +4656,12 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) Trade {
 				takerOrMakerStr2 := strings.ToLower(*lastLiquidityInd)
 				takerOrMaker = &takerOrMakerStr2
 			} else {
-				takerOrMakerStr3 := func() string {
-					if lastLiquidityInd != nil && *lastLiquidityInd == "AddedLiquidity" {
-						return "maker"
-					}
-					return "taker"
-				}()
+				var takerOrMakerStr3 string
+				if lastLiquidityInd != nil && *lastLiquidityInd == "AddedLiquidity" {
+					takerOrMakerStr3 = "maker"
+				} else {
+					takerOrMakerStr3 = "taker"
+				}
 				takerOrMaker = &takerOrMakerStr3
 			}
 		}
@@ -5443,12 +5442,12 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 	if market != nil {
 		marketType = this.SafeString(market, "type")
 	} else {
-		marketTypeStr := func() string {
-			if isContract {
-				return "contract"
-			}
-			return "spot"
-		}()
+		var marketTypeStr string
+		if isContract {
+			marketTypeStr = "contract"
+		} else {
+			marketTypeStr = "spot"
+		}
 		marketType = &marketTypeStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
@@ -5825,12 +5824,12 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 		}
 		return nil
 	}()
-	var priceString *string = func() *string {
-		if price != nil {
-			return this.GetPrice(symbolValue, this.NumberToString(price))
-		}
-		return nil
-	}()
+	var priceString *string
+	if price != nil {
+		priceString = this.GetPrice(symbolValue, this.NumberToString(price))
+	} else {
+		priceString = nil
+	}
 	if endpointIsTradingStop {
 		if hasStopLoss || hasTakeProfit || isTriggerOrder || (*this.SafeBool(market, "spot", false)) {
 			panic(InvalidOrder(this.Id + " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders"))
@@ -6492,12 +6491,11 @@ func (this *Bybit) CancelOrderRequest(id *string, optionalArgs ...any) map[strin
 	if *this.SafeBool(market, "spot", false) {
 		// only works for spot market
 		var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-		request["orderFilter"] = func() string {
-			if isTrigger != nil && *isTrigger {
-				return "StopOrder"
-			}
-			return "Order"
-		}()
+		if isTrigger != nil && *isTrigger {
+			request["orderFilter"] = "StopOrder"
+		} else {
+			request["orderFilter"] = "Order"
+		}
 	}
 	if id != nil {
 		request["orderId"] = id
@@ -6736,7 +6734,7 @@ func (this *Bybit) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	// {
@@ -9349,29 +9347,29 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) Position {
 		hedged = (positionIdx == nil || *positionIdx != "0")
 	}
 	if (hedged != nil) && (hedged == true) {
-		sideStr := func() string {
-			if positionIdx != nil && *positionIdx == "1" {
-				return "long"
-			}
-			return "short"
-		}()
+		var sideStr string
+		if positionIdx != nil && *positionIdx == "1" {
+			sideStr = "long"
+		} else {
+			sideStr = "short"
+		}
 		side = &sideStr
 	} else if side != nil {
 		if side != nil && *side == "Buy" {
-			sideStr2 := func() string {
-				if isHistory {
-					return "short"
-				}
-				return "long"
-			}()
+			var sideStr2 string
+			if isHistory {
+				sideStr2 = "short"
+			} else {
+				sideStr2 = "long"
+			}
 			side = &sideStr2
 		} else if side != nil && *side == "Sell" {
-			sideStr3 := func() string {
-				if isHistory {
-					return "long"
-				}
-				return "short"
-			}()
+			var sideStr3 string
+			if isHistory {
+				sideStr3 = "long"
+			} else {
+				sideStr3 = "short"
+			}
 			side = &sideStr3
 		} else {
 			side = nil
@@ -9740,7 +9738,7 @@ func (this *Bybit) setLeverageBody(ch chan AsyncResult[map[string]any], leverage
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
@@ -9796,12 +9794,11 @@ func (this *Bybit) setPositionModeBody(ch chan AsyncResult[map[string]any], hedg
 	var query map[string]any = params
 	if symbol != nil {
 		var isLinear *bool = this.SafeBool(market, "linear", false)
-		request["category"] = func() string {
-			if isLinear != nil && *isLinear {
-				return "linear"
-			}
-			return "inverse"
-		}()
+		if isLinear != nil && *isLinear {
+			request["category"] = "linear"
+		} else {
+			request["category"] = "inverse"
+		}
 	} else {
 		var typeVar *string = nil
 		typeVar, query = this.GetBybitType("setPositionMode", market, params)
@@ -9813,7 +9810,7 @@ func (this *Bybit) setPositionModeBody(ch chan AsyncResult[map[string]any], hedg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	// v5

@@ -1135,12 +1135,12 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var taker *bool = this.SafeBool(trade, "taker")
 	var takerOrMaker *string = nil
 	if taker != nil {
-		takerOrMakerStr := func() string {
-			if taker != nil && *taker {
-				return "taker"
-			}
-			return "maker"
-		}()
+		var takerOrMakerStr string
+		if taker != nil && *taker {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
@@ -1990,22 +1990,20 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 		if stopLossPrice != nil {
 			triggerPrice = stopLossPrice
 		}
-		request["orderType"] = func() string {
-			if isMarketOrder {
-				return "stopLoss"
-			}
-			return "stopLossLimit"
-		}()
+		if isMarketOrder {
+			request["orderType"] = "stopLoss"
+		} else {
+			request["orderType"] = "stopLossLimit"
+		}
 	} else if isTakeProfit {
 		if takeProfitPrice != nil {
 			triggerPrice = takeProfitPrice
 		}
-		request["orderType"] = func() string {
-			if isMarketOrder {
-				return "takeProfit"
-			}
-			return "takeProfitLimit"
-		}()
+		if isMarketOrder {
+			request["orderType"] = "takeProfit"
+		} else {
+			request["orderType"] = "takeProfitLimit"
+		}
 	}
 	if triggerPrice != nil {
 		request["triggerAmount"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -2403,7 +2401,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {

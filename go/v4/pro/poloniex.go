@@ -667,7 +667,8 @@ func (this *Poloniex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 		panic(ccxt.BadRequest(this.Id + " unWatchOHLCV cannot take a timeframe of " + timeframe))
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("unsubscribe:" + *channel + "::" + market["symbol"].(string))
+	messageHashStr := "unsubscribe:" + *channel + "::" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 
 	r1 := <-this.UnSubscribeAsync(*channel, []any{market["symbol"]}, []any{messageHash}, params)
 	if r1.Err != nil {
@@ -1573,7 +1574,13 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 					var tradeAmount *string = this.NumberToString(trade["amount"])
 					var previousOrderFilled *string = this.NumberToString(previousOrder["filled"])
 					previousOrderFilled = ccxt.Precise.StringAdd(previousOrderFilled, tradeAmount)
-					ccxt.AddElementToObject(previousOrder, "filled", previousOrderFilled)
+					if previousOrder != nil {
+						if previousOrderFilled != nil {
+							previousOrder["filled"] = *previousOrderFilled
+						} else {
+							previousOrder["filled"] = nil
+						}
+					}
 					var previousOrderAmountRaw *string = this.SafeString(previousOrder, "amount")
 					if previousOrderAmountRaw != nil {
 						var previousOrderAmount *string = this.NumberToString(previousOrder["amount"])
@@ -1596,7 +1603,13 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				}
 				var rawState *string = this.SafeString(order, "state")
 				var state *string = this.ParseStatus(rawState)
-				ccxt.AddElementToObject(previousOrder, "status", state)
+				if previousOrder != nil {
+					if state != nil {
+						previousOrder["status"] = *state
+					} else {
+						previousOrder["status"] = nil
+					}
+				}
 				// update the newUpdates count
 				orders.Append(previousOrder)
 			}

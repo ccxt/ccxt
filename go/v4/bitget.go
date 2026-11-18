@@ -3610,12 +3610,11 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) (*string, ma
 		// if (sandboxMode) {
 		//     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
 		// } else {
-		defaultProductType = func() string {
-			if subType != nil && *subType == "linear" {
-				return "USDT-FUTURES"
-			}
-			return "COIN-FUTURES"
-		}()
+		if subType != nil && *subType == "linear" {
+			defaultProductType = "USDT-FUTURES"
+		} else {
+			defaultProductType = "COIN-FUTURES"
+		}
 	}
 	var productType *string = this.SafeString2(paramsSubType, "productType", "category", defaultProductType)
 	if (productType == nil) && (market != nil) {
@@ -3869,7 +3868,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	var spotInstruments map[string]any = map[string]any{}
 	if fetchMargins {
 		var instrumentsResponse map[string]any = SafeMapTyped(results, spotInstrumentsIndex)
@@ -4217,7 +4216,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	var markets []any = []any{}
 	for i := 0; i < len(results); i++ {
 		var res map[string]any = SafeMapTyped(results, i)
@@ -7304,12 +7303,11 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		timeframes = this.SafeDictMap(timeframesOption, "uta")
 		request["interval"] = this.SafeString(timeframes, timeframe, timeframe)
 	} else {
-		marketType = func() string {
-			if *this.SafeBool(market, "spot", false) {
-				return "spot"
-			}
-			return "swap"
-		}()
+		if *this.SafeBool(market, "spot", false) {
+			marketType = "spot"
+		} else {
+			marketType = "swap"
+		}
 		timeframes = this.SafeDictMap(timeframesOption, marketType)
 		request["granularity"] = this.SafeString(timeframes, timeframe, timeframe)
 	}
@@ -7350,12 +7348,12 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		limitCapped = requestedLimit
 	}
 	// the per-timeframe cap only applies to a user-supplied limit
-	var recentLimit int64 = func() int64 {
-		if (limit != nil) && (limitCapped > timeframeLimit) {
-			return timeframeLimit
-		}
-		return limitCapped
-	}()
+	var recentLimit int64
+	if (limit != nil) && (limitCapped > timeframeLimit) {
+		recentLimit = timeframeLimit
+	} else {
+		recentLimit = limitCapped
+	}
 	var limitResolved int64 = recentLimit
 	var recentDuration int64 = recentLimit * duration
 	var recentEndpointDaysMap map[string]any = SafeMapTyped(this.Options["fetchOHLCV"], "maxRecentDaysPerTimeframe")
@@ -8197,12 +8195,11 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) Order {
 	var reduceOnly any = nil
 	var reduceOnlyRaw *string = this.SafeString(order, "reduceOnly")
 	if reduceOnlyRaw != nil {
-		reduceOnly = func() bool {
-			if reduceOnlyRaw != nil && *reduceOnlyRaw == "NO" {
-				return false
-			}
-			return true
-		}()
+		if reduceOnlyRaw != nil && *reduceOnlyRaw == "NO" {
+			reduceOnly = false
+		} else {
+			reduceOnly = true
+		}
 	}
 	var price *string = nil
 	var average *string = nil
@@ -8229,12 +8226,12 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) Order {
 	var side *string = this.SafeString(order, "side")
 	var posMode *string = this.SafeString(order, "posMode")
 	if (posMode != nil && *posMode == "hedge_mode") && (reduceOnly == true) {
-		sideStr := func() string {
-			if side != nil && *side == "buy" {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if side != nil && *side == "buy" {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	var orderType *string = this.SafeString(order, "orderType")
@@ -8791,19 +8788,17 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 				}
 			}
 			if hedged == true {
-				request["holdSide"] = func() string {
-					if side != nil && *side == "sell" {
-						return "long"
-					}
-					return "short"
-				}()
+				if side != nil && *side == "sell" {
+					request["holdSide"] = "long"
+				} else {
+					request["holdSide"] = "short"
+				}
 			} else {
-				request["holdSide"] = func() string {
-					if side != nil && *side == "sell" {
-						return "buy"
-					}
-					return "sell"
-				}()
+				if side != nil && *side == "sell" {
+					request["holdSide"] = "buy"
+				} else {
+					request["holdSide"] = "sell"
+				}
 			}
 			if isStopLossTriggerOrder {
 				request["triggerPrice"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
@@ -8850,12 +8845,12 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 					request["reduceOnly"] = "YES"
 				} else {
 					// on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
-					requestSideStr := func() string {
-						if side != nil && *side == "buy" {
-							return "sell"
-						}
-						return "buy"
-					}()
+					var requestSideStr string
+					if side != nil && *side == "buy" {
+						requestSideStr = "sell"
+					} else {
+						requestSideStr = "buy"
+					}
 					requestSide = &requestSideStr
 					request["tradeSide"] = "Close"
 				}
@@ -12863,19 +12858,18 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) Position {
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeIntegerN(position, []any{"cTime", "ctime", "createdTime"})
 	var marginMode *string = this.SafeString(position, "marginMode")
-	var collateral any = nil
+	var collateral *string = nil
 	var marginString *string = nil
 	var initialMargin *string = nil
 	var unrealizedPnl *string = this.SafeString2(position, "unrealizedPL", "unrealisedPnl")
 	var collateralString *string = this.SafeString2(position, "marginSize", "positionBalance")
 	var rawCollateral *string = this.OmitZero(collateralString)
 	if marginMode != nil && *marginMode == "isolated" {
-		collateral = func() any {
-			if unrealizedPnl != nil {
-				return Precise.StringAdd(rawCollateral, unrealizedPnl)
-			}
-			return rawCollateral
-		}()
+		if unrealizedPnl != nil {
+			collateral = Precise.StringAdd(rawCollateral, unrealizedPnl)
+		} else {
+			collateral = rawCollateral
+		}
 		initialMargin = rawCollateral
 		marginString = rawCollateral
 	} else if marginMode != nil && *marginMode == "crossed" {
@@ -13578,12 +13572,11 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	var response map[string]any = nil
 	if uta == true {
 		AddElementToObject(requestUntil, "coin", market["settleId"])
-		requestUntil["category"] = func() any {
-			if v := productType; v != nil {
-				return *v
-			}
-			return nil
-		}()
+		if productType != nil {
+			requestUntil["category"] = *productType
+		} else {
+			requestUntil["category"] = nil
+		}
 
 		r4 := <-this.PrivateUtaGetV3AccountFinancialRecords(this.Extend(requestUntil, paramsUntil))
 		if r4.Err != nil {
@@ -13594,12 +13587,11 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		AddElementToObject(requestUntil, "symbol", market["id"])
 		AddElementToObject(requestUntil, "marginCoin", market["settleId"])
 		requestUntil["businessType"] = "contract_settle_fee"
-		requestUntil["productType"] = func() any {
-			if v := productType; v != nil {
-				return *v
-			}
-			return nil
-		}()
+		if productType != nil {
+			requestUntil["productType"] = *productType
+		} else {
+			requestUntil["productType"] = nil
+		}
 
 		r5 := <-this.PrivateMixGetV2MixAccountBill(this.Extend(requestUntil, paramsUntil))
 		if r5.Err != nil {
@@ -14069,7 +14061,7 @@ func (this *Bitget) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -15027,12 +15019,11 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchMyLiquidations() requires a symbol argument"))
 		}
-		requestUntil["symbol"] = func() any {
-			if v := this.SafeString(market, "id"); v != nil {
-				return *v
-			}
-			return nil
-		}()
+		if ptrValue := this.SafeString(market, "id"); ptrValue != nil {
+			requestUntil["symbol"] = *ptrValue
+		} else {
+			requestUntil["symbol"] = nil
+		}
 
 		r2 := <-this.PrivateMarginGetV2MarginIsolatedLiquidationHistory(this.Extend(requestUntil, paramsMarginMode))
 		if r2.Err != nil {
@@ -15941,12 +15932,11 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
-		requestUntil["category"] = func() any {
-			if v := productType; v != nil {
-				return *v
-			}
-			return nil
-		}()
+		if productType != nil {
+			requestUntil["category"] = *productType
+		} else {
+			requestUntil["category"] = nil
+		}
 
 		r2 := <-this.PrivateUtaGetV3PositionHistoryPosition(this.Extend(requestUntil, paramsUTA))
 		if r2.Err != nil {

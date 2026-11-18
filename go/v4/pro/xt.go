@@ -321,7 +321,7 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			listenKey := r1.Value
+			var listenKey *string = r1.Value
 			var param *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", listenKey))
 			subscribe["params"] = []any{param}
 		}
@@ -339,12 +339,11 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	var request map[string]any = this.Extend(subscribe, paramsMarketType)
 	var tail string = access
 	if isContract {
-		tail = func() string {
-			if privateAccess {
-				return "user"
-			}
-			return "market"
-		}()
+		if privateAccess {
+			tail = "user"
+		} else {
+			tail = "market"
+		}
 	}
 	var subscription map[string]any = map[string]any{
 		"id": id,
@@ -420,7 +419,7 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			listenKey := r1.Value
+			var listenKey *string = r1.Value
 			var param *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", listenKey))
 			unsubscribe["params"] = []any{param}
 		}
@@ -435,12 +434,11 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 	var request map[string]any = this.Extend(unsubscribe, paramsMarketType)
 	var tail string = access
 	if isContract {
-		tail = func() string {
-			if privateAccess {
-				return "user"
-			}
-			return "market"
-		}()
+		if privateAccess {
+			tail = "user"
+		} else {
+			tail = "market"
+		}
 	}
 	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var url string = *this.SafeString(apiUrls, tradeType, "") + "/" + tail

@@ -1237,12 +1237,12 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString(trade, "is_maker") != nil && *this.SafeString(trade, "is_maker") == "1")
-		takerOrMakerStr := func() string {
-			if isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
@@ -2001,20 +2001,16 @@ func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var amount any
-	if derefPtr := this.SafeString(income, "funding_fee"); derefPtr != nil {
-		amount = *derefPtr
-	}
+	var amount *string = this.SafeString(income, "funding_fee")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
 	var rate *float64 = this.SafeNumber(income, "funding_rate")
 	var paymentType *string = this.SafeString(income, "payment_type")
-	amount = func() any {
-		if paymentType != nil && *paymentType == "Pay" {
-			return Precise.StringNeg(amount)
-		}
-		return amount
-	}()
+	if paymentType != nil && *paymentType == "Pay" {
+		amount = Precise.StringNeg(amount)
+	} else {
+		amount = amount
+	}
 	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
@@ -2416,12 +2412,12 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
-		statusStr := func() string {
-			if success != nil && *success {
-				return "NEW"
-			}
-			return "REJECTED"
-		}()
+		var statusStr string
+		if success != nil && *success {
+			statusStr = "NEW"
+		} else {
+			statusStr = "REJECTED"
+		}
 		status = &statusStr
 	}
 	var side *string = this.SafeStringLower(order, "side")
@@ -4577,12 +4573,11 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan AsyncResult[MarginModificat
 	// }
 	//
 	var modification map[string]any = this.ParseMarginModification(response, market)
-	modification["type"] = func() string {
-		if typeVar == "ADD" {
-			return "add"
-		}
-		return "reduce"
-	}()
+	if typeVar == "ADD" {
+		modification["type"] = "add"
+	} else {
+		modification["type"] = "reduce"
+	}
 	modification["amount"] = this.ParseNumber(this.NumberToString(amount))
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(modification)}
@@ -5059,15 +5054,10 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 				requestBody = ""
 			}
 		}
-		var secret any = this.Secret
+		var secret string = this.Secret
 		if strings.Index(this.Secret, "ed25519:") >= 0 {
 			var parts []string = strings.Split(this.Secret, "ed25519:")
-			secret = func() any {
-				if 1 >= 0 && 1 < len(parts) {
-					return parts[1]
-				}
-				return nil
-			}()
+			secret = parts[1]
 		}
 		var signature string = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
 		authHeaders["orderly-signature"] = this.UrlencodeBase64(this.Base64ToBinary(signature))

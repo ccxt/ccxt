@@ -780,7 +780,7 @@ func (this *Hibachi) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var pricesResponsestatsResponseVariable []any = ListTyped(r1.Value)
+	var pricesResponsestatsResponseVariable []any = r1.Value
 	pricesResponse := pricesResponsestatsResponseVariable[0]
 	statsResponse := pricesResponsestatsResponseVariable[1]
 	// {
@@ -814,7 +814,8 @@ func (this *Hibachi) ParseOrderStatus(status *string) *string {
 		if status == nil {
 			return nil
 		}
-		return SafeStringPtr(strings.ToUpper(*status))
+		retStr := strings.ToUpper(*status)
+		return &retStr
 	}()
 	var statuses map[string]any = map[string]any{
 		"PENDING":           "open",
@@ -1070,18 +1071,18 @@ func (this *Hibachi) CreateOrderRequest(nonce int64, symbol *string, typeVar *st
 	var market map[string]any = this.Market(symbol)
 	var takerFee *float64 = this.SafeNumber(market, "taker", this.SafeNumber(this.Options, "defaultTakerFee", 0.00045))
 	var makerFee *float64 = this.SafeNumber(market, "maker", this.SafeNumber(this.Options, "defaultMakerFee", 0.00015))
-	var takerFeeValue float64 = func() float64 {
-		if takerFee == nil {
-			return 0
-		}
-		return *takerFee
-	}()
-	var makerFeeValue float64 = func() float64 {
-		if makerFee == nil {
-			return 0
-		}
-		return *makerFee
-	}()
+	var takerFeeValue float64
+	if takerFee == nil {
+		takerFeeValue = 0
+	} else {
+		takerFeeValue = *takerFee
+	}
+	var makerFeeValue float64
+	if makerFee == nil {
+		makerFeeValue = 0
+	} else {
+		makerFeeValue = *makerFee
+	}
 	var feeRate *float64 = this.ParseNumber(Precise.StringMax(this.NumberToString(takerFeeValue), this.NumberToString(makerFeeValue)))
 	var sideInternal string = ""
 	if side != nil && *side == "sell" {
@@ -2480,12 +2481,11 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 		// response from CapitalHistory
 		timestamp = this.SafeIntegerProduct(item, "timestampSec", 1000)
 		amount = this.SafeNumber(item, "quantity")
-		direction = func() string {
-			if (transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "transfer-in") {
-				return "in"
-			}
-			return "out"
-		}()
+		if (transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "transfer-in") {
+			direction = "in"
+		} else {
+			direction = "out"
+		}
 		typeVar = this.ParseTransactionType(transactionType)
 		status = this.ParseTransactionStatus(this.SafeString(item, "status"))
 		if transactionType != nil && *transactionType == "transfer-in" {
@@ -2558,7 +2558,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var promises []any = ListTyped(r1.Value)
+	var promises []any = r1.Value
 	var responseCapitalHistory map[string]any = SafeMapTyped(promises, 0)
 	//
 	// {

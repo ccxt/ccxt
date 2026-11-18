@@ -1491,19 +1491,17 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isBuyerMaker *bool = this.SafeBool(trade, "ibm")
 	var isBuyerTaker *bool = this.SafeBool(trade, "m")
 	if isBuyerMaker != nil {
-		side = func() string {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		if isBuyerMaker != nil && *isBuyerMaker {
+			side = "sell"
+		} else {
+			side = "buy"
+		}
 	} else if isBuyerTaker != nil {
-		side = func() string {
-			if isBuyerTaker != nil && *isBuyerTaker {
-				return "buy"
-			}
-			return "sell"
-		}()
+		if isBuyerTaker != nil && *isBuyerTaker {
+			side = "buy"
+		} else {
+			side = "sell"
+		}
 	} else {
 		if isBuyer != nil && *isBuyer {
 			side = "buy"
@@ -1523,12 +1521,12 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
@@ -1927,10 +1925,10 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], op
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseBidsAsksCustom(response, symbolsNormalized, map[string]any{}))}
 	return nil
 }
-func (this *Toobit) ParseBidsAsksCustom(tickers any, symbols []string, params map[string]any) map[string]any {
+func (this *Toobit) ParseBidsAsksCustom(tickers []any, symbols []string, params map[string]any) map[string]any {
 	var results []any = []any{}
-	for i := 0; i < GetArrayLength(tickers); i++ {
-		var parsedTicker map[string]any = this.ParseBidAskCustom(GetValue(tickers, i))
+	for i := 0; i < len(tickers); i++ {
+		var parsedTicker map[string]any = this.ParseBidAskCustom(tickers[i])
 		var ticker map[string]any = this.Extend(parsedTicker, params)
 		results = append(results, ticker)
 	}
@@ -2342,19 +2340,17 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 	}
 	reduceOnly, paramsReduceOnly := this.HandleParamBool(params, "reduceOnly")
 	if side == "buy" {
-		request["side"] = func() string {
-			if reduceOnly != nil && *reduceOnly == true {
-				return "BUY_CLOSE"
-			}
-			return "BUY_OPEN"
-		}()
+		if reduceOnly != nil && *reduceOnly == true {
+			request["side"] = "BUY_CLOSE"
+		} else {
+			request["side"] = "BUY_OPEN"
+		}
 	} else if side == "sell" {
-		request["side"] = func() string {
-			if reduceOnly != nil && *reduceOnly == true {
-				return "SELL_CLOSE"
-			}
-			return "SELL_OPEN"
-		}()
+		if reduceOnly != nil && *reduceOnly == true {
+			request["side"] = "SELL_CLOSE"
+		} else {
+			request["side"] = "SELL_OPEN"
+		}
 	} else {
 		request["side"] = side
 	}
@@ -3417,7 +3413,7 @@ func (this *Toobit) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[[
 func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -3458,7 +3454,7 @@ func (this *Toobit) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResul
 func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	since := GetArg(optionalArgs, 1, nil)
 	_ = since
@@ -3479,12 +3475,12 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	}
 	return nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar string, code any, since any, limit any, optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+func (this *Toobit) FetchDepositsOrWithdrawalsHelperAsync(typeVar string, code *string, since any, limit any, optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
 	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchDepositsOrWithdrawalsHelperBody(ch, typeVar, code, since, limit, optionalArgs...)
 	return ch
 }
-func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code any, since any, limit any, optionalArgs ...any) any {
+func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]Transaction], typeVar string, code *string, since any, limit any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3498,7 +3494,7 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 	}
 	var currency map[string]any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(code, nil) {
+	if code != nil {
 		currency = this.Currency(code)
 		request["coin"] = currency["id"]
 	}
@@ -3858,7 +3854,7 @@ func (this *Toobit) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	// {"code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED"}
@@ -3909,7 +3905,7 @@ func (this *Toobit) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	// {"code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19"}
@@ -4872,7 +4868,7 @@ func (this *Toobit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 	var res []Transaction = r.Value
 	return res, nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar string, code string, since int64, limit int64, options ...FetchDepositsOrWithdrawalsHelperOptions) ([]Transaction, error) {
+func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar string, code *string, since int64, limit int64, options ...FetchDepositsOrWithdrawalsHelperOptions) ([]Transaction, error) {
 
 	opts := FetchDepositsOrWithdrawalsHelperOptionsStruct{}
 

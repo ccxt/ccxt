@@ -844,7 +844,13 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) map[s
 	if isMaker {
 		idKey = "maker_order_id"
 	}
-	ccxt.AddElementToObject(parsed, "order", this.SafeString(trade, idKey))
+	if parsed != nil {
+		if ptrValue := this.SafeString(trade, idKey); ptrValue != nil {
+			parsed["order"] = *ptrValue
+		} else {
+			parsed["order"] = nil
+		}
+	}
 	var parsedSymbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var marketResolved map[string]any = this.Market(parsedSymbol)
 	var feeCurrency *string = ccxt.SafeStringPtr(marketResolved["quote"])

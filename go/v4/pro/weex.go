@@ -786,12 +786,12 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var side *string = nil
 	var takerOrMaker *string = nil
 	if isBuyerMaker != nil {
-		sideStr := func() string {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if isBuyerMaker != nil && *isBuyerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 		takerOrMakerStr := "taker"
 		takerOrMaker = &takerOrMakerStr // a public trade is reported from the aggressor's side, same as parseTrade

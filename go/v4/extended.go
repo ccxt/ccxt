@@ -510,7 +510,7 @@ func (this *Extended) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	markets := r.Value
+	var markets map[string]any = r.Value
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)
@@ -1115,12 +1115,12 @@ func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var symbol *string = this.SafeSymbol(nil, market)
 	var last *float64 = this.SafeNumber(ticker, "lastPrice")
 	var percentageRaw *string = this.SafeString(ticker, "dailyPriceChangePercentage")
-	var percentage *string = func() *string {
-		if percentageRaw != nil {
-			return Precise.StringMul(percentageRaw, "100")
-		}
-		return nil
-	}()
+	var percentage *string
+	if percentageRaw != nil {
+		percentage = Precise.StringMul(percentageRaw, "100")
+	} else {
+		percentage = nil
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -1587,7 +1587,8 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var sideRaw *string = this.SafeString2(trade, "S", "side")
 	var side *string = func() *string {
 		if sideRaw != nil {
-			return SafeStringPtr(strings.ToLower(*sideRaw))
+			retStr := strings.ToLower(*sideRaw)
+			return &retStr
 		}
 		return nil
 	}()
@@ -1609,12 +1610,12 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isTaker *bool = this.SafeBool(trade, "isTaker")
 	var takerOrMaker *string = nil
 	if isTaker != nil {
-		takerOrMakerStr := func() string {
-			if isTaker != nil && *isTaker {
-				return "taker"
-			}
-			return "maker"
-		}()
+		var takerOrMakerStr string
+		if isTaker != nil && *isTaker {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
@@ -2172,12 +2173,12 @@ func (this *Extended) ParseAccount(account any) map[string]any {
 	var accountIndex *int64 = this.SafeInteger(account, "accountIndex")
 	var typeVar *string = nil
 	if accountIndex != nil {
-		typeVarStr := func() string {
-			if accountIndex != nil && *accountIndex == 0 {
-				return "main"
-			}
-			return "subaccount"
-		}()
+		var typeVarStr string
+		if accountIndex != nil && *accountIndex == 0 {
+			typeVarStr = "main"
+		} else {
+			typeVarStr = "subaccount"
+		}
 		typeVar = &typeVarStr
 	}
 	return map[string]any{
@@ -2291,12 +2292,12 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 	var amountString *string = this.SafeString(item, "amount")
 	var direction *string = nil
 	if amountString != nil {
-		directionStr := func() string {
-			if Precise.StringLt(amountString, "0") {
-				return "out"
-			}
-			return "in"
-		}()
+		var directionStr string
+		if Precise.StringLt(amountString, "0") {
+			directionStr = "out"
+		} else {
+			directionStr = "in"
+		}
 		direction = &directionStr
 	}
 	var fee map[string]any = nil
@@ -2783,12 +2784,11 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	var now int64 = this.Milliseconds()
 	var status string = "pending"
 	if validSignature != nil {
-		status = func() string {
-			if validSignature != nil && *validSignature {
-				return "ok"
-			}
-			return "failed"
-		}()
+		if validSignature != nil && *validSignature {
+			status = "ok"
+		} else {
+			status = "failed"
+		}
 	}
 
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(map[string]any{
@@ -2828,12 +2828,12 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) TransferE
 	var validSignature *bool = this.SafeBool(transfer, "validSignature")
 	var status *string = nil
 	if validSignature != nil {
-		statusStr := func() string {
-			if validSignature != nil && *validSignature {
-				return "ok"
-			}
-			return "failed"
-		}()
+		var statusStr string
+		if validSignature != nil && *validSignature {
+			statusStr = "ok"
+		} else {
+			statusStr = "failed"
+		}
 		status = &statusStr
 	} else {
 		status = this.ParseTransactionStatus(this.SafeString(transfer, "status"))
@@ -3675,12 +3675,12 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	if timeInForce == nil {
-		timeInForceStr := func() string {
-			if uppercaseType == "MARKET" {
-				return "IOC"
-			}
-			return "GTT"
-		}()
+		var timeInForceStr string
+		if uppercaseType == "MARKET" {
+			timeInForceStr = "IOC"
+		} else {
+			timeInForceStr = "GTT"
+		}
 		timeInForce = &timeInForceStr
 	}
 	var fee *string = this.SafeString(params, "fee", "0.0005")
@@ -3862,19 +3862,17 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 				"triggerPrice": this.PriceToPrecision(symbol, triggerPriceStr),
 			}
 			if isBuy {
-				trigger["direction"] = func() string {
-					if isStopLossOrder {
-						return "UP"
-					}
-					return "DOWN"
-				}()
+				if isStopLossOrder {
+					trigger["direction"] = "UP"
+				} else {
+					trigger["direction"] = "DOWN"
+				}
 			} else {
-				trigger["direction"] = func() string {
-					if isStopLossOrder {
-						return "DOWN"
-					}
-					return "UP"
-				}()
+				if isStopLossOrder {
+					trigger["direction"] = "DOWN"
+				} else {
+					trigger["direction"] = "UP"
+				}
 			}
 			request["type"] = "CONDITIONAL"
 			request["trigger"] = trigger
@@ -4153,12 +4151,12 @@ func (this *Extended) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 	//         "status": "OK"
 	//     }
 	//
-	var orderId *string = func() *string {
-		if clientOrderId == nil {
-			return &id
-		}
-		return nil
-	}()
+	var orderId *string
+	if clientOrderId == nil {
+		orderId = &id
+	} else {
+		orderId = nil
+	}
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"info":          response,

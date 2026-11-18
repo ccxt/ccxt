@@ -1084,7 +1084,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) boo
 		}
 		for i := 0; i < len(keys); i++ {
 			var name string = keys[i]
-			var marketId any = this.CoinToMarketId(name)
+			var marketId any = this.CoinToMarketId(&name)
 			var market map[string]any = this.SafeMarket(marketId, nil, nil, "swap")
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 			var ticker map[string]any = this.ParseWsTicker(map[string]any{
@@ -1487,12 +1487,12 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) map[string
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
-		sideStr := func() string {
-			if side != nil && *side == "A" {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if side != nil && *side == "A" {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	var fee *string = this.SafeString(trade, "fee")

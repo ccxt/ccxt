@@ -749,7 +749,8 @@ func (this *Cryptocom) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	var subMessageHash string = "ticker." + *this.SafeString(market, "id", "")
-	var messageHash *string = ccxt.SafeStringPtr("unsubscribe:ticker:" + market["symbol"].(string))
+	messageHashStr := "unsubscribe:ticker:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 
 	r1 := <-this.UnWatchPublicMultipleAsync("ticker", []any{market["symbol"]}, []any{messageHash}, []any{subMessageHash}, []any{subMessageHash}, params)
 	if r1.Err != nil {
@@ -1140,7 +1141,8 @@ func (this *Cryptocom) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol s
 	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var subMessageHash string = "candlestick." + *interval + "." + *this.SafeString(market, "id", "")
-	var messageHash *string = ccxt.SafeStringPtr("unsubscribe:ohlcv:" + market["symbol"].(string) + ":" + timeframe)
+	messageHashStr := "unsubscribe:ohlcv:" + market["symbol"].(string) + ":" + timeframe
+	var messageHash *string = &messageHashStr
 	var subExtend map[string]any = map[string]any{
 		"symbolsAndTimeframes": []any{[]any{market["symbol"], timeframe}},
 	}

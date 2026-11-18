@@ -977,7 +977,8 @@ func (this *Paradex) watchLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liqui
 	}
 	var market map[string]any = this.Market(symbol)
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("trades.", market["id"]))
-	var messageHash *string = ccxt.SafeStringPtr("liquidations:" + market["symbol"].(string))
+	messageHashStr := "liquidations:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var url any = this.GetWsUrl()
 
 	r1 := <-this.SubscribeChannelsAsync(url, []any{messageHash}, []any{channel}, params)
@@ -1390,7 +1391,8 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 			var price *string = this.SafeString(level, "price")
 			var size *string = func() *string {
 				if isDelete {
-					return ccxt.SafeStringPtr("0")
+					retStr := "0"
+					return &retStr
 				}
 				return this.SafeString(level, "size")
 			}()
@@ -1525,7 +1527,8 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("markets_summary." + market["symbol"].(string))
+	messageHashStr := "markets_summary." + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 
 	r1 := <-this.SubscribeMarketsSummaryAsync([]any{market["symbol"]}, []any{messageHash}, params)
 	if r1.Err != nil {
@@ -1703,7 +1706,8 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 	var subMessageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
-		var marketId *string = ccxt.SafeStringPtr(this.Market(symbol)["id"])
+		var market map[string]any = this.Market(symbol)
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		marketIds = append(marketIds, marketId)
 		subscribeHashes = append(subscribeHashes, channel+"."+*marketId)
 		subMessageHashes = append(subMessageHashes, channel+"."+*symbol)
@@ -1717,7 +1721,7 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 	if (symbolsLength > 0) && (client.(ccxt.ClientInterface).SubscriptionHas(channel)) {
 		// the all-markets subscription has no market filter to remove these from, their watchers are ended here
 		for i := 0; i < len(subMessageHashes); i++ {
-			this.CleanUnsubscription(ccxt.AsClient(client), ccxt.DerefScalar(subMessageHashes[i]), ccxt.Add("unsubscribe:", ccxt.DerefScalar(subMessageHashes[i])))
+			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHashes[i], ccxt.Add("unsubscribe:", subMessageHashes[i]))
 		}
 		this.CleanCache(map[string]any{
 			"topic":   "ticker",
@@ -1827,7 +1831,8 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	var channel string = "markets_summary"
 	var pendingHashes []any = []any{channel, channel + ":scoped"}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		pendingHashes = append(pendingHashes, ccxt.Add(channel+".", this.Market(ccxt.GetValue(symbols, i))["id"]))
+		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
+		pendingHashes = append(pendingHashes, ccxt.Add(channel+".", market["id"]))
 	}
 
 	r := <-this.WaitForPendingUnsubscribeAsync(url, pendingHashes)
@@ -1853,7 +1858,8 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	var missingHashes []any = []any{}
 	// messageHashes[i] is the hash the summaries of symbols[i] resolve
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var marketId *string = ccxt.SafeStringPtr(this.Market(ccxt.GetValue(symbols, i))["id"])
+		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
+		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var subscribeHash string = channel + "." + *marketId
 		subscribeHashes = append(subscribeHashes, subscribeHash)
 		if !(client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
@@ -2715,7 +2721,8 @@ func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingR
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("funding_data.", market["id"]))
 	var url any = this.GetWsUrl()
 	// its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
-	var messageHash *string = ccxt.SafeStringPtr("fundingRate:" + market["symbol"].(string))
+	messageHashStr := "fundingRate:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 
 	r1 := <-this.SubscribeChannelsAsync(url, []any{messageHash}, []any{channel}, params)
 	if r1.Err != nil {
@@ -2753,7 +2760,8 @@ func (this *Paradex) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("funding_data.", market["id"]))
-	var messageHash *string = ccxt.SafeStringPtr("fundingRate:" + market["symbol"].(string))
+	messageHashStr := "fundingRate:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 
 	r1 := <-this.UnsubscribeChannelsAsync(this.GetWsUrl(), "fundingRate", []any{channel}, []any{messageHash}, []any{market["symbol"]}, params)
 	if r1.Err != nil {

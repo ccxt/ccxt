@@ -149,7 +149,8 @@ func (this *P2b) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 	}
 	var market map[string]any = this.Market(symbol)
 	var request []any = []any{market["id"], channel}
-	var messageHash *string = ccxt.SafeStringPtr("kline::" + market["symbol"].(string))
+	messageHashStr := "kline::" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 
 	r1 := <-this.SubscribeAsync("kline.subscribe", *messageHash, request, params)
 	if r1.Err != nil {
@@ -402,7 +403,8 @@ func (this *P2b) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	}
 	var market map[string]any = this.Market(symbol)
 	var name string = "depth.subscribe"
-	var messageHash *string = ccxt.SafeStringPtr("orderbook::" + market["symbol"].(string))
+	messageHashStr := "orderbook::" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var interval *string = this.SafeString(params, "interval", "0.001")
 	var limitResolved any = func() any {
 		if limit == nil {

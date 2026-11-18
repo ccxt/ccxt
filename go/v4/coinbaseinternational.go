@@ -877,18 +877,18 @@ func (this *Coinbaseinternational) ParseMarket(market any) map[string]any {
 		}
 		return (settle != quote && (settle == nil || quote == nil || *settle != *quote))
 	}()
-	var marketSettle *string = func() *string {
-		if isSpot {
-			return nil
-		}
-		return settle
-	}()
-	var marketSettleId *string = func() *string {
-		if isSpot {
-			return nil
-		}
-		return settleId
-	}()
+	var marketSettle *string
+	if isSpot {
+		marketSettle = nil
+	} else {
+		marketSettle = settle
+	}
+	var marketSettleId *string
+	if isSpot {
+		marketSettleId = nil
+	} else {
+		marketSettleId = settleId
+	}
 	var minTradeAmount *float64 = this.SafeNumber(market, "min_trade_amount")
 	var tickSize *float64 = this.SafeNumber(market, "tick_size")
 	var isFutureOrOption bool = isFuture || isOption
@@ -4077,7 +4077,7 @@ func (this *Coinbaseinternational) setLeverageBody(ch chan AsyncResult[map[strin
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	response := r2.Value
+	var response map[string]any = r2.Value
 
 	//
 	//     {

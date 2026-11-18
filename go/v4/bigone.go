@@ -697,7 +697,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promisesResult []any = ListTyped(r.Value)
+	var promisesResult []any = r.Value
 	var response map[string]any = SafeMapTyped(promisesResult, 0)
 	var contractResponse any = this.SafeValue(promisesResult, 1)
 	//
@@ -1361,23 +1361,23 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerSide *string = this.SafeString(trade, "taker_side")
 	var takerOrMaker *string = nil
 	if (takerSide != nil) && (side != nil) && (side == nil || *side != "SELF_TRADING") {
-		takerOrMakerStr := func() string {
-			if takerSide == side || (takerSide != nil && side != nil && *takerSide == *side) {
-				return "taker"
-			}
-			return "maker"
-		}()
+		var takerOrMakerStr string
+		if takerSide == side || (takerSide != nil && side != nil && *takerSide == *side) {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	if side == nil {
 		// taker side is not related to buy/sell side
 		// the following code is probably a mistake
-		sideStr := func() string {
-			if takerSide != nil && *takerSide == "ASK" {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if takerSide != nil && *takerSide == "ASK" {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	} else {
 		if side != nil && *side == "BID" {
@@ -1973,12 +1973,11 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	}
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
-		request["operator"] = func() string {
-			if isBuy {
-				return "GTE"
-			}
-			return "LTE"
-		}()
+		if isBuy {
+			request["operator"] = "GTE"
+		} else {
+			request["operator"] = "LTE"
+		}
 		if isLimit {
 			uppercaseType = "STOP_LIMIT"
 		} else if uppercaseType == "MARKET" {

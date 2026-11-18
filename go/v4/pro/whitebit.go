@@ -216,7 +216,8 @@ func (this *Whitebit) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		}
 		return limit
 	}()
-	var messageHash *string = ccxt.SafeStringPtr("orderbook" + ":" + market["symbol"].(string))
+	messageHashStr := "orderbook" + ":" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var method string = "depth_subscribe"
 	var defaultPriceInterval *string = this.SafeString(this.Options["watchOrderBook"], "priceInterval", "0")
 	var priceInterval *string = this.SafeString(params, "priceInterval", defaultPriceInterval)

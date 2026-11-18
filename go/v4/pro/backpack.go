@@ -199,12 +199,12 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		var isRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
 		var source *string = explicitSource
 		if source == nil {
-			sourceStr := func() string {
-				if isRfq && !(bidAsk == true) {
-					return "External"
-				}
-				return "Venue"
-			}()
+			var sourceStr string
+			if isRfq && !(bidAsk == true) {
+				sourceStr = "External"
+			} else {
+				sourceStr = "Venue"
+			}
 			source = &sourceStr
 		}
 		var requestParams map[string]any = this.Extend(marketParams, map[string]any{
@@ -2232,7 +2232,13 @@ func (this *Backpack) HandleBalance(client any, message map[string]any) bool {
 	var microseconds int64 = *this.SafeInteger(data, "E", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
 	parsed["timestamp"] = timestamp
-	ccxt.AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
+	if parsed != nil {
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			parsed["datetime"] = *ptrValue
+		} else {
+			parsed["datetime"] = nil
+		}
+	}
 	ccxt.AddElementToObject(parsed, "info", assets)
 	this.Balance = parsed
 	client.(ccxt.ClientInterface).Resolve(parsed, "balance")
@@ -2505,7 +2511,13 @@ func (this *Backpack) HandlePositions(client any, message map[string]any) {
 	var microseconds int64 = *this.SafeInteger(data, "E", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
 	parsedPosition["timestamp"] = timestamp
-	ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
+	if parsedPosition != nil {
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			parsedPosition["datetime"] = *ptrValue
+		} else {
+			parsedPosition["datetime"] = nil
+		}
+	}
 	cache.Append(parsedPosition)
 	var symbolSpecificMessageHash string = messageHash + ":" + *this.SafeString(parsedPosition, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, messageHash)

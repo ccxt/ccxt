@@ -441,7 +441,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
+	var responses []any = r.Value
 	var limits map[string]any = SafeMapTyped(responses, 2)
 	//
 	//     {
@@ -523,7 +523,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Independentreserve) ParseBalanceList(response any) map[string]any {
+func (this *Independentreserve) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

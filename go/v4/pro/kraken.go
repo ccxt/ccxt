@@ -1336,7 +1336,7 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	markets := r.Value
+	var markets map[string]any = r.Value
 	var marketsByWsName map[string]any = this.SafeDictMap(this.Options, "marketsByWsName")
 	if (marketsByWsName == nil) || (reload == true) {
 		marketsByWsName = map[string]any{}
@@ -1987,7 +1987,7 @@ func (this *Kraken) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes144615 := r.Value
+	var retRes144615 []any = r.Value
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes144615)}
 	return nil
 }
@@ -2427,12 +2427,12 @@ func (this *Kraken) HandleMessage(client any, message map[string]any) {
 			var data []any = ccxt.SafeListTyped(message, "data")
 			var first map[string]any = ccxt.SafeMapTyped(data, 0)
 			var execType *string = this.SafeString(first, "exec_type")
-			channelStr := func() string {
-				if execType != nil && *execType == "trade" {
-					return "myTrades"
-				}
-				return "orders"
-			}()
+			var channelStr string
+			if execType != nil && *execType == "trade" {
+				channelStr = "myTrades"
+			} else {
+				channelStr = "orders"
+			}
 			channel = &channelStr
 		}
 		var methods map[string]any = map[string]any{

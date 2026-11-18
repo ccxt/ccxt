@@ -797,13 +797,13 @@ func (this *Upbit) ParseMarket(market any) map[string]any {
 		"info":    market,
 	})
 }
-func (this *Upbit) ParseBalanceList(response any) map[string]any {
+func (this *Upbit) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -1141,7 +1141,7 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var responses []any = ListTyped(r2.Value)
+		var responses []any = r2.Value
 		tickers = this.ArraysConcat(responses)
 	}
 

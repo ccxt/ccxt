@@ -1179,12 +1179,12 @@ func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if isFromFetchOrder {
 		var isMaker bool = (this.SafeString(trade, "is_maker") != nil && *this.SafeString(trade, "is_maker") == "1")
-		takerOrMakerStr := func() string {
-			if isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
@@ -1905,20 +1905,16 @@ func (this *Modetrade) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var amount any
-	if derefPtr := this.SafeString(income, "funding_fee"); derefPtr != nil {
-		amount = *derefPtr
-	}
+	var amount *string = this.SafeString(income, "funding_fee")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
 	var rate *float64 = this.SafeNumber(income, "funding_rate")
 	var paymentType *string = this.SafeString(income, "payment_type")
-	amount = func() any {
-		if paymentType != nil && *paymentType == "Pay" {
-			return Precise.StringNeg(amount)
-		}
-		return amount
-	}()
+	if paymentType != nil && *paymentType == "Pay" {
+		amount = Precise.StringNeg(amount)
+	} else {
+		amount = amount
+	}
 	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
@@ -2322,12 +2318,12 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
-		statusStr := func() string {
-			if success != nil && *success {
-				return "NEW"
-			}
-			return "REJECTED"
-		}()
+		var statusStr string
+		if success != nil && *success {
+			statusStr = "NEW"
+		} else {
+			statusStr = "REJECTED"
+		}
 		status = &statusStr
 	}
 	var side *string = this.SafeStringLower(order, "side")
@@ -3812,12 +3808,12 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEnt
 	var side *string = this.SafeString(item, "side")
 	var direction *string = nil
 	if side != nil {
-		directionStr := func() string {
-			if side != nil && *side == "DEPOSIT" {
-				return "in"
-			}
-			return "out"
-		}()
+		var directionStr string
+		if side != nil && *side == "DEPOSIT" {
+			directionStr = "in"
+		} else {
+			directionStr = "out"
+		}
 		direction = &directionStr
 	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
@@ -4710,15 +4706,10 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) map[string]any {
 				return nil
 			}()
 		}
-		var secret any = this.Secret
+		var secret string = this.Secret
 		if strings.Index(this.Secret, "ed25519:") >= 0 {
 			var parts []string = strings.Split(this.Secret, "ed25519:")
-			secret = func() any {
-				if 1 >= 0 && 1 < len(parts) {
-					return parts[1]
-				}
-				return nil
-			}()
+			secret = parts[1]
 		}
 		var signature string = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
 		signedHeaders["orderly-signature"] = this.UrlencodeBase64(this.Base64ToBinary(signature))

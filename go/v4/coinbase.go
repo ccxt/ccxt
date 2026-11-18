@@ -1271,10 +1271,9 @@ func (this *Coinbase) fetchTransactionsWithMethodBody(ch chan AsyncResult[[]Tran
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	requestparamsValueVariableRecv, _ := r.Value, r.Value != nil
-	var requestparamsValueVariable []any = requestparamsValueVariableRecv
-	var request map[string]any = MapTyped(requestparamsValueVariable[0])
-	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
+	var requestparamsValueVariable []map[string]any = r.Value
+	var request map[string]any = requestparamsValueVariable[0]
+	var paramsValue map[string]any = requestparamsValueVariable[1]
 	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()
@@ -1647,12 +1646,12 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	if status == nil {
 		var committed *bool = this.SafeBool(transaction, "committed", false)
-		statusStr := func() string {
-			if committed != nil && *committed {
-				return "ok"
-			}
-			return "pending"
-		}()
+		var statusStr string
+		if committed != nil && *committed {
+			statusStr = "ok"
+		} else {
+			statusStr = "pending"
+		}
 		status = &statusStr
 	}
 	var id *string = this.SafeString(transaction, "id")
@@ -2117,7 +2116,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan AsyncResult[[]MarketInterface],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promises []any = ListTyped(r.Value)
+	var promises []any = r.Value
 	var unresolvedContractPromises []any = []any{}
 
 	{
@@ -2595,7 +2594,7 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan AsyncResult[Currencie
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var promisesResult []any = ListTyped(r.Value)
+		var promisesResult []any = r.Value
 		var fiatResponse map[string]any = SafeMapTyped(promisesResult, 0)
 		//
 		//    [
@@ -2664,7 +2663,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promisesResult []any = ListTyped(r.Value)
+	var promisesResult []any = r.Value
 	var fiatResponse map[string]any = SafeMapTyped(promisesResult, 0)
 	//
 	//    [
@@ -2916,12 +2915,11 @@ func (this *Coinbase) fetchTickersV3Body(ch chan AsyncResult[map[string]Ticker],
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", this.GetMarketFromSymbols(symbolsNormalized), params, "default")
 	if (marketType != nil) && (marketType == nil || *marketType != "default") {
-		request["product_type"] = func() string {
-			if marketType != nil && *marketType == "swap" {
-				return "FUTURE"
-			}
-			return "SPOT"
-		}()
+		if marketType != nil && *marketType == "swap" {
+			request["product_type"] = "FUTURE"
+		} else {
+			request["product_type"] = "SPOT"
+		}
 	}
 	var response map[string]any = nil
 	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(paramsMarketType, "fetchTickers", "usePrivate", false)
@@ -3609,10 +3607,9 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	requestparamsValueVariableRecv, _ := r2.Value, r2.Value != nil
-	var requestparamsValueVariable []any = requestparamsValueVariableRecv
-	var request map[string]any = MapTyped(requestparamsValueVariable[0])
-	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
+	var requestparamsValueVariable []map[string]any = r2.Value
+	var request map[string]any = requestparamsValueVariable[0]
+	var paramsValue map[string]any = requestparamsValueVariable[1]
 	// for pagination use parameter 'starting_after'
 	// the value for the next page can be obtained from the result of the previous call in the 'pagination' field
 	// eg: instance.last_http_response -> pagination.next_starting_after
@@ -3972,12 +3969,12 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		"fee":              fee,
 	}, currencyResolved)
 }
-func (this *Coinbase) FindAccountIdAsync(code any, optionalArgs ...any) <-chan AsyncResult[*string] {
+func (this *Coinbase) FindAccountIdAsync(code *string, optionalArgs ...any) <-chan AsyncResult[*string] {
 	ch := make(chan AsyncResult[*string], 1)
 	go this.findAccountIdBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) findAccountIdBody(ch chan AsyncResult[*string], code any, optionalArgs ...any) any {
+func (this *Coinbase) findAccountIdBody(ch chan AsyncResult[*string], code *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3996,7 +3993,7 @@ func (this *Coinbase) findAccountIdBody(ch chan AsyncResult[*string], code any, 
 	}
 	for i := 0; i < GetArrayLength(this.Accounts); i++ {
 		var account map[string]any = MapTyped(GetValue(this.Accounts, i))
-		if IsEqual(this.SafeString(account, "code"), code) {
+		if this.SafeString(account, "code") == code || (this.SafeString(account, "code") != nil && code != nil && *this.SafeString(account, "code") == *code) {
 
 			ch <- AsyncResult[*string]{Value: this.SafeString(account, "id")}
 			return nil
@@ -4022,15 +4019,15 @@ func (this *Coinbase) PrepareAccountRequest(optionalArgs ...any) map[string]any 
 	}
 	return request
 }
-func (this *Coinbase) PrepareAccountRequestWithCurrencyCodeAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Coinbase) PrepareAccountRequestWithCurrencyCodeAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+	ch := make(chan AsyncResult[[]map[string]any], 1)
 	go this.prepareAccountRequestWithCurrencyCodeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan AsyncResult[[]map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
@@ -4053,14 +4050,14 @@ func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan AsyncRes
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		foundAccountId := r.Value
+		var foundAccountId *string = r.Value
 		if foundAccountId == nil {
-			panic(ExchangeError(Add(Add(this.Id+" prepareAccountRequestWithCurrencyCode() could not find account id for ", code), ". You might try to generate the deposit address in the website for that coin first.")))
+			panic(ExchangeError(this.Id + " prepareAccountRequestWithCurrencyCode() could not find account id for " + *code + ". You might try to generate the deposit address in the website for that coin first."))
 		}
 		request["account_id"] = foundAccountId
 	}
 
-	ch <- AsyncResult[[]any]{Value: []any{request, paramsOmitted}}
+	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList([]any{request, paramsOmitted})}
 	return nil
 }
 
@@ -4191,12 +4188,12 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if typeVar == "limit" {
 		if isStop {
 			if stopDirection == nil {
-				stopDirectionStr := func() string {
-					if side == "buy" {
-						return "STOP_DIRECTION_STOP_DOWN"
-					}
-					return "STOP_DIRECTION_STOP_UP"
-				}()
+				var stopDirectionStr string
+				if side == "buy" {
+					stopDirectionStr = "STOP_DIRECTION_STOP_DOWN"
+				} else {
+					stopDirectionStr = "STOP_DIRECTION_STOP_UP"
+				}
 				stopDirection = &stopDirectionStr
 			}
 			if (timeInForce != nil && *timeInForce == "GTD") || (endTime != nil) {
@@ -4226,23 +4223,23 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			var tpslPrice *string = nil
 			if isStopLoss {
 				if stopDirection == nil {
-					stopDirectionStr2 := func() string {
-						if side == "buy" {
-							return "STOP_DIRECTION_STOP_UP"
-						}
-						return "STOP_DIRECTION_STOP_DOWN"
-					}()
+					var stopDirectionStr2 string
+					if side == "buy" {
+						stopDirectionStr2 = "STOP_DIRECTION_STOP_UP"
+					} else {
+						stopDirectionStr2 = "STOP_DIRECTION_STOP_DOWN"
+					}
 					stopDirection = &stopDirectionStr2
 				}
 				tpslPrice = this.PriceToPrecision(symbol, stopLossPrice)
 			} else {
 				if stopDirection == nil {
-					stopDirectionStr3 := func() string {
-						if side == "buy" {
-							return "STOP_DIRECTION_STOP_DOWN"
-						}
-						return "STOP_DIRECTION_STOP_UP"
-					}()
+					var stopDirectionStr3 string
+					if side == "buy" {
+						stopDirectionStr3 = "STOP_DIRECTION_STOP_DOWN"
+					} else {
+						stopDirectionStr3 = "STOP_DIRECTION_STOP_UP"
+					}
 					stopDirection = &stopDirectionStr3
 				}
 				tpslPrice = this.PriceToPrecision(symbol, takeProfitPrice)
@@ -5829,11 +5826,11 @@ func (this *Coinbase) withdrawBody(ch chan AsyncResult[Transaction], code string
 			panic(ArgumentsRequired(this.Id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument"))
 		}
 
-		r1 := <-this.FindAccountIdAsync(code, paramsOmitted)
+		r1 := <-this.FindAccountIdAsync(&code, paramsOmitted)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		foundAccountId := r1.Value
+		var foundAccountId *string = r1.Value
 		if foundAccountId == nil {
 			panic(ExchangeError(this.Id + " withdraw() could not find account id for " + code))
 		}
@@ -5939,10 +5936,9 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	requestparamsValueVariableRecv, _ := r1.Value, r1.Value != nil
-	var requestparamsValueVariable []any = requestparamsValueVariableRecv
-	var request map[string]any = MapTyped(requestparamsValueVariable[0])
-	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
+	var requestparamsValueVariable []map[string]any = r1.Value
+	var request map[string]any = requestparamsValueVariable[0]
+	var paramsValue map[string]any = requestparamsValueVariable[1]
 
 	r2 := <-this.V2PrivateGetAccountsAccountIdAddresses(this.Extend(request, paramsValue))
 	if r2.Err != nil {
@@ -6134,11 +6130,11 @@ func (this *Coinbase) depositBody(ch chan AsyncResult[Transaction], code string,
 			panic(ArgumentsRequired(this.Id + " deposit() requires an account_id (or accountId) parameter OR a currency code argument"))
 		}
 
-		r1 := <-this.FindAccountIdAsync(code, paramsOmitted)
+		r1 := <-this.FindAccountIdAsync(&code, paramsOmitted)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		foundAccountId := r1.Value
+		var foundAccountId *string = r1.Value
 		if foundAccountId == nil {
 			panic(ExchangeError(this.Id + " deposit() could not find account id for " + code))
 		}
@@ -6212,7 +6208,7 @@ func (this *Coinbase) FetchDepositAsync(id any, optionalArgs ...any) <-chan Asyn
 func (this *Coinbase) fetchDepositBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	code := GetArg(optionalArgs, 0, nil)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -6238,9 +6234,9 @@ func (this *Coinbase) fetchDepositBody(ch chan AsyncResult[Transaction], id any,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		foundAccountId := r1.Value
+		var foundAccountId *string = r1.Value
 		if foundAccountId == nil {
-			panic(ExchangeError(Add(this.Id+" fetchDeposit() could not find account id for ", code)))
+			panic(ExchangeError(this.Id + " fetchDeposit() could not find account id for " + *code))
 		}
 		request["account_id"] = foundAccountId
 	}

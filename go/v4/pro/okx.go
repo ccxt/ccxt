@@ -1917,7 +1917,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 	var resyncHashes []any = []any{}
 	var resyncNeeded bool = false
 	for i := 0; i < len(messageHashes); i++ {
-		if this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), ccxt.DerefScalar(messageHashes[i])) != nil && *this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), ccxt.DerefScalar(messageHashes[i])) == "resync" {
+		if this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHashes[i]) != nil && *this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHashes[i]) == "resync" {
 			// okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
 			resyncTopics = append(resyncTopics, func() any {
 				if i >= 0 && i < len(topics) {

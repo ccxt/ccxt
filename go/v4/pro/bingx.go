@@ -954,7 +954,13 @@ func (this *Bingx) HandleOrderBook(client any, message map[string]any) {
 		snapshot = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1)
 	}
 	var nonce *int64 = this.SafeInteger(data, "lastUpdateId")
-	ccxt.AddElementToObject(snapshot, "nonce", nonce)
+	if snapshot != nil {
+		if nonce != nil {
+			snapshot["nonce"] = *nonce
+		} else {
+			snapshot["nonce"] = nil
+		}
+	}
 	orderbook.Reset(snapshot)
 	var messageHash string = this.GetMessageHash("orderbook", symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -987,12 +993,11 @@ func (this *Bingx) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 		timestamp = "t"
 	}
 	if *this.SafeBool(market, "swap", false) {
-		timestamp = func() string {
-			if isInverse != nil && *isInverse {
-				return "t"
-			}
-			return "T"
-		}()
+		if isInverse != nil && *isInverse {
+			timestamp = "t"
+		} else {
+			timestamp = "T"
+		}
 	}
 	return []any{this.SafeInteger(ohlcv, timestamp), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
 }
@@ -1889,8 +1894,20 @@ func (this *Bingx) HandlePositions(client any, message map[string]any) {
 			continue
 		}
 		var timestamp *int64 = this.SafeInteger(message, "E")
-		ccxt.AddElementToObject(position, "timestamp", timestamp)
-		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
+		if position != nil {
+			if timestamp != nil {
+				position["timestamp"] = *timestamp
+			} else {
+				position["timestamp"] = nil
+			}
+		}
+		if position != nil {
+			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+				position["datetime"] = *ptrValue
+			} else {
+				position["datetime"] = nil
+			}
+		}
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}

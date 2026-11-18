@@ -808,7 +808,7 @@ func (this *Grvt) signInWithApiKeyBody(ch chan AsyncResult[map[string]any], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 	//
 	//    {
 	//        "location": "",
@@ -850,7 +850,7 @@ func (this *Grvt) signInWithPrivateKeyBody(ch chan AsyncResult[map[string]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	response := r.Value
+	var response map[string]any = r.Value
 	//
 	//    {
 	//        "location": "",
@@ -889,7 +889,7 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	//
 	// {
 	//     "results": [{
@@ -1023,7 +1023,7 @@ func (this *Grvt) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	var response map[string]any = SafeMapTyped(results, 0)
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
@@ -1555,28 +1555,25 @@ func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isTakerBuyer *bool = this.SafeBool(trade, "is_taker_buyer")
 	var side string
 	if isTakerBuyer != nil {
-		side = func() string {
-			if isTakerBuyer != nil && *isTakerBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		if isTakerBuyer != nil && *isTakerBuyer {
+			side = "buy"
+		} else {
+			side = "sell"
+		}
 		takerOrMaker = "taker"
 	} else {
 		var isTaker *bool = this.SafeBool(trade, "is_taker", false)
 		var isBuyer *bool = this.SafeBool(trade, "is_buyer", false)
-		takerOrMaker = func() string {
-			if isTaker != nil && *isTaker {
-				return "taker"
-			}
-			return "maker"
-		}()
-		side = func() string {
-			if isBuyer != nil && *isBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		if isTaker != nil && *isTaker {
+			takerOrMaker = "taker"
+		} else {
+			takerOrMaker = "maker"
+		}
+		if isBuyer != nil && *isBuyer {
+			side = "buy"
+		} else {
+			side = "sell"
+		}
 	}
 	var fee map[string]any = nil
 	var feeString *string = this.SafeString(trade, "fee")
@@ -2659,7 +2656,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan AsyncResult[bool]) any {
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
+	var responses []any = r.Value
 	var result1 map[string]any = SafeMapTyped(responses[0], "result")
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
 	this.Options["userMainAccountId"] = DerefScalar(mainAccountId)
@@ -2868,20 +2865,20 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		var selectedType *string = nil
 		var isBuy bool = (side == "buy")
 		if stopLossPrice != nil {
-			selectedTypeStr := func() string {
-				if isBuy {
-					return "STOP_LOSS"
-				}
-				return "TAKE_PROFIT"
-			}()
+			var selectedTypeStr string
+			if isBuy {
+				selectedTypeStr = "STOP_LOSS"
+			} else {
+				selectedTypeStr = "TAKE_PROFIT"
+			}
 			selectedType = &selectedTypeStr
 		} else if takeProfitPrice != nil {
-			selectedTypeStr2 := func() string {
-				if isBuy {
-					return "TAKE_PROFIT"
-				}
-				return "STOP_LOSS"
-			}()
+			var selectedTypeStr2 string
+			if isBuy {
+				selectedTypeStr2 = "TAKE_PROFIT"
+			} else {
+				selectedTypeStr2 = "STOP_LOSS"
+			}
 			selectedType = &selectedTypeStr2
 		} else {
 			var triggerDirection *string = this.SafeString(paramsTriggerPrices, "triggerDirection")
@@ -2890,20 +2887,20 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 			}
 			if triggerDirection != nil {
 				if triggerDirection != nil && *triggerDirection == "ascending" {
-					selectedTypeStr3 := func() string {
-						if isBuy {
-							return "STOP_LOSS"
-						}
-						return "TAKE_PROFIT"
-					}()
+					var selectedTypeStr3 string
+					if isBuy {
+						selectedTypeStr3 = "STOP_LOSS"
+					} else {
+						selectedTypeStr3 = "TAKE_PROFIT"
+					}
 					selectedType = &selectedTypeStr3
 				} else if triggerDirection != nil && *triggerDirection == "descending" {
-					selectedTypeStr4 := func() string {
-						if isBuy {
-							return "TAKE_PROFIT"
-						}
-						return "STOP_LOSS"
-					}()
+					var selectedTypeStr4 string
+					if isBuy {
+						selectedTypeStr4 = "TAKE_PROFIT"
+					} else {
+						selectedTypeStr4 = "STOP_LOSS"
+					}
 					selectedType = &selectedTypeStr4
 				}
 			}
@@ -4082,7 +4079,8 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	var timeInForceRaw *string = this.SafeString(order, "time_in_force")
 	var timeInForce *string = func() *string {
 		if isPostOnly != nil && *isPostOnly == true {
-			return SafeStringPtr("PO")
+			retStr := "PO"
+			return &retStr
 		}
 		return this.ParseTimeInForce(timeInForceRaw)
 	}()
@@ -4108,12 +4106,12 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	if firstLeg != nil {
 		size = this.SafeString(firstLeg, "size")
 		var isBuyingAsset *bool = this.SafeBool(firstLeg, "is_buying_asset", false)
-		sideStr := func() string {
-			if isBuyingAsset != nil && *isBuyingAsset {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if isBuyingAsset != nil && *isBuyingAsset {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 		price = this.SafeString(firstLeg, "limit_price")
 		filled = this.SafeString(filledAmounts, primaryOrderIndex)

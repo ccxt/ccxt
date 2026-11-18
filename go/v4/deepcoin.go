@@ -573,7 +573,7 @@ func (this *Deepcoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
+	var responses []any = r.Value
 	for i := 0; i < len(responses); i++ {
 		result = this.ArrayConcat(result, responses[i])
 	}
@@ -2335,10 +2335,12 @@ func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params an
 	var timeInForce *string = this.HandleTimeInForce(paramsPostOnly)
 	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, "timeInForce")
 	if timeInForce != nil && *timeInForce == "IOC" {
-		return SafeStringPtr("ioc"), paramsOmitted
+		retStr := "ioc"
+		return &retStr, paramsOmitted
 	}
 	if postOnly {
-		return SafeStringPtr("post_only"), paramsOmitted
+		retStr2 := "post_only"
+		return &retStr2, paramsOmitted
 	}
 	return SafeStringPtr(typeVar), paramsOmitted
 }
@@ -3705,7 +3707,7 @@ func (this *Deepcoin) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {

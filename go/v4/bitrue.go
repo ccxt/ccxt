@@ -1002,7 +1002,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promises []any = ListTyped(r.Value)
+	var promises []any = r.Value
 	var spotMarkets any = this.SafeList(this.SafeDict(promises, 0), "symbols", []any{})
 	var futureMarkets []any = SafeListTypedDefault(promises, 1, []any{})
 	var deliveryMarkets []any = SafeListTypedDefault(promises, 2, []any{})
@@ -2054,21 +2054,21 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var buyerMaker *bool = this.SafeBool(trade, "isBuyerMaker") // ignore "m" until Bitrue fixes api
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if buyerMaker != nil {
-		sideStr := func() string {
-			if buyerMaker != nil && *buyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if buyerMaker != nil && *buyerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	if isBuyer != nil {
-		sideStr2 := func() string {
-			if isBuyer != nil && *isBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr2 string
+		if isBuyer != nil && *isBuyer {
+			sideStr2 = "buy"
+		} else {
+			sideStr2 = "sell"
+		}
 		side = &sideStr2 // this is a true side
 	}
 	var fee map[string]any = nil
@@ -2081,12 +2081,12 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
@@ -2446,12 +2446,11 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 		request["positionType"] = 1
 		var reduceOnly *bool = this.SafeBool2(paramsNoCost, "reduceOnly", "reduce_only")
-		request["open"] = func() string {
-			if reduceOnly != nil && *reduceOnly == true {
-				return "CLOSE"
-			}
-			return "OPEN"
-		}()
+		if reduceOnly != nil && *reduceOnly == true {
+			request["open"] = "CLOSE"
+		} else {
+			request["open"] = "OPEN"
+		}
 		var leverage *string = this.SafeString(paramsNoCost, "leverage", "1")
 		request["leverage"] = this.ParseToNumeric(leverage)
 		var paramsSwap map[string]any = this.OmitDict(paramsNoCost, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})

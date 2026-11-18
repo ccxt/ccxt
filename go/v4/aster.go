@@ -1237,7 +1237,7 @@ func (this *Aster) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	var sapiResult map[string]any = SafeMapTyped(results, 0)
 	var sapiRows []any = SafeListTypedDefault(sapiResult, "symbols", []any{})
 	var fapiResult map[string]any = SafeMapTyped(results, 1)
@@ -1700,34 +1700,34 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 		if side == nil {
 			var isBuyer *bool = this.SafeBool(trade, "buyer")
 			if isBuyer != nil {
-				sideStr := func() string {
-					if isBuyer != nil && *isBuyer {
-						return "buy"
-					}
-					return "sell"
-				}()
+				var sideStr string
+				if isBuyer != nil && *isBuyer {
+					sideStr = "buy"
+				} else {
+					sideStr = "sell"
+				}
 				side = &sideStr
 			}
 		}
 	}
 	var isBuyerMaker *bool = this.SafeBool2(trade, "isBuyerMaker", "m")
 	if isBuyerMaker != nil {
-		sideStr2 := func() string {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr2 string
+		if isBuyerMaker != nil && *isBuyerMaker {
+			sideStr2 = "sell"
+		} else {
+			sideStr2 = "buy"
+		}
 		side = &sideStr2
 	}
 	return this.SafeTrade(map[string]any{
@@ -2068,19 +2068,17 @@ func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var isTickerResponse bool = (InOp(ticker, "priceChange"))
 	var marketType string
 	if isTickerResponse {
-		marketType = func() string {
-			if InOp(ticker, "baseAsset") {
-				return "spot"
-			}
-			return "swap"
-		}()
+		if InOp(ticker, "baseAsset") {
+			marketType = "spot"
+		} else {
+			marketType = "swap"
+		}
 	} else {
-		marketType = func() string {
-			if InOp(ticker, "lastUpdateId") {
-				return "swap"
-			}
-			return "spot"
-		}()
+		if InOp(ticker, "lastUpdateId") {
+			marketType = "swap"
+		} else {
+			marketType = "spot"
+		}
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
@@ -2867,7 +2865,7 @@ func (this *Aster) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     { "code": 200,"msg": "success" }
@@ -4134,7 +4132,7 @@ func (this *Aster) setLeverageBody(ch chan AsyncResult[map[string]any], leverage
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {
@@ -4847,12 +4845,12 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var collateralString *string = nil
 	var marginMode *string = this.SafeString(position, "marginType")
 	if (marginMode == nil) && (isolatedMarginString != nil) {
-		marginModeStr := func() string {
-			if Precise.StringEq(isolatedMarginString, "0") {
-				return "cross"
-			}
-			return "isolated"
-		}()
+		var marginModeStr string
+		if Precise.StringEq(isolatedMarginString, "0") {
+			marginModeStr = "cross"
+		} else {
+			marginModeStr = "isolated"
+		}
 		marginMode = &marginModeStr
 	}
 	var side *string = nil
@@ -5257,12 +5255,12 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	if Precise.StringEquals(notionalString, "0") {
 		entryPrice = nil
 	} else {
-		sideStr := func() string {
-			if Precise.StringLt(notionalString, "0") {
-				return "short"
-			}
-			return "long"
-		}()
+		var sideStr string
+		if Precise.StringLt(notionalString, "0") {
+			sideStr = "short"
+		} else {
+			sideStr = "long"
+		}
 		side = &sideStr
 		marginRatio = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4))
 		percentage = this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100"))

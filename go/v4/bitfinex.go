@@ -818,7 +818,8 @@ func (this *Bitfinex) AmountToPrecision(symbol any, amount any) *string {
 	// Anything exceeding this will be rounded to the 8th decimal.
 	var symbolValue *string = this.SafeSymbol(symbol)
 	var market map[string]any = this.Market(symbolValue)
-	return SafeStringPtr(this.DecimalToPrecision(amount, TRUNCATE, this.SafeValue(market["precision"], "amount"), DECIMAL_PLACES))
+	retStr := this.DecimalToPrecision(amount, TRUNCATE, this.SafeValue(market["precision"], "amount"), DECIMAL_PLACES)
+	return &retStr
 }
 func (this *Bitfinex) PriceToPrecision(symbol any, price any) *string {
 	var symbolValue *string = this.SafeSymbol(symbol)
@@ -828,7 +829,8 @@ func (this *Bitfinex) PriceToPrecision(symbol any, price any) *string {
 	// The precision level of all trading prices is based on significant figures.
 	// All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
 	// Prices submit with a precision larger than 5 will be cut by the API.
-	return SafeStringPtr(this.DecimalToPrecision(priceValue, TRUNCATE, 8, DECIMAL_PLACES))
+	retStr := this.DecimalToPrecision(priceValue, TRUNCATE, 8, DECIMAL_PLACES)
+	return &retStr
 }
 
 /**
@@ -933,12 +935,7 @@ func (this *Bitfinex) ParseMarket(pairObj any) map[string]any {
 	if strings.Index(*id, ":") >= 0 {
 		var parts []string = strings.Split(*id, ":")
 		baseId = parts[0]
-		quoteId = func() any {
-			if 1 >= 0 && 1 < len(parts) {
-				return parts[1]
-			}
-			return nil
-		}()
+		quoteId = parts[1]
 	} else {
 		baseId = func() string {
 			if id == nil {
@@ -1213,7 +1210,8 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 	var isCryptoCoin bool = (rawType != nil) || (InOp(explorer, id)) // "hacky" solution
 	var typeVar *string = func() *string {
 		if isCryptoCoin {
-			return SafeStringPtr("crypto")
+			retStr := "crypto"
+			return &retStr
 		}
 		return nil
 	}()
@@ -1943,12 +1941,12 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		symbol = this.SafeSymbol(marketId)
 		orderId = this.SafeString(tradeList, 3)
 		var maker *int64 = this.SafeInteger(tradeList, 8)
-		takerOrMakerStr := func() string {
-			if maker != nil && *maker == 1 {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if maker != nil && *maker == 1 {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 		var feeCostString *string = this.SafeString(tradeList, 9)
 		feeCostString = Precise.StringNeg(feeCostString)
@@ -3383,12 +3381,12 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	} else {
 		address = poolAddress
 	}
-	var tag *string = func() *string {
-		if poolAddress == nil {
-			return nil
-		}
-		return this.SafeString(result, 4)
-	}()
+	var tag *string
+	if poolAddress == nil {
+		tag = nil
+	} else {
+		tag = this.SafeString(result, 4)
+	}
 	this.CheckAddress(address)
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{

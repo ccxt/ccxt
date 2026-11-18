@@ -96,7 +96,7 @@ func (this *Hashkey) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageHa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listenKey := r.Value
+	var listenKey *string = r.Value
 	var url any = this.GetPrivateUrl(listenKey)
 
 	r1 := <-this.WatchList(url, messageHash, nil, messageHash)
@@ -813,20 +813,20 @@ func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		if isPublicTrade {
 			takerOrMakerStr := "taker"
 			takerOrMaker = &takerOrMakerStr
-			sideStr := func() string {
-				if isBuyerMaker != nil && *isBuyerMaker {
-					return "sell"
-				}
-				return "buy"
-			}()
+			var sideStr string
+			if isBuyerMaker != nil && *isBuyerMaker {
+				sideStr = "sell"
+			} else {
+				sideStr = "buy"
+			}
 			side = &sideStr
 		} else {
-			takerOrMakerStr2 := func() string {
-				if isBuyerMaker != nil && *isBuyerMaker {
-					return "maker"
-				}
-				return "taker"
-			}()
+			var takerOrMakerStr2 string
+			if isBuyerMaker != nil && *isBuyerMaker {
+				takerOrMakerStr2 = "maker"
+			} else {
+				takerOrMakerStr2 = "taker"
+			}
 			takerOrMaker = &takerOrMakerStr2
 			side = this.SafeStringLower(trade, "S")
 		}
@@ -887,7 +887,7 @@ func (this *Hashkey) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listenKey := r1.Value
+	var listenKey *string = r1.Value
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
 	var messageHashes []any = []any{}
@@ -1020,7 +1020,7 @@ func (this *Hashkey) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listenKey := r.Value
+	var listenKey *string = r.Value
 	if this.Markets == nil {
 
 		r1 := <-this.LoadMarketsAsync()

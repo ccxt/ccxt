@@ -227,7 +227,7 @@ func (this *Deepcoin) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageH
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listenKey := r.Value
+	var listenKey *string = r.Value
 
 	r1 := <-this.WatchList(ccxt.Add(*this.SafeString(this.UrlsApi["ws"], "private", "")+"?listenKey=", listenKey), messageHash, nil, "private", params)
 	if r1.Err != nil {
@@ -1503,7 +1503,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listenKey := r1.Value
+	var listenKey *string = r1.Value
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
 	var messageHashes []any = []any{}

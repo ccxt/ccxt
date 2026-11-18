@@ -1037,12 +1037,12 @@ func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(marketResolved, "spot", false)
-	var quoteVolume *string = func() *string {
-		if spot != nil && *spot {
-			return this.SafeString(ticker, "volCurrency24h")
-		}
-		return nil
-	}()
+	var quoteVolume *string
+	if spot != nil && *spot {
+		quoteVolume = this.SafeString(ticker, "volCurrency24h")
+	} else {
+		quoteVolume = nil
+	}
 	var baseVolume *string = this.SafeString(ticker, "vol24h")
 	var high *string = this.SafeString(ticker, "high24h")
 	var low *string = this.SafeString(ticker, "low24h")
@@ -1871,12 +1871,11 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	var timeInForce string = *this.SafeString(query, "timeInForce", "GTC")
 	var isHedged *bool = this.SafeBool(query, "hedged", false)
 	if isHedged != nil && *isHedged {
-		request["positionSide"] = func() string {
-			if side != nil && *side == "buy" {
-				return "long"
-			}
-			return "short"
-		}()
+		if side != nil && *side == "buy" {
+			request["positionSide"] = "long"
+		} else {
+			request["positionSide"] = "short"
+		}
 	}
 	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	query = this.Omit(query, []any{"timeInForce"})
@@ -2130,12 +2129,11 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var reduceOnly *bool = this.SafeBool(paramsTpsl, "reduceOnly")
 	if reduceOnly != nil {
 		if paramsTpsl != nil {
-			paramsTpsl["reduceOnly"] = func() string {
-				if reduceOnly != nil && *reduceOnly {
-					return "true"
-				}
-				return "false"
-			}()
+			if reduceOnly != nil && *reduceOnly {
+				paramsTpsl["reduceOnly"] = "true"
+			} else {
+				paramsTpsl["reduceOnly"] = "false"
+			}
 		}
 	}
 	if isCombinedSlTp {
@@ -2189,12 +2187,11 @@ func (this *Blofin) CreateTpslOrderRequest(symbol string, typeVar string, side s
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var positionSide string = "net"
 	if hedged != nil && *hedged {
-		positionSide = func() string {
-			if side == "buy" {
-				return "short"
-			}
-			return "long"
-		}()
+		if side == "buy" {
+			positionSide = "short"
+		} else {
+			positionSide = "long"
+		}
 	}
 	var request map[string]any = map[string]any{
 		"instId":       market["id"],
@@ -4118,37 +4115,31 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 	}
 	var notional *float64 = this.ParseNumber(notionalString)
 	var marginMode *string = this.SafeString(position, "marginMode")
-	var initialMarginString any = nil
+	var initialMarginString *string = nil
 	var entryPriceString *string = this.SafeString2(position, "averagePrice", "openAveragePrice")
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedPnl")
 	var leverageString *string = this.SafeString(position, "leverage")
 	var initialMarginPercentageString *string = nil
-	var collateralString any = nil
+	var collateralString *string = nil
 	var marginString *string = nil
 	if marginMode != nil && *marginMode == "cross" {
-		if derefPtr := this.SafeString(position, "initialMargin"); derefPtr != nil {
-			initialMarginString = *derefPtr
+		initialMarginString = this.SafeString(position, "initialMargin")
+		if unrealizedPnlString != nil {
+			collateralString = Precise.StringAdd(initialMarginString, unrealizedPnlString)
 		} else {
-			initialMarginString = nil
+			collateralString = initialMarginString
 		}
-		collateralString = func() any {
-			if unrealizedPnlString != nil {
-				return Precise.StringAdd(initialMarginString, unrealizedPnlString)
-			}
-			return initialMarginString
-		}()
 	} else if marginMode != nil && *marginMode == "isolated" {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString)
 		var isolatedMarginString *string = this.OmitZero(this.SafeString2(position, "margin", "initialMargin"))
 		if isolatedMarginString != nil {
 			initialMarginString = isolatedMarginString
 			marginString = isolatedMarginString
-			collateralString = func() any {
-				if unrealizedPnlString != nil {
-					return Precise.StringAdd(isolatedMarginString, unrealizedPnlString)
-				}
-				return isolatedMarginString
-			}()
+			if unrealizedPnlString != nil {
+				collateralString = Precise.StringAdd(isolatedMarginString, unrealizedPnlString)
+			} else {
+				collateralString = isolatedMarginString
+			}
 		}
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
@@ -4156,7 +4147,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentageString == nil {
 		initialMarginPercentageString = Precise.StringDiv(initialMarginString, notionalString, 4)
-	} else if IsEqual(initialMarginString, nil) {
+	} else if initialMarginString == nil {
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
@@ -4167,7 +4158,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 		return nil
 	}()
 	var liquidationPriceString *string = this.OmitZero(this.SafeString(position, "liquidationPrice"))
-	if (liquidationPriceString == nil) && (marginMode != nil && *marginMode == "isolated") && (!IsEqual(initialMarginString, nil)) && (entryPriceString != nil) && (contractsAbs != nil) && Precise.StringGt(contractsAbs, "0") && (contractSizeString != nil) && (maintenanceMarginPercentage != nil) {
+	if (liquidationPriceString == nil) && (marginMode != nil && *marginMode == "isolated") && (initialMarginString != nil) && (entryPriceString != nil) && (contractsAbs != nil) && Precise.StringGt(contractsAbs, "0") && (contractSizeString != nil) && (maintenanceMarginPercentage != nil) {
 		var takerFeeRate *string = this.SafeString(marketResolved, "taker", "0.0006")
 		var mmpWithFee *string = Precise.StringAdd(this.NumberToString(maintenanceMarginPercentage), takerFeeRate)
 		var totalSize *string = Precise.StringMul(contractsAbs, contractSizeString)
@@ -4434,7 +4425,7 @@ func (this *Blofin) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil

@@ -1197,7 +1197,8 @@ func (this *Blofin) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRa
 	}
 	var market map[string]any = this.Market(symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchFundingRate", market, params)
-	var messageHash *string = ccxt.SafeStringPtr("fundingRate:" + market["symbol"].(string))
+	messageHashStr := "fundingRate:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var requestParams map[string]any = map[string]any{
 		"channel": "funding-rate",
 		"instId":  market["id"],

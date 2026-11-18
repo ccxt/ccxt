@@ -1706,7 +1706,7 @@ func (this *Bingx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promises []any = ListTyped(r.Value)
+	var promises []any = r.Value
 	var linearSwapMarkets []any = SafeListTypedDefault(promises, 0, []any{})
 	var inverseSwapMarkets []any = SafeListTypedDefault(promises, 1, []any{})
 	var spotMarkets []any = SafeListTypedDefault(promises, 2, []any{})
@@ -2186,23 +2186,23 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takeOrMaker *string = nil
 	var isMakerSide bool = (isBuyerMaker != nil && *isBuyerMaker == true) || (m != nil && *m == true)
 	if (isBuyerMaker != nil) || (m != nil) {
-		takeOrMakerStr := func() string {
-			if isMakerSide {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takeOrMakerStr string
+		if isMakerSide {
+			takeOrMakerStr = "maker"
+		} else {
+			takeOrMakerStr = "taker"
+		}
 		takeOrMaker = &takeOrMakerStr
 	}
 	var side *string = this.SafeStringLower2(trade, "side", "S")
 	if side == nil {
 		if (isBuyerMaker != nil) || (m != nil) {
-			sideStr := func() string {
-				if isMakerSide {
-					return "sell"
-				}
-				return "buy"
-			}()
+			var sideStr string
+			if isMakerSide {
+				sideStr = "sell"
+			} else {
+				sideStr = "buy"
+			}
 			side = &sideStr
 			takeOrMakerStr2 := "taker"
 			takeOrMaker = &takeOrMakerStr2
@@ -2210,22 +2210,22 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {
-		sideStr2 := func() string {
-			if isBuyer != nil && *isBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr2 string
+		if isBuyer != nil && *isBuyer {
+			sideStr2 = "buy"
+		} else {
+			sideStr2 = "sell"
+		}
 		side = &sideStr2
 	}
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	if isMaker != nil {
-		takeOrMakerStr3 := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takeOrMakerStr3 string
+		if isMaker != nil && *isMaker {
+			takeOrMakerStr3 = "maker"
+		} else {
+			takeOrMakerStr3 = "taker"
+		}
 		takeOrMaker = &takeOrMakerStr3
 	}
 	var amount *string
@@ -4041,26 +4041,25 @@ func (this *Bingx) ParsePosition(position any, optionalArgs ...any) Position {
 	var isolated *bool = this.SafeBool(position, "isolated")
 	var marginMode *string = nil
 	if isolated != nil {
-		marginModeStr := func() string {
-			if isolated != nil && *isolated {
-				return "isolated"
-			}
-			return "cross"
-		}()
+		var marginModeStr string
+		if isolated != nil && *isolated {
+			marginModeStr = "isolated"
+		} else {
+			marginModeStr = "cross"
+		}
 		marginMode = &marginModeStr
 	}
 	var initialMarginString *string = this.SafeString(position, "initialMargin")
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedProfit")
-	var collateralString any = nil
+	var collateralString *string = nil
 	if marginMode != nil && *marginMode == "isolated" {
 		collateralString = this.OmitZero(this.SafeString(position, "margin"))
-		if (IsEqual(collateralString, nil)) && (initialMarginString != nil) {
-			collateralString = func() any {
-				if unrealizedPnlString != nil {
-					return Precise.StringAdd(initialMarginString, unrealizedPnlString)
-				}
-				return initialMarginString
-			}()
+		if (collateralString == nil) && (initialMarginString != nil) {
+			if unrealizedPnlString != nil {
+				collateralString = Precise.StringAdd(initialMarginString, unrealizedPnlString)
+			} else {
+				collateralString = initialMarginString
+			}
 		}
 	}
 	var timestamp *int64 = this.SafeInteger2(position, "openTime", "createTime")
@@ -4461,19 +4460,17 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 		}()
 		if hedged != nil && *hedged {
 			if reduceOnly {
-				positionSide = func() string {
-					if side != nil && *side == "buy" {
-						return "SHORT"
-					}
-					return "LONG"
-				}()
+				if side != nil && *side == "buy" {
+					positionSide = "SHORT"
+				} else {
+					positionSide = "LONG"
+				}
 			} else {
-				positionSide = func() string {
-					if side != nil && *side == "buy" {
-						return "LONG"
-					}
-					return "SHORT"
-				}()
+				if side != nil && *side == "buy" {
+					positionSide = "LONG"
+				} else {
+					positionSide = "SHORT"
+				}
 			}
 		} else {
 			positionSide = "BOTH"
@@ -7004,12 +7001,12 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) Transa
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var data map[string]any = SafeMapTyped(transaction, "data")
-	var dataId *string = func() *string {
-		if data == nil {
-			return nil
-		}
-		return this.SafeString(data, "id")
-	}()
+	var dataId *string
+	if data == nil {
+		dataId = nil
+	} else {
+		dataId = this.SafeString(data, "id")
+	}
 	var id *string = this.SafeString(transaction, "id", dataId)
 	var address *string = this.SafeString(transaction, "address")
 	var tag *string = this.SafeString(transaction, "addressTag")

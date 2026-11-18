@@ -2278,7 +2278,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var responses []any = ListTyped(r1.Value)
+	var responses []any = r1.Value
 	var symbolsData []any = []any{}
 	if fetchSpotMarkets {
 		symbolsData = ArrayTyped(this.SafeList(GetValue(responses, 0), "data", []any{}))
@@ -2705,7 +2705,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
+	var responses []any = r.Value
 	var data map[string]any = SafeMapTyped(responses[0], "data")
 	var contractData map[string]any = SafeMapTyped(responses[1], "data")
 	var spotData []any = SafeListTypedDefault(data, "list", []any{})
@@ -3045,7 +3045,7 @@ func (this *Kucoin) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	uta := r.Value
+	var uta bool = r.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchAccounts", "uta", uta)
 	var response map[string]any = nil
 	var data []any = []any{}
@@ -5154,7 +5154,7 @@ func (this *Kucoin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	uta := r1.Value
+	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "createOrder", "uta", uta)
 	if utaOption != nil && *utaOption {
 
@@ -5402,20 +5402,18 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		} else if (stopLossPrice != nil) || (takeProfitPrice != nil) {
 			if stopLossPrice != nil {
-				request["stop"] = func() string {
-					if side != nil && *side == "buy" {
-						return "entry"
-					}
-					return "loss"
-				}()
+				if side != nil && *side == "buy" {
+					request["stop"] = "entry"
+				} else {
+					request["stop"] = "loss"
+				}
 				request["stopPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 			} else {
-				request["stop"] = func() string {
-					if side != nil && *side == "buy" {
-						return "loss"
-					}
-					return "entry"
-				}()
+				if side != nil && *side == "buy" {
+					request["stop"] = "loss"
+				} else {
+					request["stop"] = "entry"
+				}
 				request["stopPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
 			}
 		}
@@ -5620,12 +5618,11 @@ func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar string, si
 	var triggerPriceTypeValue *string = this.SafeString(triggerPriceTypes, triggerPriceType, triggerPriceType)
 	paramsOmitted = this.Omit(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"})
 	if triggerPrice != nil {
-		request["stop"] = func() string {
-			if side != nil && *side == "buy" {
-				return "up"
-			}
-			return "down"
-		}()
+		if side != nil && *side == "buy" {
+			request["stop"] = "up"
+		} else {
+			request["stop"] = "down"
+		}
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["stopPriceType"] = triggerPriceTypeValue
 	} else if hasStopLoss || hasTakeProfit {
@@ -5645,20 +5642,18 @@ func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar string, si
 		request["stopPriceType"] = priceType
 	} else if (stopLossPrice != nil) || (takeProfitPrice != nil) {
 		if stopLossPrice != nil {
-			request["stop"] = func() string {
-				if side != nil && *side == "buy" {
-					return "up"
-				}
-				return "down"
-			}()
+			if side != nil && *side == "buy" {
+				request["stop"] = "up"
+			} else {
+				request["stop"] = "down"
+			}
 			request["stopPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 		} else {
-			request["stop"] = func() string {
-				if side != nil && *side == "buy" {
-					return "down"
-				}
-				return "up"
-			}()
+			if side != nil && *side == "buy" {
+				request["stop"] = "down"
+			} else {
+				request["stop"] = "up"
+			}
 			request["stopPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
 		}
 		request["reduceOnly"] = true
@@ -5906,12 +5901,11 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 					positionSide = "LONG"
 				}
 				if reduceOnly != nil && *reduceOnly {
-					positionSide = func() string {
-						if positionSide == "LONG" {
-							return "SHORT"
-						}
-						return "LONG"
-					}()
+					if positionSide == "LONG" {
+						positionSide = "SHORT"
+					} else {
+						positionSide = "LONG"
+					}
 				}
 				request["positionSide"] = positionSide
 			}
@@ -5936,12 +5930,11 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 		if triggerDirection == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice"))
 		}
-		request["triggerDirection"] = func() string {
-			if triggerDirection != nil && *triggerDirection == "ascending" {
-				return "UP"
-			}
-			return "DOWN"
-		}()
+		if triggerDirection != nil && *triggerDirection == "ascending" {
+			request["triggerDirection"] = "UP"
+		} else {
+			request["triggerDirection"] = "DOWN"
+		}
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	} else if hasStopLoss || hasTakeProfit {
 		if isContract == nil || *isContract != true {
@@ -5961,24 +5954,22 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 		}
 	} else if (stopLossPrice != nil) || (takeProfitPrice != nil) {
 		if stopLossPrice != nil {
-			request["triggerDirection"] = func() string {
-				if side == "buy" {
-					return "UP"
-				}
-				return "DOWN"
-			}()
+			if side == "buy" {
+				request["triggerDirection"] = "UP"
+			} else {
+				request["triggerDirection"] = "DOWN"
+			}
 			request["triggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 			if isContract != nil && *isContract == true {
 				var stopLossPriceType *string = this.SafeString2(paramsOmitted, "stopLossPriceType", "triggerPriceType", "mark")
 				request["triggerPriceType"] = this.SafeString(triggerPriceTypes, stopLossPriceType, stopLossPriceType)
 			}
 		} else {
-			request["triggerDirection"] = func() string {
-				if side == "buy" {
-					return "DOWN"
-				}
-				return "UP"
-			}()
+			if side == "buy" {
+				request["triggerDirection"] = "DOWN"
+			} else {
+				request["triggerDirection"] = "UP"
+			}
 			request["triggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
 			if isContract != nil && *isContract == true {
 				var takeProfitPriceType *string = this.SafeString2(paramsOmitted, "takeProfitPriceType", "triggerPriceType", "mark")
@@ -6510,7 +6501,7 @@ func (this *Kucoin) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	uta := r1.Value
+	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "cancelOrder", "uta", uta)
 	if utaOption != nil && *utaOption {
 
@@ -6969,7 +6960,7 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	uta := r1.Value
+	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "cancelAllOrders", "uta", uta)
 	if utaOption != nil && *utaOption {
 
@@ -8667,12 +8658,11 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) map[strin
 	var cancelExist *bool = this.SafeBool(order, "cancelExist", false)
 	var status any = nil
 	if isActive != nil {
-		status = func() string {
-			if isActive != nil && *isActive {
-				return "open"
-			}
-			return "closed"
-		}()
+		if isActive != nil && *isActive {
+			status = "open"
+		} else {
+			status = "closed"
+		}
 	}
 	status = func() any {
 		if cancelExist != nil && *cancelExist {
@@ -10157,7 +10147,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	uta := r1.Value
+	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchTradingFee", "uta", uta)
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
@@ -10450,12 +10440,11 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var isV1 bool = !(InOp(transaction, "createdAt"))
 	// if it's a v1 structure
 	if isV1 {
-		typeVar = func() string {
-			if InOp(transaction, "address") {
-				return "withdrawal"
-			}
-			return "deposit"
-		}()
+		if InOp(transaction, "address") {
+			typeVar = "withdrawal"
+		} else {
+			typeVar = "deposit"
+		}
 	}
 	var createdAtMs any = func() any {
 		if createdAt == nil {
@@ -11053,7 +11042,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	uta := r1.Value
+	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchBalance", "uta", uta)
 	if utaOption != nil && *utaOption {
 
@@ -11541,7 +11530,7 @@ func (this *Kucoin) transferBody(ch chan AsyncResult[TransferEntry], code string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	uta := r1.Value
+	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "transfer", "uta", uta)
 	if utaOption != nil && *utaOption {
 
@@ -11879,18 +11868,18 @@ func (this *Kucoin) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		accountToRaw = this.SafeStringLower(transfer, "recAccountType")
 	}
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
-	var accountFrom *string = func() *string {
-		if accountFromRaw == nil {
-			return nil
-		}
-		return this.SafeString(accountsByType, accountFromRaw, accountFromRaw)
-	}()
-	var accountTo *string = func() *string {
-		if accountToRaw == nil {
-			return nil
-		}
-		return this.SafeString(accountsByType, accountToRaw, accountToRaw)
-	}()
+	var accountFrom *string
+	if accountFromRaw == nil {
+		accountFrom = nil
+	} else {
+		accountFrom = this.SafeString(accountsByType, accountFromRaw, accountFromRaw)
+	}
+	var accountTo *string
+	if accountToRaw == nil {
+		accountTo = nil
+	} else {
+		accountTo = this.SafeString(accountsByType, accountToRaw, accountToRaw)
+	}
 	return TransferEntryFromMap(map[string]any{
 		"id":          this.SafeStringN(transfer, []any{"id", "applyId", "orderId"}),
 		"currency":    this.SafeCurrencyCode(currencyId, currency),
@@ -12090,12 +12079,12 @@ func (this *Kucoin) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry 
 	}
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(item, "fee")
-	var feeCost *string = func() *string {
-		if feeCostString == nil {
-			return nil
-		}
-		return this.OmitZero(feeCostString)
-	}()
+	var feeCost *string
+	if feeCostString == nil {
+		feeCost = nil
+	} else {
+		feeCost = this.OmitZero(feeCostString)
+	}
 	var feeCurrency *string = nil
 	if feeCost != nil {
 		feeCurrency = code
@@ -13534,7 +13523,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan AsyncResult[Leverage], lever
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	uta := r1.Value
+	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(paramsMarginMode, "setLeverage", "uta", uta)
 	var response map[string]any = nil
 	if utaOption != nil && *utaOption {
@@ -14149,7 +14138,7 @@ func (this *Kucoin) fetchPositionBody(ch chan AsyncResult[Position], symbol any,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	uta := r1.Value
+	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchPosition", "uta", uta)
 	var response map[string]any = nil
 	var position any = nil
@@ -14282,7 +14271,7 @@ func (this *Kucoin) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	uta := r1.Value
+	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchPositions", "uta", uta)
 	var response map[string]any = nil
 	if utaOption != nil && *utaOption {
@@ -14624,20 +14613,17 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) Position {
 	// currently crossMode is always set to false and only isolated positions are supported
 	var marginMode *string = this.SafeStringLower(position, "marginMode")
 	if crossMode != nil {
-		marginModeStr := func() string {
-			if crossMode != nil && *crossMode {
-				return "cross"
-			}
-			return "isolated"
-		}()
+		var marginModeStr string
+		if crossMode != nil && *crossMode {
+			marginModeStr = "cross"
+		} else {
+			marginModeStr = "isolated"
+		}
 		marginMode = &marginModeStr
 	}
-	var collateralString any
-	if derefPtr := this.SafeString(position, "maintMargin"); derefPtr != nil {
-		collateralString = *derefPtr
-	}
+	var collateralString *string = this.SafeString(position, "maintMargin")
 	var marginString *string = nil
-	if (IsEqual(collateralString, nil)) && (marginMode != nil && *marginMode == "isolated") {
+	if (collateralString == nil) && (marginMode != nil && *marginMode == "isolated") {
 		var posMargin *string = this.SafeString(position, "posMargin")
 		if posMargin == nil {
 			var posComm *string = this.SafeString(position, "posComm")
@@ -14651,12 +14637,11 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) Position {
 		}
 		if posMargin != nil {
 			marginString = posMargin
-			collateralString = func() any {
-				if unrealisedPnl != nil {
-					return Precise.StringAdd(posMargin, unrealisedPnl)
-				}
-				return posMargin
-			}()
+			if unrealisedPnl != nil {
+				collateralString = Precise.StringAdd(posMargin, unrealisedPnl)
+			} else {
+				collateralString = posMargin
+			}
 		}
 	}
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "closeTime")
@@ -15139,12 +15124,12 @@ func (this *Kucoin) ParseMarginMode(marginMode any, optionalArgs ...any) MarginM
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marginType *string = this.SafeString(marginMode, "marginMode")
-	marginTypeStr := func() string {
-		if marginType != nil && *marginType == "ISOLATED" {
-			return "isolated"
-		}
-		return "cross"
-	}()
+	var marginTypeStr string
+	if marginType != nil && *marginType == "ISOLATED" {
+		marginTypeStr = "isolated"
+	} else {
+		marginTypeStr = "cross"
+	}
 	marginType = &marginTypeStr
 	return MarginModeFromMap(map[string]any{
 		"info":       marginMode,
@@ -15256,7 +15241,7 @@ func (this *Kucoin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	response := r1.Value
+	var response map[string]any = r1.Value
 
 	//
 	//     {

@@ -513,12 +513,12 @@ func (this *Upbit) Authenticate(optionalArgs ...any) {
 		this.Options["ws"] = wsOptions
 	}
 }
-func (this *Upbit) WatchPrivateAsync(symbol any, channel string, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Upbit) WatchPrivateAsync(symbol *string, channel string, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, symbol, channel, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol any, channel string, messageHash string, optionalArgs ...any) any {
+func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol *string, channel string, messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -529,7 +529,7 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol any, c
 	}
 	var messageHashResolved string = messageHash
 	var channelKey string = channel
-	if !ccxt.IsEqual(symbol, nil) {
+	if symbol != nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
@@ -592,7 +592,7 @@ func (this *Upbit) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult
 func (this *Upbit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -643,7 +643,7 @@ func (this *Upbit) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResu
 func (this *Upbit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -754,12 +754,12 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	} else {
 		price = this.SafeString(order, "price")
 	}
-	var amount *string = func() *string {
-		if isTrade {
-			return nil
-		}
-		return this.SafeString(order, "volume")
-	}()
+	var amount *string
+	if isTrade {
+		amount = nil
+	} else {
+		amount = this.SafeString(order, "volume")
+	}
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  id,
@@ -811,12 +811,12 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var takerOrMaker *string = nil
 	var isMaker *bool = this.SafeBool(trade, "is_maker")
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = nil

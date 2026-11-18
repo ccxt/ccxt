@@ -281,7 +281,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var response1response2Variable []any = ListTyped(r.Value)
+	var response1response2Variable []any = r.Value
 	response1 := response1response2Variable[0]
 	response2 := response1response2Variable[1]
 	//

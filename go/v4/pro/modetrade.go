@@ -755,12 +755,12 @@ func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) map[string]a
 	var takerOrMaker *string = nil
 	var maker *bool = this.SafeBool(trade, "maker")
 	if maker != nil {
-		takerOrMakerStr := func() string {
-			if maker != nil && *maker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if maker != nil && *maker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var fee map[string]any = map[string]any{}
@@ -835,15 +835,10 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
 	if !authenticated {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
-		var secret any = this.Secret
+		var secret string = this.Secret
 		if strings.Index(this.Secret, "ed25519:") >= 0 {
 			var parts []string = strings.Split(this.Secret, "ed25519:")
-			secret = func() any {
-				if 1 >= 0 && 1 < len(parts) {
-					return parts[1]
-				}
-				return nil
-			}()
+			secret = parts[1]
 		}
 		var signature string = ccxt.Eddsa(this.Encode(ts), this.Base58ToBinary(secret), ccxt.Ed25519)
 		var request map[string]any = map[string]any{
@@ -1433,7 +1428,7 @@ func (this *Modetrade) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	newPositions := r2.Value
+	var newPositions []any = r2.Value
 	if this.NewUpdates {
 
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(newPositions)}

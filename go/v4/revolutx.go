@@ -304,7 +304,8 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) map[string]any {
 	var headersResult any = requestHeaders
 	var bodyResult *string = func() *string {
 		if bodyString != "" {
-			return SafeStringPtr(bodyString)
+			retStr := bodyString
+			return &retStr
 		}
 		return nil
 	}()

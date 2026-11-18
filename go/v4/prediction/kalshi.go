@@ -1634,12 +1634,11 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 		request["start_ts"] = sinceS
 		if limit != nil {
 			var end int64 = sinceS + *limit*tf
-			request["end_ts"] = func() int64 {
-				if end < now {
-					return end
-				}
-				return now
-			}()
+			if end < now {
+				request["end_ts"] = end
+			} else {
+				request["end_ts"] = now
+			}
 		} else {
 			// the candlesticks endpoint requires end_ts - default to now
 			request["end_ts"] = now
@@ -1856,20 +1855,20 @@ func (this *Kalshi) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var side *string = nil
 	if (rawSide != nil && *rawSide == "yes") || (rawSide != nil && *rawSide == "no") {
 		if (requestedOutcomeLabel != nil && *requestedOutcomeLabel == "yes") || (requestedOutcomeLabel != nil && *requestedOutcomeLabel == "no") {
-			sideStr := func() string {
-				if rawSide == requestedOutcomeLabel || (rawSide != nil && requestedOutcomeLabel != nil && *rawSide == *requestedOutcomeLabel) {
-					return "buy"
-				}
-				return "sell"
-			}()
+			var sideStr string
+			if rawSide == requestedOutcomeLabel || (rawSide != nil && requestedOutcomeLabel != nil && *rawSide == *requestedOutcomeLabel) {
+				sideStr = "buy"
+			} else {
+				sideStr = "sell"
+			}
 			side = &sideStr
 		} else {
-			sideStr2 := func() string {
-				if rawSide != nil && *rawSide == "yes" {
-					return "buy"
-				}
-				return "sell"
-			}()
+			var sideStr2 string
+			if rawSide != nil && *rawSide == "yes" {
+				sideStr2 = "buy"
+			} else {
+				sideStr2 = "sell"
+			}
 			side = &sideStr2
 		}
 	}
@@ -2364,12 +2363,12 @@ func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) a
 	var positionSide *string = nil
 	var contractsValue *float64 = nil
 	if yesContracts != nil {
-		positionSideStr := func() string {
-			if *yesContracts >= 0 {
-				return "long"
-			}
-			return "short"
-		}()
+		var positionSideStr string
+		if *yesContracts >= 0 {
+			positionSideStr = "long"
+		} else {
+			positionSideStr = "short"
+		}
 		positionSide = &positionSideStr
 		contractsValue = this.ParseNumber(ccxt.Precise.StringAbs(this.NumberToString(yesContracts)))
 	}
@@ -2770,12 +2769,11 @@ func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 		bookSide = "bid"
 	}
 	if isNo {
-		bookSide = func() string {
-			if isBuy {
-				return "ask"
-			}
-			return "bid"
-		}()
+		if isBuy {
+			bookSide = "ask"
+		} else {
+			bookSide = "bid"
+		}
 	}
 	var yesPrice *float64
 	if isNo && (price != nil) {

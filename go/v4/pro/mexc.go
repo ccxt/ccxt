@@ -120,7 +120,8 @@ func (this *Mexc) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("ticker:" + market["symbol"].(string))
+	messageHashStr := "ticker:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	if *this.SafeBool(market, "spot", false) {
 		var channel string = "spot@public.aggre.bookTicker.v3.api.pb@100ms@" + *this.SafeString(market, "id", "")
 
@@ -642,7 +643,7 @@ func (this *Mexc) watchSpotPrivateBody(ch chan ccxt.AsyncResult[any], channel st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listenKey := r.Value
+	var listenKey *string = r.Value
 	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "spot")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchSpotPrivate() has no spot websocket url"))
@@ -1395,12 +1396,12 @@ func (this *Mexc) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return nil
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = nil
+	}
 	if symbol != nil {
 		messageHash = "myTrades" + ":" + *this.SafeString(market, "symbol", "")
 	}
@@ -1627,12 +1628,12 @@ func (this *Mexc) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return nil
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = nil
+	}
 	if symbol != nil {
 		messageHash = "orders" + ":" + *this.SafeString(market, "symbol", "")
 	}
@@ -2060,7 +2061,8 @@ func (this *Mexc) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("fundingRate:" + market["symbol"].(string))
+	messageHashStr := "fundingRate:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var channel string = "sub.funding.rate"
 	var requestParams map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -2101,7 +2103,8 @@ func (this *Mexc) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("unsubscribe:fundingRate:" + market["symbol"].(string))
+	messageHashStr := "unsubscribe:fundingRate:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var url any = nil
 	var channel string = "unsub.funding.rate"
 	var requestParams map[string]any = map[string]any{
@@ -2163,7 +2166,8 @@ func (this *Mexc) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol strin
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("unsubscribe:ticker:" + market["symbol"].(string))
+	messageHashStr := "unsubscribe:ticker:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var url any = nil
 	var channel string
 	if *this.SafeBool(market, "spot", false) {

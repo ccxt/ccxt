@@ -2775,12 +2775,12 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) Trans
 		var date string = *this.SafeString(transaction, "date", "")
 		timestamp = this.Parse8601(date + "T00:00:00Z")
 		datetime = this.Iso8601(timestamp)
-		typeVarStr := func() string {
-			if isIncoming {
-				return "deposit"
-			}
-			return "withdrawal"
-		}()
+		var typeVarStr string
+		if isIncoming {
+			typeVarStr = "deposit"
+		} else {
+			typeVarStr = "withdrawal"
+		}
 		typeVar = &typeVarStr
 		amount = this.ParseNumber(Precise.StringAbs(netAmount))
 		// cash ledger rows carry no per-entry asset field and are USD, while crypto

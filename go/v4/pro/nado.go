@@ -122,7 +122,8 @@ func (this *Nado) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("trade:" + market["symbol"].(string))
+	messageHashStr := "trade:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 
 	r1 := <-this.WatchPublicAsync("trade", market, messageHash, params)
 	if r1.Err != nil {
@@ -303,7 +304,8 @@ func (this *Nado) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
+	messageHashStr := "orderbook:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	if !(this.Orderbooks[market["symbol"].(string)] != nil) {
 
 		r1 := <-this.FetchOrderBookAsync(symbol, limit)
@@ -399,7 +401,8 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
-		var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
+		messageHashStr := "orderbook:" + market["symbol"].(string)
+		var messageHash *string = &messageHashStr
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, messageHash)
 		if !(this.Orderbooks[market["symbol"].(string)] != nil) {
@@ -507,7 +510,8 @@ func (this *Nado) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("ohlcv:" + timeframe + ":" + market["symbol"].(string))
+	messageHashStr := "ohlcv:" + timeframe + ":" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var request map[string]any = map[string]any{
 		"granularity": this.SafeInteger(this.Timeframes, timeframe, this.ParseTimeframe(timeframe)),
 	}
@@ -1319,7 +1323,7 @@ func (this *Nado) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	positions := r2.Value
+	var positions []any = r2.Value
 	if this.NewUpdates {
 
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(positions)}
@@ -2228,12 +2232,12 @@ func (this *Nado) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var isTakerBuyer *bool = this.SafeBool(trade, "is_taker_buyer")
 	var side *string = nil
 	if isTakerBuyer != nil {
-		sideStr := func() string {
-			if isTakerBuyer != nil && *isTakerBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if isTakerBuyer != nil && *isTakerBuyer {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
@@ -2280,23 +2284,23 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[
 	var isBid *bool = this.SafeBool(trade, "is_bid")
 	var side *string = nil
 	if isBid != nil {
-		sideStr := func() string {
-			if isBid != nil && *isBid {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if isBid != nil && *isBid {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 	}
 	var isTaker *bool = this.SafeBool(trade, "is_taker")
 	var takerOrMaker *string = nil
 	if isTaker != nil {
-		takerOrMakerStr := func() string {
-			if isTaker != nil && *isTaker {
-				return "taker"
-			}
-			return "maker"
-		}()
+		var takerOrMakerStr string
+		if isTaker != nil && *isTaker {
+			takerOrMakerStr = "taker"
+		} else {
+			takerOrMakerStr = "maker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var feeCost *float64 = this.ParseX18(this.SafeString(trade, "fee"))

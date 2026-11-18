@@ -1286,7 +1286,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var chainsResponsecurrenciesResponseVariable []any = ListTyped(r.Value)
+	var chainsResponsecurrenciesResponseVariable []any = r.Value
 	chainsResponse := chainsResponsecurrenciesResponseVariable[0]
 	currenciesResponse := chainsResponsecurrenciesResponseVariable[1]
 	//
@@ -1458,7 +1458,7 @@ func (this *Xt) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var promises []any = ListTyped(r1.Value)
+	var promises []any = r1.Value
 	var spotMarkets any = promises[0]
 	var swapAndFutureMarkets any = promises[1]
 
@@ -2645,12 +2645,12 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketType *string = this.SafeString(market, "type")
 	var hasSpotKeys bool = (this.SafeString(ticker, "cv") != nil) || (this.SafeString(ticker, "aq") != nil)
 	if marketType == nil {
-		marketTypeStr := func() string {
-			if hasSpotKeys {
-				return "spot"
-			}
-			return "contract"
-		}()
+		var marketTypeStr string
+		if hasSpotKeys {
+			marketTypeStr = "spot"
+		} else {
+			marketTypeStr = "contract"
+		}
 		marketType = &marketTypeStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_", marketType)
@@ -3073,12 +3073,12 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var marketType *string = this.SafeString(market, "type")
 	var hasSpotKeys bool = (this.SafeBool(trade, "b") != nil) || (this.SafeString(trade, "bizType") != nil) || (this.SafeString(trade, "oi") != nil)
 	if marketType == nil {
-		marketTypeStr := func() string {
-			if hasSpotKeys {
-				return "spot"
-			}
-			return "contract"
-		}()
+		var marketTypeStr string
+		if hasSpotKeys {
+			marketTypeStr = "spot"
+		} else {
+			marketTypeStr = "contract"
+		}
 		marketType = &marketTypeStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_", marketType)
@@ -3086,12 +3086,12 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	var isBuyerMaker *bool = this.SafeBool(trade, "b")
 	if isBuyerMaker != nil {
-		sideStr := func() string {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if isBuyerMaker != nil && *isBuyerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 		takerOrMakerStr := "taker"
 		takerOrMaker = &takerOrMakerStr // public trades always taker
@@ -3102,12 +3102,12 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 		} else {
 			var isMaker *bool = this.SafeBool(trade, "isMaker")
 			if isMaker != nil {
-				takerOrMakerStr2 := func() string {
-					if isMaker != nil && *isMaker {
-						return "maker"
-					}
-					return "taker"
-				}()
+				var takerOrMakerStr2 string
+				if isMaker != nil && *isMaker {
+					takerOrMakerStr2 = "maker"
+				} else {
+					takerOrMakerStr2 = "taker"
+				}
 				takerOrMaker = &takerOrMakerStr2
 			}
 		}
@@ -3117,12 +3117,12 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 		} else {
 			var bidOrAsk *string = this.SafeString(trade, "m")
 			if bidOrAsk != nil {
-				sideStr2 := func() string {
-					if bidOrAsk != nil && *bidOrAsk == "BID" {
-						return "buy"
-					}
-					return "sell"
-				}()
+				var sideStr2 string
+				if bidOrAsk != nil && *bidOrAsk == "BID" {
+					sideStr2 = "buy"
+				} else {
+					sideStr2 = "sell"
+				}
 				side = &sideStr2
 			}
 		}
@@ -3615,12 +3615,11 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 		request["orderSide"] = strings.ToUpper(side)
 		request["triggerPriceType"] = this.SafeString(paramsOmitted4, "triggerPriceType", "LATEST_PRICE")
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsOmitted4, "cross")
-		request["positionType"] = func() string {
-			if marginMode != nil && *marginMode == "isolated" {
-				return "ISOLATED"
-			}
-			return "CROSSED"
-		}()
+		if marginMode != nil && *marginMode == "isolated" {
+			request["positionType"] = "ISOLATED"
+		} else {
+			request["positionType"] = "CROSSED"
+		}
 		if trailingPercent != nil {
 			request["callback"] = "PROPORTION"
 			request["callbackVal"] = this.ParseToNumeric(Precise.StringDiv(trailingPercent, "100"))
@@ -5920,12 +5919,12 @@ func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) Transacti
 	var memo *string = this.SafeString(transaction, "memo")
 	var currencyCode *string = this.SafeCurrencyCode(this.SafeString(transaction, "currency"), currency)
 	var fee *float64 = this.SafeNumber(transaction, "fee")
-	var feeCurrency *string = func() *string {
-		if fee != nil {
-			return currencyCode
-		}
-		return nil
-	}()
+	var feeCurrency *string
+	if fee != nil {
+		feeCurrency = currencyCode
+	} else {
+		feeCurrency = nil
+	}
 	var networkId *string = this.SafeString(transaction, "chain")
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
@@ -7123,7 +7122,7 @@ func (this *Xt) fetchPositionBody(ch chan AsyncResult[Position], symbol any, opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var responsebreakResponseVariable []any = ListTyped(r1.Value)
+	var responsebreakResponseVariable []any = r1.Value
 	response := responsebreakResponseVariable[0]
 	breakResponse := responsebreakResponseVariable[1]
 	//
@@ -7227,7 +7226,7 @@ func (this *Xt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var responsebreakResponseVariable []any = ListTyped(r1.Value)
+	var responsebreakResponseVariable []any = r1.Value
 	response := responsebreakResponseVariable[0]
 	breakResponse := responsebreakResponseVariable[1]
 	//

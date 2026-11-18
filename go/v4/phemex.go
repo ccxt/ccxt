@@ -1784,12 +1784,11 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 					// when since is defined 'to' is mandatory
 					var now int64 = this.Seconds()
 					var to int64 = this.ParseToInt(this.ParseToInt(fromSeconds) + (int64(maxLimit) * candleDuration))
-					request["to"] = func() int64 {
-						if to > now {
-							return now
-						}
-						return to
-					}()
+					if to > now {
+						request["to"] = now
+					} else {
+						request["to"] = to
+					}
 				}
 			} else if until != nil {
 				// when 'to' is defined since is mandatory
@@ -2419,12 +2418,12 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			if (sideId != nil && *sideId == "buy") || (sideId != nil && *sideId == "sell") {
 				side = sideId
 			} else if sideId != nil {
-				sideStr := func() string {
-					if sideId != nil && *sideId == "1" {
-						return "buy"
-					}
-					return "sell"
-				}()
+				var sideStr string
+				if sideId != nil && *sideId == "1" {
+					sideStr = "buy"
+				} else {
+					sideStr = "sell"
+				}
 				side = &sideStr
 			}
 			var ordType *string = this.SafeString(trade, "ordType")
@@ -3363,12 +3362,12 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				if flipSide {
 					orderParams = this.Omit(orderParams, "reduceOnly")
 				}
-				posSideStr := func() string {
-					if sideResolved == "buy" {
-						return "Long"
-					}
-					return "Short"
-				}()
+				var posSideStr string
+				if sideResolved == "buy" {
+					posSideStr = "Long"
+				} else {
+					posSideStr = "Short"
+				}
 				posSide = &posSideStr
 			} else {
 				posSideStr2 := "Merged"
@@ -3394,35 +3393,31 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			// the flow defined per https://phemex-docs.github.io/#more-order-type-examples
 			if (triggerDirection != nil && *triggerDirection == "ascending") || (triggerDirection != nil && *triggerDirection == "up") {
 				if sideResolved == "sell" {
-					request["ordType"] = func() string {
-						if typeValue == "Market" {
-							return "MarketIfTouched"
-						}
-						return "LimitIfTouched"
-					}()
+					if typeValue == "Market" {
+						request["ordType"] = "MarketIfTouched"
+					} else {
+						request["ordType"] = "LimitIfTouched"
+					}
 				} else if sideResolved == "buy" {
-					request["ordType"] = func() string {
-						if typeValue == "Market" {
-							return "Stop"
-						}
-						return "StopLimit"
-					}()
+					if typeValue == "Market" {
+						request["ordType"] = "Stop"
+					} else {
+						request["ordType"] = "StopLimit"
+					}
 				}
 			} else if (triggerDirection != nil && *triggerDirection == "descending") || (triggerDirection != nil && *triggerDirection == "down") {
 				if sideResolved == "sell" {
-					request["ordType"] = func() string {
-						if typeValue == "Market" {
-							return "Stop"
-						}
-						return "StopLimit"
-					}()
+					if typeValue == "Market" {
+						request["ordType"] = "Stop"
+					} else {
+						request["ordType"] = "StopLimit"
+					}
 				} else if sideResolved == "buy" {
-					request["ordType"] = func() string {
-						if typeValue == "Market" {
-							return "MarketIfTouched"
-						}
-						return "LimitIfTouched"
-					}()
+					if typeValue == "Market" {
+						request["ordType"] = "MarketIfTouched"
+					} else {
+						request["ordType"] = "LimitIfTouched"
+					}
 				}
 			}
 		}
@@ -4886,12 +4881,12 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 		codeStr2 := "BTC"
 		code = &codeStr2
 	} else if code == nil {
-		codeStr3 := func() string {
-			if subType != nil && *subType == "linear" {
-				return "USD"
-			}
-			return "BTC"
-		}()
+		var codeStr3 string
+		if subType != nil && *subType == "linear" {
+			codeStr3 = "USD"
+		} else {
+			codeStr3 = "BTC"
+		}
 		code = &codeStr3
 	}
 	var currency map[string]any = this.Currency(code)
@@ -5209,12 +5204,12 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 	var side *string = nil
 	if rawSide != nil {
 		var isLong bool = ((rawSide != nil && *rawSide == "Buy") || (rawSide != nil && *rawSide == "1"))
-		sideStr := func() string {
-			if isLong {
-				return "long"
-			}
-			return "short"
-		}()
+		var sideStr string
+		if isLong {
+			sideStr = "long"
+		} else {
+			sideStr = "short"
+		}
 		side = &sideStr
 	}
 	// Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
@@ -7050,12 +7045,12 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 		codeStr2 := "BTC"
 		code = &codeStr2
 	} else if code == nil {
-		codeStr3 := func() string {
-			if subType != nil && *subType == "linear" {
-				return "USD"
-			}
-			return "BTC"
-		}()
+		var codeStr3 string
+		if subType != nil && *subType == "linear" {
+			codeStr3 = "USD"
+		} else {
+			codeStr3 = "BTC"
+		}
 		code = &codeStr3
 	}
 	var currency map[string]any = this.Currency(code)

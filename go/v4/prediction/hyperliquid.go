@@ -1284,7 +1284,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var results []any = ccxt.ListTyped(r2.Value)
+	var results []any = r2.Value
 	var response map[string]any = ccxt.SafeMapTyped(results, 0)
 	var midsResponse any = results[1]
 	var balances []any = ccxt.SafeListTyped(response, "balances")
@@ -2214,7 +2214,8 @@ func (this *Hyperliquid) ParseOrderType(status *string) *string {
 	}
 	var statusLower *string = func() *string {
 		if (status != nil) && (status == nil || *status != "") {
-			return ccxt.SafeStringPtr(strings.ToLower(*status))
+			retStr := strings.ToLower(*status)
+			return &retStr
 		}
 		return nil
 	}()
@@ -2229,7 +2230,8 @@ func (this *Hyperliquid) ParseTimeInForce(timeInForce *string) *string {
 	}
 	var tifLower *string = func() *string {
 		if (timeInForce != nil) && (timeInForce == nil || *timeInForce != "") {
-			return ccxt.SafeStringPtr(strings.ToLower(*timeInForce))
+			retStr := strings.ToLower(*timeInForce)
+			return &retStr
 		}
 		return nil
 	}()
@@ -2524,7 +2526,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			var haystack string = description + " " + symLower
 			var matches bool = false
 			for qi := 0; qi < len(lowerQueries); qi++ {
-				var words []string = ccxt.Split(ccxt.DerefScalar(lowerQueries[qi]), " ")
+				var words []string = ccxt.Split(lowerQueries[qi], " ")
 				var wordsLength int = len(words)
 				var allWords bool = true
 				for wi := 0; wi < wordsLength; wi++ {
@@ -2693,7 +2695,8 @@ func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
 	if prec != nil && *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
-	return ccxt.SafeStringPtr(this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode))
+	retStr := this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode)
+	return &retStr
 }
 func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 	var market map[string]any = this.Market(outcome)
@@ -2705,7 +2708,8 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 	if prec != nil && *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
-	return ccxt.SafeStringPtr(this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode))
+	retStr := this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode)
+	return &retStr
 }
 func (this *Hyperliquid) HashMessage(message any) any {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")

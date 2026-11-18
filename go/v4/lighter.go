@@ -613,7 +613,7 @@ func (this *Lighter) preLoadLighterLibraryBody(ch chan AsyncResult[bool], option
 	}
 	accountIndexAndParamsRecv, _ := r.Value, r.Value != nil
 	var accountIndexAndParams []any = accountIndexAndParamsRecv
-	var accountIndex any = GetValue(accountIndexAndParams, 0)
+	var accountIndex any = accountIndexAndParams[0]
 	if accountIndex == nil {
 		panic(ArgumentsRequired(this.Id + " requires accountIndex or account_index"))
 	}
@@ -904,7 +904,7 @@ func (this *Lighter) handleBuilderFeeApprovalBody(ch chan AsyncResult[bool], acc
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			isStandardTier := r.Value
+			var isStandardTier bool = r.Value
 			if isStandardTier == true {
 				standardTier = true
 				this.Options["builderFee"] = false
@@ -1032,7 +1032,7 @@ func (this *Lighter) approveBuilderFeeBody(ch chan AsyncResult[map[string]any], 
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	response := r2.Value
+	var response map[string]any = r2.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
@@ -1375,7 +1375,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 	}
 	accIndexAndParamsRecv, _ := r1.Value, r1.Value != nil
 	var accIndexAndParams []any = accIndexAndParamsRecv
-	var accountIndex any = GetValue(accIndexAndParams, 0)
+	var accountIndex any = accIndexAndParams[0]
 	var apiKeyIndexAndParams any = this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
 	var apiKeyIndex any = GetValue(apiKeyIndexAndParams, 0)
 	// before order-req creation, we need to know account status
@@ -1408,7 +1408,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			isStandardTier := r3.Value
+			var isStandardTier bool = r3.Value
 			if isStandardTier == true {
 				this.Options["builderFee"] = false
 			}
@@ -1856,7 +1856,8 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		var quoteId string = "USDC"
 		var settleId *string = func() *string {
 			if typeVar != nil && *typeVar == "swap" {
-				return SafeStringPtr("USDC")
+				retStr := "USDC"
+				return &retStr
 			}
 			return nil
 		}()
@@ -2875,23 +2876,23 @@ func (this *Lighter) ParsePosition(position any, optionalArgs ...any) Position {
 	var sign *int64 = this.SafeInteger(position, "sign")
 	var side *string = nil
 	if sign != nil {
-		sideStr := func() string {
-			if sign != nil && *sign == 1 {
-				return "long"
-			}
-			return "short"
-		}()
+		var sideStr string
+		if sign != nil && *sign == 1 {
+			sideStr = "long"
+		} else {
+			sideStr = "short"
+		}
 		side = &sideStr
 	}
 	var marginModeId *int64 = this.SafeInteger(position, "margin_mode")
 	var marginMode *string = nil
 	if marginModeId != nil {
-		marginModeStr := func() string {
-			if marginModeId != nil && *marginModeId == 0 {
-				return "cross"
-			}
-			return "isolated"
-		}()
+		var marginModeStr string
+		if marginModeId != nil && *marginModeId == 0 {
+			marginModeStr = "cross"
+		} else {
+			marginModeStr = "isolated"
+		}
 		marginMode = &marginModeStr
 	}
 	var imfStr *string = this.SafeString(position, "initial_margin_fraction")
@@ -3339,20 +3340,20 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) Order {
 	var isAskAsInteger *int64 = this.SafeInteger(order, "is_ask")
 	var side *string = nil
 	if isAsk != nil {
-		sideStr := func() string {
-			if isAsk != nil && *isAsk {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if isAsk != nil && *isAsk {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	} else if isAskAsInteger != nil {
-		sideStr2 := func() string {
-			if isAskAsInteger != nil && *isAskAsInteger == 1 {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr2 string
+		if isAskAsInteger != nil && *isAskAsInteger == 1 {
+			sideStr2 = "sell"
+		} else {
+			sideStr2 = "buy"
+		}
 		side = &sideStr2
 	}
 	var typeVar *string = this.SafeString(order, "type")
@@ -4418,12 +4419,12 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	// public trades use Lighter's taker-side convention
 	if (side == nil) && (isMakerAsk != nil) {
-		sideStr3 := func() string {
-			if isMakerAsk != nil && *isMakerAsk {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr3 string
+		if isMakerAsk != nil && *isMakerAsk {
+			sideStr3 = "buy"
+		} else {
+			sideStr3 = "sell"
+		}
 		side = &sideStr3
 	}
 	var takerOrMaker *string = nil
@@ -4434,12 +4435,12 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 		} else {
 			isMaker = (isMakerAsk != nil && *isMakerAsk == false)
 		}
-		takerOrMakerStr := func() string {
-			if isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafeTrade(map[string]any{
@@ -4936,7 +4937,7 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any
 	if r4.Err != nil {
 		panic(r4.Err)
 	}
-	response := r4.Value
+	var response map[string]any = r4.Value
 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil

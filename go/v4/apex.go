@@ -1760,20 +1760,18 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	if stopLossPrice != nil {
-		orderType = func() string {
-			if orderType == "MARKET" {
-				return "STOP_MARKET"
-			}
-			return "STOP_LIMIT"
-		}()
+		if orderType == "MARKET" {
+			orderType = "STOP_MARKET"
+		} else {
+			orderType = "STOP_LIMIT"
+		}
 		triggerPrice = stopLossPrice
 	} else if takeProfitPrice != nil {
-		orderType = func() string {
-			if orderType == "MARKET" {
-				return "TAKE_PROFIT_MARKET"
-			}
-			return "TAKE_PROFIT_LIMIT"
-		}()
+		if orderType == "MARKET" {
+			orderType = "TAKE_PROFIT_MARKET"
+		} else {
+			orderType = "TAKE_PROFIT_LIMIT"
+		}
 		triggerPrice = takeProfitPrice
 	}
 	var isMarket bool = (orderType == "MARKET")
@@ -1803,7 +1801,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	accountId := r1.Value
+	var accountId *string = r1.Value
 	var finalClientOrderId any = func() any {
 		if clientOrderId != nil {
 			return clientOrderId
@@ -1831,7 +1829,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	signature := r2.Value
+	var signature string = r2.Value
 	var request map[string]any = map[string]any{
 		"symbol":      market["id"],
 		"side":        orderSide,
@@ -1936,20 +1934,20 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	}
 	var tokenId *string = this.SafeString(currency, "tokenId", "")
 	var decimalsNum *float64 = this.SafeNumber(currency, "decimals", 0)
-	var decimalsNumber float64 = func() float64 {
-		if decimalsNum == nil {
-			return 0
-		}
-		return *decimalsNum
-	}()
+	var decimalsNumber float64
+	if decimalsNum == nil {
+		decimalsNumber = 0
+	} else {
+		decimalsNumber = *decimalsNum
+	}
 	var mathPowResult float64 = (math.Pow(10, decimalsNumber))
 	var amountNum *float64 = this.ParseNumber(amount)
-	var amountValue float64 = func() float64 {
-		if amountNum == nil {
-			return 0
-		}
-		return *amountNum
-	}()
+	var amountValue float64
+	if amountNum == nil {
+		amountValue = 0
+	} else {
+		amountValue = *amountNum
+	}
 	var amountNumber int64 = this.ParseToInt(amountValue * mathPowResult)
 	var timestampSeconds int64 = this.ParseToInt(float64(this.Milliseconds()) / 1000)
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
@@ -2025,7 +2023,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		if r5.Err != nil {
 			panic(r5.Err)
 		}
-		signature := r5.Value
+		var signature string = r5.Value
 		var ts int64 = timestampSeconds // java req
 		var request map[string]any = map[string]any{
 			"amount":               this.NumberToString(amount),

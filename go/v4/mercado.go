@@ -937,12 +937,12 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) Order {
 	var order_type *string = this.SafeString(order, "order_type")
 	var side *string = nil
 	if order_type != nil {
-		sideStr := func() string {
-			if order_type != nil && *order_type == "1" {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if order_type != nil && *order_type == "1" {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))

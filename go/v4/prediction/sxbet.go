@@ -1070,7 +1070,8 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" approve() has no RPC endpoint configured for chainId ", this.NumberToString(chainId)), " - pass params.rpcUrl")))
 	}
 	var owner string = this.WalletAddress
-	var nonceCallData *string = ccxt.SafeStringPtr("0x7ecebe00" + this.PadHexAddress(owner)) // nonces(address)
+	nonceCallDataStr := "0x7ecebe00" + this.PadHexAddress(owner)
+	var nonceCallData *string = &nonceCallDataStr // nonces(address)
 
 	r4 := <-this.EthRpcAsync(rpcUrl, "eth_call", []any{map[string]any{
 		"to":   tokenAddress,
@@ -1083,7 +1084,8 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 	var nonceHex any = this.HexToRlpBytes(nonceResult)
 	var nonce *string = func() *string {
 		if ccxt.IsEqual(nonceHex, "") {
-			return ccxt.SafeStringPtr("0")
+			retStr := "0"
+			return &retStr
 		}
 		return this.NumberToString(this.HexToInt(nonceHex))
 	}()
@@ -1386,12 +1388,12 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 		} else if state != nil && *state == "CANCELLED" {
 			// the documented field is cancelReason; 'reason' is kept for older responses
 			var reason *string = this.SafeStringUpper2(matchOutcome, "cancelReason", "reason")
-			orderStatusStr4 := func() string {
-				if reason != nil && *reason == "EXPIRED" {
-					return "expired"
-				}
-				return "canceled"
-			}()
+			var orderStatusStr4 string
+			if reason != nil && *reason == "EXPIRED" {
+				orderStatusStr4 = "expired"
+			} else {
+				orderStatusStr4 = "canceled"
+			}
 			orderStatus = &orderStatusStr4
 		}
 	}
@@ -2040,12 +2042,12 @@ func (this *Sxbet) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 		trades = append(trades, this.ParseSxbetV3Fill(rawFills[i]))
 	}
 	trades = this.SortBy(trades, "timestamp")
-	var sym *string = func() *string {
-		if outcomeObj != nil {
-			return this.SafeString(outcomeObj, "outcome")
-		}
-		return nil
-	}()
+	var sym *string
+	if outcomeObj != nil {
+		sym = this.SafeString(outcomeObj, "outcome")
+	} else {
+		sym = nil
+	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true))}
 	return nil
@@ -2102,12 +2104,12 @@ func (this *Sxbet) ParseSxbetV3Fill(fill any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(fill, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	return this.SafePredictionTrade(map[string]any{

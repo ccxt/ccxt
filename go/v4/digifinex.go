@@ -833,7 +833,7 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promises []any = ListTyped(r.Value)
+	var promises []any = r.Value
 	var spotMarkets map[string]any = SafeMapTyped(promises, 0)
 	var swapMarkets map[string]any = SafeMapTyped(promises, 1)
 	//
@@ -937,12 +937,11 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface]
 			typeVar = "swap"
 			symbol = *base + "/" + *quote + ":" + *settle
 			isInverse = this.SafeBool(market, "is_inverse")
-			isLinear = func() bool {
-				if isInverse == nil || *isInverse != true {
-					return true
-				}
-				return false
-			}()
+			if isInverse == nil || *isInverse != true {
+				isLinear = true
+			} else {
+				isLinear = false
+			}
 			var isTrading *bool = this.SafeBool(market, "isTrading", false)
 			if isTrading != nil && *isTrading {
 				isTradingSwap = true
@@ -1788,12 +1787,11 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			typeVar = &typeVarStr2
 		}
 		var isMaker *bool = this.SafeBool(trade, "is_maker", false)
-		takerOrMaker = func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		if isMaker != nil && *isMaker {
+			takerOrMaker = "maker"
+		} else {
+			takerOrMaker = "taker"
+		}
 	}
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
@@ -2114,12 +2112,11 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 					var endByUntil int64 = this.ParseToInt(float64(*until) / 1000)
 					if limit != nil {
 						var endByLimit int64 = this.ParseToInt(startTime + *limit*duration)
-						request["end_time"] = func() int64 {
-							if endByLimit < endByUntil {
-								return endByLimit
-							}
-							return endByUntil
-						}()
+						if endByLimit < endByUntil {
+							request["end_time"] = endByLimit
+						} else {
+							request["end_time"] = endByUntil
+						}
 					} else {
 						request["end_time"] = endByUntil
 					}
@@ -2344,12 +2341,11 @@ func (this *Digifinex) createOrdersBody(ch chan AsyncResult[[]Order], orders []a
 		}
 		response = r1.Value
 	} else {
-		request["market"] = func() string {
-			if marginMode != nil {
-				return "margin"
-			}
-			return "spot"
-		}()
+		if marginMode != nil {
+			request["market"] = "margin"
+		} else {
+			request["market"] = "spot"
+		}
 		request["symbol"] = market["id"]
 		request["list"] = this.Json(ordersRequests)
 
@@ -5331,12 +5327,12 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) Position
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var marginMode *string = this.SafeString(position, "margin_mode")
 	if marginMode != nil {
-		marginModeStr := func() string {
-			if marginMode != nil && *marginMode == "crossed" {
-				return "cross"
-			}
-			return "isolated"
-		}()
+		var marginModeStr string
+		if marginMode != nil && *marginMode == "crossed" {
+			marginModeStr = "cross"
+		} else {
+			marginModeStr = "isolated"
+		}
 		marginMode = &marginModeStr
 	} else {
 		marginModeStr2 := "cross"
@@ -5353,18 +5349,17 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) Position
 	}
 	var positionMargin *string = this.SafeString(position, "margin")
 	var unrealizedPnl *string = this.SafeString(position, "unrealized_pnl")
-	var collateralString any = nil
+	var collateralString *string = nil
 	var marginString *string = nil
 	if marginMode != nil && *marginMode == "isolated" {
 		var isolatedMargin *string = this.SafeString(position, "posi_balance")
 		if isolatedMargin != nil {
 			marginString = isolatedMargin
-			collateralString = func() any {
-				if unrealizedPnl != nil {
-					return Precise.StringAdd(isolatedMargin, unrealizedPnl)
-				}
-				return isolatedMargin
-			}()
+			if unrealizedPnl != nil {
+				collateralString = Precise.StringAdd(isolatedMargin, unrealizedPnl)
+			} else {
+				collateralString = isolatedMargin
+			}
 		}
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintain_margin")
@@ -5450,12 +5445,12 @@ func (this *Digifinex) setLeverageBody(ch chan AsyncResult[map[string]any], leve
 	var defaultMarginMode *string = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
 	var marginMode *string = this.SafeStringLower2(params, "marginMode", "defaultMarginMode", defaultMarginMode)
 	if marginMode != nil {
-		marginModeStr := func() string {
-			if marginMode != nil && *marginMode == "cross" {
-				return "crossed"
-			}
-			return "isolated"
-		}()
+		var marginModeStr string
+		if marginMode != nil && *marginMode == "cross" {
+			marginModeStr = "crossed"
+		} else {
+			marginModeStr = "isolated"
+		}
 		marginMode = &marginModeStr
 		request["margin_mode"] = marginMode
 	}
@@ -5769,7 +5764,8 @@ func (this *Digifinex) HandleMarginModeAndParams(methodName any, optionalArgs ..
 			panic(NotSupported(this.Id + " only cross margin is supported"))
 		}
 	} else if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin) {
-		return SafeStringPtr("cross"), paramsMarginMode
+		retStr := "cross"
+		return &retStr, paramsMarginMode
 	}
 	return SafeStringPtr(marginMode), paramsMarginMode
 }

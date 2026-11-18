@@ -1299,7 +1299,13 @@ func (this *Bitvavo) HandleOrderBookSubscription(client any, message map[string]
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
-		ccxt.AddElementToObject(limits, symbol, limit)
+		if symbol != nil {
+			if limit != nil {
+				limits[*symbol] = *limit
+			} else {
+				limits[*symbol] = nil
+			}
+		}
 		this.Options["orderBookLimits"] = limits
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]

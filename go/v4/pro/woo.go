@@ -1263,12 +1263,12 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var maker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker *string = nil
 	if maker != nil {
-		takerOrMakerStr := func() string {
-			if maker != nil && *maker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if maker != nil && *maker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var typeVar *string = this.SafeStringLower(trade, "type")
@@ -1877,7 +1877,7 @@ func (this *Woo) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	newPositions := r2.Value
+	var newPositions []any = r2.Value
 	if this.NewUpdates {
 
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(newPositions)}

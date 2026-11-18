@@ -815,7 +815,7 @@ func (this *Delta) loadMarketsBody(ch chan AsyncResult[map[string]any], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	markets := r.Value
+	var markets map[string]any = r.Value
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)

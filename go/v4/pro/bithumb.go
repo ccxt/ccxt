@@ -123,7 +123,8 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		url = this.SafeString(wsUrls, "public", "")
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr("ticker:" + market["symbol"].(string))
+	messageHashStr := "ticker:" + market["symbol"].(string)
+	var messageHash *string = &messageHashStr
 	var tickTypes *string = this.SafeString(paramsGeneration, "tickTypes", "24H")
 	var paramsOmitted any = this.Omit(paramsGeneration, "tickTypes")
 	var request any = map[string]any{
@@ -1297,12 +1298,12 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 	var sideId *string = this.SafeString(order, "ask_bid")
 	var side *string = this.SafeStringLower(order, "side")
 	if sideId != nil {
-		sideStr := func() string {
-			if sideId != nil && *sideId == "BID" {
-				return ("buy")
-			}
-			return ("sell")
-		}()
+		var sideStr string
+		if sideId != nil && *sideId == "BID" {
+			sideStr = ("buy")
+		} else {
+			sideStr = ("sell")
+		}
 		side = &sideStr
 	}
 	var typeId *string = this.SafeString(order, "order_type")

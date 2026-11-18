@@ -2189,8 +2189,20 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
 				until = this.Sum(since, timeDelta)
 			}
 		}
-		AddElementToObject(paramsResult, sinceKey, this.Iso8601(sinceResolved))
-		AddElementToObject(paramsResult, untilKey, this.Iso8601(until))
+		if paramsResult != nil {
+			if ptrValue := this.Iso8601(sinceResolved); ptrValue != nil {
+				paramsResult[sinceKey] = *ptrValue
+			} else {
+				paramsResult[sinceKey] = nil
+			}
+		}
+		if paramsResult != nil {
+			if ptrValue := this.Iso8601(until); ptrValue != nil {
+				paramsResult[untilKey] = *ptrValue
+			} else {
+				paramsResult[untilKey] = nil
+			}
+		}
 	}
 	return paramsResult
 }
@@ -3444,7 +3456,8 @@ func (this *Bullish) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	var response any = nil
 	var code *string = this.SafeString(params, "code")
 	if code != nil {
-		request["symbol"] = this.Currency(code)["id"]
+		var currency map[string]any = this.Currency(code)
+		request["symbol"] = currency["id"]
 
 		r2 := <-this.PrivateGetV1AccountsAssetSymbol(this.Extend(request, params))
 		if r2.Err != nil {
@@ -3695,11 +3708,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes266519 []any = r2.Value
-		if retRes266519 == nil {
+		var retRes266619 []any = r2.Value
+		if retRes266619 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes266519)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes266619)}
 		}
 		return nil
 	}

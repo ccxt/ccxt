@@ -1180,7 +1180,7 @@ func (this *Weex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var spotResponsecontractResponseVariable []any = ListTyped(r1.Value)
+	var spotResponsecontractResponseVariable []any = r1.Value
 	spotResponse := spotResponsecontractResponseVariable[0]
 	contractResponse := spotResponsecontractResponseVariable[1]
 	var spotArray []any = SafeListTypedDefault(spotResponse, "symbols", []any{})
@@ -2306,20 +2306,20 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = this.SafeStringLower(trade, "side")
 	var isBuyerMaker *bool = this.SafeBool(trade, "isBuyerMaker")
 	if isBuyer != nil {
-		sideStr := func() string {
-			if isBuyer != nil && *isBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if isBuyer != nil && *isBuyer {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 	} else if isBuyerMaker != nil {
-		sideStr2 := func() string {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr2 string
+		if isBuyerMaker != nil && *isBuyerMaker {
+			sideStr2 = "sell"
+		} else {
+			sideStr2 = "buy"
+		}
 		side = &sideStr2
 	}
 	var tradeMarketId *string = this.SafeString(trade, "symbol")
@@ -2360,12 +2360,12 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isMaker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	} else if isBuyerMaker != nil {
 		takerOrMakerStr2 := "taker"
@@ -5180,14 +5180,13 @@ func (this *Weex) ParsePosition(position any, optionalArgs ...any) Position {
 	var entryPrice *string = Precise.StringDiv(notional, size)
 	var unrealizePnl *string = this.SafeString(position, "unrealizePnl")
 	var isolatedMargin *string = this.OmitZero(this.SafeString2(position, "isolatedMargin", "marginSize"))
-	var collateralString any = nil
+	var collateralString *string = nil
 	if (marginMode == "isolated") && (isolatedMargin != nil) {
-		collateralString = func() any {
-			if unrealizePnl != nil {
-				return Precise.StringAdd(isolatedMargin, unrealizePnl)
-			}
-			return isolatedMargin
-		}()
+		if unrealizePnl != nil {
+			collateralString = Precise.StringAdd(isolatedMargin, unrealizePnl)
+		} else {
+			collateralString = isolatedMargin
+		}
 	}
 	var initialMarginString *string = this.OmitZero(this.SafeString2(position, "marginSize", "isolatedMargin"))
 	var marginString *string = nil

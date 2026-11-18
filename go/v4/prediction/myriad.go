@@ -1125,7 +1125,8 @@ func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpc
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// allowance(owner, spender)
-	var allowanceData *string = ccxt.SafeStringPtr("0xdd62ed3e" + this.PadHexAddress(owner) + this.PadHexAddress(spender))
+	allowanceDataStr := "0xdd62ed3e" + this.PadHexAddress(owner) + this.PadHexAddress(spender)
+	var allowanceData *string = &allowanceDataStr
 
 	r := <-this.EthRpcAsync(rpcUrl, "eth_call", []any{map[string]any{
 		"to":   token,
@@ -1143,13 +1144,14 @@ func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpc
 	}
 	// approve(spender, maxUint256)
 	var maxUint string = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-	var approveData *string = ccxt.SafeStringPtr("0x095ea7b3" + this.PadHexAddress(spender) + maxUint)
+	approveDataStr := "0x095ea7b3" + this.PadHexAddress(spender) + maxUint
+	var approveData *string = &approveDataStr
 
 	r1 := <-this.SendEvmTransactionAsync(rpcUrl, this.ParseToInt(networkId), owner, token, "0x0", approveData, "0x186a0")
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	approveHash := r1.Value
+	var approveHash *string = r1.Value
 
 	r2 := <-this.WaitForTransactionReceiptAsync(rpcUrl, approveHash)
 	if r2.Err != nil {
@@ -1287,7 +1289,8 @@ func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[ccxt.Predi
 		if side == nil {
 			return nil
 		}
-		return ccxt.SafeStringPtr(strings.ToLower(*side))
+		retStr := strings.ToLower(*side)
+		return &retStr
 	}()
 	var typeStr string
 	if typeVar == nil {
@@ -2895,7 +2898,8 @@ func (this *Myriad) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	var decimals *int64 = this.SafeInteger(params, "decimals", this.SafeInteger(chainConfig, "collateralDecimals", 18))
 	var owner string = this.WalletAddressFromKeys()
 	// ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
-	var callData *string = ccxt.SafeStringPtr("0x70a08231" + this.PadHexAddress(owner))
+	callDataStr := "0x70a08231" + this.PadHexAddress(owner)
+	var callData *string = &callDataStr
 	var callParams []any = []any{map[string]any{
 		"to":   token,
 		"data": callData,
@@ -4007,7 +4011,7 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var responses []any = ccxt.ListTyped(r1.Value)
+	var responses []any = r1.Value
 	for i := 0; i < len(marketKeys); i++ {
 		var key string = marketKeys[i]
 		var response any = responses[i]
@@ -4247,7 +4251,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			var listResponses []any = ccxt.ListTyped(r3.Value)
+			var listResponses []any = r3.Value
 			rawMarkets = ccxt.ArrayTyped(this.SafeList(listResponses, 0, []any{}))
 			rawQuestions = ccxt.ArrayTyped(this.SafeList(listResponses, 1, []any{}))
 		} else {
@@ -5424,12 +5428,11 @@ func (this *Myriad) seedPositionBalancesBody(ch chan ccxt.AsyncResult[bool], tra
 		var p map[string]any = ccxt.SafeMapTyped(positions, i)
 		var id *string = this.SafeString(p, "id")
 		if id != nil {
-			balances[*id] = func() any {
-				if v := this.NumberToString(this.SafeNumber(p, "contracts", 0)); v != nil {
-					return *v
-				}
-				return nil
-			}()
+			if ptrValue := this.NumberToString(this.SafeNumber(p, "contracts", 0)); ptrValue != nil {
+				balances[*id] = *ptrValue
+			} else {
+				balances[*id] = nil
+			}
 		}
 	}
 	this.Options["positionBalances"] = balances

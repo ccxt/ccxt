@@ -1027,34 +1027,34 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 			sideStr := "buy"
 			side = &sideStr
 			order = this.SafeString(trade, "bid_id")
-			takerOrMakerStr := func() string {
-				if isMakerAsk != nil && *isMakerAsk {
-					return "taker"
-				}
-				return "maker"
-			}()
+			var takerOrMakerStr string
+			if isMakerAsk != nil && *isMakerAsk {
+				takerOrMakerStr = "taker"
+			} else {
+				takerOrMakerStr = "maker"
+			}
 			takerOrMaker = &takerOrMakerStr
 		} else if askAccountId == accountIndex || (askAccountId != nil && accountIndex != nil && *askAccountId == *accountIndex) {
 			sideStr2 := "sell"
 			side = &sideStr2
 			order = this.SafeString(trade, "ask_id")
-			takerOrMakerStr2 := func() string {
-				if isMakerAsk != nil && *isMakerAsk {
-					return "maker"
-				}
-				return "taker"
-			}()
+			var takerOrMakerStr2 string
+			if isMakerAsk != nil && *isMakerAsk {
+				takerOrMakerStr2 = "maker"
+			} else {
+				takerOrMakerStr2 = "taker"
+			}
 			takerOrMaker = &takerOrMakerStr2
 		}
 	}
 	// public trades use Lighter's taker-side convention
 	if side == nil {
-		sideStr3 := func() string {
-			if isMakerAsk != nil && *isMakerAsk {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr3 string
+		if isMakerAsk != nil && *isMakerAsk {
+			sideStr3 = "buy"
+		} else {
+			sideStr3 = "sell"
+		}
 		side = &sideStr3
 	}
 	var fee map[string]any = nil
@@ -1069,7 +1069,8 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[strin
 			if feeRateRaw != nil {
 				return ccxt.Precise.StringDiv(feeRateRaw, "1000000")
 			}
-			return ccxt.SafeStringPtr("0")
+			retStr := "0"
+			return &retStr
 		}()
 		var feeAmount *string = ccxt.Precise.StringMul(costString, feeRate)
 		fee = map[string]any{
@@ -1608,13 +1609,16 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 		balance["USDC"] = account
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	balance["timestamp"] = func() any {
-		if v := timestamp; v != nil {
-			return *v
-		}
-		return nil
-	}()
-	ccxt.AddElementToObject(balance, "datetime", this.Iso8601(timestamp))
+	if timestamp != nil {
+		balance["timestamp"] = *timestamp
+	} else {
+		balance["timestamp"] = nil
+	}
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		balance["datetime"] = *ptrValue
+	} else {
+		balance["datetime"] = nil
+	}
 	this.Balance[typeVar] = this.SafeBalance(balance)
 	var messageHash string = this.GetMessageHash("balances", nil, typeVar)
 	client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], messageHash)

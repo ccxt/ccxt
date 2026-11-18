@@ -1762,7 +1762,8 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var requestBody *string = func() *string {
 		if method == "POST" {
-			return SafeStringPtr(postBody)
+			retStr := postBody
+			return &retStr
 		}
 		return nil
 	}()

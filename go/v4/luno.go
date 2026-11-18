@@ -1429,12 +1429,12 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
 			takerOrMaker = &takerOrMakerStr3
 		}
 	} else {
-		sideStr3 := func() string {
-			if *this.SafeBool(trade, "is_buy", false) {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr3 string
+		if *this.SafeBool(trade, "is_buy", false) {
+			sideStr3 = "buy"
+		} else {
+			sideStr3 = "sell"
+		}
 		side = &sideStr3
 	}
 	var feeBaseString *string = this.SafeString(trade, "fee_base")
@@ -1815,12 +1815,11 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	} else {
 		request["volume"] = this.AmountToPrecision(market["symbol"], amount)
 		request["price"] = this.PriceToPrecision(market["symbol"], price)
-		request["type"] = func() string {
-			if side == "buy" {
-				return "BID"
-			}
-			return "ASK"
-		}()
+		if side == "buy" {
+			request["type"] = "BID"
+		} else {
+			request["type"] = "ASK"
+		}
 
 		r2 := <-this.PrivatePostPostorder(this.Extend(request, params))
 		if r2.Err != nil {

@@ -1700,23 +1700,23 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isBuyer *bool = this.SafeBool2(trade, "isBuyer", "isBuyerMaker")
 	var side *string = nil
 	if isBuyer != nil {
-		sideStr := func() string {
-			if isBuyer != nil && *isBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		var sideStr string
+		if isBuyer != nil && *isBuyer {
+			sideStr = "buy"
+		} else {
+			sideStr = "sell"
+		}
 		side = &sideStr
 	}
 	var isMaker *string = this.SafeString(trade, "isMaker")
 	var takerOrMaker *string = nil
 	if isMaker != nil {
-		takerOrMakerStr := func() string {
-			if isMaker != nil && *isMaker == "true" {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr string
+		if isMaker != nil && *isMaker == "true" {
+			takerOrMakerStr = "maker"
+		} else {
+			takerOrMakerStr = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr
 	}
 	var costString *string = nil

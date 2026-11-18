@@ -1202,12 +1202,12 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var buyerMaker *bool = this.SafeBool2(trade, "m", "isBuyerMaker")
 	var takerOrMaker *string = nil
 	if buyerMaker != nil {
-		sideStr := func() string {
-			if buyerMaker != nil && *buyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if buyerMaker != nil && *buyerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr // this is reversed intentionally
 		takerOrMakerStr := "taker"
 		takerOrMaker = &takerOrMakerStr
@@ -1215,12 +1215,12 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 		side = this.SafeStringLower(trade, "side")
 	} else {
 		if this.SafeString(trade, "isBuyer") != nil {
-			sideStr2 := func() string {
-				if *this.SafeBool(trade, "isBuyer", false) {
-					return "buy"
-				}
-				return "sell"
-			}()
+			var sideStr2 string
+			if *this.SafeBool(trade, "isBuyer", false) {
+				sideStr2 = "buy"
+			} else {
+				sideStr2 = "sell"
+			}
 			side = &sideStr2 // this is a true side
 		}
 	}
@@ -1232,21 +1232,21 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	if this.SafeString(trade, "isMaker") != nil {
-		takerOrMakerStr2 := func() string {
-			if *this.SafeBool(trade, "isMaker", false) {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr2 string
+		if *this.SafeBool(trade, "isMaker", false) {
+			takerOrMakerStr2 = "maker"
+		} else {
+			takerOrMakerStr2 = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr2
 	}
 	if this.SafeString(trade, "maker") != nil {
-		takerOrMakerStr3 := func() string {
-			if *this.SafeBool(trade, "maker", false) {
-				return "maker"
-			}
-			return "taker"
-		}()
+		var takerOrMakerStr3 string
+		if *this.SafeBool(trade, "maker", false) {
+			takerOrMakerStr3 = "maker"
+		} else {
+			takerOrMakerStr3 = "taker"
+		}
 		takerOrMaker = &takerOrMakerStr3
 	}
 	return this.SafeTrade(map[string]any{

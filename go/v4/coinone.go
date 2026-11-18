@@ -1039,12 +1039,12 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side *string = nil
 	if isSellerMaker != nil {
-		sideStr := func() string {
-			if isSellerMaker != nil && *isSellerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if isSellerMaker != nil && *isSellerMaker {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	var priceString *string = this.SafeString(trade, "price")

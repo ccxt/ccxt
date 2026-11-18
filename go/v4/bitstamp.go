@@ -1241,12 +1241,12 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			}
 		}
 		var isSpot bool = (typeVar != nil && *typeVar == "spot")
-		var settle *string = func() *string {
-			if (settleId != nil) && (settleId == nil || *settleId != "") {
-				return this.SafeCurrencyCode(settleId)
-			}
-			return nil
-		}()
+		var settle *string
+		if (settleId != nil) && (settleId == nil || *settleId != "") {
+			settle = this.SafeCurrencyCode(settleId)
+		} else {
+			settle = nil
+		}
 		result = append(result, map[string]any{
 			"id":       this.SafeString(market, "market_symbol"),
 			"symbol":   symbol,
@@ -2134,8 +2134,8 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlc, market, timeframe, since, limitResolved))}
 	return nil
 }
-func (this *Bitstamp) ParseBalanceList(response any) map[string]any {
-	var finalResponse any = response // java req
+func (this *Bitstamp) ParseBalanceList(response []any) map[string]any {
+	var finalResponse []any = response // java req
 	var result map[string]any = map[string]any{
 		"info":      finalResponse,
 		"timestamp": nil,
@@ -2277,7 +2277,7 @@ func (this *Bitstamp) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeIn
 		"tierBased":  nil,
 	})
 }
-func (this *Bitstamp) ParseTradingFees(fees any) map[string]any {
+func (this *Bitstamp) ParseTradingFees(fees []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": fees,
 	}
@@ -3473,12 +3473,12 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) Order {
 	var clientOrderId *string = this.SafeString2(order, "client_order_id", "orig_client_order_id")
 	var side *string = this.SafeString2(order, "type", "order_type")
 	if side != nil {
-		sideStr := func() string {
-			if side != nil && *side == "1" {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var sideStr string
+		if side != nil && *side == "1" {
+			sideStr = "sell"
+		} else {
+			sideStr = "buy"
+		}
 		side = &sideStr
 	}
 	// there is no timestamp from fetchOrder
@@ -3602,20 +3602,18 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		}
 		if InOp(item, "amount") {
 			var amount *string = this.SafeString(item, "amount")
-			direction = func() string {
-				if Precise.StringGt(amount, "0") {
-					return "in"
-				}
-				return "out"
-			}()
+			if Precise.StringGt(amount, "0") {
+				direction = "in"
+			} else {
+				direction = "out"
+			}
 		} else if transactionCurrency != nil {
 			var amount *string = this.SafeString(item, this.SafeString(currencyResolved, "id"))
-			direction = func() string {
-				if Precise.StringGt(amount, "0") {
-					return "in"
-				}
-				return "out"
-			}()
+			if Precise.StringGt(amount, "0") {
+				direction = "in"
+			} else {
+				direction = "out"
+			}
 		}
 		return this.SafeLedgerEntry(map[string]any{
 			"info":             item,

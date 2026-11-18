@@ -2453,12 +2453,11 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[cc
 	}
 	var triggerPrice *float64 = this.SafeNumberN(paramsResolved, []any{"triggerPrice", "stopPrice", "stop_price"})
 	if triggerPrice != nil {
-		request["type"] = func() string {
-			if typeVar == "limit" {
-				return "stop_limit"
-			}
-			return "stop_market"
-		}()
+		if typeVar == "limit" {
+			request["type"] = "stop_limit"
+		} else {
+			request["type"] = "stop_market"
+		}
 		request["trigger_price"] = triggerPrice
 	}
 	if typeVar == "limit" {

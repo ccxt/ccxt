@@ -111,7 +111,7 @@ func (this *Bitrue) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	url := r.Value
+	var url *string = r.Value
 	var messageHash string = "balance"
 	var message map[string]any = map[string]any{
 		"event": "sub",
@@ -267,7 +267,7 @@ func (this *Bitrue) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	url := r1.Value
+	var url *string = r1.Value
 	var messageHash string = "orders"
 	var message map[string]any = map[string]any{
 		"event": "sub",

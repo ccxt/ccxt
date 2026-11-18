@@ -689,7 +689,7 @@ func (this *Lbank) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var resolvedMarkets []any = ListTyped(r.Value)
+	var resolvedMarkets []any = r.Value
 	var spotMarkets []any = SafeListTypedDefault(resolvedMarkets, 0, []any{})
 	var swapMarkets []any = SafeListTypedDefault(resolvedMarkets, 1, []any{})
 
@@ -3002,12 +3002,12 @@ func (this *Lbank) GetNetworkCodeForCurrency(currencyCode string, params any) *s
 	var defaultNetwork *string = this.SafeStringUpper(defaultNetworks, currencyCode)
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var networkParam *string = this.SafeStringUpper(params, "network", defaultNetwork) // accepts unified codes and aliases
-	var networkCode *string = func() *string {
-		if networkParam != nil {
-			return this.SafeString(this.NetworkAliases, networkParam, networkParam)
-		}
-		return nil
-	}()
+	var networkCode *string
+	if networkParam != nil {
+		networkCode = this.SafeString(this.NetworkAliases, networkParam, networkParam)
+	} else {
+		networkCode = nil
+	}
 	return this.SafeString(networks, networkCode, networkCode)
 }
 
