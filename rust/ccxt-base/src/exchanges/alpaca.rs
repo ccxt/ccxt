@@ -80,23 +80,23 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //         "swap_rate": "1"
         //     },
         //
-        let mut marketId: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("S".into()), Value::Str("symbol".into()), &[]);
+        let mut marketId: Option<String> = self.safe_string2_opt(&trade, Value::Str("S".into()), Value::Str("symbol".into()), &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
-        let mut datetime: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("t".into()), Value::Str("transaction_time".into()), &[]);
+        let mut datetime: Option<String> = self.safe_string2_opt(&trade, Value::Str("t".into()), Value::Str("transaction_time".into()), &[]);
         let mut timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
-        let mut alpacaSide: Option<String> = self.safe_string_k_opt(trade.clone(), "tks", &[]);
-        let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
+        let mut alpacaSide: Option<String> = self.safe_string_k_opt(&trade, "tks", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
         if (alpacaSide.as_deref() == Some("B")) {
             side = Some("buy".to_string());
         }  else if (alpacaSide.as_deref() == Some("S")) {
             side = Some("sell".to_string());
         }
-        let mut priceString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]);
-        let mut amountString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("s".into()), Value::Str("qty".into()), &[]);
+        let mut priceString: Option<String> = self.safe_string2_opt(&trade, Value::Str("p".into()), Value::Str("price".into()), &[]);
+        let mut amountString: Option<String> = self.safe_string2_opt(&trade, Value::Str("s".into()), Value::Str("qty".into()), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
-        m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("i".into()), Value::Str("id".into()), &[]));
+        m.insert("id".to_string(), self.safe_string2(&trade, Value::Str("i".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -153,12 +153,12 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //        "source":null
         //    }
         //
-        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
-        let mut alpacaStatus: Option<String> = self.safe_string_k_opt(order.clone(), "status", &[]);
+        let mut alpacaStatus: Option<String> = self.safe_string_k_opt(&order, "status", &[]);
         let mut status: Option<String> = self.parse_order_status(alpacaStatus.as_deref());
-        let mut feeValue: Option<String> = self.safe_string_k_opt(order.clone(), "commission", &[]);
+        let mut feeValue: Option<String> = self.safe_string_k_opt(&order, "commission", &[]);
         let mut fee: Option<crate::value::Dict> = None;
         if (feeValue.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -168,34 +168,34 @@ impl crate::exchange::DerivedExchange for Alpaca {
                 m
             }));
         }
-        let mut orderType: Option<String> = self.safe_string_k_opt(order.clone(), "order_type", &[]);
+        let mut orderType: Option<String> = self.safe_string_k_opt(&order, "order_type", &[]);
         if (orderType.is_some()) {
             if orderType.as_deref().unwrap_or_default().contains("limit") {
                 // might be limit or stop-limit
                 orderType = Some("limit".to_string());
             }
         }
-        let mut datetime: Option<String> = self.safe_string_k_opt(order.clone(), "submitted_at", &[]);
+        let mut datetime: Option<String> = self.safe_string_k_opt(&order, "submitted_at", &[]);
         let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(order.clone(), "id", &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_order_id", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
-        m.insert("lastTradeTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(order.clone(), "filled_at", &[]))));
+        m.insert("lastTradeTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(&order, "filled_at", &[]))));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), self.parse_time_in_force((self.safe_string_k(order.clone(), "time_in_force", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force((self.safe_string_k(&order, "time_in_force", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_k(order.clone(), "side", &[]));
-        m.insert("price".to_string(), self.safe_number_k(order.clone(), "limit_price", &[]));
-        m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "stop_price", &[]));
+        m.insert("side".to_string(), self.safe_string_k(&order, "side", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&order, "limit_price", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(&order, "stop_price", &[]));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_number_k(order.clone(), "filled_avg_price", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(order.clone(), "qty", &[]));
-        m.insert("filled".to_string(), self.safe_number_k(order.clone(), "filled_qty", &[]));
+        m.insert("average".to_string(), self.safe_number_k(&order, "filled_avg_price", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(&order, "qty", &[]));
+        m.insert("filled".to_string(), self.safe_number_k(&order, "filled_qty", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
@@ -227,12 +227,12 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //         "price_increment": "1"
         //     }
         //
-        let mut marketId: Option<String> = self.safe_string_k_opt(asset.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&asset, "symbol", &[]);
         if (marketId.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseMarket() missing marketId")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " parseMarket() missing marketId")));
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut assetClass: Option<String> = self.safe_string_k_opt(asset.clone(), "class", &[]);
+        let mut assetClass: Option<String> = self.safe_string_k_opt(&asset, "class", &[]);
         let mut baseId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -246,11 +246,11 @@ impl crate::exchange::DerivedExchange for Alpaca {
             return Value::Null;
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        let mut status: Option<String> = self.safe_string_k_opt(asset.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k_opt(&asset, "status", &[]);
         let mut active: bool = status.as_deref() == Some("active");
-        let mut minAmount: Option<f64> = self.safe_number_k(asset.clone(), "min_order_size", &[]).as_f64();
-        let mut amount: Option<f64> = self.safe_number_k(asset.clone(), "min_trade_increment", &[]).as_f64();
-        let mut price: Option<f64> = self.safe_number_k(asset.clone(), "price_increment", &[]).as_f64();
+        let mut minAmount: Option<f64> = self.safe_number_k(&asset, "min_order_size", &[]).as_f64();
+        let mut amount: Option<f64> = self.safe_number_k(&asset, "min_trade_increment", &[]).as_f64();
+        let mut price: Option<f64> = self.safe_number_k(&asset, "price_increment", &[]).as_f64();
         let mut minCost: Option<f64> = None;
         if (assetClass.as_deref() == Some("crypto")) && (quote.as_deref() == Some("USD")) {
             // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
@@ -336,9 +336,9 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //        "vw":22889.5
         //     }
         //
-        let mut datetime: Option<String> = self.safe_string_k_opt(ohlcv.clone(), "t", &[]);
+        let mut datetime: Option<String> = self.safe_string_k_opt(&ohlcv, "t", &[]);
         let mut timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
-        return Value::from(vec![Value::from(timestamp), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
+        return Value::from(vec![Value::from(timestamp), self.safe_number_k(&ohlcv, "o", &[]), self.safe_number_k(&ohlcv, "h", &[]), self.safe_number_k(&ohlcv, "l", &[]), self.safe_number_k(&ohlcv, "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -366,8 +366,8 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //         }
         //     ]
         //
-        let mut account: crate::value::Dict = self.safe_dict_k_t(response.clone(), "account");
-        let mut positions: crate::value::List = self.safe_list_k_t(response.clone(), "positions");
+        let mut account: crate::value::Dict = self.safe_dict_k_t(&response, "account");
+        let mut positions: crate::value::List = self.safe_list_k_t(&response, "positions");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -435,7 +435,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), parsedCurrency.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), parsedCurrency.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), self.safe_string_k(depositAddress, "address", &[]));
         m.insert("tag".to_string(), Value::Null);
@@ -475,7 +475,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //         "fees": "0.1"
         //     }
         //
-        let mut activityType: Option<String> = self.safe_string_k_opt(transaction.clone(), "activity_type", &[]);
+        let mut activityType: Option<String> = self.safe_string_k_opt(&transaction, "activity_type", &[]);
         let mut txid: Option<String> = None;
         let mut timestamp: Option<i64> = None;
         let mut datetime: Option<String> = None;
@@ -491,9 +491,9 @@ impl crate::exchange::DerivedExchange for Alpaca {
         let mut internal: Option<bool> = None;
         let mut fee: Option<crate::value::Dict> = None;
         if (activityType.is_some()) {
-            let mut netAmount: Option<String> = self.safe_string_k_opt(transaction.clone(), "net_amount", &[]);
+            let mut netAmount: Option<String> = self.safe_string_k_opt(&transaction, "net_amount", &[]);
             let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".into())).as_bool() == Some(true)));
-            let mut date: String = self.safe_string_k(transaction.clone(), "date", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut date: String = self.safe_string_k(&transaction, "date", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             timestamp = self.parse8601(Value::Str(format!("{}{}", date, "T00:00:00Z").into()));
             datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
             type_var = (if isIncoming { Some("deposit".to_string()) } else { Some("withdrawal".to_string()) });
@@ -501,7 +501,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
             // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
-            let mut activityCurrencyId: Option<String> = self.safe_string2_opt(transaction.clone(), Value::Str("symbol".into()), Value::Str("asset".into()), &[]);
+            let mut activityCurrencyId: Option<String> = self.safe_string2_opt(&transaction, Value::Str("symbol".into()), Value::Str("asset".into()), &[]);
             if (activityCurrencyId.is_some()) {
                 code = self.safe_currency_code(activityCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
             }  else if (activityType.as_deref() == Some("CSD")) || (activityType.as_deref() == Some("CSW")) {
@@ -509,24 +509,24 @@ impl crate::exchange::DerivedExchange for Alpaca {
             }  else {
                 code = self.safe_currency_code(Value::Null, currency);
             }
-            status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
+            status = self.parse_transaction_status((self.safe_string_k(&transaction, "status", &[])).as_str());
             comment = activityType.clone();
             internal = Some(activityType.as_deref() != Some("TRANS"));
         }  else {
-            txid = self.safe_string_k_opt(transaction.clone(), "tx_hash", &[]);
-            datetime = self.safe_string_k_opt(transaction.clone(), "created_at", &[]);
+            txid = self.safe_string_k_opt(&transaction, "tx_hash", &[]);
+            datetime = self.safe_string_k_opt(&transaction, "created_at", &[]);
             timestamp = self.parse8601(Value::from(datetime.as_deref()));
-            address = self.safe_string_k_opt(transaction.clone(), "to_address", &[]);
-            addressTo = self.safe_string_k_opt(transaction.clone(), "to_address", &[]);
-            addressFrom = self.safe_string_k_opt(transaction.clone(), "from_address", &[]);
-            type_var = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "direction", &[])).as_str());
-            amount = self.parse_number(self.safe_string_k(transaction.clone(), "amount", &[]), &[]).as_f64();
-            let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "asset", &[]);
+            address = self.safe_string_k_opt(&transaction, "to_address", &[]);
+            addressTo = self.safe_string_k_opt(&transaction, "to_address", &[]);
+            addressFrom = self.safe_string_k_opt(&transaction, "from_address", &[]);
+            type_var = self.parse_transaction_type((self.safe_string_k(&transaction, "direction", &[])).as_str());
+            amount = self.parse_number(self.safe_string_k(&transaction, "amount", &[]), &[]).as_f64();
+            let mut currencyId: Option<String> = self.safe_string_k_opt(&transaction, "asset", &[]);
             code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
-            network = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[]), Value::from(code.as_deref())]);
-            status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
-            let mut fees: Option<String> = self.safe_string_k_opt(transaction.clone(), "fees", &[]);
-            let mut networkFee: Option<String> = self.safe_string_k_opt(transaction.clone(), "network_fee", &[]);
+            network = self.network_id_to_code(&[self.safe_string_k(&transaction, "chain", &[]), Value::from(code.as_deref())]);
+            status = self.parse_transaction_status((self.safe_string_k(&transaction, "status", &[])).as_str());
+            let mut fees: Option<String> = self.safe_string_k_opt(&transaction, "fees", &[]);
+            let mut networkFee: Option<String> = self.safe_string_k_opt(&transaction, "network_fee", &[]);
             let mut totalFee: Option<String> = crate::precise::Precise::stringAdd(&fees, &networkFee).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -539,13 +539,13 @@ impl crate::exchange::DerivedExchange for Alpaca {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(transaction, "id", &[]));
-        m.insert("txid".to_string(), txid.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("addressTo".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("addressFrom".to_string(), addressFrom.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
@@ -563,7 +563,6 @@ impl crate::exchange::DerivedExchange for Alpaca {
     Value::Null
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
-        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -572,10 +571,10 @@ impl crate::exchange::DerivedExchange for Alpaca {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.get(0).cloned().unwrap_or(Value::Null), &[]);
+        let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), params.clone()));
+        let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), api.get(0).cloned().unwrap_or(Value::Null), &[]);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -586,7 +585,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
             headersValue.insert("APCA-API-KEY-ID".into(), self.apiKey.clone());
             headersValue.insert("APCA-API-SECRET-KEY".into(), self.secret.clone());
         }
-        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
         let mut bodyJson: Option<String> = None;
         if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
@@ -617,8 +616,8 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //     "code": 40110000,
         //     "message": "request is not authorized"
         // }
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
-        let mut errorCode: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
+        let mut errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
         // code is an int: it is never undefined, the guard was dead
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         let mut message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
@@ -1636,7 +1635,7 @@ impl Alpaca {
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "timestamp", &[]));
         if (timestamp.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchTime() missing timestamp")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchTime() missing timestamp")));
         }
         return Value::from(timestamp);
         Value::Null
@@ -1702,20 +1701,20 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
-        let mut loc: String = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
-        let mut method: String = self.safe_string_k(params.clone(), "method", &[Value::Str("marketPublicGetV1beta3CryptoLocTrades".into())]).as_str().unwrap_or("marketPublicGetV1beta3CryptoLocTrades").to_string();
+        let mut loc: String = self.safe_string_k(&params, "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
+        let mut method: String = self.safe_string_k(&params, "method", &[Value::Str("marketPublicGetV1beta3CryptoLocTrades".into())]).as_str().unwrap_or("marketPublicGetV1beta3CryptoLocTrades").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbols".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["loc", "method"], &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["loc", "method"], &[]);
         let mut symbolTrades: Option<crate::value::List> = None;
         if (method == "marketPublicGetV1beta3CryptoLocTrades") {
             if (since != Value::Null) {
@@ -1724,7 +1723,7 @@ impl Alpaca {
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());
             }
-            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
+            let __ws_arg_1 = self.extend(&request, &[&paramsOmitted]);
             let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_trades(&[__ws_arg_1]).await.into_dict();
             //
             //    {
@@ -1743,7 +1742,7 @@ impl Alpaca {
             //    }
             //
             let mut trades: crate::value::Dict = self.safe_dict_k_t(&response, "trades");
-            symbolTrades = self.safe_list(&trades, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_opt_list();
+            symbolTrades = self.safe_list_or_o(&trades, marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![]));
         }  else if (method == "marketPublicGetV1beta3CryptoLocLatestTrades") {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
             let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_latest_trades(&[__ws_arg_2]).await.into_dict();
@@ -1764,7 +1763,7 @@ impl Alpaca {
             let mut symbolTrade: crate::value::Dict = self.safe_dict_t(&trades, marketId.map(Value::from).unwrap_or(Value::Null));
             symbolTrades = Value::from(vec![Value::Dict(symbolTrade)]).into_opt_list();
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTrades() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchTrades() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")));
         }
         let mut symbolTradesList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolTrades.is_some()) {
@@ -1798,12 +1797,12 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
-        let mut loc: String = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
+        let mut loc: String = self.safe_string_k(&params, "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbols".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1889,13 +1888,13 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
-        let mut loc: String = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
-        let mut method: String = self.safe_string_k(params.clone(), "method", &[Value::Str("marketPublicGetV1beta3CryptoLocBars".into())]).as_str().unwrap_or("marketPublicGetV1beta3CryptoLocBars").to_string();
+        let mut loc: String = self.safe_string_k(&params, "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
+        let mut method: String = self.safe_string_k(&params, "method", &[Value::Str("marketPublicGetV1beta3CryptoLocBars".into())]).as_str().unwrap_or("marketPublicGetV1beta3CryptoLocBars").to_string();
         let mut paginate: bool = false;
         let mut query: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -1924,7 +1923,7 @@ impl Alpaca {
                 request.insert("end".into(), self.iso8601(until));
             }
             request.insert("timeframe".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-            let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_4 = self.extend(&request, &[&query]);
             let mut response: Value = self.market_public_get_v1beta3_crypto_loc_bars(&[__ws_arg_4]).await;
             //
             //    {
@@ -1955,14 +1954,14 @@ impl Alpaca {
             //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
             //     }
             //
-            let mut bars: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "bars", &[Value::Map({
+            let mut bars: Option<crate::value::Dict> = self.safe_dict_k_or_o(&response, "bars", Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]).into_opt_dict();
+}));
             ohlcvs = self.safe_list(&bars, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
             if paginate {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
-                let mut pageToken: Option<String> = self.safe_string_k_opt(response.clone(), "next_page_token", &[]);
+                let mut pageToken: Option<String> = self.safe_string_k_opt(&response, "next_page_token", &[]);
                 {
                                         let mut i: i64 = 1;
                     let mut __for_first_219: bool = true;
@@ -1972,19 +1971,19 @@ impl Alpaca {
                         break;
                     }
                     request.insert("page_token".into(), pageToken.clone().map(Value::from).unwrap_or(Value::Null));
-                    let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                    let __ws_arg_5 = self.extend(&request, &[&query]);
                     response = self.market_public_get_v1beta3_crypto_loc_bars(&[__ws_arg_5]).await;
-                    bars = self.safe_dict_k(response.clone(), "bars", &[Value::Map({
+                    bars = self.safe_dict_k_or_o(&response, "bars", Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]).into_opt_dict();
+}));
                     let mut page: crate::value::List = self.safe_list_t(&bars, marketId.clone().map(Value::from).unwrap_or(Value::Null));
                     let mut pageLength: i64 = page.len() as i64;
                     if (pageLength == 0) {
                         break;
                     }
                     ohlcvs = self.array_concat(ohlcvs, Value::Arr(page));
-                    pageToken = self.safe_string_k_opt(response.clone(), "next_page_token", &[]);
+                    pageToken = self.safe_string_k_opt(&response, "next_page_token", &[]);
                 }
                 }
             }
@@ -2011,7 +2010,7 @@ impl Alpaca {
             let mut bar: crate::value::Dict = self.safe_dict_t(&bars, marketId.map(Value::from).unwrap_or(Value::Null));
             ohlcvs = Value::from(vec![Value::Dict(bar)]);
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOHLCV() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCV() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")));
         }
         return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
@@ -2040,7 +2039,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: String = self.symbol(symbol);
@@ -2072,14 +2071,14 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
         // symbol iteration order differs per language
         let mut symbolsSorted: Value = (if (symbols == Value::Null) { self.sort(Value::Arr(self.symbols.clone()), &[]) } else { symbols });
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsSorted]).into_opt_list();
-        let mut loc: String = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
+        let mut loc: String = self.safe_string_k(&params, "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
         let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2087,7 +2086,7 @@ impl Alpaca {
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("loc".into()), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("loc".into()), &[]);
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_snapshots(&[__ws_arg_7]).await.into_dict();
         //
@@ -2162,7 +2161,7 @@ impl Alpaca {
                     m.insert("info".to_string(), entry.map_or(Value::Null, Value::Dict));
                     m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                     m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
-                    m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                     m.insert("high".to_string(), self.safe_string_k(&dailyBar, "h", &[]));
                     m.insert("low".to_string(), self.safe_string_k(&dailyBar, "l", &[]));
                     m.insert("bid".to_string(), self.safe_string_k(&latestQuote, "bp", &[]));
@@ -2229,7 +2228,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -2265,7 +2264,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -2301,7 +2300,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -2346,7 +2345,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2358,13 +2357,13 @@ impl Alpaca {
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), &[]);
         if (triggerPrice.is_some()) {
             let mut newType: Option<String> = None;
             if type_var.as_str().unwrap_or("").contains("limit") {
                 newType = Some("stop_limit".to_string());
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support stop orders for ").into()), type_var).into()), " orders, only stop_limit orders are supported")));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support stop orders for ").into()), type_var).into()), " orders, only stop_limit orders are supported")));
             }
             request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("type".into(), newType.map(Value::from).unwrap_or(Value::Null));
@@ -2372,19 +2371,19 @@ impl Alpaca {
         if type_var.as_str().unwrap_or("").contains("limit") {
             request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
-        let mut cost: Option<String> = self.safe_string_k_opt(params.clone(), "cost", &[]);
+        let mut cost: Option<String> = self.safe_string_k_opt(&params, "cost", &[]);
         if (cost.is_some()) {
             request.insert("notional".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null))));
         }  else {
             request.insert("qty".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
-        let mut paramsCost: crate::value::Dict = (if (cost.is_some()) { self.omit(params.clone(), Value::Str("cost".into()), &[]) } else { params }).into_dict();
+        let mut paramsCost: crate::value::Dict = (if (cost.is_some()) { self.omit(&params, Value::Str("cost".into()), &[]) } else { params }).into_dict();
         let defaultTIFparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut defaultTIF: Option<String> = defaultTIFparamsTimeInForceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request.insert("time_in_force".into(), (if (defaultTIF.is_some()) { defaultTIF.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null) } else { defaultTIF.clone().map(Value::from).unwrap_or(Value::Null) }));
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTimeInForce, &["timeInForce", "triggerPrice"], &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsTimeInForce, &["timeInForce", "triggerPrice"], &[]);
         request.insert("client_order_id".into(), self.generate_client_order_id(&paramsOmitted).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, &["clientOrderId"], &[])]);
         let mut order: crate::value::Dict = self.trader_private_post_v2_orders(&[__ws_arg_11]).await.into_dict();
@@ -2447,7 +2446,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.trader_private_delete_v2_orders(&[params]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
@@ -2486,7 +2485,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2529,7 +2528,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2542,11 +2541,11 @@ impl Alpaca {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbols".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("until".into(), self.iso8601(until));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (since != Value::Null) {
             request.insert("after".into(), self.iso8601(since.clone()));
             let mut direction: Option<String> = self.safe_string_k_opt(&paramsOmitted, "direction", &[]);
@@ -2672,7 +2671,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2687,11 +2686,11 @@ impl Alpaca {
         if (amount != Value::Null) {
             request.insert("qty".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
-        let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), &[]);
         if (triggerPrice.is_some()) {
             request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut paramsTrigger: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(params.clone(), Value::Str("triggerPrice".into()), &[]) } else { params }).into_dict();
+        let mut paramsTrigger: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&params, Value::Str("triggerPrice".into()), &[]) } else { params }).into_dict();
         if (price != Value::Null) {
             request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
@@ -2712,7 +2711,6 @@ impl Alpaca {
 
 
     pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
-        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pending_new".to_string(), Value::Str("open".into()));
@@ -2735,11 +2733,10 @@ impl Alpaca {
                 m.insert("rejected".to_string(), Value::Str("rejected".into()));
             m
         });
-        return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
+        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
 }
 
     pub fn parse_time_in_force(&self, timeInForce: Option<&str>) -> Option<String> {
-        let mut timeInForce: Value = timeInForce.into();
         let mut timeInForces: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("day".to_string(), Value::Str("Day".into()));
@@ -2748,7 +2745,7 @@ impl Alpaca {
                 m.insert("fok".to_string(), Value::Str("FOK".into()));
             m
         });
-        return self.safe_string_opt(&timeInForces, timeInForce.clone(), &[timeInForce.clone()]);
+        return self.safe_string_opt(&timeInForces, Value::from(timeInForce), &[Value::from(timeInForce)]);
 }
 
 /*
@@ -2777,7 +2774,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -2789,11 +2786,11 @@ impl Alpaca {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("until".into(), self.iso8601(until));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (since != Value::Null) {
             request.insert("after".into(), self.iso8601(since.clone()));
         }
@@ -2831,7 +2828,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
@@ -2877,7 +2874,7 @@ impl Alpaca {
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)]);
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
@@ -2913,15 +2910,14 @@ impl Alpaca {
 
     pub async fn fetch_transactions_helper(&mut self, type_var: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, mut params: Value) -> Value {
         let mut type_var: Value = type_var.into();
-        let mut code: Value = code.into();
         let mut since: Value = since.into();
         let mut limit: Value = limit.into();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Option<crate::types::Currency> = None;
-        if (code != Value::Null) {
-            currency = Some(self.currency(code));
+        if (code.is_some()) {
+            currency = Some(self.currency(Value::from(code)));
         }
         let mut sandboxMode: bool = self.isSandboxModeEnabled.as_bool() == Some(true) || self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool() == Some(true);
         if sandboxMode {
@@ -2933,7 +2929,7 @@ impl Alpaca {
                     m.insert("activity_types".to_string(), Value::Str("CSD,CSW,TRANS".into()));
                 m
             });
-            let __ws_arg_21 = self.extend(Value::Map(request), &[params.clone()]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
             let mut activities: Option<crate::value::List> = self.trader_private_get_v2_account_activities(&[__ws_arg_21]).await.into_opt_list();
             //
             //     [
@@ -3103,7 +3099,6 @@ impl Alpaca {
 
 
     pub fn parse_transaction_status(&self, status: Option<&str>) -> Option<String> {
-        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PROCESSING".to_string(), Value::Str("pending".into()));
@@ -3114,18 +3109,17 @@ impl Alpaca {
                 m.insert("pending".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
+        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
 }
 
     pub fn parse_transaction_type(&self, type_var: Option<&str>) -> Option<String> {
-        let mut type_var: Value = type_var.into();
         let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("INCOMING".to_string(), Value::Str("deposit".into()));
                 m.insert("OUTGOING".to_string(), Value::Str("withdrawal".into()));
             m
         });
-        return self.safe_string_opt(&types, type_var.clone(), &[type_var.clone()]);
+        return self.safe_string_opt(&types, Value::from(type_var), &[Value::from(type_var)]);
 }
 
 /*
@@ -3149,7 +3143,7 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // the two calls stay sequential deliberately — the static request harness records one request per case,

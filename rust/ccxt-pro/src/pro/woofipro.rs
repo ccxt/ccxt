@@ -60,12 +60,12 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..]).await,
-                "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscribe" => self.handle_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "handle_ticker" => self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -101,23 +101,23 @@ impl Woofipro {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "handle_auth" => { self.handle_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_auth" => { self.handle_auth(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "handle_bid_ask" => { self.handle_bid_ask(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_order_update" => { self.handle_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_update" => { self.handle_order_update(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ping" => { self.handle_ping(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_subscribe" => self.handle_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_tickers" => { self.handle_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_trade" => { self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "handle_tickers" => { self.handle_tickers(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trade" => { self.handle_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "load_positions_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -263,7 +263,7 @@ impl Woofipro {
         if (self.accountId.clone() != Value::Null) && (self.accountId.as_str() != Some("")) {
             id = self.accountId.clone();
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(&self.urls, "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[Value::Map({
@@ -276,7 +276,7 @@ impl Woofipro {
                 m.insert("id".to_string(), Value::from(requestId));
             m
         });
-        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        let mut request: crate::value::Dict = self.extend_t(Value::Map(subscribe.clone()), &[message]);
         return self.watch(url.as_str(), messageHash, &request, messageHash, Value::Map(subscribe)).await;
 
     Value::Null
@@ -304,7 +304,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "orderbook".to_string();
@@ -317,7 +317,7 @@ impl Woofipro {
                 m.insert("topic".to_string(), Value::from(topic.clone()));
             m
         });
-        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         let mut orderbook: Value = self.watch_public(topic.as_str(), &message).await;
         return orderbook.limit();
         Value::Null
@@ -383,7 +383,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "ticker".to_string();
@@ -396,7 +396,7 @@ impl Woofipro {
                 m.insert("topic".to_string(), Value::from(topic.clone()));
             m
         });
-        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         return self.watch_public(topic.as_str(), &message).await;
         Value::Null
         }).await?))
@@ -409,22 +409,22 @@ impl Woofipro {
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market, &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
+        m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(&ticker, "low", &[]));
         m.insert("bid".to_string(), Value::Null);
         m.insert("bidVolume".to_string(), Value::Null);
         m.insert("ask".to_string(), Value::Null);
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open", &[]));
-        m.insert("close".to_string(), self.safe_string_k(ticker.clone(), "close", &[]));
+        m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
+        m.insert("close".to_string(), self.safe_string_k(&ticker, "close", &[]));
         m.insert("last".to_string(), Value::Null);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "amount", &[]));
+        m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "volume", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string_k(&ticker, "amount", &[]));
         m.insert("info".to_string(), ticker);
     m
 }), market);
@@ -432,7 +432,7 @@ impl Woofipro {
     Value::Null
 }
 
-    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) -> Value {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -489,7 +489,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
@@ -501,14 +501,14 @@ impl Woofipro {
                 m.insert("topic".to_string(), Value::from(topic.clone()));
             m
         });
-        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch_public(topic.as_str(), &message).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
 
-    pub fn handle_tickers(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_tickers(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -573,7 +573,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
@@ -585,14 +585,14 @@ impl Woofipro {
                 m.insert("topic".to_string(), Value::from(topic.clone()));
             m
         });
-        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch_public(topic.as_str(), &message).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
     }
 
-    pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -635,19 +635,19 @@ impl Woofipro {
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
-        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "ts", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "ts", &[]).as_i64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "ask", &[]));
-        m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "askSize", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
-        m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bidSize", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(&ticker, "ask", &[]));
+        m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askSize", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(&ticker, "bid", &[]));
+        m.insert("bidVolume".to_string(), self.safe_string_k(&ticker, "bidSize", &[]));
         m.insert("info".to_string(), ticker);
     m
 }), Some(&marketResolved));
@@ -681,11 +681,11 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (timeframe.as_str() != Some("1m")) && (timeframe.as_str() != Some("5m")) && (timeframe.as_str() != Some("15m")) && (timeframe.as_str() != Some("30m")) && (timeframe.as_str() != Some("1h")) && (timeframe.as_str() != Some("1d")) && (timeframe.as_str() != Some("1w")) && (timeframe.as_str() != Some("1M")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
@@ -698,7 +698,7 @@ impl Woofipro {
                 m.insert("topic".to_string(), Value::from(topic.clone()));
             m
         });
-        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         let mut ohlcv: Value = self.watch_public(topic.as_str(), &message).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -709,7 +709,7 @@ impl Woofipro {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -775,7 +775,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -788,7 +788,7 @@ impl Woofipro {
                 m.insert("topic".to_string(), Value::from(topic.clone()));
             m
         });
-        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         let mut trades: Value = self.watch_public(topic.as_str(), &message).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -799,7 +799,7 @@ impl Woofipro {
         }).await?))
     }
 
-    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -875,32 +875,32 @@ impl Woofipro {
         //         maker: false
         //     }
         //
-        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
-        let mut price: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("executedPrice".into()), Value::Str("price".into()), &[]);
-        let mut amount: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("executedQuantity".into()), Value::Str("size".into()), &[]);
+        let mut price: Option<String> = self.safe_string2_opt(&trade, Value::Str("executedPrice".into()), Value::Str("price".into()), &[]);
+        let mut amount: Option<String> = self.safe_string2_opt(&trade, Value::Str("executedQuantity".into()), Value::Str("size".into()), &[]);
         let mut cost: Option<String> = crate::precise::Precise::stringMul(&price, &amount).as_str().map(str::to_owned);
-        let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
+        let mut side: Option<String> = self.safe_string_lower_k_opt(&trade, "side", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
         let mut takerOrMaker: Option<String> = None;
-        let mut maker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
+        let mut maker: Option<bool> = self.safe_bool_k_opt(&trade, "maker", &[]);
         if (maker.is_some()) {
             takerOrMaker = (if (maker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let mut fee: Option<crate::value::Dict> = None;
-        let mut feeValue: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
+        let mut feeValue: Option<String> = self.safe_string_k_opt(&trade, "fee", &[]);
         if (feeValue.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeValue.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "feeAsset", &[]), None).map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&trade, "feeAsset", &[]), None).map(Value::from).unwrap_or(Value::Null));
                 m
             }));
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tradeId", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&trade, "tradeId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -908,9 +908,9 @@ impl Woofipro {
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
-        m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
+        m.insert("order".to_string(), self.safe_string_k(&trade, "orderId", &[]));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), self.safe_string_lower_k(trade.clone(), "type", &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(&trade, "type", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("info".to_string(), trade);
     m
@@ -919,9 +919,9 @@ impl Woofipro {
     Value::Null
 }
 
-    pub fn handle_auth(&self, mut client: Value, mut message: Value) {
+    pub fn handle_auth(&self, client: &Value, message: &Value) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
@@ -937,7 +937,7 @@ impl Woofipro {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
             future.resolve(Value::Bool(true), None);
         }  else {
-            let mut error: crate::ExchangeError = crate::exchange_errors::authentication_error(json_stringify(&message));
+            let mut error: crate::ExchangeError = crate::exchange_errors::authentication_error(json_stringify(message));
             client.reject(error, messageHash.as_str());
             // allows further authentication attempts
             if (__ch.has_subscription(messageHash.as_str())) {
@@ -952,7 +952,7 @@ impl Woofipro {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(&self.urls, "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[Value::Map({
@@ -984,7 +984,7 @@ impl Woofipro {
 }));
                 m
             });
-            let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+            let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
             self.watch(url.as_str(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -999,7 +999,7 @@ impl Woofipro {
     m
 }));
         self.authenticate(&[params]).await;
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(&self.urls, "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[Value::Map({
@@ -1012,7 +1012,7 @@ impl Woofipro {
                 m.insert("id".to_string(), Value::from(requestId));
             m
         });
-        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        let mut request: crate::value::Dict = self.extend_t(Value::Map(subscribe.clone()), &[message]);
         return self.watch(url.as_str(), messageHash, &request, messageHash, Value::Map(subscribe)).await;
 
     Value::Null
@@ -1025,7 +1025,7 @@ impl Woofipro {
     m
 }));
         self.authenticate(&[params]).await;
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(&self.urls, "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[Value::Map({
@@ -1038,7 +1038,7 @@ impl Woofipro {
                 m.insert("id".to_string(), Value::from(requestId));
             m
         });
-        let mut request: crate::value::Dict = self.extend(Value::Map(subscribe.clone()), &[message]).into_dict();
+        let mut request: crate::value::Dict = self.extend_t(Value::Map(subscribe.clone()), &[message]);
         return self.watch_multiple(url.as_str(), messageHashes.clone(), &request, messageHashes.clone(), Value::Map(subscribe)).await;
 
     Value::Null
@@ -1070,15 +1070,15 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(&params, Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut topic: String = "executionreport".to_string();
         if trigger {
             topic = "algoexecutionreport".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["stop", "trigger"], &[]);
         let mut messageHash: String = topic.clone();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
@@ -1094,7 +1094,7 @@ impl Woofipro {
                 m.insert("topic".to_string(), Value::from(topic));
             m
         });
-        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOmitted]).into_dict();
+        let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsOmitted]);
         let mut orders: Value = self.watch_private(messageHash.as_str(), &message, &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1131,15 +1131,15 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(&params, Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut topic: String = "executionreport".to_string();
         if trigger {
             topic = "algoexecutionreport".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("stop".into()), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("stop".into()), &[]);
         let mut messageHash: String = "myTrades".to_string();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
@@ -1155,7 +1155,7 @@ impl Woofipro {
                 m.insert("topic".to_string(), Value::from(topic));
             m
         });
-        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOmitted]).into_dict();
+        let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsOmitted]);
         let mut orders: Value = self.watch_private(messageHash.as_str(), &message, &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1233,37 +1233,37 @@ impl Woofipro {
         //         "createdTime":1704679472448
         //     }
         //
-        let mut orderId: Option<String> = self.safe_string_k_opt(order.clone(), "orderId", &[]);
-        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
+        let mut orderId: Option<String> = self.safe_string_k_opt(&order, "orderId", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let mut marketResolved: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: String = (marketResolved).symbol.clone();
-        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "timestamp", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&order, "timestamp", &[]).as_i64();
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("cost".to_string(), self.safe_string_k(order.clone(), "totalFee", &[]));
-                m.insert("currency".to_string(), self.safe_string_k(order.clone(), "feeAsset", &[]));
+                m.insert("cost".to_string(), self.safe_string_k(&order, "totalFee", &[]));
+                m.insert("currency".to_string(), self.safe_string_k(&order, "feeAsset", &[]));
             m
         });
-        let mut priceString: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
-        let mut price: Option<f64> = self.safe_number_k(order.clone(), "price", &[]).as_f64();
-        let mut avgPrice: Option<f64> = self.safe_number_k(order.clone(), "avgPrice", &[]).as_f64();
+        let mut priceString: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
+        let mut price: Option<f64> = self.safe_number_k(&order, "price", &[]).as_f64();
+        let mut avgPrice: Option<f64> = self.safe_number_k(&order, "avgPrice", &[]).as_f64();
         if crate::precise::Precise::stringEq(&priceString, &Value::Str("0".into())).as_bool() == Some(true) && (avgPrice.is_some()) {
             price = avgPrice;
         }
-        let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "quantity", &[]);
-        let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
-        let mut type_var: Option<String> = self.safe_string_lower_k_opt(order.clone(), "type", &[]);
-        let mut filled: Option<f64> = self.safe_number_k(order.clone(), "totalExecutedQuantity", &[]).as_f64();
-        let mut totalExecQuantity: Option<String> = self.safe_string_k_opt(order.clone(), "totalExecutedQuantity", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(&order, "quantity", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
+        let mut type_var: Option<String> = self.safe_string_lower_k_opt(&order, "type", &[]);
+        let mut filled: Option<f64> = self.safe_number_k(&order, "totalExecutedQuantity", &[]).as_f64();
+        let mut totalExecQuantity: Option<String> = self.safe_string_k_opt(&order, "totalExecutedQuantity", &[]);
         let mut remaining: Option<String> = amount.clone();
         if crate::precise::Precise::stringGe(&amount, &totalExecQuantity).as_bool() == Some(true) {
             remaining = crate::precise::Precise::stringSub(&remaining, &totalExecQuantity).as_str().map(str::to_owned);
         }
-        let mut rawStatus: Option<String> = self.safe_string_k_opt(order.clone(), "status", &[]);
+        let mut rawStatus: Option<String> = self.safe_string_k_opt(&order, "status", &[]);
         let mut status: Option<String> = self.parent.parse_order_status(rawStatus.as_deref());
         let mut trades: Option<String> = None;
-        let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "clientOrderId", &[]);
-        let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "triggerPrice", &[]).as_f64();
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientOrderId", &[]);
+        let mut triggerPrice: Option<f64> = self.safe_number_k(&order, "triggerPrice", &[]).as_f64();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
@@ -1294,7 +1294,7 @@ impl Woofipro {
     Value::Null
 }
 
-    pub fn handle_order_update(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_update(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1333,24 +1333,24 @@ impl Woofipro {
                 let mut __for_first_730: bool = true;
                 while { if !__for_first_730 { i += 1; } __for_first_730 = false; i < (data.len() as i64) } {
                 let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
+                let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(&data, "tradeId", &[]));
                 if (tradeId.is_some()) {
-                    self.handle_my_trade(client.clone(), order.clone());
+                    self.handle_my_trade(client, order.clone());
                 }
-                self.handle_order(client.clone(), order, topic.clone().map(Value::from).unwrap_or(Value::Null));
+                self.handle_order(client, order, topic.clone().map(Value::from).unwrap_or(Value::Null));
             }
             }
         }  else {
             // executionreport
-            let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
+            let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(&data, "tradeId", &[]));
             if (tradeId.is_some()) {
-                self.handle_my_trade(client.clone(), data.clone());
+                self.handle_my_trade(client, data.clone());
             }
             self.handle_order(client, data, topic.map(Value::from).unwrap_or(Value::Null));
         }
 }
 
-    pub fn handle_order(&mut self, mut client: Value, message: impl Into<crate::Value>, mut topic: Value) {
+    pub fn handle_order(&mut self, client: &Value, message: impl Into<crate::Value>, mut topic: Value) {
         let mut message: Value = message.into();
         let mut parsed: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -1383,7 +1383,7 @@ impl Woofipro {
         }
 }
 
-    pub fn handle_my_trade(&mut self, mut client: Value, message: impl Into<crate::Value>) {
+    pub fn handle_my_trade(&mut self, client: &Value, message: impl Into<crate::Value>) {
         let mut message: Value = message.into();
         //
         // {
@@ -1414,7 +1414,7 @@ impl Woofipro {
         // }
         //
         let mut messageHash: String = "myTrades".to_string();
-        let mut marketId: Option<String> = self.safe_string_k_opt(message.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut trade: crate::value::Dict = self.parse_ws_trade(message, Some(&market)).into_dict();
@@ -1453,21 +1453,21 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         if !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
             if (symbolsNormalized.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchPositions() symbols is required")));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchPositions() symbols is required")));
             }
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_731: bool = true;
                 while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 if (symbolsNormalized.is_none()) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchPositions() symbols is required")));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchPositions() symbols is required")));
                 }
                 let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 messageHashes.push(Value::Str(format!("{}{}", "positions::", symbol.as_deref().unwrap_or("null")).into()));
@@ -1476,7 +1476,7 @@ impl Woofipro {
         }  else {
             messageHashes.push(Value::Str("positions".into()));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.safe_dict(self.safe_dict_k(&self.urls, "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ws".into()), &[Value::Map({
@@ -1521,7 +1521,7 @@ impl Woofipro {
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, mut client: Value, mut messageHash: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
@@ -1547,7 +1547,7 @@ impl Woofipro {
     Value::Null
 }
 
-    pub fn handle_positions(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_positions(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1632,9 +1632,9 @@ impl Woofipro {
         //         "timestamp":1685154032762
         //     }
         //
-        let mut contract: Option<String> = self.safe_string_k_opt(position.clone(), "symbol", &[]);
+        let mut contract: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(contract.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "positionQty", &[]);
+        let mut size: Option<String> = self.safe_string_k_opt(&position, "positionQty", &[]);
         let mut side: Option<String> = None;
         if crate::precise::Precise::stringGt(&size, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("long".to_string());
@@ -1642,10 +1642,10 @@ impl Woofipro {
             side = Some("short".to_string());
         }
         let mut contractSize: Option<String> = self.safe_string_k_opt(&marketResolved, "contractSize", &[]);
-        let mut markPrice: Option<String> = self.safe_string_k_opt(position.clone(), "markPrice", &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
-        let mut entryPrice: Option<String> = self.safe_string_k_opt(position.clone(), "averageOpenPrice", &[]);
-        let mut unrealisedPnl: Option<String> = self.safe_string_k_opt(position.clone(), "unsettledPnl", &[]);
+        let mut markPrice: Option<String> = self.safe_string_k_opt(&position, "markPrice", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&position, "timestamp", &[]).as_i64();
+        let mut entryPrice: Option<String> = self.safe_string_k_opt(&position, "averageOpenPrice", &[]);
+        let mut unrealisedPnl: Option<String> = self.safe_string_k_opt(&position, "unsettledPnl", &[]);
         size = crate::precise::Precise::stringAbs(&size).as_str().map(str::to_owned);
         let mut notional: Option<String> = crate::precise::Precise::stringMul(&size, &markPrice).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
@@ -1673,7 +1673,7 @@ impl Woofipro {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("marginType".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
@@ -1702,7 +1702,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut topic: String = "balance".to_string();
@@ -1713,7 +1713,7 @@ impl Woofipro {
                 m.insert("topic".to_string(), Value::from(topic));
             m
         });
-        let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         return self.watch_private(messageHash.as_str(), &message, &[]).await;
         Value::Null
         }).await?))
@@ -1787,7 +1787,7 @@ impl Woofipro {
         client.resolve(self.balance.clone(), "balance");
 }
 
-    pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_error_message(&self, client: &Value, mut message: Value) -> Value {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
@@ -1804,7 +1804,7 @@ impl Woofipro {
         let mut errorMessage: Option<String> = (match __pro_message.get("errorMsg") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errorMessage.is_some()) {
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
             }
             return Value::Bool(false);
@@ -1828,7 +1828,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
+        if (self.handle_error_message(&client, message.clone()).as_bool() == Some(true)) {
             return;
         }
         let mut methods: indexmap::IndexMap<String, Value> = ({

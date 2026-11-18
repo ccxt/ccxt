@@ -74,10 +74,10 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //         "best_bid_amount": 0.001
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
-        let mut stats: crate::value::Dict = self.safe_dict_k_t(ticker.clone(), "stats");
-        let mut last: Option<f64> = self.safe_number_k(ticker.clone(), "last_price", &[]).as_f64();
-        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "instrument_name", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "timestamp", &[]).as_i64();
+        let mut stats: crate::value::Dict = self.safe_dict_k_t(&ticker, "stats");
+        let mut last: Option<f64> = self.safe_number_k(&ticker, "last_price", &[]).as_f64();
+        let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument_name", &[]);
         let mut quoteVolume: Option<f64> = self.safe_number_k(&stats, "volume_notional", &[]).as_f64();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             quoteVolume = self.safe_number2(&stats, Value::Str("volume_notional".into()), Value::Str("volume_usd".into()), &[]).as_f64();
@@ -88,10 +88,10 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("bid".to_string(), self.safe_number_k(ticker.clone(), "best_bid_price", &[]));
-        m.insert("bidVolume".to_string(), self.safe_number_k(ticker.clone(), "best_bid_amount", &[]));
-        m.insert("ask".to_string(), self.safe_number_k(ticker.clone(), "best_ask_price", &[]));
-        m.insert("askVolume".to_string(), self.safe_number_k(ticker.clone(), "best_ask_amount", &[]));
+        m.insert("bid".to_string(), self.safe_number_k(&ticker, "best_bid_price", &[]));
+        m.insert("bidVolume".to_string(), self.safe_number_k(&ticker, "best_bid_amount", &[]));
+        m.insert("ask".to_string(), self.safe_number_k(&ticker, "best_ask_price", &[]));
+        m.insert("askVolume".to_string(), self.safe_number_k(&ticker, "best_ask_amount", &[]));
         m.insert("high".to_string(), self.safe_number_k(&stats, "high", &[]));
         m.insert("low".to_string(), self.safe_number_k(&stats, "low", &[]));
         m.insert("open".to_string(), Value::Null);
@@ -104,7 +104,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("baseVolume".to_string(), self.safe_number_k(&stats, "volume", &[]));
         m.insert("quoteVolume".to_string(), Value::from(quoteVolume));
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("markPrice".to_string(), self.safe_number_k(ticker.clone(), "mark_price", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(&ticker, "mark_price", &[]));
         m.insert("indexPrice".to_string(), self.safe_number_k(ticker, "index_price", &[]));
     m
 }), None);
@@ -161,16 +161,16 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //         "trade_seq": 299513
         //     }
         //
-        let mut instrumentName: Option<String> = self.safe_string_k_opt(trade.clone(), "instrument_name", &[]);
+        let mut instrumentName: Option<String> = self.safe_string_k_opt(&trade, "instrument_name", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(instrumentName.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
-        let mut price: Option<f64> = self.safe_number_k(trade.clone(), "price", &[]).as_f64();
-        let mut amount: Option<f64> = self.safe_number_k(trade.clone(), "amount", &[]).as_f64();
-        let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
+        let mut price: Option<f64> = self.safe_number_k(&trade, "price", &[]).as_f64();
+        let mut amount: Option<f64> = self.safe_number_k(&trade, "amount", &[]).as_f64();
+        let mut amountString: Option<String> = self.safe_string_k_opt(&trade, "amount", &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved).contract {
-            amount = self.parse_number(self.safe_string_k(trade.clone(), "contracts", &[crate::precise::Precise::stringDiv(&amountString, &self.safe_string_k(&marketResolved, "contractSize", &[]))]), &[]).as_f64();
+            amount = self.parse_number(self.safe_string_k(&trade, "contracts", &[crate::precise::Precise::stringDiv(&amountString, &self.safe_string_k(&marketResolved, "contractSize", &[]))]), &[]).as_f64();
         }
-        let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut priceString: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
         let mut cost: Option<f64> = None;
         if (amountString.is_some()) && (priceString.is_some()) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&amountString, &priceString), &[]).as_f64();
@@ -178,11 +178,11 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                 cost = self.parse_number(crate::precise::Precise::stringDiv(&amountString, &priceString), &[]).as_f64();
             }
         }
-        let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_currency", &[]);
+        let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(&trade, "fee_currency", &[]);
         let mut feeCurrency: Option<String> = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("cost".to_string(), self.safe_number_k(trade.clone(), "fee", &[]));
+                m.insert("cost".to_string(), self.safe_number_k(&trade, "fee", &[]));
                 m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -194,19 +194,19 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                     m.insert("T".to_string(), Value::Str("taker".into()));
                 m
             });
-            takerOrMaker = self.safe_string_opt(&liquidities, self.safe_string_k(trade.clone(), "liquidity", &[]), &[]);
+            takerOrMaker = self.safe_string_opt(&liquidities, self.safe_string_k(&trade, "liquidity", &[]), &[]);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
-        m.insert("id".to_string(), self.safe_string_k(trade.clone(), "trade_id", &[]));
-        m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&trade, "trade_id", &[]));
+        m.insert("order".to_string(), self.safe_string_k(&trade, "order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), self.safe_string_k(trade.clone(), "order_type", &[]));
+        m.insert("type".to_string(), self.safe_string_k(&trade, "order_type", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade, "direction", &[]));
-        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), Value::from(price));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("cost".to_string(), Value::from(cost));
@@ -294,25 +294,25 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //         "time_in_force": "good_til_cancelled"
         //     }
         //
-        let mut instrumentName: Option<String> = self.safe_string_k_opt(order.clone(), "instrument_name", &[]);
+        let mut instrumentName: Option<String> = self.safe_string_k_opt(&order, "instrument_name", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(instrumentName.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "creation_timestamp", &[]).as_i64();
-        let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "last_update_timestamp", &[]).as_i64();
-        let mut filled: Option<f64> = self.safe_number_k(order.clone(), "filled_amount", &[]).as_f64();
-        let mut amount: Option<f64> = self.safe_number_k(order.clone(), "amount", &[]).as_f64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&order, "creation_timestamp", &[]).as_i64();
+        let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(&order, "last_update_timestamp", &[]).as_i64();
+        let mut filled: Option<f64> = self.safe_number_k(&order, "filled_amount", &[]).as_f64();
+        let mut amount: Option<f64> = self.safe_number_k(&order, "amount", &[]).as_f64();
         if self.is_native_deribit_credentials().as_bool() == Some(true) && (marketResolved).contract {
             let mut contractSize: Option<String> = self.safe_string_k_opt(&marketResolved, "contractSize", &[]);
-            amount = self.parse_number(self.safe_string_k(order.clone(), "contracts", &[crate::precise::Precise::stringDiv(&self.safe_string(order.clone(), Value::Str("amount".into()), &[]), &contractSize)]), &[]).as_f64();
-            filled = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(order.clone(), "filled_amount", &[]), &contractSize), &[]).as_f64();
+            amount = self.parse_number(self.safe_string_k(&order, "contracts", &[crate::precise::Precise::stringDiv(&self.safe_string(&order, Value::Str("amount".into()), &[]), &contractSize)]), &[]).as_f64();
+            filled = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&order, "filled_amount", &[]), &contractSize), &[]).as_f64();
         }
         let mut remaining: Option<f64> = None;
         if (filled.is_some()) && (amount.is_some()) {
             remaining = (if let (Some(__l), Some(__r)) = (amount, filled) { Some(__l - __r) } else { None });
         }
-        let mut price: Option<f64> = self.safe_number_k(order.clone(), "price", &[]).as_f64();
-        let mut average: Option<f64> = self.safe_number_k(order.clone(), "average_price", &[]).as_f64();
-        let mut filledString: Option<String> = self.safe_string_k_opt(order.clone(), "filled_amount", &[]);
-        let mut averageString: Option<String> = self.safe_string_k_opt(order.clone(), "average_price", &[]);
+        let mut price: Option<f64> = self.safe_number_k(&order, "price", &[]).as_f64();
+        let mut average: Option<f64> = self.safe_number_k(&order, "average_price", &[]).as_f64();
+        let mut filledString: Option<String> = self.safe_string_k_opt(&order, "filled_amount", &[]);
+        let mut averageString: Option<String> = self.safe_string_k_opt(&order, "average_price", &[]);
         let mut cost: Option<f64> = None;
         if (filledString.is_some()) && (averageString.is_some()) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&filledString, &averageString), &[]).as_f64();
@@ -322,7 +322,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         }
         let mut lastTradeTimestamp: Option<i64> = lastUpdateTimestamp;
         let mut nativeLastUpdateTimestamp: Option<i64> = None;
-        let mut orderType: Option<String> = self.safe_string_lower_k_opt(order.clone(), "order_type", &[]);
+        let mut orderType: Option<String> = self.safe_string_lower_k_opt(&order, "order_type", &[]);
         let mut reduceOnly: bool = false;
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -334,11 +334,11 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                 lastTradeTimestamp = lastUpdateTimestamp;
             }
             nativeLastUpdateTimestamp = lastUpdateTimestamp.take();
-            orderType = self.safe_string_lower2_opt(order.clone(), Value::Str("original_order_type".into()), Value::Str("order_type".into()), &[]);
-            reduceOnly = self.safe_bool_k_opt(order.clone(), "reduce_only", &[Value::Bool(false)]).unwrap_or(false);
+            orderType = self.safe_string_lower2_opt(&order, Value::Str("original_order_type".into()), Value::Str("order_type".into()), &[]);
+            reduceOnly = self.safe_bool_k_opt(&order, "reduce_only", &[Value::Bool(false)]).unwrap_or(false);
             fee = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.safe_number_k(order.clone(), "commission", &[]));
+                    m.insert("cost".to_string(), self.safe_number_k(&order, "commission", &[]));
                     m.insert("currency".to_string(), self.safe_string_k(&marketResolved, "settle", &[self.safe_string_k(&marketResolved, "quote", &[])]));
                 m
             });
@@ -346,26 +346,26 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "label", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "label", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(nativeLastUpdateTimestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), self.parse_order_type(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), self.parse_time_in_force((self.safe_string_k(order.clone(), "time_in_force", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "post_only", &[]));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force((self.safe_string_k(&order, "time_in_force", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), self.safe_bool_k(&order, "post_only", &[]));
         m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
-        m.insert("side".to_string(), self.safe_string_k(order.clone(), "direction", &[]));
+        m.insert("side".to_string(), self.safe_string_k(&order, "direction", &[]));
         m.insert("price".to_string(), Value::from(price));
-        m.insert("triggerPrice".to_string(), self.safe_number2(order.clone(), Value::Str("trigger_price".into()), Value::Str("stop_price".into()), &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number2(&order, Value::Str("trigger_price".into()), Value::Str("stop_price".into()), &[]));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("filled".to_string(), Value::from(filled));
         m.insert("remaining".to_string(), Value::from(remaining));
         m.insert("cost".to_string(), Value::from(cost));
         m.insert("average".to_string(), Value::from(average));
-        m.insert("status".to_string(), self.parse_order_status((self.safe_string_lower_k(order.clone(), "order_state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_order_status((self.safe_string_lower_k(&order, "order_state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
         m.insert("trades".to_string(), self.safe_list_k(order, "trades", &[]));
     m
@@ -375,13 +375,13 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
 }
     fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
         let mut market: Value = market.into();
-        let mut instrumentName: Option<String> = self.safe_string_k_opt(market.clone(), "instrument_name", &[]);
-        let mut lowercaseId: Option<String> = self.safe_string_lower_k_opt(market.clone(), "instrument_name", &[]);
-        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base_currency", &[]);
-        let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "counter_currency", &[]);
-        let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "settlement_currency", &[quoteId.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut kind: String = self.safe_string_k(market.clone(), "kind", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut settlementPeriod: Option<String> = self.safe_string_k_opt(market.clone(), "settlement_period", &[]);
+        let mut instrumentName: Option<String> = self.safe_string_k_opt(&market, "instrument_name", &[]);
+        let mut lowercaseId: Option<String> = self.safe_string_lower_k_opt(&market, "instrument_name", &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "counter_currency", &[]);
+        let mut settleId: Option<String> = self.safe_string_k_opt(&market, "settlement_currency", &[quoteId.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut kind: String = self.safe_string_k(&market, "kind", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut settlementPeriod: Option<String> = self.safe_string_k_opt(&market, "settlement_period", &[]);
         let mut isSpot: bool = kind == "spot";
         let mut isPerpetual: bool = settlementPeriod.as_deref() == Some("perpetual");
         let mut isFuture: bool = (!(isPerpetual) && (kind.contains("future")));
@@ -410,13 +410,13 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let mut inverse: Option<bool> = (if isSpot { None } else { Some(settle != quote) });
         let mut marketSettle: Option<String> = (if isSpot { None } else { settle });
         let mut marketSettleId: Option<String> = (if isSpot { None } else { settleId });
-        let mut minTradeAmount: Option<f64> = self.safe_number_k(market.clone(), "min_trade_amount", &[]).as_f64();
-        let mut tickSize: Option<f64> = self.safe_number_k(market.clone(), "tick_size", &[]).as_f64();
+        let mut minTradeAmount: Option<f64> = self.safe_number_k(&market, "min_trade_amount", &[]).as_f64();
+        let mut tickSize: Option<f64> = self.safe_number_k(&market, "tick_size", &[]).as_f64();
         let mut isFutureOrOption: bool = isFuture || isOption;
-        let mut expiry: Option<i64> = (if isFutureOrOption { self.safe_integer_k(market.clone(), "expiration_timestamp", &[]).as_i64() } else { None });
-        let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "is_active", &[]);
-        let mut strike: Option<f64> = self.safe_number_k(market.clone(), "strike", &[]).as_f64();
-        let mut optionType: Option<String> = self.safe_string_k_opt(market.clone(), "option_type", &[]);
+        let mut expiry: Option<i64> = (if isFutureOrOption { self.safe_integer_k(&market, "expiration_timestamp", &[]).as_i64() } else { None });
+        let mut active: Option<bool> = self.safe_bool_k_opt(&market, "is_active", &[]);
+        let mut strike: Option<f64> = self.safe_number_k(&market, "strike", &[]).as_f64();
+        let mut optionType: Option<String> = self.safe_string_k_opt(&market, "option_type", &[]);
         if !isComboMarket && (isOption || isFuture) {
             let mut expiryString: Option<String> = self.yymmdd(Value::from(expiry), &[Value::Str("".into())]).as_str().map(str::to_owned);
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "-").into()), expiryString.as_deref().unwrap_or("null")));
@@ -450,9 +450,9 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                 m.insert("contract".to_string(), Value::Bool(!isSpot));
                 m.insert("linear".to_string(), linear.map_or(Value::Null, Value::Bool));
                 m.insert("inverse".to_string(), inverse.map_or(Value::Null, Value::Bool));
-                m.insert("taker".to_string(), self.safe_number_k(market.clone(), "taker_commission", &[]));
-                m.insert("maker".to_string(), self.safe_number_k(market.clone(), "maker_commission", &[]));
-                m.insert("contractSize".to_string(), (if isSpot { Value::Null } else { self.safe_number_k(market.clone(), "contract_size", &[]) }));
+                m.insert("taker".to_string(), self.safe_number_k(&market, "taker_commission", &[]));
+                m.insert("maker".to_string(), self.safe_number_k(&market, "maker_commission", &[]));
+                m.insert("contractSize".to_string(), (if isSpot { Value::Null } else { self.safe_number_k(&market, "contract_size", &[]) }));
                 m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
                 m.insert("strike".to_string(), Value::from(strike));
@@ -468,7 +468,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), self.safe_number_k(market.clone(), "max_leverage", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&market, "max_leverage", &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
@@ -505,7 +505,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         if isArray {
             return ohlcv;
         }
-        return Value::from(vec![Value::from(self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("start".into()), Value::Str("time".into()), &[]))), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
+        return Value::from(vec![Value::from(self.parse8601(self.safe_string2(&ohlcv, Value::Str("start".into()), Value::Str("time".into()), &[]))), self.safe_number_k(&ohlcv, "open", &[]), self.safe_number_k(&ohlcv, "high", &[]), self.safe_number_k(&ohlcv, "low", &[]), self.safe_number_k(&ohlcv, "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -534,32 +534,32 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //         "total_profit_loss": 0
         //     }
         //
-        let mut instrumentName: Option<String> = self.safe_string_k_opt(position.clone(), "instrument_name", &[]);
+        let mut instrumentName: Option<String> = self.safe_string_k_opt(&position, "instrument_name", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(instrumentName.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut direction: Option<String> = self.safe_string_k_opt(position.clone(), "direction", &[]);
+        let mut direction: Option<String> = self.safe_string_k_opt(&position, "direction", &[]);
         let mut side: Option<String> = None;
         if (direction.as_deref() == Some("buy")) {
             side = Some("long".to_string());
         }  else if (direction.as_deref() == Some("sell")) {
             side = Some("short".to_string());
         }
-        let mut initialMargin: Option<String> = self.safe_string_k_opt(position.clone(), "initial_margin", &[]);
-        let mut maintenanceMargin: Option<String> = self.safe_string_k_opt(position.clone(), "maintenance_margin", &[]);
+        let mut initialMargin: Option<String> = self.safe_string_k_opt(&position, "initial_margin", &[]);
+        let mut maintenanceMargin: Option<String> = self.safe_string_k_opt(&position, "maintenance_margin", &[]);
         // size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
         // size_currency is in the base currency, futures only
         // contractSize is in USD for inverse futures and in the base currency otherwise
-        let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
+        let mut size: Option<String> = self.safe_string_k_opt(&position, "size", &[]);
         let mut amount: Option<String> = size.clone(); // `contract_size` converts between `amount` and `contracts`
         let mut notional: Option<String> = None;
         if (marketResolved).option {
             // For options, "size" is the base currency (e.g. BTC) instead of quote currency
-            notional = crate::precise::Precise::stringMul(&size, &self.safe_string_k(position.clone(), "mark_price", &[])).as_str().map(str::to_owned);
+            notional = crate::precise::Precise::stringMul(&size, &self.safe_string_k(&position, "mark_price", &[])).as_str().map(str::to_owned);
         }  else if ((marketResolved).linear == Some(true)) {
-            amount = self.safe_string_k_opt(position.clone(), "size_currency", &[]); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+            amount = self.safe_string_k_opt(&position, "size_currency", &[]); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
             notional = size;
         }  else {
             // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
-            notional = self.safe_string_k_opt(position.clone(), "size_currency", &[]);
+            notional = self.safe_string_k_opt(&position, "size_currency", &[]);
         }
         let mut contractsString: Option<String> = crate::precise::Precise::stringDiv(&amount, &self.safe_string_k(&marketResolved, "contractSize", &[])).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
@@ -567,12 +567,12 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "average_price", &[]));
-        m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(&position, "average_price", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(&position, "mark_price", &[]));
         m.insert("notional".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&notional), &[]));
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "floating_profit_loss", &[]));
-        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(&position, "floating_profit_loss", &[]));
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&contractsString), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("timestamp".to_string(), Value::Null);
@@ -582,7 +582,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
+        m.insert("leverage".to_string(), self.safe_number_k(&position, "leverage", &[]));
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "estimated_liquidation_price", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
@@ -605,13 +605,13 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //         "prev_index_price": 64773.05
         //     }
         //
-        let mut timestamp: Option<i64> = self.safe_integer_k(contract.clone(), "timestamp", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&contract, "timestamp", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market, &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("indexPrice".to_string(), self.safe_number_k(contract.clone(), "index_price", &[]));
+        m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "index_price", &[]));
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -660,18 +660,18 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //         "username": "TestUser"
         //     }
         //
-        let mut transactionTimestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "timestamp", &[]).as_i64();
-        let mut currencyId: Option<String> = self.safe_string_k_opt(transfer.clone(), "currency", &[]);
-        let mut info: crate::value::Dict = self.safe_dict_k_t(transfer.clone(), "info");
-        let mut amount: Option<f64> = self.safe_number_k(transfer.clone(), "change", &[]).as_f64();
-        let mut fromAccount: Option<String> = self.safe_string_k_opt(transfer.clone(), "username", &[]);
+        let mut transactionTimestamp: Option<i64> = self.safe_integer_k(&transfer, "timestamp", &[]).as_i64();
+        let mut currencyId: Option<String> = self.safe_string_k_opt(&transfer, "currency", &[]);
+        let mut info: crate::value::Dict = self.safe_dict_k_t(&transfer, "info");
+        let mut amount: Option<f64> = self.safe_number_k(&transfer, "change", &[]).as_f64();
+        let mut fromAccount: Option<String> = self.safe_string_k_opt(&transfer, "username", &[]);
         let mut toAccount: Option<String> = self.safe_string_k_opt(&info, "other_user", &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let mut cashflow: Option<String> = self.safe_string2_opt(transfer.clone(), Value::Str("cashflow".into()), Value::Str("change".into()), &[]);
+            let mut cashflow: Option<String> = self.safe_string2_opt(&transfer, Value::Str("cashflow".into()), Value::Str("change".into()), &[]);
             amount = self.parse_number(crate::precise::Precise::stringAbs(&cashflow), &[]).as_f64();
             if !(crate::precise::Precise::stringLt(&cashflow, &Value::Str("0".into())).as_bool() == Some(true)) {
                 fromAccount = self.safe_string_k_opt(&info, "other_user", &[]);
-                toAccount = self.safe_string_k_opt(transfer.clone(), "username", &[]);
+                toAccount = self.safe_string_k_opt(&transfer, "username", &[]);
             }
         }
         return Value::Map({
@@ -716,13 +716,13 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //         "currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9"
         //     }
         //
-        let mut currencyId: Option<String> = self.safe_string_k_opt(currency.clone(), "currency", &[]);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(&currency, "currency", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut decimals: Option<String> = self.safe_string2_opt(currency.clone(), Value::Str("onchain_operations_precision".into()), Value::Str("decimals".into()), &[]);
+        let mut decimals: Option<String> = self.safe_string2_opt(&currency, Value::Str("onchain_operations_precision".into()), Value::Str("decimals".into()), &[]);
         let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[decimals.map(Value::from).unwrap_or(Value::Null)]), &[]).as_f64();
-        let mut networkFee: Option<f64> = self.safe_number_k(currency.clone(), "network_fee", &[]).as_f64();
-        let mut withdrawalFee: Option<f64> = self.safe_number_k(currency.clone(), "withdrawal_fee", &[]).as_f64();
-        let mut rawNetworks: crate::value::List = self.safe_list_k_t(currency.clone(), "coinbase_networks");
+        let mut networkFee: Option<f64> = self.safe_number_k(&currency, "network_fee", &[]).as_f64();
+        let mut withdrawalFee: Option<f64> = self.safe_number_k(&currency, "withdrawal_fee", &[]).as_f64();
+        let mut rawNetworks: crate::value::List = self.safe_list_k_t(&currency, "coinbase_networks");
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -770,7 +770,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("name".to_string(), self.safe_string_k(currency.clone(), "currency_long", &[]));
+        m.insert("name".to_string(), self.safe_string_k(&currency, "currency_long", &[]));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("precision".to_string(), Value::from(precision));
         m.insert("info".to_string(), currency);
@@ -849,18 +849,18 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         //         "username": "TestUser"
         //     }
         //
-        let mut transactionTimestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
-        let mut info: crate::value::Dict = self.safe_dict_k_t(transaction.clone(), "info");
-        let mut transactionType: Option<String> = self.safe_string_k_opt(transaction.clone(), "type", &[]);
-        let mut transactionId: Option<String> = self.safe_string_k_opt(transaction.clone(), "id", &[]);
-        let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
+        let mut transactionTimestamp: Option<i64> = self.safe_integer_k(&transaction, "timestamp", &[]).as_i64();
+        let mut info: crate::value::Dict = self.safe_dict_k_t(&transaction, "info");
+        let mut transactionType: Option<String> = self.safe_string_k_opt(&transaction, "type", &[]);
+        let mut transactionId: Option<String> = self.safe_string_k_opt(&transaction, "id", &[]);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(&transaction, "currency", &[]);
         let mut address: Option<String> = self.safe_string_k_opt(&info, "addr", &[]);
-        let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "change", &[]).as_f64();
+        let mut amount: Option<f64> = self.safe_number_k(&transaction, "change", &[]).as_f64();
         let mut feeCost: Option<f64> = None;
         let mut feeCurrency: Option<String> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            amount = self.parse_number(crate::precise::Precise::stringAbs(&self.safe_string2(transaction.clone(), Value::Str("cashflow".into()), Value::Str("change".into()), &[])), &[]).as_f64();
-            feeCost = self.safe_number_k(transaction.clone(), "commission", &[]).as_f64();
+            amount = self.parse_number(crate::precise::Precise::stringAbs(&self.safe_string2(&transaction, Value::Str("cashflow".into()), Value::Str("change".into()), &[])), &[]).as_f64();
+            feeCost = self.safe_number_k(&transaction, "commission", &[]).as_f64();
             feeCurrency = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         }
         return Value::Map({
@@ -872,7 +872,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("datetime".to_string(), self.iso8601(transactionTimestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("addressTo".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
@@ -895,10 +895,10 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
 }
     fn parse_leverage(&self, leverage: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut leverage: Value = leverage.into();
-        let mut marketId: Option<String> = self.safe_string_k_opt(leverage.clone(), "instrument_name", &[]);
-        let mut bothLeverage: Value = self.safe_integer_k(leverage.clone(), "leverage", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&leverage, "instrument_name", &[]);
+        let mut bothLeverage: Value = self.safe_integer_k(&leverage, "leverage", &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            bothLeverage = self.safe_number2(leverage.clone(), Value::Str("leverage".into()), Value::Str("max_leverage".into()), &[]);
+            bothLeverage = self.safe_number2(&leverage, Value::Str("leverage".into()), Value::Str("max_leverage".into()), &[]);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -913,7 +913,6 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
     Value::Null
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
-        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -923,10 +922,10 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut access: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut rpcMethod: String = format!("{}{}", Value::Str(format!("{}{}", access.as_deref().unwrap_or("null"), "/").into()), path);
+        let mut rpcMethod: String = format!("{}{}", Value::Str(format!("{}{}", access.as_deref().unwrap_or("null"), "/").into()), Value::from(path));
         let mut requestParams: Value = self.handle_route_and_params("sign", &[params]);
         let mut isNativeDeribit: bool = self.is_native_deribit_credentials().as_bool() == Some(true);
-        let mut baseApiUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut baseApiUrl: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if isNativeDeribit {
             baseApiUrl = "https://www.deribit.com/api/v2".to_string();
         }
@@ -935,10 +934,10 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if isNativeDeribit && ((path.as_str() == Some("get_leverage")) || (path.as_str() == Some("set_leverage"))) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), rpcMethod).into()), " is only documented on the Coinbase gateway")));
+        if isNativeDeribit && ((path == "get_leverage") || (path == "set_leverage")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), rpcMethod).into()), " is only documented on the Coinbase gateway")));
         }
-        if (access.as_deref() == Some("public")) && (path.as_str() == Some("auth")) {
+        if (access.as_deref() == Some("public")) && (path == "auth") {
             self.check_required_credentials(&[]);
             if isNativeDeribit {
                 requestParams = self.extend(Value::Map({
@@ -947,7 +946,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                         m.insert("client_id".to_string(), self.apiKey.clone());
                         m.insert("client_secret".to_string(), self.secret.clone());
                     m
-                }), &[requestParams.clone()]);
+                }), &[&requestParams]);
             }  else {
                 let __ws_arg_22 = self.create_auth_token(Value::Int(self.seconds()), method.as_str(), Some(url.as_str()), &[self.is_eddsa_secret()]);
                 requestParams = self.extend(Value::Map({
@@ -955,13 +954,13 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                         m.insert("grant_type".to_string(), Value::Str("coinbase_cdp".into()));
                         m.insert("token".to_string(), __ws_arg_22);
                     m
-                }), &[requestParams.clone()]);
+                }), &[&requestParams]);
             }
         }  else if (access.as_deref() == Some("private")) && isNativeDeribit {
             self.check_required_credentials(&[]);
             let mut timestamp: String = format!("{}", self.milliseconds());
             let mut nonce: Option<String> = self.number_to_string(<Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-            let mut signedRequest: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", "api/").into()), self.version.clone()).into()), "/").into()), access.as_deref().unwrap_or("null")).into()), "/").into()), path);
+            let mut signedRequest: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", "api/").into()), self.version.clone()).into()), "/").into()), access.as_deref().unwrap_or("null")).into()), "/").into()), Value::from(path));
             if ((Value::Array(requestParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 signedRequest.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(requestParams.clone(), &[])));
             }
@@ -978,7 +977,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         }  else if (access.as_deref() == Some("private")) {
             let mut accessToken: Option<String> = self.get_v2_access_token();
             if (accessToken.is_none()) || (accessToken.as_deref() == Some("")) {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " requires an access token from public/auth")));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " requires an access token from public/auth")));
             }
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1014,7 +1013,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
-        }), &[requestHeaders.clone()]);
+        }), &[&requestHeaders]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
@@ -1039,7 +1038,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         }
         let mut errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         let mut errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -2362,7 +2361,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchOHLCV", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -2380,7 +2379,7 @@ impl Coinbaseinternational {
         });
         let mut marketInfo: crate::value::Dict = self.safe_dict_k_t(&market, "info");
         if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!(self.safe_bool2(&marketInfo, Value::Str("is_cbe_routed".into()), Value::Str("is_csr".into()), &[Value::Bool(false)]), Value::Bool(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments")));
         }
         let mut limitResolved: Option<i64> = limit.as_i64();
         let mut duration: Option<i64> = self.parse_to_int(Value::Int(self.parse_timeframe(timeframe.clone())));
@@ -2404,7 +2403,7 @@ impl Coinbaseinternational {
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict() } else { paramsPaginate });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]) } else { paramsPaginate });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_get_tradingview_chart_data(&[__ws_arg_1]).await.into_dict();
         //
@@ -2469,14 +2468,14 @@ impl Coinbaseinternational {
             let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if paginate {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until")));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until")));
             }
             paramsPaginate = paramsFinal;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() requires a symbol argument")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2503,7 +2502,7 @@ impl Coinbaseinternational {
         }
         let mut paramsOmitted: crate::value::Dict = Value::from(&paramsPaginate).into_dict();
         if (until.is_some()) || self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOmitted = self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict();
+            paramsOmitted = self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]);
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_get_funding_rate_history(&[__ws_arg_2]).await.into_dict();
@@ -2556,12 +2555,12 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchTickers", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         if (symbolsResolved.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchTickers() requires a symbols argument")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTickers() requires a symbols argument")));
         }
         let mut tickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2607,7 +2606,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchTicker", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2682,7 +2681,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchOrderBook", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2696,7 +2695,7 @@ impl Coinbaseinternational {
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
                 let mut depths: crate::value::List = std::sync::Arc::new(vec![Value::Int(1), Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(1000), Value::Int(10000)]);
                 if (limit.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (limit.as_f64().unwrap_or(f64::NAN) > ((10000i64) as f64)) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOrderBook() limit must be between 1 and 10000")));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOrderBook() limit must be between 1 and 10000")));
                 }
                 {
                                         let mut i: i64 = 0;
@@ -2788,14 +2787,14 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchBalance", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate_v2(&[]).await;
         let mut code: Option<String> = self.safe_string_k_opt(&paramsResolved, "code", &[]);
         let mut paramsOmitted: crate::value::Dict = Value::from(&paramsResolved).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOmitted = self.omit(&paramsResolved, Value::Str("code".into()), &[]).into_dict();
+            paramsOmitted = self.omit_t(&paramsResolved, Value::Str("code".into()), &[]);
         }
         let mut response: Option<crate::value::Dict> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) && (code.is_some()) {
@@ -3074,13 +3073,13 @@ impl Coinbaseinternational {
         if (matches!(&response, Value::Arr(_))) {
             summaries = response.clone();
         }  else if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            summaries = self.safe_list_k(response.clone(), "summaries", &[Value::from(vec![response.clone()])]);
+            summaries = self.safe_list_k(&response, "summaries", &[Value::from(vec![response.clone()])]);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (summaries.len() as i64) } {
-            let mut data: crate::value::Dict = self.safe_dict_t(summaries.clone(), Value::Int(i));
+            let mut data: crate::value::Dict = self.safe_dict_t(&summaries, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
             let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3129,9 +3128,9 @@ impl Coinbaseinternational {
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchTransfers", &[params]).into_dict();
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchTransfers() requires a currency code argument")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTransfers() requires a currency code argument")));
         }
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
@@ -3155,7 +3154,7 @@ impl Coinbaseinternational {
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsResolved, Value::Str("until".into()), &[]).into_dict() } else { paramsResolved });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsResolved, Value::Str("until".into()), &[]) } else { paramsResolved });
         self.authenticate_v2(&[]).await;
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_get_transaction_log(&[__ws_arg_6]).await.into_dict();
@@ -3227,7 +3226,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchPosition", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3298,7 +3297,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchPositions", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate_v2(&[]).await;
@@ -3374,9 +3373,9 @@ impl Coinbaseinternational {
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchDepositsWithdrawals", &[params]).into_dict();
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDepositsWithdrawals() requires a currency code argument")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDepositsWithdrawals() requires a currency code argument")));
         }
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
@@ -3399,7 +3398,7 @@ impl Coinbaseinternational {
         if (limit != Value::Null) {
             request.insert("count".into(), limit.clone());
         }
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsResolved, Value::Str("until".into()), &[]).into_dict() } else { paramsResolved });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsResolved, Value::Str("until".into()), &[]) } else { paramsResolved });
         self.authenticate_v2(&[]).await;
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_get_transaction_log(&[__ws_arg_8]).await.into_dict();
@@ -3491,7 +3490,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchWithdrawals", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let __ws_arg_9 = self.extend(paramsResolved, &[Value::Map({
@@ -3533,7 +3532,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchDeposits", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let __ws_arg_10 = self.extend(paramsResolved, &[Value::Map({
@@ -3605,21 +3604,21 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("createOrder", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut triggerPrice: Option<f64> = self.safe_number_n(&paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_f64();
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a side argument")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a side argument")));
         }
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             triggerPrice = self.safe_number_n(&paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("trigger_price".into())]), &[]).as_f64();
             if (side.as_str() != Some("buy")) && (side.as_str() != Some("sell")) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a buy or sell side argument")));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a buy or sell side argument")));
             }
             if (self.safe_number_k(&paramsResolved, "stopLossPrice", &[]) != Value::Null) || (self.safe_number_k(&paramsResolved, "takeProfitPrice", &[]) != Value::Null) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() supports triggerPrice, not stopLossPrice or takeProfitPrice")));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder() supports triggerPrice, not stopLossPrice or takeProfitPrice")));
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3642,7 +3641,7 @@ impl Coinbaseinternational {
         }
         if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a price parameter for a limit order types")));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires a price parameter for a limit order types")));
             }
             request.insert("price".into(), price.clone());
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
@@ -3683,20 +3682,20 @@ impl Coinbaseinternational {
         }
         if self.is_native_deribit_credentials().as_bool() == Some(true) && ((timeInForce.as_deref() == Some("PO")) || (postOnly == Some(true))) {
             if (type_var.as_str() == Some("market")) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() cannot create post-only market orders")));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() cannot create post-only market orders")));
             }
             request.insert("post_only".into(), Value::Bool(true));
             request.insert("reject_post_only".into(), Value::Bool(true));
             request.insert("time_in_force".into(), Value::Str("good_til_cancelled".into()));
         }
-        let mut paramsOrder: crate::value::Dict = self.omit(&paramsResolved, &["clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"], &[]).into_dict();
+        let mut paramsOrder: crate::value::Dict = self.omit_t(&paramsResolved, &["clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"], &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOrder = self.omit(Value::Dict(paramsOrder), &["reduceOnly", "reduce_only"], &[]).into_dict();
+            paramsOrder = self.omit_t(Value::Dict(paramsOrder), &["reduceOnly", "reduce_only"], &[]);
         }
         self.authenticate_v2(&[]).await;
         let mut response: Option<crate::value::Dict> = None;
         if (side.as_str() == Some("buy")) {
-            let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsOrder]);
+            let __ws_arg_11 = self.extend(&request, &[&paramsOrder]);
             response = self.private_get_buy(&[__ws_arg_11]).await.into_opt_dict();
         }  else {
             let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOrder]);
@@ -3770,7 +3769,6 @@ impl Coinbaseinternational {
 
 
     pub fn parse_time_in_force(&self, timeInForce: Option<&str>) -> Option<String> {
-        let mut timeInForce: Value = timeInForce.into();
         let mut timeInForces: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("good_til_cancelled".to_string(), Value::Str("GTC".into()));
@@ -3779,11 +3777,10 @@ impl Coinbaseinternational {
                 m.insert("good_til_day".to_string(), Value::Str("GTD".into()));
             m
         });
-        return self.safe_string_opt(&timeInForces, timeInForce.clone(), &[timeInForce.clone()]);
+        return self.safe_string_opt(&timeInForces, Value::from(timeInForce), &[Value::from(timeInForce)]);
 }
 
     pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
-        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("open".to_string(), Value::Str("open".into()));
@@ -3793,11 +3790,10 @@ impl Coinbaseinternational {
                 m.insert("untriggered".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
+        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
 }
 
     pub fn parse_order_type(&self, type_var: Option<&str>) -> Option<String> {
-        let mut type_var: Value = type_var.into();
         let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("stop_limit".to_string(), Value::Str("limit".into()));
@@ -3806,7 +3802,7 @@ impl Coinbaseinternational {
                 m.insert("take_market".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string_opt(&types, type_var.clone(), &[type_var.clone()]);
+        return self.safe_string_opt(&types, Value::from(type_var), &[Value::from(type_var)]);
 }
 
 /*
@@ -3834,7 +3830,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("cancelOrder", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3908,7 +3904,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("cancelAllOrders", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate_v2(&[]).await;
@@ -3977,9 +3973,9 @@ impl Coinbaseinternational {
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("editOrder", &[params]).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) && (amount == Value::Null) && (self.safe_number_k(&paramsResolved, "contracts", &[]) == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires amount or params.contracts on Deribit")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires amount or params.contracts on Deribit")));
         }
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3998,7 +3994,7 @@ impl Coinbaseinternational {
         if (triggerPrice.is_some()) {
             request.insert("trigger_price".into(), Value::from(triggerPrice));
         }
-        let mut paramsOrder: crate::value::Dict = self.omit(&paramsResolved, &["triggerPrice", "stopPrice", "stop_price"], &[]).into_dict();
+        let mut paramsOrder: crate::value::Dict = self.omit_t(&paramsResolved, &["triggerPrice", "stopPrice", "stop_price"], &[]);
         self.authenticate_v2(&[]).await;
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOrder]);
         let mut response: crate::value::Dict = self.private_get_edit(&[__ws_arg_15]).await.into_dict();
@@ -4093,7 +4089,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchOrder", &[params]).into_dict();
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -4177,15 +4173,15 @@ impl Coinbaseinternational {
             let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if paginate {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOpenOrders() does not support pagination")));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOpenOrders() does not support pagination")));
             }
             paramsPaginate = paramsFinal;
         }
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOpenOrders() requires a symbol argument")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrders() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4271,15 +4267,15 @@ impl Coinbaseinternational {
             let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if paginate {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters")));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters")));
             }
             paramsPaginate = paramsFinal;
         }
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMyTrades() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4294,7 +4290,7 @@ impl Coinbaseinternational {
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = Value::from(&paramsPaginate).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOmitted = self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict();
+            paramsOmitted = self.omit_t(&paramsPaginate, Value::Str("until".into()), &[]);
         }
         self.authenticate_v2(&[]).await;
         let mut response: Option<crate::value::Dict> = None;
@@ -4304,7 +4300,7 @@ impl Coinbaseinternational {
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
                 request.shift_remove("include_old");
             }
-            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
+            let __ws_arg_18 = self.extend(&request, &[&paramsOmitted]);
             response = self.private_get_get_user_trades_by_instrument_and_time(&[__ws_arg_18]).await.into_opt_dict();
         }  else {
             let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4398,9 +4394,9 @@ impl Coinbaseinternational {
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchLeverage", &[params]).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchLeverage() is a Coinbase gateway method; native Deribit has no documented get_leverage endpoint")));
         }
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4457,12 +4453,12 @@ impl Coinbaseinternational {
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("setLeverage", &[params]).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " setLeverage() is a Coinbase gateway method; native Deribit has no documented set_leverage endpoint")));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setLeverage() is a Coinbase gateway method; native Deribit has no documented set_leverage endpoint")));
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setLeverage() requires a symbol argument")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires a symbol argument")));
         }
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4500,12 +4496,10 @@ impl Coinbaseinternational {
  * @returns {string} signed JWT
  */
     pub fn create_auth_token(&self, mut seconds: Value, method: Option<&str>, url: Option<&str>, optional_args: &[Value]) -> Value {
-        let mut method: Value = method.into();
-        let mut url: Value = url.into();
         let useEddsa: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut uri: Option<String> = None;
-        if (url != Value::Null) && (method != Value::Null) {
-            uri = Some(format!("{}{}", Value::Str(format!("{}{}", method, " ").into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())));
+        if (url.is_some()) && (method.is_some()) {
+            uri = Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(method), " ").into()), url.map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| Value::from(url))));
             let mut quesPos: i64 = (if let (Some(__h), Some(__n)) = (uri.as_deref(), Some("?")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
             if quesPos > 0 {
                 uri = (if let Some(__s) = uri.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, quesPos); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
@@ -4581,7 +4575,7 @@ impl Coinbaseinternational {
             return Value::Null;
         }
         let mut forceRefresh: bool = self.safe_bool_k_opt(&paramsResolved, "forceRefresh", &[Value::Bool(false)]).unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsResolved, Value::Str("forceRefresh".into()), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsResolved, Value::Str("forceRefresh".into()), &[]);
         let mut now: i64 = self.milliseconds();
         let mut token: Option<String> = self.get_v2_access_token();
         let mut tokenExpires: Option<i64> = self.safe_integer_k(self.options.clone(), "v2TokenExpires", &[]).as_i64();
@@ -4604,10 +4598,10 @@ impl Coinbaseinternational {
         let mut accessToken: Option<String> = self.safe_string_k_opt(&result, "access_token", &[]);
         let mut expiresIn: Option<i64> = self.safe_integer_k(&result, "expires_in", &[]).as_i64();
         if (accessToken.is_none()) {
-            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " public/auth did not return an access token")));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " public/auth did not return an access token")));
         }
         if (expiresIn.is_none()) {
-            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " public/auth did not return an expiry")));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " public/auth did not return an expiry")));
         }
         let mut ratio: Option<f64> = self.safe_number_k(self.options.clone(), "accessTokenRefreshRatio", &[]).as_f64();
         let mut refreshRatio: f64 = ratio.unwrap_or(0.8);
@@ -4659,12 +4653,11 @@ impl Coinbaseinternational {
  * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
  */
     pub fn handle_route_and_params(&self, methodName: &str, optional_args: &[Value]) -> Value {
-        let mut methodName: Value = methodName.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let routeparamsResolvedVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName, Value::Str("route".into()), &[Value::Str("auto".into())]).as_array().cloned().unwrap_or_default();
+        let routeparamsResolvedVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::from(methodName), Value::Str("route".into()), &[Value::Str("auto".into())]).as_array().cloned().unwrap_or_default();
         let mut route: Option<String> = routeparamsResolvedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsResolved: crate::value::Dict = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut deribit: bool = self.resolve_route(&[route.map(Value::from).unwrap_or(Value::Null)]).as_bool().unwrap_or_default();
@@ -4674,10 +4667,10 @@ impl Coinbaseinternational {
         let mut hasToken: bool = (currentToken.is_some()) && (currentToken.as_deref() != Some(""));
         let mut hasWsState: bool = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]) != Value::Null;
         if (previousBackend.is_some()) && ((previousBackend != Some(deribit))) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cannot switch route backend on an initialized instance; use a separate exchange instance")));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " cannot switch route backend on an initialized instance; use a separate exchange instance")));
         }
-        if (previousBackend.is_none()) && ((self.markets.clone() != Value::Null) || hasToken || hasWsState) && (configuredBackend != deribit) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cannot switch route backend after markets or authentication state; use a separate exchange instance")));
+        if (previousBackend.is_none()) && ((self.markets != Value::Null) || hasToken || hasWsState) && (configuredBackend != deribit) {
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " cannot switch route backend after markets or authentication state; use a separate exchange instance")));
         }
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
         if deribit {
@@ -4723,9 +4716,9 @@ impl Coinbaseinternational {
             return Value::Bool(false);
         }
         if (route != Value::Null) && (route.as_str() != Some("auto")) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " route must be auto, deribit, or coinbase")));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " route must be auto, deribit, or coinbase")));
         }
-        if (self.apiKey.clone() == Value::Null) || (self.apiKey.as_str() == Some("")) || (self.secret.clone() == Value::Null) || (self.secret.as_str() == Some("")) {
+        if (self.apiKey.clone() == Value::Null) || (self.apiKey.as_str() == Some("")) || (self.secret == Value::Null) || (self.secret.as_str() == Some("")) {
             return Value::Bool(false);
         }
         if (self.apiKey.as_str().unwrap_or("").contains("organizations/")) || (self.secret.as_str().unwrap_or("").contains("BEGIN")) || self.is_eddsa_secret().as_bool() == Some(true) {

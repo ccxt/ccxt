@@ -87,15 +87,15 @@ impl Bullish {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_error_message" => { self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_error_message" => { self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => crate::Value::from(self.request_id()),
             "separate_bids_or_asks" => self.separate_bids_or_asks(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -233,7 +233,6 @@ impl Bullish {
 }
 
     pub async fn watch_public(&mut self, url: &str, messageHash: &str, optional_args: &[Value]) -> Value {
-        let mut url: Value = url.into();
         let mut request = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -252,12 +251,12 @@ impl Bullish {
                 m.insert("id".to_string(), Value::from(id));
             m
         });
-        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public", &[]);
+        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public", &[]);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchPublic() has no public websocket url")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " watchPublic() has no public websocket url")));
         }
         let __ws_arg_0 = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(&(Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), url).into())), messageHash, __ws_arg_0, messageHash, Value::Null).await;
+        return self.watch(&(Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::from(url)).into())), messageHash, __ws_arg_0, messageHash, Value::Null).await;
 
     Value::Null
 }
@@ -271,7 +270,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private").as_str().map(str::to_owned);
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private").as_str().map(str::to_owned);
         let mut token: Option<String> = self.parent.handle_token(&[]).await.as_str().map(str::to_owned);
         let mut cookies: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -320,7 +319,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -342,7 +341,7 @@ impl Bullish {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -384,7 +383,7 @@ impl Bullish {
             CacheStore::put(&mut self.trades, &symbol, tradesArrayCache);
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
-        let mut tradesList: crate::value::List = self.to_array(&trades).into_list();
+        let mut tradesList: crate::value::List = self.to_array_t(&trades);
         {
                         let mut i: i64 = 0;
             let mut __for_first_179: bool = true;
@@ -417,14 +416,14 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public", &[]);
+        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public", &[]);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchTicker() has no public websocket url")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " watchTicker() has no public websocket url")));
         }
         let mut messageHash: String = format!("{}{}", "ticker::", symbolValue);
         return self.watch(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/trading-api/v1/market-data/tick/").into()), Value::from((market).id.as_deref().unwrap_or(""))).into())), &messageHash[..], params, &messageHash[..], Value::Null).await;
@@ -432,7 +431,7 @@ impl Bullish {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -520,7 +519,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -596,7 +595,7 @@ impl Bullish {
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        let mut entries: crate::value::List = self.to_array(entry).into_list();
+        let mut entries: crate::value::List = self.to_array_t(entry);
         {
                         let mut i: i64 = 0;
             let mut __for_first_180: bool = true;
@@ -638,7 +637,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subscribeHash: String = "orders".to_string();
@@ -653,8 +652,8 @@ impl Bullish {
                 m.insert("topic".to_string(), Value::Str("orders".into()));
             m
         });
-        let mut tradingAccountId: Option<String> = self.safe_string_k_opt(params.clone(), "tradingAccountId", &[]);
-        let mut paramsOmitted: crate::value::Dict = (if (tradingAccountId.is_some()) { self.omit(params.clone(), Value::Str("tradingAccountId".into()), &[]) } else { params }).into_dict();
+        let mut tradingAccountId: Option<String> = self.safe_string_k_opt(&params, "tradingAccountId", &[]);
+        let mut paramsOmitted: crate::value::Dict = (if (tradingAccountId.is_some()) { self.omit(&params, Value::Str("tradingAccountId".into()), &[]) } else { params }).into_dict();
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -668,7 +667,7 @@ impl Bullish {
         }).await?))
     }
 
-    pub fn handle_orders(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_orders(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         // snapshot
@@ -786,7 +785,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subscribeHash: String = "myTrades".to_string();
@@ -801,8 +800,8 @@ impl Bullish {
                 m.insert("topic".to_string(), Value::Str("trades".into()));
             m
         });
-        let mut tradingAccountId: Option<String> = self.safe_string_k_opt(params.clone(), "tradingAccountId", &[]);
-        let mut paramsOmitted: crate::value::Dict = (if (tradingAccountId.is_some()) { self.omit(params.clone(), Value::Str("tradingAccountId".into()), &[]) } else { params }).into_dict();
+        let mut tradingAccountId: Option<String> = self.safe_string_k_opt(&params, "tradingAccountId", &[]);
+        let mut paramsOmitted: crate::value::Dict = (if (tradingAccountId.is_some()) { self.omit(&params, Value::Str("tradingAccountId".into()), &[]) } else { params }).into_dict();
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -816,7 +815,7 @@ impl Bullish {
         }).await?))
     }
 
-    pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_my_trades(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -921,7 +920,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -930,8 +929,8 @@ impl Bullish {
             m
         });
         let mut messageHash: String = "balance".to_string();
-        let mut tradingAccountId: Option<String> = self.safe_string_k_opt(params.clone(), "tradingAccountId", &[]);
-        let mut paramsOmitted: crate::value::Dict = (if (tradingAccountId.is_some()) { self.omit(params.clone(), Value::Str("tradingAccountId".into()), &[]) } else { params }).into_dict();
+        let mut tradingAccountId: Option<String> = self.safe_string_k_opt(&params, "tradingAccountId", &[]);
+        let mut paramsOmitted: crate::value::Dict = (if (tradingAccountId.is_some()) { self.omit(&params, Value::Str("tradingAccountId".into()), &[]) } else { params }).into_dict();
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.clone().map(Value::from).unwrap_or(Value::Null));
             messageHash.push_str(&format!("{}{}", "::", tradingAccountId.as_deref().unwrap_or("null")));
@@ -1052,7 +1051,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subscribeHash: String = "positions".to_string();
@@ -1079,7 +1078,7 @@ impl Bullish {
         }).await?))
     }
 
-    pub fn handle_positions(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_positions(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         // exchange does not return messages for sandbox mode
@@ -1125,7 +1124,7 @@ impl Bullish {
         client.resolve(Value::from(&positions), "positions");
 }
 
-    pub fn handle_error_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_error_message(&self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1140,7 +1139,7 @@ impl Bullish {
         //     }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&data));
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&data));
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut errorCode: Option<String> = self.safe_string_k_opt(&data, "errorCode", &[]);
             let mut errorCodeName: Option<String> = self.safe_string_k_opt(&data, "errorCodeName", &[]);
@@ -1165,25 +1164,25 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }  else if (dataType.is_some()) {
             if (dataType.as_deref() == Some("V1TAAnonymousTradeUpdate")) {
-                self.handle_trades(client.clone(), message.clone());
+                self.handle_trades(&client, message.clone());
             }
             if (dataType.as_deref() == Some("V1TATickerResponse")) {
-                self.handle_ticker(client.clone(), message.clone());
+                self.handle_ticker(&client, message.clone());
             }
             if (dataType.as_deref() == Some("V1TALevel2")) {
                 self.handle_order_book(client.clone(), message.clone());
             }
             if (dataType.as_deref() == Some("V1TAOrder")) {
-                self.handle_orders(client.clone(), message.clone());
+                self.handle_orders(&client, message.clone());
             }
             if (dataType.as_deref() == Some("V1TATrade")) {
-                self.handle_my_trades(client.clone(), message.clone());
+                self.handle_my_trades(&client, message.clone());
             }
             if (dataType.as_deref() == Some("V1TAAssetAccount")) {
                 self.handle_balance(client.clone(), message.clone());
             }
             if (dataType.as_deref() == Some("V1TAErrorResponse")) {
-                self.handle_error_message(client, message);
+                self.handle_error_message(&client, message);
             }
         }
 }

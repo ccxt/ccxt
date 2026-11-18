@@ -188,7 +188,7 @@ impl Kucoinfutures {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
@@ -203,14 +203,14 @@ impl Kucoinfutures {
         let mut response: Option<crate::value::Dict> = None;
         if (toAccountString.as_deref() == Some("TRADE")) || (toAccountString.as_deref() == Some("MAIN")) {
             request.insert("recAccountType".into(), toAccountString.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            let __ws_arg_1 = self.extend(&request, &[&params]);
             response = self.parent.parent.futures_private_post_transfer_out(&[__ws_arg_1]).await.into_opt_dict();
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
             request.insert("payAccountType".into(), self.parse_transfer_type(fromAccount.clone()).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
             response = self.parent.parent.futures_private_post_transfer_in(&[__ws_arg_2]).await.into_opt_dict();
         }  else {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " transfer() only supports transfers between future/swap, spot and funding accounts")));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " transfer() only supports transfers between future/swap, spot and funding accounts")));
         }
         let mut data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let __ws_arg_3 = self.parse_transfer(Value::Dict(data), Some(&currency));

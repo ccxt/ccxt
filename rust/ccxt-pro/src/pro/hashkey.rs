@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Hashkey {
                 "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "keep_alive_listen_key" => self.keep_alive_listen_key(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_position" => self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -95,14 +95,14 @@ impl Hashkey {
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_position" => { self.handle_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_position" => { self.handle_position(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_stream_message" => { self.handle_stream_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "keep_alive_listen_key" => { crate::exchange_stubs::enqueue_spawn("keep_alive_listen_key", args.to_vec()); crate::Value::Null },
             "load_balance_snapshot" => { crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.to_vec()); crate::Value::Null },
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -200,7 +200,6 @@ impl Hashkey {
 }
 
     pub async fn wath_public(&mut self, market: Option<&crate::types::Market>, topic: &str, messageHash: &str, optional_args: &[Value]) -> Value {
-        let mut topic: Value = topic.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -208,11 +207,11 @@ impl Hashkey {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&market, "id"));
-                m.insert("topic".to_string(), topic);
+                m.insert("topic".to_string(), Value::from(topic));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
         return self.watch(url.as_deref(), messageHash, __ws_arg_0, messageHash, Value::Null).await;
 
@@ -228,9 +227,9 @@ impl Hashkey {
 }
 
     pub fn get_private_url(&self, mut listenKey: Value) -> Option<String> {
-        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private", &[]);
+        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private", &[]);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " getPrivateUrl() has no private websocket url")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " getPrivateUrl() has no private websocket url")));
         }
         return Some(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), listenKey));
 }
@@ -262,7 +261,7 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -280,7 +279,7 @@ impl Hashkey {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, client: &Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -341,7 +340,7 @@ impl Hashkey {
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
-        return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
+        return Value::from(vec![self.safe_integer_k(&ohlcv, "t", &[]), self.safe_number_k(&ohlcv, "o", &[]), self.safe_number_k(&ohlcv, "h", &[]), self.safe_number_k(&ohlcv, "l", &[]), self.safe_number_k(&ohlcv, "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -367,7 +366,7 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -379,7 +378,7 @@ impl Hashkey {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -446,7 +445,7 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -463,7 +462,7 @@ impl Hashkey {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, client: &Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -537,7 +536,7 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -627,7 +626,7 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "orders".to_string();
@@ -645,7 +644,7 @@ impl Hashkey {
         }).await?))
     }
 
-    pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order(&mut self, client: &Value, mut message: Value) {
         //
         // swap
         //     {
@@ -697,14 +696,14 @@ impl Hashkey {
 
     pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "s", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&order, "s", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "O", &[]).as_i64();
-        let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "S", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(&order, "O", &[]).as_i64();
+        let mut side: Option<String> = self.safe_string_lower_k_opt(&order, "S", &[]);
         let mut reduceOnly: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.parent.parse_order_side_and_reduce_only(Value::from(&side)).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
-        let mut type_var: Option<String> = self.parent.parse_order_type((self.safe_string_k(order.clone(), "o", &[])).as_str());
-        let mut timeInForce: Option<String> = self.safe_string_k_opt(order.clone(), "f", &[]);
+        let mut type_var: Option<String> = self.parent.parse_order_type((self.safe_string_k(&order, "o", &[])).as_str());
+        let mut timeInForce: Option<String> = self.safe_string_k_opt(&order, "f", &[]);
         let mut postOnly: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.parent.parse_order_type_time_in_force_and_post_only(type_var.as_deref(), timeInForce.as_deref()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); timeInForce = __destr_tmp.get(1).and_then(Value::as_str).map(str::to_owned); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
         if (marketResolved).contract {
@@ -712,32 +711,32 @@ impl Hashkey {
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(order.clone(), "i", &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "c", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&order, "i", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "c", &[]));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(order.clone(), "X", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(&order, "X", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), self.safe_string_k(order.clone(), "p", &[]));
-        m.insert("average".to_string(), self.safe_string_k(order.clone(), "V", &[]));
-        m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "q", &[]))));
-        m.insert("filled".to_string(), self.safe_string_k(order.clone(), "z", &[]));
-        m.insert("remaining".to_string(), self.safe_string_k(order.clone(), "r", &[]));
+        m.insert("price".to_string(), self.safe_string_k(&order, "p", &[]));
+        m.insert("average".to_string(), self.safe_string_k(&order, "V", &[]));
+        m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(&order, "q", &[]))));
+        m.insert("filled".to_string(), self.safe_string_k(&order, "z", &[]));
+        m.insert("remaining".to_string(), self.safe_string_k(&order, "r", &[]));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
-        m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "Z", &[]))));
+        m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string_k(&order, "Z", &[]))));
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(order.clone(), "N", &[]), None).map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "n", &[]))));
+        m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&order, "N", &[]), None).map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(&order, "n", &[]))));
     m
 }));
         m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
@@ -773,7 +772,7 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "myTrades".to_string();
@@ -791,7 +790,7 @@ impl Hashkey {
         }).await?))
     }
 
-    pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value, optional_args: &[Value]) {
+    pub fn handle_my_trade(&mut self, client: &Value, mut message: Value, optional_args: &[Value]) {
         let mut subscription = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -855,11 +854,11 @@ impl Hashkey {
         //         "S": "BUY"
         //     }
         //
-        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&trade, "s", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "t", &[]).as_i64();
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
-        let mut isPublicTrade: bool = self.safe_string_k(trade.clone(), "e", &[]) == Value::Null;
+        let mut timestamp: Option<i64> = self.safe_integer_k(&trade, "t", &[]).as_i64();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(&trade, "m", &[]);
+        let mut isPublicTrade: bool = self.safe_string_k(&trade, "e", &[]) == Value::Null;
         let mut side: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
@@ -868,22 +867,22 @@ impl Hashkey {
                 side = (if (isBuyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
             }  else {
                 takerOrMaker = (if (isBuyerMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
-                side = self.safe_string_lower_k_opt(trade.clone(), "S", &[]);
+                side = self.safe_string_lower_k_opt(&trade, "S", &[]);
             }
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("v".into()), Value::Str("T".into()), &[]));
+        m.insert("id".to_string(), self.safe_string2(&trade, Value::Str("v".into()), Value::Str("T".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), self.safe_string_k(trade.clone(), "p", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "q", &[]));
+        m.insert("price".to_string(), self.safe_string_k(&trade, "p", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(&trade, "q", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("order".to_string(), self.safe_string_k(trade.clone(), "o", &[]));
+        m.insert("order".to_string(), self.safe_string_k(&trade, "o", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("info".to_string(), trade);
     m
@@ -916,7 +915,7 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
@@ -945,7 +944,7 @@ impl Hashkey {
         }).await?))
     }
 
-    pub fn handle_position(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_position(&mut self, client: &Value, mut message: Value) {
         //
         //     {
         //         "e": "outboundContractPositionInfo",
@@ -980,31 +979,31 @@ impl Hashkey {
 }
 
     pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> Value {
-        let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "s", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&position, "s", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "E", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&position, "E", &[]).as_i64();
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "P", &[]));
+        m.insert("contracts".to_string(), self.safe_number_k(&position, "P", &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "S", &[]));
-        m.insert("notional".to_string(), self.safe_number_k(position.clone(), "pv", &[]));
-        m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "v", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "up", &[]));
-        m.insert("realizedPnl".to_string(), self.safe_number_k(position.clone(), "r", &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(&position, "S", &[]));
+        m.insert("notional".to_string(), self.safe_number_k(&position, "pv", &[]));
+        m.insert("leverage".to_string(), self.safe_integer_k(&position, "v", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(&position, "up", &[]));
+        m.insert("realizedPnl".to_string(), self.safe_number_k(&position, "r", &[]));
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "p", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(&position, "p", &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "f", &[]));
-        m.insert("marginMode".to_string(), self.safe_string_lower_k(position.clone(), "mt", &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(&position, "f", &[]));
+        m.insert("marginMode".to_string(), self.safe_string_lower_k(&position, "mt", &[]));
         m.insert("hedged".to_string(), Value::Bool(true));
-        m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "mm", &[]));
+        m.insert("maintenanceMargin".to_string(), self.safe_number_k(&position, "mm", &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "m", &[]));
+        m.insert("initialMargin".to_string(), self.safe_number_k(&position, "m", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
@@ -1039,7 +1038,7 @@ impl Hashkey {
     m
 }));
         let mut listenKey: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut type_var: String = "spot".to_string();
@@ -1082,7 +1081,7 @@ impl Hashkey {
 })); }
 }
 
-    pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value) -> Value {
+    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut response: crate::types::Balances = (match self.fetch_balance(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1191,7 +1190,7 @@ impl Hashkey {
             //
             listenKey = self.safe_string_k(&response, "listenKey", &[]);
             if (listenKey == Value::Null) {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() received an empty listenKey")));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " authenticate() received an empty listenKey")));
             }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), listenKey.clone()); }
             let mut listenKeyRefreshRate: i64 = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(3600000)]).as_i64().unwrap_or(3600000);
@@ -1227,7 +1226,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_2 = self.extend(Value::Map(request), &[params.clone()]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
             self.parent.private_put_api_v1_user_data_stream(&[__ws_arg_2]).await;
             let mut listenKeyRefreshRate: i64 = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]).as_i64().unwrap_or(1200000);
             self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()).clone(), listenKey.clone(), params]).await;
@@ -1256,21 +1255,21 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 }
 
     pub fn handle_stream_message(&mut self, mut client: Value, mut message: Value) {
-        let mut topic: Option<String> = self.safe_string2_opt(message.clone(), Value::Str("topic".into()), Value::Str("e".into()), &[]);
+        let mut topic: Option<String> = self.safe_string2_opt(&message, Value::Str("topic".into()), Value::Str("e".into()), &[]);
         if (topic.as_deref() == Some("kline")) {
-            self.handle_ohlcv(client.clone(), message.clone());
+            self.handle_ohlcv(&client, message.clone());
         }  else if (topic.as_deref() == Some("realtimes")) {
-            self.handle_ticker(client.clone(), message.clone());
+            self.handle_ticker(&client, message.clone());
         }  else if (topic.as_deref() == Some("trade")) {
-            self.handle_trades(client.clone(), message.clone());
+            self.handle_trades(&client, message.clone());
         }  else if (topic.as_deref() == Some("depth")) {
             self.handle_order_book(client.clone(), message.clone());
         }  else if (topic.as_deref() == Some("contractExecutionReport")) || (topic.as_deref() == Some("executionReport")) {
-            self.handle_order(client.clone(), message.clone());
+            self.handle_order(&client, message.clone());
         }  else if (topic.as_deref() == Some("ticketInfo")) {
-            self.handle_my_trade(client.clone(), message.clone(), &[]);
+            self.handle_my_trade(&client, message.clone(), &[]);
         }  else if (topic.as_deref() == Some("outboundContractPositionInfo")) {
-            self.handle_position(client.clone(), message.clone());
+            self.handle_position(&client, message.clone());
         }  else if (topic.as_deref() == Some("outboundAccountInfo")) || (topic.as_deref() == Some("outboundContractAccountInfo")) {
             self.handle_balance(client, message);
         }

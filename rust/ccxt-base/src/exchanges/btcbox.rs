@@ -56,28 +56,28 @@ impl crate::exchange::DerivedExchange for Btcbox {
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
-        let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
+        let mut last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "buy", &[]));
+        m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(&ticker, "low", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(&ticker, "buy", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "sell", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(&ticker, "sell", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("last".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "vol", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
+        m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "vol", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string_k(&ticker, "volume", &[]));
         m.insert("info".to_string(), ticker);
     m
 }), market);
@@ -97,13 +97,13 @@ impl crate::exchange::DerivedExchange for Btcbox {
         //          "type":"buy"
         //      }
         //
-        let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "date", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_timestamp_k(&trade, "date", &[]).as_i64();
         let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
-        let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "tid", &[]);
-        let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
-        let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(&trade, "tid", &[]);
+        let mut priceString: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(&trade, "amount", &[]);
         let mut type_var: Option<String> = None;
-        let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(&trade, "type", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
@@ -138,17 +138,17 @@ impl crate::exchange::DerivedExchange for Btcbox {
         //         "trades":[] // no clarification of trade value structure of order endpoint
         //     }
         //
-        let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "id", &[]);
-        let mut datetimeString: Option<String> = self.safe_string_k_opt(order.clone(), "datetime", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
+        let mut datetimeString: Option<String> = self.safe_string_k_opt(&order, "datetime", &[]);
         let mut timestamp: Option<i64> = None;
         if (datetimeString.is_some()) {
             timestamp = self.parse8601(Value::Str(format!("{}{}", datetimeString.as_deref().unwrap_or("null"), "+09:00").into())); // Tokyo time
         }
-        let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "amount_original", &[]);
-        let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "amount_outstanding", &[]);
-        let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(&order, "amount_original", &[]);
+        let mut remaining: Option<String> = self.safe_string_k_opt(&order, "amount_outstanding", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
         // status is set by fetchOrder method only
-        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "status", &[])).as_str());
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(&order, "status", &[])).as_str());
         // fetchOrders do not return status, use heuristic
         if (status.is_none()) {
             if crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -157,7 +157,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         }
         let mut trades: Option<String> = None; // todo: this.parseTrades (order['trades']);
         let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
-        let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -188,9 +188,9 @@ impl crate::exchange::DerivedExchange for Btcbox {
 }
     fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
         let mut market: Value = market.into();
-        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base", &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(&market, "base", &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quote", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quote", &[]);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
@@ -198,7 +198,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("uppercaseId".to_string(), Value::Null);
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
@@ -225,8 +225,8 @@ impl crate::exchange::DerivedExchange for Btcbox {
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minLimitBaseAmount", &[]));
-        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxLimitBaseAmount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "minLimitBaseAmount", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&market, "maxLimitBaseAmount", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
@@ -251,8 +251,8 @@ impl crate::exchange::DerivedExchange for Btcbox {
 }));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quotePrecision", &[])]), &[]));
-        m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "basePrecision", &[])]), &[]));
+        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "quotePrecision", &[])]), &[]));
+        m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "basePrecision", &[])]), &[]));
     m
 }));
         m.insert("active".to_string(), Value::Null);
@@ -282,8 +282,8 @@ impl crate::exchange::DerivedExchange for Btcbox {
             if (matches!((&response, Some(free.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 let mut used: String = format!("{}{}", currencyId, "_lock");
-                account.insert("free".into(), self.safe_string(response.clone(), Value::from(free), &[]));
-                account.insert("used".into(), self.safe_string(response.clone(), Value::from(used), &[]));
+                account.insert("free".into(), self.safe_string(&response, Value::from(free), &[]));
+                account.insert("used".into(), self.safe_string(&response, Value::from(used), &[]));
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
@@ -293,7 +293,6 @@ impl crate::exchange::DerivedExchange for Btcbox {
     Value::Null
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
-        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -303,26 +302,26 @@ impl crate::exchange::DerivedExchange for Btcbox {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut apiUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "rest", &[]);
+        let mut apiUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "rest", &[]);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), Value::from(path));
         if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), path).into()), "?").into()), self.urlencode(params.clone(), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), Value::from(path)).into()), "?").into()), self.urlencode(params.clone(), &[]));
             }
         }  else if (apiName.as_deref() == Some("webApi")) {
-            url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(self.urls.clone(), "www", &[Value::Str("".into())]), Value::Str("/".into())).into()), path);
+            url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&self.urls, "www", &[Value::Str("".into())]), Value::Str("/".into())).into()), Value::from(path));
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Option<String> = self.number_to_string(<Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-            let mut query: crate::value::Dict = self.extend(Value::Map({
+            let mut query: crate::value::Dict = self.extend_t(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("key".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
-            }), &[params]).into_dict();
+            }), &[params]);
             let mut request: String = self.urlencode(&query, &[]);
             let mut secret: String = self.hash(self.encode(self.secret.clone()), Value::Str("md5".into()), &[]);
             std::sync::Arc::make_mut(&mut query).insert("signature".into(), Value::from(self.hmac(self.encode(Value::from(request)), self.encode(Value::from(secret)), Value::Str("sha256".into()), &[])));
@@ -360,12 +359,12 @@ impl crate::exchange::DerivedExchange for Btcbox {
         if code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
             return Value::Null;
         }
-        let mut result: Option<bool> = self.safe_bool_k_opt(response.clone(), "result", &[]);
+        let mut result: Option<bool> = self.safe_bool_k_opt(&response, "result", &[]);
         if (result.is_none()) || (result == Some(true)) {
             return Value::Null;
         }
         let mut codeError: Option<String> = self.safe_string_k_opt(response, "code", &[]);
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
@@ -770,7 +769,7 @@ impl Btcbox {
             let mut quote: String = self.safe_string(&symbolParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteId: String = quote.to_lowercase();
             let mut id: String = baseCurr.to_lowercase();
-            let mut res: indexmap::IndexMap<String, Value> = self.safe_dict(response1.clone(), Value::from(marketId.as_deref()), &[Value::Map({
+            let mut res: indexmap::IndexMap<String, Value> = self.safe_dict(&response1, Value::from(marketId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -871,7 +870,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::Dict = self.private_post_balance(&[params]).await.into_dict();
@@ -902,7 +901,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -942,7 +941,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -980,7 +979,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::value::Dict = self.public_get_tickers(&[params]).await.into_dict();
@@ -1014,7 +1013,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1061,7 +1060,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1102,7 +1101,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // a special case for btcbox – default symbol is BTC/JPY
@@ -1122,7 +1121,6 @@ impl Btcbox {
     }
 
     pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {
-        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("part".to_string(), Value::Str("open".into()));
@@ -1132,10 +1130,10 @@ impl Btcbox {
                 m.insert("no".to_string(), Value::Str("closed".into()));
             m
         });
-        if (status == Value::Null) {
+        if (status.is_none()) {
             return None;
         }
-        return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
+        return self.safe_string_opt(&statuses, Value::from(status), &[Value::from(status)]);
 }
 
 
@@ -1161,18 +1159,18 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // a special case for btcbox – default symbol is BTC/JPY
         let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { Some("BTC/JPY".to_string()) } else { symbol.as_str().map(str::to_owned) });
         let mut market: crate::types::Market = (match self.market(symbolResolved.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: crate::value::Dict = self.extend(Value::Map({
+        let mut request: crate::value::Dict = self.extend_t(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
                 m.insert("coin".to_string(), Value::from((market).base_id.as_deref()));
             m
-        }), &[params.clone()]).into_dict();
+        }), &[params.clone()]);
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: crate::value::Dict = self.private_post_trade_view(&[__ws_arg_5]).await.into_dict();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
@@ -1181,23 +1179,21 @@ impl Btcbox {
     }
 
     pub async fn fetch_orders_by_type(&mut self, type_var: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut type_var: Value = type_var.into();
-        let mut symbol: Value = symbol.into();
         let mut since: Value = since.into();
         let mut limit: Value = limit.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { Some("BTC/JPY".to_string()) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (symbol.is_none()) { Some("BTC/JPY".to_string()) } else { symbol.map(str::to_owned) });
         let mut market: crate::types::Market = (match self.market(symbolResolved.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), type_var.clone());
+                m.insert("type".to_string(), Value::from(type_var));
                 m.insert("coin".to_string(), Value::from((market).base_id.as_deref()));
             m
         });
@@ -1221,7 +1217,7 @@ impl Btcbox {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (type_var.as_str() == Some("open")) {
+        if (type_var == Some("open")) {
             extra.insert("status".into(), Value::Str("open".into()));
         }
         return self.parse_orders(&response, Some(&market), &[since, limit, Value::Map(extra)]);
@@ -1306,7 +1302,7 @@ impl Btcbox {
             // sometimes the exchange returns whitespace prepended to json
             let mut strippedResponse: Value = self.strip(response.clone(), &[]);
             if !self.is_json_encoded_object(&[strippedResponse.clone()]) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), strippedResponse)));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), strippedResponse)));
             }
             response = json_parse(&strippedResponse);
         }

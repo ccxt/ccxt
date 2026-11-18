@@ -82,7 +82,7 @@ impl crate::exchange::DerivedExchange for Luno {
         m.insert("side".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "base", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(&trade, "base", &[]));
         m.insert("cost".to_string(), self.safe_string_k(trade, "counter", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
@@ -101,7 +101,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
                 "custom_parse_bid_ask" => self.custom_parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "custom_parse_order_book" => self.custom_parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_order_book_bids_asks" => self.parse_order_book_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "reduce_order_volume" => self.reduce_order_volume(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
@@ -125,8 +125,8 @@ impl Luno {
             "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+            "handle_trades" => { self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "parse_order_book_bids_asks" => self.parse_order_book_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "reduce_order_volume" => self.reduce_order_volume(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
@@ -219,7 +219,7 @@ impl Luno {
     m
 }));
         self.check_required_credentials(&[]);
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -231,9 +231,9 @@ impl Luno {
                 m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
             m
         });
-        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
+        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchTrades() has no websocket url")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " watchTrades() has no websocket url")));
         }
         let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), subscriptionHash);
         let mut messageHash: String = format!("{}{}", "trades:", symbolValue);
@@ -243,7 +243,7 @@ impl Luno {
                 m.insert("api_key_secret".to_string(), self.secret.clone());
             m
         });
-        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[params]);
         let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), messageHash.as_str(), &request, subscriptionHash.as_str(), Value::Map(subscription)).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -254,7 +254,7 @@ impl Luno {
         }).await?))
     }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_trades(&mut self, client: &Value, mut message: Value, mut subscription: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -325,7 +325,7 @@ impl Luno {
     m
 }));
         self.check_required_credentials(&[]);
-        if (self.markets.clone() == Value::Null) {
+        if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -337,9 +337,9 @@ impl Luno {
                 m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
             m
         });
-        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
+        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook() has no websocket url")));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " watchOrderBook() has no websocket url")));
         }
         let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), subscriptionHash);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbolValue);
@@ -349,7 +349,7 @@ impl Luno {
                 m.insert("api_key_secret".to_string(), self.secret.clone());
             m
         });
-        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut request: crate::value::Dict = self.deep_extend_t(Value::Map(subscribe), &[params]);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_str(), messageHash.as_str(), &request, subscriptionHash.as_str(), Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
@@ -393,7 +393,7 @@ impl Luno {
         //
         let mut symbol: String = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
-        let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&message, "timestamp", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.indexed_order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -403,7 +403,7 @@ impl Luno {
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut asks: Option<crate::value::List> = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
         if (asks.is_none()) {
-            let mut inSequence: bool = self.is_order_book_delta_in_sequence(client.clone(), message.clone(), symbol.as_str()).as_bool() == Some(true);
+            let mut inSequence: bool = self.is_order_book_delta_in_sequence(client.clone(), &message, symbol.as_str()).as_bool() == Some(true);
             if !inSequence {
                 return;
             }
@@ -428,7 +428,7 @@ impl Luno {
         let mut priceKey = get_arg(optional_args, 3, Value::Str("price".into()));
         let mut amountKey = get_arg(optional_args, 4, Value::Str("volume".into()));
         let mut countOrIdKey = get_arg(optional_args, 5, Value::Int(2));
-        let mut bids: crate::value::List = self.parse_order_book_bids_asks(self.safe_list(orderbook.clone(), bidsKey, &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]).into_list();
+        let mut bids: crate::value::List = self.parse_order_book_bids_asks(self.safe_list(&orderbook, bidsKey, &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]).into_list();
         let mut asks: crate::value::List = self.parse_order_book_bids_asks(self.safe_list(orderbook, asksKey, &[Value::from(vec![])]), &[priceKey, amountKey, countOrIdKey]).into_list();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -449,7 +449,7 @@ impl Luno {
         let mut priceKey = get_arg(optional_args, 0, Value::Str("price".into()));
         let mut amountKey = get_arg(optional_args, 1, Value::Str("volume".into()));
         let mut thirdKey = get_arg(optional_args, 2, Value::Int(2));
-        let mut bidasksValue: crate::value::List = self.to_array(bidasks).into_list();
+        let mut bidasksValue: crate::value::List = self.to_array_t(bidasks);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -468,8 +468,8 @@ impl Luno {
         let mut priceKey = get_arg(optional_args, 0, Value::Str("price".into()));
         let mut amountKey = get_arg(optional_args, 1, Value::Str("volume".into()));
         let mut thirdKey = get_arg(optional_args, 2, Value::Int(2));
-        let mut price: Option<f64> = self.safe_number(bidask.clone(), priceKey, &[]).as_f64();
-        let mut amount: Option<f64> = self.safe_number(bidask.clone(), amountKey, &[]).as_f64();
+        let mut price: Option<f64> = self.safe_number(&bidask, priceKey, &[]).as_f64();
+        let mut amount: Option<f64> = self.safe_number(&bidask, amountKey, &[]).as_f64();
         let mut result: Vec<Value> = vec![Value::from(price), Value::from(amount)];
         if (thirdKey != Value::Null) {
             result.push(self.safe_string(bidask, thirdKey, &[]));
@@ -529,7 +529,7 @@ impl Luno {
         let mut bidsOrderSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.get("bids").cloned().unwrap_or(Value::Null));
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
-        let mut tradeUpdates: crate::value::List = self.safe_list_k_t(message.clone(), "trade_updates");
+        let mut tradeUpdates: crate::value::List = self.safe_list_k_t(&message, "trade_updates");
         {
                         let mut i: i64 = 0;
             let mut __for_first_487: bool = true;
@@ -548,7 +548,7 @@ impl Luno {
             }
         }
         }
-        let mut createUpdate: Option<crate::value::Dict> = self.safe_dict_k_o(message.clone(), "create_update");
+        let mut createUpdate: Option<crate::value::Dict> = self.safe_dict_k_o(&message, "create_update");
         if (createUpdate.is_some()) {
             let mut bidAskArray: crate::value::List = self.custom_parse_bid_ask(&createUpdate, &[Value::Str("price".into()), Value::Str("volume".into()), Value::Str("order_id".into())]).into_list();
             let mut type_var: Option<String> = self.safe_string_k_opt(&createUpdate, "type", &[]);
@@ -577,7 +577,6 @@ impl Luno {
  * @returns {boolean} true if the order was found in this side, false otherwise
  */
     pub fn reduce_order_volume(&self, mut orderSide: crate::pro::order_book::Side, orderId: &str, tradedAmount: &str) -> Value {
-        let mut orderId: Value = orderId.into();
         let mut tradedAmount: Value = tradedAmount.into();
         let mut sideLength: i64 = orderSide.length().as_i64().unwrap_or_default();
         {
@@ -585,16 +584,16 @@ impl Luno {
             let mut __for_first_488: bool = true;
             while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < sideLength } {
             let mut order: Value = orderSide.level(&Value::Int(i));
-            let mut entryId: Option<String> = self.safe_string_opt(order.clone(), Value::Int(2), &[]);
-            if ((entryId.as_deref() == orderId.as_str())) {
-                let mut price: Option<f64> = self.safe_number(order.clone(), Value::Int(0), &[]).as_f64();
+            let mut entryId: Option<String> = self.safe_string_opt(&order, Value::Int(2), &[]);
+            if ((entryId.as_deref() == Some(orderId))) {
+                let mut price: Option<f64> = self.safe_number(&order, Value::Int(0), &[]).as_f64();
                 let mut currentAmount: Option<String> = self.safe_string_opt(order, Value::Int(1), &[]);
                 let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount, &tradedAmount).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringLe(&remainingAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                     // fully filled, storing a zero amount deletes the order
-                    orderSide.store_array(Value::from(vec![Value::from(price), Value::Int(0), orderId.clone()]));
+                    orderSide.store_array(Value::from(vec![Value::from(price), Value::Int(0), Value::from(orderId)]));
                 }  else {
-                    orderSide.store_array(Value::from(vec![Value::from(price), self.parse_number(remainingAmount.map(Value::from).unwrap_or(Value::Null), &[]), orderId.clone()]));
+                    orderSide.store_array(Value::from(vec![Value::from(price), self.parse_number(remainingAmount.map(Value::from).unwrap_or(Value::Null), &[]), Value::from(orderId)]));
                 }
                 return Value::Bool(true);
             }
@@ -615,7 +614,7 @@ impl Luno {
  * @param {string} symbol unified market symbol of the book
  * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
  */
-    pub fn is_order_book_delta_in_sequence(&mut self, mut client: Value, mut message: Value, symbol: &str) -> Value {
+    pub fn is_order_book_delta_in_sequence(&mut self, mut client: Value, message: &Value, symbol: &str) -> Value {
         let mut symbol: Value = symbol.into();
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
@@ -653,8 +652,8 @@ impl Luno {
             if (__ch.has_subscription(subscriptionHash.as_str())) {
                 __ch.remove_subscription(subscriptionHash.as_str());
             }
-            let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOrderBook() received an out-of-sequence update for ").into()), symbolValue).into()),
-                ", expected ").into()), Value::from(format!("{}", Value::from(expectedSequence)))).into()), " but got ").into()), Value::from(format!("{}", Value::from(messageSequence))))));
+            let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOrderBook() received an out-of-sequence update for ").into()), symbolValue).into()), ", expected ").into()),
+                Value::from(format!("{}", Value::from(expectedSequence)))).into()), " but got ").into()), Value::from(format!("{}", Value::from(messageSequence))))));
             client.reset(error);
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &client.url()) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             return Value::Bool(false);

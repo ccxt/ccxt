@@ -85,7 +85,7 @@ impl Gateeu {
         // the ws describe-data must be applied on top of the rest describe,
         // otherwise the explicit-undefined watch* defaults of the rest 'has'
         // block wipe the parent's ws capability flags in the deep extend
-        let mut extended: crate::value::Dict = self.deep_extend(restDescribe, &[parentWsDescribe]).into_dict();
+        let mut extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[parentWsDescribe]);
         return self.deep_extend(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gateeu".into()));
