@@ -1832,7 +1832,7 @@ export default class interactivebrokers extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async marketsEndpointCall (request: Dict, ep: string, defaultValue: any = undefined) { 
+    async marketsEndpointCall (request: Dict, ep: string, defaultValue: any = undefined) {
         const opts = this.safeDict (this.options, 'fetchMarkets', {});
         const retries = this.safeInteger (opts, 'endpointRetries', 3);
         for (let i = 0; i < retries; i++) {
