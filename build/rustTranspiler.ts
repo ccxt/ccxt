@@ -4206,6 +4206,25 @@ function rustTypedListAndOmitBranches (content: string): string {
         `self${parent ?? ''}.omit_t(&${a ?? b}, if (${c}) { ${k} } else { Value::Null }, &[])`);
 }
 
+// coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
+// returns `Dict` (`omit_t`: the same map, empty for a non-map, like `.into_dict()`); its arm and `Value` slot box it back.
+function rustTypedRouteAndParams (content: string): string {
+    const sig = 'fn handle_route_and_params(&self, methodName: &str, optional_args: &[Value]) -> Value {';
+    const ret = 'return self.omit(&paramsResolved, &["route", "defaultRoute", "callerMethodName"], &[]);\n\n    Value::Null\n}';
+    const at = content.indexOf (sig);
+    if (at >= 0) {
+        const end = content.indexOf (ret, at);
+        if (end < 0 || end > balancedCloseIndex (content, at + sig.length)) return content;
+        content = content.slice (0, at) + sig.replace ('-> Value {', '-> crate::value::Dict {') + content.slice (at + sig.length, end)
+            + ret.replace ('self.omit(', 'self.omit_t(').replace ('Value::Null', 'Default::default()') + content.slice (end + ret.length);
+        content = content.replace (/("handle_route_and_params" => )(self\.handle_route_and_params\([^\n]*\)),\n/, '$1crate::Value::Dict($2),\n');
+    }
+    const call = /self(\.parent)?\.handle_route_and_params\("\w+", &\[params\]\)/g;
+    return content.replace (/(: Value = )(self\.handle_route_and_params\("\w+", &\[params\]\));/g, '$1Value::Dict($2);')
+        .replace (new RegExp (call.source + '\\.into_dict\\(\\)', 'g'), (s) => s.slice (0, -'.into_dict()'.length))
+        .replace (new RegExp ('(' + call.source + ')\\.as_map\\(\\)\\.cloned\\(\\)\\.unwrap_or_default\\(\\)', 'g'), 'std::sync::Arc::unwrap_or_clone($1)');
+}
+
 // `marketSymbols` answers `undefined` or the list it builds (ts/src/base/Exchange.ts), so it returns `Option<List>`:
 // `.into_opt_list()` drops, `.into_list()` (Null -> []) is `.unwrap_or_default()`, a `Value` slot boxes it back.
 function rustTypedMarketSymbols (content: string): string {
@@ -10493,6 +10512,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustTypedSafeContainerReads(rustContent);
                 rustContent = rustTypedMergeResults(rustContent);
                 rustContent = rustTypedListAndOmitBranches(rustContent);
+                if (exchangeName === 'coinbaseinternational') rustContent = rustTypedRouteAndParams(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
                 rustContent = rustStrParamCopyDrop(rustContent);
                 rustContent = rustSelfFieldReadClones(rustContent);
