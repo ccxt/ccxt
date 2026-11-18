@@ -4933,11 +4933,13 @@ export default class bitget extends Exchange {
         if (since !== undefined) {
             calculatedStartTime = since;
             request['startTime'] = since;
-            calculatedEndTime = this.sum (since, recentDuration);
-            if (since > now - recentDuration) {
-                calculatedEndTime = now;
+            if ((until === undefined) || limitDefined) {
+                calculatedEndTime = this.sum (since, recentDuration);
+                if (since > now - recentDuration) {
+                    calculatedEndTime = now;
+                }
+                request['endTime'] = calculatedEndTime;
             }
-            request['endTime'] = calculatedEndTime;
             if ((recentEndpointAvailableDays !== undefined) && (since <= now - (recentEndpointAvailableDays - 1) * msInDay)) {
                 historicalEndpointNeeded = true;
             }

@@ -2577,6 +2577,44 @@
                 ]
             },
             {
+                "description": "+1w +since +until, no limit (recent endpoint): the window ends at until",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/spot/market/candles?symbol=BTCUSDT&granularity=1Wutc&startTime=1577836800000&endTime=1704067200000&limit=1000",
+                "input": [
+                    "BTC/USDT",
+                    "1w",
+                    1577836800000,
+                    null,
+                    {
+                        "until": 1704067200000
+                    }
+                ],
+                "output": null,
+                "forceCheckKeys": [
+                    "startTime",
+                    "endTime"
+                ]
+            },
+            {
+                "description": "+1w +since +until, no limit (recent endpoint): the window ends at until",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v2/mix/market/candles?symbol=BTCUSDT&granularity=1Wutc&startTime=1577836800000&endTime=1704067200000&limit=1000&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1w",
+                    1577836800000,
+                    null,
+                    {
+                        "until": 1704067200000
+                    }
+                ],
+                "output": null,
+                "forceCheckKeys": [
+                    "startTime",
+                    "endTime"
+                ]
+            },
+            {
                 "description": "uta spot fetchOHLCV",
                 "method": "fetchOHLCV",
                 "url": "https://api.bitget.com/api/v3/market/candles?symbol=BTCUSDT&interval=1m&limit=1&category=SPOT",
