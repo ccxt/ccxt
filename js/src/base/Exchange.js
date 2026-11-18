@@ -3274,7 +3274,7 @@ export class BaseExchange {
         for (let i = 0; i < markets.length; i++) {
             const market = this.parseMarket(markets[i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (market !== undefined) {
+            if (market !== undefined && this.safeString(market, 'id') !== undefined) {
                 result.push(market);
             }
         }

@@ -179654,7 +179654,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         for(let i = 0; i < markets.length; i++){
             const market = this.parseMarket(markets[i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (market !== undefined) {
+            if (market !== undefined && this.safeString(market, 'id') !== undefined) {
                 result.push(market);
             }
         }

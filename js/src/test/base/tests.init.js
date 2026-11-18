@@ -69,6 +69,7 @@ import testBase58ToBinary from './test.base58ToBinary.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
 import testIsDictionary from './test.isDictionary.js';
 import testEncodeDecode from './test.encodeDecode.js';
+// import testParseMarkets from './test.parseMarkets.js';
 async function baseTestsInit() {
     await testLanguageSpecific();
     testAfterConstructor();
@@ -135,6 +136,7 @@ async function baseTestsInit() {
     testIo();
     testIsJsonEncodedObject();
     testEncodeDecode();
+    // testParseMarkets ();
     return true;
 }
 export default baseTestsInit;
