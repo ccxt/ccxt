@@ -1458,7 +1458,7 @@ pub trait ExchangeBase:
             while { if !__for_first_80 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_80 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&markets).as_f64().unwrap_or(f64::NAN) } {
             let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_market(self, get_value(&markets, &i));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (market != Value::Null) {
+            if (market != Value::Null) && (self.safe_string_k(market.clone(), "id", &[]) != Value::Null) {
                 result.push(market);
             }
         }

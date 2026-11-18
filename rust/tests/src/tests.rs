@@ -3246,8 +3246,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         let mut promises: Value = Value::from(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_bingx().await, self.test_phemex().await,
-            self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await,
-            self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await, self.test_extended().await, self.test_bit2me().await]);
+            self.test_blofin().await, self.test_hyperliquid().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await,
+            self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await, self.test_extended().await, self.test_bit2me().await]);
         promise_all(&promises).await;
         let mut successMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][TEST_SUCCESS] brokerId tests passed.".into())).into());
         dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".into()), successMessage).into())]);
@@ -4723,22 +4723,30 @@ if _try_result.is_err() {
     Value::Null
 }
 
-// async testHyperliquid () {
-//     const exchange = this.initOfflineExchange ('hyperliquid');
-//     const id = '1';
-//     let request: NullableDict = undefined;
-//     {
-//         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-//     } catch (e) {
-//         request = jsonParse (exchange.last_request_body);
-//     }
-//     const brokerId = (request['action']['brokerCode']).toString ();
-//     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-//     if (!isSync ()) {
-//         await close (exchange);
-//     }
-//     return true;
-// }
+    pub async fn test_hyperliquid(&mut self) -> Value {
+        let mut exchange: Value = self.init_offline_exchange(Value::Str("hyperliquid".into()), &[]);
+        add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("approvedBuilderFee".into()), Value::Bool(true));
+        let mut id: Value = (Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".into())).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("SOL/USDC:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(100)]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if _try_result.is_err() {
+            request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
+        }
+        let mut brokerId: Value = to_string_val(&(get_value(&get_value(&request.as_map().and_then(|__m| __m.get("action")).cloned().unwrap_or(Value::Null), &Value::Str("builder".into())), &Value::Str("b".into()))));
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("hyperliquid - brokerId: ".into()), brokerId).into()), Value::Str(" does not start with id: ".into())).into()), id).into())]);
+        if !is_true(&isSync()) {
+            close(exchange.clone()).await;
+        }
+        return Value::Bool(true);
+
+    Value::Null
+}
+
     pub async fn test_coinbaseinternational(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("coinbaseinternational".into()), &[]);
         // ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
