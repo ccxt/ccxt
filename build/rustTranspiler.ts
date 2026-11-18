@@ -4234,6 +4234,10 @@ function rustTypedListAndOmitBranches (content: string): string {
         head.lastIndex = last;
     }
     out += content.slice (last);
+    // `(Value::from(vec![a, ..])).to_str_vec()` is each element's Display text: `vec![a.to_string(), ..]`
+    out = out.replace (/\(Value::from\(vec!\[((?:[A-Za-z_]\w*(?:\.clone\(\))?|Value::from\([A-Za-z_]\w*\))(?:, (?:[A-Za-z_]\w*(?:\.clone\(\))?|Value::from\([A-Za-z_]\w*\)))*)?\]\)\)\.to_str_vec\(\)/g,
+        (_s, items: string | undefined) => (items === undefined ? 'Vec::<String>::new()'
+            : `vec![${items.split (', ').map ((e) => `${e.replace (/\.clone\(\)$/, '')}.to_string()`).join (', ')}]`));
     const branch = /\(if \(([^{}\n]*)\) \{ self(\.parent)?\.omit\((&([A-Za-z_]\w*)|([A-Za-z_]\w*)\.clone\(\)), (Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\)), &\[\]\) \} else \{ (?:\4|\5)(?:\.clone\(\))? \}\)\.into_dict\(\)/g;
     return out.replace (branch, (_s, c: string, parent: string | undefined, _arg: string, a: string, b: string, k: string) =>
         `self${parent ?? ''}.omit_t(&${a ?? b}, if (${c}) { ${k} } else { Value::Null }, &[])`);
