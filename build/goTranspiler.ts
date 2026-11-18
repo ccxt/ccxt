@@ -7026,12 +7026,14 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     // its annotated slice and converts it (Convert*ToArray), so the core never sees a [][]string / struct slice
     'watchOHLCVForSymbols': { 0: '[]any' }, 'unWatchOHLCVForSymbols': { 0: '[]any' },
     'cancelOrdersForSymbols': { 0: '[]any' }, 'editOrders': { 0: '[]any' },
+    // symbol-list params every caller hands a `[]any` literal; the typed wrapper converts its []string
+    'watchOrderBookForSymbols': { 0: '[]any' }, 'watchTradesForSymbols': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
 const GO_WRAPPER_SLICE_CONVERSIONS: { [tsType: string]: string } = {
     'OrderRequest[]': 'ConvertOrderRequestListToArray', 'CancellationRequest[]': 'ConvertCancellationRequestListToArray',
-    'string[][]': 'ConvertStringMatrixToArray',
+    'string[][]': 'ConvertStringMatrixToArray', 'string[]': 'StringSliceToList',
 };
 
 // exchange-local methods no ts/src file calls whose required `string` params are Go strings
@@ -12849,24 +12851,25 @@ class NewTranspiler {
             // handle params = {}
             return 'params ...any';
         }
-        const paramsParsed = params.map(param => this.convertJavascriptParamToGoParam(param)).join(', ');
+        const paramsParsed = params.map(param => this.convertJavascriptParamToGoParam(param, methodName)).join(', ');
         if (!needsVariadicOptions) {
             return paramsParsed;
         }
         const regularParams = params.filter(param => !this.isOptionalGoParam(param));
-        const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param));
+        const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param, methodName));
         const allParams =  regularParamsParsed.concat(['options ...' + capitalize(methodName) + 'Options']);
         return allParams.join(', ');
     }
 
-    convertJavascriptParamToGoParam(param: any): string | undefined {
+    convertJavascriptParamToGoParam(param: any, methodName?: string): string | undefined {
         const name = param.name;
         const safeName = this.safeGoName(name);
         // the async wrapper pair prints the Go type the core decided for a positional slot: the ast printer reports it
         // on the method record (`parameters[i].goType`; an optional or variadic slot rides the options struct and has none)
         const decidedGoType = param?.goType;
         // the typed wrapper keeps `[]OrderRequest` (it converts to the core's []any); only the core is retyped
-        const wrapperKeepsAnnotation = (decidedGoType === '[]any') && /(?:OrderRequest|CancellationRequest|string\[\])\[\]$/.test (String (param?.type ?? ''));
+        const wrapperKeepsAnnotation = (decidedGoType === '[]any') && (/(?:OrderRequest|CancellationRequest|string\[\])\[\]$/.test (String (param?.type ?? ''))
+            || ((String (param?.type ?? '') === 'string[]') && (GO_UNIFIED_SLICE_PARAMS[methodName ?? '']?.[0] === '[]any')));
         if ((typeof decidedGoType === 'string') && (decidedGoType.length > 0) && !wrapperKeepsAnnotation) {
             return `${safeName} ${decidedGoType}`;
         }
@@ -15194,6 +15197,8 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/exchange.JsonStringifyWithNull/g, 'JsonStringify'],
                 [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
                 [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
+                // runPublicTests hands these two tests a `[]any` symbol list (CallMethod passes it through reflect)
+                [/(func (?:T|t)estWatch(?:OrderBook|Trades)ForSymbols(?:Async|Body)\(.*skippedProperties any, symbols) any\)/g, '$1 []any)'],
             ];
 
             contentIndentend = this.regexAll (contentIndentend, regexes);
