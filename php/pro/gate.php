@@ -2035,15 +2035,31 @@ class gate extends \ccxt\async\gate {
             $this->liquidations = new ArrayCache($limit);
         }
         $cache = $this->liquidations;
+        $liquidationsBySymbol = array();
         for ($i = 0; $i < count($rawLiquidations); $i++) {
             $rawLiquidation = $rawLiquidations[$i];
             $liquidation = $this->parse_ws_liquidation($rawLiquidation);
             $cache->append($liquidation);
+            $newLiquidations[] = $liquidation;
             $symbol = $this->safe_string($liquidation, 'symbol');
-            $symbolLiquidations = $this->safe_list($cache, $symbol, array());
-            $client->resolve($symbolLiquidations, 'myLiquidations::' . $symbol);
+            if ($symbol !== null) {
+                $symbolLiquidations = $this->safe_list($liquidationsBySymbol, $symbol);
+                if ($symbolLiquidations === null) {
+                    $symbolLiquidations = array();
+                }
+                $symbolLiquidations[] = $liquidation;
+                $liquidationsBySymbol[$symbol] = $symbolLiquidations;
+            }
         }
-        $client->resolve($newLiquidations, 'myLiquidations');
+        $symbols = is_array($liquidationsBySymbol) ? array_keys($liquidationsBySymbol) : array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $client->resolve($liquidationsBySymbol[$symbol], 'myLiquidations::' . $symbol);
+        }
+        $numNewLiquidations = count($newLiquidations);
+        if ($numNewLiquidations > 0) {
+            $client->resolve($newLiquidations, 'myLiquidations');
+        }
     }
 
     public function parse_ws_liquidation(array $liquidation, ?array $market = null): array {
@@ -2076,7 +2092,8 @@ class gate extends \ccxt\async\gate {
         //    }
         //
         $marketId = $this->safe_string($liquidation, 'contract');
-        $marketResolved = $this->safe_market($marketId, $market);
+        // liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+        $marketResolved = $this->safe_market($marketId, $market, '_', 'contract');
         $timestamp = $this->safe_integer($liquidation, 'time_ms');
         $originalSize = $this->safe_string($liquidation, 'size');
         $left = $this->safe_string($liquidation, 'left');
@@ -2091,7 +2108,7 @@ class gate extends \ccxt\async\gate {
             'quoteValue' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        ));
+        ), $marketResolved);
     }
 
     public function handle_error_message(Client $client, array $message): ?bool {
