@@ -1432,7 +1432,7 @@ export default class blofin extends Exchange {
             request['orderType'] = 'post_only';
         } else if (ioc && !marketIOC) {
             request['orderType'] = 'ioc';
-        } else if (fok) {
+        } else if (fok && !isMarketOrder) {
             request['orderType'] = 'fok';
         }
         const stopLoss = this.safeDict (query, 'stopLoss');

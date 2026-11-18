@@ -166,6 +166,22 @@
         ],
         "createOrder": [
             {
+                "description": "market order with timeInForce FOK",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.01,
+                    null,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"orderType\":\"market\",\"size\":\"0.01\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"marginMode\":\"cross\"}"
+            },
+            {
                 "description": "limit order with timeInForce FOK",
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order",
