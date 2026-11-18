@@ -202,7 +202,7 @@ impl crate::exchange::DerivedExchange for Zaif {
         if (name.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " parseMarket() missing name")));
         }
-        let mut nameParts: crate::value::List = Value::Array(if let Some(__s) = name.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut nameParts: crate::value::List = crate::value::List::new(if let Some(__s) = name.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let mut baseId: Option<String> = self.safe_string_opt(&nameParts, Value::Int(0), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(&nameParts, Value::Int(1), &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -292,8 +292,8 @@ impl crate::exchange::DerivedExchange for Zaif {
         let mut currencyIds: Vec<Value> = Value::Array(funds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1202: bool = true;
-            while { if !__for_first_1202 { i += 1; } __for_first_1202 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1203: bool = true;
+            while { if !__for_first_1203 { i += 1; } __for_first_1203 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut balance: Option<String> = self.safe_string_opt(&funds, Value::from(currencyId.as_deref()), &[]);
@@ -408,7 +408,7 @@ impl crate::exchange::DerivedExchange for Zaif {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(bodyEncoded.clone())), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
+                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(bodyEncoded.clone())), self.encode(&self.secret), Value::Str("sha512".into()), &[])));
                 m
             });
             return Value::Map({

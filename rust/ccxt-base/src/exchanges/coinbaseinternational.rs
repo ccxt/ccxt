@@ -729,8 +729,8 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_560: bool = true;
-            while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (rawNetworks.len() as i64) } {
+            let mut __for_first_561: bool = true;
+            while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (rawNetworks.len() as i64) } {
             let mut rawNetwork: crate::value::Dict = rawNetworks.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&rawNetwork, "resource_name", &[]);
             let mut network: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -966,7 +966,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
             }
             let mut requestData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, "\n").into()), signedRequest).into()), "\n").into()), "\n"); // eslint-disable-line quotes
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, "\n").into()), nonce.as_deref().unwrap_or("null")).into()), "\n").into()), requestData); // eslint-disable-line quotes
-            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha256".into()), &[]);
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -1129,7 +1129,7 @@ impl Coinbaseinternational {
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("version".to_string(), Value::Str("v2".into()));
-        m.insert("userAgent".to_string(), self.userAgents.as_map().and_then(|__m| __m.get("chrome")).cloned().unwrap_or(Value::Null));
+        m.insert("userAgent".to_string(), self.userAgents.get("chrome").cloned().unwrap_or(Value::Null));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Bool(true));
@@ -2364,9 +2364,9 @@ impl Coinbaseinternational {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(10000)]).await;
         }
@@ -2374,7 +2374,7 @@ impl Coinbaseinternational {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("resolution".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
             m
         });
         let mut marketInfo: crate::value::Dict = self.safe_dict_k_t(&market, "info");
@@ -2464,9 +2464,9 @@ impl Coinbaseinternational {
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchFundingRateHistory", &[params]).into_dict();
         let mut paramsPaginate: crate::value::Dict = Value::from(&paramsResolved).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
-            let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let paginateparamsFinalVariable = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+            let mut paginate: bool = paginateparamsFinalVariable.0 == Some(true);
+            let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.1;
             if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until")));
             }
@@ -2558,7 +2558,7 @@ impl Coinbaseinternational {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]);
         if (symbolsResolved.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTickers() requires a symbols argument")));
         }
@@ -2568,8 +2568,8 @@ impl Coinbaseinternational {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_561: bool = true;
-            while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_562: bool = true;
+            while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = self.safe_string_opt(&symbolsResolved, Value::Int(i), &[]);
             if (symbol.is_none()) {
                 continue;
@@ -2699,8 +2699,8 @@ impl Coinbaseinternational {
                 }
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_562: bool = true;
-                    while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (depths.len() as i64) } {
+                    let mut __for_first_563: bool = true;
+                    while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (depths.len() as i64) } {
                     if limit.as_f64().unwrap_or(f64::NAN) <= Value::from(self.parse_to_int(depths.get(i as usize).cloned().unwrap_or(Value::Null))).as_f64().unwrap_or(f64::NAN) {
                         request.insert("depth".into(), self.safe_integer(&depths, Value::Int(i), &[Value::Int(0)]));
                         break;
@@ -3077,8 +3077,8 @@ impl Coinbaseinternational {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_563: bool = true;
-            while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (summaries.len() as i64) } {
+            let mut __for_first_564: bool = true;
+            while { if !__for_first_564 { i += 1; } __for_first_564 = false; i < (summaries.len() as i64) } {
             let mut data: crate::value::Dict = self.safe_dict_t(&summaries, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "currency", &[]);
             let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -3336,7 +3336,7 @@ impl Coinbaseinternational {
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             return self.parse_positions(&result, &[]);
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         return self.parse_positions(&result, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -3447,8 +3447,8 @@ impl Coinbaseinternational {
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_564: bool = true;
-            while { if !__for_first_564 { i += 1; } __for_first_564 = false; i < (logs.len() as i64) } {
+            let mut __for_first_565: bool = true;
+            while { if !__for_first_565 { i += 1; } __for_first_565 = false; i < (logs.len() as i64) } {
             let mut transaction: crate::value::Dict = logs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut transactionType: Option<String> = self.safe_string_k_opt(&transaction, "type", &[]);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {
@@ -3556,8 +3556,7 @@ impl Coinbaseinternational {
  * @returns {string} precision-formatted exchange order amount
  */
     pub fn get_order_amount(&self, market: Option<&crate::types::Market>, amount: Option<f64>) -> Option<String> {
-        let mut amount: Value = amount.into();
-        let mut exchangeAmount: Option<String> = self.number_to_string(amount);
+        let mut exchangeAmount: Option<String> = self.number_to_string(Value::from(amount));
         if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(&market, "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount, &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
         }
@@ -3675,7 +3674,7 @@ impl Coinbaseinternational {
         if (clientOrderId.is_some()) {
             request.insert("label".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            let mut brokerId: Option<String> = self.safe_string_k_opt(self.options.clone(), "brokerId", &[]);
+            let mut brokerId: Option<String> = self.safe_string_k_opt(&self.options, "brokerId", &[]);
             if (brokerId.is_some()) {
                 request.insert("label".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", brokerId.as_deref().unwrap_or("null"), "-").into()), self.uuid22(&[])).into()));
             }
@@ -4169,9 +4168,9 @@ impl Coinbaseinternational {
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchOpenOrders", &[params]).into_dict();
         let mut paramsPaginate: crate::value::Dict = Value::from(&paramsResolved).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
-            let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let paginateparamsFinalVariable = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+            let mut paginate: bool = paginateparamsFinalVariable.0 == Some(true);
+            let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.1;
             if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOpenOrders() does not support pagination")));
             }
@@ -4263,9 +4262,9 @@ impl Coinbaseinternational {
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchMyTrades", &[params]).into_dict();
         let mut paramsPaginate: crate::value::Dict = Value::from(&paramsResolved).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
-            let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let paginateparamsFinalVariable = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+            let mut paginate: bool = paginateparamsFinalVariable.0 == Some(true);
+            let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.1;
             if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters")));
             }
@@ -4532,7 +4531,7 @@ impl Coinbaseinternational {
             }
         }
         if useEddsa {
-            let mut byteArray: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
+            let mut byteArray: crate::value::Bytes = self.base64_to_binary(&self.secret, &[]);
             let mut seed: crate::value::Bytes = crate::value::Bytes(std::sync::Arc::new(byteArray.0.iter().take(32).cloned().collect()));
             return Value::from(jwt(&request, &seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4542,7 +4541,7 @@ impl Coinbaseinternational {
     m
 })));
         }
-        return Value::from(jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Map({
+        return Value::from(jwt(&request, self.encode(&self.secret), Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("kid".to_string(), self.apiKey.clone());
         m.insert("nonce".to_string(), Value::from(nonce));
@@ -4578,7 +4577,7 @@ impl Coinbaseinternational {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsResolved, Value::Str("forceRefresh".into()), &[]);
         let mut now: i64 = self.milliseconds();
         let mut token: Option<String> = self.get_v2_access_token();
-        let mut tokenExpires: Option<i64> = self.safe_integer_k(self.options.clone(), "v2TokenExpires", &[]).as_i64();
+        let mut tokenExpires: Option<i64> = self.safe_integer_k(&self.options, "v2TokenExpires", &[]).as_i64();
         if !forceRefresh && (token.is_some()) && (token.as_deref() != Some("")) && (tokenExpires.is_some()) && (Some(now) < tokenExpires) {
             return token.map(Value::from).unwrap_or(Value::Null);
         }
@@ -4603,12 +4602,12 @@ impl Coinbaseinternational {
         if (expiresIn.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " public/auth did not return an expiry")));
         }
-        let mut ratio: Option<f64> = self.safe_number_k(self.options.clone(), "accessTokenRefreshRatio", &[]).as_f64();
+        let mut ratio: Option<f64> = self.safe_number_k(&self.options, "accessTokenRefreshRatio", &[]).as_f64();
         let mut refreshRatio: f64 = ratio.unwrap_or(0.8);
         let mut tokenRefreshInMilliseconds: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = expiresIn { Some(__l * 1000) } else { None })) { Some((__l as f64) * refreshRatio) } else { None })));
         self.token = accessToken.clone().map(Value::from).unwrap_or(Value::Null);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), accessToken.clone().map(Value::from).unwrap_or(Value::Null)); }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), Value::from((if let Some(__m1) = tokenRefreshInMilliseconds { Some((now + __m1)) } else { None }))); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), accessToken.clone().map(Value::from).unwrap_or(Value::Null)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), Value::from((if let Some(__m1) = tokenRefreshInMilliseconds { Some((now + __m1)) } else { None }))); }
         return accessToken.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
@@ -4621,7 +4620,7 @@ impl Coinbaseinternational {
  * @returns {string|undefined} the access token
  */
     pub fn get_v2_access_token(&self) -> Option<String> {
-        return self.safe_string_k_opt(self.options.clone(), "v2AccessToken", &[self.token.clone()]);
+        return self.safe_string_k_opt(&self.options, "v2AccessToken", &[self.token.clone()]);
 }
 
 
@@ -4636,7 +4635,7 @@ impl Coinbaseinternational {
         if secretIsPem {
             return Value::Bool(false);
         }
-        let mut useV2CloudApiKey: bool = self.safe_bool_k_opt(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).unwrap_or(false);
+        let mut useV2CloudApiKey: bool = self.safe_bool_k_opt(&self.options, "v2CloudAPiKey", &[Value::Bool(false)]).unwrap_or(false);
         return Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || useV2CloudApiKey || (self.secret.as_str().unwrap_or("").ends_with("=")));
 
     Value::Null
@@ -4657,15 +4656,15 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let routeparamsResolvedVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::from(methodName), Value::Str("route".into()), &[Value::Str("auto".into())]).as_array().cloned().unwrap_or_default();
-        let mut route: Option<String> = routeparamsResolvedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsResolved: crate::value::Dict = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let routeparamsResolvedVariable = self.handle_option_string_and_params(params, Value::from(methodName), Value::Str("route".into()), &[Value::Str("auto".into())]);
+        let mut route: Option<String> = routeparamsResolvedVariable.0.as_str().map(str::to_owned);
+        let mut paramsResolved: crate::value::Dict = routeparamsResolvedVariable.1;
         let mut deribit: bool = self.resolve_route(&[route.map(Value::from).unwrap_or(Value::Null)]).as_bool().unwrap_or_default();
-        let mut previousBackend: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "routeBackend", &[]);
+        let mut previousBackend: Option<bool> = self.safe_bool_k_opt(&self.options, "routeBackend", &[]);
         let mut configuredBackend: bool = self.is_native_deribit_credentials().as_bool().unwrap_or_default();
         let mut currentToken: Option<String> = self.get_v2_access_token();
         let mut hasToken: bool = (currentToken.is_some()) && (currentToken.as_deref() != Some(""));
-        let mut hasWsState: bool = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]) != Value::Null;
+        let mut hasWsState: bool = self.safe_integer_k(&self.options, "wsAuthRefreshAt", &[]) != Value::Null;
         if (previousBackend.is_some()) && ((previousBackend != Some(deribit))) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " cannot switch route backend on an initialized instance; use a separate exchange instance")));
         }
@@ -4674,11 +4673,11 @@ impl Coinbaseinternational {
         }
         // Bind before any await, including failed/in-flight loads; never silently reuse another backend's caches.
         if deribit {
-            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("deribit".into())); }
+            { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("deribit".into())); }
         }  else {
-            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("coinbase".into())); }
+            { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("route".into(), Value::Str("coinbase".into())); }
         }
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("routeBackend".into(), Value::Bool(deribit)); }
+        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("routeBackend".into(), Value::Bool(deribit)); }
         if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!deribit)); }
         if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!deribit)); }
         return self.omit(&paramsResolved, &["route", "defaultRoute", "callerMethodName"], &[]);
@@ -4694,7 +4693,7 @@ impl Coinbaseinternational {
  * @returns {boolean} true for the native Deribit route
  */
     pub fn is_native_deribit_credentials(&self) -> Value {
-        return self.resolve_route(&[self.options.as_map().and_then(|__m| __m.get("route")).cloned().unwrap_or(Value::Null)]);
+        return self.resolve_route(&[self.options.get("route").cloned().unwrap_or(Value::Null)]);
 
     Value::Null
 }

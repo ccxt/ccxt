@@ -336,7 +336,7 @@ impl Hollaex {
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
@@ -436,7 +436,7 @@ impl Hollaex {
             return;
         }
         if (self.myTrades.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCache::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
@@ -592,7 +592,7 @@ impl Hollaex {
             return;
         }
         if (self.orders.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
@@ -686,7 +686,7 @@ impl Hollaex {
             let mut __for_first_388: bool = true;
             while { if !__for_first_388 { i += 1; } __for_first_388 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut parts: crate::value::List = Value::Array(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut currencyId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: Value = self.account();
@@ -706,7 +706,6 @@ impl Hollaex {
 }
 
     pub async fn watch_public(&mut self, messageHash: &str, optional_args: &[Value]) -> Value {
-        let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -715,34 +714,33 @@ impl Hollaex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
-                m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![Value::from(messageHash)]));
             m
         });
         let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash, &message, &messageHash, Value::Null).await;
+        return self.watch(url.as_deref(), &Value::from(messageHash), &message, &Value::from(messageHash), Value::Null).await;
 
     Value::Null
 }
 
     pub async fn watch_private(&mut self, messageHash: &str, optional_args: &[Value]) -> Value {
-        let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         self.check_required_credentials(&[]);
-        let mut expires: Value = self.safe_string_k(self.options.clone(), "ws-expires", &[Value::Str("".into())]);
+        let mut expires: Value = self.safe_string_k(&self.options, "ws-expires", &[Value::Str("".into())]);
         if (expires.as_str() == Some("")) {
             let mut timeoutMs: Option<i64> = self.parse_to_int(self.timeout.clone());
             let mut timeout: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = timeoutMs { Some((__l as f64) / 1000.0) } else { None })));
             expires = Value::from(self.number_to_string(Value::from(self.parse_to_int(Value::from((if let Some(__m1) = timeout { Some(((self.seconds()) + __m1)) } else { None }))))));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".into(), expires.clone()); }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws-expires".into(), expires.clone()); }
         }
         let mut url: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", "CONNECT", "/stream").into()), expires);
-        let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+        let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha256".into()), &[]);
         let mut authParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api-key".to_string(), self.apiKey.clone());
@@ -754,11 +752,11 @@ impl Hollaex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
-                m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![Value::from(messageHash)]));
             m
         });
         let mut message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
-        return self.watch(signedUrl.as_str(), &messageHash, &message, &messageHash, Value::Null).await;
+        return self.watch(signedUrl.as_str(), &Value::from(messageHash), &message, &Value::from(messageHash), Value::Null).await;
 
     Value::Null
 }
@@ -918,12 +916,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     pub fn on_error(&mut self, mut client: Value, mut error: Value) {
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".into(), Value::Null); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws-expires".into(), Value::Null); }
         self.parent.on_error(&[client, error.clone()]);
 }
 
     pub fn on_close(&mut self, mut client: Value, mut error: Value) {
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".into(), Value::Null); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws-expires".into(), Value::Null); }
         self.parent.on_close(&[client, error.clone()]);
 }
 }

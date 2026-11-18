@@ -889,8 +889,8 @@ impl Blockchaincom {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_458: bool = true;
-            while { if !__for_first_458 { i += 1; } __for_first_458 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_459: bool = true;
+            while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut market: Option<crate::value::Dict> = self.safe_dict_o(&markets, Value::from(marketId.as_deref()));
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);
@@ -1381,8 +1381,8 @@ impl Blockchaincom {
         let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_459: bool = true;
-            while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_460: bool = true;
+            while { if !__for_first_460 { i += 1; } __for_first_460 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1490,8 +1490,6 @@ impl Blockchaincom {
     }
 
     pub async fn fetch_orders_by_state(&mut self, state: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut since: Value = since.into();
-        let mut limit: Value = limit.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1512,7 +1510,7 @@ impl Blockchaincom {
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::List = self.private_get_orders(&[__ws_arg_6]).await.into_list();
-        return self.parse_orders(&response, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&response, market.as_ref(), &[Value::from(since), Value::from(limit)]);
 
     Value::Null
 }
@@ -1599,7 +1597,7 @@ impl Blockchaincom {
         let mut tag: Option<String> = None;
         let mut address: Option<String> = None;
         if (rawAddress.is_some()) {
-            let mut addressParts: crate::value::List = Value::Array(if let Some(__s) = rawAddress.as_deref() { __s.split(";").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut addressParts: crate::value::List = crate::value::List::new(if let Some(__s) = rawAddress.as_deref() { __s.split(";").map(Value::from).collect() } else { Vec::new() });
             // if a tag or memo is used it is separated by a colon in the 'address' value
             tag = self.safe_string_opt(&addressParts, Value::Int(0), &[]);
             address = self.safe_string_opt(&addressParts, Value::Int(1), &[]);
@@ -1884,8 +1882,8 @@ impl Blockchaincom {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_460: bool = true;
-            while { if !__for_first_460 { i += 1; } __for_first_460 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_461: bool = true;
+            while { if !__for_first_461 { i += 1; } __for_first_461 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);

@@ -217,8 +217,8 @@ impl crate::exchange::DerivedExchange for Apex {
         let mut status: Option<String> = self.safe_string_k_opt(&order, "status", &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-        let mut remaining: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "remainingSize", &[]));
-        let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "updatedTime", &[]).as_i64();
+        let mut remaining: Option<String> = self.omit_zero(self.safe_string_k(&order, "remainingSize", &[]));
+        let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(&order, "updatedTime", &[]).as_i64();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -230,12 +230,12 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "postOnly", &[]));
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force((self.safe_string_k(&order, "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), self.safe_bool_k(&order, "postOnly", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), self.safe_string_k(order.clone(), "triggerPrice", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_string_k(&order, "triggerPrice", &[]));
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
@@ -246,7 +246,7 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), self.safe_string_k(order.clone(), "fee", &[]));
+        m.insert("cost".to_string(), self.safe_string_k(&order, "fee", &[]));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settleId"));
     m
 }));
@@ -469,7 +469,7 @@ impl crate::exchange::DerivedExchange for Apex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: crate::value::List = self.safe_list_k_t(self.options.clone(), "_temp_currencies_chains");
+        let mut chains: crate::value::List = self.safe_list_k_t(&self.options, "_temp_currencies_chains");
         {
                         let mut j: i64 = 0;
             let mut __for_first_225: bool = true;
@@ -1473,9 +1473,9 @@ impl Apex {
         // }
         let mut rows: crate::value::List = self.safe_list_k_t(&spotConfig, "assets");
         let mut chains: crate::value::List = self.safe_list_k_t(&multiChain, "chains");
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_chains".into(), Value::Arr(chains)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("_temp_currencies_chains".into(), Value::Arr(chains)); }
         let mut result: crate::value::Dict = self.parse_currencies(&rows).into_dict();
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).shift_remove("_temp_currencies_chains"); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).shift_remove("_temp_currencies_chains"); }
         return Value::Dict(result);
         Value::Null
         }).await?))
@@ -1612,16 +1612,16 @@ impl Apex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("interval".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
                 m.insert("symbol".to_string(), self.safe_string_k(&market, "id2", &[]));
             m
         });
         // default is 200 when requested with `since`, max 200
         let mut limitResolved: Option<i64> = (if ((limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((200i64) as f64)) { Some(200) } else { limit.as_i64() });
         request.insert("limit".into(), Value::from(limitResolved));
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let (__until0, __until1) = self.handle_until_option(Value::Str("end".into()), Value::Map(request), params, &[Value::Float(0.001)]);
+        let mut requestUntil: crate::value::Dict = __until0;
+        let mut paramsUntil: crate::value::Dict = __until1;
         if (since != Value::Null) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("start".into(), ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null));
         }
@@ -2000,7 +2000,7 @@ impl Apex {
 }
 
     pub fn get_seeds(&self) -> Option<String> {
-        let mut seeds: Option<String> = self.safe_string_k_opt(self.options.clone(), "seeds", &[]);
+        let mut seeds: Option<String> = self.safe_string_k_opt(&self.options, "seeds", &[]);
         if (seeds.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")));
         }
@@ -2008,12 +2008,12 @@ impl Apex {
 }
 
     pub async fn get_account_id(&mut self) -> Value {
-        let mut accountId: Option<String> = self.safe_string_k_opt(self.options.clone(), "accountId", &[Value::Str("0".into())]);
+        let mut accountId: Option<String> = self.safe_string_k_opt(&self.options, "accountId", &[Value::Str("0".into())]);
         if (accountId.as_deref() == Some("0")) {
             let mut accountData: crate::value::Dict = self.fetch_account(&[]).await.into_dict();
-            { let __be_tmp = self.safe_string_k(&accountData, "id", &[Value::Str("0".into())]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountId".into(), __be_tmp); } }
+            { let __be_tmp = self.safe_string_k(&accountData, "id", &[Value::Str("0".into())]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("accountId".into(), __be_tmp); } }
         }
-        return self.safe_string_k(self.options.clone(), "accountId", &[]);
+        return self.safe_string_k(&self.options, "accountId", &[]);
 
     Value::Null
 }
@@ -2065,7 +2065,7 @@ impl Apex {
         if (price != Value::Null) {
             orderPrice = self.price_to_precision(symbol.clone(), price.clone());
         }
-        let mut fees: crate::value::Dict = self.safe_dict_k_t(self.fees.clone(), "swap");
+        let mut fees: crate::value::Dict = self.safe_dict_k_t(&self.fees, "swap");
         let mut taker: String = self.safe_string_k(&fees, "taker", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
         let mut maker: String = self.safe_string_k(&fees, "maker", &[Value::Str("0.0002".into())]).as_str().unwrap_or("0.0002").to_string();
         let mut pricePrecision: Value = crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
@@ -2136,7 +2136,7 @@ impl Apex {
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                 m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("clientId".to_string(), finalClientOrderId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("6956".into())]));
+                m.insert("brokerId".to_string(), self.safe_string_k(&self.options, "brokerId", &[Value::Str("6956".into())]));
             m
         });
         if (triggerPrice.is_some()) {
@@ -2231,7 +2231,7 @@ impl Apex {
         let mut amountNumber: Option<i64> = self.parse_to_int(Value::Float((amountValue * mathPowResult)));
         let mut timestampSeconds: Option<i64> = self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
-        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni((self.safe_string_k(self.options.clone(), "accountId", &[])).as_str()) });
+        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni((self.safe_string_k(&self.options, "accountId", &[])).as_str()) });
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientId", "clientOrderId", "client_order_id"], &[]);
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();

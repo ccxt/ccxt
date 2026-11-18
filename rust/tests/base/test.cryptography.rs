@@ -37,7 +37,7 @@ pub fn testCryptography() {
             m.insert("v".to_string(), Value::Int(0));
         m
     })))));
-    assert!(ccxt::runtime::is_true(&(equals(Value::Dict(ecdsa(privateKey.clone(), privateKey.clone(), Value::Str("secp256k1".into()), Value::Null)), Value::Map({
+    assert!(ccxt::runtime::is_true(&(equals(Value::Dict(ecdsa(privateKey.clone(), privateKey, Value::Str("secp256k1".into()), Value::Null)), Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("r".to_string(), Value::Str("b84a36a6fbabd5277ede578448b93d48e70b38efb5b15b1d4e2a298accf938b1".into()));
             m.insert("s".to_string(), Value::Str("66ebfb8221cda925526e699a59cd221bb4cc84bdc563024b1802c4d9e1d8bbe9".into()));

@@ -182,14 +182,14 @@ impl crate::exchange::DerivedExchange for Coinspot {
             let mut numRows: i64 = rows.len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_584: bool = true;
-                while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < numRows } {
+                let mut __for_first_585: bool = true;
+                while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < numRows } {
                 let mut currencies: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
                 let mut currencyIdsList: Vec<Value> = Value::Array(currencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_583: bool = true;
-                    while { if !__for_first_583 { j += 1; } __for_first_583 = false; j < (currencyIdsList.len() as i64) } {
+                    let mut __for_first_584: bool = true;
+                    while { if !__for_first_584 { j += 1; } __for_first_584 = false; j < (currencyIdsList.len() as i64) } {
                     let mut currencyId: Option<&str> = currencyIdsList.get(j as usize).and_then(Value::as_str);
                     let mut balance: crate::value::Dict = self.safe_dict_t(&currencies, Value::from(currencyId.as_deref()));
                     let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
@@ -206,8 +206,8 @@ impl crate::exchange::DerivedExchange for Coinspot {
             let mut currencyIdsMap: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_585: bool = true;
-                while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (currencyIdsMap.len() as i64) } {
+                let mut __for_first_586: bool = true;
+                while { if !__for_first_586 { i += 1; } __for_first_586 = false; i < (currencyIdsMap.len() as i64) } {
                 let mut currencyId: Option<&str> = currencyIdsMap.get(i as usize).and_then(Value::as_str);
                 let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
@@ -261,7 +261,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("key".to_string(), self.apiKey.clone());
-                    m.insert("sign".to_string(), Value::from(self.hmac(self.encode(Value::from(requestBody.as_deref())), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
+                    m.insert("sign".to_string(), Value::from(self.hmac(self.encode(Value::from(requestBody.as_deref())), self.encode(&self.secret), Value::Str("sha512".into()), &[])));
                 m
             }));
         }
@@ -1157,7 +1157,7 @@ impl Coinspot {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut method: Option<String> = self.safe_string_k_opt(self.options.clone(), "fetchBalance", &[Value::Str("privatePostMyBalances".into())]);
+        let mut method: Option<String> = self.safe_string_k_opt(&self.options, "fetchBalance", &[Value::Str("privatePostMyBalances".into())]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("private_post_ro_my_balances")) || (method.as_deref() == Some("privatePostRoMyBalances")) {
             response = self.private_post_ro_my_balances(&[params.clone()]).await.into_opt_dict();
@@ -1306,8 +1306,8 @@ impl Coinspot {
         let mut ids: Vec<Value> = Value::Array(prices.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_586: bool = true;
-            while { if !__for_first_586 { i += 1; } __for_first_586 = false; i < (ids.len() as i64) } {
+            let mut __for_first_587: bool = true;
+            while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (ids.len() as i64) } {
             let mut id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(id.as_deref()), None, &[]);
             if (market).spot {
@@ -1440,16 +1440,16 @@ impl Coinspot {
         let mut buyTrades: crate::value::List = self.safe_list_k_t(&response, "buyorders");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_587: bool = true;
-            while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (buyTrades.len() as i64) } {
+            let mut __for_first_588: bool = true;
+            while { if !__for_first_588 { i += 1; } __for_first_588 = false; i < (buyTrades.len() as i64) } {
             add_element_to_object(get_value_mut(&mut buyTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("buy".into()));
         }
         }
         let mut sellTrades: crate::value::List = self.safe_list_k_t(&response, "sellorders");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_588: bool = true;
-            while { if !__for_first_588 { i += 1; } __for_first_588 = false; i < (sellTrades.len() as i64) } {
+            let mut __for_first_589: bool = true;
+            while { if !__for_first_589 { i += 1; } __for_first_589 = false; i < (sellTrades.len() as i64) } {
             add_element_to_object(get_value_mut(&mut sellTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("sell".into()));
         }
         }

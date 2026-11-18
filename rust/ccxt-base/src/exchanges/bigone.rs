@@ -49,7 +49,7 @@ impl Bigone {
 
 impl crate::exchange::DerivedExchange for Bigone {
     fn nonce(&self) -> Value {
-        let mut exchangeMillisecondsCorrection: i64 = self.safe_integer_k(self.options.clone(), "exchangeMillisecondsCorrection", &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let mut exchangeMillisecondsCorrection: i64 = self.safe_integer_k(&self.options, "exchangeMillisecondsCorrection", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut exchangeTimeCorrection: i64 = (exchangeMillisecondsCorrection * 1000000);
         return Value::Int(((((self.microseconds()) * 1000)) + exchangeTimeCorrection));
 
@@ -671,7 +671,7 @@ impl crate::exchange::DerivedExchange for Bigone {
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
             }).into_dict();
-            let mut token: String = jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            let mut token: String = jwt(&request, self.encode(&self.secret), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             headersValue.insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into()));
             if (method.as_str() == Some("GET")) {
                 if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
@@ -1894,7 +1894,7 @@ impl Bigone {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut data: Value = Value::Null;
         if isSpot {
             if (symbolsNormalized.is_some()) {
@@ -2065,7 +2065,6 @@ impl Bigone {
 
     pub fn parse_contract_order_book(&self, orderbook: impl Into<crate::Value>, symbol: &str, limit: Option<i64>) -> Value {
         let mut orderbook: Value = orderbook.into();
-        let mut limit: Value = limit.into();
         let __orderbook_empty = indexmap::IndexMap::new();
         let orderbook = orderbook.as_map().unwrap_or(&__orderbook_empty);
         let mut responseBids: crate::value::Dict = orderbook.get("bids").cloned().unwrap_or_default().into_dict();
@@ -2075,8 +2074,8 @@ impl Bigone {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::from(symbol));
-        m.insert("bids".to_string(), self.filter_by_limit(self.sort_by(Value::Arr(bids), Value::Int(0), &[Value::Bool(true)]), &[limit.clone()]));
-        m.insert("asks".to_string(), self.filter_by_limit(self.sort_by(Value::Arr(asks), Value::Int(0), &[]), &[limit]));
+        m.insert("bids".to_string(), self.filter_by_limit(self.sort_by(Value::Arr(bids), Value::Int(0), &[Value::Bool(true)]), &[Value::from(limit)]));
+        m.insert("asks".to_string(), self.filter_by_limit(self.sort_by(Value::Arr(asks), Value::Int(0), &[]), &[Value::from(limit)]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("nonce".to_string(), Value::Null);
@@ -2199,7 +2198,7 @@ impl Bigone {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("period".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("period".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
                 m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
@@ -2405,7 +2404,7 @@ impl Bigone {
         }  else {
             if isBuy {
                 let mut createMarketBuyOrderRequiresPrice: Option<bool> = None;
-                { let __destr_tmp = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).into_list(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+                { let __destr_tmp = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.0; query = __destr_tmp.1; }
                 let mut cost: Option<f64> = self.safe_number_k(&query, "cost", &[]).as_f64();
                 query = self.omit_t(&query, Value::Str("cost".into()), &[]);
                 if (createMarketBuyOrderRequiresPrice == Some(true)) {
@@ -3116,7 +3115,7 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "accountsByType");
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let mut fromId: Option<String> = self.safe_string_opt(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Option<String> = self.safe_string_opt(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut guid: Option<String> = self.safe_string_k_opt(&params, "guid", &[Value::from(self.uuid(&[]))]);
@@ -3138,7 +3137,7 @@ impl Bigone {
         //     }
         //
         let mut transfer: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency)).into_dict();
-        let mut transferOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "transfer");
+        let mut transferOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "transfer");
         let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);

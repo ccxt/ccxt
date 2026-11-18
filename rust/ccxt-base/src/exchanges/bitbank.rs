@@ -373,10 +373,10 @@ impl crate::exchange::DerivedExchange for Bitbank {
             // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
             // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
             // since bitbank offers no server time endpoint to compensate against
-            let mut authMethod: Option<String> = self.safe_string_k_opt(self.options.clone(), "authMethod", &[Value::Str("timeWindow".into())]);
+            let mut authMethod: Option<String> = self.safe_string_k_opt(&self.options, "authMethod", &[Value::Str("timeWindow".into())]);
             let mut isTimeWindow: bool = authMethod.as_deref() == Some("timeWindow");
             let mut requestTime: String = format!("{}", self.milliseconds());
-            let mut timeWindow: String = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
+            let mut timeWindow: String = self.safe_string_k(&self.options, "timeWindow", &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
             let mut nonce: String = format!("{}", self.incrementing_nonce());
             let mut auth: String = nonce.clone();
             if isTimeWindow {
@@ -399,7 +399,7 @@ impl crate::exchange::DerivedExchange for Bitbank {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
+                    m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha256".into()), &[])));
                 m
             }));
             if isTimeWindow {
@@ -1282,7 +1282,7 @@ impl Bitbank {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
-                m.insert("candletype".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("candletype".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
                 m.insert("yyyymmdd".to_string(), self.yyyymmdd(Value::from(sinceResolved), &[Value::Str("".into())]));
             m
         });

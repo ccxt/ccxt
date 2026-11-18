@@ -276,8 +276,8 @@ impl crate::exchange::DerivedExchange for Btcturk {
         let mut minCost: Option<f64> = None;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { j += 1; } __for_first_476 = false; j < (filters.len() as i64) } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { j += 1; } __for_first_477 = false; j < (filters.len() as i64) } {
             let mut filter: crate::value::Dict = self.safe_dict_t(&filters, Value::Int(j));
             let mut filterType: Option<String> = self.safe_string_k_opt(&filter, "filterType", &[]);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
@@ -373,8 +373,8 @@ impl crate::exchange::DerivedExchange for Btcturk {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_477: bool = true;
-            while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (data.len() as i64) } {
+            let mut __for_first_478: bool = true;
+            while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -426,7 +426,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-            let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
+            let mut secret: crate::value::Bytes = self.base64_to_binary(&self.secret, &[]);
             let mut auth: String = format!("{}{}", self.apiKey.clone(), nonce);
             privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -1210,7 +1210,7 @@ impl Btcturk {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("resolution".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
             m
         });
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[Value::Int(self.milliseconds())]).as_i64();
@@ -1291,8 +1291,8 @@ impl Btcturk {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_478: bool = true;
-            while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (timestamp.len() as i64) } {
+            let mut __for_first_479: bool = true;
+            while { if !__for_first_479 { i += 1; } __for_first_479 = false; i < (timestamp.len() as i64) } {
             rows.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(&timestamp, Value::Int(i), &[]));
@@ -1320,8 +1320,8 @@ impl Btcturk {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_479: bool = true;
-            while { if !__for_first_479 { i += 1; } __for_first_479 = false; i < (rows.len() as i64) } {
+            let mut __for_first_480: bool = true;
+            while { if !__for_first_480 { i += 1; } __for_first_480 = false; i < (rows.len() as i64) } {
             results.push(self.parse_ohlcv(self.safe_dict(&rows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

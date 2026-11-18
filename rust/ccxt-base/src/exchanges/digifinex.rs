@@ -238,7 +238,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
             if (side.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " parseTrade() returned no side")));
             }
-            let mut parts: crate::value::List = Value::Array(if let Some(__s) = side.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = side.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             side = self.safe_string_opt(&parts, Value::Int(0), &[]);
             type_var = self.safe_string_opt(&parts, Value::Int(1), &[]);
             if (type_var.is_none()) {
@@ -754,8 +754,8 @@ impl crate::exchange::DerivedExchange for Digifinex {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_640: bool = true;
-            while { if !__for_first_640 { j += 1; } __for_first_640 = false; j < (networkEntries.len() as i64) } {
+            let mut __for_first_641: bool = true;
+            while { if !__for_first_641 { j += 1; } __for_first_641 = false; j < (networkEntries.len() as i64) } {
             let mut networkEntry: Option<crate::value::Dict> = self.safe_dict_o(&networkEntries, Value::Int(j));
             let mut networkId: Option<String> = self.safe_string2_opt(&networkEntry, Value::Str("chain".into()), Value::Str("currency".into()), &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1025,8 +1025,8 @@ impl crate::exchange::DerivedExchange for Digifinex {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_657: bool = true;
-            while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (brackets.len() as i64) } {
+            let mut __for_first_658: bool = true;
+            while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < (brackets.len() as i64) } {
             let mut tier: Option<crate::value::Dict> = self.safe_dict_o(&brackets, Value::Int(i));
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1092,7 +1092,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
                 nonce = format!("{}", self.seconds());
                 auth = urlencoded.clone();
             }
-            let mut signature: String = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(auth), self.encode(&self.secret), Value::Str("sha256".into()), &[]);
             if (method.as_str() == Some("GET")) {
                 if (urlencoded.as_str() != Some("")) {
                     url.push_str(&format!("{}{}", "?", urlencoded));
@@ -2219,7 +2219,7 @@ impl Digifinex {
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut groupedById: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]).into_dict();
-        let mut values: crate::value::List = Value::Array(groupedById.values().cloned().collect()).into_list();
+        let mut values: crate::value::List = crate::value::List::new(groupedById.values().cloned().collect());
         return self.parse_currencies(&values);
         Value::Null
         }).await?))
@@ -2247,7 +2247,7 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "fetchMarkets");
+        let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchMarkets");
         let mut method: Option<String> = self.safe_string_k_opt(&options, "method", &[Value::Str("fetch_markets_v2".into())]);
         if (method.as_deref() == Some("fetch_markets_v2")) {
             return self.fetch_markets_v2(&[params.clone()]).await;
@@ -2262,7 +2262,7 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut defaultType: Option<String> = self.safe_string_k_opt(self.options.clone(), "defaultType", &[]);
+        let mut defaultType: Option<String> = self.safe_string_k_opt(&self.options, "defaultType", &[]);
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchMarketsV2".into()), &[params.clone()]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2334,8 +2334,8 @@ impl Digifinex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_641: bool = true;
-            while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (response.len() as i64) } {
+            let mut __for_first_642: bool = true;
+            while { if !__for_first_642 { i += 1; } __for_first_642 = false; i < (response.len() as i64) } {
             let mut market: crate::value::Dict = response.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string2_opt(&market, Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
             let mut baseId: Option<String> = self.safe_string2_opt(&market, Value::Str("base_asset".into()), Value::Str("base_currency".into()), &[]);
@@ -2472,14 +2472,14 @@ impl Digifinex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_642: bool = true;
-            while { if !__for_first_642 { i += 1; } __for_first_642 = false; i < (markets.len() as i64) } {
+            let mut __for_first_643: bool = true;
+            while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "market", &[]);
             if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchMarketsV1() missing id")));
             }
-            let mut idParts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut idParts: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseId: Option<String> = self.safe_string_opt(&idParts, Value::Int(0), &[]);
             let mut quoteId: Option<String> = self.safe_string_opt(&idParts, Value::Int(1), &[]);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -2590,8 +2590,8 @@ impl Digifinex {
         let mut rows: crate::value::List = self.to_array_t(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_643: bool = true;
-            while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (rows.len() as i64) } {
+            let mut __for_first_644: bool = true;
+            while { if !__for_first_644 { i += 1; } __for_first_644 = false; i < (rows.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2822,7 +2822,7 @@ impl Digifinex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut first: Option<String> = self.safe_string_opt(&symbolsNormalized, Value::Int(0), &[]);
         let mut market: Option<crate::types::Market> = None;
         if (first.is_some()) {
@@ -2895,12 +2895,12 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tickers: crate::value::List = self.safe_list2(&response, Value::Str("ticker".into()), Value::Str("data".into()), &[Value::from(vec![])]).into_list();
+        let mut tickers: crate::value::List = self.safe_list2_t(&response, Value::Str("ticker".into()), Value::Str("data".into()));
         let mut date: Option<i64> = self.safe_integer_k(&response, "date", &[]).as_i64();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_644: bool = true;
-            while { if !__for_first_644 { i += 1; } __for_first_644 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_645: bool = true;
+            while { if !__for_first_645 { i += 1; } __for_first_645 = false; i < (tickers.len() as i64) } {
             let __ws_arg_4 = self.safe_dict(&tickers, Value::Int(i), &[]);
             let mut rawTicker: crate::value::Dict = self.extend_t(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3237,7 +3237,7 @@ impl Digifinex {
         }  else {
             let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            request.insert("period".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+            request.insert("period".into(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             if (since != Value::Null) || (limit != Value::Null) || (until.is_some()) {
                 let mut endTime: Option<i64> = (if (until.is_some()) { until } else { Some(self.milliseconds()) });
@@ -3414,8 +3414,8 @@ impl Digifinex {
         let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_645: bool = true;
-            while { if !__for_first_645 { i += 1; } __for_first_645 = false; i < (orders.len() as i64) } {
+            let mut __for_first_646: bool = true;
+            while { if !__for_first_646 { i += 1; } __for_first_646 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol.is_none()) {
@@ -3489,8 +3489,8 @@ impl Digifinex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_646: bool = true;
-            while { if !__for_first_646 { i += 1; } __for_first_646 = false; i < (orders.len() as i64) } {
+            let mut __for_first_647: bool = true;
+            while { if !__for_first_647 { i += 1; } __for_first_647 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
             let mut individualOrder: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3509,8 +3509,6 @@ impl Digifinex {
     }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut symbol: Value = symbol.into();
-        let mut side: Value = side.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3519,7 +3517,7 @@ impl Digifinex {
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
-        if (side == Value::Null) {
+        if (side.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a side argument")));
         }
         /*
@@ -3535,7 +3533,7 @@ impl Digifinex {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketTypeRawparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("createOrderRequest".into()), Some(&market), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketTypeRaw: Option<String> = marketTypeRawparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeRawparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3561,7 +3559,7 @@ impl Digifinex {
             let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsMarginMode, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             let mut timeInForce: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "timeInForce", &[]);
             let mut orderType: Option<i64> = None;
-            if (side.as_str() == Some("buy")) {
+            if (side == Some("buy")) {
                 let mut requestType: i64 = (if reduceOnly { 4 } else { 1 });
                 request.insert("type".into(), Value::from(requestType));
             }  else {
@@ -3581,7 +3579,7 @@ impl Digifinex {
                 postOnly = true;
             }
             if (price != Value::Null) {
-                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+                request.insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone())));
             }
             request.insert("order_type".into(), Value::from(orderType));
             request.insert("size".into(), amount.clone()); // swap orders require the amount to be the number of contracts
@@ -3593,15 +3591,15 @@ impl Digifinex {
             if (type_var == Some("market")) {
                 suffix = "_market".to_string();
             }  else {
-                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+                request.insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price.clone())));
             }
-            request.insert("type".into(), Value::Str(format!("{}{}", side, suffix).into()));
+            request.insert("type".into(), Value::Str(format!("{}{}", Value::from(side), suffix).into()));
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             let mut quantity: Option<String> = None;
-            let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarginMode, Value::Str("createOrderRequest".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-            let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
-            let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            let mut isMarketBuy: bool = (isMarketOrder && (side.as_str() == Some("buy")));
+            let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = self.handle_option_bool_and_params(&paramsMarginMode, Value::Str("createOrderRequest".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
+            let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.0 == Some(true);
+            let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.1;
+            let mut isMarketBuy: bool = (isMarketOrder && (side == Some("buy")));
             let mut keysToOmit: Vec<Value> = vec![Value::Str("postOnly".into())];
             if isMarketBuy {
                 keysToOmit.push(Value::Str("cost".into()));
@@ -3610,7 +3608,7 @@ impl Digifinex {
             if isMarketBuy {
                 let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
                 if (cost.is_some()) {
-                    quantity = self.cost_to_precision(symbol.clone(), cost);
+                    quantity = self.cost_to_precision(Value::from(symbol), cost);
                 }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -3618,13 +3616,13 @@ impl Digifinex {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
                         let mut costRequest: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&amountString, &priceString), &[]).as_f64();
-                        quantity = self.cost_to_precision(symbol.clone(), costRequest);
+                        quantity = self.cost_to_precision(Value::from(symbol), costRequest);
                     }
                 }  else {
-                    quantity = self.cost_to_precision(symbol.clone(), amount.clone());
+                    quantity = self.cost_to_precision(Value::from(symbol), amount.clone());
                 }
             }  else {
-                quantity = self.amount_to_precision(symbol, amount);
+                quantity = self.amount_to_precision(Value::from(symbol), amount);
             }
             request.insert("amount".into(), quantity.map(Value::from).unwrap_or(Value::Null));
         }
@@ -3794,8 +3792,8 @@ impl Digifinex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_647: bool = true;
-            while { if !__for_first_647 { i += 1; } __for_first_647 = false; i < (success.len() as i64) } {
+            let mut __for_first_648: bool = true;
+            while { if !__for_first_648 { i += 1; } __for_first_648 = false; i < (success.len() as i64) } {
             let mut order: Value = success.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3809,8 +3807,8 @@ impl Digifinex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_648: bool = true;
-            while { if !__for_first_648 { i += 1; } __for_first_648 = false; i < (error.len() as i64) } {
+            let mut __for_first_649: bool = true;
+            while { if !__for_first_649 { i += 1; } __for_first_649 = false; i < (error.len() as i64) } {
             let mut order: Value = error.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3869,8 +3867,8 @@ impl Digifinex {
             let mut orders: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_649: bool = true;
-                while { if !__for_first_649 { i += 1; } __for_first_649 = false; i < (ids.len() as i64) } {
+                let mut __for_first_650: bool = true;
+                while { if !__for_first_650 { i += 1; } __for_first_650 = false; i < (ids.len() as i64) } {
                 let mut orderItem: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())]));
@@ -3931,8 +3929,8 @@ impl Digifinex {
         let mut marketType: Option<String> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_650: bool = true;
-            while { if !__for_first_650 { i += 1; } __for_first_650 = false; i < (orders.len() as i64) } {
+            let mut __for_first_651: bool = true;
+            while { if !__for_first_651 { i += 1; } __for_first_651 = false; i < (orders.len() as i64) } {
             let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
             if (id.is_none()) {
@@ -3962,8 +3960,8 @@ impl Digifinex {
             let mut ordersRequests: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_651: bool = true;
-                while { if !__for_first_651 { i += 1; } __for_first_651 = false; i < (ids.len() as i64) } {
+                let mut __for_first_652: bool = true;
+                while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < (ids.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
                 let mut orderId: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
@@ -3990,8 +3988,8 @@ impl Digifinex {
             let mut result: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_652: bool = true;
-                while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < (ids.len() as i64) } {
+                let mut __for_first_653: bool = true;
+                while { if !__for_first_653 { i += 1; } __for_first_653 = false; i < (ids.len() as i64) } {
                 let mut orderId: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut isCanceled: bool = self.in_array(&orderId, Value::from(&data));
                 let mut status: String = (if isCanceled { "canceled".to_string() } else { "failed".to_string() });
@@ -4739,8 +4737,6 @@ impl Digifinex {
     }
 
     pub async fn fetch_transactions_by_type(&mut self, type_var: Option<&str>, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut since: Value = since.into();
-        let mut limit: Value = limit.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4757,8 +4753,8 @@ impl Digifinex {
             currency = Some(self.currency(Value::from(code)));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        if (limit != Value::Null) {
-            request.insert("size".into(), crate::runtime::Math::min(&Value::Int(500), &limit));
+        if (limit.is_some()) {
+            request.insert("size".into(), crate::runtime::Math::min(&Value::Int(500), &Value::from(limit)));
         }
         let mut response: Option<crate::value::Dict> = None;
         if (type_var == Some("deposit")) {
@@ -4789,7 +4785,7 @@ impl Digifinex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_transactions(&data, currency.as_ref(), &[since, limit, Value::Map({
+        return self.parse_transactions(&data, currency.as_ref(), &[Value::from(since), Value::from(limit), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::from(type_var));
     m
@@ -4913,7 +4909,7 @@ impl Digifinex {
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
-        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "accountsByType");
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let mut fromId: Option<String> = self.safe_string_opt(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Option<String> = self.safe_string_opt(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5120,8 +5116,8 @@ impl Digifinex {
         let mut result: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_653: bool = true;
-            while { if !__for_first_653 { i += 1; } __for_first_653 = false; i < (data.len() as i64) } {
+            let mut __for_first_654: bool = true;
+            while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < (data.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = data.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             if (self.safe_string_k(&entry, "currency", &[]).as_str() == code.as_str()) {
                 result = entry.map_or(Value::Null, Value::Dict);
@@ -5198,8 +5194,8 @@ impl Digifinex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_654: bool = true;
-            while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < (info.len() as i64) } {
+            let mut __for_first_655: bool = true;
+            while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (info.len() as i64) } {
             let mut item: Value = info.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: Option<String> = self.safe_string_opt(&item, Value::from(codeKey), &[]);
             let mut code: Option<String> = self.safe_currency_code(currency.map(Value::from).unwrap_or(Value::Null), None);
@@ -5372,8 +5368,8 @@ impl Digifinex {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_655: bool = true;
-            while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (result.len() as i64) } {
+            let mut __for_first_656: bool = true;
+            while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < (result.len() as i64) } {
             let mut entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&data, "instrument_id", &[]);
             let mut symbolInner: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
@@ -5494,7 +5490,7 @@ impl Digifinex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5508,7 +5504,9 @@ impl Digifinex {
                 if symbolsLength > 1 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")));
                 }
-                symbol = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).and_then(Value::as_str).map(str::to_owned);
+                if (symbolsLength == 1) {
+                    symbol = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).and_then(Value::as_str).map(str::to_owned);
+                }
             }  else {
                 symbol = None;
             }
@@ -5600,8 +5598,8 @@ impl Digifinex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < (positions.len() as i64) } {
+            let mut __for_first_657: bool = true;
+            while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (positions.len() as i64) } {
             result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, positions.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()));
         }
         }
@@ -5775,7 +5773,7 @@ impl Digifinex {
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let mut defaultMarginMode: Option<String> = self.safe_string2_opt(self.options.clone(), Value::Str("marginMode".into()), Value::Str("defaultMarginMode".into()), &[]);
+        let mut defaultMarginMode: Option<String> = self.safe_string2_opt(&self.options, Value::Str("marginMode".into()), Value::Str("defaultMarginMode".into()), &[]);
         let mut marginMode: Option<String> = self.safe_string_lower2_opt(&params, Value::Str("marginMode".into()), Value::Str("defaultMarginMode".into()), &[defaultMarginMode.map(Value::from).unwrap_or(Value::Null)]);
         if (marginMode.is_some()) {
             marginMode = (if (marginMode.as_deref() == Some("cross")) { Some("crossed".to_string()) } else { Some("isolated".to_string()) });
@@ -5927,7 +5925,7 @@ impl Digifinex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         return self.parse_leverage_tiers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("instrument_id".into())]);
         Value::Null
         }).await?))
@@ -6014,7 +6012,7 @@ impl Digifinex {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
-        let mut defaultType: Option<String> = self.safe_string_k_opt(self.options.clone(), "defaultType", &[]);
+        let mut defaultType: Option<String> = self.safe_string_k_opt(&self.options, "defaultType", &[]);
         let mut isMargin: bool = self.safe_bool_k_opt(&params, "margin", &[Value::Bool(false)]).unwrap_or(false);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.super_handle_margin_mode_and_params(methodName, params, defaultValue).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -6128,8 +6126,8 @@ impl Digifinex {
         let mut rows: crate::value::List = self.to_array_t(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_658: bool = true;
-            while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < (rows.len() as i64) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { i += 1; } __for_first_659 = false; i < (rows.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&rows, Value::Int(i));
             let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&entry, "currency", &[]), None);
             if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, codesValue.clone().map_or(Value::Null, Value::Arr)))) {
@@ -6178,8 +6176,8 @@ impl Digifinex {
         let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { i += 1; } __for_first_659 = false; i < (depositWithdrawCodes.len() as i64) } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { i += 1; } __for_first_660 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Option<&str> = depositWithdrawCodes.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
@@ -6251,8 +6249,6 @@ impl Digifinex {
     }
 
     pub async fn modify_margin_helper(&mut self, symbol: &str, amount: Option<f64>, type_var: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut amount: Value = amount.into();
-        let mut type_var: Value = type_var.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6265,8 +6261,8 @@ impl Digifinex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_id".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
-                m.insert("type".to_string(), type_var);
+                m.insert("amount".to_string(), Value::from(self.number_to_string(Value::from(amount))));
+                m.insert("type".to_string(), Value::from(type_var));
                 m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -6332,9 +6328,9 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_timestamp".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let (__until0, __until1) = self.handle_until_option(Value::Str("end_timestamp".into()), Value::Map(request), params, &[]);
+        let mut requestUntil: crate::value::Dict = __until0;
+        let mut paramsUntil: crate::value::Dict = __until1;
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

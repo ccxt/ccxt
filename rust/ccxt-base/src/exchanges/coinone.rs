@@ -325,8 +325,8 @@ impl crate::exchange::DerivedExchange for Coinone {
         let mut currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_574: bool = true;
+            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::from(currencyId.as_deref()));
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
@@ -1251,8 +1251,8 @@ impl Coinone {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_573: bool = true;
+            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (tickers.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&tickers, Value::Int(i));
             let mut id: Option<String> = self.safe_string_k_opt(&entry, "id", &[]);
             let mut baseId: Option<String> = self.safe_string_upper_k_opt(&entry, "target_currency", &[]);
@@ -1451,7 +1451,7 @@ impl Coinone {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), Value::Str("KRW".into()));
@@ -1818,7 +1818,7 @@ impl Coinone {
         //         ]
         //     }
         //
-        let mut openOrders: crate::value::List = self.safe_list2(&response, Value::Str("open_orders".into()), Value::Str("limitOrders".into()), &[Value::from(vec![])]).into_list();
+        let mut openOrders: crate::value::List = self.safe_list2_t(&response, Value::Str("open_orders".into()), Value::Str("limitOrders".into()));
         return self.parse_orders(&openOrders, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
@@ -1981,14 +1981,14 @@ impl Coinone {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (keys.len() as i64) } {
+            let mut __for_first_575: bool = true;
+            while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut value: Option<String> = self.safe_string_opt(&walletAddress, Value::from(key.as_deref()), &[]);
             if (value.is_none()) || (value.is_none()) || (value.as_deref() == Some("")) || (value.as_deref() == Some("-1")) {
                 continue;
             }
-            let mut parts: crate::value::List = Value::Array(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut currencyId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
             let mut secondPart: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);

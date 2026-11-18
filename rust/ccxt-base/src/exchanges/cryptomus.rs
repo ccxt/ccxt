@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " parseMarket() missing marketId")));
         }
-        let mut parts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
         let mut baseId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -266,7 +266,7 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut fees: crate::value::Dict = self.safe_dict_k_t(self.fees.clone(), "trading");
+        let mut fees: crate::value::Dict = self.safe_dict_k_t(&self.fees, "trading");
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -350,8 +350,8 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_604: bool = true;
-            while { if !__for_first_604 { i += 1; } __for_first_604 = false; i < (rawCurrency.len() as i64) } {
+            let mut __for_first_605: bool = true;
+            while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Option<crate::value::Dict> = self.safe_dict_o(&rawCurrency, Value::Int(i));
             // set ID on first loop
             if (id.is_none()) {
@@ -1055,7 +1055,7 @@ impl Cryptomus {
         //
         let mut coins: Option<crate::value::List> = self.safe_list_k_o(&response, "result");
         let mut groupedById: crate::value::Dict = self.group_by(coins.map_or(Value::Null, Value::Arr), Value::Str("currency_code".into()), &[]).into_dict();
-        let mut groupedArray: crate::value::List = Value::Array(groupedById.values().cloned().collect()).into_list();
+        let mut groupedArray: crate::value::List = crate::value::List::new(groupedById.values().cloned().collect());
         return self.parse_currencies(&groupedArray);
         Value::Null
         }).await?))
@@ -1132,9 +1132,9 @@ impl Cryptomus {
             m
         });
         let mut level: i64 = 0;
-        let levelOptionparamsLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("level".into()), &[Value::from(level)]).as_array().cloned().unwrap_or_default();
-        let mut levelOption: Option<i64> = levelOptionparamsLevelVariable.get(0).and_then(Value::as_i64);
-        let mut paramsLevel: crate::value::Dict = levelOptionparamsLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let levelOptionparamsLevelVariable = self.handle_option_integer_and_params(params, Value::Str("fetchOrderBook".into()), Value::Str("level".into()), &[Value::from(level)]);
+        let mut levelOption: Option<i64> = levelOptionparamsLevelVariable.0;
+        let mut paramsLevel: crate::value::Dict = levelOptionparamsLevelVariable.1;
         request.insert("level".into(), Value::from(levelOption));
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsLevel]);
         let mut response: crate::value::Dict = self.public_get_v1_exchange_market_order_book_currency_pair(&[__ws_arg_1]).await.into_dict();
@@ -1284,8 +1284,8 @@ impl Cryptomus {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_605: bool = true;
-            while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (balance.len() as i64) } {
+            let mut __for_first_606: bool = true;
+            while { if !__for_first_606 { i += 1; } __for_first_606 = false; i < (balance.len() as i64) } {
             let mut balanceEntry: crate::value::Dict = self.safe_dict_t(&balance, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balanceEntry, "ticker", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1357,7 +1357,7 @@ impl Cryptomus {
         let mut cost: Option<String> = costParam.clone();
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("market")) {
-            let mut requiresPriceAndParams: Value = self.handle_option_bool_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
+            let mut requiresPriceAndParams: Value = { let __t = self.handle_option_bool_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) };
             let mut paramsMarket: crate::value::Dict = Value::from(&paramsCost).into_dict();
             if sideBuy {
                 paramsMarket = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null).into_dict();
@@ -1525,8 +1525,8 @@ impl Cryptomus {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_606: bool = true;
-            while { if !__for_first_606 { i += 1; } __for_first_606 = false; i < (result.len() as i64) } {
+            let mut __for_first_607: bool = true;
+            while { if !__for_first_607 { i += 1; } __for_first_607 = false; i < (result.len() as i64) } {
             orders.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, result.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()));
         }
         }
@@ -1705,8 +1705,8 @@ impl Cryptomus {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { i += 1; } __for_first_607 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_608: bool = true;
+            while { if !__for_first_608 { i += 1; } __for_first_608 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1732,8 +1732,8 @@ impl Cryptomus {
         let mut makerFees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_608: bool = true;
-            while { if !__for_first_608 { i += 1; } __for_first_608 = false; i < (feeTiers.len() as i64) } {
+            let mut __for_first_609: bool = true;
+            while { if !__for_first_609 { i += 1; } __for_first_609 = false; i < (feeTiers.len() as i64) } {
             let mut tier: crate::value::Dict = self.safe_dict_t(&feeTiers, Value::Int(i));
             let mut turnover: Option<f64> = self.safe_number_k(&tier, "from_turnover", &[]).as_f64();
             let mut taker: Option<String> = self.safe_string_k_opt(&tier, "taker_percent", &[]);

@@ -313,8 +313,8 @@ impl crate::exchange::DerivedExchange for Upbit {
             cost = Some("0".to_string());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1146: bool = true;
-                while { if !__for_first_1146 { i += 1; } __for_first_1146 = false; i < numTrades } {
+                let mut __for_first_1147: bool = true;
+                while { if !__for_first_1147 { i += 1; } __for_first_1147 = false; i < numTrades } {
                 let mut trade: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(i));
                 cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(&trade, "cost", &[])).as_str().map(str::to_owned);
                 if getFeesFromTrades {
@@ -370,7 +370,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " parseMarket() missing id")));
         }
-        let mut parts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut quoteId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         let mut baseId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -378,8 +378,8 @@ impl crate::exchange::DerivedExchange for Upbit {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut tradingFeesByQuoteCurrency: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "tradingFeesByQuoteCurrency");
-        let mut tradingFees: crate::value::Dict = self.safe_dict_k_t(self.fees.clone(), "trading");
+        let mut tradingFeesByQuoteCurrency: crate::value::Dict = self.safe_dict_k_t(&self.options, "tradingFeesByQuoteCurrency");
+        let mut tradingFees: crate::value::Dict = self.safe_dict_k_t(&self.fees, "trading");
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -612,7 +612,7 @@ impl crate::exchange::DerivedExchange for Upbit {
                 std::sync::Arc::make_mut(&mut request).insert("query_hash".into(), Value::from(hash));
                 std::sync::Arc::make_mut(&mut request).insert("query_hash_alg".into(), Value::Str("SHA512".into()));
             }
-            let mut token: String = jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            let mut token: String = jwt(&request, self.encode(&self.secret), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             headers.insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into()));
         }
         return Value::Map({
@@ -1609,8 +1609,8 @@ impl Upbit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1139: bool = true;
-            while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (response.len() as i64) } {
+            let mut __for_first_1140: bool = true;
+            while { if !__for_first_1140 { i += 1; } __for_first_1140 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1735,8 +1735,8 @@ impl Upbit {
         let mut orderbooks: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1140: bool = true;
-            while { if !__for_first_1140 { i += 1; } __for_first_1140 = false; i < (orderbooks.len() as i64) } {
+            let mut __for_first_1141: bool = true;
+            while { if !__for_first_1141 { i += 1; } __for_first_1141 = false; i < (orderbooks.len() as i64) } {
             let mut orderbook: indexmap::IndexMap<String, Value> = self.safe_dict(&orderbooks, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1819,7 +1819,7 @@ impl Upbit {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut tickers: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_none()) {
             // ticker/all returns every market of the requested quote currencies with a single request
@@ -1827,8 +1827,8 @@ impl Upbit {
             let mut marketSymbols: crate::value::List = self.symbols.clone();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1141: bool = true;
-                while { if !__for_first_1141 { i += 1; } __for_first_1141 = false; i < (marketSymbols.len() as i64) } {
+                let mut __for_first_1142: bool = true;
+                while { if !__for_first_1142 { i += 1; } __for_first_1142 = false; i < (marketSymbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((marketSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut quoteId: Option<String> = (market).quote_id.as_deref().map(str::to_owned);
                 if !self.in_array(&quoteId, &quoteIds) {
@@ -1840,8 +1840,8 @@ impl Upbit {
             let mut quoteCurrencies: String = "".to_string();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1142: bool = true;
-                while { if !__for_first_1142 { i += 1; } __for_first_1142 = false; i < (sortedQuoteIds.len() as i64) } {
+                let mut __for_first_1143: bool = true;
+                while { if !__for_first_1143 { i += 1; } __for_first_1143 = false; i < (sortedQuoteIds.len() as i64) } {
                 if (quoteCurrencies != "") {
                     quoteCurrencies = format!("{}{}", quoteCurrencies, ",");
                 }
@@ -1861,8 +1861,8 @@ impl Upbit {
             let mut queries: Vec<Value> = self.ids_query_strings(ids.map_or(Value::Null, Value::Arr)).as_array().cloned().unwrap_or_default(); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1143: bool = true;
-                while { if !__for_first_1143 { i += 1; } __for_first_1143 = false; i < (queries.len() as i64) } {
+                let mut __for_first_1144: bool = true;
+                while { if !__for_first_1144 { i += 1; } __for_first_1144 = false; i < (queries.len() as i64) } {
                 let __ws_arg_4 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("markets".to_string(), self.safe_string(&queries, Value::Int(i), &[Value::Str("".into())]));
@@ -1884,8 +1884,8 @@ impl Upbit {
         let mut queries: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1144: bool = true;
-            while { if !__for_first_1144 { i += 1; } __for_first_1144 = false; i < (ids.len() as i64) } {
+            let mut __for_first_1145: bool = true;
+            while { if !__for_first_1145 { i += 1; } __for_first_1145 = false; i < (ids.len() as i64) } {
             if (idsString != "") {
                 idsString = format!("{}{}", idsString, ",");
             }
@@ -2089,8 +2089,8 @@ impl Upbit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1145: bool = true;
-            while { if !__for_first_1145 { i += 1; } __for_first_1145 = false; i < (fetchMarketResponse.len() as i64) } {
+            let mut __for_first_1146: bool = true;
+            while { if !__for_first_1146 { i += 1; } __for_first_1146 = false; i < (fetchMarketResponse.len() as i64) } {
             let mut item: Option<crate::value::Dict> = (match fetchMarketResponse.get(i as usize) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
             let mut element: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2146,7 +2146,7 @@ impl Upbit {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut timeframePeriod: i64 = self.parse_timeframe(timeframe.clone());
-        let mut timeframeValue: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut timeframeValue: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(200);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2215,7 +2215,7 @@ impl Upbit {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut quoteAmount: Option<String> = None;
-        let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k_opt(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]).unwrap_or(false);
+        let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k_opt(&self.options, "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]).unwrap_or(false);
         let mut cost: Option<String> = (match params.get("cost") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (cost.is_some()) {
             quoteAmount = self.cost_to_precision(Value::from(symbol), cost.map(Value::from).unwrap_or(Value::Null));
@@ -2849,9 +2849,9 @@ impl Upbit {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let (__until0, __until1) = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]);
+        let mut requestUntil: crate::value::Dict = __until0;
+        let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_orders_closed(&[__ws_arg_18]).await.into_list();
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
@@ -2904,9 +2904,9 @@ impl Upbit {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let (__until0, __until1) = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]);
+        let mut requestUntil: crate::value::Dict = __until0;
+        let mut paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_orders_closed(&[__ws_arg_19]).await.into_list();
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);

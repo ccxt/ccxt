@@ -82,10 +82,10 @@ pub fn testSafeString() {
     // // @ts-expect-error
     // assert!(ccxt::runtime::is_true(&(exchange.safeString (inputDict, 'nonexistent', 0.2) === 0.2)));
     // safeString2
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(inputDict.clone(), Value::Str("a".into()), Value::Str("i".into()), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(inputDict.clone(), Value::Str("a".into()), Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(inputDict.clone(), Value::Str("a".into()), Value::Str("str".into()), &[]).as_str() == Some("heLlo")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(inputDict.clone(), Value::Str("a".into()), Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(&inputDict, Value::Str("a".into()), Value::Str("i".into()), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(&inputDict, Value::Str("a".into()), Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(&inputDict, Value::Str("a".into()), Value::Str("str".into()), &[]).as_str() == Some("heLlo")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(&inputDict, Value::Str("a".into()), Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(&inputList, Value::Int(2), Value::Int(0), &[]).as_str() == Some("Hi")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(&inputList, Value::Int(2), Value::Str("emptyString".into()), &[]) == Value::Null))));
     // safeStringN
@@ -98,56 +98,56 @@ pub fn testSafeString() {
     // With defaults
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("nonexistent".into())]), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
     // safeStringLower
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(inputDict.clone(), Value::Str("i".into()), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(inputDict.clone(), Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(inputDict.clone(), Value::Str("str".into()), &[]).as_str() == Some("hello")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(inputDict.clone(), Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(inputDict.clone(), Value::Str("emptyString".into()), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(&inputDict, Value::Str("i".into()), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(&inputDict, Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(&inputDict, Value::Str("str".into()), &[]).as_str() == Some("hello")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(&inputDict, Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(&inputDict, Value::Str("emptyString".into()), &[]) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(&inputList, Value::Int(0), &[]).as_str() == Some("hi")))));
     // With defaults
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(inputDict.clone(), Value::Str("nonexistent".into()), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(&inputDict, Value::Str("nonexistent".into()), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
     // safeStringLower2testSafeString
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(inputDict.clone(), Value::Str("a".into()), Value::Str("i".into()), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(inputDict.clone(), Value::Str("a".into()), Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(inputDict.clone(), Value::Str("a".into()), Value::Str("str".into()), &[]).as_str() == Some("hello")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(inputDict.clone(), Value::Str("a".into()), Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(inputDict.clone(), Value::Str("a".into()), Value::Str("emptyString".into()), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(&inputDict, Value::Str("a".into()), Value::Str("i".into()), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(&inputDict, Value::Str("a".into()), Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(&inputDict, Value::Str("a".into()), Value::Str("str".into()), &[]).as_str() == Some("hello")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(&inputDict, Value::Str("a".into()), Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(&inputDict, Value::Str("a".into()), Value::Str("emptyString".into()), &[]) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(&inputList, Value::Int(2), Value::Int(0), &[]).as_str() == Some("hi")))));
     // With defaults
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(inputDict.clone(), Value::Str("a".into()), Value::Str("nonexistent".into()), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(&inputDict, Value::Str("a".into()), Value::Str("nonexistent".into()), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
     // safeStringLowerN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("i".into())]), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("f".into())]), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("str".into())]), &[]).as_str() == Some("hello")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("emptyString".into())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("strNumber".into())]), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("i".into())]), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("f".into())]), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("str".into())]), &[]).as_str() == Some("hello")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("emptyString".into())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("strNumber".into())]), &[]).as_str() == Some("3")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(&inputList, Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("hi")))));
     // With defaults
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("nonexistent".into())]), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("nonexistent".into())]), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
     // safeStringUpper
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(inputDict.clone(), Value::Str("i".into()), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(inputDict.clone(), Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(inputDict.clone(), Value::Str("str".into()), &[]).as_str() == Some("HELLO")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(inputDict.clone(), Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(inputDict.clone(), Value::Str("emptyString".into()), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(&inputDict, Value::Str("i".into()), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(&inputDict, Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(&inputDict, Value::Str("str".into()), &[]).as_str() == Some("HELLO")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(&inputDict, Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(&inputDict, Value::Str("emptyString".into()), &[]) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(&inputList, Value::Int(0), &[]).as_str() == Some("HI")))));
     // With defaults
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(inputDict.clone(), Value::Str("nonexistent".into()), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(&inputDict, Value::Str("nonexistent".into()), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
     // safeStringUpper2
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(inputDict.clone(), Value::Str("a".into()), Value::Str("i".into()), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(inputDict.clone(), Value::Str("a".into()), Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(inputDict.clone(), Value::Str("a".into()), Value::Str("str".into()), &[]).as_str() == Some("HELLO")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(inputDict.clone(), Value::Str("a".into()), Value::Str("emptyString".into()), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(inputDict.clone(), Value::Str("a".into()), Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(&inputDict, Value::Str("a".into()), Value::Str("i".into()), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(&inputDict, Value::Str("a".into()), Value::Str("f".into()), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(&inputDict, Value::Str("a".into()), Value::Str("str".into()), &[]).as_str() == Some("HELLO")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(&inputDict, Value::Str("a".into()), Value::Str("emptyString".into()), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(&inputDict, Value::Str("a".into()), Value::Str("strNumber".into()), &[]).as_str() == Some("3")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(&inputList, Value::Int(2), Value::Int(0), &[]).as_str() == Some("HI")))));
     // With defaults
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(inputDict.clone(), Value::Str("a".into()), Value::Str("nonexistent".into()), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(&inputDict, Value::Str("a".into()), Value::Str("nonexistent".into()), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));
     // safeStringUpperN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("i".into())]), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("f".into())]), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("str".into())]), &[]).as_str() == Some("HELLO")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("emptyString".into())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("strNumber".into())]), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("i".into())]), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("f".into())]), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("str".into())]), &[]).as_str() == Some("HELLO")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("emptyString".into())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(&inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("strNumber".into())]), &[]).as_str() == Some("3")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputList, Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("HI")))));
     // With defaults
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("nonexistent".into())]), &[Value::Str("MiXed_Case".into())]).as_str() == Some("MiXed_Case")))));

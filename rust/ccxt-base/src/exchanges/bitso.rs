@@ -283,8 +283,8 @@ impl crate::exchange::DerivedExchange for Bitso {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_422: bool = true;
-            while { if !__for_first_422 { i += 1; } __for_first_422 = false; i < (balances.len() as i64) } {
+            let mut __for_first_423: bool = true;
+            while { if !__for_first_423 { i += 1; } __for_first_423 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -568,7 +568,7 @@ impl crate::exchange::DerivedExchange for Bitso {
                     request.push_str(jsonBody.as_deref().unwrap_or("null"));
                 }
             }
-            let mut signature: String = self.hmac(self.encode(Value::from(request)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(request)), self.encode(&self.secret), Value::Str("sha256".into()), &[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), ":").into()), nonce).into()), ":").into()), signature);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -1300,15 +1300,15 @@ impl Bitso {
         //         ]
         //     }
         let mut markets: crate::value::List = self.safe_list_k_t(&response, "payload");
-        let mut currencies: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "cachedCurrencies");
+        let mut currencies: crate::value::Dict = self.safe_dict_k_t(&self.options, "cachedCurrencies");
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_421: bool = true;
-            while { if !__for_first_421 { i += 1; } __for_first_421 = false; i < (markets.len() as i64) } {
+            let mut __for_first_422: bool = true;
+            while { if !__for_first_422 { i += 1; } __for_first_422 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "book", &[]);
-            let mut parts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseId: String = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteId: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.to_uppercase()), None);
@@ -1335,8 +1335,8 @@ impl Bitso {
             let mut makerFees: Vec<Value> = Vec::new();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_420: bool = true;
-                while { if !__for_first_420 { j += 1; } __for_first_420 = false; j < (feeTiers.len() as i64) } {
+                let mut __for_first_421: bool = true;
+                while { if !__for_first_421 { j += 1; } __for_first_421 = false; j < (feeTiers.len() as i64) } {
                 let mut tier: crate::value::Dict = self.safe_dict_t(&feeTiers, Value::Int(j));
                 let mut volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
                 let mut takerFee: Option<f64> = self.safe_number_k(&tier, "taker", &[]).as_f64();
@@ -1618,7 +1618,7 @@ impl Bitso {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("book".to_string(), Value::from((market).id.as_deref()));
-                m.insert("time_bucket".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("time_bucket".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
             m
         });
         if (since != Value::Null) {
@@ -1777,8 +1777,8 @@ impl Bitso {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_423: bool = true;
-            while { if !__for_first_423 { i += 1; } __for_first_423 = false; i < (fees.len() as i64) } {
+            let mut __for_first_424: bool = true;
+            while { if !__for_first_424 { i += 1; } __for_first_424 = false; i < (fees.len() as i64) } {
             let mut fee: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&fee, "book", &[]);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into())]).as_str().map(str::to_owned);
@@ -2014,8 +2014,8 @@ impl Bitso {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_424: bool = true;
-            while { if !__for_first_424 { i += 1; } __for_first_424 = false; i < (payload.len() as i64) } {
+            let mut __for_first_425: bool = true;
+            while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (payload.len() as i64) } {
             let mut id: crate::value::Dict = payload.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             orders.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, &id, market.as_ref()));
         }
@@ -2059,8 +2059,8 @@ impl Bitso {
         let mut canceledOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_425: bool = true;
-            while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (payload.len() as i64) } {
+            let mut __for_first_426: bool = true;
+            while { if !__for_first_426 { i += 1; } __for_first_426 = false; i < (payload.len() as i64) } {
             let mut order: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_order(self, payload.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
             canceledOrders.push(Value::Dict(order));
         }
@@ -2378,7 +2378,7 @@ impl Bitso {
         let mut address: Option<String> = self.safe_string_k_opt(&payload, "account_identifier", &[]);
         let mut tag: Option<String> = None;
         if address.as_deref().unwrap_or_default().contains("?dt=") {
-            let mut parts: crate::value::List = Value::Array(if let Some(__s) = address.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = address.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() });
             address = self.safe_string_opt(&parts, Value::Int(0), &[]);
             tag = self.safe_string_opt(&parts, Value::Int(1), &[]);
         }
@@ -2467,8 +2467,8 @@ impl Bitso {
         let mut depositFees: crate::value::List = self.safe_list_k_t(&payload, "deposit_fees");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_426: bool = true;
-            while { if !__for_first_426 { i += 1; } __for_first_426 = false; i < (depositFees.len() as i64) } {
+            let mut __for_first_427: bool = true;
+            while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (depositFees.len() as i64) } {
             let mut depositFee: crate::value::Dict = depositFees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&depositFee, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -2495,8 +2495,8 @@ impl Bitso {
         let mut currencyIds: Vec<Value> = Value::Array(withdrawalFees.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_427: bool = true;
-            while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_428: bool = true;
+            while { if !__for_first_428 { i += 1; } __for_first_428 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             if (codes != Value::Null) && !self.in_array(&code, codes.clone()) {
@@ -2648,8 +2648,8 @@ impl Bitso {
         let mut withdrawalResponse: crate::value::Dict = self.safe_dict_k_t(response, "withdrawal_fees");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_428: bool = true;
-            while { if !__for_first_428 { i += 1; } __for_first_428 = false; i < (depositResponse.len() as i64) } {
+            let mut __for_first_429: bool = true;
+            while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (depositResponse.len() as i64) } {
             let mut entry: crate::value::Dict = depositResponse.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -2683,8 +2683,8 @@ impl Bitso {
         let mut withdrawalKeys: Vec<Value> = Value::Array(withdrawalResponse.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_429: bool = true;
-            while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (withdrawalKeys.len() as i64) } {
+            let mut __for_first_430: bool = true;
+            while { if !__for_first_430 { i += 1; } __for_first_430 = false; i < (withdrawalKeys.len() as i64) } {
             let mut currencyId: Option<&str> = withdrawalKeys.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             if (code.is_some()) && ((codes == Value::Null) || self.in_array(&code, codes.clone())) {

@@ -351,8 +351,8 @@ impl crate::exchange::DerivedExchange for Coinsph {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_580: bool = true;
-            while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (balances.len() as i64) } {
+            let mut __for_first_581: bool = true;
+            while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -403,8 +403,8 @@ impl crate::exchange::DerivedExchange for Coinsph {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_575: bool = true;
-            while { if !__for_first_575 { j += 1; } __for_first_575 = false; j < (networkList.len() as i64) } {
+            let mut __for_first_576: bool = true;
+            while { if !__for_first_576 { j += 1; } __for_first_576 = false; j < (networkList.len() as i64) } {
             let mut networkItem: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut network: Option<String> = self.safe_string_k_opt(&networkItem, "network", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -590,13 +590,13 @@ impl crate::exchange::DerivedExchange for Coinsph {
             std::sync::Arc::make_mut(&mut query).insert("timestamp".into(), Value::Int(self.milliseconds()));
             let mut recvWindow: Option<i64> = self.safe_integer_k(&query, "recvWindow", &[]).as_i64();
             if (recvWindow.is_none()) {
-                let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
+                let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(&self.options, "recvWindow", &[]).as_i64();
                 if (defaultRecvWindow.is_some()) {
                     std::sync::Arc::make_mut(&mut query).insert("recvWindow".into(), Value::from(defaultRecvWindow));
                 }
             }
             let mut signedQuery: Option<String> = self.url_encode_query(&[Value::from(&query)]).as_str().map(str::to_owned);
-            let mut signature: String = self.hmac(self.encode(Value::from(signedQuery.as_deref())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(signedQuery.as_deref())), self.encode(&self.secret), Value::Str("sha256".into()), &[]);
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), endpoint).into()), "?").into()), signedQuery.as_deref().unwrap_or("null")).into()), "&signature=").into()), signature);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1674,8 +1674,8 @@ impl Coinsph {
             let mut byNumberOfSymbols: crate::value::List = config.get("byNumberOfSymbols").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_576: bool = true;
-                while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (byNumberOfSymbols.len() as i64) } {
+                let mut __for_first_577: bool = true;
+                while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (byNumberOfSymbols.len() as i64) } {
                 let mut entry: crate::value::List = byNumberOfSymbols.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
                 let mut threshold: Option<i64> = self.safe_integer(&entry, Value::Int(0), &[]).as_i64();
                 if (threshold.is_some()) && (threshold.is_some() && Some(symbolsAmount) >= threshold) {
@@ -1687,8 +1687,8 @@ impl Coinsph {
             let mut byLimit: crate::value::List = config.get("byLimit").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_577: bool = true;
-                while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_578: bool = true;
+                while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (byLimit.len() as i64) } {
                 let mut entry: crate::value::List = byLimit.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
                 let mut threshold: Option<i64> = self.safe_integer(&entry, Value::Int(0), &[]).as_i64();
                 if (threshold.is_some()) && (limit.is_some() && threshold.is_some() && limit >= threshold) {
@@ -1840,8 +1840,8 @@ impl Coinsph {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_578: bool = true;
-            while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (markets.len() as i64) } {
+            let mut __for_first_579: bool = true;
+            while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
@@ -1961,8 +1961,8 @@ impl Coinsph {
             let mut ids: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_579: bool = true;
-                while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_580: bool = true;
+                while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (symbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut id: Option<String> = (market).id.as_deref().map(str::to_owned);
                 std::sync::Arc::make_mut(&mut ids).push(id.map(Value::from).unwrap_or(Value::Null));
@@ -1971,7 +1971,7 @@ impl Coinsph {
             request.insert("symbols".into(), Value::Arr(ids));
         }
         let mut defaultMethod: String = "publicGetOpenapiQuoteV1Ticker24hr".to_string();
-        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "fetchTickers");
+        let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchTickers");
         let mut method: Option<String> = self.safe_string_k_opt(&options, "method", &[Value::from(defaultMethod)]);
         let mut tickers: Value = Value::from(vec![]);
         if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerPrice")) {
@@ -2021,7 +2021,7 @@ impl Coinsph {
             m
         });
         let mut defaultMethod: String = "publicGetOpenapiQuoteV1Ticker24hr".to_string();
-        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "fetchTicker");
+        let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchTicker");
         let mut method: Option<String> = self.safe_string_k_opt(&options, "method", &[Value::from(defaultMethod)]);
         let mut ticker: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2130,7 +2130,7 @@ impl Coinsph {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[]);
+        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[]);
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2398,7 +2398,7 @@ impl Coinsph {
                 m.insert("side".to_string(), Value::from(orderSide.as_deref()));
             m
         });
-        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "createOrder");
+        let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "createOrder");
         let mut newOrderRespTypes: crate::value::Dict = self.safe_dict_k_t(&options, "newOrderRespType");
         let mut newOrderRespType: String = "FULL".to_string();
         // if limit order
@@ -2418,9 +2418,9 @@ impl Coinsph {
                 request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }  else if (orderSide.as_deref() == Some("BUY")) {
                 let mut quoteAmount: Option<String> = None;
-                let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsType, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-                let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
-                let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+                let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = self.handle_option_bool_and_params(&paramsType, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
+                let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.0 == Some(true);
+                let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.1;
                 let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsRequiresPrice), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]).as_f64();
                 paramsQuote = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
@@ -2863,8 +2863,8 @@ impl Coinsph {
         let mut fees: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_581: bool = true;
-            while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (fees.len() as i64) } {
+            let mut __for_first_582: bool = true;
+            while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < (fees.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None).as_map().cloned().unwrap_or_default();
             let mut symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {
@@ -2931,7 +2931,7 @@ impl Coinsph {
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "withdraw");
+        let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "withdraw");
         let mut warning: bool = self.safe_bool_k_opt(&options, "warning", &[Value::Bool(true)]).unwrap_or(true);
         if warning {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")));
@@ -3135,8 +3135,8 @@ impl Coinsph {
         let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_582: bool = true;
-            while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < (keys.len() as i64) } {
+            let mut __for_first_583: bool = true;
+            while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if (matches!(&(if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Arr(_))) {
                 if (i != 0) {

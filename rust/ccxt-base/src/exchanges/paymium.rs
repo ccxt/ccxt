@@ -146,8 +146,8 @@ impl crate::exchange::DerivedExchange for Paymium {
         let mut currencies: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1077: bool = true;
-            while { if !__for_first_1077 { i += 1; } __for_first_1077 = false; i < (currencies.len() as i64) } {
+            let mut __for_first_1078: bool = true;
+            while { if !__for_first_1078 { i += 1; } __for_first_1078 = false; i < (currencies.len() as i64) } {
             let mut code: Option<&str> = currencies.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
@@ -292,7 +292,7 @@ impl crate::exchange::DerivedExchange for Paymium {
                     url.push_str(&format!("{}{}", "?", queryString));
                 }
             }
-            signedHeaders.insert("Api-Signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
+            signedHeaders.insert("Api-Signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha256".into()), &[])));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));

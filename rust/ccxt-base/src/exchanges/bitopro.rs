@@ -558,7 +558,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 let mut payload: Value = Value::from(self.string_to_base64(signedBody.map(Value::from).unwrap_or(Value::Null), &[]));
-                let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+                let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(&self.secret), Value::Str("sha384".into()), &[]);
                 requestHeaders.insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone());
                 requestHeaders.insert("X-BITOPRO-PAYLOAD".into(), payload.clone());
                 requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), Value::from(signature));
@@ -574,7 +574,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
                 });
                 let mut data: Option<String> = json_stringify(&Value::Map(rawData)).as_str().map(str::to_owned);
                 let mut payload: Value = Value::from(self.string_to_base64(data.map(Value::from).unwrap_or(Value::Null), &[]));
-                let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+                let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(&self.secret), Value::Str("sha384".into()), &[]);
                 requestHeaders.insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone());
                 requestHeaders.insert("X-BITOPRO-PAYLOAD".into(), payload);
                 requestHeaders.insert("X-BITOPRO-SIGNATURE".into(), Value::from(signature));
@@ -1480,8 +1480,8 @@ impl Bitopro {
         let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_410: bool = true;
-            while { if !__for_first_410 { i += 1; } __for_first_410 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_411: bool = true;
+            while { if !__for_first_411 { i += 1; } __for_first_411 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1531,7 +1531,7 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut resolution: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut resolution: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
@@ -1635,8 +1635,8 @@ impl Bitopro {
         let mut rows: crate::value::List = self.to_array_t(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_411: bool = true;
-            while { if !__for_first_411 { i += 1; } __for_first_411 = false; i < (rows.len() as i64) } {
+            let mut __for_first_412: bool = true;
+            while { if !__for_first_412 { i += 1; } __for_first_412 = false; i < (rows.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1823,14 +1823,14 @@ impl Bitopro {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_413: bool = true;
-            while { if !__for_first_413 { i += 1; } __for_first_413 = false; i < (dataKeys.len() as i64) } {
+            let mut __for_first_414: bool = true;
+            while { if !__for_first_414 { i += 1; } __for_first_414 = false; i < (dataKeys.len() as i64) } {
             let mut marketId: Option<&str> = dataKeys.get(i as usize).and_then(Value::as_str);
             let mut orderIds: crate::value::List = self.safe_list_t(&data, Value::from(marketId.as_deref()));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_412: bool = true;
-                while { if !__for_first_412 { j += 1; } __for_first_412 = false; j < (orderIds.len() as i64) } {
+                let mut __for_first_413: bool = true;
+                while { if !__for_first_413 { j += 1; } __for_first_413 = false; j < (orderIds.len() as i64) } {
                 orders.push(self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), orderIds.get(j as usize).cloned().unwrap_or(Value::Null));
@@ -2371,7 +2371,7 @@ impl Bitopro {
             paramsOmitted = self.omit_t(&paramsWithdrawTag, &["network"], &[]);
         }
         if hasNetwork {
-            let mut networks: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "networks");
+            let mut networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
             let mut requestedNetwork: Option<String> = self.safe_string_upper_k_opt(&paramsWithdrawTag, "network", &[]);
             let mut networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string_opt(&networks, self.safe_string(self.networkAliases.clone(), requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null)]), &[]) });
             if (networkId.is_none()) {

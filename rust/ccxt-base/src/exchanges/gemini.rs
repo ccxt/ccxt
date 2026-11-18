@@ -49,7 +49,7 @@ impl Gemini {
 
 impl crate::exchange::DerivedExchange for Gemini {
     fn nonce(&self) -> Value {
-        let mut nonceMethod: Option<String> = self.safe_string_k_opt(self.options.clone(), "nonce", &[Value::Str("milliseconds".into())]);
+        let mut nonceMethod: Option<String> = self.safe_string_k_opt(&self.options, "nonce", &[Value::Str("milliseconds".into())]);
         if (nonceMethod.as_deref() == Some("milliseconds")) {
             return Value::Int(self.milliseconds());
         }
@@ -466,7 +466,7 @@ impl crate::exchange::DerivedExchange for Gemini {
             let mut marketIdUpper: Option<String> = marketId.as_str().map(str::to_uppercase);
             let mut isPerp: bool = marketIdUpper.as_deref().unwrap_or_default().contains("PERP");
             let mut marketIdWithoutPerp: Option<String> = (if let Some(__s) = marketIdUpper.as_deref() { Some(__s.replace("PERP", "")) } else { None });
-            let mut conflictingMarkets: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "conflictingMarkets");
+            let mut conflictingMarkets: crate::value::Dict = self.safe_dict_k_t(&self.options, "conflictingMarkets");
             let mut lowerCaseId: Option<String> = marketIdWithoutPerp.as_deref().map(str::to_lowercase);
             if (matches!(lowerCaseId.as_deref(), Some(__k) if conflictingMarkets.contains_key(__k))) {
                 let mut conflictingMarket: crate::value::Dict = crate::value::KeyRead::read(&&conflictingMarkets, &Value::from(lowerCaseId.as_deref())).into_dict();
@@ -479,8 +479,8 @@ impl crate::exchange::DerivedExchange for Gemini {
                 let mut quoteCurrencies: Value = self.handle_option(Value::Str("fetchMarketsFromAPI".into()), Value::Str("quoteCurrencies".into()), &[Value::from(vec![])]);
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_720: bool = true;
-                    while { if !__for_first_720 { i += 1; } __for_first_720 = false; (i as f64) < get_array_length(&quoteCurrencies).as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_721: bool = true;
+                    while { if !__for_first_721 { i += 1; } __for_first_721 = false; (i as f64) < get_array_length(&quoteCurrencies).as_f64().unwrap_or(f64::NAN) } {
                     let mut quoteCurrency: String = self.safe_string(&quoteCurrencies, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     if ((if let (Some(__h), Some(__n)) = (marketIdWithoutPerp.as_deref(), Some(quoteCurrency.as_str())) { __h.ends_with(__n) } else { false })) {
                         let mut quoteLength: Option<i64> = self.parse_to_int(Value::Int((-1 * ((quoteCurrency.chars().count() as i64)))));
@@ -797,7 +797,7 @@ impl crate::exchange::DerivedExchange for Gemini {
             }), &[&query]);
             let mut payload: Value = json_stringify(&request);
             payload = Value::from(self.string_to_base64(payload, &[]));
-            let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(&self.secret), Value::Str("sha384".into()), &[]);
             headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("text/plain".into()));
@@ -1937,7 +1937,7 @@ impl Gemini {
         //        ]
         //    }
         //
-        { let __be_tmp = self.safe_list_k(&data, "tradingPairs", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingPairs".into(), __be_tmp); } }
+        { let __be_tmp = self.safe_list_k(&data, "tradingPairs", &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("tradingPairs".into(), __be_tmp); } }
         let mut currenciesArray: crate::value::List = self.safe_list_k_t(data, "currencies");
         return self.parse_currencies(&currenciesArray);
 
@@ -1963,7 +1963,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut method: Option<String> = self.safe_string_k_opt(self.options.clone(), "fetchMarketsMethod", &[Value::Str("fetch_markets_from_api".into())]);
+        let mut method: Option<String> = self.safe_string_k_opt(&self.options, "fetchMarketsMethod", &[Value::Str("fetch_markets_from_api".into())]);
         if (method.as_deref() == Some("fetch_markets_from_web")) {
             let mut promises: Vec<Value> = Vec::new();
             promises.push(self.fetch_markets_from_web(&[params.clone()]).await); // get usd markets
@@ -1997,10 +1997,10 @@ impl Gemini {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 1;
-            let mut __for_first_713: bool = true;
-            while { if !__for_first_713 { i += 1; } __for_first_713 = false; i < numRows } {
+            let mut __for_first_714: bool = true;
+            while { if !__for_first_714 { i += 1; } __for_first_714 = false; i < numRows } {
             let mut row: Option<String> = rows.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut cells: crate::value::List = Value::Array(if let Some(__s) = row.as_deref() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }).into_list(); // eslint-disable-line quotes
+            let mut cells: crate::value::List = crate::value::List::new(if let Some(__s) = row.as_deref() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }); // eslint-disable-line quotes
             let mut numCells: i64 = cells.len() as i64;
             if numCells < 5 {
                 panic!("{}", crate::exchange_errors::not_supported(error.clone()));
@@ -2018,16 +2018,16 @@ impl Gemini {
             // const base = this.safeCurrencyCode (baseId);
             let mut cell1: String = self.safe_string(&cells, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut minAmountString: String = cell1.replace("<td>", "");
-            let mut minAmountParts: crate::value::List = Value::Array(minAmountString.split(" ").map(Value::from).collect()).into_list();
+            let mut minAmountParts: crate::value::List = crate::value::List::new(minAmountString.split(" ").map(Value::from).collect());
             let mut minAmount: Option<f64> = self.safe_number(&minAmountParts, Value::Int(0), &[]).as_f64();
             let mut cell2: String = self.safe_string(&cells, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut amountPrecisionString: String = cell2.replace("<td>", "");
-            let mut amountPrecisionParts: crate::value::List = Value::Array(amountPrecisionString.split(" ").map(Value::from).collect()).into_list();
+            let mut amountPrecisionParts: crate::value::List = crate::value::List::new(amountPrecisionString.split(" ").map(Value::from).collect());
             let mut idLength: i64 = marketId.len() as i64;
             let mut startingIndex: i64 = (idLength - 3);
             let mut cell3: String = self.safe_string(&cells, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut pricePrecisionString: String = cell3.replace("<td>", "");
-            let mut pricePrecisionParts: crate::value::List = Value::Array(pricePrecisionString.split(" ").map(Value::from).collect()).into_list();
+            let mut pricePrecisionParts: crate::value::List = crate::value::List::new(pricePrecisionString.split(" ").map(Value::from).collect());
             let mut quoteId: Value = self.safe_string_lower(&pricePrecisionParts, Value::Int(1), &[(match (&(marketId), startingIndex, Some(idLength)) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
                 Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null })]);
@@ -2135,12 +2135,12 @@ impl Gemini {
         if (self.urls.contains_key("test")) {
             return Value::from(vec![]);
         }
-        let mut fetchUsdtMarkets: crate::value::List = self.safe_list_k_t(self.options.clone(), "fetchUsdtMarkets");
+        let mut fetchUsdtMarkets: crate::value::List = self.safe_list_k_t(&self.options, "fetchUsdtMarkets");
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_714: bool = true;
-            while { if !__for_first_714 { i += 1; } __for_first_714 = false; i < (fetchUsdtMarkets.len() as i64) } {
+            let mut __for_first_715: bool = true;
+            while { if !__for_first_715 { i += 1; } __for_first_715 = false; i < (fetchUsdtMarkets.len() as i64) } {
             let mut marketId: Option<String> = fetchUsdtMarkets.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2175,8 +2175,8 @@ impl Gemini {
         //     ]
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "fetchMarketsFromAPI");
-        let mut brokenPairs: crate::value::List = self.safe_list_k_t(self.options.clone(), "brokenPairs");
+        let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchMarketsFromAPI");
+        let mut brokenPairs: crate::value::List = self.safe_list_k_t(&self.options, "brokenPairs");
         let mut marketIds: Vec<Value> = Vec::new();
         let mut allMarketIds: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketIdsRaw.is_some()) {
@@ -2184,8 +2184,8 @@ impl Gemini {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_715: bool = true;
-            while { if !__for_first_715 { i += 1; } __for_first_715 = false; i < (allMarketIds.len() as i64) } {
+            let mut __for_first_716: bool = true;
+            while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (allMarketIds.len() as i64) } {
             if !self.in_array(allMarketIds.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)) {
                 marketIds.push(allMarketIds.get(i as usize).cloned().unwrap_or(Value::Null));
             }
@@ -2195,8 +2195,8 @@ impl Gemini {
             let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_716: bool = true;
-                while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (marketIds.len() as i64) } {
+                let mut __for_first_717: bool = true;
+                while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (marketIds.len() as i64) } {
                 let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                 let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -2210,8 +2210,8 @@ impl Gemini {
             let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_717: bool = true;
-                while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (responses.len() as i64) } {
+                let mut __for_first_718: bool = true;
+                while { if !__for_first_718 { i += 1; } __for_first_718 = false; i < (responses.len() as i64) } {
                 let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, responses.get(i as usize).cloned().unwrap_or(Value::Null));
                 if (parsed != Value::Null) {
                     result.push(parsed.clone());
@@ -2220,13 +2220,13 @@ impl Gemini {
             }
         }  else {
             // use trading-pairs info, if it was fetched
-            let mut tradingPairs: Option<crate::value::List> = self.safe_list_k_o(self.options.clone(), "tradingPairs");
+            let mut tradingPairs: Option<crate::value::List> = self.safe_list_k_o(&self.options, "tradingPairs");
             if (tradingPairs.is_some()) {
                 let mut indexedTradingPairs: crate::value::Dict = self.index_by(tradingPairs.map_or(Value::Null, Value::Arr), Value::Int(0)).into_dict();
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_718: bool = true;
-                    while { if !__for_first_718 { i += 1; } __for_first_718 = false; i < (marketIds.len() as i64) } {
+                    let mut __for_first_719: bool = true;
+                    while { if !__for_first_719 { i += 1; } __for_first_719 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                     let mut pairInfo: Option<crate::value::List> = self.safe_list_o(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
                     if (pairInfo.is_some()) && !self.in_array(Value::from(marketId.as_deref()), Value::from(&brokenPairs)) {
@@ -2240,8 +2240,8 @@ impl Gemini {
             }  else {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_719: bool = true;
-                    while { if !__for_first_719 { i += 1; } __for_first_719 = false; i < (marketIds.len() as i64) } {
+                    let mut __for_first_720: bool = true;
+                    while { if !__for_first_720 { i += 1; } __for_first_720 = false; i < (marketIds.len() as i64) } {
                     if !self.in_array(marketIds.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)) {
                         let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, marketIds.get(i as usize).cloned().unwrap_or(Value::Null));
                         if (parsed != Value::Null) {
@@ -2389,7 +2389,7 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut method: Option<String> = self.safe_string_k_opt(self.options.clone(), "fetchTickerMethod", &[Value::Str("fetchTickerV1".into())]);
+        let mut method: Option<String> = self.safe_string_k_opt(&self.options, "fetchTickerMethod", &[Value::Str("fetchTickerV1".into())]);
         if (method.as_deref() == Some("fetchTickerV1")) {
             return self.fetch_ticker_v1(symbol.as_str().unwrap_or_default(), &[params.clone()]).await;
         }
@@ -2441,7 +2441,7 @@ impl Gemini {
         //     ]
         //
         let mut result: Value = self.parse_tickers(&response, &[symbols]);
-        let mut brokenPairs: crate::value::List = self.safe_list_k_t(self.options.clone(), "brokenPairs");
+        let mut brokenPairs: crate::value::List = self.safe_list_k_t(&self.options, "brokenPairs");
         return self.remove_keys_from_dict(result, Value::Arr(brokenPairs));
         Value::Null
         }).await?))
@@ -2503,8 +2503,8 @@ impl Gemini {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_721: bool = true;
-            while { if !__for_first_721 { i += 1; } __for_first_721 = false; i < (response.len() as i64) } {
+            let mut __for_first_722: bool = true;
+            while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -2584,8 +2584,8 @@ impl Gemini {
         let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_722: bool = true;
-            while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_723: bool = true;
+            while { if !__for_first_723 { i += 1; } __for_first_723 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3203,7 +3203,7 @@ impl Gemini {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut timeframeId: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timeframe".to_string(), timeframeId.map(Value::from).unwrap_or(Value::Null));

@@ -275,13 +275,13 @@ impl crate::exchange::DerivedExchange for Bit2me {
     fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
         let mut market: Value = market.into();
         let mut id: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut parts: crate::value::List = Value::Array(id.split("/").map(Value::from).collect()).into_list();
+        let mut parts: crate::value::List = crate::value::List::new(id.split("/").map(Value::from).collect());
         let mut baseId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         let mut quoteId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut status: Option<String> = self.safe_string_k_opt(&market, "marketEnabled", &[]);
-        let mut fees: Value = self.fees.clone();
+        let mut fees: Value = Value::Dict(self.fees.clone());
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(id));
@@ -387,7 +387,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
         //
         let mut currencyId: Option<String> = self.safe_string_k_opt(&transfer, "currency", &[]);
         let mut movementType: Option<String> = self.safe_string_k_opt(&transfer, "movementType", &[]);
-        let mut accountsById: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "accountsById");
+        let mut accountsById: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsById");
         let mut fromAccount: Option<String> = None;
         let mut toAccount: Option<String> = None;
         let mut id: Option<String> = None;
@@ -549,7 +549,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
                 message.push_str(&format!("{}{}", ":", requestBody.as_deref().unwrap_or("null")));
             }
             let mut digest: crate::value::Bytes = self.hash_binary(self.encode(Value::from(message)), Value::Str("sha256".into()));
-            let mut signature: String = self.hmac(&digest, self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("base64".into())]);
+            let mut signature: String = self.hmac(&digest, self.encode(&self.secret), Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("x-api-key".to_string(), self.apiKey.clone());
@@ -1236,9 +1236,9 @@ impl Bit2me {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let includeTestnetqueryVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchCurrencies".into()), Value::Str("includeTestnet".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut includeTestnet: bool = includeTestnetqueryVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut query: crate::value::Dict = includeTestnetqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let includeTestnetqueryVariable = self.handle_option_bool_and_params(params, Value::Str("fetchCurrencies".into()), Value::Str("includeTestnet".into()), &[Value::Bool(false)]);
+        let mut includeTestnet: bool = includeTestnetqueryVariable.0 == Some(true);
+        let mut query: crate::value::Dict = includeTestnetqueryVariable.1;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("includeTestnet".to_string(), (if includeTestnet { Value::Str("true".into()) } else { Value::Str("false".into()) }));
@@ -1339,7 +1339,7 @@ impl Bit2me {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut marketSymbols: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut marketSymbols: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut response: crate::value::List = self.public_get_v2_trading_tickers(&[params]).await.into_list();
         return self.parse_tickers(&response, &[marketSymbols.map_or(Value::Null, Value::Arr)]);
         Value::Null
@@ -1532,9 +1532,9 @@ impl Bit2me {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         let mut maxLimit: i64 = 1000;
         if paginate {
             return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
@@ -1546,7 +1546,7 @@ impl Bit2me {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("interval".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
                 m.insert("limit".to_string(), Value::from(requestLimit));
             m
         });
@@ -1713,7 +1713,7 @@ impl Bit2me {
         // every order placed through the library is tagged with the broker id, CCXT-<id>
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         if (clientOrderId.is_none()) {
-            let mut brokerId: String = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string();
+            let mut brokerId: String = self.safe_string_k(&self.options, "brokerId", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string();
             let mut prefix: String = format!("{}{}", brokerId, "-");
             clientOrderId = Some(format!("{}{}", prefix, self.uuid(&[])));
         }
@@ -2331,7 +2331,7 @@ impl Bit2me {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "accountsByType");
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let mut fromId: Option<String> = self.safe_string_opt(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Option<String> = self.safe_string_opt(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({

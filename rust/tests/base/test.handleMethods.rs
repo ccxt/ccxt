@@ -121,44 +121,44 @@ fn helperTestHandleTypedOptions() {
     let mut marginMode: Value = marginModeparams1Variable.get(0).cloned().unwrap_or(Value::Null);
     let mut params1: Value = marginModeparams1Variable.get(1).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))));
-    let utaparams2Variable: Vec<Value> = exchange.handle_option_bool_and_params(Value::Map({
+    let utaparams2Variable = exchange.handle_option_bool_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("fetchX".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-    let mut uta: Value = utaparams2Variable.get(0).cloned().unwrap_or(Value::Null);
-    let mut params2: Value = utaparams2Variable.get(1).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
+    let mut uta: Value = utaparams2Variable.0.map_or(Value::Null, Value::Bool);
+    let mut params2: Value = Value::Dict(utaparams2Variable.1);
     assert!(ccxt::runtime::is_true(&(uta.clone())));
-    let absentparams3Variable: Vec<Value> = exchange.handle_option_string_and_params(Value::Map({
+    let absentparams3Variable = exchange.handle_option_string_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]).as_array().cloned().unwrap_or_default();
-    let mut absent: Value = absentparams3Variable.get(0).cloned().unwrap_or(Value::Null);
-    let mut params3: Value = absentparams3Variable.get(1).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]);
+    let mut absent: Value = absentparams3Variable.0;
+    let mut params3: Value = Value::Dict(absentparams3Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(absent.as_str() == Some("fallback")))));
-    let fromParamsparams4Variable: Vec<Value> = exchange.handle_option_string_and_params(Value::Map({
+    let fromParamsparams4Variable = exchange.handle_option_string_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("absentKey".to_string(), Value::Str("p".into()));
     m
-}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]).as_array().cloned().unwrap_or_default();
-    let mut fromParams: Value = fromParamsparams4Variable.get(0).cloned().unwrap_or(Value::Null);
-    let mut params4: Value = fromParamsparams4Variable.get(1).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]);
+    let mut fromParams: Value = fromParamsparams4Variable.0;
+    let mut params4: Value = Value::Dict(fromParamsparams4Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(fromParams.as_str() == Some("p")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params4, Value::Dict(__d) if __d.contains_key("absentKey"))))))));
     // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
-    let boolStringparams5Variable: Vec<Value> = exchange.handle_option_bool_and_params(Value::Map({
+    let boolStringparams5Variable = exchange.handle_option_bool_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("fetchX".into()), Value::Str("boolString".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-    let mut boolString: Value = boolStringparams5Variable.get(0).cloned().unwrap_or(Value::Null);
-    let mut params5: Value = boolStringparams5Variable.get(1).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("boolString".into()), &[Value::Bool(true)]);
+    let mut boolString: Value = boolStringparams5Variable.0.map_or(Value::Null, Value::Bool);
+    let mut params5: Value = Value::Dict(boolStringparams5Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(boolString.as_bool() == Some(false)))));
-    let boolNumberparams6Variable: Vec<Value> = exchange.handle_option_bool_and_params(Value::Map({
+    let boolNumberparams6Variable = exchange.handle_option_bool_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("boolNumber".to_string(), Value::Int(1));
     m
-}), Value::Str("fetchX".into()), Value::Str("boolNumber".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-    let mut boolNumber: Value = boolNumberparams6Variable.get(0).cloned().unwrap_or(Value::Null);
-    let mut params6: Value = boolNumberparams6Variable.get(1).cloned().unwrap_or(Value::Null);
+}), Value::Str("fetchX".into()), Value::Str("boolNumber".into()), &[Value::Bool(false)]);
+    let mut boolNumber: Value = boolNumberparams6Variable.0.map_or(Value::Null, Value::Bool);
+    let mut params6: Value = Value::Dict(boolNumberparams6Variable.1);
     assert!(ccxt::runtime::is_true(&(Value::Bool(boolNumber.as_bool() == Some(true)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params6, Value::Dict(__d) if __d.contains_key("boolNumber"))))))));
     let mut caught: Value = Value::Bool(false);

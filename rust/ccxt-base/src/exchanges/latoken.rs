@@ -49,7 +49,7 @@ impl Latoken {
 
 impl crate::exchange::DerivedExchange for Latoken {
     fn nonce(&self) -> Value {
-        let mut timeDifference: Option<i64> = self.safe_integer_k(self.options.clone(), "timeDifference", &[]).as_i64();
+        let mut timeDifference: Option<i64> = self.safe_integer_k(&self.options, "timeDifference", &[]).as_i64();
         if (timeDifference.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " nonce() requires a numeric options[\"timeDifference\"]")));
         }
@@ -293,7 +293,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         let mut orderSide: Option<String> = self.safe_string_k_opt(&order, "side", &[]);
         let mut side: Option<String> = None;
         if (orderSide.is_some()) {
-            let mut parts: crate::value::List = Value::Array(if let Some(__s) = orderSide.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = orderSide.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut partsLength: i64 = parts.len() as i64;
             side = self.safe_string_lower_opt(&parts, Value::Int((partsLength - 1)), &[]);
         }
@@ -398,8 +398,8 @@ impl crate::exchange::DerivedExchange for Latoken {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_914: bool = true;
-            while { if !__for_first_914 { i += 1; } __for_first_914 = false; i < (bindings.len() as i64) } {
+            let mut __for_first_915: bool = true;
+            while { if !__for_first_915 { i += 1; } __for_first_915 = false; i < (bindings.len() as i64) } {
             let mut binding: crate::value::Dict = bindings.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&binding, "providerName", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -566,7 +566,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery);
-            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), Value::Str("sha512".into()), &[]);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-LA-APIKEY".to_string(), self.apiKey.clone());
@@ -1410,17 +1410,17 @@ impl Latoken {
         //         }
         //     ]
         //
-        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
+        if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut currencies: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "cachedCurrencies");
+        let mut currencies: crate::value::Dict = self.safe_dict_k_t(&self.options, "cachedCurrencies");
         let mut currenciesById: crate::value::Dict = self.index_by(Value::Dict(currencies), Value::Str("id".into())).into_dict();
         let mut result: Vec<Value> = Vec::new();
         let mut rawMarkets: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_912: bool = true;
-            while { if !__for_first_912 { i += 1; } __for_first_912 = false; i < (rawMarkets.len() as i64) } {
+            let mut __for_first_913: bool = true;
+            while { if !__for_first_913 { i += 1; } __for_first_913 = false; i < (rawMarkets.len() as i64) } {
             let mut market: Option<crate::value::Dict> = self.safe_dict_o(&rawMarkets, Value::Int(i));
             let mut id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             // the exchange shows them inverted
@@ -1590,8 +1590,8 @@ impl Latoken {
         let mut merged: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_913: bool = true;
-            while { if !__for_first_913 { i += 1; } __for_first_913 = false; i < (rawCurrencies.len() as i64) } {
+            let mut __for_first_914: bool = true;
+            while { if !__for_first_914 { i += 1; } __for_first_914 = false; i < (rawCurrencies.len() as i64) } {
             let mut rawCurrency: Option<crate::value::Dict> = self.safe_dict_o(&rawCurrencies, Value::Int(i));
             let mut bindingEntry: crate::value::Dict = self.safe_dict_t(&bindingsById, self.safe_string_k(&rawCurrency, "id", &[]));
             let mut bindings: Option<crate::value::List> = self.safe_list_k_o(&bindingEntry, "bindings");
@@ -1633,7 +1633,7 @@ impl Latoken {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
+        let mut defaultType: String = self.safe_string2(&self.options, Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let mut type_var: Option<String> = self.safe_string_k_opt(&params, "type", &[Value::from(defaultType)]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("type".into()), &[]);
         let mut response: Value = self.private_get_auth_account(&[Value::Dict(paramsOmitted)]).await;
@@ -1666,16 +1666,16 @@ impl Latoken {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut types: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "types");
-        let mut accountType: Option<String> = self.safe_string_opt(&types, Value::from(type_var.as_deref()), &[Value::from(type_var.as_deref())]);
+        let mut types: crate::value::Dict = self.safe_dict_k_t(&self.options, "types");
+        let mut accountType: Option<String> = self.safe_string_opt(&types, Value::from(type_var.as_deref()), &[type_var.map(Value::from).unwrap_or(Value::Null)]);
         let mut balancesByType: crate::value::Dict = self.group_by(response, Value::Str("type".into()), &[]).into_dict();
         let mut balances: crate::value::List = self.safe_list_t(&balancesByType, accountType.map(Value::from).unwrap_or(Value::Null));
         let mut firstBalance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(0));
         let mut maxTimestamp: Option<i64> = self.safe_integer_k(&firstBalance, "timestamp", &[]).as_i64();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_915: bool = true;
-            while { if !__for_first_915 { i += 1; } __for_first_915 = false; i < (balances.len() as i64) } {
+            let mut __for_first_916: bool = true;
+            while { if !__for_first_916 { i += 1; } __for_first_916 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut timestamp: Option<i64> = self.safe_integer_k(&balance, "timestamp", &[]).as_i64();
@@ -1767,8 +1767,8 @@ impl Latoken {
         let mut bids: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_916: bool = true;
-            while { if !__for_first_916 { i += 1; } __for_first_916 = false; i < (rawAsks.len() as i64) } {
+            let mut __for_first_917: bool = true;
+            while { if !__for_first_917 { i += 1; } __for_first_917 = false; i < (rawAsks.len() as i64) } {
             let mut askEntry: crate::value::Dict = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut askQuantity: Option<String> = self.safe_string_k_opt(&askEntry, "quantity", &[]);
             if crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1778,8 +1778,8 @@ impl Latoken {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_917: bool = true;
-            while { if !__for_first_917 { i += 1; } __for_first_917 = false; i < (rawBids.len() as i64) } {
+            let mut __for_first_918: bool = true;
+            while { if !__for_first_918 { i += 1; } __for_first_918 = false; i < (rawBids.len() as i64) } {
             let mut bidEntry: crate::value::Dict = rawBids.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut bidQuantity: Option<String> = self.safe_string_k_opt(&bidEntry, "quantity", &[]);
             if crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1931,7 +1931,7 @@ impl Latoken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut options: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "fetchTradingFee");
+        let mut options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchTradingFee");
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("fetchPrivateTradingFee".into())]).as_str().unwrap_or("fetchPrivateTradingFee").to_string();
         let mut method: Option<String> = self.safe_string_k_opt(&params, "method", &[Value::from(defaultMethod)]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("method".into()), &[]);

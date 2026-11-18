@@ -265,10 +265,10 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
             return Value::Null;
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        let mut fees: crate::value::Dict = self.safe_dict_or(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
+        let mut fees: crate::value::Dict = self.safe_dict_or(self.safe_dict_k(&self.options, "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), quote.clone().map(Value::from).unwrap_or(Value::Null), self.fees.clone());
+})]), quote.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(self.fees.clone()));
         let mut pricePrecision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "priceDecimals", &[])]), &[]).as_f64();
         let mut minAmount: Option<f64> = self.safe_number_k(&market, "minOrderAmount", &[]).as_f64();
         let mut maxAmount: Option<f64> = self.safe_number_k(&market, "maxOrderAmount", &[]).as_f64();
@@ -476,7 +476,7 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-            let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
+            let mut secret: crate::value::Bytes = self.base64_to_binary(&self.secret, &[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), nonce);
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
@@ -1090,8 +1090,6 @@ impl Btcmarkets {
 }
 
     pub async fn fetch_transactions_with_method(&mut self, method: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut since: Value = since.into();
-        let mut limit: Value = limit.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1103,11 +1101,11 @@ impl Btcmarkets {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
-        if (since != Value::Null) {
-            request.insert("after".into(), since.clone());
+        if (since.is_some()) {
+            request.insert("after".into(), Value::from(since));
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code.is_some()) {
@@ -1124,7 +1122,7 @@ impl Btcmarkets {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_withdrawals(&[__ws_arg_2]).await.into_opt_list();
         }
-        return self.parse_transactions(&response, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&response, currency.as_ref(), &[Value::from(since), Value::from(limit)]);
 
     Value::Null
 }
@@ -1298,8 +1296,8 @@ impl Btcmarkets {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { i += 1; } __for_first_474 = false; i < (response.len() as i64) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "assetName", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1377,7 +1375,7 @@ impl Btcmarkets {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
-                m.insert("timeWindow".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("timeWindow".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
             m
         });
         if (since != Value::Null) {
@@ -1590,7 +1588,7 @@ impl Btcmarkets {
             m
         });
         let mut lowercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_lowercase();
-        let mut orderTypes: crate::value::Dict = self.safe_dict_k_or(self.options.clone(), "orderTypes", Value::Map({
+        let mut orderTypes: crate::value::Dict = self.safe_dict_k_or(&self.options, "orderTypes", Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("limit".to_string(), Value::Str("Limit".into()));
         m.insert("market".to_string(), Value::Str("Market".into()));
@@ -1671,8 +1669,8 @@ impl Btcmarkets {
         let mut numericIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (ids.len() as i64) } {
+            let mut __for_first_476: bool = true;
+            while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (ids.len() as i64) } {
             // numericIds[i] = parseInt (ids[i]);
             numericIds.push(Value::from(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[]))));
         }

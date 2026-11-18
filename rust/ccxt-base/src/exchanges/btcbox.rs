@@ -273,8 +273,8 @@ impl crate::exchange::DerivedExchange for Btcbox {
         let mut codes: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (codes.len() as i64) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { i += 1; } __for_first_474 = false; i < (codes.len() as i64) } {
             let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -323,7 +323,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
                 m
             }), &[params]);
             let mut request: String = self.urlencode(&query, &[]);
-            let mut secret: String = self.hash(self.encode(self.secret.clone()), Value::Str("md5".into()), &[]);
+            let mut secret: String = self.hash(self.encode(&self.secret), Value::Str("md5".into()), &[]);
             std::sync::Arc::make_mut(&mut query).insert("signature".into(), Value::from(self.hmac(self.encode(Value::from(request)), self.encode(Value::from(secret)), Value::Str("sha256".into()), &[])));
             let mut signedBody: String = self.urlencode(&query, &[]);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
@@ -761,10 +761,10 @@ impl Btcbox {
         let mut markets: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_472: bool = true;
-            while { if !__for_first_472 { i += 1; } __for_first_472 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_473: bool = true;
+            while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-            let mut symbolParts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut symbolParts: crate::value::List = crate::value::List::new(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseCurr: String = self.safe_string(&symbolParts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quote: String = self.safe_string(&symbolParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteId: String = quote.to_lowercase();
@@ -1179,8 +1179,6 @@ impl Btcbox {
     }
 
     pub async fn fetch_orders_by_type(&mut self, type_var: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut since: Value = since.into();
-        let mut limit: Value = limit.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1220,7 +1218,7 @@ impl Btcbox {
         if (type_var == Some("open")) {
             extra.insert("status".into(), Value::Str("open".into()));
         }
-        return self.parse_orders(&response, Some(&market), &[since, limit, Value::Map(extra)]);
+        return self.parse_orders(&response, Some(&market), &[Value::from(since), Value::from(limit), Value::Map(extra)]);
 
     Value::Null
 }

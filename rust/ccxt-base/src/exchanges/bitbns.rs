@@ -304,7 +304,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
             let mut __for_first_341: bool = true;
             while { if !__for_first_341 { i += 1; } __for_first_341 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut parts: crate::value::List = Value::Array(if let Some(__s) = key.as_deref() { __s.split("availableorder").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut parts: crate::value::List = crate::value::List::new(if let Some(__s) = key.as_deref() { __s.split("availableorder").map(Value::from).collect() } else { Vec::new() });
             let mut numParts: i64 = parts.len() as i64;
             if numParts > 1 {
                 let mut usedCurrencyId: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -366,8 +366,8 @@ impl crate::exchange::DerivedExchange for Bitbns {
             }
         }
         // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-        let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amount", &[]).as_f64();
-        let mut feeCost: Option<f64> = self.safe_number_k(transaction.clone(), "fee", &[]).as_f64();
+        let mut amount: Option<f64> = self.safe_number_k(&transaction, "amount", &[]).as_f64();
+        let mut feeCost: Option<f64> = self.safe_number_k(&transaction, "fee", &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -450,7 +450,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
                 m
             });
             let mut payload: String = self.string_to_base64(json_stringify(&Value::Map(auth)), &[]);
-            let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(&self.secret), Value::Str("sha512".into()), &[]);
             requestHeaders.insert("X-BITBNS-PAYLOAD".into(), Value::from(payload));
             requestHeaders.insert("X-BITBNS-SIGNATURE".into(), Value::from(signature));
             requestHeaders.insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -1002,7 +1002,7 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
         m.insert("1".to_string(), Value::Str("ok".into()));
     m
-}), statusRaw.clone().map(Value::from).unwrap_or(Value::Null), &[statusRaw.clone().map(Value::from).unwrap_or(Value::Null)]));
+}), statusRaw.clone().map(Value::from).unwrap_or(Value::Null), &[statusRaw.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);

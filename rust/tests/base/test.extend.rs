@@ -108,7 +108,7 @@ pub fn testExtend() {
             m.insert("other3".to_string(), Value::Str("z".into()));
         m
     });
-    let mut extended2: Value = exchange.extend(extended.clone(), &[obj3.clone()]);
+    let mut extended2: Value = exchange.extend(extended.clone(), &[obj3]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended2, &Value::Str("a".into())), &Value::Int(3))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(5))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(1)), &Value::Int(6))))));
@@ -150,9 +150,9 @@ pub fn testExtend() {
             m.insert("p3".to_string(), Value::Bool(true));
         m
     });
-    let mut r1: Value = exchange.extend(base.clone(), &[patch1.clone()]);
-    let mut r2: Value = exchange.extend(r1.clone(), &[patch2.clone()]);
-    let mut r3: Value = exchange.extend(r2.clone(), &[patch3.clone()]);
+    let mut r1: Value = exchange.extend(base.clone(), &[patch1]);
+    let mut r2: Value = exchange.extend(r1.clone(), &[patch2]);
+    let mut r3: Value = exchange.extend(r2.clone(), &[patch3]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("x".into())), &Value::Int(3))))));
     assert!(ccxt::runtime::is_true(&((get_value(&r3, &Value::Str("keep".into())).as_str() == Some("yes")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p1".into())), &Value::Bool(true))))));
@@ -178,7 +178,7 @@ pub fn testExtend() {
             m.insert("newKey".to_string(), Value::Str("C".into()));
         m
     });
-    let mut extUndef: Value = exchange.extend(withValues.clone(), &[withUndefs.clone()]);
+    let mut extUndef: Value = exchange.extend(withValues.clone(), &[withUndefs]);
     // extend() merges ALL keys (including undefined ones), so undefined wins over previous value
     assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep1".into())) == Value::Null))));
     assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep2".into())) == Value::Null))));

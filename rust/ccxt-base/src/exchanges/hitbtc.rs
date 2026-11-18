@@ -382,8 +382,8 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let mut contracts: Option<f64> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_757: bool = true;
-            while { if !__for_first_757 { i += 1; } __for_first_757 = false; i < (positions.len() as i64) } {
+            let mut __for_first_758: bool = true;
+            while { if !__for_first_758 { i += 1; } __for_first_758 = false; i < (positions.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
             liquidationPrice = self.safe_number_k(&entry, "price_liquidation", &[]).as_f64();
             entryPrice = self.safe_number_k(&entry, "price_entry", &[]).as_f64();
@@ -394,8 +394,8 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let mut collateral: Option<f64> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_758: bool = true;
-            while { if !__for_first_758 { i += 1; } __for_first_758 = false; i < (currencies.len() as i64) } {
+            let mut __for_first_759: bool = true;
+            while { if !__for_first_759 { i += 1; } __for_first_759 = false; i < (currencies.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&currencies, Value::Int(i));
             collateral = self.safe_number_k(&entry, "margin_balance", &[]).as_f64();
         }
@@ -510,15 +510,15 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_746: bool = true;
-            while { if !__for_first_746 { j += 1; } __for_first_746 = false; j < (rawNetworks.len() as i64) } {
+            let mut __for_first_747: bool = true;
+            while { if !__for_first_747 { j += 1; } __for_first_747 = false; j < (rawNetworks.len() as i64) } {
             let mut rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string2_opt(&rawNetwork, Value::Str("protocol".into()), Value::Str("network".into()), &[]);
             let mut rawNetworkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
             let mut networkCode: Option<String> = None;
             if (networkCodeUpper.is_some()) {
-                networkCode = self.safe_string_opt(self.networkAliases.clone(), networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null), &[networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null)]);
+                networkCode = self.safe_string_opt(self.networkAliases.clone(), networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null), &[networkCodeUpper.map(Value::from).unwrap_or(Value::Null)]);
             }  else {
                 networkCode = code.clone(); // as hitbtc is white label, ensure we safeguard from possible bugs
             }
@@ -804,8 +804,8 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_760: bool = true;
-            while { if !__for_first_760 { j += 1; } __for_first_760 = false; j < (networks.len() as i64) } {
+            let mut __for_first_761: bool = true;
+            while { if !__for_first_761 { j += 1; } __for_first_761 = false; j < (networks.len() as i64) } {
             let mut networkEntry: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             let mut networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "network", &[]);
             let mut code: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
@@ -813,7 +813,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
             let mut networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
             let mut networkCode: Option<String> = None;
             if (networkCodeUpper.is_some()) {
-                networkCode = self.safe_string_opt(self.networkAliases.clone(), networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null), &[networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null)]);
+                networkCode = self.safe_string_opt(self.networkAliases.clone(), networkCodeUpper.clone().map(Value::from).unwrap_or(Value::Null), &[networkCodeUpper.map(Value::from).unwrap_or(Value::Null)]);
             }
             let mut withdrawFee: Option<f64> = self.safe_number_k(&networkEntry, "payout_fee", &[]).as_f64();
             let mut isDefault: bool = self.safe_bool_k_opt(&networkEntry, "default", &[Value::Bool(false)]).unwrap_or(false);
@@ -884,7 +884,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.number_to_string(<Self as crate::exchange_generated::ExchangeBase>::nonce(self));
             let mut payloadString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, "/api/3/").into()), implodedPath).into()), getRequest).into()), bodyString.as_deref().unwrap_or("null")).into()), timestamp.as_deref().unwrap_or("null"));
-            let mut signature: String = self.hmac(self.encode(Value::from(payloadString)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+            let mut signature: String = self.hmac(self.encode(Value::from(payloadString)), self.encode(&self.secret), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             let mut secondPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), ":").into()), signature).into()), ":").into()), timestamp.as_deref().unwrap_or("null"));
             headersValue.insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("HS256 ".into()), self.string_to_base64(Value::from(secondPayload), &[])).into()));
         }
@@ -2236,8 +2236,8 @@ impl Hitbtc {
         let mut ids: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_745: bool = true;
-            while { if !__for_first_745 { i += 1; } __for_first_745 = false; i < (ids.len() as i64) } {
+            let mut __for_first_746: bool = true;
+            while { if !__for_first_746 { i += 1; } __for_first_746 = false; i < (ids.len() as i64) } {
             let mut id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             if (id.as_deref().unwrap_or_default().ends_with("_BQX")) {
                 continue;
@@ -2458,9 +2458,9 @@ impl Hitbtc {
             m
         });
         let mut networkInput: Option<String> = self.safe_string_upper_k_opt(&params, "network", &[]);
-        let mut network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { None });
+        let mut network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.map(Value::from).unwrap_or(Value::Null)]) } else { None });
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
-            let mut networks: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "networks");
+            let mut networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
             let mut parsedNetwork: Option<String> = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[]);
             if (parsedNetwork.is_some()) {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
@@ -2519,9 +2519,9 @@ impl Hitbtc {
             m
         });
         let mut networkInput: Option<String> = self.safe_string_upper_k_opt(&params, "network", &[]);
-        let mut network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { None });
+        let mut network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.map(Value::from).unwrap_or(Value::Null)]) } else { None });
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
-            let mut networks: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "networks");
+            let mut networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
             let mut parsedNetwork: Option<String> = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[]);
             if (parsedNetwork.is_some()) {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
@@ -2563,8 +2563,8 @@ impl Hitbtc {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_747: bool = true;
-            while { if !__for_first_747 { i += 1; } __for_first_747 = false; i < (response.len() as i64) } {
+            let mut __for_first_748: bool = true;
+            while { if !__for_first_748 { i += 1; } __for_first_748 = false; i < (response.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -2603,7 +2603,7 @@ impl Hitbtc {
 }));
         let mut type_var: String = self.safe_string_lower_k(&params, "type", &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["type"], &[]);
-        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "accountsByType");
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let mut account: Option<String> = (if (false) { None } else { self.safe_string_opt(&accountsByType, Value::from(type_var.clone()), &[Value::from(type_var)]) });
         let mut response: Option<crate::value::List> = None;
         if (account.as_deref() == Some("wallet")) {
@@ -2613,7 +2613,7 @@ impl Hitbtc {
         }  else if (account.as_deref() == Some("derivatives")) {
             response = self.private_get_futures_balance(&[Value::Dict(paramsOmitted)]).await.into_opt_list();
         }  else {
-            let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
+            let mut keys: crate::value::List = crate::value::List::new(accountsByType.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchBalance() type parameter must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         return self.parse_balance_list(&response);
@@ -2680,7 +2680,7 @@ impl Hitbtc {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2714,8 +2714,8 @@ impl Hitbtc {
         let mut keys: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_748: bool = true;
-            while { if !__for_first_748 { i += 1; } __for_first_748 = false; i < (keys.len() as i64) } {
+            let mut __for_first_749: bool = true;
+            while { if !__for_first_749 { i += 1; } __for_first_749 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
             let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), Some(&market), &[]).as_str().map(str::to_owned);
@@ -2780,8 +2780,8 @@ impl Hitbtc {
         let mut marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_749: bool = true;
-            while { if !__for_first_749 { i += 1; } __for_first_749 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_750: bool = true;
+            while { if !__for_first_750 { i += 1; } __for_first_750 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketInner: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut rawTrades: crate::value::List = self.safe_list_t(&response, marketId.map(Value::from).unwrap_or(Value::Null));
@@ -2872,8 +2872,6 @@ impl Hitbtc {
 
 
     pub async fn fetch_transactions_helper(&mut self, types: Option<&str>, code: Option<&str>, since: Option<i64>, limit: Option<i64>, mut params: Value) -> Value {
-        let mut since: Value = since.into();
-        let mut limit: Value = limit.into();
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2887,15 +2885,15 @@ impl Hitbtc {
             currency = Some(self.currency(Value::from(code)));
             request.insert("currencies".into(), self.safe_string_k(&currency, "id", &[]));
         }
-        if (since != Value::Null) {
-            request.insert("from".into(), self.iso8601(since.clone()));
+        if (since.is_some()) {
+            request.insert("from".into(), self.iso8601(Value::from(since)));
         }
-        if (limit != Value::Null) {
-            request.insert("limit".into(), limit.clone());
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
         let mut response: crate::value::List = self.private_get_wallet_transactions(&[__ws_arg_10]).await.into_list();
-        return self.parse_transactions(&response, currency.as_ref(), &[since, limit, params]);
+        return self.parse_transactions(&response, currency.as_ref(), &[Value::from(since), Value::from(limit), params]);
 
     Value::Null
 }
@@ -3062,8 +3060,8 @@ impl Hitbtc {
         let mut marketIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_750: bool = true;
-            while { if !__for_first_750 { i += 1; } __for_first_750 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_751: bool = true;
+            while { if !__for_first_751 { i += 1; } __for_first_751 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut orderbook: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
             let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), None, &[]).as_str().map(str::to_owned);
@@ -3238,8 +3236,8 @@ impl Hitbtc {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_751: bool = true;
-            while { if !__for_first_751 { i += 1; } __for_first_751 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_752: bool = true;
+            while { if !__for_first_752 { i += 1; } __for_first_752 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3289,9 +3287,9 @@ impl Hitbtc {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(1000)]).await;
         }
@@ -3299,7 +3297,7 @@ impl Hitbtc {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("period".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("period".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
             m
         });
         if (since != Value::Null) {
@@ -3308,9 +3306,9 @@ impl Hitbtc {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let (__until0, __until1) = self.handle_until_option(Value::Str("until".into()), Value::Map(request), &paramsPaginate, &[]);
+        let mut requestUntil: crate::value::Dict = __until0;
+        let mut paramsUntil: crate::value::Dict = __until1;
         let mut price: Option<String> = self.safe_string_k_opt(&paramsUntil, "price", &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsUntil, Value::Str("price".into()), &[]);
         let mut response: Value = Value::from(vec![]);
@@ -3436,8 +3434,8 @@ impl Hitbtc {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_752: bool = true;
-            while { if !__for_first_752 { i += 1; } __for_first_752 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_753: bool = true;
+            while { if !__for_first_753 { i += 1; } __for_first_753 = false; i < (parsed.len() as i64) } {
             let mut status: Option<String> = self.safe_string_k_opt(parsed.get(i as usize).cloned().unwrap_or(Value::Null), "status", &[]);
             if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("canceled")) {
                 result.push(parsed.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -4121,9 +4119,12 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         if (symbolsNormalized.is_some()) {
-            market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut normalizedLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if normalizedLength > 0 {
+                market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            }
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMarginMode".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -4175,7 +4176,7 @@ impl Hitbtc {
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut requestAmount: Option<String> = self.currency_to_precision(code, amount, &[]);
-        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "accountsByType");
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
         let mut fromAccountValue: String = fromAccount.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut toAccountValue: String = toAccount.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut fromId: Option<String> = self.safe_string_opt(&accountsByType, Value::from(fromAccountValue.clone()), &[Value::from(fromAccountValue)]);
@@ -4210,7 +4211,7 @@ impl Hitbtc {
         if (code != "USDT") {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " convertCurrencyNetwork() only supports USDT currently")));
         }
-        let mut networks: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "networks");
+        let mut networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
         let mut fromNetworkUpper: String = Some(fromNetwork).map(str::to_uppercase).unwrap_or_default();
         let mut toNetworkUpper: String = Some(toNetwork).map(str::to_uppercase).unwrap_or_default();
         let mut fromNetworkValue: Value = self.safe_string(self.networkAliases.clone(), Value::from(fromNetworkUpper.clone()), &[Value::from(fromNetworkUpper)]);
@@ -4221,7 +4222,7 @@ impl Hitbtc {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")));
         }
         if (fromNetworkValue2 == Value::Null) || (toNetworkValue2 == Value::Null) {
-            let mut keys: crate::value::List = Value::Array(networks.keys().cloned().map(Value::from).collect()).into_list();
+            let mut keys: crate::value::List = crate::value::List::new(networks.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id, " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4285,9 +4286,9 @@ impl Hitbtc {
         if (tagWithdrawTag.is_some()) {
             request.insert("payment_id".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut networks: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "networks");
+        let mut networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
         let mut networkInput: Option<String> = self.safe_string_upper_k_opt(&paramsWithdrawTag, "network", &[]);
-        let mut network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.clone().map(Value::from).unwrap_or(Value::Null)]) } else { None });
+        let mut network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(self.networkAliases.clone(), networkInput.clone().map(Value::from).unwrap_or(Value::Null), &[networkInput.map(Value::from).unwrap_or(Value::Null)]) } else { None });
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
             let mut parsedNetwork: Option<String> = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[]);
             if (parsedNetwork.is_some()) {
@@ -4298,7 +4299,7 @@ impl Hitbtc {
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
             paramsOmitted = self.omit_t(&paramsWithdrawTag, Value::Str("network".into()), &[]);
         }
-        let mut withdrawOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "withdraw");
+        let mut withdrawOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "withdraw");
         let mut includeFee: bool = self.safe_bool_k_opt(&withdrawOptions, "includeFee", &[Value::Bool(false)]).unwrap_or(false);
         if includeFee {
             request.insert("include_fee".into(), Value::Bool(true));
@@ -4338,11 +4339,14 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         if (symbolsNormalized.is_some()) {
-            market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut queryMarketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
-            request.insert("symbols".into(), Value::Str(queryMarketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+            let mut normalizedLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if normalizedLength > 0 {
+                market = Some(match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let mut queryMarketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
+                request.insert("symbols".into(), Value::Str(queryMarketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+            }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchFundingRates".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -4376,8 +4380,8 @@ impl Hitbtc {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_753: bool = true;
-            while { if !__for_first_753 { i += 1; } __for_first_753 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_754: bool = true;
+            while { if !__for_first_754 { i += 1; } __for_first_754 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = self.safe_string_opt(&marketIds, Value::Int(i), &[]);
             if (marketId.is_none()) {
                 continue;
@@ -4423,9 +4427,9 @@ impl Hitbtc {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Int(1000)]).await;
         }
@@ -4434,9 +4438,9 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("till".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let (__until0, __until1) = self.handle_until_option(Value::Str("till".into()), Value::Map(request), &paramsPaginate, &[]);
+        let mut requestUntil: crate::value::Dict = __until0;
+        let mut paramsUntil: crate::value::Dict = __until1;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut requestUntil).insert("symbols".into(), crate::value::KeyRead::key_read(&&market, "id"));
@@ -4468,15 +4472,15 @@ impl Hitbtc {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_755: bool = true;
-            while { if !__for_first_755 { i += 1; } __for_first_755 = false; i < (contracts.len() as i64) } {
+            let mut __for_first_756: bool = true;
+            while { if !__for_first_756 { i += 1; } __for_first_756 = false; i < (contracts.len() as i64) } {
             let mut marketId: Option<&str> = contracts.get(i as usize).and_then(Value::as_str);
             let mut marketInner: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
             let mut fundingRateData: crate::value::List = self.safe_list_t(&response, Value::from(marketId.as_deref()));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_754: bool = true;
-                while { if !__for_first_754 { j += 1; } __for_first_754 = false; j < (fundingRateData.len() as i64) } {
+                let mut __for_first_755: bool = true;
+                while { if !__for_first_755 { j += 1; } __for_first_755 = false; j < (fundingRateData.len() as i64) } {
                 let mut entry: crate::value::Dict = fundingRateData.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut symbolInner: Option<String> = self.safe_symbol(crate::value::KeyRead::key_read(&&marketInner, "symbol"), None, &[]).as_str().map(str::to_owned);
                 let mut fundingRate: Option<f64> = self.safe_number_k(&entry, "funding_rate", &[]).as_f64();
@@ -4592,8 +4596,8 @@ impl Hitbtc {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_756: bool = true;
-            while { if !__for_first_756 { i += 1; } __for_first_756 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_757: bool = true;
+            while { if !__for_first_757 { i += 1; } __for_first_757 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4693,7 +4697,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut marketIds: Option<crate::value::List> = None;
         if (symbolsNormalized.is_some()) {
             marketIds = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
@@ -4722,8 +4726,8 @@ impl Hitbtc {
         let mut markets: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_759: bool = true;
-            while { if !__for_first_759 { i += 1; } __for_first_759 = false; i < (markets.len() as i64) } {
+            let mut __for_first_760: bool = true;
+            while { if !__for_first_760 { i += 1; } __for_first_760 = false; i < (markets.len() as i64) } {
             let mut marketId: Option<&str> = markets.get(i as usize).and_then(Value::as_str);
             let mut marketInner: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
             let mut openInterest: crate::value::Dict = self.safe_dict_t(&response, Value::from(marketId.as_deref()));
@@ -4815,7 +4819,6 @@ impl Hitbtc {
 
 
     pub async fn modify_margin_helper(&mut self, symbol: &str, amount: f64, type_var: Option<&str>, optional_args: &[Value]) -> Value {
-        let mut amount: Value = amount.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4830,7 +4833,7 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " modifyMarginHelper() requires a leverage parameter for swap markets")));
             }
         }
-        let mut stringAmount: Option<String> = self.number_to_string(amount);
+        let mut stringAmount: Option<String> = self.number_to_string(Value::from(amount));
         let mut amountValue: Option<String> = (if (stringAmount.as_deref() != Some("0")) { self.amount_to_precision(Value::from(symbol), stringAmount.map(Value::from).unwrap_or(Value::Null)) } else { Some("0".to_string()) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5155,7 +5158,7 @@ impl Hitbtc {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
-        let mut defaultType: Option<String> = self.safe_string_k_opt(self.options.clone(), "defaultType", &[]);
+        let mut defaultType: Option<String> = self.safe_string_k_opt(&self.options, "defaultType", &[]);
         let mut isMargin: bool = self.safe_bool_k_opt(&params, "margin", &[Value::Bool(false)]).unwrap_or(false);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.super_handle_margin_mode_and_params(methodName, params, defaultValue).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);

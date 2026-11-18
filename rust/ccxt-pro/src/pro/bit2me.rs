@@ -93,7 +93,7 @@ impl Bit2me {
             "cancel_order_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_order_ws", args.to_vec()); crate::Value::Null },
             "cancel_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_orders_ws", args.to_vec()); crate::Value::Null },
             "create_order_ws" => { crate::exchange_stubs::enqueue_spawn("create_order_ws", args.to_vec()); crate::Value::Null },
-            "handle_authenticate" => { self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_authenticate" => { self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_cancel_all_orders" => { self.handle_cancel_all_orders(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_cancel_order" => { self.handle_cancel_order(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -223,7 +223,6 @@ impl Bit2me {
  * @returns {object} the resolved value of the subscription
  */
     pub async fn subscribe_private(&mut self, name: &str, messageHash: &str, optional_args: &[Value]) -> Value {
-        let mut name: Value = name.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -236,13 +235,13 @@ impl Bit2me {
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscription".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("name".to_string(), name.clone());
+        m.insert("name".to_string(), Value::from(name));
     m
 }));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), messageHash, __ws_arg_1, &name, Value::Null).await;
+        return self.watch(url.as_deref(), messageHash, __ws_arg_1, &Value::from(name), Value::Null).await;
 
     Value::Null
 }
@@ -359,7 +358,7 @@ impl Bit2me {
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         let mut trade: crate::value::Dict = self.parse_ws_trade(&data, Some(&market)).into_dict();
         if !(self.trades.has(&symbol)) {
-            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
@@ -510,7 +509,7 @@ impl Bit2me {
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut order: crate::value::Dict = self.parse_ws_order(&data, None).into_dict();
         if (self.orders.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let mut limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
@@ -652,7 +651,7 @@ impl Bit2me {
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut trade: crate::value::Dict = self.parse_ws_trade(&data, None).into_dict();
         if (self.myTrades.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
@@ -737,12 +736,12 @@ impl Bit2me {
         request.insert("type".into(), orderType.map(Value::from).unwrap_or(Value::Null));
         request.insert("clientOrderId".into(), Value::from(clientOrderId.as_deref()));
         // the response carries no request id, it is matched by the client order id, and an error only by the symbol
-        let mut pending: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "pendingWsOrders", &[Value::Map({
+        let mut pending: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "pendingWsOrders", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
         pending.insert(clientOrderId.as_deref().unwrap_or("null").to_string(), Value::from((market).id.as_deref()));
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), Value::Map(pending)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), Value::Map(pending)); }
         let mut url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "added-order:", clientOrderId.as_deref().unwrap_or("null"));
         return self.watch(url.as_deref(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
@@ -762,7 +761,7 @@ impl Bit2me {
  */
     pub fn settle_request(&self, client: &Value, mut messageHash: Value, result: impl Into<crate::Value>, optional_args: &[Value]) {
         let mut result: Value = result.into();
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut error = get_arg(optional_args, 0, Value::Null);
         if (__ch.has_subscription(&messageHash)) {
             __ch.remove_subscription(&messageHash);
@@ -808,8 +807,8 @@ impl Bit2me {
         let mut order: crate::value::Dict = self.parse_order(Value::from(&data), None).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(&data, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
-            let mut pending: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "pendingWsOrders");
-            { let __be_tmp = self.omit(&pending, clientOrderId.clone().map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), __be_tmp); } }
+            let mut pending: crate::value::Dict = self.safe_dict_k_t(&self.options, "pendingWsOrders");
+            { let __be_tmp = self.omit(&pending, clientOrderId.clone().map(Value::from).unwrap_or(Value::Null), &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), __be_tmp); } }
             self.settle_request(client, Value::Str(format!("{}{}", "added-order:", clientOrderId.as_deref().unwrap_or("null")).into()), &order, &[]);
         }
 }
@@ -1047,7 +1046,7 @@ impl Bit2me {
     m
 }));
         let mut url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
@@ -1071,8 +1070,8 @@ impl Bit2me {
     Value::Null
 }
 
-    pub fn handle_authenticate(&self, mut client: Value, mut message: Value) {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+    pub fn handle_authenticate(&self, client: &Value, mut message: Value) {
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1101,7 +1100,7 @@ impl Bit2me {
 }
 
     pub fn handle_error_message(&mut self, client: &Value, mut message: Value) {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1125,7 +1124,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (event.as_deref() == Some("added-order")) {
             // the error carries no client order id, reject every order of the symbol still waiting for a response
             let mut marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
-            let mut pending: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "pendingWsOrders", &[Value::Map({
+            let mut pending: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "pendingWsOrders", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).as_map().cloned().unwrap_or_default();
@@ -1137,7 +1136,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut clientOrderId: Option<&str> = clientOrderIds.get(i as usize).and_then(Value::as_str);
                 if is_equal(&pending.get(clientOrderId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &marketId.clone().map(Value::from).unwrap_or(Value::Null)) {
                     self.settle_request(client, Value::Str(format!("{}{}", "added-order:", clientOrderId.as_deref().unwrap_or("null")).into()), Value::Null, &[exception.clone()]);
-                    { let __be_tmp = self.omit(crate::value::get_value_k(&self.options, "pendingWsOrders"), Value::from(clientOrderId.as_deref()), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), __be_tmp); } }
+                    { let __be_tmp = self.omit(self.options.get("pendingWsOrders").cloned().unwrap_or(Value::Null), Value::from(clientOrderId.as_deref()), &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), __be_tmp); } }
                 }
             }
             }
@@ -1197,7 +1196,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut event: Option<String> = (match __pro_message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (event.as_deref() == Some("authenticate")) {
-            self.handle_authenticate(client.clone(), message.clone());
+            self.handle_authenticate(&client, message.clone());
             return;
         }
         let error: bool = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null }) != Value::Null;

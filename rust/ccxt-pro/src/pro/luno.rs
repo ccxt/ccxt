@@ -283,7 +283,7 @@ impl Luno {
         let mut messageHash: String = format!("{}{}", "trades:", symbolValue);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbolValue);
         if (stored.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let mut limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbolValue, stored.clone());
         }
@@ -577,7 +577,6 @@ impl Luno {
  * @returns {boolean} true if the order was found in this side, false otherwise
  */
     pub fn reduce_order_volume(&self, mut orderSide: crate::pro::order_book::Side, orderId: &str, tradedAmount: &str) -> Value {
-        let mut tradedAmount: Value = tradedAmount.into();
         let mut sideLength: i64 = orderSide.length().as_i64().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -588,7 +587,7 @@ impl Luno {
             if ((entryId.as_deref() == Some(orderId))) {
                 let mut price: Option<f64> = self.safe_number(&order, Value::Int(0), &[]).as_f64();
                 let mut currentAmount: Option<String> = self.safe_string_opt(order, Value::Int(1), &[]);
-                let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount, &tradedAmount).as_str().map(str::to_owned);
+                let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount, &Value::from(tradedAmount)).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringLe(&remainingAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                     // fully filled, storing a zero amount deletes the order
                     orderSide.store_array(Value::from(vec![Value::from(price), Value::Int(0), Value::from(orderId)]));
@@ -615,11 +614,10 @@ impl Luno {
  * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
  */
     pub fn is_order_book_delta_in_sequence(&mut self, mut client: Value, message: &Value, symbol: &str) -> Value {
-        let mut symbol: Value = symbol.into();
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&Value::from(symbol));
         let mut storedNonce: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]).as_i64();
         if (storedNonce.is_none()) {
             return Value::Bool(false);
@@ -645,7 +643,7 @@ impl Luno {
             // watchOrderBook calls stay live: clearing its nonce discards
             // deltas until the fresh snapshot resets the book in place
             orderbook.set_book_meta("nonce", Value::Null);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut subscriptionHash: String = format!("{}{}", "/stream/", marketId);
@@ -664,7 +662,7 @@ impl Luno {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let mut subscriptions: Vec<Value> = object_values(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
         let mut subscriptionsLength: i64 = subscriptions.len() as i64;
         if (subscriptionsLength == 0) {

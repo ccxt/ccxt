@@ -242,8 +242,8 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let mut currencyList: crate::value::List = self.safe_list_k_t(response, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1208: bool = true;
-            while { if !__for_first_1208 { i += 1; } __for_first_1208 = false; i < (currencyList.len() as i64) } {
+            let mut __for_first_1209: bool = true;
+            while { if !__for_first_1209 { i += 1; } __for_first_1209 = false; i < (currencyList.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&currencyList, Value::Int(i));
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&entry, "total", &[]));
@@ -332,8 +332,8 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let mut withdraw: bool = false;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1204: bool = true;
-            while { if !__for_first_1204 { j += 1; } __for_first_1204 = false; j < (chains.len() as i64) } {
+            let mut __for_first_1205: bool = true;
+            while { if !__for_first_1205 { j += 1; } __for_first_1205 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&chain, "chainId", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -539,12 +539,12 @@ impl crate::exchange::DerivedExchange for Zebpay {
             if (method.as_str() == Some("GET")) || ((method.as_str() == Some("DELETE")) && isSpot) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 let mut queryString: String = self.urlencode(&paramsSigned, &[]);
-                signature = self.hmac(self.encode(Value::from(queryString.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+                signature = self.hmac(self.encode(Value::from(queryString.clone())), self.encode(&self.secret), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 suffix = format!("{}{}", "?", queryString);
             }  else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
                 bodySigned = json_stringify(&paramsSigned).as_str().map(str::to_owned);
-                signature = self.hmac(self.encode(Value::from(bodySigned.as_deref())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
+                signature = self.hmac(self.encode(Value::from(bodySigned.as_deref())), self.encode(&self.secret), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             }
             headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -571,7 +571,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
 }
     fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), body.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), body);
             return Value::Null;
         }
         //
@@ -1282,13 +1282,13 @@ impl Zebpay {
     m
 }));
         let mut promisesUnresolved: Vec<Value> = Vec::new();
-        let mut fetchMarketsOptions: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "fetchMarkets");
+        let mut fetchMarketsOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchMarkets");
         let mut defaultMarkets: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
         let mut types: crate::value::List = self.safe_list_k_or(&fetchMarketsOptions, "types", defaultMarkets);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1203: bool = true;
-            while { if !__for_first_1203 { i += 1; } __for_first_1203 = false; i < (types.len() as i64) } {
+            let mut __for_first_1204: bool = true;
+            while { if !__for_first_1204 { i += 1; } __for_first_1204 = false; i < (types.len() as i64) } {
             let mut type_var: String = self.safe_string(&types, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (type_var == "spot") {
                 promisesUnresolved.push(self.fetch_spot_markets(&[params.clone()]).await);
@@ -1493,8 +1493,8 @@ impl Zebpay {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1205: bool = true;
-            while { if !__for_first_1205 { i += 1; } __for_first_1205 = false; i < (fees.len() as i64) } {
+            let mut __for_first_1206: bool = true;
+            while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (fees.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None).as_map().cloned().unwrap_or_default();
             let mut symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {
@@ -1643,7 +1643,7 @@ impl Zebpay {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.public_spot_get_v2_market_all_tickers(&[Value::Dict(paramsMarketType)]).await.into_dict();
         //
         //     [
@@ -1716,7 +1716,7 @@ impl Zebpay {
             if (limit == Value::Null) {
                 limitResolved = Some(100);
             }
-            request.insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+            request.insert("interval".into(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
             if (since != Value::Null) {
                 request.insert("startTime".into(), since.clone());
             }
@@ -2737,8 +2737,8 @@ impl Zebpay {
         let mut markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1206: bool = true;
-            while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (markets.len() as i64) } {
+            let mut __for_first_1207: bool = true;
+            while { if !__for_first_1207 { i += 1; } __for_first_1207 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);
@@ -2841,8 +2841,8 @@ impl Zebpay {
         let mut markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1207: bool = true;
-            while { if !__for_first_1207 { i += 1; } __for_first_1207 = false; i < (markets.len() as i64) } {
+            let mut __for_first_1208: bool = true;
+            while { if !__for_first_1208 { i += 1; } __for_first_1208 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseAsset", &[]);

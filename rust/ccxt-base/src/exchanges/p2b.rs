@@ -82,7 +82,7 @@ impl crate::exchange::DerivedExchange for P2b {
         //    }
         //
         let mut timestamp: Option<i64> = self.safe_integer_product_k(&ticker, "at", Value::Int(1000), &[]).as_i64();
-        let mut tickerInner: Value = self.safe_dict_k(&ticker, "ticker", &[ticker.clone()]);
+        let mut tickerInner: Value = self.safe_dict_k(ticker.clone(), "ticker", &[ticker]);
         let mut last: Option<String> = self.safe_string_k_opt(&tickerInner, "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -366,8 +366,8 @@ impl crate::exchange::DerivedExchange for P2b {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (keys.len() as i64) } {
             let mut currencyId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut balance: crate::value::Dict = self.safe_dict_t(&response, Value::from(currencyId.as_deref()));
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
@@ -424,7 +424,7 @@ impl crate::exchange::DerivedExchange for P2b {
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-TXC-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("X-TXC-PAYLOAD".to_string(), Value::from(payload.clone()));
-                    m.insert("X-TXC-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
+                    m.insert("X-TXC-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(payload)), self.encode(&self.secret), Value::Str("sha512".into()), &[])));
                 m
             });
             let mut bodyJson: Option<String> = json_stringify(&paramsOmitted).as_str().map(str::to_owned);
@@ -1878,8 +1878,8 @@ impl P2b {
         let mut keys: Vec<Value> = Value::Array(result.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]).into_list();

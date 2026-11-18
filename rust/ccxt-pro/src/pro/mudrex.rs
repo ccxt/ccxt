@@ -152,8 +152,8 @@ impl Mudrex {
 }
 
     pub fn request_id(&mut self) -> i64 {
-        let mut reqid: i64 = ((self.safe_integer_k(self.options.clone(), "correlationId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("correlationId".into(), Value::from(reqid)); }
+        let mut reqid: i64 = ((self.safe_integer_k(&self.options, "correlationId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("correlationId".into(), Value::from(reqid)); }
         return reqid;
 }
 
@@ -163,11 +163,11 @@ impl Mudrex {
  * @description injects the broker Partner-Id into the websocket connection headers
  */
     pub fn set_broker_headers(&mut self) {
-        let mut brokerId: Option<String> = self.safe_string_k_opt(self.options.clone(), "broker", &[]);
+        let mut brokerId: Option<String> = self.safe_string_k_opt(&self.options, "broker", &[]);
         if (brokerId.is_none()) {
             return;
         }
-        let mut wsOptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
+        let mut wsOptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
@@ -182,7 +182,7 @@ impl Mudrex {
         headers.insert("Partner-Id".into(), brokerId.map(Value::from).unwrap_or(Value::Null));
         innerOptions.insert("headers".into(), Value::Map(headers));
         wsOptions.insert("options".into(), Value::Map(innerOptions));
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".into(), Value::Map(wsOptions)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws".into(), Value::Map(wsOptions)); }
 }
 
     pub async fn watch_ticker(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Ticker> {
@@ -236,7 +236,7 @@ impl Mudrex {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut assets: Vec<Value> = Vec::new();
         if (symbolsNormalized.is_some()) {
@@ -303,7 +303,7 @@ impl Mudrex {
         let mut symbolValue: String = (market).symbol.clone();
         let mut priceType: Option<String> = self.safe_string_k_opt(&params, "price", &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("price".into()), &[]);
-        let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe]);
         if (interval.as_deref() != Some("1s")) && (interval.as_deref() != Some("1m")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchOHLCV() supports 1s and 1m timeframes only")));
         }
@@ -390,7 +390,7 @@ impl Mudrex {
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&tf);
         if (stored.is_none()) {
-            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            let mut limit: i64 = self.safe_integer_k(&self.options, "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             if (symbol.is_some()) && (tf.is_some()) {
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &tf, stored.clone());

@@ -1512,7 +1512,7 @@ impl Lighter {
     m
 }));
         self.init_auth_object(accountIndex.as_str().unwrap_or_default(), apiKeyIndex.as_str().unwrap_or_default());
-        let mut cachedAuths: crate::value::Dict = self.safe_dict_t(self.safe_dict(self.safe_dict_k(self.options.clone(), "auths", &[Value::Map({
+        let mut cachedAuths: crate::value::Dict = self.safe_dict_t(self.safe_dict(self.safe_dict_k(&self.options, "auths", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), accountIndex.clone(), &[Value::Map({
@@ -1523,7 +1523,7 @@ impl Lighter {
         if (signer != Value::Null) {
             return signer;
         }
-        let mut libraryPath: Option<String> = self.handle_option_string_and_params(params, Value::Str("loadAccount".into()), Value::Str("libraryPath".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut libraryPath: Option<String> = (self.handle_option_string_and_params(params, Value::Str("loadAccount".into()), Value::Str("libraryPath".into()), &[])).0.as_str().map(str::to_owned);
         let mut lighterPrivateKeyIsSet: bool = (privateKey.is_some()) && (privateKey != Some(""));
         if lighterPrivateKeyIsSet && (libraryPath.is_some()) && (apiKeyIndex != Value::Null) && (accountIndex != Value::Null) {
             // load lighter library, and create lighter client
@@ -1557,44 +1557,42 @@ impl Lighter {
 }
 
     pub fn set_auth_entry(&self, accIdx: &str, keyIdx: &str, mut entry: Value) {
-        let mut accIdx: Value = accIdx.into();
-        let mut keyIdx: Value = keyIdx.into();
         let mut updated: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_0 = self.safe_dict(self.safe_dict(self.safe_dict_k(self.options.clone(), "auths", &[Value::Map({
+        let __ws_arg_0 = self.safe_dict(self.safe_dict(self.safe_dict_k(&self.options, "auths", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), accIdx.clone(), &[Value::Map({
+})]), Value::from(accIdx), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), keyIdx.clone(), &[Value::Map({
+})]), Value::from(keyIdx), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        updated.insert(crate::runtime::stringify_param(&keyIdx), self.extend(__ws_arg_0, &[entry]));
+        updated.insert(crate::runtime::stringify_param(&Value::from(keyIdx)), self.extend(__ws_arg_0, &[entry]));
         let mut auths: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_1 = self.safe_dict(self.safe_dict_k(self.options.clone(), "auths", &[Value::Map({
+        let __ws_arg_1 = self.safe_dict(self.safe_dict_k(&self.options, "auths", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), accIdx.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        { let __be_tmp = self.extend(__ws_arg_1, &[Value::Map(updated)]); auths.insert(crate::runtime::stringify_param(&accIdx), __be_tmp); }
-        let __ws_arg_2 = self.safe_dict_k(self.options.clone(), "auths", &[Value::Map({
+})]), Value::from(accIdx), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(__ws_arg_2, &[Value::Map(auths)]); if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("auths".into(), __be_tmp); } }
+        { let __be_tmp = self.extend(__ws_arg_1, &[Value::Map(updated)]); auths.insert(crate::runtime::stringify_param(&Value::from(accIdx)), __be_tmp); }
+        let __ws_arg_2 = self.safe_dict_k(&self.options, "auths", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        { let __be_tmp = self.extend(__ws_arg_2, &[Value::Map(auths)]); { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("auths".into(), __be_tmp); } }
 }
 
     pub fn init_auth_object(&self, strAccountIndex: &str, strApiKeyIndex: &str) {
-        if (self.safe_dict(self.safe_dict(self.safe_dict_k(self.options.clone(), "auths", &[Value::Map({
+        if (self.safe_dict(self.safe_dict(self.safe_dict_k(&self.options, "auths", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::from(strAccountIndex), &[Value::Map({
@@ -1613,7 +1611,7 @@ impl Lighter {
 }
 
     pub fn get_lighter_private_key(&self, strAccountIndex: &str, strApiKeyIndex: &str) -> Value {
-        let mut auths: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "auths");
+        let mut auths: crate::value::Dict = self.safe_dict_k_t(&self.options, "auths");
         let mut accountAuths: crate::value::Dict = self.safe_dict_t(&auths, Value::from(strAccountIndex));
         let mut apiKeyAuths: crate::value::Dict = self.safe_dict_t(&accountAuths, Value::from(strApiKeyIndex));
         return self.safe_string_k(&apiKeyAuths, "lighterPrivateKey", &[]);
@@ -1644,7 +1642,7 @@ impl Lighter {
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
         self.init_auth_object(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default());
-        let mut signer: Value = self.safe_dict(self.safe_dict(self.safe_dict(self.safe_dict_k(self.options.clone(), "auths", &[Value::Map({
+        let mut signer: Value = self.safe_dict(self.safe_dict(self.safe_dict(self.safe_dict_k(&self.options, "auths", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), strAccountIndex.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -1657,7 +1655,7 @@ impl Lighter {
         if (signer != Value::Null) {
             return Value::Bool(true);
         }
-        signer = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[]).await;
+        signer = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[]).await;
         self.handle_builder_fee_approval(Value::from(accountIndex), Value::from(apiKeyIndex)).await;
         let mut loaded: Value = (Value::Bool(signer != Value::Null));
         return loaded;
@@ -1668,16 +1666,16 @@ impl Lighter {
     pub fn handle_api_key_index(&self, params: impl Into<crate::Value>, methodName1: &str, optionName1: &str, optionName2: &str, optional_args: &[Value]) -> Value {
         let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let apiKeyIndexOptionparamsApiKeyIndexVariable: Vec<Value> = self.handle_option_and_params2(params, Value::from(methodName1), Value::from(optionName1), Value::from(optionName2), &[defaultValue]).as_array().cloned().unwrap_or_default();
-        let mut apiKeyIndexOption: Value = apiKeyIndexOptionparamsApiKeyIndexVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexOptionparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let apiKeyIndexOptionparamsApiKeyIndexVariable = self.handle_option_and_params2(params, Value::from(methodName1), Value::from(optionName1), Value::from(optionName2), &[defaultValue]);
+        let mut apiKeyIndexOption: Value = apiKeyIndexOptionparamsApiKeyIndexVariable.0;
+        let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexOptionparamsApiKeyIndexVariable.1;
         let mut apiKeyIndex: Option<i64> = self.safe_integer(Value::from(vec![apiKeyIndexOption]), Value::Int(0), &[]).as_i64();
         if (apiKeyIndex.is_some()) && (apiKeyIndex >= Some(4)) && ((apiKeyIndex.is_some() && apiKeyIndex <= Some(254))) {
             return Value::from(vec![Value::from(self.parse_to_int(Value::from(apiKeyIndex))), Value::from(&paramsApiKeyIndex)]);
         }
         // apiKeyIndex = this.randNumber (2);
         let mut defaultApiKeyIndex: i64 = 254;
-        if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("apiKeyIndex".into(), Value::from(defaultApiKeyIndex)); }; // default to a value to avoid overriding other keys
+        { let __d = &mut self.options.clone(); std::sync::Arc::make_mut(__d).insert("apiKeyIndex".into(), Value::from(defaultApiKeyIndex)); }; // default to a value to avoid overriding other keys
         return Value::from(vec![Value::from(defaultApiKeyIndex), Value::Dict(paramsApiKeyIndex)]);
 
     Value::Null
@@ -1689,9 +1687,9 @@ impl Lighter {
         let mut optionName1: Value = optionName1.into();
         let mut optionName2: Value = optionName2.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let accountIndexOptionparamsAccountIndexVariable: Vec<Value> = self.handle_option_and_params2(params, methodName1.clone(), optionName1.clone(), optionName2.clone(), &[defaultValue]).as_array().cloned().unwrap_or_default();
-        let mut accountIndexOption: Value = accountIndexOptionparamsAccountIndexVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAccountIndex: crate::value::Dict = accountIndexOptionparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let accountIndexOptionparamsAccountIndexVariable = self.handle_option_and_params2(params, methodName1.clone(), optionName1.clone(), optionName2.clone(), &[defaultValue]);
+        let mut accountIndexOption: Value = accountIndexOptionparamsAccountIndexVariable.0;
+        let mut paramsAccountIndex: crate::value::Dict = accountIndexOptionparamsAccountIndexVariable.1;
         let mut accountIndex: Value = accountIndexOption;
         if (accountIndex == Value::Null) {
             let mut walletAddress: Value = self.walletAddress.clone();
@@ -1741,7 +1739,7 @@ impl Lighter {
                         " or ").into()), optionName2).into()), " parameter")));
                 }
                 accountIndex = crate::value::KeyRead::key_read(&&account, "index");
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountIndex".into(), accountIndex.clone()); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("accountIndex".into(), accountIndex.clone()); }
             }
         }
         return Value::from(vec![Value::from(self.parse_to_int(accountIndex)), Value::Dict(paramsAccountIndex)]);
@@ -1770,7 +1768,7 @@ impl Lighter {
         });
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let __ws_arg_3 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_create_sub_account(signer, __ws_arg_3).as_array().cloned().unwrap_or_default();
         let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
@@ -1794,29 +1792,29 @@ impl Lighter {
         // don't omit [accountIndex, apiKeyIndex], request may need them
         let mut apiKeyIndex: Option<String> = self.safe_string2_opt(&params, Value::Str("apiKeyIndex".into()), Value::Str("api_key_index".into()), &[]);
         if (apiKeyIndex.is_none()) {
-            let mut res: Value = self.handle_option_and_params2(Value::Map({
+            let mut res: Value = { let __t = self.handle_option_and_params2(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("createAuth".into()), Value::Str("apiKeyIndex".into()), Value::Str("api_key_index".into()), &[]);
+}), Value::Str("createAuth".into()), Value::Str("apiKeyIndex".into()), Value::Str("api_key_index".into()), &[]); Value::from(vec![__t.0, Value::Dict(__t.1)]) };
             apiKeyIndex = self.safe_string_opt(res, Value::Int(0), &[]);
         }
         let mut accountIndex: Option<String> = self.safe_string2_opt(params, Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]);
         if (accountIndex.is_none()) {
-            let mut res: Value = self.handle_option_and_params2(Value::Map({
+            let mut res: Value = { let __t = self.handle_option_and_params2(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Str("createAuth".into()), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]);
+}), Value::Str("createAuth".into()), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]); Value::from(vec![__t.0, Value::Dict(__t.1)]) };
             accountIndex = self.safe_string_opt(res, Value::Int(0), &[]);
         }
-        let mut auths: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "auths");
+        let mut auths: crate::value::Dict = self.safe_dict_k_t(&self.options, "auths");
         let mut accountAuths: crate::value::Dict = self.safe_dict_t(&auths, accountIndex.clone().map(Value::from).unwrap_or(Value::Null));
         let mut cachedAuth: crate::value::Dict = self.safe_dict_t(&accountAuths, apiKeyIndex.clone().map(Value::from).unwrap_or(Value::Null));
         let mut cachedDeadline: Option<i64> = self.safe_integer_k(&cachedAuth, "deadline", &[]).as_i64();
-        let mut minimumRemaining: i64 = self.safe_integer_k(self.options.clone(), "authDeadlineMinimumRemaining", &[Value::Int(60)]).as_i64().unwrap_or(60);
+        let mut minimumRemaining: i64 = self.safe_integer_k(&self.options, "authDeadlineMinimumRemaining", &[Value::Int(60)]).as_i64().unwrap_or(60);
         if (cachedDeadline.is_some()) && (true) && (((if let Some(__l) = cachedDeadline { Some(__l - minimumRemaining) } else { None })) >= Some((self.seconds()))) {
             return self.safe_string_k_opt(&cachedAuth, "token", &[]);
         }
-        let mut deadline: i64 = ((self.seconds()) + (self.safe_integer_k(self.options.clone(), "authDeadlineExpiry", &[Value::Int(28800)]).as_i64().unwrap_or(28800)));
+        let mut deadline: i64 = ((self.seconds()) + (self.safe_integer_k(&self.options, "authDeadlineExpiry", &[Value::Int(28800)]).as_i64().unwrap_or(28800)));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deadline".to_string(), Value::from(deadline));
@@ -1840,8 +1838,7 @@ impl Lighter {
 }
 
     pub fn pow(&self, n: &str, mut m: Value) -> Option<String> {
-        let mut n: Value = n.into();
-        let mut r: Option<String> = crate::precise::Precise::stringMul(&n, &Value::Str("1".into())).as_str().map(str::to_owned);
+        let mut r: Option<String> = crate::precise::Precise::stringMul(&Value::from(n), &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut c: Option<i64> = self.parse_to_int(m);
         if (c.is_some() && c < Some(0)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " pow() requires m > 0.")));
@@ -1854,9 +1851,9 @@ impl Lighter {
         }
         {
                         let mut i: i64 = 1;
-            let mut __for_first_931: bool = true;
-            while { if !__for_first_931 { i += 1; } __for_first_931 = false; matches!(c, Some(__b) if (i as f64) < (__b as f64)) } {
-            r = crate::precise::Precise::stringMul(&r, &n).as_str().map(str::to_owned);
+            let mut __for_first_932: bool = true;
+            while { if !__for_first_932 { i += 1; } __for_first_932 = false; matches!(c, Some(__b) if (i as f64) < (__b as f64)) } {
+            r = crate::precise::Precise::stringMul(&r, &Value::from(n)).as_str().map(str::to_owned);
         }
         }
         return r;
@@ -1896,11 +1893,11 @@ impl Lighter {
 }
 
     pub async fn handle_builder_fee_approval(&mut self, mut accountIndex: Value, mut apiKeyIndex: Value) -> Value {
-        let mut buildFee: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(true)]).unwrap_or(true);
+        let mut buildFee: bool = self.safe_bool_k_opt(&self.options, "builderFee", &[Value::Bool(true)]).unwrap_or(true);
         if !buildFee {
             return Value::Bool(false);
         }
-        let mut approvedBuilderFee: bool = self.safe_bool_k_opt(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
+        let mut approvedBuilderFee: bool = self.safe_bool_k_opt(&self.options, "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
         if approvedBuilderFee {
             return Value::Bool(true);
         }
@@ -1909,17 +1906,17 @@ impl Lighter {
             let mut isStandardTier: bool = self.check_if_standard_tier(Value::from(self.parse_to_int(accountIndex.clone()))).await.as_bool().unwrap_or_default();
             if isStandardTier {
                 standardTier = true;
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
             }  else {
-                let mut builder: i64 = self.safe_integer_k(self.options.clone(), "integratorAccountIndex", &[Value::Int(718718)]).as_i64().unwrap_or(718718);
-                let mut takerFeeRate: i64 = self.safe_integer_k(self.options.clone(), "integratorTakerFee", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                let mut makerFeeRate: i64 = self.safe_integer_k(self.options.clone(), "integratorMakerFee", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+                let mut builder: i64 = self.safe_integer_k(&self.options, "integratorAccountIndex", &[Value::Int(718718)]).as_i64().unwrap_or(718718);
+                let mut takerFeeRate: i64 = self.safe_integer_k(&self.options, "integratorTakerFee", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+                let mut makerFeeRate: i64 = self.safe_integer_k(&self.options, "integratorMakerFee", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 Box::pin(self.approve_builder_fee(Value::from(builder), Value::from(takerFeeRate), Value::from(makerFeeRate), accountIndex, apiKeyIndex, &[])).await;
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
         }
         if standardTier {
             return Value::Bool(false);
@@ -1930,7 +1927,7 @@ if _try_result.is_err() {
 }
 
     pub async fn check_if_standard_tier(&mut self, mut accountIndex: Value) -> Value {
-        let mut tiersForAccountIndexes: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "tiersForAccountIndexes", &[Value::Map({
+        let mut tiersForAccountIndexes: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "tiersForAccountIndexes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -1963,7 +1960,7 @@ if _try_result.is_err() {
         let mut tier: Option<String> = self.safe_string_k_opt(&accountLimits, "user_tier", &[]);
         let mut isStandard: bool = tier.as_deref() == Some("standard");
         tiersForAccountIndexes.insert(accountIndexStr.as_deref().unwrap_or("null").to_string(), Value::Bool(isStandard));
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tiersForAccountIndexes".into(), Value::Map(tiersForAccountIndexes)); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("tiersForAccountIndexes".into(), Value::Map(tiersForAccountIndexes)); }
         return Value::Bool(isStandard);
 
     Value::Null
@@ -1976,7 +1973,7 @@ if _try_result.is_err() {
 }));
         let mut strAccountIndex: Option<String> = self.number_to_string(accountIndex.clone());
         let mut strApiKeyIndex: Option<String> = self.number_to_string(apiKeyIndex.clone());
-        let mut signer: Value = Box::pin(self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[params.clone()])).await;
+        let mut signer: Value = Box::pin(self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[params.clone()])).await;
         let __ws_arg_5 = self.extend(&params, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("skipNonce".to_string(), Value::Bool(false));
@@ -2026,7 +2023,7 @@ if _try_result.is_err() {
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signerNotLoad: Value = self.safe_value(self.safe_dict(self.safe_dict(self.safe_dict_k(self.options.clone(), "auths", &[Value::Map({
+        let mut signerNotLoad: Value = self.safe_value(self.safe_dict(self.safe_dict(self.safe_dict_k(&self.options, "auths", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::from(strAccountIndex.as_deref()), &[Value::Map({
@@ -2054,7 +2051,7 @@ if _try_result.is_err() {
             m
         });
         // create lighter client
-        let mut signer: Value = self.lighter_create_client(signerNotLoad, self.safe_integer_k(self.options.clone(), "chainId", &[]), Value::from(privateKey.as_deref()), Value::from(apiKeyIndex), Value::from(accountIndex));
+        let mut signer: Value = self.lighter_create_client(signerNotLoad, self.safe_integer_k(&self.options, "chainId", &[]), Value::from(privateKey.as_deref()), Value::from(apiKeyIndex), Value::from(accountIndex));
         let __ws_arg_8 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
         let txTypetxInfomessageToSignVariable: Vec<Value> = self.lighter_sign_change_pubkey(signer.clone(), __ws_arg_8).as_array().cloned().unwrap_or_default();
         let mut txType: Option<i64> = txTypetxInfomessageToSignVariable.get(0).and_then(Value::as_i64);
@@ -2088,15 +2085,13 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         self.super_set_sandbox_mode(enable.clone());
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable.clone()); }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("chainId".into(), (if enable.as_bool() == Some(true) { Value::Int(300) } else { Value::Int(304) })); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enable.clone()); }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("chainId".into(), (if enable.as_bool() == Some(true) { Value::Int(300) } else { Value::Int(304) })); }
         Value::Null
         })).expect("a sync body never awaits")?))
     }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[Value]) -> Value {
-        let mut symbol: Value = symbol.into();
-        let mut side: Value = side.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2105,7 +2100,7 @@ if _try_result.is_err() {
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
-        if (side == Value::Null) {
+        if (side.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a side argument")));
         }
         /*
@@ -2130,8 +2125,8 @@ if _try_result.is_err() {
         }
         let mut reduceOnly: bool = self.safe_bool2_opt(&params, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).unwrap_or(false); // default false
         let mut orderType: Option<String> = type_var.map(str::to_owned).as_deref().map(str::to_uppercase);
-        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderSide: Option<String> = side.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
+        let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orderSide: Option<String> = side.map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
@@ -2140,15 +2135,15 @@ if _try_result.is_err() {
         let apiKeyIndexparamsApiKeyIndexVariable: Vec<Value> = self.handle_api_key_index(params, "createOrder", "apiKeyIndex", "api_key_index", &[]).as_array().cloned().unwrap_or_default();
         let mut apiKeyIndex: Option<i64> = apiKeyIndexparamsApiKeyIndexVariable.get(0).and_then(Value::as_i64);
         let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let accountIndexparamsAccountIndexVariable: Vec<Value> = self.handle_option_and_params2(&paramsApiKeyIndex, Value::Str("createOrder".into()), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut accountIndex: Value = accountIndexparamsAccountIndexVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let nonceparamsNonceVariable: Vec<Value> = self.handle_option_and_params(&paramsAccountIndex, Value::Str("createOrder".into()), Value::Str("nonce".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut nonce: Value = nonceparamsNonceVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsNonce: crate::value::Dict = nonceparamsNonceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let orderExpiryOptionparamsOrderExpiryVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsNonce, Value::Str("createOrder".into()), Value::Str("orderExpiry".into()), &[Value::Int(0)]).as_array().cloned().unwrap_or_default();
-        let mut orderExpiryOption: Option<i64> = orderExpiryOptionparamsOrderExpiryVariable.get(0).and_then(Value::as_i64);
-        let mut paramsOrderExpiry: crate::value::Dict = orderExpiryOptionparamsOrderExpiryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let accountIndexparamsAccountIndexVariable = self.handle_option_and_params2(&paramsApiKeyIndex, Value::Str("createOrder".into()), Value::Str("accountIndex".into()), Value::Str("account_index".into()), &[]);
+        let mut accountIndex: Value = accountIndexparamsAccountIndexVariable.0;
+        let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.1;
+        let nonceparamsNonceVariable = self.handle_option_and_params(&paramsAccountIndex, Value::Str("createOrder".into()), Value::Str("nonce".into()), &[]);
+        let mut nonce: Value = nonceparamsNonceVariable.0;
+        let mut paramsNonce: crate::value::Dict = nonceparamsNonceVariable.1;
+        let orderExpiryOptionparamsOrderExpiryVariable = self.handle_option_integer_and_params(&paramsNonce, Value::Str("createOrder".into()), Value::Str("orderExpiry".into()), &[Value::Int(0)]);
+        let mut orderExpiryOption: Option<i64> = orderExpiryOptionparamsOrderExpiryVariable.0;
+        let mut paramsOrderExpiry: crate::value::Dict = orderExpiryOptionparamsOrderExpiryVariable.1;
         let mut orderExpiry: Option<i64> = orderExpiryOption;
         if (nonce != Value::Null) {
             request.insert("nonce".into(), nonce);
@@ -2199,7 +2194,7 @@ if _try_result.is_err() {
             m
         })]).as_map().cloned().unwrap_or_default();
         let mut amountStr: Option<String> = None;
-        let mut priceStr: Option<String> = self.price_to_precision(symbol.clone(), price);
+        let mut priceStr: Option<String> = self.price_to_precision(Value::from(symbol), price);
         let mut amountScale: Option<String> = self.pow("10", marketInfo.get("size_decimals").cloned().unwrap_or(Value::Null));
         let mut priceScale: Option<String> = self.pow("10", marketInfo.get("price_decimals").cloned().unwrap_or(Value::Null));
         let mut triggerPriceStr: Option<String> = Some("0".to_string()); // default is 0
@@ -2214,17 +2209,17 @@ if _try_result.is_err() {
                 }  else {
                     orderTypeNum = Some(3);
                 }
-                triggerPriceStr = self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
+                triggerPriceStr = self.price_to_precision(Value::from(symbol), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
             }  else if (takeProfitPrice.is_some()) {
                 if isMarketOrder {
                     orderTypeNum = Some(4);
                 }  else {
                     orderTypeNum = Some(5);
                 }
-                triggerPriceStr = self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
+                triggerPriceStr = self.price_to_precision(Value::from(symbol), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
             }
         }  else {
-            amountStr = self.amount_to_precision(symbol.clone(), amount);
+            amountStr = self.amount_to_precision(Value::from(symbol), amount);
         }
         request.insert("order_expiry".into(), Value::from(orderExpiry));
         request.insert("order_type".into(), Value::from(orderTypeNum));
@@ -2234,10 +2229,10 @@ if _try_result.is_err() {
         request.insert("base_amount".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&amountStr, &amountScale))));
         request.insert("avg_execution_price".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&priceStr, &priceScale))));
         request.insert("trigger_price".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&triggerPriceStr, &priceScale))));
-        if matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
-            request.insert("integrator_account_index".into(), self.safe_integer_k(self.options.clone(), "integratorAccountIndex", &[]));
-            request.insert("integrator_taker_fee".into(), self.safe_integer_k(self.options.clone(), "integratorTakerFee", &[]));
-            request.insert("integrator_maker_fee".into(), self.safe_integer_k(self.options.clone(), "integratorMakerFee", &[]));
+        if matches!(self.safe_bool_k(&self.options, "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
+            request.insert("integrator_account_index".into(), self.safe_integer_k(&self.options, "integratorAccountIndex", &[]));
+            request.insert("integrator_taker_fee".into(), self.safe_integer_k(&self.options, "integratorTakerFee", &[]));
+            request.insert("integrator_maker_fee".into(), self.safe_integer_k(&self.options, "integratorMakerFee", &[]));
         }
         let mut orders: Vec<Value> = Vec::new();
         let mut firstOrder: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsRequest]);
@@ -2259,7 +2254,7 @@ if _try_result.is_err() {
             let mut takeProfitOrderLimitPrice: Option<f64> = self.safe_number2(&takeProfit, Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[Value::from(takeProfitOrderTriggerPrice)]).as_f64();
             // amount should be 0 for child orders
             if (stopLoss.is_some()) {
-                let __ws_arg_9 = self.create_order_request(symbol.as_str(), Some(stopLossOrderType.as_str()), Some(triggerOrderSide.as_str()), Value::Int(0), &[Value::from(stopLossOrderLimitPrice), self.extend(&paramsRequest, &[Value::Map({
+                let __ws_arg_9 = self.create_order_request(symbol, Some(stopLossOrderType.as_str()), Some(triggerOrderSide.as_str()), Value::Int(0), &[Value::from(stopLossOrderLimitPrice), self.extend(&paramsRequest, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stopLossPrice".to_string(), Value::from(stopLossOrderTriggerPrice));
         m.insert("reduceOnly".to_string(), Value::Bool(true));
@@ -2270,7 +2265,7 @@ if _try_result.is_err() {
                 orders.push(Value::Dict(orderObj));
             }
             if (takeProfit.is_some()) {
-                let __ws_arg_10 = self.create_order_request(symbol.as_str(), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), Value::Int(0), &[Value::from(takeProfitOrderLimitPrice), self.extend(paramsRequest, &[Value::Map({
+                let __ws_arg_10 = self.create_order_request(symbol, Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), Value::Int(0), &[Value::from(takeProfitOrderLimitPrice), self.extend(paramsRequest, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("takeProfitPrice".to_string(), Value::from(takeProfitOrderTriggerPrice));
         m.insert("reduceOnly".to_string(), Value::Bool(true));
@@ -2297,12 +2292,12 @@ if _try_result.is_err() {
         if (matches!(&params, Value::Dict(__d) if __d.contains_key("nonce"))) {
             return Value::from(self.parse_to_int(self.safe_integer_k(&params, "nonce", &[])));
         }
-        let mut nonceInOptions: Option<i64> = self.safe_integer_k(self.options.clone(), "nonce", &[]).as_i64();
+        let mut nonceInOptions: Option<i64> = self.safe_integer_k(&self.options, "nonce", &[]).as_i64();
         if (nonceInOptions.is_some()) {
             return Value::from(self.parse_to_int(Value::from(nonceInOptions)));
         }
         // avoid skipNonce for l1 operations
-        let mut skipNonce: Value = self.handle_option_bool_and_params(params, Value::Str("fetchNonce".into()), Value::Str("skipNonce".into()), &[Value::Bool(true)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut skipNonce: Value = (self.handle_option_bool_and_params(params, Value::Str("fetchNonce".into()), Value::Str("skipNonce".into()), &[Value::Bool(true)])).0.map_or(Value::Null, Value::Bool);
         if skipNonce.as_bool() == Some(true) {
             return Value::Int(self.milliseconds());
         }
@@ -2334,19 +2329,19 @@ if _try_result.is_err() {
         // before order-req creation, we need to know account status
         let mut strAccountIndex: Option<String> = self.number_to_string(accountIndex.clone());
         let mut strApiKeyIndex: Option<String> = self.number_to_string(apiKeyIndex.clone());
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[params.clone()]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[params.clone()]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut isStandardTier: bool = self.check_if_standard_tier(accountIndex.clone()).await.as_bool().unwrap_or_default();
             if isStandardTier {
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }
         }
-        let groupingTypeparamsGroupingTypeVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::from(method), Value::Str("groupingType".into()), &[Value::Int(3)]).as_array().cloned().unwrap_or_default();
-        let mut groupingType: Option<i64> = groupingTypeparamsGroupingTypeVariable.get(0).and_then(Value::as_i64);
-        let mut paramsGroupingType: crate::value::Dict = groupingTypeparamsGroupingTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        let groupingTypeparamsGroupingTypeVariable = self.handle_option_integer_and_params(params, Value::from(method), Value::Str("groupingType".into()), &[Value::Int(3)]);
+        let mut groupingType: Option<i64> = groupingTypeparamsGroupingTypeVariable.0;
+        let mut paramsGroupingType: crate::value::Dict = groupingTypeparamsGroupingTypeVariable.1; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         let mut orderRequests: Value = self.create_order_request(symbol, Some(type_var), Some(side), amount, &[price, Value::Dict(paramsGroupingType)]);
         let mut totalOrderRequests: i64 = orderRequests.len() as i64;
         if totalOrderRequests > 1 {
@@ -2355,8 +2350,8 @@ if _try_result.is_err() {
             let mut groupOrderExpiry: i64 = ((self.milliseconds()) + 2419200000); // 28 days
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_932: bool = true;
-                while { if !__for_first_932 { i += 1; } __for_first_932 = false; i < totalOrderRequests } {
+                let mut __for_first_933: bool = true;
+                while { if !__for_first_933 { i += 1; } __for_first_933 = false; i < totalOrderRequests } {
                 if (self.safe_integer_k(orderRequests.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "order_expiry", &[]).as_f64() == Value::Int(-1).as_f64()) {
                     add_element_to_object(get_value_mut(&mut orderRequests, &Value::Int(i)), &Value::Str("order_expiry".into()), Value::from(groupOrderExpiry));
                 }
@@ -2385,7 +2380,7 @@ if _try_result.is_err() {
                     m.insert("account_index".to_string(), accountIndex);
                 m
             });
-            if matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
+            if matches!(self.safe_bool_k(&self.options, "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
                 signingPayload.insert("integrator_account_index".into(), self.safe_integer_k(&order, "integrator_account_index", &[]));
                 signingPayload.insert("integrator_taker_fee".into(), self.safe_integer_k(&order, "integrator_taker_fee", &[]));
                 signingPayload.insert("integrator_maker_fee".into(), self.safe_integer_k(&order, "integrator_maker_fee", &[]));
@@ -2491,7 +2486,7 @@ if _try_result.is_err() {
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2523,10 +2518,10 @@ if _try_result.is_err() {
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
         });
-        if matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
-            signRaw.insert("integrator_account_index".into(), self.safe_integer_k(self.options.clone(), "integratorAccountIndex", &[]));
-            signRaw.insert("integrator_taker_fee".into(), self.safe_integer_k(self.options.clone(), "integratorTakerFee", &[]));
-            signRaw.insert("integrator_maker_fee".into(), self.safe_integer_k(self.options.clone(), "integratorMakerFee", &[]));
+        if matches!(self.safe_bool_k(&self.options, "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
+            signRaw.insert("integrator_account_index".into(), self.safe_integer_k(&self.options, "integratorAccountIndex", &[]));
+            signRaw.insert("integrator_taker_fee".into(), self.safe_integer_k(&self.options, "integratorTakerFee", &[]));
+            signRaw.insert("integrator_maker_fee".into(), self.safe_integer_k(&self.options, "integratorMakerFee", &[]));
         }
         let __ws_arg_11 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_modify_order(signer, __ws_arg_11).as_array().cloned().unwrap_or_default();
@@ -2713,8 +2708,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_933: bool = true;
-            while { if !__for_first_933 { i += 1; } __for_first_933 = false; i < (markets.len() as i64) } {
+            let mut __for_first_934: bool = true;
+            while { if !__for_first_934 { i += 1; } __for_first_934 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "market_id", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&market, "market_type", &[]);
@@ -3049,7 +3044,7 @@ if _try_result.is_err() {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut response: crate::value::Dict = self.public_get_order_book_details(&[params]).await.into_dict();
         let mut spotTickers: crate::value::List = self.safe_list_k_t(&response, "spot_order_book_details");
         let mut swapTickers: crate::value::List = self.safe_list_k_t(&response, "order_book_details");
@@ -3129,7 +3124,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_id".to_string(), Value::from((market).id.as_deref()));
                 m.insert("count_back".to_string(), Value::Int(0));
-                m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("resolution".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
                 m.insert("start_timestamp".to_string(), startTs);
                 m.insert("end_timestamp".to_string(), Value::from(endTs));
             m
@@ -3207,8 +3202,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_934: bool = true;
-            while { if !__for_first_934 { i += 1; } __for_first_934 = false; i < (data.len() as i64) } {
+            let mut __for_first_935: bool = true;
+            while { if !__for_first_935 { i += 1; } __for_first_935 = false; i < (data.len() as i64) } {
             let mut exchange: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "exchange", &[]);
             if (exchange.as_deref() == Some("lighter")) {
                 result.push(data.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -3247,7 +3242,7 @@ if _try_result.is_err() {
         let accountIndexparamsAccountIndexVariable: Vec<Value> = self.handle_account_index(params, "fetchBalance", "accountIndex", "account_index", &[]).await.as_array().cloned().unwrap_or_default();
         let mut accountIndex: Option<i64> = accountIndexparamsAccountIndexVariable.get(0).and_then(Value::as_i64);
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
+        let mut defaultType: String = self.safe_string2(&self.options, Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let mut type_var: Option<String> = self.safe_string_k_opt(&paramsAccountIndex, "type", &[Value::from(defaultType)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3309,15 +3304,15 @@ if _try_result.is_err() {
         let mut accounts: crate::value::List = self.safe_list_k_t(&response, "accounts");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_936: bool = true;
-            while { if !__for_first_936 { i += 1; } __for_first_936 = false; i < (accounts.len() as i64) } {
+            let mut __for_first_937: bool = true;
+            while { if !__for_first_937 { i += 1; } __for_first_937 = false; i < (accounts.len() as i64) } {
             let mut account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
             if (type_var.as_deref() == Some("spot")) {
                 let mut assets: crate::value::List = self.safe_list_k_t(&account, "assets");
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_935: bool = true;
-                    while { if !__for_first_935 { j += 1; } __for_first_935 = false; j < (assets.len() as i64) } {
+                    let mut __for_first_936: bool = true;
+                    while { if !__for_first_936 { j += 1; } __for_first_936 = false; j < (assets.len() as i64) } {
                     let mut asset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(j));
                     let mut codeId: Option<String> = self.safe_string_k_opt(&asset, "symbol", &[]);
                     let mut code: Option<String> = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), None);
@@ -3476,14 +3471,14 @@ if _try_result.is_err() {
         let mut accounts: crate::value::List = self.safe_list_k_t(&response, "accounts");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_938: bool = true;
-            while { if !__for_first_938 { i += 1; } __for_first_938 = false; i < (accounts.len() as i64) } {
+            let mut __for_first_939: bool = true;
+            while { if !__for_first_939 { i += 1; } __for_first_939 = false; i < (accounts.len() as i64) } {
             let mut account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
             let mut positions: crate::value::List = self.safe_list_k_t(&account, "positions");
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_937: bool = true;
-                while { if !__for_first_937 { j += 1; } __for_first_937 = false; j < (positions.len() as i64) } {
+                let mut __for_first_938: bool = true;
+                while { if !__for_first_938 { j += 1; } __for_first_938 = false; j < (positions.len() as i64) } {
                 allPositions.push(positions.get(j as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -3606,7 +3601,7 @@ if _try_result.is_err() {
         let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
+        self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3703,7 +3698,7 @@ if _try_result.is_err() {
         let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
+        self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3808,8 +3803,7 @@ if _try_result.is_err() {
 }
 
     pub fn parse_order_type_integer(&self, typeInteger: Option<i64>) -> Option<String> {
-        let mut typeInteger: Value = typeInteger.into();
-        if (typeInteger == Value::Null) {
+        if (typeInteger.is_none()) {
             return None;
         }
         let mut types: indexmap::IndexMap<String, Value> = ({
@@ -3825,7 +3819,7 @@ if _try_result.is_err() {
                 m.insert("8".to_string(), Value::Str("liquidation".into()));
             m
         });
-        return self.safe_string_opt(&types, Value::Str(format!("{}", typeInteger).into()), &[]);
+        return self.safe_string_opt(&types, Value::Str(format!("{}", Value::from(typeInteger)).into()), &[]);
 }
 
     pub fn parse_order_time_in_force(&self, tif: Option<&str>) -> Option<String> {
@@ -3841,7 +3835,6 @@ if _try_result.is_err() {
 }
 
     pub fn parse_order_time_in_force_integer(&self, tifInteger: f64) -> Option<String> {
-        let mut tifInteger: Value = tifInteger.into();
         let mut timeInForces: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("immediate-or-cancel".into()));
@@ -3849,7 +3842,7 @@ if _try_result.is_err() {
                 m.insert("2".to_string(), Value::Str("post-only".into()));
             m
         });
-        return self.safe_string_opt(&timeInForces, Value::from(self.number_to_string(tifInteger)), &[]);
+        return self.safe_string_opt(&timeInForces, Value::from(self.number_to_string(Value::from(tifInteger))), &[]);
 }
 
 /*
@@ -3890,12 +3883,12 @@ if _try_result.is_err() {
         let accountIndexparamsAccountIndexVariable: Vec<Value> = self.handle_account_index(&paramsApiKeyIndex, "transfer", "accountIndex", "account_index", &[]).await.as_array().cloned().unwrap_or_default();
         let mut accountIndex: Option<i64> = accountIndexparamsAccountIndexVariable.get(0).and_then(Value::as_i64);
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let toAccountIndexparamsToAccountIndexVariable: Vec<Value> = self.handle_option_and_params2(&paramsAccountIndex, Value::Str("transfer".into()), Value::Str("toAccountIndex".into()), Value::Str("to_account_index".into()), &[Value::from(accountIndex)]).as_array().cloned().unwrap_or_default();
-        let mut toAccountIndex: Value = toAccountIndexparamsToAccountIndexVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsToAccountIndex: crate::value::Dict = toAccountIndexparamsToAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let toAccountIndexparamsToAccountIndexVariable = self.handle_option_and_params2(&paramsAccountIndex, Value::Str("transfer".into()), Value::Str("toAccountIndex".into()), Value::Str("to_account_index".into()), &[Value::from(accountIndex)]);
+        let mut toAccountIndex: Value = toAccountIndexparamsToAccountIndexVariable.0;
+        let mut paramsToAccountIndex: crate::value::Dict = toAccountIndexparamsToAccountIndexVariable.1;
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsToAccountIndex)]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsToAccountIndex)]).await;
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut currencyCode: Option<String> = crate::value::KeyRead::key_read(&&currency, "code").as_str().map(str::to_owned);
         if (currencyCode.as_deref() != Some("USDC")) && (currencyCode.as_deref() != Some("ETH")) {
@@ -3967,9 +3960,9 @@ if _try_result.is_err() {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
@@ -3986,7 +3979,7 @@ if _try_result.is_err() {
         let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
+        self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code));
@@ -4058,15 +4051,15 @@ if _try_result.is_err() {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
-        let addressparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params2(&paramsPaginate, Value::Str("fetchDeposits".into()), Value::Str("address".into()), Value::Str("l1_address".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut address: Option<String> = addressparamsAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsAddress: crate::value::Dict = addressparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let addressparamsAddressVariable = self.handle_option_string_and_params2(&paramsPaginate, Value::Str("fetchDeposits".into()), Value::Str("address".into()), Value::Str("l1_address".into()), &[]);
+        let mut address: Option<String> = addressparamsAddressVariable.0.as_str().map(str::to_owned);
+        let mut paramsAddress: crate::value::Dict = addressparamsAddressVariable.1;
         if (address.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDeposits() requires an address parameter")));
         }
@@ -4084,7 +4077,7 @@ if _try_result.is_err() {
         let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
+        self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code));
@@ -4145,9 +4138,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
@@ -4167,7 +4160,7 @@ if _try_result.is_err() {
         let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
+        self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code));
@@ -4254,7 +4247,7 @@ if _try_result.is_err() {
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut currencyCode: Option<String> = crate::value::KeyRead::key_read(&&currency, "code").as_str().map(str::to_owned);
         if (currencyCode.as_deref() != Some("USDC")) && (currencyCode.as_deref() != Some("ETH")) {
@@ -4387,9 +4380,9 @@ if _try_result.is_err() {
         if (self.markets == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("next_cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
@@ -4401,7 +4394,7 @@ if _try_result.is_err() {
         let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(accountIndex.clone());
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
+        self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsApiKeyIndex)]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sort_by".to_string(), Value::Str("timestamp".into()));
@@ -4412,9 +4405,9 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params2(&paramsApiKeyIndex, Value::Str("fetchMyTrades".into()), Value::Str("until".into()), Value::Str("from".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
-        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let untilparamsUntilVariable = self.handle_option_integer_and_params2(&paramsApiKeyIndex, Value::Str("fetchMyTrades".into()), Value::Str("until".into()), Value::Str("from".into()), &[]);
+        let mut until: Option<i64> = untilparamsUntilVariable.0;
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.1;
         if (until.is_some()) {
             request.insert("from".into(), Value::from(until));
         }
@@ -4459,8 +4452,8 @@ if _try_result.is_err() {
         let mut data: crate::value::List = self.safe_list_k_t(&response, "trades");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_939: bool = true;
-            while { if !__for_first_939 { i += 1; } __for_first_939 = false; i < (data.len() as i64) } {
+            let mut __for_first_940: bool = true;
+            while { if !__for_first_940 { i += 1; } __for_first_940 = false; i < (data.len() as i64) } {
             add_element_to_object(get_value_mut(&mut data, &Value::Int(i)), &Value::Str("account_index".into()), accountIndex.clone());
         }
         }
@@ -4502,9 +4495,9 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires a symbol argument")));
         }
-        let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_option_string_and_params2(params, Value::Str("setLeverage".into()), Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let marginModeparamsMarginModeVariable = self.handle_option_string_and_params2(params, Value::Str("setLeverage".into()), Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
+        let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
         if (marginMode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires an marginMode parameter")));
         }
@@ -4540,9 +4533,9 @@ if _try_result.is_err() {
         if (marginMode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setMarginMode() requires an marginMode parameter")));
         }
-        let leverageparamsLeverageVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("setMarginMode".into()), Value::Str("leverage".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut leverage: Value = leverageparamsLeverageVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsLeverage: crate::value::Dict = leverageparamsLeverageVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let leverageparamsLeverageVariable = self.handle_option_and_params(params, Value::Str("setMarginMode".into()), Value::Str("leverage".into()), &[]);
+        let mut leverage: Value = leverageparamsLeverageVariable.0;
+        let mut paramsLeverage: crate::value::Dict = leverageparamsLeverageVariable.1;
         if (leverage == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setMarginMode() requires an leverage parameter")));
         }
@@ -4573,7 +4566,7 @@ if _try_result.is_err() {
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
@@ -4624,7 +4617,7 @@ if _try_result.is_err() {
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&paramsAccountIndex, &["client_order_index", "clientOrderId"], &[]);
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsOmitted)]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsOmitted)]).await;
         let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4705,7 +4698,7 @@ if _try_result.is_err() {
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4796,7 +4789,7 @@ if _try_result.is_err() {
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await.as_i64();
         let mut timeInForce: i64 = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
         let mut cancelTime: Value = Value::Int(0);
@@ -4937,7 +4930,7 @@ if _try_result.is_err() {
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
-        let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
+        let mut signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({

@@ -346,10 +346,10 @@ impl crate::exchange::DerivedExchange for Extended {
         let mut maxCost: Option<f64> = self.safe_number_k(&tradingConfig, "maxLimitOrderValue", &[]).as_f64();
         let mut created: Option<i64> = self.safe_integer_k(&market, "createdAt", &[]).as_i64();
         let mut category: Option<String> = self.safe_string_lower_k_opt(&market, "category", &[]);
-        let mut takerFees: Value = (if (category.as_deref() == Some("rwa")) { self.safe_dict_k(self.fees.clone(), "rwa", &[Value::Map({
+        let mut takerFees: Value = (if (category.as_deref() == Some("rwa")) { self.safe_dict_k(&self.fees, "rwa", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) } else { self.fees.clone() });
+})]) } else { Value::Dict(self.fees.clone()) });
         let mut settleId: Option<String> = None;
         let mut settle: Option<String> = None;
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
@@ -393,7 +393,7 @@ impl crate::exchange::DerivedExchange for Extended {
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.safe_number_k(takerFees, "taker", &[]));
-        m.insert("maker".to_string(), self.safe_number_k(self.fees.clone(), "maker", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&self.fees, "maker", &[]));
         m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1658,9 +1658,9 @@ impl Extended {
     m
 }));
         let mut markets: Value = self.super_load_markets(reload.clone(), params).await;
-        let mut currenciesByNumericId: Option<crate::value::Dict> = self.safe_dict_k_o(self.options.clone(), "currenciesByNumericId");
+        let mut currenciesByNumericId: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "currenciesByNumericId");
         if (currenciesByNumericId.is_none()) || reload.as_bool() == Some(true) {
-            { let __be_tmp = self.index_by_stringified_numeric_id(self.currencies.clone()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("currenciesByNumericId".into(), __be_tmp); } }
+            { let __be_tmp = self.index_by_stringified_numeric_id(self.currencies.clone()); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("currenciesByNumericId".into(), __be_tmp); } }
         }
         return markets;
         Value::Null
@@ -1678,8 +1678,8 @@ impl Extended {
         let mut keys: Vec<Value> = Value::Array(input.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_663: bool = true;
-            while { if !__for_first_663 { i += 1; } __for_first_663 = false; i < (keys.len() as i64) } {
+            let mut __for_first_664: bool = true;
+            while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut item: crate::value::Dict = self.safe_dict_t(&input, Value::from(key.as_deref()));
             let mut numericIdString: Option<String> = self.safe_string_k_opt(&item, "numericId", &[]);
@@ -1969,7 +1969,7 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1978,8 +1978,8 @@ impl Extended {
             let mut marketIds: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_664: bool = true;
-                while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_665: bool = true;
+                while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 std::sync::Arc::make_mut(&mut marketIds).push(Value::from((market).id.as_deref()));
             }
@@ -2012,8 +2012,8 @@ impl Extended {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (data.len() as i64) } {
+            let mut __for_first_666: bool = true;
+            while { if !__for_first_666 { i += 1; } __for_first_666 = false; i < (data.len() as i64) } {
             let mut marketData: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&marketData, "name", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -2175,9 +2175,9 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
@@ -2228,8 +2228,8 @@ impl Extended {
         let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_666: bool = true;
-            while { if !__for_first_666 { i += 1; } __for_first_666 = false; i < dataLength } {
+            let mut __for_first_667: bool = true;
+            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -2272,9 +2272,9 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
@@ -2326,8 +2326,8 @@ impl Extended {
         let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < dataLength } {
+            let mut __for_first_668: bool = true;
+            while { if !__for_first_668 { i += 1; } __for_first_668 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -2386,8 +2386,8 @@ impl Extended {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_668: bool = true;
-            while { if !__for_first_668 { i += 1; } __for_first_668 = false; i < (histories.len() as i64) } {
+            let mut __for_first_669: bool = true;
+            while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < (histories.len() as i64) } {
             result.push(self.parse_funding_history(self.safe_dict(&histories, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2449,7 +2449,7 @@ impl Extended {
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("candleType".to_string(), candleType.map(Value::from).unwrap_or(Value::Null));
-                m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+                m.insert("interval".to_string(), self.safe_string(&self.timeframes, timeframe.clone(), &[timeframe.clone()]));
                 m.insert("limit".to_string(), (if (limit != Value::Null) { limit.clone() } else { Value::Int(100) }));
             m
         });
@@ -2512,9 +2512,9 @@ impl Extended {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(10000)]).await;
         }
@@ -2561,8 +2561,8 @@ impl Extended {
         let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_669: bool = true;
-            while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < dataLength } {
+            let mut __for_first_670: bool = true;
+            while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -2610,7 +2610,7 @@ impl Extended {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[]);
+        let mut interval: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[]);
         if !self.in_array(&interval, Value::from(vec![Value::Str("PT1H".into()), Value::Str("P1D".into())])) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOpenInterestHistory() supports 1h and 1d timeframes only")));
         }
@@ -2716,8 +2716,8 @@ impl Extended {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_670: bool = true;
-            while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < (response.len() as i64) } {
+            let mut __for_first_671: bool = true;
+            while { if !__for_first_671 { i += 1; } __for_first_671 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -2848,9 +2848,9 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchLedger".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchLedger".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchLedger".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
@@ -2874,8 +2874,8 @@ impl Extended {
         let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_671: bool = true;
-            while { if !__for_first_671 { i += 1; } __for_first_671 = false; i < dataLength } {
+            let mut __for_first_672: bool = true;
+            while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -2919,9 +2919,9 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTransactions".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTransactions".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchTransactions".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
@@ -2967,8 +2967,8 @@ impl Extended {
         let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_672: bool = true;
-            while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < dataLength } {
+            let mut __for_first_673: bool = true;
+            while { if !__for_first_673 { i += 1; } __for_first_673 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -3172,9 +3172,9 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
@@ -3199,8 +3199,8 @@ impl Extended {
         let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_673: bool = true;
-            while { if !__for_first_673 { i += 1; } __for_first_673 = false; i < dataLength } {
+            let mut __for_first_674: bool = true;
+            while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -3312,7 +3312,7 @@ impl Extended {
         if (assetId.is_none()) {
             return self.safe_string_k_opt(&currency, "code", &[]);
         }
-        let mut currenciesByNumericId: crate::value::Dict = self.safe_dict_k_t(self.options.clone(), "currenciesByNumericId");
+        let mut currenciesByNumericId: crate::value::Dict = self.safe_dict_k_t(&self.options, "currenciesByNumericId");
         let mut currencyByNumericId: Option<crate::value::Dict> = self.safe_dict_o(&currenciesByNumericId, Value::from(assetId));
         if (currencyByNumericId.is_some()) {
             return self.safe_string_k_opt(&currencyByNumericId, "code", &[]);
@@ -3444,8 +3444,8 @@ impl Extended {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_674: bool = true;
-            while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < (data.len() as i64) } {
+            let mut __for_first_675: bool = true;
+            while { if !__for_first_675 { i += 1; } __for_first_675 = false; i < (data.len() as i64) } {
             let mut fee: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut parsed: crate::value::Dict = self.parse_trading_fee(&fee, None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -3705,9 +3705,9 @@ impl Extended {
         if matches!(&symbols, Value::Str(_)) {
             symbolsList = Value::from(vec![symbols]).into_opt_list();
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchPositionsHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchPositionsHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchPositionsHistory".into()), &[symbolsList.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(10000)]).await;
         }
@@ -3754,8 +3754,8 @@ impl Extended {
         let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_675: bool = true;
-            while { if !__for_first_675 { i += 1; } __for_first_675 = false; i < dataLength } {
+            let mut __for_first_676: bool = true;
+            while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -3775,9 +3775,8 @@ impl Extended {
 
 
     pub fn get_extended_stark_amount(&self, mut amount: Value, resolution: Option<i64>, optional_args: &[Value]) -> Value {
-        let mut resolution: Value = resolution.into();
         let roundUp: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let mut resolutionString: Option<String> = self.number_to_string(resolution);
+        let mut resolutionString: Option<String> = self.number_to_string(Value::from(resolution));
         let mut precise: Option<String> = crate::precise::Precise::stringMul(&amount, &resolutionString).as_str().map(str::to_owned);
         let mut result: Option<String> = self.decimal_to_precision(precise.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::NO_PADDING)]).as_str().map(str::to_owned);
         if roundUp && crate::precise::Precise::stringGt(&precise, &result).as_bool() == Some(true) {
@@ -3793,9 +3792,9 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut cachedAccount: Option<crate::value::Dict> = self.safe_dict_k_o(self.options.clone(), "account");
+        let mut cachedAccount: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "account");
         if (cachedAccount.is_some()) {
-            return self.safe_dict_k(self.options.clone(), "account", &[Value::Map({
+            return self.safe_dict_k(&self.options, "account", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3804,8 +3803,8 @@ impl Extended {
         { let __be_tmp = self.safe_dict_k(&accountData, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("account".into(), __be_tmp); } }
-        return self.safe_dict_k(self.options.clone(), "account", &[Value::Map({
+})]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("account".into(), __be_tmp); } }
+        return self.safe_dict_k(&self.options, "account", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3814,9 +3813,6 @@ impl Extended {
 }
 
     pub fn create_order_settlement_data(&self, isBuy: bool, amountString: &str, priceString: &str, optional_args: &[Value]) -> Value {
-        let mut isBuy: Value = isBuy.into();
-        let mut amountString: Value = amountString.into();
-        let mut priceString: Value = priceString.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3830,12 +3826,12 @@ impl Extended {
         let mut collateralId: Option<String> = self.safe_string_k_opt(&params, "collateralId", &[]);
         let mut syntheticResolution: Option<i64> = self.safe_integer_k(&params, "syntheticResolution", &[]).as_i64();
         let mut collateralResolution: Option<i64> = self.safe_integer_k(params, "collateralResolution", &[]).as_i64();
-        let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
-        let mut baseRoundUp: bool = isBuy.as_bool().unwrap_or_default();
-        let mut quoteRoundUp: bool = isBuy.as_bool().unwrap_or_default();
-        let mut baseAmount: Option<String> = self.get_extended_stark_amount(amountString, syntheticResolution, &[Value::Bool(baseRoundUp)]).as_str().map(str::to_owned);
+        let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(amountString), &Value::from(priceString)).as_str().map(str::to_owned);
+        let mut baseRoundUp: bool = Some(isBuy).unwrap_or_default();
+        let mut quoteRoundUp: bool = Some(isBuy).unwrap_or_default();
+        let mut baseAmount: Option<String> = self.get_extended_stark_amount(Value::from(amountString), syntheticResolution, &[Value::Bool(baseRoundUp)]).as_str().map(str::to_owned);
         let mut collateralAmount: Option<String> = self.get_extended_stark_amount(quoteAmount.clone().map(Value::from).unwrap_or(Value::Null), collateralResolution, &[Value::Bool(quoteRoundUp)]).as_str().map(str::to_owned);
-        if isBuy.as_bool() == Some(true) {
+        if Some(isBuy) == Some(true) {
             collateralAmount = crate::precise::Precise::stringNeg(&collateralAmount).as_str().map(str::to_owned);
         }  else {
             baseAmount = crate::precise::Precise::stringNeg(&baseAmount).as_str().map(str::to_owned);
@@ -4008,7 +4004,7 @@ impl Extended {
         let mut builderFeeRate: Option<String> = None;
         let mut builderId: Option<String> = None;
         let mut paramsBuilder: crate::value::Dict = params.clone().into_dict();
-        let mut builderEnabled: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(false)]).unwrap_or(false);
+        let mut builderEnabled: bool = self.safe_bool_k_opt(&self.options, "builderFee", &[Value::Bool(false)]).unwrap_or(false);
         if builderEnabled {
             if self.isSandboxModeEnabled.as_bool() == Some(true) {
                 builderFeeRate = self.safe_string2_opt(&params, Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), &[]);
@@ -4016,8 +4012,8 @@ impl Extended {
                 paramsBuilder = self.omit_t(params.clone(), &["builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"], &[]);
             }  else {
                 let mut paramsBuilderFeeRate: crate::value::Dict = Default::default();
-                { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("builderFeeRate".into()), &[Value::Str("0.0001".into())]).into_list(); builderFeeRate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilderFeeRate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-                { let __destr_tmp = self.handle_option_string_and_params(&paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]).into_list(); builderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilder = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+                { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("builderFeeRate".into()), &[Value::Str("0.0001".into())]); builderFeeRate = __destr_tmp.0.as_str().map(str::to_owned); paramsBuilderFeeRate = __destr_tmp.1; }
+                { let __destr_tmp = self.handle_option_string_and_params(&paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]); builderId = __destr_tmp.0.as_str().map(str::to_owned); paramsBuilder = __destr_tmp.1; }
             }
         }
         let mut totalFee: Option<String> = Some(fee.clone());
@@ -4769,9 +4765,9 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
@@ -4827,8 +4823,8 @@ impl Extended {
         let mut dataLength: i64 = data.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_676: bool = true;
-            while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < dataLength } {
+            let mut __for_first_677: bool = true;
+            while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < dataLength } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
@@ -4980,7 +4976,7 @@ impl Extended {
         if isTestnet {
             defaultChainId = "SN_SEPOLIA".to_string();
         }
-        let mut chainId: Option<String> = self.safe_string_k_opt(self.options.clone(), "chainId", &[Value::from(defaultChainId)]);
+        let mut chainId: Option<String> = self.safe_string_k_opt(&self.options, "chainId", &[Value::from(defaultChainId)]);
         return self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements(Value::from(vec![domainTypeHash, self.get_extended_string_to_felt("Perpetuals"), self.get_extended_string_to_felt("v0"), self.get_extended_string_to_felt(chainId.as_deref().unwrap_or_default()), self.convert_to_big_int(Value::Str("1".into()))])));
 
     Value::Null

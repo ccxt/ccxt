@@ -130,7 +130,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (query.is_some()) || (queriesLength > 0) || (tagsLength > 0) || (eventId.is_some()) || (slug.is_some()) {
             return Value::Null;
         }
-        let mut extraScopeParams: crate::value::List = self.safe_list_k_t(self.options.clone(), "eventScopeParams");
+        let mut extraScopeParams: crate::value::List = self.safe_list_k_t(&self.options, "eventScopeParams");
         let mut extraScopeParamsLength: i64 = extraScopeParams.len() as i64;
         let mut extraNames: String = "".to_string();
         {
@@ -961,7 +961,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             let mut missingLength: i64 = missing.len() as i64;
             let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
-            let mut loadAll: bool = self.safe_bool_k_opt(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
+            let mut loadAll: bool = self.safe_bool_k_opt(&self.options, "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
             if (missingLength > 0) && loadAll && !wasWarm && !(reload.as_bool() == Some(true)) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
@@ -1048,7 +1048,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     return self.safe_outcome(outcomeSymbol.clone(), None);
                 }
             }
-            let mut loadAll: bool = self.safe_bool_k_opt(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
+            let mut loadAll: bool = self.safe_bool_k_opt(&self.options, "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
             if loadAll && !wasWarm {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
@@ -1139,7 +1139,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // token id) override this with a cheaper single fetch and fall back to super on a miss.
         let mut searchQuery: Option<String> = self.outcome_search_query(outcomeSymbol.clone()).as_str().map(str::to_owned);
         if (searchQuery.is_some()) && matches!(self.safe_bool_k(self.has.clone(), "fetchEvents", &[Value::Bool(false)]), Value::Bool(true)) {
-            let mut searchLimit: i64 = self.safe_integer_k(self.options.clone(), "fetchOutcomeSearchLimit", &[Value::Int(10)]).as_i64().unwrap_or(10);
+            let mut searchLimit: i64 = self.safe_integer_k(&self.options, "fetchOutcomeSearchLimit", &[Value::Int(10)]).as_i64().unwrap_or(10);
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 if let Err(__e) = self.fetch_events(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1809,7 +1809,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
         // when the option is undeclared (it is for every prediction exchange)
-        if matches!(self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketBuyOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
+        if matches!(self.safe_bool_k(&self.options, "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketBuyOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
             return crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketBuyOrderWithCost() is not supported yet")));
@@ -1838,7 +1838,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if matches!(self.safe_bool_k(self.options.clone(), "createMarketSellOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketSellOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
+        if matches!(self.safe_bool_k(&self.options, "createMarketSellOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketSellOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
             return crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketSellOrderWithCost() is not supported yet")));
@@ -2115,7 +2115,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("label".to_string(), self.safe_string_k(&outcomeOrder, "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(&outcomeOrder, "market", &[]));
                 m.insert("event".to_string(), self.safe_string_k(&outcomeOrder, "event", &[]));
-                m.insert("info".to_string(), self.safe_value_k(&outcomeOrder, "info", &[outcomeOrder.clone()]));
+                m.insert("info".to_string(), self.safe_value_k(outcomeOrder.clone(), "info", &[outcomeOrder]));
             m
         });
         return Value::Map(result);
@@ -2155,7 +2155,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("outcomeId".to_string(), self.safe_string_k(&trade, "outcomeId", &[]));
                 m.insert("label".to_string(), self.safe_string_k(&trade, "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(&trade, "market", &[]));
-                m.insert("info".to_string(), self.safe_value_k(&trade, "info", &[trade.clone()]));
+                m.insert("info".to_string(), self.safe_value_k(trade.clone(), "info", &[trade]));
             m
         });
         return Value::Map(result);
@@ -2212,7 +2212,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("label".to_string(), self.safe_string_k(&ticker, "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(&ticker, "market", &[]));
                 m.insert("event".to_string(), self.safe_string_k(&ticker, "event", &[]));
-                m.insert("info".to_string(), self.safe_value_k(&ticker, "info", &[ticker.clone()]));
+                m.insert("info".to_string(), self.safe_value_k(ticker.clone(), "info", &[ticker]));
             m
         });
         return Value::Map(result);
@@ -2253,7 +2253,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("label".to_string(), self.safe_string_k(&position, "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(&position, "market", &[]));
                 m.insert("event".to_string(), self.safe_string_k(&position, "event", &[]));
-                m.insert("info".to_string(), self.safe_value_k(&position, "info", &[position.clone()]));
+                m.insert("info".to_string(), self.safe_value_k(position.clone(), "info", &[position]));
             m
         });
         return Value::Map(result);

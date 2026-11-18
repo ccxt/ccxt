@@ -49,8 +49,7 @@ impl Indodax {
 
 impl crate::exchange::DerivedExchange for Indodax {
     fn nonce(&self) -> Value {
-        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(self.options.clone(), "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        return (match (&(Value::Int(self.milliseconds())), &(self.safe_integer_k(&self.options, "timeDifference", &[Value::Int(0)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
 
     Value::Null
 }
@@ -247,8 +246,8 @@ impl crate::exchange::DerivedExchange for Indodax {
         let mut currencyIds: Vec<Value> = Value::Array(free.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_841: bool = true;
-            while { if !__for_first_841 { i += 1; } __for_first_841 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_842: bool = true;
+            while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -378,7 +377,7 @@ impl crate::exchange::DerivedExchange for Indodax {
     let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::from(path));
         m.insert("timestamp".to_string(), <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-        m.insert("recvWindow".to_string(), crate::value::get_value_k(&self.options, "recvWindow"));
+        m.insert("recvWindow".to_string(), self.options.get("recvWindow").cloned().unwrap_or(Value::Null));
     m
 }), &[params]);
             privateBody = Some(self.urlencode(__ws_arg_14, &[]));
@@ -386,7 +385,7 @@ impl crate::exchange::DerivedExchange for Indodax {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(privateBody.as_deref())), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
+                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(privateBody.as_deref())), self.encode(&self.secret), Value::Str("sha512".into()), &[])));
                 m
             }));
         }
@@ -1008,8 +1007,8 @@ impl Indodax {
         let mut rawMarkets: crate::value::List = self.to_array_t(&response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_840: bool = true;
-            while { if !__for_first_840 { i += 1; } __for_first_840 = false; i < (rawMarkets.len() as i64) } {
+            let mut __for_first_841: bool = true;
+            while { if !__for_first_841 { i += 1; } __for_first_841 = false; i < (rawMarkets.len() as i64) } {
             let mut market: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "traded_currency", &[]);
@@ -1263,8 +1262,8 @@ impl Indodax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_842: bool = true;
-            while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (keys.len() as i64) } {
+            let mut __for_first_843: bool = true;
+            while { if !__for_first_843 { i += 1; } __for_first_843 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut rawTicker: crate::value::Dict = tickers.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = (if let Some(__s) = key.as_deref() { Some(__s.replace("_", "")) } else { None });
@@ -1350,7 +1349,7 @@ impl Indodax {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut selectedTimeframe: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut selectedTimeframe: Option<String> = self.safe_string_opt(&self.timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut now: i64 = self.seconds();
         let mut until: Option<i64> = self.safe_integer_k(&params, "until", &[Value::from(now)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, &["until"], &[]);
@@ -1504,8 +1503,8 @@ impl Indodax {
         let mut exchangeOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_843: bool = true;
-            while { if !__for_first_843 { i += 1; } __for_first_843 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_844: bool = true;
+            while { if !__for_first_844 { i += 1; } __for_first_844 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut marketOrders: Value = ordersDict.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             market = Some(self.safe_market(Value::from(marketId.as_deref()), None, &[]));
@@ -1945,8 +1944,8 @@ impl Indodax {
             let mut withdrawKeys: Vec<Value> = Value::Array(withdraw.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_844: bool = true;
-                while { if !__for_first_844 { i += 1; } __for_first_844 = false; i < (withdrawKeys.len() as i64) } {
+                let mut __for_first_845: bool = true;
+                while { if !__for_first_845 { i += 1; } __for_first_845 = false; i < (withdrawKeys.len() as i64) } {
                 let mut key: Option<&str> = withdrawKeys.get(i as usize).and_then(Value::as_str);
                 transactions = self.array_concat_t(Value::Arr(transactions), withdraw.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
@@ -1954,8 +1953,8 @@ impl Indodax {
             let mut depositKeys: Vec<Value> = Value::Array(deposit.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_845: bool = true;
-                while { if !__for_first_845 { i += 1; } __for_first_845 = false; i < (depositKeys.len() as i64) } {
+                let mut __for_first_846: bool = true;
+                while { if !__for_first_846 { i += 1; } __for_first_846 = false; i < (depositKeys.len() as i64) } {
                 let mut key: Option<&str> = depositKeys.get(i as usize).and_then(Value::as_str);
                 transactions = self.array_concat_t(Value::Arr(transactions), deposit.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
@@ -2105,8 +2104,8 @@ impl Indodax {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_847: bool = true;
-            while { if !__for_first_847 { i += 1; } __for_first_847 = false; i < (addressKeys.len() as i64) } {
+            let mut __for_first_848: bool = true;
+            while { if !__for_first_848 { i += 1; } __for_first_848 = false; i < (addressKeys.len() as i64) } {
             let mut marketId: Option<&str> = addressKeys.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(Value::from(marketId.as_deref()), None);
             let mut address: Option<String> = self.safe_string_opt(&addresses, Value::from(marketId.as_deref()), &[]);
@@ -2126,8 +2125,8 @@ impl Indodax {
                         let mut networkIds: Vec<Value> = Value::Array(if let Some(__s) = networkId.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
-                            let mut __for_first_846: bool = true;
-                            while { if !__for_first_846 { j += 1; } __for_first_846 = false; j < (networkIds.len() as i64) } {
+                            let mut __for_first_847: bool = true;
+                            while { if !__for_first_847 { j += 1; } __for_first_847 = false; j < (networkIds.len() as i64) } {
                             let mut _netIdTmp: Value = Value::from(self.network_id_to_code(&[networkIds.get(j as usize).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
                             if (_netIdTmp != Value::Null) {
                                 if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); };

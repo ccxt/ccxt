@@ -30,13 +30,13 @@ pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
     let mut limitsArray: Value = Value::from(vec![Value::Null, Value::Int(50), Value::Int(25000)]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1586: bool = true;
-        while { if !__for_first_1586 { i += 1; } __for_first_1586 = false; i < (sinceArray.len() as i64) } {
+        let mut __for_first_1587: bool = true;
+        while { if !__for_first_1587 { i += 1; } __for_first_1587 = false; i < (sinceArray.len() as i64) } {
         let mut sinceCurrent: Value = sinceArray.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1585: bool = true;
-            while { if !__for_first_1585 { j += 1; } __for_first_1585 = false; j < (limitsArray.len() as i64) } {
+            let mut __for_first_1586: bool = true;
+            while { if !__for_first_1586 { j += 1; } __for_first_1586 = false; j < (limitsArray.len() as i64) } {
             let mut limit: Value = limitsArray.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
             let mut ohlcvs: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![symbol.clone(), chosenTimeframeKey.clone(), sinceCurrent.clone(), limit.clone()]).await;
             // we can't expect array to have values, because requested period might have zero bars for valid reason
@@ -60,8 +60,8 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
     let mut now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1587: bool = true;
-        while { if !__for_first_1587 { i += 1; } __for_first_1587 = false; i < (ohlcvs.len() as i64) } {
+        let mut __for_first_1588: bool = true;
+        while { if !__for_first_1588 { i += 1; } __for_first_1588 = false; i < (ohlcvs.len() as i64) } {
         testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }
@@ -83,8 +83,8 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
     }
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1588: bool = true;
-        while { if !__for_first_1588 { i += 1; } __for_first_1588 = false; i < barsLength } {
+        let mut __for_first_1589: bool = true;
+        while { if !__for_first_1589 { i += 1; } __for_first_1589 = false; i < barsLength } {
         let mut ohlcv: Value = ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let mut barTs: Value = get_value(&ohlcv, &Value::Int(0));
         // if this is the first bar, then ensure its timestamp is not earlier than requested "since"
