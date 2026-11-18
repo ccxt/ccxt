@@ -11494,6 +11494,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     }
     content = path.endsWith ('.go') ? goTypedRecvLocals (content) : content;  // after every pass keyed on `x := rN.Value`
     content = path.endsWith ('.go') ? goTypedNilFoldLocals (content) : content;
+    content = path.endsWith ('.go') ? goTypedEndpointNilLocals (content) : content;
     // gofmt's block/blank/table layout, once, on the text every pass above has finished
     content = path.endsWith ('.go') ? goGofmtLayout (content, goCompositeKeyAligner ()) : content;
     overwriteFile (path, content);
@@ -11588,6 +11589,83 @@ function goTypedNilFoldLocals (content: string): string {
         edits.push ({ start, 'end': m.index + m[0].length, 'text': ind + 'var ' + name + ' ' + type + ' = ' + content.substring (m.index + m[0].lastIndexOf ('= ') + 2, m.index + m[0].lastIndexOf ('\n')) });
     }
     return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+// `var x any = nil` whose every write is `x = rN.Raw` of one typed endpoint stub (map/list T): x is T and the writes read
+// Value. Uses: nil tests, nil-tolerant reader first args, or anything after a same-block `if x == nil { panic(` guard.
+function goTypedEndpointNilLocals (content: string): string {
+    if (!/\n\t+\w+ = r\d*\.Raw\n/.test (content)) {
+        return content;
+    }
+    const masked = goChanMask (content);
+    const re = /\n(\t+)var (\w+) any = nil(?=\n)/g;
+    const edits: Edit[] = [];
+    for (let m = re.exec (masked); m !== null; m = re.exec (masked)) {
+        const [ ind, name ] = [ m[1], m[2] ];
+        const [ fs0, fe0 ] = goChan3Func (masked, m.index + 1);
+        const fn = masked.substring (fs0, fe0);
+        const recv = goChan3EnclosingReceiver (masked, m.index + 1);
+        const writes = [ ...fn.matchAll (new RegExp ('\\n\\t+' + name + ' = ([^\\n]*)', 'g')) ];
+        if ((recv === undefined) || !writes.length || ((fn.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length !== 1)) {
+            continue;
+        }
+        const types = new Set<string | undefined> ();
+        for (const w of writes) {
+            const r = /^(r\d*)\.Raw$/.exec (w[1]);
+            const binds = (r === null) ? [] : (fn.match (new RegExp ('\\n\\t+' + r[1] + ' := <-this\\.(\\w+)\\(', 'g')) || []);
+            const rWrites = (r === null) ? [] : (fn.match (new RegExp ('(?<![\\w.])' + r[1] + '(?:\\s*,\\s*\\w+)*\\s*:?=(?!=)', 'g')) || []);
+            const s = ((binds.length === 1) && (rWrites.length === 1)) ? goChan3ReceiverStubs ().get (recv + '.' + /<-this\.(\w+)\($/.exec (binds[0])[1]) : undefined;
+            types.add (((s !== undefined) && (s[0] === 'E')) ? s.substring (2) : undefined);
+        }
+        const type = (types.size === 1) ? [ ...types ][0] : undefined;
+        if ((type !== 'map[string]any') && (type !== '[]any')) {
+            continue;
+        }
+        const declEnd = m.index + m[0].length - fs0;
+        const guard = new RegExp ('\\n' + ind + 'if ' + name + ' == nil \\{\\n' + ind + '\\tpanic\\(').exec (fn.substring (declEnd));
+        const guardAt = (guard === null) ? -1 : declEnd + guard.index;
+        const lastWrite = writes[writes.length - 1].index;
+        const guarded = (guardAt > lastWrite) && !fn.substring (declEnd, guardAt).split ('\n').some ((l) => (l.length > 0) && !l.startsWith (ind));
+        const use = new RegExp ('(?<![\\w.&])' + name + '\\b', 'g');
+        let safe = true;
+        for (let u = use.exec (fn); safe && (u !== null); u = use.exec (fn)) {
+            const lead = fn.substring (fn.lastIndexOf ('\n', u.index) + 1, u.index);
+            const before = fn.substring (Math.max (0, u.index - 60), u.index);
+            const after = fn.substring (u.index + name.length, u.index + name.length + 8);
+            if ((u.index === m.index + 1 + ind.length + 4 - fs0) || (/^\t+$/.test (lead) && / = r\d*\.Raw\n/.test (fn.substring (u.index + name.length, fn.indexOf ('\n', u.index) + 1)))) {
+                continue;
+            }
+            const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
+            const nilTest = /^ [!=]= nil\b/.test (after) && !/IsEqual\($/.test (before);
+            const handOff = guarded && (u.index > guardAt) && /^[,)]/.test (after) && (reader !== null || /, $/.test (before));
+            safe = nilTest || handOff || ((reader !== null) && GO_NIL_FOLD_READERS.test (reader[1]) && /^[,)]/.test (after));
+        }
+        if (!safe || new RegExp ('&' + name + '\\b|' + name + '\\s*[-+*/]=').test (fn)) {
+            continue;
+        }
+        edits.push ({ 'start': m.index + 1 + ind.length, 'end': m.index + m[0].length, 'text': 'var ' + name + ' ' + type + ' = nil' });
+        for (const w of writes) {
+            const at = fs0 + w.index + w[0].length - 3;
+            edits.push ({ 'start': at, 'end': at + 3, 'text': 'Value' });
+        }
+    }
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+function goTypedEndpointNilLocalsCheck (ok: SelfTestOk): void {
+    const stubs = new Map ([ [ 'Zz.PubGetM', 'E:map[string]any' ], [ 'Zz.PubGetL', 'E:[]any' ] ]);
+    const saved = GO_CHAN3_RECV_STUBS;
+    goChan3SetReceiverStubsForTest (stubs);
+    const recv = (r: string, call: string) => '\t\t' + r + ' := <-this.' + call + '(p)\n\t\tif ' + r + '.Err != nil {\n\t\t\tpanic(' + r + '.Err)\n\t\t}\n';
+    const fn = (x: string, c1: string, c2: string, tail: string) => 'func (this *Zz) f' + x + '(p any) any {\n\tvar ' + x + ' any = nil\n\tif p == nil {\n' + recv ('r', c1) + '\t\t' + x + ' = r.Raw\n\t} else {\n' + recv ('r1', c2) + '\t\t' + x + ' = r1.Raw\n\t}\n' + tail + '}\n';
+    const src = 'package ccxt\n\n' + fn ('a', 'PubGetM', 'PubGetM', '\tif a == nil {\n\t\tpanic(NullResponse(\"x\"))\n\t}\n\treturn this.ParseOrder(a)\n') +
+        fn ('b', 'PubGetM', 'PubGetL', '\treturn this.SafeString(b, \"k\")\n') + fn ('c', 'PubGetL', 'PubGetL', '\treturn this.ParseOrders(c)\n') + fn ('d', 'PubGetL', 'PubGetL', '\treturn GetArrayLength(d)\n');
+    const out = goTypedEndpointNilLocals (src);
+    goChan3SetReceiverStubsForTest (saved);
+    ok (out.includes ('\tvar a map[string]any = nil\n') && out.includes ('\t\ta = r1.Value\n'), 'guarded map endpoint local typed: ' + out);
+    ok (out.includes ('\tvar b any = nil\n') && out.includes ('\t\tb = r1.Raw\n'), 'mixed stubs kept: ' + out);
+    ok (out.includes ('\tvar c any = nil\n'), 'unguarded hand-off kept: ' + out);
+    ok (out.includes ('\tvar d []any = nil\n') && out.includes ('\t\td = r.Value\n'), 'reader-only list local typed: ' + out);
 }
 
 function goTypedNilFoldLocalsCheck (ok: SelfTestOk): void {
@@ -15055,7 +15133,7 @@ async function runMain () {
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, goSafeStringPtrHoistCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
-            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goTernaryAnyTypedCheck
+            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goTernaryAnyTypedCheck
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
