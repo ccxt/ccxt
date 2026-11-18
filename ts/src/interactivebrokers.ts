@@ -1382,22 +1382,6 @@ export default class interactivebrokers extends Exchange {
         return result;
     }
 
-    async secdefEnpointCall (secdefRequest: Dict) {
-        const retries = this.safeInteger (this.options['fetchMarkets'], 'endpointRetries', 3);
-        const lastRetryIndex = retries - 1;
-        for (let i = 0; i < retries; i++) {
-            const isLastRetry = (i >= lastRetryIndex);
-            try {
-                return await this.webapiGetV1ApiTrsrvSecdef (secdefRequest);
-            } catch (e) {
-                if (isLastRetry) {
-                    throw e;
-                }
-            }
-        }
-        return undefined;
-    }
-
     async fetchSecWithDetails (plainEntries: Dict) {
         const detailIds = Object.keys (plainEntries);
         const entries: Dict[] = [];
@@ -1921,6 +1905,22 @@ export default class interactivebrokers extends Exchange {
         }
         const markets = await this.fetchSecWithDetails (entries);
         return this.parseMarkets (markets);
+    }
+
+    async secdefEnpointCall (secdefRequest: Dict) {
+        const retries = this.safeInteger (this.options['fetchMarkets'], 'endpointRetries', 3);
+        const lastRetryIndex = retries - 1;
+        for (let i = 0; i < retries; i++) {
+            const isLastRetry = (i >= lastRetryIndex);
+            try {
+                return await this.webapiGetV1ApiTrsrvSecdef (secdefRequest);
+            } catch (e) {
+                if (isLastRetry) {
+                    throw e;
+                }
+            }
+        }
+        return undefined;
     }
 
     override parseMarket (market: Dict): Market {
