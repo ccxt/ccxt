@@ -16030,8 +16030,15 @@ export function goTypedShapeHelpers (content: string, qual: string): string {
         }) as any);
         fn = fn.replace (call ('GetArrayLength'), ((m: string, xp: string, xb: string) => ([ '[]any', '[]string', 'string' ].includes (typeOf (xp || xb)) ? 'len(' + (xp || xb) + ')' : m)) as any);
         // derefScalar folds a nil []any/[]string to nil (false); a map is never an array
+        // an `any` local whose only write is a struct-to-map call holds a map (never an array)
+        const structMapLocal = (x: string): boolean => (typeOf (x) === 'any')
+            && new RegExp ('\\n\\t*var ' + x + ' any = (?:ccxt\\.)?(?:' + GO_PROVEN_STRUCT_TO_MAP_CALLS.join ('|') + '|LedgerEntryToMap)\\(').test (fn)
+            && !new RegExp ('(?<![.\\w])' + x + ' = ').test (fn);
         fn = fn.replace (new RegExp ('(!?)' + call ('IsArray').source, 'g'), ((m: string, not: string, xp: string, xb: string) => {
             const x = xp || xb;
+            if (structMapLocal (x)) {
+                return not ? 'true' : 'false';
+            }
             if (not && [ '[]any', '[]string' ].includes (typeOf (x))) {
                 return '(' + x + ' == nil)';
             }
@@ -16067,6 +16074,8 @@ function goTypedShapeHelpersSelfTest (ok: SelfTestOk): void {
     ok (f ('', '\tvar b []any = nil\n\tb2 := &b\n\t_ = b2\n\tif IsArray(b) {\n\t}\n').includes ('IsArray(b)'), 'address-taken keeps helper');
     ok (f ('', '\tvar q string\n\tq = F()\n\tif GetLength(q) != 0 {\n\t}\n').includes ('len(q) != 0'), 'uninitialised string decl');
     ok (f ('', '\tvar b []any = nil\n\tfn := func(b any) { _ = IsArray(b) }\n\t_ = fn\n').includes ('IsArray(b)'), 'shadowing closure keeps helper');
+    ok (f ('', '\tvar e any = LedgerEntryToMap(this.P(x))\n\tif IsArray(e) {\n\t}\n').includes ('if false {'), 'struct-to-map local IsArray');
+    ok (f ('', '\tvar e any = TradeToMap(this.P(x))\n\te = this.Extend(e, p)\n\tif IsArray(e) {\n\t}\n').includes ('IsArray(e)'), 'rewritten struct-to-map local keeps helper');
 }
 
 // ===== GetValue(m, k) -> m[k] as a deref-at-entry argument =====
