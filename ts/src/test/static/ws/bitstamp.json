@@ -327,6 +327,7 @@
         "watchOrderBook": [
             {
                 "description": "synthetic snapshot between delta timestamps replays deletion before lower ask",
+                "disabledRS": "Rust ws_load_order_book dispatches handle_deltas instead of Bitstamp's handle_book_deltas; changing the dispatch alone still fails replay (https://github.com/ccxt/ccxt/pull/31205#discussion_r4575556363)",
                 "input": [
                     "ETH/USDT"
                 ],
@@ -471,6 +472,7 @@
             },
             {
                 "description": "synthetic prices with captured add then delete timestamps remove stale level",
+                "disabledRS": "Rust ws_load_order_book dispatches handle_deltas instead of Bitstamp's handle_book_deltas; changing the dispatch alone still fails replay (https://github.com/ccxt/ccxt/pull/31205#discussion_r4575556363)",
                 "input": [
                     "ETH/USDT"
                 ],

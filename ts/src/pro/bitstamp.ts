@@ -180,7 +180,8 @@ export default class bitstamp extends bitstampRest {
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cache: any[] = storedOrderBook.cache;
-            const cacheLength = cache.length;
+            const cacheLengthRaw = cache.length;
+            const cacheLength = this.parseToInt (cacheLengthRaw);
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             const snapshotDelay = this.parseToInt (this.handleOption ('watchOrderBook', 'snapshotDelay', 6));
@@ -223,6 +224,18 @@ export default class bitstamp extends bitstampRest {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name bitstamp#handleBookDeltas
+     * @description replays buffered updates through the Bitstamp delta handler
+     */
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any[]) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleBookDelta (orderbook, this.safeDict (deltas, i));
         }
     }
 
