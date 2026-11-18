@@ -99,6 +99,15 @@ public partial class BaseExchange
             return sections["api"] as IDictionary<string, object>;
         }
     }
+    // exceptions['ws'] / options['ws']: read live, null when absent or not a dictionary
+    public IDictionary<string, object> exceptionsWs
+    {
+        get { var d = this.exceptions; return (d != null && d.ContainsKey("ws")) ? d["ws"] as IDictionary<string, object> : null; }
+    }
+    public IDictionary<string, object> optionsWs
+    {
+        get { var d = this.options; return (d != null && d.ContainsKey("ws")) ? d["ws"] as IDictionary<string, object> : null; }
+    }
     // urls['api'] entries that are themselves dictionaries, so urlsApi['ws'] indexes as a map.
     // urls is written at config time only; RefreshUrlsViews re-derives this at every such write.
     public Dictionary<string, IDictionary<string, object>> urlsApiSections { get; private set; } = new Dictionary<string, IDictionary<string, object>>();

@@ -38,7 +38,7 @@ public partial class BaseExchange
 
     public LighterSigner.Signer lighterCreateClient(object signer, object chainId, object privateKey, object apiKeyIndex, object accountIndex)
     {
-        string url = (string)this.implodeHostname(getValue(getValue(this.urls, "api"), "public"));
+        string url = (string)this.implodeHostname((this.urlsApi != null && this.urlsApi.ContainsKey("public") ? this.urlsApi["public"] : null));
         ((LighterSigner.Signer)signer).CreateClient(
             url,
             (string)privateKey,

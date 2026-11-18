@@ -357,7 +357,7 @@ public partial class Exchange
         Exception error = null;
         try
         {
-            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
+            var stored = this.getOrderBook(this.orderbooks, symbol);
             while (isLessThan(tries, maxRetries))
             {
                 var cache = stored.cache;
