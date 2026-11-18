@@ -15506,7 +15506,7 @@ function goAddStringLocals (fn: string, masked: string, fileMasked: string): Set
         const otherParam = new RegExp ('[(,]\\s*' + name + ' (?!string[,)])').test (signature);
         if (!decls && !shorts && !lits && !global && !otherParam) { out.add (name); }
     }
-    goStringPointerLocals (masked, fileMasked).forEach ((n: string) => { out.add ('*' + n); if (goNonNilStringPtr (fn, n)) { out.add ('!' + n); } });
+    goStringPointerLocals (masked, fileMasked).forEach ((n: string) => { out.add ('*' + n); if (goNonNilStringPtr (fn, n) || goAddNonNilProducerPtr (fn, n, fileMasked)) { out.add ('!' + n); } });
     goRowStringLocals (fn, masked, fileMasked).forEach ((n: string) => { out.add (n); });
     goAddIntLocals (masked, fileMasked).forEach ((n: string) => { out.add ('#i:' + n); });
     return out;
@@ -18311,6 +18311,13 @@ function goStringAddLeafSelfTest (ok: SelfTestOk): void {
     ok (g ('\tif s == nil {\n\t\treturn nil\n\t}\n\tfor {\n\t\tx = Add("a", s)\n\t\ts = this.SafeString(p, "j")\n\t}\n').indexOf ('Add("a", s)') >= 0, 'loop write after the read keeps Add');
     ok (g ('\tif s == nil {\n\t\treturn nil\n\t}\n\tvar q any = &s\n\treturn Add("a", s)\n').indexOf ('Add("a", s)') >= 0, 'address taken keeps Add');
     ok (formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f(s *string) any {\n\treturn Add("a", *s)\n}\n').indexOf ('"a" + *s') >= 0, 'wired through formatGoSource');
+    const acct = 'func (this *X) ParseAccountType(account string) *string {\n\tvar m map[string]any = map[string]any{}\n\treturn this.SafeString(m, account, account)\n}\n\n';
+    ok (f ('\tvar a *string = this.ParseAccountType(x)\n\treturn Add("a", a)\n', 'x string', acct).indexOf ('return "a" + *a') >= 0, 'string-defaulted producer derefs');
+    ok (f ('\tvar a *string = this.ParseAccountType(x)\n\treturn Add("a", a)\n', 'x string', acct.replace ('account, account)', 'account)')).indexOf ('Add("a", a)') >= 0, 'producer without default keeps Add');
+    ok (f ('\tvar a *string = this.ParseAccountType(x)\n\treturn Add("a", a)\n', 'x *string', acct.replace (/account string/, 'account *string')).indexOf ('Add("a", a)') >= 0, '*string default keeps Add');
+    ok (f ('\tvar t *string = this.Iso8601(this.Milliseconds())\n\treturn Add(t, "\\n")\n').indexOf ('return *t + "\\n"') >= 0, 'Iso8601 of the clock derefs');
+    ok (f ('\tvar t *string = this.Iso8601(this.Nonce())\n\treturn Add(t, "\\n")\n').indexOf ('Add(t, "\\n")') >= 0, 'Iso8601 of Nonce keeps Add');
+    ok (f ('\tvar t *string = this.Iso8601(this.Milliseconds())\n\treturn Add(t, "\\n")\n', '', 'func (this *X) Milliseconds() int64 {\n\treturn -1\n}\n\n').indexOf ('Add(t, "\\n")') >= 0, 'overridden clock keeps Add');
 }
 
 // exchange_generated.go / exchange_prediction.go bypass formatGoSource: run its typed-receiver native passes on them
@@ -18489,6 +18496,27 @@ function goRowStringLocals (fn: string, masked: string, fileMasked: string): Set
         }
     }
     return out;
+}
+
+// a `*string` local whose every write is a producer that cannot return nil: Iso8601 of the clock
+// (always in range), or a same-receiver method whose every return is SafeString with a `string` default
+function goAddNonNilProducerPtr (fn: string, name: string, fileMasked: string): boolean {
+    const writes = fn.match (new RegExp ('(?<![.\\w*])(?:var ' + name + ' \\*string|' + name + ') = ([^\\n]*)', 'g')) || [];
+    const recv = /^\s*func \(\w+ (\*\w+)\)/.exec (fn);
+    const own = (m: string) => new RegExp ('^func \\(\\w+ \\*\\w+\\) ' + m + '\\(', 'm').test (fileMasked);
+    const nonNil = (rhs: string): boolean => {
+        if (rhs === 'this.Iso8601(this.Milliseconds())') { return !own ('Iso8601') && !own ('Milliseconds'); }
+        const call = /^this\.(\w+)\([^()]*\)$/.exec (rhs);
+        if (call === null || recv === null) { return false; }
+        const def = new RegExp ('\\nfunc \\(\\w+ \\' + recv[1] + '\\) ' + call[1] + '\\(([^)]*)\\) \\*string \\{\\n([\\s\\S]*?)\\n\\}').exec ('\n' + fileMasked);
+        if (def === null || (fileMasked.match (new RegExp ('^func \\(\\w+ \\*\\w+\\) ' + call[1] + '\\(', 'gm')) || []).length !== 1) { return false; }
+        const strParams = new Set ([ ...def[1].matchAll (/(\w+) string\b/g) ].map ((p) => p[1]));
+        const body = def[2];
+        if (/\bfunc\s*\(/.test (body)) { return false; }
+        const rets = [ ...body.matchAll (/\breturn\b([^\n]*)/g) ].map ((r) => r[1].trim ());
+        return rets.length > 0 && rets.every ((r) => goNonNilStringCall (r, (a) => strParams.has (a) && !new RegExp ('(?<![\\w.*])' + a + '\\s*=(?!=)').test (body)));
+    };
+    return writes.length > 0 && writes.every ((w) => nonNil (w.replace (/^.*? = /, '').replace (/\s*\/\/.*$/, '').trim ()));
 }
 
 function goRowStringLeaf (t: string, locals: Set<string>): boolean {
