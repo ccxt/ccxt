@@ -394,7 +394,7 @@ pub struct Exchange {
     pub timeframes:        Value,
     pub precision:         Value,
     pub limits:            Value,
-    pub fees:              Value,
+    pub fees:              crate::value::Dict,
     pub features:          Value,
     pub has:               Value,
     pub exceptions:        Value,
@@ -402,7 +402,7 @@ pub struct Exchange {
     pub urls:              crate::value::Dict,
     pub api:               Value,
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
-    pub options:           Value,
+    pub options:           crate::value::Dict,
     pub headers:           Value,
     pub accounts:          Value,
     pub accountsById:      Value,
@@ -472,7 +472,7 @@ pub struct Exchange {
     // user-agent / fetch behavior
     pub userAgent:                 Value,
     pub user_agent:                Value,
-    pub userAgents:                Value,
+    pub userAgents:                crate::value::Dict,
 
     // describe() output (legacy)
     pub describe_data:             Value,
@@ -489,7 +489,7 @@ pub struct Exchange {
 /// `__live_id`), so reading and writing them is the stdlib map op and nothing
 /// else. The Rust transpiler emits those ops natively for the generated
 /// tiers; the test below holds the invariant they are proven from.
-pub const PLAIN_DICT_FIELDS: [&str; 3] = ["options", "markets", "balance"];
+pub const PLAIN_DICT_FIELDS: [&str; 2] = ["markets", "balance"];
 
 /// The container invariant above, checked against the real constructor and
 /// against the runtime's own write-through helper.
@@ -499,7 +499,6 @@ mod plain_dict_container_proof {
 
     fn slot<'a>(ex: &'a mut Exchange, name: &str) -> &'a mut Value {
         match name {
-            "options" => &mut ex.options,
             "markets" => &mut ex.markets,
             "balance" => &mut ex.balance,
             other => panic!("not a plain-dict field: {other}"),
@@ -574,8 +573,8 @@ fn base_limits() -> Value {
     ])
 }
 
-fn base_fees() -> Value {
-    vmap(&[
+fn base_fees() -> crate::value::Dict {
+    Arc::new([
         ("trading", vmap(&[
             ("tierBased",  Value::Null),
             ("percentage", Value::Null),
@@ -588,7 +587,7 @@ fn base_fees() -> Value {
             ("withdraw",   Value::Map(HashMap::new())),
             ("deposit",    Value::Map(HashMap::new())),
         ])),
-    ])
+    ].into_iter().map(|(k, v)| (k.to_string(), v)).collect())
 }
 
 fn base_urls() -> crate::value::Dict {
@@ -768,7 +767,7 @@ impl Exchange {
                 repl.insert("BTC".to_string(), mk("BTC", "BRC20", "primary"));
                 let mut o = HashMap::new();
                 o.insert("defaultNetworkCodeReplacements".to_string(), Value::Map(repl));
-                Value::Map(o)
+                Arc::new(o)
             },
             headers:           Value::Map(HashMap::new()),
             accounts:          Value::Null,
@@ -824,7 +823,7 @@ impl Exchange {
                 m.insert("chrome".to_string(), Value::Str("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36".into()));
                 m.insert("chrome39".to_string(), Value::Str("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36".into()));
                 m.insert("chrome100".to_string(), Value::Str("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36".into()));
-                Value::Map(m)
+                Arc::new(m)
             },
 
             describe_data:     Value::Null,
@@ -886,12 +885,12 @@ impl Exchange {
         assign(&mut self.requiredCredentials, get("requiredCredentials"));
         assign(&mut self.precisionMode, get("precisionMode"));
         assign(&mut self.timeframes, get("timeframes"));
-        assign(&mut self.fees, get("fees"));
+        if let Value::Dict(m) = get("fees") { self.fees = m; }
         assign(&mut self.features, get("features"));
         // `userAgent` (describe() or user config): a string, a `{ 'User-Agent': .. }`
         // dict, or `false` to send none; `userAgents` replaces the base table.
         assign(&mut self.userAgent, get("userAgent"));
-        assign(&mut self.userAgents, get("userAgents"));
+        if let Value::Dict(m) = get("userAgents") { self.userAgents = m; }
         let rate_limit = get("rateLimit");
         if matches!(rate_limit, Value::Int(_) | Value::Float(_)) {
             self.rateLimit = rate_limit;
@@ -900,13 +899,9 @@ impl Exchange {
         // Exchange seeds defaults into both, and describe() only supplies the
         // venue's additions.
         if let Value::Dict(extra) = get("options") {
-            let mut merged = match &self.options {
-                Value::Dict(m) => (**m).clone(),
-                _ => HashMap::new(),
-            };
+            let merged = Arc::make_mut(&mut self.options);
             let extra = Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone());
             for (k, v) in extra { merged.insert(k, v); }
-            self.options = Value::Map(merged);
         }
         if let Value::Dict(extra) = get("commonCurrencies") {
             let mut merged = match &self.commonCurrencies {
@@ -971,13 +966,9 @@ impl Exchange {
         if !matches!(currencies, Value::Null) { self.currencies = currencies; }
         let opts = crate::get_value(cfg, &Value::Str("options".into()));
         if let Value::Dict(extra) = opts {
-            let mut merged = match &self.options {
-                Value::Dict(m) => (**m).clone(),
-                _ => HashMap::new(),
-            };
+            let merged = Arc::make_mut(&mut self.options);
             let extra = Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone());
             for (k, v) in extra { merged.insert(k, v); }
-            self.options = Value::Map(merged);
         }
         let accounts = crate::get_value(cfg, &Value::Str("accounts".into()));
         if !matches!(accounts, Value::Null) { self.accounts = accounts; }
@@ -1083,7 +1074,7 @@ impl Exchange {
     /// a dict value sends its `User-Agent` entry; `false` or `''` sends none.
     fn user_agent_str(&self) -> Option<&str> {
         let chosen = match (&self.userAgent, &self.user_agent) {
-            (Value::Null, Value::Null) => self.userAgents.as_map().and_then(|m| m.get("chrome")),
+            (Value::Null, Value::Null) => self.userAgents.get("chrome"),
             (Value::Null, ua) | (ua, _) => Some(ua),
         };
         let header = match chosen {
@@ -1189,10 +1180,10 @@ impl Exchange {
 
     /// Merge entries into `options` the way `Config::options` does; nested objects combine.
     pub fn set_options(&mut self, options: crate::Params) -> &mut Self {
-        let merged = crate::Config::new().options(crate::Params::from(self.options.clone()))
+        let merged = crate::Config::new().options(crate::Params::from(Value::Dict(self.options.clone())))
             .options(options)
             .into_value();
-        self.options = crate::runtime::get_value(&merged, &Value::Str("options".into()));
+        if let Value::Dict(m) = crate::runtime::get_value(&merged, &Value::Str("options".into())) { self.options = m; }
         self
     }
 
@@ -1471,9 +1462,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .iter()
             .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.to_string()), _ => None });
         // binary frames are decompressed unless the exchange opts out (mexc, paradex)
-        let __decompress_binary = !matches!(crate::get_value(&self.options, &Value::Str("decompressBinary".into())), Value::Bool(false));
+        let __decompress_binary = !matches!(self.options.get("decompressBinary"), Some(Value::Bool(false)));
         // options.ws.options.headers ride on the upgrade request, as in the other ports
-        let __ws_options = crate::get_value(&crate::get_value(&self.options, &Value::Str("ws".into())), &Value::Str("options".into()));
+        let __ws_options = crate::get_value(self.options.get("ws").unwrap_or(&Value::Null), &Value::Str("options".into()));
         let __ws_headers: Vec<(String, String)> = match crate::get_value(&__ws_options, &Value::Str("headers".into())) {
             Value::Dict(m) => m.iter().filter_map(|(k, v)| match v {
                 Value::Str(s) => Some((k.clone(), s.to_string())),
@@ -2784,18 +2775,13 @@ pub(crate) fn url_pct(s: &str) -> String {
 
 /// Writes `options['cachedCurrencies']`, as Exchange.ts loadMarketsHelper does
 /// before its fetchMarkets call.
-fn set_cached_currencies(options: &mut Value, currencies: Value) {
-    if let Value::Dict(d) = options {
-        Arc::make_mut(d).insert("cachedCurrencies".to_string(), currencies);
-    }
+fn set_cached_currencies(options: &mut crate::value::Dict, currencies: Value) {
+    Arc::make_mut(options).insert("cachedCurrencies".to_string(), currencies);
 }
 
 /// Deletes `options['cachedCurrencies']` after fetchMarkets, handing the value back.
-fn take_cached_currencies(options: &mut Value) -> Option<Value> {
-    match options {
-        Value::Dict(d) => Arc::make_mut(d).shift_remove("cachedCurrencies"),
-        _ => None,
-    }
+fn take_cached_currencies(options: &mut crate::value::Dict) -> Option<Value> {
+    Arc::make_mut(options).shift_remove("cachedCurrencies")
 }
 
 /// `options['cachedCurrencies']` lives only around fetchMarkets.
@@ -2811,11 +2797,11 @@ mod cached_currencies_tests {
         let mut c = HashMap::new();
         c.insert("BTC".to_string(), Value::Str("x".into()));
         set_cached_currencies(&mut ex.options, Value::Map(c));
-        let cached = crate::get_value(&ex.options, &Value::Str("cachedCurrencies".into()));
+        let cached = ex.options.get("cachedCurrencies").cloned().unwrap_or(Value::Null);
         assert_eq!(cached.as_map().map(|m| m.len()), Some(1));
         let back = take_cached_currencies(&mut ex.options);
         assert_eq!(back.as_ref().and_then(|v| v.as_map()).map(|m| m.len()), Some(1));
-        assert!(crate::get_value(&ex.options, &Value::Str("cachedCurrencies".into())).is_null());
+        assert!(!ex.options.contains_key("cachedCurrencies"));
     }
 }
 

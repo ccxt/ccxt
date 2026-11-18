@@ -3806,6 +3806,25 @@ function typedUrlsField(content: string): string {
         .replace(/let mut (\w+): Value = self\.omit\(&self\.urls, Value::Str\(("[^"\\]*")\.into\(\)\), &\[\]\);\n\s*self\.urls = \1;/g, 'std::sync::Arc::make_mut(&mut self.urls).shift_remove($2);');
 }
 
+// `options`, `fees`, `userAgents` are typed `Dict`s too (always a dict, never tagged): the same
+// map ops as `typedUrlsField`; a value the `Dict` cannot satisfy is boxed back as `Value::Dict`.
+function typedBaseDictFields(content: string): string {
+    for (const f of ['options', 'fees', 'userAgents']) {
+        const r = 'self\\.' + f;
+        const k = '("[^"\\\\]*")';
+        const make = 'std::sync::Arc::make_mut(';
+        content = content
+            .replace(new RegExp(r + '\\.as_map\\(\\)\\.and_then\\(\\|__m\\| __m\\.get\\(' + k + '\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(Value::Null\\)', 'g'), 'self.' + f + '.get($1).cloned().unwrap_or(Value::Null)')
+            .replace(new RegExp('crate::value::get_value_k\\(&' + r + ', ' + k + '\\)', 'g'), 'self.' + f + '.get($1).cloned().unwrap_or(Value::Null)')
+            .replace(new RegExp('matches!\\(&' + r + ', Value::Dict\\(__d\\) if __d\\.contains_key\\(' + k + '\\)\\)', 'g'), 'self.' + f + '.contains_key($1)')
+            .replace(new RegExp('if let Value::Dict\\((\\w+)\\) = (&mut ' + r + '(?:\\.clone\\(\\))?|unsafe \\{ crate::runtime::coerce_value_to_mut\\(&' + r + '\\) \\}) \\{', 'g'), '{ let $1 = $2;')
+            .replace(new RegExp('get_value_mut\\((&mut ' + r + '|unsafe \\{ crate::runtime::coerce_value_to_mut\\(&' + r + '\\) \\}), &Value::Str\\(' + k + '\\.into\\(\\)\\)\\)', 'g'), make + '$1).entry($2.to_string()).or_insert(Value::Null)')
+            .replace(new RegExp('\\b(safe_\\w+|omit)\\(' + r + '\\.clone\\(\\)', 'g'), '$1(&self.' + f)
+            .replace(new RegExp('([^\\w:]|Value::Dict\\()' + r + '\\.clone\\(\\)', 'g'), (m0, pre, at, all) => pre === 'Value::Dict(' || all.slice(at - 4, at + 1) === '&mut ' ? m0 : pre + 'Value::Dict(self.' + f + '.clone())');
+    }
+    return content;
+}
+
 function plainDictChains(content: string): string {
     return plainDictRunPass(content);
 }
@@ -4536,7 +4555,7 @@ function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(lendMergeOperands(typedUrlsField(borrowLiteralBoxes(content))));
+    content = splitLongRustLines(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -11114,7 +11133,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(lendMergeOperands(typedUrlsField(borrowLiteralBoxes(finalFile)))));
+        fs.writeFileSync(outFile, splitLongRustLines(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 

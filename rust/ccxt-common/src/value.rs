@@ -397,7 +397,7 @@ impl Value {
     #[cfg(feature = "engine")]
     fn snapshot_as_exchange(&self) -> crate::exchange::Exchange {
         let mut ex = crate::exchange::Exchange::new(None);
-        ex.options = crate::runtime::get_value(self, &Value::Str("options".into()));
+        if let Value::Dict(m) = crate::runtime::get_value(self, &Value::Str("options".into())) { ex.options = m; }
         ex.currencies = crate::runtime::get_value(self, &Value::Str("currencies".into()));
         ex
     }

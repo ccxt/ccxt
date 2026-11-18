@@ -414,7 +414,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // fields (`has`, `options`, `codes`, `ids`) still mirror
                 // here so helpers that scan them work synchronously.
                 m.insert("has".to_string(),                  core.has.clone());
-                m.insert("options".to_string(),              core.options.clone());
+                m.insert("options".to_string(),              Value::Dict(core.options.clone()));
                 // `symbols`, `codes`, `ids` resolve through LIVE_LOOKUP
                 // — even the string lists are heavy (~4k strings for
                 // binance) and get re-cloned per helper invocation.
@@ -437,13 +437,13 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                     "codes"            => core.codes.clone(),
                     "ids"              => core.ids.clone(),
                     "has"              => core.has.clone(),
-                    "options"          => core.options.clone(),
+                    "options"          => Value::Dict(core.options.clone()),
                     "last_request_url"     => core.last_request_url.clone(),
                     "last_request_body"    => core.last_request_body.clone(),
                     "last_request_headers" => core.last_request_headers.clone(),
                     "id"               => core.id.clone(),
                     "precisionMode"    => core.precisionMode.clone(),
-                    "fees"             => core.fees.clone(),
+                    "fees"             => Value::Dict(core.fees.clone()),
                     "urls"             => Value::Dict(core.urls.clone()),
                     // Describe-derived config blocks. These are large
                     // (binance's `api` alone is hundreds of nested
@@ -472,8 +472,8 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // cases, so we replace outright — the snapshot already
                 // mirrors `describe().options` since `to_value()` seeded it.
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
-                if let Value::Dict(_) = &new_opts {
-                    core.options = new_opts;
+                if let Value::Dict(m) = new_opts {
+                    core.options = m;
                 }
             }
             fn write_mock(ptr: *mut (), response: Value) {

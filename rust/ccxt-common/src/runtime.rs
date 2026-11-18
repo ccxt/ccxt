@@ -381,8 +381,8 @@ pub fn get_value(obj: &Value, key: impl crate::value::ValueKey) -> Value {
 /// `invalid_reference_casting` lint can be allowed in one place. Mirrors
 /// `coerce_to_mut_unsafe` in `exchange_stubs.rs`.
 #[allow(clippy::mut_from_ref, invalid_reference_casting)]
-pub unsafe fn coerce_value_to_mut(v: &Value) -> &mut Value {
-    let ptr = v as *const Value as *mut Value;
+pub unsafe fn coerce_value_to_mut<T>(v: &T) -> &mut T {
+    let ptr = v as *const T as *mut T;
     &mut *ptr
 }
 

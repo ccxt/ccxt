@@ -2533,13 +2533,13 @@ impl Exchange {
         put("timeframes", &self.timeframes);
         put("precision", &self.precision);
         put("limits", &self.limits);
-        put("fees", &self.fees);
+        put("fees", &Value::Dict(self.fees.clone()));
         put("features", &self.features);
         put("has", &self.has);
         put("exceptions", &self.exceptions);
         put("urls", &Value::Dict(self.urls.clone()));
         put("api", &self.api);
-        put("options", &self.options);
+        put("options", &Value::Dict(self.options.clone()));
         put("headers", &self.headers);
         put("accounts", &self.accounts);
         put("accountsById", &self.accountsById);
@@ -2581,7 +2581,7 @@ impl Exchange {
         put("status", &self.status);
         put("userAgent", &self.userAgent);
         put("user_agent", &self.user_agent);
-        put("userAgents", &self.userAgents);
+        put("userAgents", &Value::Dict(self.userAgents.clone()));
         Value::Map(m)
     }
 
