@@ -442,7 +442,7 @@ type IDerivedExchange interface {
 	HandleDelta(bookside any, delta any)
 	GetCacheIndex(orderbook any, deltas []any) any
 	Ping(client any) any
-	HandleDeltas(bookside any, deltas any)
+	HandleDeltas(bookside any, deltas []any)
 	HandleBookDelta(orderbook OrderBookInterface, delta any)
 	HandleBookDeltas(orderbook OrderBookInterface, deltas []any)
 	ParseLeverage(leverage any, optionalArgs ...any) Leverage

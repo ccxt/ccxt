@@ -6628,6 +6628,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'parseWsOHLCVs': { 0: '[]any' },
     // cancelOrders (ids: string[]) on the base, every venue and ICancelOrders
     'cancelOrders': { 0: '[]string' },
+    // handleDeltas (deltas: any[]) on the base and every ws override; callers pass safeList locals or reads
+    'handleDeltas': { 1: '[]any' },
 };
 
 // exchange-local methods no ts/src file calls whose required `string` params are Go strings
