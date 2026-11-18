@@ -909,7 +909,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         const symbolResolved = this.symbol (symbol);
         const ohlcvs = await this.watchOHLCVForSymbols ([ [ symbolResolved, timeframe ] ], since, limit, paramsResolved);
-        return ohlcvs[symbolResolved][timeframe];
+        const bySymbol: Dict = ohlcvs[symbolResolved];
+        return bySymbol[timeframe];
     }
 
     /**

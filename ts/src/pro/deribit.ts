@@ -828,7 +828,8 @@ export default class deribit extends deribitRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const ohlcvs = await this.watchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], since, limit, params);
-        return ohlcvs[symbolValue][timeframe];
+        const bySymbol: Dict = ohlcvs[symbolValue];
+        return bySymbol[timeframe];
     }
 
     /**

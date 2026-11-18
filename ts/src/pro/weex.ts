@@ -601,7 +601,8 @@ export default class weex extends weexRest {
             'callerMethodName': 'watchOHLCV',
         });
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, extendedParams);
-        return result[symbol][timeframe];
+        const bySymbol: Dict = result[symbol];
+        return bySymbol[timeframe];
     }
 
     /**

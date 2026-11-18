@@ -23999,6 +23999,11 @@ function r90j2MapUse (printer, n) {
         }
         return 'read';
     }
+    if (ts.isElementAccessExpression (parent) && parent.expression === n && ts.isIdentifier (parent.argumentExpression)
+        && ts.isReturnStatement (parent.parent)) {
+        const key = printer.getChecker ().getTypeAtLocation (parent.argumentExpression);
+        return key.aliasSymbol === undefined && (key.flags & ts.TypeFlags.String) !== 0 ? 'read' : undefined; // `return t[k]` with a plain-string key prints the null-guarded Map get
+    }
     if (ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)) {
         // ral-90j2 R4: a slot the printer prints Map<String, Object> takes the declared Map with no cast
         let types;

@@ -290,7 +290,8 @@ export default class toobit extends toobitRest {
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
-        return result[symbol][timeframe];
+        const bySymbol: Dict = result[symbol];
+        return bySymbol[timeframe];
     }
 
     /**

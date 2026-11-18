@@ -1720,7 +1720,8 @@ export default class binance extends binanceRest {
         }
         paramsStock['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], since, limit, paramsStock);
-        return result[symbolValue][timeframe];
+        const bySymbol: Dict = result[symbolValue];
+        return bySymbol[timeframe];
     }
 
     /**
