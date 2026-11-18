@@ -19,6 +19,7 @@ package ccxt
 
 import (
 	"fmt"
+	"strconv"
 )
 
 // ArrayCacheInterface is the value a ws list stream resolves: one of the caches, or a plain list.
@@ -540,7 +541,7 @@ func (c *ArrayCacheByTimestamp) appendOwned(item any) {
 		c.clearUpdates = false
 		c.sizeTracker = NewSet()
 	}
-	c.sizeTracker.Add(ToString(ts))
+	c.sizeTracker.Add(strconv.FormatInt(ts, 10))
 	c.newUpdates = c.sizeTracker.Size()
 }
 

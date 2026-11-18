@@ -128,7 +128,7 @@ func (t *Throttler) leakyBucketLoop() {
 			lastTimestamp = current
 
 			st = <-t.state
-			sumTokens := ToFloat64(t.Config["refillRate"]) * ToFloat64(elapsed)
+			sumTokens := ToFloat64(t.Config["refillRate"]) * float64(elapsed)
 			tokens := st.Tokens + sumTokens
 			capacity := ToFloat64(t.Config["capacity"])
 			if tokens < capacity {
