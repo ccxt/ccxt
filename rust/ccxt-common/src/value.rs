@@ -239,6 +239,10 @@ impl Value {
     pub fn as_map(&self)   -> Option<&HashMap<String, Value>> {
         if let Value::Dict(m) = self { Some(&**m) } else { None }
     }
+    /// The value under `key` of a dict, borrowed; `NULL` for a missing key or a non-dict.
+    pub fn at(&self, key: &str) -> &Value {
+        self.as_map().and_then(|m| m.get(key)).unwrap_or(&NULL)
+    }
     /// The map a dict-typed local holds, moved out of the box (an empty map for a non-dict).
     pub fn into_dict(self) -> Dict {
         if let Value::Dict(m) = self { m } else { Arc::new(HashMap::new()) }
@@ -933,6 +937,9 @@ impl From<&Option<List>> for Value { fn from(a: &Option<List>) -> Self { match a
 impl From<&Option<Dict>> for Value { fn from(m: &Option<Dict>) -> Self { match m { Some(d) => Value::Dict(Arc::clone(d)), None => Value::Null } } }
 /// A ws hash or key slot reads a `Value` key as its string (any other variant is no key).
 impl<'a> From<&'a Value> for Option<&'a str> { fn from(v: &'a Value) -> Self { v.as_str() } }
+
+/// The shared `Null` a borrowed read answers for a missing key.
+pub static NULL: Value = Value::Null;
 
 /// `get_value_k` on the map itself.
 pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {

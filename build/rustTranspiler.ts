@@ -3802,6 +3802,9 @@ function typedUrlsField(content: string): string {
         .replace(/matches!\(&self\.urls, Value::Dict\(__d\) if __d\.contains_key\(("[^"\\]*")\)\)/g, 'self.urls.contains_key($1)')
         .replace(/if let Value::Dict\(__d\) = &mut self\.urls \{/g, '{ let __d = &mut self.urls;')
         .replace(/\b(safe_\w+|omit)\(self\.urls\.clone\(\)/g, '$1(&self.urls')
+        // `urls.api.<group>[k]`: a borrowed walk (`Value::at`), the last key through `key_read` (get_value_k's answer).
+        .replace(/crate::value::get_value_k\(&self\.urls\.get\(("[^"\\]*")\)\.cloned\(\)\.unwrap_or\(Value::Null\)\.as_map\(\)\.and_then\(\|__m\| __m\.get\(("[^"\\]*")\)\)\.cloned\(\)\.unwrap_or\(Value::Null\),(\s*)("[^"\\]*")\)/g, 'crate::value::KeyRead::key_read(&self.urls.get($1).unwrap_or(&crate::value::NULL).at($2),$3$4)')
+        .replace(/crate::value::get_value_k\(&self\.urls\.get\(("[^"\\]*")\)\.cloned\(\)\.unwrap_or\(Value::Null\), ("[^"\\]*")\)/g, 'crate::value::KeyRead::key_read(&self.urls.get($1).unwrap_or(&crate::value::NULL), $2)')
         // `omit(urls, 'k')` then `urls = ..`: the same key drop, in place.
         .replace(/let mut (\w+): Value = self\.omit\(&self\.urls, Value::Str\(("[^"\\]*")\.into\(\)\), &\[\]\);\n\s*self\.urls = \1;/g, 'std::sync::Arc::make_mut(&mut self.urls).shift_remove($2);');
 }
