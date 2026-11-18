@@ -1236,7 +1236,7 @@ public partial class BaseExchange
         {
             Dictionary<string, object> market = this.parseMarket(getValue(markets, i));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if ((market != null))
+            if ((market != null) && (this.safeString(market, "id") != null))
             {
                 result.Add(market);
             }
