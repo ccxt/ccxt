@@ -4475,11 +4475,12 @@ function lendReaderContainers(content: string): string {
         while (lo <= hi) { const mid = (lo + hi) >> 1; if (fnStarts[mid] <= pos) { start = fnStarts[mid]; lo = mid + 1; } else hi = mid - 1; }
         const decl = new RegExp(`(?:\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?|[(,|]\\s*(?:mut )?${name}:\\s*([^,)|]+?)\\s*[,)|])`, 'g');
         let last: RegExpExecArray | undefined;
-        for (const m of content.slice(start, pos).matchAll(decl)) last = m as RegExpExecArray;
+        const scope = content.slice(start, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+        for (const m of scope.matchAll(decl)) last = m as RegExpExecArray;
         if (last === undefined) return false;
         // a later pattern binding (`for x in`, `|x|`, `Some(x)`, `ref x`) may shadow it with another type
         const rebind = new RegExp(`\\bfor (?:mut )?${name}\\b|[(|,]\\s*(?:ref )?(?:mut )?${name}\\s*[)|,]`);
-        if (rebind.test(content.slice((last.index as number) + start + last[0].length, pos))) return false;
+        if (rebind.test(scope.slice((last.index as number) + last[0].length))) return false;
         const type = (last[1] ?? last[3])?.trim();
         return type === undefined ? last[2] !== undefined : RUST_KEYREAD_LENT_TYPE.test(type);
     };
@@ -4524,6 +4525,49 @@ function lendMergeOperands(content: string): string {
         const solo = (name: string) => (call.match(new RegExp(`\\b${name}\\b`, 'g')) ?? []).length === 1;
         for (const [a, b, t] of edits) if (a >= last && solo(t.replace(/^[\s&\[]*|[\s\]]*$/g, ''))) { out += content.slice(last, a) + t; last = b; }
     }
+    return out + content.slice(last);
+}
+
+// Move an owned local into `&[x]` / `Value::Map(x)` instead of cloning it when this is its last use:
+// no later mention in the fn, none elsewhere in the statement, not inside a loop or closure.
+function moveLocalsAtLastUse(content: string): string {
+    const fnStarts = [...content.matchAll(/^\s*(?:pub(?:\([^)]*\))? )?(?:async )?fn \w+/gm)].map(m => m.index as number);
+    const site = /(&\[|Value::Map\()([A-Za-z_]\w*)\.clone\(\)(?=[\])])/g;
+    const edits: [number, number, string][] = [];
+    let fi = -1;
+    for (const m of content.matchAll(site)) {
+        const pos = m.index as number, name = m[2], end = pos + m[0].length;
+        if (content[end] !== (m[1] === '&[' ? ']' : ')') || name === 'self') continue;
+        while (fi + 1 < fnStarts.length && fnStarts[fi + 1] <= pos) fi++;
+        if (fi < 0) continue;
+        const open = content.indexOf('{', fnStarts[fi]);
+        if (open < 0 || open > pos) continue;
+        const close = balancedCloseIndex(content, open + 1);
+        const word = new RegExp(`(?<![\\w.])${name}\\b`);
+        if (word.test(content.slice(end, close))) continue;
+        const body = content.slice(open + 1, pos).replace(/^\s*(?:\/\/|\*|\/\*).*$/gm, l => ' '.repeat(l.length));
+        // owned binding: `let [mut] x: T = ` (T not a reference) or untyped `let x = get_arg(`
+        const decl = [...body.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=\\s*(get_arg\\()?`, 'g'))].pop();
+        if (decl === undefined || (decl[1] === undefined ? decl[2] === undefined : /^&|\bimpl\b/.test(decl[1].trim()))) continue;
+        const after = body.slice((decl.index as number) + decl[0].length);
+        if (new RegExp(`\\bfor (?:mut )?${name}\\b|[(|,]\\s*(?:ref )?(?:mut )?${name}\\s*[)|,]`).test(after)) continue;
+        // enclosing blocks and the current statement: refuse loops, closures and other mentions
+        const stack: number[] = [];
+        let inStr = false;
+        for (let j = 0; j < after.length; j++) {
+            const c = after[j];
+            if (inStr) { if (c === '\\') j++; else if (c === '"') inStr = false; continue; }
+            if (c === '"') inStr = true; else if (c === '{') stack.push(j); else if (c === '}') stack.pop();
+        }
+        const heads = stack.map(o => after.slice(after.lastIndexOf('\n', o) + 1, o));
+        const stmtStart = Math.max(after.lastIndexOf(';'), after.lastIndexOf('{'), after.lastIndexOf('}'));
+        heads.push(after.slice(stmtStart + 1));
+        if (heads.some(h => /\b(?:loop|while|for)\b|\|/.test(h))) continue;
+        if (word.test(after.slice(stmtStart + 1))) continue;
+        edits.push([pos, end, `${m[1]}${name}`]);
+    }
+    let out = '', last = 0;
+    for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
 
@@ -4708,7 +4752,7 @@ function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))));
+    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -11288,7 +11332,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))));
+        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
