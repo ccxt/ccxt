@@ -16,7 +16,7 @@
     "methods": {
         "watchMyTrades": [
             {
-                "disabledRS": true,
+                "disabledRS": "needs base fix",
                 "description": "crypto spot",
                 "apiKey": "84270d7070618c28432c",
                 "secret": "dGVzdA==",
@@ -424,7 +424,7 @@
         ],
         "watchOrders": [
             {
-                "disabledRS": true,
+                "disabledRS": "needs base fix",
                 "description": "crypto spot",
                 "apiKey": "84270d7070618c28432c",
                 "secret": "dGVzdA==",
@@ -876,7 +876,7 @@
         ],
         "watchOrderBook": [
             {
-                "disabledRS": true,
+                "disabledRS": "needs base fix",
                 "description": "crypto spot",
                 "apiKey": "84270d7070618c28432c",
                 "secret": "dGVzdA==",
@@ -1411,7 +1411,7 @@
         ],
         "watchOHLCV": [
             {
-                "disabledRS": true,
+                "disabledRS": "needs base fix",
                 "description": "crypto spot",
                 "apiKey": "84270d7070618c28432c",
                 "secret": "dGVzdA==",
@@ -1771,7 +1771,7 @@
         ],
         "watchBidsAsks": [
             {
-                "disabledRS": true,
+                "disabledRS": "needs base fix",
                 "description": "crypto spot multiple",
                 "apiKey": "84270d7070618c28432c",
                 "secret": "dGVzdA==",
@@ -2386,7 +2386,7 @@
         ],
         "watchBalance": [
             {
-                "disabledRS": true,
+                "disabledRS": "needs base fix",
                 "description": "default",
                 "apiKey": "84270d7070618c28432c",
                 "secret": "dGVzdA==",
@@ -2620,7 +2620,7 @@
         ],
         "watchTickers": [
             {
-                "disabledRS": true,
+                "disabledRS": "needs base fix",
                 "description": "crypto spot single",
                 "apiKey": "84270d7070618c28432c",
                 "secret": "dGVzdA==",
