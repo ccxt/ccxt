@@ -4660,6 +4660,19 @@ function moveLocalsAtLastUse(content: string): string {
     return out + content.slice(last);
 }
 
+// `x = f(.. x.clone() ..)` with x an owned `let mut` and named once on the right: move it out
+// with `std::mem::take` (x is overwritten by the assignment). Skipped inside closures.
+function moveSelfReassignOperands(content: string): string {
+    return content.replace(/^(\s*)([A-Za-z_]\w*) = ([^\n]*);$/gm, (line, ind, x, rhs, off) => {
+        const word = new RegExp(`(?<![\\w.])${x}\\b`, 'g');
+        if ((rhs.match(word) ?? []).length !== 1 || !new RegExp(`(?<![\\w.])${x}\\.clone\\(\\)`).test(rhs) || rhs.includes('|')) return line;
+        const fnStart = content.lastIndexOf('fn ', off);
+        const decl = [...content.slice(fnStart, off).matchAll(new RegExp(`\\blet (mut )?${x}\\b(?:\\s*:\\s*([^=;]+?))?\\s*=`, 'g'))].pop();
+        if (decl === undefined || decl[1] === undefined || (decl[2] !== undefined && /^&|\bimpl\b/.test(decl[2].trim()))) return line;
+        return `${ind}${x} = ${rhs.replace(new RegExp(`(?<![\\w.])${x}\\.clone\\(\\)`), `std::mem::take(&mut ${x})`)};`;
+    });
+}
+
 // Break every emitted line over 400 chars at whitespace that sits between Rust
 // tokens (after `,`/`;` first, any other code space second). Only as a last
 // resort inside a plain string literal: a space followed by `\` + newline,
@@ -4841,7 +4854,7 @@ function overwriteFileAndFolder(filePath: string, content: string) {
     if (!fs.existsSync(filePath)) {
         checkCreateFolder(filePath);
     }
-    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content))))))));
+    content = splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(content)))))))));
     overwriteFile(filePath, content);
     writeFile(filePath, content);
 }
@@ -11428,7 +11441,7 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile)))))))));
+        fs.writeFileSync(outFile, splitLongRustLines(typeHandleOptionTuples(lendWsBaseClient(moveSelfReassignOperands(moveLocalsAtLastUse(lendMergeOperands(typedBaseDictFields(typedUrlsField(borrowLiteralBoxes(finalFile))))))))));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
 
