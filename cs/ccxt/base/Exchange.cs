@@ -1421,6 +1421,12 @@ public partial class BaseExchange
         return isWs ? (IDictionary<string, object>)new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new dict();
     }
 
+    // typed-row twin for caches declared with a typed element (ohlcvs)
+    public IDictionary<string, V> createSafeDictionary<V>(bool isWs = false)
+    {
+        return isWs ? (IDictionary<string, V>)new System.Collections.Concurrent.ConcurrentDictionary<string, V>() : new Dictionary<string, V>();
+    }
+
     public IDictionary<string, object> mapToSafeMap(object obj)
     {
         return (IDictionary<string, object>)obj;

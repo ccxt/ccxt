@@ -7246,7 +7246,50 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
     const inlineHelperSwitchOut = csharpInlineHelperSwitch (objectNull, baseOut);
     const typedSubMulOut = csharpTypedSubtractMultiply (objectNull, inlineHelperSwitchOut);
     const typedSubMulAgainOut = csharpTypedSubtractMultiply (objectNull, typedSubMulOut);
-    return csharpTupleSlotRead (objectNull, csharpNativeParseCalls (objectNull, typedSubMulAgainOut)); // parse, then tuple-slot reads
+    return csharpTypedRowCaches (csharpTupleSlotRead (objectNull, csharpNativeParseCalls (objectNull, typedSubMulAgainOut))); // parse, then tuple-slot reads
+}
+
+// ws caches Exchange.Options.cs declares with a typed row (`IDictionary<string, IDictionary<string, object>>`):
+// the guarded row read already is that row type, so its `(IDictionary<string,object>)` cast is an identity,
+// and the base reset stores the typed twin of createSafeDictionary
+var csharpTypedRowFieldNames: string[] | undefined;
+function csharpTypedRowCaches (content: string): string {
+    if (csharpTypedRowFieldNames === undefined) {
+        let declared = '';
+        try { declared = fs.readFileSync (join (CSHARP_RUNTIME_BASE_DIR, 'Exchange.Options.cs'), 'utf8'); } catch (e) { declared = ''; }
+        csharpTypedRowFieldNames = [ ...declared.matchAll (/^[ ]*public IDictionary<string, IDictionary<string, object>> ([A-Za-z_]\w*)$/gm) ].map ((m) => m[1]);
+    }
+    for (const name of csharpTypedRowFieldNames) {
+        if (!content.includes ('this.' + name)) continue;
+        const f = 'this\\.' + name;
+        const row = new RegExp ('\\(\\(IDictionary<string,object>\\)(\\(' + f + ' != null && ([A-Za-z_]\\w*) != null && ' + f + '\\.ContainsKey\\(\\2\\) \\? ' + f + '\\[(?:\\(string\\))?\\2\\] : null\\))\\)', 'g');
+        content = content.replace (row, '$1').replace (new RegExp ('^([ ]*' + f + ' = this\\.createSafeDictionary)\\(', 'gm'), '$1<IDictionary<string, object>>(');
+        content = csharpTypedRowNestedReads (content, name);
+    }
+    return content;
+}
+
+// getValue/inOp(<guarded row read>, k) on a typed-row cache with a literal or declared string/string? key: one
+// TryGetValue chain (GetValue/InOp's dictionary branch: a null row or key reads null / false, a missing key null / false)
+function csharpTypedRowNestedReads (content: string, name: string): string {
+    const f = 'this\\.' + name;
+    const call = new RegExp ('(?<![\\w.])(getValue|inOp)\\(\\(' + f + ' != null && ([A-Za-z_]\\w*) != null && ' + f + '\\.ContainsKey\\(\\2\\) \\? ' + f + '\\[(?:\\(string\\))?\\2\\] : null\\), ("[^"\\\\]*"|[A-Za-z_]\\w*)\\)', 'g');
+    let n = (content.match (new RegExp ('\\bout var ' + name + 'Row\\d+', 'g')) ?? []).length; // out-var names stay unique in the file
+    return csharpLinePass (content, false, (region, original) => {
+        if (!call.test (original)) return undefined;
+        call.lastIndex = 0;
+        let changed = false;
+        const out = original.replace (call, (whole, helper, symbol, key) => {
+            const literal = key.startsWith ('"');
+            const types = literal ? [] : [ ...csharpTypedBindings (region, key) ];
+            if (!literal && ((types.length === 0) || !types.every ((t) => (t === 'string') || (t === 'string?')) || csharpRebinds (region, key))) return whole;
+            n++;
+            changed = true;
+            const head = `${'this.' + name} != null && ${symbol} != null && ${'this.' + name}.TryGetValue(${symbol}, out var ${name}Row${n}) && ${name}Row${n} != null${literal ? '' : ' && ' + key + ' != null'} && `;
+            return (helper === 'inOp') ? `(${head}${name}Row${n}.ContainsKey(${key}))` : `(${head}${name}Row${n}.TryGetValue(${key}, out var ${name}Value${n}) ? ${name}Value${n} : null)`;
+        });
+        return changed ? out : undefined;
+    });
 }
 
 function csharpDeclaredIntMinMaxTruth (content: string): string {

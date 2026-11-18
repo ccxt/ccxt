@@ -286,9 +286,10 @@ public partial class BaseExchange
         set { this.orderbooksState = this.wrapWsCache(value); }
     }
 
-    private IDictionary<string, object> ohlcvsState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    // one row per symbol: timeframe -> candle cache
+    private IDictionary<string, IDictionary<string, object>> ohlcvsState = new System.Collections.Concurrent.ConcurrentDictionary<string, IDictionary<string, object>>();
 
-    public IDictionary<string, object> ohlcvs
+    public IDictionary<string, IDictionary<string, object>> ohlcvs
     {
         get { return this.ohlcvsState; }
         set { this.ohlcvsState = this.wrapWsCache(value); }

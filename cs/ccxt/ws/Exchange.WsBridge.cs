@@ -19,6 +19,22 @@ public partial class BaseExchange
         return new ConcurrentDictionary<string, object>(value);
     }
 
+    private IDictionary<string, IDictionary<string, object>> wrapWsCache(IDictionary<string, IDictionary<string, object>> value)
+    {
+        if (value == null || value is ConcurrentDictionary<string, IDictionary<string, object>>)
+        {
+            return value;
+        }
+        return new ConcurrentDictionary<string, IDictionary<string, object>>(value);
+    }
+
+    // safeDict on a typed-row cache: the row itself (a stored row is never an empty-string box)
+    public IDictionary<string, object> safeDict(IDictionary<string, IDictionary<string, object>> rows, object key, object defaultValue = null)
+    {
+        IDictionary<string, object> row = null;
+        return (rows != null && key != null && rows.TryGetValue(key.ToString(), out row) && row != null) ? row : defaultValue as IDictionary<string, object>;
+    }
+
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
     public int calculateWsBackoffDelay(string url)
