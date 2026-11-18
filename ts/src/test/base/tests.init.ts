@@ -135,7 +135,8 @@ async function baseTestsInit () {
     testIsJsonEncodedObject ();
     testEncodeDecode ();
     testModPow ();
-    // testParseMarkets ();    return true;
+    // testParseMarkets ();
+    return true;
 }
 
 export default baseTestsInit;
