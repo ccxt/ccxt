@@ -101,11 +101,11 @@ func (this *BaseExchange) HandleOptionBoolAndParams(params any, methodName any, 
 	return *this.CheckOptionBool(methodName, optionName, GetValue(values, 0)), MapTyped(GetValue(values, 1))
 }
 
-// HandleOptionBoolAndParamsNullable is the `defaultValue?: Bool` overload: element 0 is a *bool, nil when absent.
-func (this *BaseExchange) HandleOptionBoolAndParamsNullable(params any, methodName any, optionName any, optionalArgs ...any) []any {
+// HandleOptionBoolAndParamsNullable is the `defaultValue?: Bool` overload: the *bool is nil when absent.
+func (this *BaseExchange) HandleOptionBoolAndParamsNullable(params any, methodName any, optionName any, optionalArgs ...any) (*bool, map[string]any) {
 	defaultValue := GetArgBoolPtr(optionalArgs, 0, nil)
 	values := this.HandleOptionAndParams(params, methodName, optionName, defaultValue)
-	return []any{this.CheckOptionBool(methodName, optionName, GetValue(values, 0)), GetValue(values, 1)}
+	return this.CheckOptionBool(methodName, optionName, GetValue(values, 0)), MapTyped(GetValue(values, 1))
 }
 
 // HandleOptionBoolAndParams2 is HandleOptionBoolAndParams over two option names.
@@ -115,10 +115,10 @@ func (this *BaseExchange) HandleOptionBoolAndParams2(params any, methodName any,
 }
 
 // HandleOptionBoolAndParams2Nullable is HandleOptionBoolAndParamsNullable over two option names.
-func (this *BaseExchange) HandleOptionBoolAndParams2Nullable(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
+func (this *BaseExchange) HandleOptionBoolAndParams2Nullable(params any, methodName any, optionName1 any, optionName2 any, optionalArgs ...any) (*bool, map[string]any) {
 	defaultValue := GetArgBoolPtr(optionalArgs, 0, nil)
 	values := this.HandleOptionAndParams2(params, methodName, optionName1, optionName2, defaultValue)
-	return []any{this.CheckOptionBool(methodName, optionName1, GetValue(values, 0)), GetValue(values, 1)}
+	return this.CheckOptionBool(methodName, optionName1, GetValue(values, 0)), MapTyped(GetValue(values, 1))
 }
 
 // MarketSymbols is ts/src/base/Exchange.ts marketSymbols with its string[] result typed:

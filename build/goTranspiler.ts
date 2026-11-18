@@ -16121,7 +16121,7 @@ export function goTypedDerefSelfTest (ok: SelfTestOk): void {
 // `a, x := this.HandleXAndParams(..)` declares x as map[string]any (hand-written pair results); when that
 // is x's only declaration in the function, Omit(x, ..) always yields a map, so MapTyped(Omit) == OmitDict.
 function goTypedMaplistTupleMethods (): string {
-    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?|HandleOptionIntegerAndParams2?';
+    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?(?:Nullable)?|HandleOptionIntegerAndParams2?';
 }
 
 function goTypedMaplistTupleMap (func: string, name: string, pairs: string = ''): boolean {
@@ -17893,6 +17893,10 @@ function goTupleSlotIdentPlain (ctx: any, fn: any, name: string, k: number, dept
         }
         // a fresh multi-line `map[string]any{` literal is a non-nil map, like the one-line literal below
         if (new RegExp ('^\\s*(?:var ' + name + ' map\\[string\\]any|' + name + ') :?= map\\[string\\]any\\{\\s*$').test (m)) {
+            return true;
+        }
+        // the params result of the hand-written (*bool, map[string]any) pair is MapTyped of a plain slot
+        if (new RegExp ('^\\s*\\w+, ' + name + ' :?= this\\.HandleOptionBoolAndParams2?Nullable\\(').test (m)) {
             return true;
         }
         const w = new RegExp ('^(\\s*(?:var ' + name + '(?: [^=,]+?)?|' + name + ') :?= )(.+?)\\s*$').exec (m);
