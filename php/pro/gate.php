@@ -506,15 +506,17 @@ class gate extends \ccxt\async\gate {
         $messageType = $this->get_type_by_market($market);
         $messageHash = 'orderbook' . ':' . $symbolValue;
         // max 100 atm, max 50 for options
-        $defaultLimit = 100;
+        $limitResolved = $this->parse_to_int(100);
         if (($this->safe_bool($market, 'spot', false)) || ($messageType === 'options')) {
-            $defaultLimit = 50;
+            $limitResolved = $this->parse_to_int(50);
         }
-        $limitResolved = ($limit === null) ? $defaultLimit : $limit;
+        if ($limit !== null) {
+            $limitResolved = $this->parse_to_int($limit);
+        }
         if ($this->safe_bool($market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             $maxSpotLimit = $this->parse_to_int($this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000));
-            $limitResolved = min($limitResolved, $maxSpotLimit);
+            $limitResolved = $this->parse_to_int(min($limitResolved, $maxSpotLimit));
         }
         $payload = array();
         $channel = '';
@@ -569,12 +571,13 @@ class gate extends \ccxt\async\gate {
         $interval = $intervalDefault;
         list($intervalOption, $paramsInterval) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'interval', $interval);
         $messageType = $this->get_type_by_market($market);
-        $limit = $this->safe_integer($paramsInterval, 'limit');
-        if ($limit === null) {
-            $limit = ($this->safe_bool($market, 'spot', false)) ? 50 : 100; // max 100 atm
-            if ($messageType === 'options') {
-                $limit = 50; // max 50 for options
-            }
+        $limitParam = $this->safe_integer($paramsInterval, 'limit');
+        $limit = $this->parse_to_int(($this->safe_bool($market, 'spot', false)) ? 50 : 100); // max 100 atm
+        if ($messageType === 'options') {
+            $limit = $this->parse_to_int(50); // max 50 for options
+        }
+        if ($limitParam !== null) {
+            $limit = $this->parse_to_int($limitParam);
         }
         $payload = array();
         $channel = '';

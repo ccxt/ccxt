@@ -9461,6 +9461,7 @@ class htx extends Exchange {
         $chains = $this->safe_list($fee, 'chains', array());
         $code = $this->safe_string($currency, 'code');
         $result = $this->deposit_withdraw_fee($fee);
+        $networks = array();
         for ($j = 0; $j < count($chains); $j++) {
             $chainEntry = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chainEntry, 'chain');
@@ -9482,13 +9483,14 @@ class htx extends Exchange {
                 );
             }
             if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
+                $networks[$networkCode] = array(
                     'withdraw' => $withdrawResult,
                     'deposit' => array(
                         'fee' => null,
                         'percentage' => null,
                     ),
                 );
+                $result['networks'] = $networks;
             }
             $this->assign_default_deposit_withdraw_fees($result, $currency);
         }

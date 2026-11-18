@@ -470,7 +470,7 @@ class onetrading extends \ccxt\async\onetrading {
         }
     }
 
-    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
+    public function handle_book_deltas(mixed $orderbook, array $deltas) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],

@@ -188,7 +188,7 @@ class hyperliquid extends Exchange {
          * @param {int} $encoding outcome side $encoding
          * @return {string} the coin name
          */
-        return '#' . (string) $encoding;
+        return '#' . (string) $this->parse_to_int($encoding);
     }
 
     public function outcome_token(float $encoding): string {
@@ -198,7 +198,7 @@ class hyperliquid extends Exchange {
          * @param {int} $encoding outcome side $encoding
          * @return {string} the token name
          */
-        return '+' . (string) $encoding;
+        return '+' . (string) $this->parse_to_int($encoding);
     }
 
     public function parse_outcome_description(string $description): array {
@@ -617,7 +617,7 @@ class hyperliquid extends Exchange {
         $intPart = $parts[0];
         $intPartLength = count($intPart);
         $szDecimalsInt = $this->parse_to_int($szDecimals);
-        $maxDecimals = 8 - $szDecimalsInt;
+        $maxDecimals = $this->parse_to_int(8 - $szDecimalsInt);
         // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
         $digitsLeft = 0;
         if ($intPartLength <= 5) {
@@ -2136,8 +2136,8 @@ class hyperliquid extends Exchange {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         return array(

@@ -1676,10 +1676,9 @@ class bybit extends \ccxt\async\bybit {
         $messageHash = '';
         $symbolsNormalized = $symbols;
         if (($symbols !== null) && !$this->is_empty($symbols)) {
-            $symbolsNormalized = $this->market_symbols($symbols);
-        }
-        if (($symbolsNormalized !== null) && !$this->is_empty($symbolsNormalized)) {
-            $messageHash = '::' . implode(',', $symbolsNormalized);
+            $marketSymbols = $this->market_symbols($symbols);
+            $symbolsNormalized = $marketSymbols;
+            $messageHash = '::' . implode(',', $marketSymbols);
         }
         $firstSymbol = $this->safe_string($symbolsNormalized, 0);
         $url = Async\await($this->get_url_by_market_type($firstSymbol, true, $method, $params));
@@ -1694,8 +1693,7 @@ class bybit extends \ccxt\async\bybit {
             $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized, $since, $limit, true);
         }
-        $topics = array( 'position' );
-        $newPositions = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
+        $newPositions = Async\await($this->watch_topics($url, array( $messageHash ), array( 'position' ), $params));
         if ($this->newUpdates) {
             return $newPositions;
         }

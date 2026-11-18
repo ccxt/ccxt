@@ -1334,14 +1334,15 @@ class cryptocom extends \ccxt\async\cryptocom {
             Async\await($this->load_markets());
         }
         $market = null;
-        $request = array(
-            'method' => 'private/cancel-all-orders',
-            'params' => $this->extend(array(), $params),
-        );
+        $requestParams = $this->extend(array(), $params);
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['params']['instrument_name'] = $market['id'];
+            $requestParams['instrument_name'] = $market['id'];
         }
+        $request = array(
+            'method' => 'private/cancel-all-orders',
+            'params' => $requestParams,
+        );
         $messageHash = $this->incrementing_nonce();
         return Async\await($this->watch_private_request($messageHash, $request));
     }

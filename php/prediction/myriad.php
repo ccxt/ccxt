@@ -1193,8 +1193,8 @@ class myriad extends Exchange {
         $encoded = $this->eth_encode_structured_data($domain, $types, $message);
         $digest = $this->hash($encoded, 'keccak', 'hex');
         $signature = $this->ecdsa($digest, $this->remove0x_prefix($this->privateKey), 'secp256k1', null);
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         $v = $this->sum(27, $signature['v']);

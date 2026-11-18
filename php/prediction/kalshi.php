@@ -2497,7 +2497,7 @@ class kalshi extends Exchange {
             $cursor = null;
             for ($page = 0; $page < $maxPages; $page++) {
                 $reqLimit = $pageLimit;
-                if ($hasLimit && ($limitValue !== null)) {
+                if ($hasLimit) {
                     $collectedSoFar = count($rawEvents);
                     $remaining = $this->parse_to_int($limitValue - $collectedSoFar);
                     if ($remaining < $reqLimit) {

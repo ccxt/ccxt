@@ -2406,13 +2406,14 @@ class blofin extends Exchange {
         //
         $result = $this->deposit_withdraw_fee($fee);
         $chainsLength = count($fee);
+        $networkFees = array();
         for ($i = 0; $i < $chainsLength; $i++) {
             $chain = $this->safe_dict($fee, $i);
             $networkCode = $this->chain_id_to_network_code($this->safe_string($chain, 'chain'));
             if ($networkCode === null) {
                 continue;
             }
-            $result['networks'][$networkCode] = array(
+            $networkFees[$networkCode] = array(
                 'withdraw' => array(
                     'fee' => $this->safe_number($chain, 'withdrawFee'),
                     'percentage' => false,
@@ -2423,6 +2424,7 @@ class blofin extends Exchange {
                 ),
             );
         }
+        $result['networks'] = $networkFees;
         if ($chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
             $networks = $this->safe_dict($result, 'networks', array());

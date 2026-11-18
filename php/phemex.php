@@ -1540,8 +1540,9 @@ class phemex extends Exchange {
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
         $last = $this->from_ep($this->safe_string_2($ticker, 'lastEp', 'closeRp'), $marketResolved);
         $quoteVolume = $this->from_er($this->safe_string_2($ticker, 'turnoverEv', 'turnoverRv'), $marketResolved);
-        $baseVolume = $this->safe_string($ticker, 'volume');
-        if ($baseVolume === null) {
+        $volume = $this->safe_string($ticker, 'volume');
+        $baseVolume = $volume;
+        if ($volume === null) {
             $baseVolume = $this->from_ev($this->safe_string_2($ticker, 'volumeEv', 'volumeRq'), $marketResolved);
         }
         $open = $this->from_ep($this->safe_string($ticker, 'openEp'), $marketResolved);
@@ -2584,8 +2585,9 @@ class phemex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $side = $this->parse_order_side($this->safe_string_lower($order, 'side'));
         $type = $this->parse_order_type($this->safe_string($order, 'orderType'));
-        $price = $this->safe_string($order, 'priceRp');
-        if ($price === null) {
+        $priceRp = $this->safe_string($order, 'priceRp');
+        $price = $priceRp;
+        if ($priceRp === null) {
             $price = $this->from_ep($this->safe_string($order, 'priceEp'), $marketResolved);
         }
         $amount = $this->safe_number_2($order, 'orderQty', 'orderQtyRq');
@@ -5149,7 +5151,7 @@ class phemex extends Exchange {
         $stableCoins = $this->safe_list($this->options, 'stableCoins', array());
         if ($networkId === null) {
             if (!($this->in_array($code, $stableCoins))) {
-                $networkId = $currency['id'];
+                $networkId = $this->safe_string($currency, 'id', $currency['id']);
             } else {
                 throw new ArgumentsRequired($this->id . ' withdraw () requires an extra argument params["network"]');
             }

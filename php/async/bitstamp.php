@@ -1705,6 +1705,7 @@ class bitstamp extends Exchange {
         $result = $this->deposit_withdraw_fee($fee);
         $code = $this->safe_string($currency, 'code');
         $feeEntries = $this->to_array($fee);
+        $networks = array();
         for ($j = 0; $j < count($feeEntries); $j++) {
             $networkEntry = $this->safe_dict($feeEntries, $j);
             $networkCode = $this->network_id_to_code($this->safe_string($networkEntry, 'network'), $code);
@@ -1714,7 +1715,7 @@ class bitstamp extends Exchange {
                 'percentage' => null,
             );
             if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
+                $networks[$networkCode] = array(
                     'withdraw' => array(
                         'fee' => $withdrawFee,
                         'percentage' => null,
@@ -1726,6 +1727,7 @@ class bitstamp extends Exchange {
                 );
             }
         }
+        $result['networks'] = $networks;
         return $result;
     }
 

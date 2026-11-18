@@ -2872,7 +2872,7 @@ class polymarket extends Exchange {
             if ($expires === null) {
                 return $credentials;
             }
-            $refreshAfter = $expires - $margin;
+            $refreshAfter = $this->parse_to_int($expires - $margin);
             if ($this->milliseconds() < $refreshAfter) {
                 return $credentials;
             }

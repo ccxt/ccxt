@@ -112,14 +112,11 @@ class bitget extends \ccxt\async\bitget {
 
     public function get_inst_type(?string $methodName, array $market, bool $uta = false, $params = array()): array {
         $useProductType = ($market === null) || ($this->safe_bool($market, 'swap', false)) || ($this->safe_bool($market, 'future', false));
-        $productTypeAndParams = array( null, array() );
+        $instTypeDefault = 'SPOT';
+        $paramsProductType = $params;
         if ($useProductType) {
-            $productTypeAndParams = $this->handleProductTypeAndParams($market, $params);
-        } else {
-            $productTypeAndParams = array( 'SPOT', $params );
+            list($instTypeDefault, $paramsProductType) = $this->handleProductTypeAndParams($market, $params);
         }
-        $instTypeDefault = $productTypeAndParams[0];
-        $paramsProductType = $productTypeAndParams[1];
         list($instTypeOption, $paramsInstType) = $this->handle_option_string_and_params($paramsProductType, $methodName, 'instType', $instTypeDefault);
         $instType = $instTypeOption;
         if ($uta && ($instTypeOption !== null)) {

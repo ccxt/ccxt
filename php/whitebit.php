@@ -1908,12 +1908,12 @@ class whitebit extends Exchange {
             $duration = $this->parse_timeframe($timeframe);
             $endTime = null;
             if ($until !== null) {
-                $endTime = $this->sum($this->parse_to_int($until / 1000), $duration);
+                $endTime = $this->parse_to_int($this->sum($this->parse_to_int($until / 1000), $duration));
             }
             if ($since !== null) {
                 $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
-                $rangeEnd = $this->sum($start, $duration * $cappedLimit);
+                $rangeEnd = $this->parse_to_int($this->sum($start, $duration * $cappedLimit));
                 if (($endTime === null) || ($rangeEnd < $endTime)) {
                     $endTime = $rangeEnd;
                 }

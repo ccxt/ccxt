@@ -762,7 +762,8 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         }
                         $previousOrderFee = $this->safe_dict($previousOrder, 'fee', array());
                         if (($this->safe_number($previousOrderFee, 'cost') !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
-                            $previousOrder['fee']['cost'] = $this->parse_number(Precise::string_add($this->safe_string($previousOrderFee, 'cost'), $this->safe_string($trade['fee'], 'cost')));
+                            $previousOrderFee['cost'] = $this->parse_number(Precise::string_add($this->safe_string($previousOrderFee, 'cost'), $this->safe_string($trade['fee'], 'cost')));
+                            $previousOrder['fee'] = $previousOrderFee;
                         }
                         // update the newUpdates count
                         $orders->append($previousOrder);

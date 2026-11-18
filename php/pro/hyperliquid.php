@@ -455,7 +455,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
          *
          * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->dex] for hip3 tokens subscription, eg => 'xyz' or 'flx`, if $symbols are provided we will infer it from the first symbol's $market
+         * @param {string} [$params->dex] for hip3 tokens $subscription, eg => 'xyz' or 'flx`, if $symbols are provided we will infer it from the first symbol's $market
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
@@ -464,11 +464,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $symbolsNormalized = $this->market_symbols($symbols, null, true);
         $messageHash = 'tickers';
         $url = $this->urls['api']['ws']['public'];
-        $request = array(
-            'method' => 'subscribe',
-            'subscription' => array(
-                'type' => 'allMids',
-            ),
+        $subscription = array(
+            'type' => 'allMids',
         );
         $defaultDex = $this->safe_string($params, 'dex');
         $firstSymbol = $this->safe_string($symbolsNormalized, 0);
@@ -482,9 +479,13 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $paramsOmitted = ($defaultDex !== null) ? $this->omit($params, 'dex') : $params;
         if ($defaultDex !== null) {
             $messageHash = 'tickers:' . $defaultDex;
-            $request['subscription']['type'] = 'allMids';
-            $request['subscription']['dex'] = $defaultDex;
+            $subscription['type'] = 'allMids';
+            $subscription['dex'] = $defaultDex;
         }
+        $request = array(
+            'method' => 'subscribe',
+            'subscription' => $subscription,
+        );
         // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
         Async\await($this->wait_for_pending_unsubscribe($url, 'tickers'));
         $tickers = Async\await($this->watch($url, $messageHash, $this->extend($request, $paramsOmitted), $messageHash));

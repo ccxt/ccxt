@@ -2591,12 +2591,13 @@ class kucoin extends Exchange {
                 'networks' => array(),
             );
             $chains = $this->safe_list($fee, 'chains', array());
+            $networksNew = array();
             for ($i = 0; $i < count($chains); $i++) {
                 $chain = $this->safe_dict($chains, $i);
                 $chainId = $this->safe_string($chain, 'chainId');
                 $networkCodeNew = $this->network_id_to_code($chainId, $this->safe_string($currency, 'code'));
                 if ($networkCodeNew !== null) {
-                    $resultNew['networks'][$networkCodeNew] = array(
+                    $networksNew[$networkCodeNew] = array(
                         'withdraw' => array(
                             'fee' => $this->safe_number_2($chain, 'withdrawalMinFee', 'withdrawMinFee'),
                             'percentage' => false,
@@ -2608,6 +2609,7 @@ class kucoin extends Exchange {
                     );
                 }
             }
+            $resultNew['networks'] = $networksNew;
             return $resultNew;
         }
         $minWithdrawFee = $this->safe_number($fee, 'withdrawMinFee');
@@ -2628,7 +2630,8 @@ class kucoin extends Exchange {
         $currencyResolved = $this->safe_currency($currencyId, $currency);
         $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currencyResolved, 'code'));
         if ($networkCode !== null) {
-            $result['networks'][$networkCode] = array(
+            $networks = array();
+            $networks[$networkCode] = array(
                 'withdraw' => array(
                     'fee' => $minWithdrawFee,
                     'percentage' => false,
@@ -2638,6 +2641,7 @@ class kucoin extends Exchange {
                     'percentage' => null,
                 ),
             );
+            $result['networks'] = $networks;
         }
         return $result;
     }
@@ -11593,17 +11597,14 @@ class kucoin extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchLeverageTiers() requires a symbols argument');
         }
         $symbolsNormalized = $this->market_symbols($symbols, 'swap', false, true);
-        $marginMode = 'cross';
-        $paramsRequest = null;
-        list($marginMode, $paramsRequest) = $this->handle_option_string_and_params($params, 'fetchLeverageTiers', 'marginMode', $marginMode);
-        $marginMode = strtoupper($marginMode);
-        if ($marginMode !== 'CROSS') {
+        list($marginMode, $paramsRequest) = $this->handle_option_string_and_params($params, 'fetchLeverageTiers', 'marginMode', 'cross');
+        if (strtoupper($marginMode) !== 'CROSS') {
             throw new BadRequest($this->id . ' fetchLeverageTiers() supports cross margin only');
         }
         $marketIds = $this->market_ids($symbolsNormalized);
         $request = array(
             'tradeType' => 'FUTURES',
-            'marginMode' => $marginMode,
+            'marginMode' => 'CROSS',
             'data' => 'RISK_LIMIT',
             'accountType' => 'UNIFIED',
             'symbol' => implode(',', $marketIds),

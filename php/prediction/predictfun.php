@@ -1784,8 +1784,8 @@ class predictfun extends Exchange {
          */
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}

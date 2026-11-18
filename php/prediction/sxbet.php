@@ -711,8 +711,8 @@ class sxbet extends Exchange {
         $signature = $this->ecdsa(mb_substr($digest, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        $rRaw = $signature['r'];
-        $sRaw = $signature['s'];
+        $rRaw = $this->safe_string($signature, 'r', '');
+        $sRaw = $this->safe_string($signature, 's', '');
         $r = str_pad($rRaw, 64, '0', STR_PAD_LEFT);
         $s = str_pad($sRaw, 64, '0', STR_PAD_LEFT);
         $v = $this->int_to_base16($this->sum(27, $signature['v']));

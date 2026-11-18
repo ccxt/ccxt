@@ -826,7 +826,7 @@ class binance extends \ccxt\async\binance {
         list($rpi, $paramsRpi) = $this->handle_option_bool_and_params($paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
         if ($rpi && $type === 'linear') {
             $name = 'rpiDepth';
-            $watchOrderBookRate = '500';
+            $watchOrderBookRate = $this->number_to_string(500);
         }
         $subParams = array();
         $messageHashes = array();
@@ -840,7 +840,7 @@ class binance extends \ccxt\async\binance {
             if ($watchOrderBookRate === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() watchOrderBookRate is required');
             }
-            $symbolHash = $subscriptionHash . '@' . (string) $watchOrderBookRate . 'ms';
+            $symbolHash = $subscriptionHash . '@' . $watchOrderBookRate . 'ms';
             $subParams[] = $symbolHash;
         }
         $messageHashesLength = count($messageHashes);
@@ -5823,10 +5823,11 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $market = null;
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbolResolved = $this->symbol($symbol);
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         list($type, $subType, $paramsAuth) = $this->resolve_auth_type('watchMyTrades', $market, $params);
         $messageHash = 'myTrades';
         $symbolParams = array();
@@ -5914,7 +5915,8 @@ class binance extends \ccxt\async\binance {
                                 if ($feeCostString === null) {
                                     $feeCostString = '0';
                                 }
-                                $order['fee']['cost'] = floatval($feeCostString);
+                                $fee['cost'] = floatval($feeCostString);
+                                $order['fee'] = $fee;
                             } elseif ($fee['currency'] === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
@@ -6107,7 +6109,7 @@ class binance extends \ccxt\async\binance {
         }
         // reset connection if 5xx error
         $codeString = $this->safe_string($error, 'code');
-        if (($codeString !== null) && ($codeString[0] === '5')) {
+        if (($codeString !== null) && str_starts_with($codeString, '5')) {
             $resetError = new ExchangeError($this->id . ' ' . $this->json($message));
             $client->reset($resetError);
         }

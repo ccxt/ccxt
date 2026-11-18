@@ -2032,14 +2032,15 @@ class grvt extends Exchange {
         $isMarketOrder = ($type === 'market');
         $subAccountId = $this->get_sub_account_id($paramsOmitted3);
         $isReduceOnly = $this->safe_bool($paramsOmitted3, 'reduceOnly', false);
+        $orderMetadata = array(
+            'client_order_id' => $clientOrderId,
+        );
         $orderRequest = array(
             'sub_account_id' => $subAccountId,
             'time_in_force' => null,
             'legs' => array( $orderLeg ),
             'signature' => $this->default_signature(),
-            'metadata' => array(
-                'client_order_id' => $clientOrderId,
-            ),
+            'metadata' => $orderMetadata,
             'is_market' => $isMarketOrder,
             'post_only' => false,
             'reduce_only' => $isReduceOnly,
@@ -2105,7 +2106,7 @@ class grvt extends Exchange {
             }
             // trigger by
             $triggerPriceType = $this->safe_string_upper($paramsTriggerPrices, 'triggerPriceType', 'LAST');
-            $orderRequest['metadata']['trigger'] = array(
+            $orderMetadata['trigger'] = array(
                 'trigger_type' => $selectedType,
                 'tpsl' => array(
                     'trigger_by' => $triggerPriceType,
@@ -2113,6 +2114,7 @@ class grvt extends Exchange {
                     'close_position' => $this->safe_bool($paramsTriggerPrices, 'closePosition', false),
                 ),
             );
+            $orderRequest['metadata'] = $orderMetadata;
         }
         $paramsTrigger = $paramsTriggerPrices;
         if ($isTriggerOrder) {

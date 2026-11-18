@@ -1784,7 +1784,8 @@ class paradex extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
-        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnlyParam = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnly = ($reduceOnlyParam === true);
         $orderType = strtoupper($type);
         $orderSide = strtoupper($side);
         $request = array(

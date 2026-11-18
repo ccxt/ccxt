@@ -394,8 +394,9 @@ class phemex extends \ccxt\async\phemex {
             $currency = $this->safe_dict($this->currencies, $code, array());
             $scale = $this->safe_integer($currency, 'valueScale', 8);
             $account = $this->account();
-            $used = $this->safe_string($balance, 'totalUsedBalanceRv');
-            if ($used === null) {
+            $usedRv = $this->safe_string($balance, 'totalUsedBalanceRv');
+            $used = $usedRv;
+            if ($usedRv === null) {
                 $usedEv = $this->safe_string($balance, 'totalUsedBalanceEv');
                 if ($usedEv === null) {
                     $lockedTradingBalanceEv = $this->safe_string($balance, 'lockedTradingBalanceEv');
@@ -404,8 +405,9 @@ class phemex extends \ccxt\async\phemex {
                 }
                 $used = $this->from_en($usedEv, $scale);
             }
-            $total = $this->safe_string($balance, 'accountBalanceRv');
-            if ($total === null) {
+            $totalRv = $this->safe_string($balance, 'accountBalanceRv');
+            $total = $totalRv;
+            if ($totalRv === null) {
                 $totalEv = $this->safe_string_2($balance, 'accountBalanceEv', 'balanceEv');
                 $total = $this->from_en($totalEv, $scale);
             }

@@ -5512,8 +5512,9 @@ class hyperliquid extends Exchange {
             $data = $this->safe_dict($responsePayload, 'data', array());
             $statuses = $this->safe_list($data, 'statuses', array());
             for ($i = 0; $i < count($statuses); $i++) {
-                $message = $this->safe_string($statuses[$i], 'error');
-                if ($message !== null) {
+                $statusError = $this->safe_string($statuses[$i], 'error');
+                if ($statusError !== null) {
+                    $message = $statusError;
                     break;
                 }
             }

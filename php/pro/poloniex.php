@@ -1150,12 +1150,14 @@ class poloniex extends \ccxt\async\poloniex {
                         $previousOrder['average'] = $this->parse_number(Precise::string_div($totalCost, $totalAmount));
                     }
                     $previousOrder['cost'] = $this->parse_number($totalCost);
-                    if ($previousOrder['filled'] !== null) {
+                    $previousOrderFilledRaw = $this->safe_string($previousOrder, 'filled');
+                    if ($previousOrderFilledRaw !== null) {
                         $tradeAmount = $this->number_to_string($trade['amount']);
                         $previousOrderFilled = $this->number_to_string($previousOrder['filled']);
                         $previousOrderFilled = Precise::string_add($previousOrderFilled, $tradeAmount);
                         $previousOrder['filled'] = $previousOrderFilled;
-                        if ($previousOrder['amount'] !== null) {
+                        $previousOrderAmountRaw = $this->safe_string($previousOrder, 'amount');
+                        if ($previousOrderAmountRaw !== null) {
                             $previousOrderAmount = $this->number_to_string($previousOrder['amount']);
                             $previousOrder['remaining'] = $this->parse_number(Precise::string_sub($previousOrderAmount, $previousOrderFilled));
                         }

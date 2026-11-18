@@ -3879,6 +3879,67 @@ class binance extends Exchange {
             }
         }
         $feesTrading = $this->safe_dict($fees, 'trading', array());
+        $precision = array(
+            'amount' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'quantityPrecision', 'quantityScale'))),
+            'price' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'pricePrecision', 'priceScale'))),
+            'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
+            'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
+        );
+        $costLimits = array(
+            'min' => $this->safe_number($market, 'minNotional'),
+            'max' => $this->safe_number($market, 'maxNotional'),
+        );
+        if ((is_array($filtersByType) && array_key_exists('MIN_NOTIONAL' ?? '', $filtersByType)) || (is_array($filtersByType) && array_key_exists('NOTIONAL' ?? '', $filtersByType))) { // notional added in 12/04/23 to spot testnet
+            $filter = $this->safe_dict_2($filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', array());
+            $costLimits['min'] = $this->safe_number_2($filter, 'minNotional', 'notional');
+            $costLimits['max'] = $this->safe_number($filter, 'maxNotional');
+        }
+        $limits = array(
+            'leverage' => array(
+                'min' => null,
+                'max' => null,
+            ),
+            'amount' => array(
+                'min' => $this->safe_number($market, 'minQty'),
+                'max' => $this->safe_number($market, 'maxQty'),
+            ),
+            'price' => array(
+                'min' => null,
+                'max' => null,
+            ),
+            'cost' => $costLimits,
+        );
+        $stepSize = $this->safe_number($market, 'stepSize');
+        if ($stepSize !== null) {
+            $precision['amount'] = $stepSize;
+        }
+        if (is_array($filtersByType) && array_key_exists('PRICE_FILTER' ?? '', $filtersByType)) {
+            $filter = $this->safe_dict($filtersByType, 'PRICE_FILTER', array());
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            $limits['price'] = array(
+                'min' => $this->safe_number($filter, 'minPrice'),
+                'max' => $this->safe_number($filter, 'maxPrice'),
+            );
+            $precision['price'] = $this->safe_number($filter, 'tickSize');
+        }
+        if (is_array($filtersByType) && array_key_exists('LOT_SIZE' ?? '', $filtersByType)) {
+            $filter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
+            $precision['amount'] = $this->safe_number($filter, 'stepSize');
+            $limits['amount'] = array(
+                'min' => $this->safe_number($filter, 'minQty'),
+                'max' => $this->safe_number($filter, 'maxQty'),
+            );
+        }
+        if (is_array($filtersByType) && array_key_exists('MARKET_LOT_SIZE' ?? '', $filtersByType)) {
+            $filter = $this->safe_dict($filtersByType, 'MARKET_LOT_SIZE', array());
+            $limits['market'] = array(
+                'min' => $this->safe_number($filter, 'minQty'),
+                'max' => $this->safe_number($filter, 'maxQty'),
+            );
+        }
         $entry = array(
             'id' => $id,
             'lowercaseId' => $lowercaseId,
@@ -3909,69 +3970,11 @@ class binance extends Exchange {
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => $parsedStrike,
             'optionType' => $this->safe_string_lower($market, 'side'),
-            'precision' => array(
-                'amount' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'quantityPrecision', 'quantityScale'))),
-                'price' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'pricePrecision', 'priceScale'))),
-                'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
-                'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
-            ),
-            'limits' => array(
-                'leverage' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'minQty'),
-                    'max' => $this->safe_number($market, 'maxQty'),
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'minNotional'),
-                    'max' => $this->safe_number($market, 'maxNotional'),
-                ),
-            ),
+            'precision' => $precision,
+            'limits' => $limits,
             'info' => $market,
             'created' => $this->safe_integer_2($market, 'onboardDate', 'listingTime'),
         );
-        $stepSize = $this->safe_number($market, 'stepSize');
-        if ($stepSize !== null) {
-            $entry['precision']['amount'] = $stepSize;
-        }
-        if (is_array($filtersByType) && array_key_exists('PRICE_FILTER' ?? '', $filtersByType)) {
-            $filter = $this->safe_dict($filtersByType, 'PRICE_FILTER', array());
-            // PRICE_FILTER reports zero values for maxPrice
-            // since they updated filter types in November 2018
-            // https://github.com/ccxt/ccxt/issues/4286
-            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-            $entry['limits']['price'] = array(
-                'min' => $this->safe_number($filter, 'minPrice'),
-                'max' => $this->safe_number($filter, 'maxPrice'),
-            );
-            $entry['precision']['price'] = $this->safe_number($filter, 'tickSize');
-        }
-        if (is_array($filtersByType) && array_key_exists('LOT_SIZE' ?? '', $filtersByType)) {
-            $filter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
-            $entry['precision']['amount'] = $this->safe_number($filter, 'stepSize');
-            $entry['limits']['amount'] = array(
-                'min' => $this->safe_number($filter, 'minQty'),
-                'max' => $this->safe_number($filter, 'maxQty'),
-            );
-        }
-        if (is_array($filtersByType) && array_key_exists('MARKET_LOT_SIZE' ?? '', $filtersByType)) {
-            $filter = $this->safe_dict($filtersByType, 'MARKET_LOT_SIZE', array());
-            $entry['limits']['market'] = array(
-                'min' => $this->safe_number($filter, 'minQty'),
-                'max' => $this->safe_number($filter, 'maxQty'),
-            );
-        }
-        if ((is_array($filtersByType) && array_key_exists('MIN_NOTIONAL' ?? '', $filtersByType)) || (is_array($filtersByType) && array_key_exists('NOTIONAL' ?? '', $filtersByType))) { // notional added in 12/04/23 to spot testnet
-            $filter = $this->safe_dict_2($filtersByType, 'MIN_NOTIONAL', 'NOTIONAL', array());
-            $entry['limits']['cost']['min'] = $this->safe_number_2($filter, 'minNotional', 'notional');
-            $entry['limits']['cost']['max'] = $this->safe_number($filter, 'maxNotional');
-        }
         return $this->safe_market_structure($entry);
     }
 
@@ -5167,11 +5170,12 @@ class binance extends Exchange {
         $price = $this->safe_string($paramsPaginate, 'price');
         $until = $this->safe_integer($paramsPaginate, 'until');
         $paramsOmitted = $this->omit($paramsPaginate, array( 'price', 'until' ));
-        $limitRequested = $limit;
-        if ($since !== null && $until !== null && $limit === null) {
-            $limitRequested = $maxLimit;
+        $limitValue = $this->parse_to_int($defaultLimit);
+        if ($limit !== null) {
+            $limitValue = $this->parse_to_int(min($limit, $maxLimit));
+        } elseif (($since !== null) && ($until !== null)) {
+            $limitValue = $this->parse_to_int($maxLimit);
         }
-        $limitValue = ($limitRequested === null) ? $defaultLimit : min($limitRequested, $maxLimit);
         $request = array(
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limitValue,
@@ -10705,6 +10709,7 @@ class binance extends Exchange {
         $code = $this->safe_string($currency, 'code');
         $networkList = $this->safe_list($fee, 'networkList', array());
         $result = $this->deposit_withdraw_fee($fee);
+        $networks = array();
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $this->safe_dict($networkList, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
@@ -10718,7 +10723,7 @@ class binance extends Exchange {
                 );
             }
             if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
+                $networks[$networkCode] = array(
                     'withdraw' => array(
                         'fee' => $withdrawFee,
                         'percentage' => null,
@@ -10730,6 +10735,7 @@ class binance extends Exchange {
                 );
             }
         }
+        $result['networks'] = $networks;
         return $result;
     }
 
@@ -11494,10 +11500,13 @@ class binance extends Exchange {
         if ($timestamp === 0) {
             $timestamp = null;
         }
-        $isolated = $this->safe_bool($position, 'isolated');
-        if ($isolated === null) {
+        $isolatedRaw = $this->safe_bool($position, 'isolated');
+        $isolated = false;
+        if ($isolatedRaw === null) {
             $isolatedMarginRaw = $this->safe_string($position, 'isolatedMargin');
             $isolated = !Precise::string_eq($isolatedMarginRaw, '0');
+        } else {
+            $isolated = ($isolatedRaw === true);
         }
         $marginMode = null;
         $collateralString = null;
@@ -11777,7 +11786,9 @@ class binance extends Exchange {
         } else {
             $collateralString = $this->safe_string($position, 'isolatedMargin');
         }
-        $collateralString = ($collateralString === null) ? '0' : $collateralString;
+        if ($collateralString === null) {
+            $collateralString = $this->number_to_string(0);
+        }
         $collateral = $this->parse_number($collateralString);
         $markPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'markPrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');

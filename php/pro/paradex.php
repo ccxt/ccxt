@@ -1237,14 +1237,14 @@ class paradex extends \ccxt\async\paradex {
             return true;
         }
         // the markets left in the scoped subscription once these are removed
-        $remaining = 0;
+        $othersRemain = false;
         $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($keys); $i++) {
             if ((mb_strpos($keys[$i], $channel . '.') === 0) && !$this->in_array($keys[$i], $subscribeHashes)) {
-                $remaining = $remaining + 1;
+                $othersRemain = true;
             }
         }
-        if (($symbolsLength === 0) || ((is_array($client->subscriptions) && array_key_exists($scopedHash ?? '', $client->subscriptions)) && ($remaining === 0))) {
+        if (($symbolsLength === 0) || ((is_array($client->subscriptions) && array_key_exists($scopedHash ?? '', $client->subscriptions)) && !$othersRemain)) {
             // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             $channelSubscription = array(
                 'topic' => 'ticker',

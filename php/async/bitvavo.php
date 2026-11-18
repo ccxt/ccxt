@@ -2765,12 +2765,14 @@ class bitvavo extends Exchange {
             $networkId = $currencyCode;
         }
         $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+        $networkFees = array();
         if ($networkCode !== null) {
-            $result['networks'][$networkCode] = array(
+            $networkFees[$networkCode] = array(
                 'deposit' => $result['deposit'],
                 'withdraw' => $result['withdraw'],
             );
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 

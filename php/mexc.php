@@ -6133,12 +6133,13 @@ class mexc extends Exchange {
         //
         $networkList = $this->safe_list($fee, 'networkList', array());
         $result = $this->deposit_withdraw_fee($fee);
+        $networks = array();
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $this->safe_dict($networkList, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
             $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
             if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
+                $networks[$networkCode] = array(
                     'withdraw' => array(
                         'fee' => $this->safe_number($networkEntry, 'withdrawFee'),
                         'percentage' => null,
@@ -6150,6 +6151,7 @@ class mexc extends Exchange {
                 );
             }
         }
+        $result['networks'] = $networks;
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 

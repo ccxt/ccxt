@@ -3532,9 +3532,6 @@ class BaseExchange {
          * @return array(object | null)
          */
         $value = $this->safe_value_n($dictionaryOrList, $keys, $defaultValue);
-        if ($value === null) {
-            return $defaultValue;
-        }
         if ($this->is_dictionary($value)) {
             return $value;
         }
@@ -3548,9 +3545,6 @@ class BaseExchange {
          * @return array(object | null)
          */
         $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
-        if ($value === null) {
-            return $defaultValue;
-        }
         if ($this->is_dictionary($value)) {
             return $value;
         }
@@ -7003,7 +6997,8 @@ class BaseExchange {
                 $this->set_last_request($request);
                 $response = $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
                 if ($fetchData !== null) {
-                    $fetchData['response']['body'] = $response;
+                    $responseData = array( 'body' => $response );
+                    $fetchData['response'] = $responseData;
                     $this->add_fetch_cache($fetchData);
                 }
                 return $response;

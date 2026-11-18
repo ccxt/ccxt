@@ -2785,9 +2785,9 @@ class okx extends Exchange {
         if ($isMarkOrIndex) {
             $requestMaxLimit = 100;
         }
-        $limitResolved = 100;
+        $limitResolved = $this->parse_to_int(100);
         if ($limit !== null) {
-            $limitResolved = min($limit, $requestMaxLimit);
+            $limitResolved = $this->parse_to_int(min($limit, $requestMaxLimit));
         }
         $duration = $this->parse_timeframe($timeframe);
         $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -2843,7 +2843,7 @@ class okx extends Exchange {
         } else {
             if ($isHistoryCandles) {
                 if ($limitIsUndefined && ($limitResolved === 100)) {
-                    $limitResolved = 300;
+                    $limitResolved = $this->parse_to_int(300);
                     $request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
                 }
                 $response = Async\await($this->publicGetMarketHistoryCandles($this->extend($request, $paramsType)));
@@ -3415,21 +3415,22 @@ class okx extends Exchange {
                 if ($tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
                     list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($orderParams, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                    $notional = $this->safe_number_2($paramsRequiresPrice, 'cost', 'sz');
+                    $notionalParam = $this->safe_number_2($paramsRequiresPrice, 'cost', 'sz');
+                    $notional = $notionalParam;
                     $orderParams = $this->omit($paramsRequiresPrice, array( 'cost', 'sz' ));
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
-                            if ($notional === null) {
+                            if ($notionalParam === null) {
                                 $amountString = $this->number_to_string($amount);
                                 $priceString = $this->number_to_string($price);
                                 $quoteAmount = Precise::string_mul($amountString, $priceString);
                                 $notional = $this->parse_number($quoteAmount);
                             }
-                        } elseif ($notional === null) {
+                        } elseif ($notionalParam === null) {
                             throw new InvalidOrder($this->id . " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
-                        $notional = ($notional === null) ? $amount : $notional;
+                        $notional = ($notionalParam === null) ? $amount : $notionalParam;
                     }
                     $request['sz'] = $this->cost_to_precision($symbol, $notional);
                 }
@@ -3709,11 +3710,16 @@ class okx extends Exchange {
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
-            if ($marketId === null) {
-                throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
-            }
             $type = $this->safe_string($rawOrder, 'type', '');
             $side = $this->safe_string($rawOrder, 'side');
+            if (($marketId === null) || ($side === null)) {
+                // a missing side is the createOrderRequest () error
+                $reason = ' requires a side argument';
+                if ($marketId === null) {
+                    $reason = ' createOrders() requires a symbol for each order';
+                }
+                throw new ArgumentsRequired($this->id . $reason);
+            }
             $amount = $this->safe_number($rawOrder, 'amount');
             $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
@@ -9750,8 +9756,7 @@ class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        $rows = $this->safe_list($response, 'data', array());
-        return $this->parse_conversions($rows, $code, 'baseCcy', 'quoteCcy', $since, $limit);
+        return $this->parse_conversions($this->safe_list($response, 'data', array()), $code, 'baseCcy', 'quoteCcy', $since, $limit);
     }
 
     public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {

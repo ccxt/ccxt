@@ -2687,7 +2687,9 @@ class coinbase extends Exchange {
             $pagination = $this->safe_dict($response, 'pagination', array());
             $cursor = $this->safe_string($pagination, 'next_starting_after');
             if (($cursor !== null) && ($cursor !== '')) {
-                $last['info']['next_starting_after'] = $cursor;
+                $lastInfo = $this->safe_dict($last, 'info', array());
+                $lastInfo['next_starting_after'] = $cursor;
+                $last['info'] = $lastInfo;
                 $ledger[$lastIndex] = $last;
             }
         }

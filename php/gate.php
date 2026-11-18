@@ -2735,6 +2735,7 @@ class gate extends Exchange {
             ),
             'networks' => array(),
         );
+        $networkFees = array();
         if ($withdrawFixOnChains !== null) {
             $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
             for ($i = 0; $i < count($chainKeys); $i++) {
@@ -2743,7 +2744,7 @@ class gate extends Exchange {
                 $code = $this->safe_currency_code($currencyId, $currency);
                 $networkCode = $this->network_id_to_code($chainKey, $code);
                 if ($networkCode !== null) {
-                    $result['networks'][$networkCode] = array(
+                    $networkFees[$networkCode] = array(
                         'withdraw' => array(
                             'fee' => $this->parse_number($withdrawFixOnChains[$chainKey]),
                             'percentage' => false,
@@ -2756,6 +2757,7 @@ class gate extends Exchange {
                 }
             }
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 

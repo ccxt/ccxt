@@ -3762,6 +3762,7 @@ class hitbtc extends Exchange {
         //
         $networks = $this->safe_list($fee, 'networks', array());
         $result = $this->deposit_withdraw_fee($fee);
+        $networkFees = array();
         for ($j = 0; $j < count($networks); $j++) {
             $networkEntry = $this->safe_dict($networks, $j);
             $networkId = $this->safe_string($networkEntry, 'network');
@@ -3782,7 +3783,7 @@ class hitbtc extends Exchange {
                 $result['withdraw'] = $withdrawResult;
             }
             if ($networkCode !== null) {
-                $result['networks'][$networkCode] = array(
+                $networkFees[$networkCode] = array(
                     'withdraw' => $withdrawResult,
                     'deposit' => array(
                         'fee' => null,
@@ -3791,6 +3792,7 @@ class hitbtc extends Exchange {
                 );
             }
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 

@@ -2293,7 +2293,7 @@ class bitget extends Exchange {
                 continue;
             }
             $parsedMarket = $this->parse_market($market);
-            if (($parsedMarket !== null) && $parsedMarket['spot']) {
+            if (($parsedMarket !== null) && $this->safe_bool($parsedMarket, 'spot', false)) {
                 $marketId = $parsedMarket['id'];
                 $instrument = $this->safe_dict($spotInstruments, $marketId);
                 if ($instrument !== null) {
@@ -6839,7 +6839,7 @@ class bitget extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $productType = $this->handle_product_type_and_params($market, $params)[0];
+        list($productType) = $this->handle_product_type_and_params($market, $params);
         $requestList = array();
         for ($i = 0; $i < count($ids); $i++) {
             $individualId = $this->safe_string($ids, $i);

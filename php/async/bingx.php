@@ -1278,7 +1278,7 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $requestLimit = ($limit === null) ? 500 : min($limit, $maxLimit);
+        $requestLimit = $this->parse_to_int(($limit === null) ? 500 : min($limit, $maxLimit));
         if ($since !== null) {
             $request['startTime'] = max($since - 1, 0);
         }
@@ -6614,11 +6614,12 @@ class bingx extends Exchange {
             ),
             'networks' => array(),
         );
+        $networkFees = array();
         if ($networksLength !== 0) {
             for ($i = 0; $i < $networksLength; $i++) {
                 $networkCode = $this->safe_string($networkCodes, $i, '');
                 $network = $this->safe_dict($networks, $networkCode);
-                $result['networks'][$networkCode] = array(
+                $networkFees[$networkCode] = array(
                     'deposit' => array( 'fee' => null, 'percentage' => null ),
                     'withdraw' => array( 'fee' => $this->safe_number($network, 'fee'), 'percentage' => false ),
                 );
@@ -6630,6 +6631,7 @@ class bingx extends Exchange {
                 }
             }
         }
+        $result['networks'] = $networkFees;
         return $result;
     }
 
