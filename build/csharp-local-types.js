@@ -10943,7 +10943,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context) ?? outcomesMapLocal93c7 (csharp, declaration, context) ?? currenciesViewLocal93c7 (csharp, declaration, context) ?? int64ChainLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context) ?? int64SumComparedLocal87c7 (csharp, declaration, context) ?? listBucketMapReadLocal87c7 (csharp, declaration, context) ?? jsonParseDictLocal92c7 (csharp, declaration, context) ?? literalDictHelperLocal93c7 (csharp, declaration, context) ?? outcomesMapLocal93c7 (csharp, declaration, context) ?? currenciesViewLocal93c7 (csharp, declaration, context) ?? int64ChainLocal (csharp, declaration, context) ?? arrayGuardedConditionalListLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -15269,6 +15269,9 @@ export function installCsharpLocalTypes (transpiler) {
             }
             // the printer prints a bare `getValue (recv, key)`; the named element type only
             // compiles once the box is cast back
+            if (info.objectBoxWhole === true) {
+                value = '((object)(' + value + '))'; // arms with no common C# type (Dictionary : List)
+            }
             value = (info.castWhole === true)
                 // a conditional / binary value: a cast binds its own operand first, so the whole
                 // expression needs its own paren pair (`((T)(cond ? A : B))`)
@@ -22960,3 +22963,65 @@ function int64ChainLocal (csharp, declaration, context) {
         int64ChainCandidates.delete (declaration);
     }
 }
+
+// `const x = Array.isArray (y) ? y : <list>` (the test directly or through `const c = Array.isArray (y)`)
+// whose false arm is a List<object> (`[]`, `[ v ]`, `this.safeList (...)`): the true arm passed the
+// printed IList / generic List<> guard, and every list box the generated code and JsonHelper build is
+// a List<object>, so the whole conditional is cast back once and the local's length / index reads go native.
+function arrayGuardedConditionalTarget (csharp, scope, condition) {
+    let test = stripParens (condition);
+    if (test?.kind === ts.SyntaxKind.Identifier) {
+        const flag = resolveReference (csharp, test);
+        if (flag?.kind !== ts.SyntaxKind.VariableDeclaration || flag.parent?.declarations?.length !== 1
+                || (flag.parent.flags & ts.NodeFlags.Const) === 0) {
+            return undefined;
+        }
+        test = stripParens (flag.initializer);
+    }
+    const isArrayCall = test?.kind === ts.SyntaxKind.CallExpression && test.arguments?.length === 1
+        && test.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && test.expression.expression?.kind === ts.SyntaxKind.Identifier
+        && test.expression.expression.text === 'Array' && test.expression.name?.text === 'isArray'
+        && stripParens (test.arguments[0])?.kind === ts.SyntaxKind.Identifier;
+    return isArrayCall ? stripParens (test.arguments[0]) : undefined;
+}
+
+function arrayGuardedConditionalListLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || (declaration.parent.flags & ts.NodeFlags.Const) === 0) {
+        return undefined;
+    }
+    const init = stripParens (declaration.initializer);
+    if (init?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const fileName = (declaration.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const guarded = arrayGuardedConditionalTarget (csharp, scope, init.condition);
+    const whenTrue = stripParens (init.whenTrue);
+    if (guarded === undefined || whenTrue?.kind !== ts.SyntaxKind.Identifier || whenTrue.text !== guarded.text) {
+        return undefined;
+    }
+    const whenFalse = stripParens (init.whenFalse);
+    const falseIsList = whenFalse?.kind === ts.SyntaxKind.ArrayLiteralExpression
+        || (whenFalse?.kind === ts.SyntaxKind.CallExpression && whenFalse.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && whenFalse.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && whenFalse.expression.name?.text === 'safeList');
+    if (!falseIsList || !arrayGuardedListLocalHasNativeUse (csharp, declaration)) {
+        return undefined;
+    }
+    const type = 'List<object>';
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    // a typed Dictionary guard target never passes the IList test: the conditional is then boxed whole
+    const guardedType = csharpTypeOfValue (csharp, guarded, ctx);
+    const objectBoxWhole = guardedType !== undefined && guardedType !== 'object' ? true : undefined;
+    if (objectBoxWhole && !DICT_TYPES_C03.includes (guardedType)) {
+        return undefined;
+    }
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type, castWhole: true, objectBoxWhole } : undefined;
+}
+const DICT_TYPES_C03 = [ 'Dictionary<string, object>', 'IDictionary<string, object>' ];
