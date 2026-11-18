@@ -632,8 +632,8 @@ impl crate::exchange::DerivedExchange for Bitget {
                 let mut feeObject: Value = Value::Null;
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_382: bool = true;
-                    while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (feeValues.len() as i64) } {
+                    let mut __for_first_234: bool = true;
+                    while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (feeValues.len() as i64) } {
                     let mut feeValue: Value = feeValues.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut feeValueCoinCode: Option<String> = self.safe_string_k_opt(&feeValue, "feeCoinCode", &[]);
                     if (feeValueCoinCode.is_some()) {
@@ -1475,8 +1475,8 @@ impl crate::exchange::DerivedExchange for Bitget {
         let mut chainsLength: i64 = chains.len() as i64;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_375: bool = true;
-            while { if !__for_first_375 { j += 1; } __for_first_375 = false; j < chainsLength } {
+            let mut __for_first_227: bool = true;
+            while { if !__for_first_227 { j += 1; } __for_first_227 = false; j < chainsLength } {
             let mut chain: Option<crate::value::Dict> = self.safe_dict_o(&chains, Value::Int(j));
             let mut networkId: Option<String> = self.safe_string_k_opt(&chain, "chain", &[]);
             let mut network: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -2049,8 +2049,8 @@ impl crate::exchange::DerivedExchange for Bitget {
         let mut minNotional: Value = Value::Int(0);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_376: bool = true;
-            while { if !__for_first_376 { i += 1; } __for_first_376 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_228: bool = true;
+            while { if !__for_first_228 { i += 1; } __for_first_228 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
             let mut item: crate::value::Dict = self.safe_dict_t(&info, Value::Int(i));
             let mut minimumNotional: Option<f64> = self.safe_number2(&item, Value::Str("startUnit".into()), Value::Str("minTierValue".into()), &[]).as_f64();
             if (minimumNotional.is_some()) {
@@ -2131,8 +2131,8 @@ impl crate::exchange::DerivedExchange for Bitget {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_390: bool = true;
-            while { if !__for_first_390 { i += 1; } __for_first_390 = false; i < chainsLength } {
+            let mut __for_first_242: bool = true;
+            while { if !__for_first_242 { i += 1; } __for_first_242 = false; i < chainsLength } {
             let mut chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(i));
             let mut networkId: Option<String> = self.safe_string_k_opt(&chain, "chain", &[]);
             let mut currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
@@ -7928,7 +7928,7 @@ impl Bitget {
         let mut uta: Value = utaparamsUtaVariable.0;
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.1;
         if (uta != Value::Null) {
-            return Value::from(vec![uta, Value::from(&paramsUta)]);
+            return Value::from(vec![Value::Bool(uta.as_bool() == Some(true)), Value::from(&paramsUta)]);
         }
         if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
             // use the api to determine if the account is uta or not
@@ -8039,15 +8039,15 @@ if _try_result.is_err() {
         let mut fetchMargins: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_368: bool = true;
-            while { if !__for_first_368 { i += 1; } __for_first_368 = false; i < (types.len() as i64) } {
+            let mut __for_first_220: bool = true;
+            while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (types.len() as i64) } {
             let mut type_var: Option<String> = self.safe_string_opt(&types, Value::Int(i), &[]);
             if (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
                 let mut subTypes: crate::value::List = std::sync::Arc::new(vec![Value::Str("USDT-FUTURES".into()), Value::Str("COIN-FUTURES".into()), Value::Str("USDC-FUTURES".into()), Value::Str("SUSDT-FUTURES".into()), Value::Str("SCOIN-FUTURES".into()), Value::Str("SUSDC-FUTURES".into())]);
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_367: bool = true;
-                    while { if !__for_first_367 { j += 1; } __for_first_367 = false; j < (subTypes.len() as i64) } {
+                    let mut __for_first_219: bool = true;
+                    while { if !__for_first_219 { j += 1; } __for_first_219 = false; j < (subTypes.len() as i64) } {
                     let __ws_arg_0 = self.extend(&params, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("productType".to_string(), subTypes.get(j as usize).cloned().unwrap_or(Value::Null));
@@ -8088,8 +8088,8 @@ if _try_result.is_err() {
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), Value::from(vec![])); }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_370: bool = true;
-            while { if !__for_first_370 { i += 1; } __for_first_370 = false; i < (results.len() as i64) } {
+            let mut __for_first_222: bool = true;
+            while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (results.len() as i64) } {
             if (i == spotInstrumentsIndex) {
                 continue;
             }
@@ -8106,8 +8106,8 @@ if _try_result.is_err() {
                 let mut isolatedKeys: crate::value::List = std::sync::Arc::new(Vec::new());
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_369: bool = true;
-                    while { if !__for_first_369 { j += 1; } __for_first_369 = false; j < (data.len() as i64) } {
+                    let mut __for_first_221: bool = true;
+                    while { if !__for_first_221 { j += 1; } __for_first_221 = false; j < (data.len() as i64) } {
                     let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(j));
                     let mut entrySymbol: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
                     let mut entryBorrowable: bool = self.safe_bool_k_opt(&entry, "isBorrowable", &[Value::Bool(true)]).unwrap_or(true);
@@ -8189,8 +8189,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_371: bool = true;
-            while { if !__for_first_371 { i += 1; } __for_first_371 = false; i < (markets.len() as i64) } {
+            let mut __for_first_223: bool = true;
+            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCoin", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseCoin", &[]);
@@ -8232,8 +8232,8 @@ if _try_result.is_err() {
         let mut promises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_372: bool = true;
-            while { if !__for_first_372 { i += 1; } __for_first_372 = false; i < (subTypes.len() as i64) } {
+            let mut __for_first_224: bool = true;
+            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (subTypes.len() as i64) } {
             let mut req: crate::value::Dict = self.extend_t(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("category".to_string(), subTypes.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -8246,8 +8246,8 @@ if _try_result.is_err() {
         let mut markets: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_373: bool = true;
-            while { if !__for_first_373 { i += 1; } __for_first_373 = false; i < (results.len() as i64) } {
+            let mut __for_first_225: bool = true;
+            while { if !__for_first_225 { i += 1; } __for_first_225 = false; i < (results.len() as i64) } {
             let mut res: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
             let mut data: crate::value::List = self.safe_list_k_t(&res, "data");
             markets = self.array_concat_t(Value::Arr(markets), &data);
@@ -8350,8 +8350,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_374: bool = true;
-            while { if !__for_first_374 { i += 1; } __for_first_374 = false; i < (markets.len() as i64) } {
+            let mut __for_first_226: bool = true;
+            while { if !__for_first_226 { i += 1; } __for_first_226 = false; i < (markets.len() as i64) } {
             let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCoin", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseCoin", &[]);
@@ -9699,8 +9699,8 @@ if _try_result.is_err() {
             let mut allSymbols: crate::value::List = self.symbols.clone();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_377: bool = true;
-                while { if !__for_first_377 { i += 1; } __for_first_377 = false; i < (allSymbols.len() as i64) } {
+                let mut __for_first_229: bool = true;
+                while { if !__for_first_229 { i += 1; } __for_first_229 = false; i < (allSymbols.len() as i64) } {
                 let mut symbol: Option<String> = allSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut entry: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut isStockMarket: bool = self.safe_bool_k_opt(&entry, "stock", &[Value::Bool(false)]).unwrap_or(false);
@@ -10183,8 +10183,8 @@ if _try_result.is_err() {
             });
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_378: bool = true;
-                while { if !__for_first_378 { i += 1; } __for_first_378 = false; i < (rows.len() as i64) } {
+                let mut __for_first_230: bool = true;
+                while { if !__for_first_230 { i += 1; } __for_first_230 = false; i < (rows.len() as i64) } {
                 let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
                 if (entryMarketId.is_none()) || (self.markets_by_id == Value::Null) || !(matches!((&self.markets_by_id, entryMarketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
@@ -10294,8 +10294,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_379: bool = true;
-            while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (data.len() as i64) } {
+            let mut __for_first_231: bool = true;
+            while { if !__for_first_231 { i += 1; } __for_first_231 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
@@ -10378,16 +10378,16 @@ if _try_result.is_err() {
         let mut paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsPaginate, Some("fetchOHLCV"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: Option<bool> = utaparamsUTAVariable.get(0).and_then(Value::as_bool);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (uta.as_bool() == Some(true)) {
+        if (uta == Some(true)) {
             maxLimitForHistoryEndpoint = 100; // the uta history endpoint rejects a limit above 100
         }
         if paginate {
             let mut limitForPagination: i64 = (if useHistoryEndpointForPagination { maxLimitForHistoryEndpoint } else { maxLimitForRecentEndpoint });
             let mut paramsWithUta: crate::value::Dict = self.extend_t(&paramsUTA, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("uta".to_string(), uta.clone());
+                    m.insert("uta".to_string(), uta.map_or(Value::Null, Value::Bool));
                 m
             })]);
             return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::Dict(paramsWithUta), Value::from(limitForPagination)]).await;
@@ -10404,7 +10404,7 @@ if _try_result.is_err() {
         let mut marketType: Option<String> = None;
         let mut timeframes: Option<crate::value::Dict> = None;
         let mut timeframesOption: Value = self.handle_option(Value::Str("fetchOHLCV".into()), Value::Str("timeframes".into()), &[]);
-        let mut isStockOrUta: bool = isStockSpot || (uta.as_bool() == Some(true));
+        let mut isStockOrUta: bool = isStockSpot || (uta == Some(true));
         if isStockOrUta {
             timeframes = self.safe_dict_k_o(&timeframesOption, "uta");
             request.insert("interval".into(), self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]));
@@ -10765,8 +10765,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_380: bool = true;
-            while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (balance.len() as i64) } {
+            let mut __for_first_232: bool = true;
+            while { if !__for_first_232 { i += 1; } __for_first_232 = false; i < (balance.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&balance, Value::Int(i));
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
@@ -10794,8 +10794,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_381: bool = true;
-            while { if !__for_first_381 { i += 1; } __for_first_381 = false; i < (balance.len() as i64) } {
+            let mut __for_first_233: bool = true;
+            while { if !__for_first_233 { i += 1; } __for_first_233 = false; i < (balance.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict_t(&balance, Value::Int(i));
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currencyId: Option<String> = self.safe_string2_opt(&entry, Value::Str("marginCoin".into()), Value::Str("coin".into()), &[]);
@@ -11449,8 +11449,8 @@ if _try_result.is_err() {
         let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_383: bool = true;
-            while { if !__for_first_383 { i += 1; } __for_first_383 = false; i < (orders.len() as i64) } {
+            let mut __for_first_235: bool = true;
+            while { if !__for_first_235 { i += 1; } __for_first_235 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol.is_none()) {
@@ -11541,8 +11541,8 @@ if _try_result.is_err() {
         let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_384: bool = true;
-            while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (orders.len() as i64) } {
+            let mut __for_first_236: bool = true;
+            while { if !__for_first_236 { i += 1; } __for_first_236 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict_t(orders.clone(), Value::Int(i));
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol.is_none()) {
@@ -12122,8 +12122,8 @@ if _try_result.is_err() {
         let mut requestList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_385: bool = true;
-            while { if !__for_first_385 { i += 1; } __for_first_385 = false; i < (ids.len() as i64) } {
+            let mut __for_first_237: bool = true;
+            while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (ids.len() as i64) } {
             let mut individualId: Option<String> = self.safe_string_opt(&ids, Value::Int(i), &[]);
             let mut order: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -12205,8 +12205,8 @@ if _try_result.is_err() {
         let mut orderIdList: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_386: bool = true;
-            while { if !__for_first_386 { i += 1; } __for_first_386 = false; i < (ids.len() as i64) } {
+            let mut __for_first_238: bool = true;
+            while { if !__for_first_238 { i += 1; } __for_first_238 = false; i < (ids.len() as i64) } {
             let mut individualId: Option<String> = self.safe_string_opt(ids.clone(), Value::Int(i), &[]);
             let mut orderId: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -14576,8 +14576,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i += 1; } __for_first_387 = false; i < (position.len() as i64) } {
+            let mut __for_first_239: bool = true;
+            while { if !__for_first_239 { i += 1; } __for_first_239 = false; i < (position.len() as i64) } {
             let mut parsedPosition: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, position.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).into_dict();
             result.push(Value::Dict(parsedPosition));
         }
@@ -14691,8 +14691,8 @@ if _try_result.is_err() {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_388: bool = true;
-            while { if !__for_first_388 { i += 1; } __for_first_388 = false; i < (result.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_240: bool = true;
+            while { if !__for_first_240 { i += 1; } __for_first_240 = false; i < (result.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut entry: Value = result.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let mut symbolInner: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
@@ -15076,8 +15076,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_389: bool = true;
-            while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (contracts.len() as i64) } {
+            let mut __for_first_241: bool = true;
+            while { if !__for_first_241 { i += 1; } __for_first_241 = false; i < (contracts.len() as i64) } {
             let mut contract: crate::value::Dict = self.safe_dict_t(&contracts, Value::Int(i));
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
             // const business = this.safeString (contract, 'businessType');
@@ -17058,8 +17058,8 @@ if _try_result.is_err() {
         let mut data: crate::value::List = self.safe_list_k_t(&response, "data");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_391: bool = true;
-            while { if !__for_first_391 { i += 1; } __for_first_391 = false; i < (data.len() as i64) } {
+            let mut __for_first_243: bool = true;
+            while { if !__for_first_243 { i += 1; } __for_first_243 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
             let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);

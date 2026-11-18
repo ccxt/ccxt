@@ -3715,7 +3715,7 @@ public class Bitget extends BitgetApi
             Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaparamsUtaVariable).get(1);
             if (!java.util.Objects.equals(uta, null))
             {
-                return new ArrayList<Object>(Arrays.asList(uta, paramsUta));
+                return new ArrayList<Object>(Arrays.asList(java.util.Objects.equals(uta, true), paramsUta));
             }
             if (this.checkRequiredCredentials(false))
             {

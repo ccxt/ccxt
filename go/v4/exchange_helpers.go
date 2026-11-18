@@ -3240,6 +3240,12 @@ func (r AsyncResult[T]) Typed() T {
 	return r.Value
 }
 
+// BoolMapPair is the async result of a (bool, params) pair method: V the flag, P the params.
+type BoolMapPair struct {
+	V bool
+	P map[string]any
+}
+
 // EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async
 // delivered, Value its typed view (zero on shape mismatch), Err the failure.
 type EndpointResult[T any] struct {
