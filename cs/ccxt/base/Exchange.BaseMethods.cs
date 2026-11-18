@@ -1691,11 +1691,10 @@ public partial class BaseExchange
 
     public virtual object featuresMapper(object initialFeatures, string? marketType, string? subType = null)
     {
-        object featuresObj = ((subType != null)) ? getValue(getValue(initialFeatures, marketType), subType) : getValue(initialFeatures, marketType);
-        // if exchange does not have that market-type (eg. future>inverse)
-        if ((featuresObj == null))
+        IDictionary<string, object> featuresObj = this.safeDict(initialFeatures, marketType);
+        if ((subType != null))
         {
-            return null;
+            featuresObj = this.safeDict(featuresObj, subType);
         }
         string? extendsStr = this.safeString(featuresObj, "extends");
         if ((extendsStr != null))
@@ -1704,37 +1703,42 @@ public partial class BaseExchange
             object extendObj = this.featuresMapper(initialFeatures, extendsStr);
             featuresObj = this.deepExtend(extendObj, featuresObj);
         }
+        // if exchange does not have that market-type (eg. future>inverse)
+        if ((featuresObj == null))
+        {
+            return null;
+        }
         //
         // ### corrections ###
         //
         // createOrder
-        if (inOp(featuresObj, "createOrder"))
+        if (featuresObj.ContainsKey("createOrder"))
         {
-            IDictionary<string, object> value = this.safeDict(getValue(featuresObj, "createOrder"), "attachedStopLossTakeProfit");
-            ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
-            ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["takeProfit"] = value;
+            IDictionary<string, object> value = this.safeDict((featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null), "attachedStopLossTakeProfit");
+            ((IDictionary<string,object>)(featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null))["stopLoss"] = value;
+            ((IDictionary<string,object>)(featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null))["takeProfit"] = value;
             if ((marketType == "spot"))
             {
                 // default 'hedged': false
-                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = false;
+                ((IDictionary<string,object>)(featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null))["hedged"] = false;
                 // default 'leverage': false
-                if (!(inOp(getValue(featuresObj, "createOrder"), "leverage")))
+                if (!(inOp((featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null), "leverage")))
                 {
-                    ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["leverage"] = false;
+                    ((IDictionary<string,object>)(featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null))["leverage"] = false;
                 }
             }
             // default 'GTC' to true
-            if ((this.safeBool(getValue(getValue(featuresObj, "createOrder"), "timeInForce"), "GTC") == null))
+            if ((this.safeBool(getValue((featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null), "timeInForce"), "GTC") == null))
             {
-                ((IDictionary<string,object>)getValue(getValue(featuresObj, "createOrder"), "timeInForce"))["GTC"] = true;
+                ((IDictionary<string,object>)getValue((featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null), "timeInForce"))["GTC"] = true;
             }
         }
         // other methods
-        List<object> keys = new List<object>(((IDictionary<string,object>)featuresObj).Keys);
+        List<object> keys = new List<object>(featuresObj.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object featureBlock = getValue(featuresObj, key);
+            object featureBlock = (featuresObj != null && key != null && featuresObj.ContainsKey(key) ? featuresObj[key] : null);
             if (!this.inArray(key, new List<object>() {"sandbox"}) && (featureBlock != null))
             {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
@@ -1790,7 +1794,7 @@ public partial class BaseExchange
         {
             return defaultValue;  // unsupported marketType, check "exchange.features" for details
         }
-        object methodsContainer = (this.features != null && marketType != null && this.features.ContainsKey((string)marketType) ? this.features[(string)marketType] : null);
+        IDictionary<string, object> methodsContainer = this.safeDict(this.features, marketType);
         // if marketType dict undefined
         if ((methodsContainer == null))
         {
@@ -1804,11 +1808,11 @@ public partial class BaseExchange
             }
         } else
         {
-            if (!(inOp(methodsContainer, subType)))
+            if (!((methodsContainer != null && subType is string inOpKey2 && methodsContainer.ContainsKey(inOpKey2))))
             {
                 return defaultValue;  // unsupported subType, check "exchange.features" for details
             }
-            methodsContainer = getValue(methodsContainer, subType);
+            methodsContainer = this.safeDict(methodsContainer, subType);
             // if subType dict undefined
             if ((methodsContainer == null))
             {
@@ -1818,13 +1822,17 @@ public partial class BaseExchange
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if ((methodName == null))
         {
-            return ((defaultValue != null)) ? defaultValue : methodsContainer;
+            if ((defaultValue != null))
+            {
+                return defaultValue;
+            }
+            return methodsContainer;
         }
-        if (!(inOp(methodsContainer, methodName)))
+        if (!((methodsContainer != null && methodName != null && methodsContainer.ContainsKey(methodName))))
         {
             return defaultValue;  // unsupported method, check "exchange.features" for details');
         }
-        object methodDict = getValue(methodsContainer, methodName);
+        object methodDict = (methodsContainer != null && methodName != null && methodsContainer.ContainsKey(methodName) ? methodsContainer[methodName] : null);
         if ((methodDict == null))
         {
             return defaultValue;
@@ -1832,7 +1840,11 @@ public partial class BaseExchange
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if ((paramName == null))
         {
-            return ((defaultValue != null)) ? defaultValue : methodDict;
+            if ((defaultValue != null))
+            {
+                return defaultValue;
+            }
+            return methodDict;
         }
         List<object> splited = paramName.Split(new [] {"."}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         object parentKey = (splited != null && 0 < splited.Count ? splited[0] : null);
@@ -2151,7 +2163,7 @@ public partial class BaseExchange
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
-            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey9 && marketsById.ContainsKey(inOpKey9)))
+            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey10 && marketsById.ContainsKey(inOpKey10)))
             {
                 IList<object> marketsByIdArray = ((IList<object>)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
                 marketsByIdArray.Add(value);
@@ -3380,19 +3392,20 @@ public partial class BaseExchange
         result[(string)volume] = new List<object>() {};
         for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
         {
-            object ts = ms == true ? getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 0) : this.parseToInt(divide(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 0), 1000));
+            IList<object> ohlcv = (IList<object>)((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null));
+            object ts = ms == true ? (ohlcv != null && 0 < ohlcv.Count ? ohlcv[0] : null) : this.parseToInt(divide(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 0), 1000));
             IList<object> resultTimestamp = ((IList<object>)(result != null && timestamp != null && result.ContainsKey((string)timestamp) ? result[(string)timestamp] : null));
             resultTimestamp.Add(ts);
             IList<object> resultOpen = ((IList<object>)(result != null && open != null && result.ContainsKey((string)open) ? result[(string)open] : null));
-            resultOpen.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 1));
+            resultOpen.Add((ohlcv != null && 1 < ohlcv.Count ? ohlcv[1] : null));
             IList<object> resultHigh = ((IList<object>)(result != null && high != null && result.ContainsKey((string)high) ? result[(string)high] : null));
-            resultHigh.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 2));
+            resultHigh.Add((ohlcv != null && 2 < ohlcv.Count ? ohlcv[2] : null));
             IList<object> resultLow = ((IList<object>)(result != null && low != null && result.ContainsKey((string)low) ? result[(string)low] : null));
-            resultLow.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 3));
+            resultLow.Add((ohlcv != null && 3 < ohlcv.Count ? ohlcv[3] : null));
             IList<object> resultClose = ((IList<object>)(result != null && close != null && result.ContainsKey((string)close) ? result[(string)close] : null));
-            resultClose.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 4));
+            resultClose.Add((ohlcv != null && 4 < ohlcv.Count ? ohlcv[4] : null));
             IList<object> resultVolume = ((IList<object>)(result != null && volume != null && result.ContainsKey((string)volume) ? result[(string)volume] : null));
-            resultVolume.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 5));
+            resultVolume.Add((ohlcv != null && 5 < ohlcv.Count ? ohlcv[5] : null));
         }
         return result;
     }
@@ -5052,7 +5065,7 @@ public partial class BaseExchange
     {
         if ((marketId != null))
         {
-            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2))))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey3 && this.markets_by_id.ContainsKey(inOpKey3))))
             {
                 List<object> markets = this.safeList(this.markets_by_id, marketId, new List<object>() {});
                 int numMarkets = (markets?.Count ?? 0);
@@ -6028,10 +6041,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((markets != null && symbol is string inOpKey3 && markets.ContainsKey(inOpKey3)))
+        if ((markets != null && symbol is string inOpKey4 && markets.ContainsKey(inOpKey4)))
         {
             return ccxt.BaseExchange.ToDict((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null));
-        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey4 && marketsById.ContainsKey(inOpKey4))))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey5 && marketsById.ContainsKey(inOpKey5))))
         {
             object marketsList = (marketsById != null && symbol != null && marketsById.ContainsKey((string)symbol) ? marketsById[(string)symbol] : null);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6939,7 +6952,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = this.markets;
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && ((markets != null && account is string inOpKey5 && markets.ContainsKey(inOpKey5)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey6 && marketsById.ContainsKey(inOpKey6)))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey6 && markets.ContainsKey(inOpKey6)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey7 && marketsById.ContainsKey(inOpKey7)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -8128,7 +8141,7 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey7 && client.subscriptions.ContainsKey(inOpKey7))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
@@ -8136,7 +8149,7 @@ public partial class BaseExchange
         {
             if (subHashIsPrefix != true)
             {
-                if ((client.subscriptions != null && subHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8)))
+                if ((client.subscriptions != null && subHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
                 }

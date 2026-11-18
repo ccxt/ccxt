@@ -2417,7 +2417,8 @@ public partial class htx : Exchange
 
     public override string? costToPrecision(object symbol, object cost)
     {
-        return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(this.market(symbol), "precision"), "cost"), this.precisionMode);
+        Dictionary<string, object> market = this.market(symbol);
+        return this.decimalToPrecision(cost, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "cost"), this.precisionMode);
     }
 
     /**
@@ -7828,7 +7829,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(indexedAddresses, selectedNetworkCode));
     }
 
-    public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, object note = null, object networkCode = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, string? note = null, string? networkCode = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7860,8 +7861,8 @@ public partial class htx : Exchange
         for (int i = 0; i < (allAddresses?.Count ?? 0); i++)
         {
             object address = allAddresses[i];
-            bool noteMatch = ((note == null)) || (isEqual(this.safeString(address, "note"), note));
-            bool networkMatch = ((networkCode == null)) || (isEqual(this.safeString(address, "network"), networkCode));
+            bool noteMatch = ((note == null)) || ((this.safeString(address, "note") == note));
+            bool networkMatch = ((networkCode == null)) || ((this.safeString(address, "network") == networkCode));
             if (noteMatch && networkMatch)
             {
                 addresses.Add(address);

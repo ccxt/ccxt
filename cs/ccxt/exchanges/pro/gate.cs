@@ -850,7 +850,7 @@ public partial class gate : ccxt.gate
             object bidAsk = (bidAsks != null && i < bidAsks.Count ? bidAsks[i] : null);
             if (((bidAsk is IList<object>) || (bidAsk.GetType().IsGenericType && bidAsk.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                (bookSide as IOrderBookSide).storeArray(this.toArray(this.parseOrderBookBidAsk(bidAsk)));
+                (bookSide as IOrderBookSide).storeArray(this.parseOrderBookBidAsk(bidAsk));
             } else
             {
                 double? price = this.safeNumber(bidAsk, "p");

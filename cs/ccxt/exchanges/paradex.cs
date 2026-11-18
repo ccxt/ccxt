@@ -1419,7 +1419,8 @@ public partial class paradex : Exchange
             int symbolsLength = (symbolsNormalized?.Count ?? 0);
             if ((symbolsLength == 1))
             {
-                target = ((string)getValue(this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null)), "id"));
+                Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
+                target = ((string)(market.ContainsKey("id") ? market["id"] : null));
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3625,13 +3626,13 @@ public partial class paradex : Exchange
         };
     }
 
-    public virtual List<object> filterTransactionsByKind(object transactions, object kind)
+    public virtual List<object> filterTransactionsByKind(object transactions, string? kind)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(transactions); i++)
         {
             IDictionary<string, object> info = this.safeDict(getValue(transactions, i), "info");
-            if (isEqual(this.safeString(info, "kind"), kind))
+            if ((this.safeString(info, "kind") == kind))
             {
                 result.Add(getValue(transactions, i));
             }

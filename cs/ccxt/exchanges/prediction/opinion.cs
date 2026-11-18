@@ -1981,7 +1981,7 @@ public partial class opinion : PredictionExchange
      * @param {int} outcomeSide 1 for the yes token, 2 for the no token
      * @returns {object} the outcome object, or undefined
      */
-    public virtual IDictionary<string, object> opinionOutcomeByMarketIdSide(object marketId, Int64? outcomeSide)
+    public virtual IDictionary<string, object> opinionOutcomeByMarketIdSide(Int64? marketId, Int64? outcomeSide)
     {
         if (((marketId == null)) || ((this.markets == null)))
         {
@@ -1993,7 +1993,7 @@ public partial class opinion : PredictionExchange
         {
             IDictionary<string, object> market = this.safeDict(this.markets, (marketKeys != null && i < marketKeys.Count ? marketKeys[i] : null));
             IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
-            if (isEqual(this.safeInteger(info, "marketId"), marketId))
+            if ((this.safeInteger(info, "marketId") == marketId))
             {
                 List<object> outcomes = this.safeList(market, "outcomes", new List<object>() {});
                 int index = ((outcomeSide == 2)) ? 1 : 0;

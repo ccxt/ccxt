@@ -2662,9 +2662,9 @@ public partial class hyperliquid : PredictionExchange
     public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
+        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("type"))))
         {
-            object type = getValue(parameters, "type");
+            object type = ((IDictionary<string,object>)parameters)["type"];
             object byType = ((IDictionary<string,object>)config)["byType"];
             if (inOp(byType, type))
             {

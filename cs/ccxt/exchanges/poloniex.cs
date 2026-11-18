@@ -900,7 +900,7 @@ public partial class poloniex : Exchange
             // so end the window at the start of the limit-th candle from the first one at or after since
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
             Int64? firstCandle = (this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)since / duration)))) * duration);
-            object endTimeByLimit = this.sum(firstCandle, (duration * ((limit - 1))));
+            Int64 endTimeByLimit = this.sum(firstCandle, (duration * ((limit - 1))));
             requestUntil[keyEnd] = mathMin(endTimeByLimit, this.milliseconds());
         }
         if ((this.safeBool(market, "contract", false) == true))
@@ -3746,7 +3746,7 @@ public partial class poloniex : Exchange
         IList<object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
         IList<object> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
         List<object> transactions = this.arrayConcat(depositTransactions, withdrawalTransactions);
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.toArray(this.sortBy(transactions, "timestamp")),code, since, limit));
+        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"),code, since, limit));
     }
 
     /**

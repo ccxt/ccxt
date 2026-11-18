@@ -995,7 +995,7 @@ public partial class blofin : ccxt.blofin
         IList<object> symbols = new List<object>() {};
         if (isOHLCV)
         {
-            symbols = this.marketSymbols(this.toArray(this.getListFromObjectValues(symbolsArray, 0)), null, false, true);
+            symbols = this.marketSymbols(this.getListFromObjectValues(symbolsArray, 0), null, false, true);
         } else
         {
             symbols = this.marketSymbols(symbolsArray, null, false, true);

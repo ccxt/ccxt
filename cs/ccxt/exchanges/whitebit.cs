@@ -1224,7 +1224,10 @@ public partial class whitebit : Exchange
                 {
                     depositWithdrawFees[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                 }
-                ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "info"))[(string)entry] = feeInfo;
+                IDictionary<string, object> feeEntry = this.safeDict(depositWithdrawFees, code, new Dictionary<string, object>() {});
+                IDictionary<string, object> feeEntryInfo = this.safeDict(feeEntry, "info", new Dictionary<string, object>() {});
+                feeEntryInfo[(string)entry] = feeInfo;
+                feeEntry["info"] = feeEntryInfo;
                 string? networkId = this.safeString(splitEntry, 1);
                 IDictionary<string, object> withdraw = this.safeDict(feeInfo, "withdraw");
                 IDictionary<string, object> deposit = this.safeDict(feeInfo, "deposit");
@@ -1244,16 +1247,19 @@ public partial class whitebit : Exchange
                     string? networkCode = this.networkIdToCode(((networkId == null) ? null : networkId.Substring(Math.Min(1, networkId.Length), Math.Max(Math.Max(Math.Min(((networkLength - 1) < 0 ? networkId.Length + ((networkLength - 1)) : (networkLength - 1)), networkId.Length), 0) - Math.Min(1, networkId.Length), 0))), code);
                     if ((networkCode != null))
                     {
-                        ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        IDictionary<string, object> feeEntryNetworks = this.safeDict(feeEntry, "networks", new Dictionary<string, object>() {});
+                        feeEntryNetworks[(string)networkCode] = new Dictionary<string, object>() {
                             { "withdraw", withdrawResult },
                             { "deposit", depositResult },
                         };
+                        feeEntry["networks"] = feeEntryNetworks;
                     }
                 } else
                 {
-                    ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["withdraw"] = withdrawResult;
-                    ((IDictionary<string,object>)(depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null))["deposit"] = depositResult;
+                    feeEntry["withdraw"] = withdrawResult;
+                    feeEntry["deposit"] = depositResult;
                 }
+                depositWithdrawFees[(string)code] = feeEntry;
             }
         }
         List<object> depositWithdrawCodes = new List<object>(depositWithdrawFees.Keys);

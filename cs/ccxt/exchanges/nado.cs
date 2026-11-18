@@ -3502,9 +3502,9 @@ public partial class nado : Exchange
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
+        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("type"))))
         {
-            object queryType = getValue(parameters, "type");
+            object queryType = ((IDictionary<string,object>)parameters)["type"];
             object byType = ((IDictionary<string,object>)config)["byType"];
             if (inOp(byType, queryType))
             {

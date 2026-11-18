@@ -3619,7 +3619,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(this.toArray(response)), symbols, "symbol"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbols, "symbol"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -3706,7 +3706,7 @@ public partial class aster : Exchange
         //     ]
         //
         //
-        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(this.toArray(response)), symbols, "symbol", "swap"));
+        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap"));
     }
 
     public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
@@ -3795,7 +3795,7 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        List<object> modifications = this.parseMarginModifications(this.toArray(this.toArray(response)));
+        List<object> modifications = this.parseMarginModifications(this.toArray(response));
         return ccxt.BaseExchange.ToMarginModificationList(this.filterBySymbolSinceLimit(modifications, symbol, since, limit));
     }
 

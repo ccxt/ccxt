@@ -5689,7 +5689,7 @@ public partial class okx : Exchange
         List<object> attachAlgoOrds = this.safeList(order, "attachAlgoOrds", new List<object>() {});
         for (int i = 0; i < attachAlgoOrds.Count; i++)
         {
-            object attached = attachAlgoOrds[i];
+            IDictionary<string, object> attached = ((IDictionary<string, object>)attachAlgoOrds[i]);
             if ((stopLossPrice == null))
             {
                 stopLossPrice = this.safeNumber(attached, "slTriggerPx");
@@ -10060,10 +10060,14 @@ public partial class okx : Exchange
                 {
                     depositWithdrawFees[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                 }
+                IDictionary<string, object> feeEntry = this.safeDict(depositWithdrawFees, code, new Dictionary<string, object>() {});
                 if ((currencyId != null))
                 {
-                    ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "info"))[(string)currencyId] = feeInfo;
+                    IDictionary<string, object> feeEntryInfo = this.safeDict(feeEntry, "info", new Dictionary<string, object>() {});
+                    feeEntryInfo[(string)currencyId] = feeInfo;
+                    feeEntry["info"] = feeEntryInfo;
                 }
+                depositWithdrawFees[(string)code] = feeEntry;
                 string? chain = this.safeString(feeInfo, "chain");
                 if ((chain == null))
                 {
@@ -10083,10 +10087,13 @@ public partial class okx : Exchange
                 string? networkCode = this.networkIdToCode(networkId, code);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                    IDictionary<string, object> feeEntryNetworks = this.safeDict(feeEntry, "networks", new Dictionary<string, object>() {});
+                    feeEntryNetworks[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", withdrawResult },
                         { "deposit", depositResult },
                     };
+                    feeEntry["networks"] = feeEntryNetworks;
+                    depositWithdrawFees[(string)code] = feeEntry;
                 }
             }
         }
@@ -10348,7 +10355,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> underlyings = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToStringList(this.toArray(this.safeList(underlyings, 0, new List<object>() {})));
+        return ccxt.BaseExchange.ToStringList(this.safeList(underlyings, 0, new List<object>() {}));
     }
 
     /**

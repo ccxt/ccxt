@@ -1706,7 +1706,7 @@ public partial class bullish : Exchange
                 { "datetime", datetime },
             });
         }
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(this.toArray(this.sortBy(rates, "timestamp")), this.safeString(market, "symbol"), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(this.sortBy(rates, "timestamp"), this.safeString(market, "symbol"), since, limit));
     }
 
     /**
@@ -2821,7 +2821,8 @@ public partial class bullish : Exchange
         string? code = this.safeString(parameters, "code");
         if ((code != null))
         {
-            request["symbol"] = getValue(this.currency(code), "id");
+            Dictionary<string, object> currency = this.currency(code);
+            request["symbol"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters));
             return ccxt.BaseExchange.ToBalances(this.parseBalanceForSingleCurrency(response,code));
         } else

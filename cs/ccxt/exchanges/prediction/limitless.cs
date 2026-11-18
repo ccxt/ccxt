@@ -1799,7 +1799,7 @@ public partial class limitless : PredictionExchange
         // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
-        return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(this.toArray(this.toArray(response)), null, since, limit));
+        return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(this.toArray(response), null, since, limit));
     }
 
     /**

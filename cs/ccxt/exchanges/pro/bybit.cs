@@ -2096,7 +2096,7 @@ public partial class bybit : ccxt.bybit
             { "unified", new List<object>() {"order"} },
             { "usdc", new List<object>() {"user.openapi.perp.order"} },
         };
-        List<object> topics = this.safeList(topicsByMarket, this.getPrivateType(url));
+        List<object> topics = this.safeList(topicsByMarket, this.getPrivateType(url), new List<object>() {});
         object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)

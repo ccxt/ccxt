@@ -6933,9 +6933,9 @@ public partial class binance : Exchange
                 if ((since > 0))
                 {
                     int duration = this.parseTimeframe(timeframeVar);
-                    object endTime = this.sum(since, (((limitValue * duration) * 1000) - 1));
+                    Int64 endTime = this.sum(since, (((limitValue * duration) * 1000) - 1));
                     Int64 now = this.milliseconds();
-                    request["endTime"] = mathMin(now, endTime);
+                    request["endTime"] = Math.Min(now, endTime);
                 }
             }
         }
@@ -11978,10 +11978,10 @@ public partial class binance : Exchange
             {
                 request["startTime"] = since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                object endTime = this.sum(since, 7776000000);
+                Int64 endTime = this.sum(since, 7776000000);
                 if ((until != null))
                 {
-                    endTime = mathMin(endTime, until);
+                    endTime = Math.Min(endTime, until.Value);
                 }
                 request["endTime"] = endTime;
             }
@@ -16237,18 +16237,18 @@ public partial class binance : Exchange
     {
         // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
+        if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("coin"))))
         {
             return ((IDictionary<string,object>)config)["noCoin"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbol"))))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("poolId"))))
         {
             return ((IDictionary<string,object>)config)["noPoolId"];
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("limit"))))
         {
-            object limit = getValue(parameters, "limit");
+            object limit = ((IDictionary<string,object>)parameters)["limit"];
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
@@ -18051,7 +18051,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " parseMarginModifications() returned empty response")) ;
         }
-        List<object> modifications = this.parseMarginModifications(this.toArray(this.toArray(response)));
+        List<object> modifications = this.parseMarginModifications(this.toArray(response));
         return ccxt.BaseExchange.ToMarginModificationList(this.filterBySymbolSinceLimit(modifications, symbol, since, limit));
     }
 

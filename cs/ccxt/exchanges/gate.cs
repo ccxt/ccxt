@@ -4509,10 +4509,10 @@ public partial class gate : Exchange
             Int64 distance = (((limitValue - 1)) * duration);
             Int64 toTimestamp = this.sum(fromTimestamp, distance);
             Int64 currentTimestamp = this.seconds();
-            object to = mathMin(toTimestamp, currentTimestamp);
+            Int64 to = ((Int64)Math.Min(toTimestamp, currentTimestamp));
             if ((until != null))
             {
-                request["to"] = mathMin(to, until);
+                request["to"] = Math.Min(to, until.Value);
             } else
             {
                 request["to"] = to;
@@ -9620,7 +9620,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(this.toArray(response)), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
     }
 
     /**
@@ -9711,7 +9711,7 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(this.toArray(response)), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
     }
 
     public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
@@ -10017,7 +10017,7 @@ public partial class gate : Exchange
         {
             response = await this.publicMarginGetCurrencyPairs(paramsOmitted); // deprecated
         }
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(this.toArray(response)), symbolsNormalized, marketIdRequest, "spot"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(response), symbolsNormalized, marketIdRequest, "spot"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -10162,7 +10162,7 @@ public partial class gate : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(this.toArray(this.toArray(response)), null, "name"));
+        return ccxt.BaseExchange.ToOptionChain(this.parseOptionChain(this.toArray(response), null, "name"));
     }
 
     public override object parseOption(object chain, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)

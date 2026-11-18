@@ -504,7 +504,7 @@ public partial class paradex : ccxt.paradex
         }
     }
 
-    public virtual void handleUnsubscribeReply(WebSocketClient client, object requestId)
+    public virtual void handleUnsubscribeReply(WebSocketClient client, string? requestId)
     {
         //
         // the reply to an unsubscribe, a modify_subscription with remove is acknowledged the same way
@@ -530,7 +530,7 @@ public partial class paradex : ccxt.paradex
                 continue;
             }
             IDictionary<string, object> subscription = this.safeDict(client.subscriptions, unsubHash, new Dictionary<string, object>() {});
-            if (isEqual(this.safeString(subscription, "id"), requestId))
+            if ((this.safeString(subscription, "id") == requestId))
             {
                 this.cleanUnsubscribed(client, unsubHash, subscription);
             }
@@ -1282,7 +1282,8 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < symbolsLength; i++)
         {
             object symbol = (symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null);
-            string marketId = ((string)getValue(this.market(symbol), "id"));
+            Dictionary<string, object> market = this.market(symbol);
+            string marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             marketIds.Add(marketId);
             subscribeHashes.Add(((channel + ".") + marketId));
             subMessageHashes.Add(((channel + ".") + (symbol)));
@@ -1362,7 +1363,8 @@ public partial class paradex : ccxt.paradex
         List<object> pendingHashes = new List<object>() {channel, (channel + ":scoped")};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            pendingHashes.Add(((channel + ".") + (getValue(this.market((symbols != null && i < symbols.Count ? symbols[i] : null)), "id"))));
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            pendingHashes.Add(((channel + ".") + ((market.ContainsKey("id") ? market["id"] : null))));
         }
         await this.waitForPendingUnsubscribe(url, pendingHashes);
         var client = this.client(url);
@@ -1380,7 +1382,8 @@ public partial class paradex : ccxt.paradex
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string marketId = ((string)getValue(this.market((symbols != null && i < symbols.Count ? symbols[i] : null)), "id"));
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            string marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             string subscribeHash = ((channel + ".") + marketId);
             subscribeHashes.Add(subscribeHash);
             if (!((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash))))

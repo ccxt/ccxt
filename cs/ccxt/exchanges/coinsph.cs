@@ -810,8 +810,8 @@ public partial class coinsph : Exchange
     public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        bool hasSymbolParam = (inOp(parameters, "symbol"));
-        bool hasSymbolsParam = (inOp(parameters, "symbols"));
+        bool hasSymbolParam = ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbol")));
+        bool hasSymbolsParam = ((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("symbols")));
         Int64? limit = this.safeInteger(parameters, "limit");
         if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !hasSymbolParam)
         {
@@ -1276,9 +1276,9 @@ public partial class coinsph : Exchange
                 request["endTime"] = until;
             } else
             {
-                object endTimeByLimit = this.sum(since, ((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1))));
+                Int64 endTimeByLimit = this.sum(since, ((this.parseTimeframe(timeframeVar) * 1000L) * ((limitResolved - 1))));
                 Int64 now = this.milliseconds();
-                request["endTime"] = mathMin(endTimeByLimit, now);
+                request["endTime"] = Math.Min(endTimeByLimit, now);
             }
         } else if ((until != null))
         {

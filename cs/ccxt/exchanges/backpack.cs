@@ -848,7 +848,7 @@ public partial class backpack : Exchange
             marketQuery["marketType"] = marketTypes;
         }
         List<object> response = await this.publicGetApiV1Markets(marketQuery);
-        object securities = new List<object>() {};
+        List<object> securities = new List<object>() {};
         if (includeRfq)
         {
             securities = await this.fetchSecurities();
@@ -885,9 +885,9 @@ public partial class backpack : Exchange
         }
         if (includeRfq)
         {
-            for (int i = 0; i < getArrayLength(securities); i++)
+            for (int i = 0; i < (securities?.Count ?? 0); i++)
             {
-                object security = getValue(securities, i);
+                object security = securities[i];
                 string? assetId = this.safeString(security, "asset");
                 if ((assetId == null))
                 {
@@ -1211,7 +1211,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} security metadata, not account holdings or proof of equity ownership
      */
-    public async virtual Task<object> fetchSecurities(IDictionary<string, object> parameters = null)
+    public async virtual Task<List<object>> fetchSecurities(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetApiV1Securities(parameters);
@@ -2496,7 +2496,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> response = await this.privateGetApiV1Capital(query);
         if ((stock == true))
         {
-            object securities = this.safeList(this.options, "securities");
+            List<object> securities = this.safeList(this.options, "securities");
             if ((securities == null))
             {
                 securities = await this.fetchSecurities();
@@ -3325,7 +3325,7 @@ public partial class backpack : Exchange
         {
             orders = this.filterStockStructures(orders);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(this.sortBy(orders, "timestamp")), since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit));
     }
 
     /**
@@ -3580,7 +3580,7 @@ public partial class backpack : Exchange
         {
             orders = this.filterStockStructures(orders);
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(this.sortBy(orders, "timestamp")), since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit));
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
