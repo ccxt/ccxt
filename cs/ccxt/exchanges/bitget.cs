@@ -3658,9 +3658,9 @@ public partial class bitget : Exchange
         IList<object> utaparamsUtaVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "uta");
         bool? uta = (bool?)utaparamsUtaVariable[0];
         IDictionary<string, object> paramsUta = ((IDictionary<string, object>)utaparamsUtaVariable[1]);
-        if (!(uta == null))
+        if ((uta != null))
         {
-            return new List<object>() {(uta == true), paramsUta};
+            return new List<object>() {uta, paramsUta};
         }
         if (this.checkRequiredCredentials(false))
         {

@@ -2087,10 +2087,10 @@ export default class bitget extends Exchange {
         return [ productType, paramsSubType ];
     }
 
-    async handleUTAAndParams (params: Dict, methodName: Str, defaultValue: boolean = false): Promise<[boolean, Dict]> {
-        const [ uta, paramsUta ]: [Bool, Dict] = this.handleOptionAndParams (params, methodName, 'uta');
+    async handleUTAAndParams (params: Dict, methodName: Str, defaultValue: boolean = false): Promise<[Bool, Dict]> {
+        const [ uta, paramsUta ] = this.handleOptionAndParams (params, methodName, 'uta');
         if (uta !== undefined) {
-            return [ uta === true, paramsUta ];
+            return [ uta, paramsUta ];
         }
         if (this.checkRequiredCredentials (false)) {
             // use the api to determine if the account is uta or not

@@ -3655,12 +3655,12 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) (*string, ma
 	paramsSubType = this.Omit(paramsSubType, []any{"productType", "category"})
 	return productType, MapTyped(paramsSubType)
 }
-func (this *Bitget) HandleUTAAndParamsAsync(params any, methodName any, optionalArgs ...any) <-chan AsyncResult[BoolMapPair] {
-	ch := make(chan AsyncResult[BoolMapPair], 1)
+func (this *Bitget) HandleUTAAndParamsAsync(params any, methodName any, optionalArgs ...any) <-chan AsyncResult[MapPair[any]] {
+	ch := make(chan AsyncResult[MapPair[any]], 1)
 	go this.handleUTAAndParamsBody(ch, params, methodName, optionalArgs...)
 	return ch
 }
-func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[BoolMapPair], params any, methodName any, optionalArgs ...any) any {
+func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[MapPair[any]], params any, methodName any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var defaultValue bool = GetArgBool(optionalArgs, 0, false)
@@ -3668,7 +3668,7 @@ func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[BoolMapPair], par
 	uta, paramsUta := this.HandleOptionAndParams(params, methodName, "uta")
 	if uta != nil {
 
-		ch <- AsyncResult[BoolMapPair]{Value: BoolMapPair{V: (uta == true), P: paramsUta}}
+		ch <- AsyncResult[MapPair[any]]{Value: MapPair[any]{V: uta, P: paramsUta}}
 		return nil
 	}
 	if this.CheckRequiredCredentials(false) {
@@ -3702,11 +3702,11 @@ func (this *Bitget) handleUTAAndParamsBody(ch chan AsyncResult[BoolMapPair], par
 		}
 		this.Options["uta"] = accountIsUTa
 
-		ch <- AsyncResult[BoolMapPair]{Value: BoolMapPair{V: accountIsUTa, P: paramsUta}}
+		ch <- AsyncResult[MapPair[any]]{Value: MapPair[any]{V: accountIsUTa, P: paramsUta}}
 		return nil
 	}
 
-	ch <- AsyncResult[BoolMapPair]{Value: BoolMapPair{V: defaultValue, P: paramsUta}}
+	ch <- AsyncResult[MapPair[any]]{Value: MapPair[any]{V: defaultValue, P: paramsUta}}
 	return nil
 }
 
@@ -3786,7 +3786,7 @@ func (this *Bitget) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if stock || (uta == true) {
 
@@ -4958,7 +4958,7 @@ func (this *Bitget) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchDeposits", "paginate", false)
 	if paginate {
@@ -5169,7 +5169,7 @@ func (this *Bitget) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	var currency map[string]any = this.Currency(code)
 	var networkId *string = this.NetworkCodeToId(networkCode, code)
@@ -5271,7 +5271,7 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchWithdrawals", "paginate", false)
 	if paginate {
@@ -5591,7 +5591,7 @@ func (this *Bitget) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsUTA)
 	var currency map[string]any = this.Currency(code)
@@ -5712,7 +5712,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	var isStockOrUta bool = (isStockSpot || (uta == true))
@@ -5977,7 +5977,7 @@ func (this *Bitget) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	var isStockOrUta bool = (((isStock != nil && *isStock) && (market["spot"] == true)) || (uta == true))
 	if isStockOrUta {
@@ -6247,7 +6247,7 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	var isStock bool = (stock != nil && *stock == true)
 	var isStockOrUta bool = (isStock || (uta == true))
@@ -7233,7 +7233,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 		maxLimitForHistoryEndpoint = 100 // the uta history endpoint rejects a limit above 100
@@ -8374,7 +8374,7 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	var isStockOrUta bool = (isStockSpot || (uta == true))
 	if isStockSpot {
@@ -10089,7 +10089,7 @@ func (this *Bitget) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 
@@ -12320,7 +12320,7 @@ func (this *Bitget) fetchPositionBody(ch chan AsyncResult[Position], symbol any,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 		request["category"] = productType
@@ -13189,7 +13189,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	var method string = "publicMixGetV2MixMarketTickers"
 	methodOption, paramsMethod := this.HandleOptionStringAndParams(paramsUTA, "fetchFundingRates", "method", method)
@@ -13462,7 +13462,7 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false)
 	if paginate {
@@ -14064,7 +14064,7 @@ func (this *Bitget) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 		request["holdMode"] = posMode
@@ -14130,7 +14130,7 @@ func (this *Bitget) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 		request["category"] = productType
@@ -14340,7 +14340,7 @@ func (this *Bitget) transferBody(ch chan AsyncResult[TransferEntry], code string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	var currency map[string]any = this.Currency(code)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
@@ -15255,7 +15255,7 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 
@@ -15610,7 +15610,7 @@ func (this *Bitget) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 		if side != nil {
@@ -15682,7 +15682,7 @@ func (this *Bitget) closeAllPositionsBody(ch chan AsyncResult[[]Position], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 		request["category"] = productType
@@ -15855,7 +15855,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 		if productType != nil {
@@ -16300,7 +16300,7 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var uta bool = r1.Value.V
+	var uta any = r1.Value.V
 	var paramsUTA map[string]any = r1.Value.P
 	if uta == true {
 

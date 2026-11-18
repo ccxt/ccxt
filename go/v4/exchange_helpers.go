@@ -3240,9 +3240,9 @@ func (r AsyncResult[T]) Typed() T {
 	return r.Value
 }
 
-// BoolMapPair is the async result of a (bool, params) pair method: V the flag, P the params.
-type BoolMapPair struct {
-	V bool
+// MapPair is the async result of a (value, params) pair method: V the value, P the params.
+type MapPair[T any] struct {
+	V T
 	P map[string]any
 }
 
