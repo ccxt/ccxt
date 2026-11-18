@@ -1237,8 +1237,8 @@ export default class xt extends xtRest {
             const orderbook = this.orderbooks[symbol];
             const nonce = this.safeInteger (orderbook, 'nonce');
             if (nonce === undefined) {
-                const cacheLength = orderbook.cache.length;
-                const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
+                const cacheLength = this.parseToInt (orderbook.cache.length);
+                const snapshotDelay = this.parseToInt (this.handleOption ('watchOrderBook', 'snapshotDelay', 25));
                 if (cacheLength === snapshotDelay) {
                     this.spawn (this.loadOrderBook, client, messageHash, symbol, undefined, {});
                 }

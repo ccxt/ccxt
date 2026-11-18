@@ -1221,7 +1221,7 @@ export default class dydx extends Exchange {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any): Dict {
+    signHash (hash: string, privateKey: any): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = this.safeString (signature, 'r', '');
         const s = this.safeString (signature, 's', '');
