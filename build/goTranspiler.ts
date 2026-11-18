@@ -6840,6 +6840,105 @@ function goTernaryIifeOperands (content: string): string {
         return lines.join ('\n');
     }).join ('');
 }
+// `func() bool { if p == nil { return false }; _, ok := m[*p]; return ok }()` and the nil-guarded substring literal
+// `func() string { if p == nil { return "" }; str := *p; return str[..] }()` inside a statement -> typed local set before it;
+// guards (no panic, map read only) may move before an if/else-if chain whose earlier conditions hold no call
+function goGuardIifeOperands (content: string): string {
+    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/func\(\) (?:bool|string) \{/.test (content)) {
+        return content;
+    }
+    const indentOf = (s: string) => /^\t*/.exec (s)[0].length;
+    const mask = (s: string) => s.replace (/"(?:[^"\\\n]|\\.)*"|`[^`]*`/g, (q) => '"' + ' '.repeat (q.length - 2) + '"');
+    const hasCall = (s: string) => /[\w\]\)]\(|\.\(|<-/.test (mask (s));
+    return content.split (/(?=\nfunc )/).map ((func) => {
+        const lines = func.split ('\n');
+        const skip = new Set<number> ();
+        for (let i = 0; i < lines.length; i++) {
+            const one = /^(\t*(?:\} else )?if )func\(\) bool \{ _, ok := (\w+)\[([^\]\n]+)\]; return ok \}\(\) \{$/.exec (lines[i]);
+            if ((one !== null) && !hasCall (one[3]) && !new RegExp ('\\b' + one[2] + 'Has\\b').test (func)) { lines[i] = one[1] + '_, ' + one[2] + 'Has := ' + one[2] + '[' + one[3] + ']; ' + one[2] + 'Has {'; continue; }
+            const decl = /^(\t*)var (\w+) bool = \(func\(\) bool \{ _, ok := (\w+)\[([^\]\n]+)\]; return ok \}\(\)\)$/.exec (lines[i]);
+            if ((decl !== null) && !hasCall (decl[4])) { lines[i] = decl[1] + 'var ' + decl[2] + ' bool'; lines.splice (i + 1, 0, decl[1] + '_, ' + decl[2] + ' = ' + decl[3] + '[' + decl[4] + ']'); }
+        }
+        let changed = true;
+        while (changed) {
+            changed = false;
+            for (let i = 0; i < lines.length; i++) {
+                const head = /^(.*)func\(\) (bool|string) \{$/.exec (lines[i]);
+                if ((head === null) || skip.has (i) || (i + 5 >= lines.length)) { continue; }
+                const k = '\t'.repeat (indentOf (lines[i]));
+                const p = new RegExp ('^' + k + '\\tif (\\w+) == nil \\{$').exec (lines[i + 1]);
+                const isBool = head[2] === 'bool';
+                const tail = isBool ? new RegExp ('^' + k + '\\t_, ok := (\\w+)\\[\\*(\\w+)\\]$').exec (lines[i + 4]) : new RegExp ('^' + k + '\\tstr := \\*(\\w+)$').exec (lines[i + 4]);
+                const ret = isBool ? (lines[i + 5] === k + '\treturn ok' ? [ '' ] : null) : new RegExp ('^' + k + '\\treturn (str\\[[\\w ():,+\\-]*\\])$').exec (lines[i + 5]);
+                const close = (i + 6 < lines.length) ? new RegExp ('^' + k + '\\}\\(\\)(.*)$').exec (lines[i + 6]) : null;
+                if ((p === null) || (tail === null) || (ret === null) || (close === null) || (lines[i + 2] !== k + '\t\treturn ' + (isBool ? 'false' : '""')) || (lines[i + 3] !== k + '\t}')
+                    || (tail[isBool ? 2 : 1] !== p[1]) || (!isBool && /\b(?!str\b|min\b|len\b)[A-Za-z_]\w*/.test (ret[1].slice (3)))) { skip.add (i); continue; }
+                // statement start: an if/else-if head line itself, else the latest line at the innermost block depth
+                let start = -1;
+                let chainStart = -1;
+                if (/^\t*(?:\} else )?if /.test (lines[i])) {
+                    start = i;
+                } else {
+                    const stacks = goIifeLineStacks (lines.slice (0, i + 1), mask);
+                    let blockDepth = -1;
+                    for (let d = stacks[i].length - 1; d >= 0; d--) { if (stacks[i][d] === 'B') { blockDepth = d + 1; break; } }
+                    for (let L = i; L >= 0; L--) { if (stacks[L].length === blockDepth) { start = L; break; } }
+                    if ((start < 0) || ((start > 0) && /[-+*\/%&|=<>!,.:]$/.test (mask (lines[start - 1]).replace (/\/\/.*$/, '').trimEnd ())) || /^\t*(?:if |for |switch |\} else|case |default:|select )/.test (lines[start])) { skip.add (i); continue; }
+                }
+                const before = lines.slice (start, i).join ('\n') + '\n' + head[1];
+                // calls evaluated earlier: only open (enclosing) calls are allowed
+                const m = mask (before);
+                const st: number[] = [];
+                let callBefore = /\.\(|<-|\bfunc\(/.test (m);
+                for (let q = 0; q < m.length; q++) {
+                    if (m[q] === '(') { st.push (/[\w\]\)]$/.test (m.slice (0, q)) ? 1 : 0); } else if (m[q] === ')') { if (st.pop () === 1) { callBefore = true; } }
+                }
+                // a substring literal may panic: it must be evaluated unconditionally (no short-circuit before it, no if head)
+                if (callBefore || (!isBool && ((start === i && /^\t*(?:\} else )?if /.test (lines[i])) || /&&|\|\|/.test (m)))) { skip.add (i); continue; }
+                chainStart = start;
+                if (/^\t*\} else if /.test (lines[start])) {
+                    const s = '\t'.repeat (indentOf (lines[start]));
+                    chainStart = -1;
+                    for (let L = start - 1; L >= 0; L--) {
+                        if (!lines[L].startsWith (s) || (lines[L].length === 0)) { break; }
+                        if (lines[L].startsWith (s + '\t') || (lines[L] === s + '}')) { continue; }
+                        const cond = new RegExp ('^' + s + '(\\} else )?if (.*) \\{$').exec (lines[L]);
+                        if ((cond === null) || hasCall (cond[2]) || cond[2].includes (';')) { break; }
+                        if (cond[1] === undefined) { chainStart = L; break; }
+                    }
+                    if (chainStart < 0) { skip.add (i); continue; }
+                }
+                const mapName = isBool ? tail[1] : '';
+                const base = isBool ? (p[1] + 'In' + mapName[0].toUpperCase () + mapName.slice (1)) : (p[1] + 'Part');
+                let name = base;
+                for (let n = 2; new RegExp ('\\b' + name + '\\b').test (lines.join ('\n')); n++) { name = base + n; }
+                const s = '\t'.repeat (indentOf (lines[chainStart]));
+                const hoist = isBool
+                    ? [ s + 'var ' + name + ' bool', s + 'if ' + p[1] + ' != nil {', s + '\t_, ' + name + ' = ' + mapName + '[*' + p[1] + ']', s + '}' ]
+                    : [ s + 'var ' + name + ' string', s + 'if ' + p[1] + ' != nil {', s + '\tstr := *' + p[1], s + '\t' + name + ' = ' + ret[1], s + '}' ];
+                lines.splice (i, 7, head[1] + name + close[1]);
+                lines.splice (chainStart, 0, ...hoist);
+                const shifted = new Set<number> ();
+                for (const x of skip) { shifted.add (x >= chainStart ? x + hoist.length : x); }
+                skip.clear ();
+                for (const x of shifted) { skip.add (x); }
+                changed = true;
+                break;
+            }
+        }
+        return lines.join ('\n');
+    }).join ('');
+}
+
+function goGuardIifeOperandsCheck (): string[] {
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
+    const g = (t: string) => 'func() bool {\n' + t + '\tif c == nil {\n' + t + '\t\treturn false\n' + t + '\t}\n' + t + '\t_, ok := m[*c]\n' + t + '\treturn ok\n' + t + '}()';
+    const sub = (t: string, r: string) => 'func() string {\n' + t + '\tif d == nil {\n' + t + '\t\treturn ""\n' + t + '\t}\n' + t + '\tstr := *d\n' + t + '\treturn str[' + r + ']\n' + t + '}()';
+    const src = head + 'func f(c *string, d *string, m map[string]any) {\n\tif x {\n\t\ty()\n\t} else if (c != nil) && (' + g ('\t') + ') {\n\t}\n\tif this.X() {\n\t} else if ' + g ('\t') + ' {\n\t}\n\tvar s string = ' + sub ('\t', '0:min(4, len(str))') + ' + "-" + ' + sub ('\t', '4:') + '\n\tif ok && ' + sub ('\t', '1:') + ' == "a" {\n\t}\n}\n';
+    const want = head + 'func f(c *string, d *string, m map[string]any) {\n\tvar cInM bool\n\tif c != nil {\n\t\t_, cInM = m[*c]\n\t}\n\tif x {\n\t\ty()\n\t} else if (c != nil) && (cInM) {\n\t}\n\tif this.X() {\n\t} else if ' + g ('\t') + ' {\n\t}\n\tvar dPart string\n\tif d != nil {\n\t\tstr := *d\n\t\tdPart = str[0:min(4, len(str))]\n\t}\n\tvar dPart2 string\n\tif d != nil {\n\t\tstr := *d\n\t\tdPart2 = str[4:]\n\t}\n\tvar s string = dPart + "-" + dPart2\n\tif ok && ' + sub ('\t', '1:') + ' == "a" {\n\t}\n}\n';
+    const out = goGuardIifeOperands (src);
+    return (out === want) ? [] : [ 'guard iife operands: ' + JSON.stringify (out) ];
+}
 // open-bracket stack at the start of each line: `B` a block brace (` {` at line end), `(`, `[`, `{` otherwise
 function goIifeLineStacks (lines: string[], mask: (s: string) => string): string[][] {
     const out: string[][] = [];
@@ -11618,6 +11717,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         content = goSafeStringPtrHoist (content);  // SafeStringPtr(<Go string>) at return / declaration -> &local
         content = goTernaryIifeStatements (content);  // typed statement-level ternary literals -> if/else
         content = goTernaryIifeOperands (content);  // typed ternary literals inside a statement -> hoisted if/else
+        content = goGuardIifeOperands (content);  // nil-guarded map-membership / substring literals -> typed locals
         content = goTernaryAnyTyped (content);  // `func() any` ternaries whose arms share one Go type -> typed if/else
         // runs after the spacing pass: its line-local lexer misreads a `}(args) + x` continuation
         content = alignGoTrailingComments (goGofmtBinarySpacing (content));
@@ -15263,7 +15363,8 @@ async function runMain () {
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, goSafeStringPtrHoistCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'addElem retype: ', goTypedAddElemRetypeCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
-            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ], [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goTernaryAnyTypedCheck
+            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ], [ 'typed recv locals: ', goTypedRecvLocalsCheck ],
+            [ 'typed nil-fold locals: ', goTypedNilFoldLocalsCheck ], [ 'typed endpoint nil locals: ', goTypedEndpointNilLocalsCheck ], goPredictionEndpointBodySelfTest, goTernaryIifeStatementsCheck, goTernaryIifeOperandsCheck, goGuardIifeOperandsCheck, goTernaryAnyTypedCheck
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
