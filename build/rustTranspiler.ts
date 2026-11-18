@@ -4216,7 +4216,8 @@ function rustTypedImplicitApiResults (content: string): string {
 }
 
 // `Value::Array(v).into_list()` is the list itself (`Value::Array` builds `Value::Arr(Arc::new(v))`), and
-// `(if (c) { self.omit(&p, Value::Str(k), &[]) } else { p }).into_dict()` is one `omit_t` with a `Null` key when `!c`.
+// `(if (c) { self.omit(&p, Value::Str(k), &[]) } else { p }).into_dict()` is one `omit_t` with a `Null` key when `!c`
+// (at this stage the key still prints `.to_string()` and the source may be `p.clone()`; `omit_t` borrows `&p`).
 function rustTypedListAndOmitBranches (content: string): string {
     let out = '', last = 0, m: RegExpExecArray | null;
     const head = /(?<![\w:])Value::Array\(/g;
@@ -4229,9 +4230,28 @@ function rustTypedListAndOmitBranches (content: string): string {
         head.lastIndex = last;
     }
     out += content.slice (last);
-    const branch = /\(if \(([^{}\n]*)\) \{ self(\.parent)?\.omit\((&([A-Za-z_]\w*)|([A-Za-z_]\w*)\.clone\(\)), (Value::Str\("(?:[^"\\]|\\.)*"\.into\(\)\)), &\[\]\) \} else \{ (?:\4|\5)(?:\.clone\(\))? \}\)\.into_dict\(\)/g;
-    return out.replace (branch, (_s, c: string, parent: string | undefined, arg: string, _a: string, _b: string, k: string) =>
-        `self${parent ?? ''}.omit_t(${arg}, if (${c}) { ${k} } else { Value::Null }, &[])`);
+    const branch = /\(if \(([^{}\n]*)\) \{ self(\.parent)?\.omit\((&([A-Za-z_]\w*)|([A-Za-z_]\w*)\.clone\(\)), (Value::Str\("(?:[^"\\]|\\.)*"\.(?:into|to_string)\(\)\)), &\[\]\) \} else \{ (?:\4|\5)(?:\.clone\(\))? \}\)\.into_dict\(\)/g;
+    return out.replace (branch, (_s, c: string, parent: string | undefined, _arg: string, a: string, b: string, k: string) =>
+        `self${parent ?? ''}.omit_t(&${a ?? b}, if (${c}) { ${k} } else { Value::Null }, &[])`);
+}
+
+// coinbaseinternational `handleRouteAndParams (..): Dict` ends in `this.omit (paramsResolved, [..])` of a Dict local, so it
+// returns `Dict` (`omit_t`: the same map, empty for a non-map, like `.into_dict()`); its arm and `Value` slot box it back.
+function rustTypedRouteAndParams (content: string): string {
+    const sig = 'fn handle_route_and_params(&self, methodName: &str, optional_args: &[Value]) -> Value {';
+    const ret = 'return self.omit(&paramsResolved, &["route", "defaultRoute", "callerMethodName"], &[]);\n\n    Value::Null\n}';
+    const at = content.indexOf (sig);
+    if (at >= 0) {
+        const end = content.indexOf (ret, at);
+        if (end < 0 || end > balancedCloseIndex (content, at + sig.length)) return content;
+        content = content.slice (0, at) + sig.replace ('-> Value {', '-> crate::value::Dict {') + content.slice (at + sig.length, end)
+            + ret.replace ('self.omit(', 'self.omit_t(').replace ('Value::Null', 'Default::default()') + content.slice (end + ret.length);
+        content = content.replace (/("handle_route_and_params" => )(self\.handle_route_and_params\([^\n]*\)),\n/, '$1crate::Value::Dict($2),\n');
+    }
+    const call = /self(\.parent)?\.handle_route_and_params\("\w+", &\[params\]\)/g;
+    return content.replace (/(: Value = )(self\.handle_route_and_params\("\w+", &\[params\]\));/g, '$1Value::Dict($2);')
+        .replace (new RegExp (call.source + '\\.into_dict\\(\\)', 'g'), (s) => s.slice (0, -'.into_dict()'.length))
+        .replace (new RegExp ('(' + call.source + ')\\.as_map\\(\\)\\.cloned\\(\\)\\.unwrap_or_default\\(\\)', 'g'), 'std::sync::Arc::unwrap_or_clone($1)');
 }
 
 // `marketSymbols` answers `undefined` or the list it builds (ts/src/base/Exchange.ts), so it returns `Option<List>`:
@@ -10522,6 +10542,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustTypedMergeResults(rustContent);
                 rustContent = rustTypedImplicitApiResults(rustContent);
                 rustContent = rustTypedListAndOmitBranches(rustContent);
+                if (exchangeName === 'coinbaseinternational') rustContent = rustTypedRouteAndParams(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
                 rustContent = rustStrParamCopyDrop(rustContent);
                 rustContent = rustSelfFieldReadClones(rustContent);
