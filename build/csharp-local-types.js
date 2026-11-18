@@ -17762,6 +17762,13 @@ for (const table of [ CORE_LIST_ARGS_LENGTH_READS, CORE_LIST_ARGS_SINGLE_CALLER 
         CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
     }
 }
+// List parameters whose every caller passes a declared list: base reduceFeesByCurrency (three
+// List<object> callers) and the ws list-frame handler (WsBridge routeMessage hands it only IList
+// frames) plus alpaca's single forward from it.
+const CORE_LIST_ARGS_LIST_CALLERS = { 'reduceFeesByCurrency': 0, 'handleListMessage': 1, 'handleCryptoMessage': 1 };
+for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LIST_CALLERS)) {
+    CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
+}
 
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
 //

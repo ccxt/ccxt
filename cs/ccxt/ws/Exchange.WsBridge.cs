@@ -138,7 +138,7 @@ public partial class BaseExchange
     {
     }
 
-    public virtual void handleListMessage(WebSocketClient client, object messageContent)
+    public virtual void handleListMessage(WebSocketClient client, IList<object> messageContent)
     {
     }
 
@@ -153,9 +153,9 @@ public partial class BaseExchange
         {
             handleTextMessage(client, messageContent);
         }
-        else if (messageContent is IList<object>)
+        else if (messageContent is IList<object> listContent)
         {
-            handleListMessage(client, messageContent);
+            handleListMessage(client, listContent);
         }
         else if (messageContent is byte[])
         {
