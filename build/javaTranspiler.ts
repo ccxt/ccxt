@@ -9440,7 +9440,7 @@ function nativeJavaWsHandlerDispatch (content: string): string {
         const writes = [ ...body.matchAll (new RegExp (`(?<![\\w.])${v} = ([^;\\n]+);`, 'g')) ].map ((w) => w[1].trim ());
         if (decl.length !== 1) continue;
         // every use of the dispatch local: its writes, null tests, this call
-        const uses = (body.match (new RegExp (`(?<![\\w."])${v}(?![\\w"])`, 'g')) ?? []).length;
+        const uses = (body.replace (/"(?:[^"\\\n]|\\.)*"/g, '""').match (new RegExp (`(?<![\\w."])${v}(?![\\w"])`, 'g')) ?? []).length;
         const nullTests = (body.match (new RegExp (`java\\.util\\.Objects\\.equals\\(${v}, null\\)`, 'g')) ?? []).length;
         const calls = (body.match (new RegExp (`Helpers\\.callDynamically\\(this, ${v}, `, 'g')) ?? []).length;
         if (calls !== sites.length || uses !== writes.length + nullTests + calls) continue;
@@ -9452,27 +9452,43 @@ function nativeJavaWsHandlerDispatch (content: string): string {
             if ((r = /^"(\w+)"$/.exec (w))) { names.add (r[1]); continue; }
             r = /^(?:\(\(\(java\.util\.Objects\.equals\((\w+), null\)\)\)\) \? null : )?this\.safeValue\((\w+), (\w+|"\w+")\)$/.exec (w);
             if (r && (r[1] === undefined || r[1] === r[3])) { tables.add (r[2]); reads.push ([ w, `${r[2]}.get(${r[3]})` ]); continue; }
+            // values are non-empty literals, so the second key is read only when the first misses
+            r = /^this\.safeValue2\((\w+), (\w+), (\w+)\)$/.exec (w);
+            if (r) { tables.add (r[1]); reads.push ([ w, `(${r[1]}.get(${r[2]}) != null ? ${r[1]}.get(${r[2]}) : ${r[1]}.get(${r[3]}))` ]); continue; }
             r = /^\((\w+) == null \|\| (\w+) == null \? null : \1\.get\(\2\)\)$/.exec (w) ?? /^(\w+)\.get\((\w+|"\w+")\)$/.exec (w);
             if (r) { tables.add (r[1]); continue; }
             ok = false;
         }
         if (!ok) continue;
         const keyOk = (k: string) => /^"\w+"$/.test (k) || new RegExp (`(?:\\n\\s*|\\()String ${k}(?: =|,|\\))`).test (member);
-        if (!reads.every (([ , g ]) => keyOk (g.slice (g.indexOf ('(') + 1, -1)))) continue;
+        if (!reads.every (([ , g ]) => [ ...g.matchAll (/\.get\(([^()]+)\)/g) ].every ((k) => keyOk (k[1])))) continue;
         if (!writes.every ((w) => !/\.get\((\w+)\)/.test (w) || keyOk (/\.get\((\w+)\)/.exec (w)[1]))) continue;
         const retypes: [ string, string ][] = [];
         for (const t of tables) {
-            const litRe = new RegExp (`\\n([ \\t]*)(?:java\\.util\\.)?Map<String, (?:Object|String)> ${t} = new (?:java\\.util\\.)?HashMap<String, (?:Object|String)>\\(\\) \\{\\{\\n((?:\\s*put\\( ?"[^"\\n]*", "\\w+"\\);\\n)+)\\s*\\}\\};`, 'g');
+            const litRe = new RegExp (`\\n([ \\t]*)(?:java\\.util\\.)?Map<String, (?:Object|String)> ${t} = new (?:java\\.util\\.)?HashMap<String, (?:Object|String)>\\(\\) \\{\\{\\n((?:\\s*put\\( ?"[^"\\n]*", (?:"\\w+"|\\w+\\.this\\.safeValue\\(\\w+, [^;\\n]+\\) )\\);\\n)+)\\s*\\}\\};`, 'g');
             // the table is the dispatch block's own, or the member's only one
             const scope = (body.match (litRe) ?? []).length === 1 ? body : member;
             const lits = [ ...scope.matchAll (litRe) ];
             if (lits.length !== 1) { ok = false; break; }
             const lit = lits[0];
             const tUses = (scope.match (new RegExp (`(?<![\\w."])${t}(?![\\w"])`, 'g')) ?? []).length;
-            const tReads = (scope.match (new RegExp (`(?:this\\.safeValue\\(${t}, |${t}\\.(?:get|containsKey)\\(|\\(${t} == null)`, 'g')) ?? []).length;
+            const tReads = (scope.match (new RegExp (`(?:this\\.safeValue2?\\(${t}, |${t}\\.(?:get|containsKey)\\(|\\(${t} == null)`, 'g')) ?? []).length;
             if (!lit || tUses !== 1 + tReads) { ok = false; break; }
             for (const n of lit[2].matchAll (/"(\w+)"\);/g)) names.add (n[1]);
-            retypes.push ([ lit[0], lit[0].replace (/Map<String, Object>/, 'Map<String, String>').replace (/HashMap<String, Object>/, 'HashMap<String, String>') ]);
+            // a nested entry reads another single-use literal name table with a String key: `inner.get(key)`
+            let litText = lit[0];
+            for (const nm of lit[2].matchAll (/\w+\.this\.safeValue\((\w+), ([^;\n]+)\) \);/g)) {
+                const [ whole, inner, key ] = nm;
+                const innerRe = new RegExp (`\\n([ \\t]*)(?:java\\.util\\.)?Map<String, Object> ${inner} = new (?:java\\.util\\.)?HashMap<String, Object>\\(\\) \\{\\{\\n((?:\\s*put\\( ?"[^"\\n]*", "\\w+"\\);\\n)+)\\s*\\}\\};`, 'g');
+                const innerLits = [ ...member.matchAll (innerRe) ];
+                const keyString = /^\w+\.this\.safeString\(\w+, (?:\d+|"\w+")\)$/.test (key) || keyOk (key);
+                if (innerLits.length !== 1 || !keyString || (member.match (new RegExp (`(?<![\\w."])${inner}(?![\\w"])`, 'g')) ?? []).length !== 2) { ok = false; break; }
+                for (const n of innerLits[0][2].matchAll (/"(\w+)"\);/g)) names.add (n[1]);
+                retypes.push ([ innerLits[0][0], innerLits[0][0].replace (/Map<String, Object>/, 'Map<String, String>').replace (/HashMap<String, Object>/, 'HashMap<String, String>') ]);
+                litText = litText.replace (whole, `${inner}.get(${key}) );`);
+            }
+            if (!ok) break;
+            retypes.push ([ lit[0], litText.replace (/Map<String, Object>/, 'Map<String, String>').replace (/HashMap<String, Object>/, 'HashMap<String, String>') ]);
         }
         if (!ok || names.size === 0) continue;
         const argType = (a: string) => new RegExp (`(?:\\n\\s*|\\(|, )([\\w.]+(?:<[\\w.<>, ?]*>)?) ${a}(?: =|,|\\)|;)`).exec (method)?.[1];
