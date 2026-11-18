@@ -3,6 +3,141 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchPositions": [
+            {
+                "description": "watchPositions without symbols",
+                "input": [],
+                "url": "wss://openapi.blofin.com/ws/private",
+                "messages": [
+                    {
+                        "event": "login",
+                        "code": "0",
+                        "msg": ""
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "positions"
+                        }
+                    },
+                    {
+                        "arg": {
+                            "channel": "positions"
+                        },
+                        "data": [
+                            {
+                                "instType": "SWAP",
+                                "instId": "LTC-USDT",
+                                "marginMode": "cross",
+                                "positionId": "6000000340187",
+                                "positionSide": "net",
+                                "positions": "0.01",
+                                "availablePositions": "0.01",
+                                "averagePrice": "44.67",
+                                "unrealizedPnl": "-0.00024143788777776",
+                                "unrealizedPnlRatio": "-0.00162147674800376",
+                                "leverage": "3",
+                                "liquidationPrice": "",
+                                "breakEvenPrice": "44.73",
+                                "markPrice": "44.64",
+                                "initialMargin": "0.14881952070407408",
+                                "margin": "",
+                                "marginRatio": "3141.47039445629605905",
+                                "maintenanceMargin": "0.00290198065372944456",
+                                "adl": "1",
+                                "createTime": "1794993466591",
+                                "updateTime": "1794993466591"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "login",
+                        "args": [
+                            {
+                                "apiKey": "key",
+                                "passphrase": "password",
+                                "timestamp": "TS",
+                                "nonce": "NONCE",
+                                "sign": "SIGNATURE"
+                            }
+                        ]
+                    },
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "positions"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "sign",
+                    "nonce"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "instType": "SWAP",
+                                "instId": "LTC-USDT",
+                                "marginMode": "cross",
+                                "positionId": "6000000340187",
+                                "positionSide": "net",
+                                "positions": "0.01",
+                                "availablePositions": "0.01",
+                                "averagePrice": "44.67",
+                                "unrealizedPnl": "-0.00024143788777776",
+                                "unrealizedPnlRatio": "-0.00162147674800376",
+                                "leverage": "3",
+                                "liquidationPrice": "",
+                                "breakEvenPrice": "44.73",
+                                "markPrice": "44.64",
+                                "initialMargin": "0.14881952070407408",
+                                "margin": "",
+                                "marginRatio": "3141.47039445629605905",
+                                "maintenanceMargin": "0.00290198065372944456",
+                                "adl": "1",
+                                "createTime": "1794993466591",
+                                "updateTime": "1794993466591"
+                            },
+                            "id": null,
+                            "symbol": "LTC/USDT:USDT",
+                            "notional": 0.4464,
+                            "marginMode": "cross",
+                            "liquidationPrice": null,
+                            "entryPrice": 44.67,
+                            "exitPrice": null,
+                            "unrealizedPnl": -0.00024143788777776,
+                            "realizedPnl": null,
+                            "percentage": -0.162147674800376,
+                            "contracts": 0.01,
+                            "contractSize": 1,
+                            "markPrice": 44.64,
+                            "lastPrice": null,
+                            "side": "long",
+                            "hedged": false,
+                            "timestamp": 1794993466591,
+                            "datetime": "2026-11-18T09:17:46.591Z",
+                            "lastUpdateTimestamp": null,
+                            "maintenanceMargin": 0.0029019806537294445,
+                            "maintenanceMarginPercentage": 0.0065,
+                            "positionMargin": null,
+                            "collateral": 0.1485780828162963,
+                            "initialMargin": 0.1488195207040741,
+                            "initialMarginPercentage": 0.3333,
+                            "leverage": 3,
+                            "marginRatio": 0.0195,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null
+                        }
+                    ]
+                ]
+            }
+        ],
         "watchBalance": [
             {
                 "description": "account snapshot followed by a partial update - updates arriving while no consumer is awaiting must still reach the object handed to the consumer, and currencies absent from the partial update must be kept (same class as issue 26773); frame shape from the documented account channel payload",

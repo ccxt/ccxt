@@ -738,6 +738,9 @@ export default class blofin extends blofinRest {
                 client.resolve (position, channelName + ':' + this.safeString (position, 'symbol', ''));
             }
         }
+        if (channelName !== undefined) {
+            client.resolve (newPositions, channelName);
+        }
     }
 
     parseWsPosition (position: Dict, market: Market = undefined): Position {
