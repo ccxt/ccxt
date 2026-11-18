@@ -371,6 +371,9 @@ class bithumb(Exchange, ImplicitAPI):
                 '30m': 30,
                 '1h': 60,
                 '4h': 240,
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months',
             },
             'options': {
                 'generation': 2,  # either API generation 1 or 2
@@ -417,8 +420,12 @@ class bithumb(Exchange, ImplicitAPI):
         marketId = self.safe_string(market, 'id')
         if (marketId is not None) and (marketId.find('-') >= 0):
             return marketId
-        quoteId = self.safe_string_2(market, 'quoteId', 'quote', '')
-        baseId = self.safe_string_2(market, 'baseId', 'base', '')
+        quoteId = self.safe_string(market, 'quoteId')
+        if quoteId is None:
+            quoteId = self.safe_string(market, 'quote', '')
+        baseId = self.safe_string(market, 'baseId')
+        if baseId is None:
+            baseId = self.safe_string(market, 'base', '')
         return quoteId + '-' + baseId
 
     def fetch_markets(self, params: dict = {}) -> list[Market]:
@@ -558,7 +565,6 @@ class bithumb(Exchange, ImplicitAPI):
             results = promises
             for i in range(0, len(quotes)):
                 quote = quotes[i]
-                quoteId = quote
                 response = self.safe_dict(results, i)
                 data = self.safe_dict(response, 'data', {})
                 extension = self.safe_dict(quoteCurrencies, quote, {})
@@ -583,7 +589,7 @@ class bithumb(Exchange, ImplicitAPI):
                         'quote': quote,
                         'settle': None,
                         'baseId': currencyId,
-                        'quoteId': quoteId,
+                        'quoteId': quote,
                         'settleId': None,
                         'type': 'spot',
                         'spot': True,
@@ -1251,6 +1257,8 @@ class bithumb(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
+        :param int [params.until]: generation 2 only, timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: generation 2 only, default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -1261,21 +1269,42 @@ class bithumb(Exchange, ImplicitAPI):
         response = None
         data = []
         if generation == 2:
+            paginate, paramsPaginate = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+            if paginate:
+                return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
+            until = self.safe_integer(paramsGeneration, 'until')
+            requestParams = self.omit(paramsGeneration, ['until', 'paginate'])
             request['market'] = self.get_gen2_market_id(market)
+            # the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            count = 200
             if limit is not None:
-                request['count'] = limit
+                count = min(limit, 200)
+            if (limit is not None) or (since is not None) or (until is not None):
+                request['count'] = count
+            # the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            # and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            to = None
+            if until is not None:
+                to = self.sum(until, 1000)  # `to` is exclusive with second precision, keep the candle that opens at `until`
+            if since is not None:
+                duration = self.parse_timeframe(timeframe) * 1000
+                sinceEnd = self.sum(since, duration * count)
+                if (to is None) or (sinceEnd < to):
+                    to = sinceEnd
+            if to is not None:
+                request['to'] = self.ymdhms(self.sum(to, 32400000), ' ')
             if timeframe == '1d':
-                response = self.publicGetV1CandlesDays(self.extend(request, paramsGeneration))
+                response = self.publicGetV1CandlesDays(self.extend(request, requestParams))
             elif timeframe == '1w':
-                response = self.publicGetV1CandlesWeeks(self.extend(request, paramsGeneration))
+                response = self.publicGetV1CandlesWeeks(self.extend(request, requestParams))
             elif timeframe == '1M':
-                response = self.publicGetV1CandlesMonths(self.extend(request, paramsGeneration))
+                response = self.publicGetV1CandlesMonths(self.extend(request, requestParams))
             else:
                 timeframeInteger = self.safe_integer(self.timeframes, timeframe)
                 if timeframeInteger is None:
                     raise BadRequest(self.id + ' fetchOHLCV() unsupported timeframe ' + timeframe)
                 request['unit'] = timeframeInteger
-                response = self.publicGetV1CandlesMinutesUnit(self.extend(request, paramsGeneration))
+                response = self.publicGetV1CandlesMinutesUnit(self.extend(request, requestParams))
             #
             #     [
             #         {
@@ -1886,9 +1915,8 @@ class bithumb(Exchange, ImplicitAPI):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-            marketDefined = market
-            base = self.safe_string(marketDefined, 'base')
-            quote = self.safe_string(marketDefined, 'quote')
+            base = self.safe_string(market, 'base')
+            quote = self.safe_string(market, 'quote')
             if (base is None) or (quote is None):
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a market with defined base and quote')
             request['order_id'] = id
@@ -2402,9 +2430,8 @@ class bithumb(Exchange, ImplicitAPI):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-            marketDefined = market
-            base = self.safe_string(marketDefined, 'base')
-            quote = self.safe_string(marketDefined, 'quote')
+            base = self.safe_string(market, 'base')
+            quote = self.safe_string(market, 'quote')
             if (base is None) or (quote is None):
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a market with defined base and quote')
             side_in_params = ('side' in paramsRequest)
@@ -3136,9 +3163,7 @@ class bithumb(Exchange, ImplicitAPI):
                     'Api-Nonce': nonce,
                     'OPEN-API-PARTNER': 'CCXT',
                 }
-        headersResult = requestHeaders
-        bodyResult = requestBody
-        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:

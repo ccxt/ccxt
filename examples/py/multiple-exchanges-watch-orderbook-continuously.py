@@ -16,17 +16,17 @@ async def watch_book(exchange, ticker):
             # TODO add last
             top_bid = orderbook['bids'][0][0]
             if last != top_bid:
-                print(f'{int(time.time() * 1000)} top bid for celo on {exchange.name} is {top_bid}')
+                print(f'{int(time.time() * 1000)} top bid for {ticker} on {exchange.name} is {top_bid}')
             last = top_bid
         except Exception as e:
             print(f'{exchange.name} failed {type(e)} {e}')
 
 
 async def main():
-    exchange_ids = ['coinbaseexchange', 'okcoin', 'kucoin']
+    exchange_ids = ['kraken', 'okx', 'kucoin']
     exchanges = [getattr(ccxt.pro, exchange_id)() for exchange_id in exchange_ids]
     try:
-        done, pending = await asyncio.wait({watch_book(exchange, 'CELO/USD') for exchange in exchanges}, return_when=asyncio.FIRST_EXCEPTION)
+        done, pending = await asyncio.wait({asyncio.create_task(watch_book(exchange, 'BTC/USDT')) for exchange in exchanges}, return_when=asyncio.FIRST_EXCEPTION)
         for completed in done:
             # trigger the exception here
             completed.result()

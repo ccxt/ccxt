@@ -85,6 +85,8 @@ pub use test_numberToBE::testNumberToBE;
 pub use test_numberToString::testNumberToString;
 #[path = "test.omit.rs"] pub mod test_omit;
 pub use test_omit::testOmit;
+#[path = "test.parseMarkets.rs"] pub mod test_parseMarkets;
+pub use test_parseMarkets::testParseMarkets;
 #[path = "test.parsePrecision.rs"] pub mod test_parsePrecision;
 pub use test_parsePrecision::testParsePrecision;
 #[path = "test.precise.rs"] pub mod test_precise;

@@ -1070,8 +1070,7 @@ export default class alpaca extends Exchange {
         const parts = uuid.split ('-');
         const random_id = parts.join ('');
         const defaultClientId = this.implodeParams (clientOrderIdprefix, { 'id': random_id });
-        const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
-        return clientOrderId;
+        return this.safeString (params, 'clientOrderId', defaultClientId);
     }
 
     /**
@@ -1782,11 +1781,9 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        let addressValue: string = address;
         const tagSuffix = this.safeString (params, 'tag', '');
-        if (tagSuffix !== '') {
-            addressValue = address + ':' + tagSuffix;
-        }
+        const taggedAddress = address + ':' + tagSuffix;
+        const addressValue = (tagSuffix !== '') ? taggedAddress : address;
         const request: Dict = {
             'asset': currency['id'],
             'address': addressValue,
@@ -1846,8 +1843,8 @@ export default class alpaca extends Exchange {
             //         }
             //     ]
             //
-            const filtered: Transaction[] = [];
-            let ledger: List = [];
+            const filtered: Dict[] = [];
+            let ledger: Dict[] = [];
             if (Array.isArray (activities)) {
                 ledger = activities;
             }
@@ -1884,8 +1881,8 @@ export default class alpaca extends Exchange {
         //         "fees": "0.1"
         //     }
         //
-        const results: Transaction[] = [];
-        let transfers: List = [];
+        const results: Dict[] = [];
+        let transfers: Dict[] = [];
         if (Array.isArray (response)) {
             transfers = response;
         }

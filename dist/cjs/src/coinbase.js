@@ -1323,10 +1323,13 @@ class coinbase extends coinbase$1["default"] {
             priceString = v3Price;
         }
         if ((priceString !== undefined) && (amountString !== undefined)) {
-            cost = Precise["default"].stringMul(priceString, amountString);
+            const baseCost = Precise["default"].stringMul(priceString, amountString);
             const contractSize = this.safeString(marketResolved, 'contractSize');
             if (contractSize !== undefined) {
-                cost = Precise["default"].stringMul(cost, contractSize);
+                cost = Precise["default"].stringMul(baseCost, contractSize);
+            }
+            else {
+                cost = baseCost;
             }
         }
         else {
@@ -1338,12 +1341,23 @@ class coinbase extends coinbase$1["default"] {
             feeCurrencyId = this.safeString(marketResolved, 'quote');
         }
         const datetime = this.safeStringN(trade, ['created_at', 'trade_time', 'time']);
-        const side = this.safeStringLower2(trade, 'resource', 'side');
+        let side = this.safeStringLower2(trade, 'resource', 'side');
         const takerOrMaker = this.safeStringLower(trade, 'liquidity_indicator');
+        const orderId = this.safeString(trade, 'order_id');
+        const entryId = this.safeString(trade, 'entry_id');
+        if ((orderId === undefined) && (entryId === undefined) && (this.safeString(trade, 'resource') === undefined)) {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if (side === 'buy') {
+                side = 'sell';
+            }
+            else if (side === 'sell') {
+                side = 'buy';
+            }
+        }
         return this.safeTrade({
             'info': trade,
             'id': this.safeString2(trade, 'id', 'trade_id'),
-            'order': this.safeString(trade, 'order_id'),
+            'order': orderId,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'symbol': symbol,
@@ -1421,8 +1435,8 @@ class coinbase extends coinbase$1["default"] {
                         'type': 'spot',
                         'spot': true,
                         'margin': false,
-                        'swap': true,
-                        'future': true,
+                        'swap': false,
+                        'future': false,
                         'option': false,
                         'active': undefined,
                         'contract': false,
@@ -1565,8 +1579,6 @@ class coinbase extends coinbase$1["default"] {
         const fees = this.safeDict(promises, 1, {});
         const expiringFutures = this.safeDict(contractPromises, 0, {});
         const perpetualFutures = this.safeDict(contractPromises, 1, {});
-        const expiringFees = this.safeDict(contractPromises, 0, {});
-        const perpetualFees = this.safeDict(contractPromises, 1, {});
         //
         //     {
         //         "total_volume": 0,
@@ -1587,8 +1599,6 @@ class coinbase extends coinbase$1["default"] {
         //     }
         //
         const feeTier = this.safeDict(fees, 'fee_tier', {});
-        const expiringFeeTier = this.safeDict(expiringFees, 'fee_tier', {}); // fee tier null?
-        const perpetualFeeTier = this.safeDict(perpetualFees, 'fee_tier', {}); // fee tier null?
         const data = this.safeList(spot, 'products', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -1599,14 +1609,14 @@ class coinbase extends coinbase$1["default"] {
         }
         const futureData = this.safeList(expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
-            const futureMarket = this.parseContractMarket(futureData[i], expiringFeeTier);
+            const futureMarket = this.parseContractMarket(futureData[i]);
             if (futureMarket !== undefined) {
                 result.push(futureMarket);
             }
         }
         const perpetualData = this.safeList(perpetualFutures, 'products', []);
         for (let i = 0; i < perpetualData.length; i++) {
-            const perpetualMarket = this.parseContractMarket(perpetualData[i], perpetualFeeTier);
+            const perpetualMarket = this.parseContractMarket(perpetualData[i]);
             if (perpetualMarket !== undefined) {
                 result.push(perpetualMarket);
             }
@@ -1725,7 +1735,7 @@ class coinbase extends coinbase$1["default"] {
             'info': market,
         });
     }
-    parseContractMarket(market, feeTier) {
+    parseContractMarket(market, feeTier = undefined) {
         // expiring
         //
         //        {
@@ -1879,8 +1889,9 @@ class coinbase extends coinbase$1["default"] {
         }
         const takerFeeRate = this.safeNumber(feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber(feeTier, 'maker_fee_rate');
-        const taker = (takerFeeRate !== undefined && takerFeeRate !== null && takerFeeRate !== 0) ? takerFeeRate : this.parseNumber('0.06');
-        const maker = (makerFeeRate !== undefined && makerFeeRate !== null && makerFeeRate !== 0) ? makerFeeRate : this.parseNumber('0.04');
+        // CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
+        const taker = (takerFeeRate !== undefined && takerFeeRate !== null && takerFeeRate !== 0) ? takerFeeRate : this.parseNumber('0.0002');
+        const maker = (makerFeeRate !== undefined && makerFeeRate !== null && makerFeeRate !== 0) ? makerFeeRate : this.parseNumber('0.0002');
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -2455,14 +2466,14 @@ class coinbase extends coinbase$1["default"] {
         const totalUsdBalance = this.safeString(totalUsdBalanceData, 'value');
         const futuresBuyingPower = this.safeString(futuresBuyingPowerData, 'value');
         if ((totalUsdBalance !== undefined) || (futuresBuyingPower !== undefined)) {
-            const total = (totalUsdBalance !== undefined) ? totalUsdBalance : futuresBuyingPower;
-            const free = (futuresBuyingPower !== undefined) ? futuresBuyingPower : total;
-            const used = Precise["default"].stringSub(total, free);
+            const usdTotal = (totalUsdBalance !== undefined) ? totalUsdBalance : futuresBuyingPower;
+            const usdFree = (futuresBuyingPower !== undefined) ? futuresBuyingPower : usdTotal;
+            const usdUsed = Precise["default"].stringSub(usdTotal, usdFree);
             const balanceResult = { 'info': response };
             balanceResult['USD'] = {
-                'free': free,
-                'used': used,
-                'total': total,
+                'free': usdFree,
+                'used': usdUsed,
+                'total': usdTotal,
             };
             return this.safeBalance(balanceResult);
         }
@@ -2501,18 +2512,18 @@ class coinbase extends coinbase$1["default"] {
                 if (available !== undefined && hold !== undefined) {
                     const currencyId = this.safeString(available, 'currency');
                     const code = this.safeCurrencyCode(currencyId);
-                    const used = this.safeString(hold, 'value');
-                    const free = this.safeString(available, 'value');
-                    const total = Precise["default"].stringAdd(used, free);
+                    const v3Used = this.safeString(hold, 'value');
+                    const v3Free = this.safeString(available, 'value');
+                    const v3Total = Precise["default"].stringAdd(v3Used, v3Free);
                     let account = this.safeDict(result, code);
                     if (account === undefined) {
-                        account = this.extend(this.account(), { 'free': free, 'used': used, 'total': total });
+                        account = this.extend(this.account(), { 'free': v3Free, 'used': v3Used, 'total': v3Total });
                     }
                     else {
                         account = this.extend(account, {
-                            'free': Precise["default"].stringAdd(this.safeString(account, 'free'), free),
-                            'used': Precise["default"].stringAdd(this.safeString(account, 'used'), used),
-                            'total': Precise["default"].stringAdd(this.safeString(account, 'total'), total),
+                            'free': Precise["default"].stringAdd(this.safeString(account, 'free'), v3Free),
+                            'used': Precise["default"].stringAdd(this.safeString(account, 'used'), v3Used),
+                            'total': Precise["default"].stringAdd(this.safeString(account, 'total'), v3Total),
                         });
                     }
                     if (code !== undefined) {

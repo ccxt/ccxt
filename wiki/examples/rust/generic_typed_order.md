@@ -1,6 +1,6 @@
 ```rust
 use ccxt::types::{Market, Order, Ticker};
-use ccxt::{from_id_with_config, Config, ExchangeError, Params, TypedExchange, TypedExchangeExt};
+use ccxt::{Config, ExchangeBase, ExchangeError, ExchangeVisitor, Params, TypedExchange};
 
 const EXCHANGES: &[&str] = &["binance", "bybit"];
 
@@ -62,26 +62,41 @@ fn fmt_err(e: &ExchangeError) -> String {
     format!("[{}] {msg}", e.kind)
 }
 
+struct TradeOn<'a> {
+    id: &'a str,
+    place: bool,
+}
+
+impl ExchangeVisitor for TradeOn<'_> {
+    type Output = ();
+    async fn visit<E: TypedExchange + 'static>(self, mut ex: E) {
+        trade(&mut ex, self.id, self.place).await
+    }
+}
+
 async fn trade_on(id: &str, place: bool) {
     println!("\n═══ {id} ═══");
+    if ccxt::exchanges::with_exchange_config(id, config_for(id), TradeOn { id, place }).await.is_none() {
+        println!("  no typed wrapper for {id}");
+    }
+}
 
-    let mut ex: Box<dyn TypedExchange> = match from_id_with_config(id, config_for(id)) {
-        Some(e) => e,
-        None => {
-            println!("  no typed wrapper for {id}");
+async fn trade<E: TypedExchange>(ex: &mut E, id: &str, place: bool) {
+
+    let markets = match ex.load_markets(false, ()).await {
+        Ok(m) if !m.is_empty() => m,
+        Ok(_) => {
+            println!("  markets did not load");
+            return;
+        }
+        Err(e) => {
+            println!("  markets      {}", fmt_err(&e));
             return;
         }
     };
-
-    ex.load_markets(false).await;
-    let markets = ex.markets();
-    if markets.is_empty() {
-        println!("  markets did not load");
-        return;
-    }
     println!("  markets      {}", markets.len());
 
-    let market: Market = match ex.market(SYMBOL) {
+    let market: Market = match ExchangeBase::market(ex, SYMBOL) {
         Ok(m) => m,
         Err(e) => {
             println!("  market       {}", fmt_err(&e));

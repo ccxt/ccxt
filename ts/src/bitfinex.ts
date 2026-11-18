@@ -313,37 +313,9 @@ export default class bitfinex extends Exchange {
                 'trading': {
                     'feeSide': 'get',
                     'percentage': true,
-                    'tierBased': true,
-                    'maker': this.parseNumber ('0.001'),
-                    'taker': this.parseNumber ('0.002'),
-                    'tiers': {
-                        'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
-                            [ this.parseNumber ('500000'), this.parseNumber ('0.002') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.002') ],
-                            [ this.parseNumber ('2500000'), this.parseNumber ('0.002') ],
-                            [ this.parseNumber ('5000000'), this.parseNumber ('0.002') ],
-                            [ this.parseNumber ('7500000'), this.parseNumber ('0.002') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0018') ],
-                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0016') ],
-                            [ this.parseNumber ('20000000'), this.parseNumber ('0.0014') ],
-                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0012') ],
-                            [ this.parseNumber ('30000000'), this.parseNumber ('0.001') ],
-                        ],
-                        'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
-                            [ this.parseNumber ('500000'), this.parseNumber ('0.0008') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0006') ],
-                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0004') ],
-                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0002') ],
-                            [ this.parseNumber ('7500000'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('15000000'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('20000000'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('25000000'), this.parseNumber ('0') ],
-                            [ this.parseNumber ('30000000'), this.parseNumber ('0') ],
-                        ],
-                    },
+                    'tierBased': false,
+                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber ('0'),
                 },
                 'funding': {
                     'withdraw': {},
@@ -646,102 +618,108 @@ export default class bitfinex extends Exchange {
         const futuresMarketsInfo = this.safeList (response, 1, []);
         const marginIds = this.safeList (response, 3, []);
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
-        const result: List = [];
-        for (let i = 0; i < markets.length; i++) {
-            const pairObj = this.safeList (markets, i);
-            const id = this.safeStringUpper (pairObj, 0, '');
-            const market = this.safeList (pairObj, 1, []);
-            let spot = true;
-            let type: Str = undefined;
-            if ((id as string).indexOf ('F0') >= 0) {
-                spot = false;
-                type = 'swap';
-            } else {
-                type = 'spot';
-            }
-            const swap = type === 'swap';
-            let baseId: Str = undefined;
-            let quoteId: Str = undefined;
-            if ((id as string).indexOf (':') >= 0) {
-                const parts = (id as string).split (':');
-                baseId = parts[0];
-                quoteId = parts[1];
-            } else {
-                baseId = (id as string).slice (0, 3);
-                quoteId = (id as string).slice (3, 6);
-            }
-            let base = this.safeCurrencyCode (baseId);
-            let quote = this.safeCurrencyCode (quoteId);
-            const splitBase = (base as string).split ('F0');
-            const splitQuote = (quote as string).split ('F0');
-            base = this.safeString (splitBase, 0);
-            quote = this.safeString (splitQuote, 0);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            let symbol = base + '/' + quote;
-            // baseId = 'f' + baseId;
-            // quoteId = 'f' + quoteId;
-            let settle: Str = undefined;
-            let settleId: Str = undefined;
-            if (swap) {
-                settle = quote;
-                settleId = quote;
-                symbol = symbol + ':' + settle;
-            }
-            const minOrderSizeString = this.safeString (market, 3);
-            const maxOrderSizeString = this.safeString (market, 4);
-            result.push ({
-                'id': 't' + id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': spot,
-                'margin': (spot && this.inArray (id, marginIds)),
-                'swap': swap,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': !spot,
-                'linear': swap ? true : undefined,
-                'inverse': swap ? false : undefined,
-                'contractSize': swap ? this.parseNumber ('1') : undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': parseInt ('8'), // https://github.com/ccxt/ccxt/issues/7310
-                    'price': parseInt ('5'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.parseNumber (minOrderSizeString),
-                        'max': this.parseNumber (maxOrderSizeString),
-                    },
-                    'price': {
-                        'min': this.parseNumber ('1e-8'),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined, // todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
-                'info': market,
-            });
+        this.options['marginIds'] = marginIds;
+        return this.parseMarkets (markets);
+    }
+
+    override parseMarket (pairObj: Dict): Market {
+        //
+        //     [ 'AAVE:USD', [ null, null, null, "0.02", "5000.0", null, null, null, null, null, null, null ] ]
+        //
+        const marginIds = this.safeList (this.options, 'marginIds', []);
+        const id = this.safeStringUpper (pairObj, 0, '');
+        const market = this.safeList (pairObj, 1, []);
+        let spot = true;
+        let type: Str = undefined;
+        if ((id as string).indexOf ('F0') >= 0) {
+            spot = false;
+            type = 'swap';
+        } else {
+            type = 'spot';
         }
-        return result;
+        const swap = type === 'swap';
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
+        if ((id as string).indexOf (':') >= 0) {
+            const parts = (id as string).split (':');
+            baseId = parts[0];
+            quoteId = parts[1];
+        } else {
+            baseId = (id as string).slice (0, 3);
+            quoteId = (id as string).slice (3, 6);
+        }
+        let base = this.safeCurrencyCode (baseId);
+        let quote = this.safeCurrencyCode (quoteId);
+        const splitBase = (base as string).split ('F0');
+        const splitQuote = (quote as string).split ('F0');
+        base = this.safeString (splitBase, 0);
+        quote = this.safeString (splitQuote, 0);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
+        let symbol = base + '/' + quote;
+        // baseId = 'f' + baseId;
+        // quoteId = 'f' + quoteId;
+        let settle: Str = undefined;
+        let settleId: Str = undefined;
+        if (swap) {
+            settle = quote;
+            settleId = quote;
+            symbol = symbol + ':' + settle;
+        }
+        const minOrderSizeString = this.safeString (market, 3);
+        const maxOrderSizeString = this.safeString (market, 4);
+        return {
+            'id': 't' + id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': spot,
+            'margin': (spot && this.inArray (id, marginIds)),
+            'swap': swap,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': !spot,
+            'linear': swap ? true : undefined,
+            'inverse': swap ? false : undefined,
+            'maker': this.safeNumber (this.fees['trading'], 'maker'),
+            'taker': this.safeNumber (this.fees['trading'], 'taker'),
+            'contractSize': swap ? this.parseNumber ('1') : undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': parseInt ('8'), // https://github.com/ccxt/ccxt/issues/7310
+                'price': parseInt ('5'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.parseNumber (minOrderSizeString),
+                    'max': this.parseNumber (maxOrderSizeString),
+                },
+                'price': {
+                    'min': this.parseNumber ('1e-8'),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined, // todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
+            'info': market,
+        } as Market;
     }
 
     /**
@@ -1153,7 +1131,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, status as IndexType, status);
     }
 
-    convertDerivativesId (currency: Dict, type: string): Str {
+    convertDerivativesId (currency: Currency, type: string): Str {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id": "fUSTF0",
@@ -1209,7 +1187,7 @@ export default class bitfinex extends Exchange {
             'nonce': undefined,
         };
         const priceIndex = (this.safeString (fullRequest, 'precision') === 'R0') ? 1 : 0;
-        const orders = this.toArray (orderbook);
+        const orders: any[][] = this.toArray (orderbook);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const price = this.safeNumber (order, priceIndex);
@@ -2055,7 +2033,7 @@ export default class bitfinex extends Exchange {
         }
         const paramsOmitted = (cid !== undefined) ? this.omit (params, [ 'cid', 'clientOrderId' ]) : params;
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, paramsOmitted));
-        const order = this.safeValue (response, 4);
+        const order = this.safeList (response, 4);
         const newOrder: Dict = { 'result': order };
         return this.parseOrder (newOrder, market);
     }
@@ -3385,7 +3363,7 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        const rawRatesData = this.toArray (response);
+        const rawRatesData: any[][] = this.toArray (response);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < rawRatesData.length; i++) {
             const fr = rawRatesData[i];
@@ -3403,7 +3381,7 @@ export default class bitfinex extends Exchange {
         return reversedArray as FundingRateHistory[];
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //       [
         //          "tBTCF0:USTF0",

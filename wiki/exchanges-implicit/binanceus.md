@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official binanceus API documentation:** [github.com](https://github.com/binance-us/binance-official-api-docs)
 
-> 878 implicit endpoints across 20 access groups.
+> 883 implicit endpoints across 20 access groups.
 
 ## sapi
 
@@ -176,6 +176,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiGetSubAccountUniversalTransfer` | GET | `sub-account/universalTransfer` | 0.1 |
 | `sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList` | GET | `sub-account/apiRestrictions/ipRestriction/thirdPartyList` | 1 |
 | `sapiGetSubAccountTransactionStatistics` | GET | `sub-account/transaction-statistics` | 0.40002 |
+| `sapiGetSubAccountSubAccountApi` | GET | `sub-account/subAccountApi` | 20.001 |
 | `sapiGetSubAccountSubAccountApiIpRestriction` | GET | `sub-account/subAccountApi/ipRestriction` | 20.001 |
 | `sapiGetManagedSubaccountAsset` | GET | `managed-subaccount/asset` | 0.1 |
 | `sapiGetManagedSubaccountAccountSnapshot` | GET | `managed-subaccount/accountSnapshot` | 240 |
@@ -388,6 +389,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiPostMarginMaxLeverage` | POST | `margin/max-leverage` | 300 |
 | `sapiPostBnbBurn` | POST | `bnbBurn` | 0.1 |
 | `sapiPostSubAccountVirtualSubAccount` | POST | `sub-account/virtualSubAccount` | 0.1 |
+| `sapiPostSubAccountSubAccountApi` | POST | `sub-account/subAccountApi` | 20.001 |
+| `sapiPostSubAccountSubAccountApiPermission` | POST | `sub-account/subAccountApiPermission` | 20.001 |
 | `sapiPostSubAccountMarginTransfer` | POST | `sub-account/margin/transfer` | 4.0002 |
 | `sapiPostSubAccountMarginEnable` | POST | `sub-account/margin/enable` | 0.1 |
 | `sapiPostSubAccountFuturesEnable` | POST | `sub-account/futures/enable` | 0.1 |
@@ -521,6 +524,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiDeleteBrokerSubAccountApiIpRestrictionIpList` | DELETE | `broker/subAccountApi/ipRestriction/ipList` | 1 |
 | `sapiDeleteAlgoSpotOrder` | DELETE | `algo/spot/order` | 0.1 |
 | `sapiDeleteAlgoFuturesOrder` | DELETE | `algo/futures/order` | 0.1 |
+| `sapiDeleteSubAccountSubAccountApi` | DELETE | `sub-account/subAccountApi` | 20.001 |
 | `sapiDeleteSubAccountSubAccountApiIpRestrictionIpList` | DELETE | `sub-account/subAccountApi/ipRestriction/ipList` | 20.001 |
 | `sapiDeleteCustodianCancelOrder` | DELETE | `custodian/cancelOrder` | 1 |
 | `sapiDeleteCustodianCancelOrdersBySymbol` | DELETE | `custodian/cancelOrdersBySymbol` | 1 |
@@ -546,6 +550,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiV2GetClAccount` | GET | `cl/account` | 10 |
 | `sapiV2GetClAlertHistory` | GET | `cl/alertHistory` | 1 |
 | `sapiV2PostEthStakingEthStake` | POST | `eth-staking/eth/stake` | 15 |
+| `sapiV2PostSubAccountSubAccountApi` | POST | `sub-account/subAccountApi` | 20.001 |
 | `sapiV2PostSubAccountSubAccountApiIpRestriction` | POST | `sub-account/subAccountApi/ipRestriction` | 20.001 |
 | `sapiV2PostLoanFlexibleBorrow` | POST | `loan/flexible/borrow` | 40.002 |
 | `sapiV2PostLoanFlexibleRepay` | POST | `loan/flexible/repay` | 40.002 |

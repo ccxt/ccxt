@@ -117,12 +117,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Map<String, Object> ordersRequest = this.createOrdersRequest(orders, parameters);
             Map<String, Object> wrapped = this.wrapAsPostAction(ordersRequest);
-            Map<String, Object> request = (Map<String, Object>) this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
+            Map<String, Object> request = this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
             String requestId = this.safeString(wrapped, "requestId");
             Object response = (this.watch(url, requestId, request, requestId, null)).join();
-            Map<String, Object> responseOjb = (Map<String, Object>) this.safeDict(response, "response", new HashMap<String, Object>() {{}});
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(responseOjb, "data", new HashMap<String, Object>() {{}});
-            List<Object> statuses = (List<Object>) this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> responseOjb = this.safeDict(response, "response", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(responseOjb, "data", new HashMap<String, Object>() {{}});
+            List<Object> statuses = this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(statuses, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -161,7 +161,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
             List<Order> orders = (this.createOrdersWs(new ArrayList<Object>(Arrays.asList(((Object)order))), globalParams)).join();
-            Integer ordersLength = ((List<?>)orders).size();
+            Integer ordersLength = orders.size();
             if (java.util.Objects.equals(ordersLength, 0))
             {
                 // not sure why but it is happening sometimes
@@ -209,14 +209,14 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
             Map<String, Object> postRequest = this.editOrdersRequest(new ArrayList<Object>(Arrays.asList(order)), globalParams);
             Map<String, Object> wrapped = this.wrapAsPostAction(postRequest);
-            Map<String, Object> request = (Map<String, Object>) this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
+            Map<String, Object> request = this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
             String requestId = this.safeString(wrapped, "requestId");
             Object response = (this.watch(url, requestId, request, requestId, null)).join();
             // response is the same as in this.editOrder
-            Map<String, Object> responseObject = (Map<String, Object>) this.safeDict(response, "response", new HashMap<String, Object>() {{}});
-            Map<String, Object> dataObject = (Map<String, Object>) this.safeDict(responseObject, "data", new HashMap<String, Object>() {{}});
-            List<Object> statuses = (List<Object>) this.safeList(dataObject, "statuses", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(statuses, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> responseObject = this.safeDict(response, "response", new HashMap<String, Object>() {{}});
+            Map<String, Object> dataObject = this.safeDict(responseObject, "data", new HashMap<String, Object>() {{}});
+            List<Object> statuses = this.safeList(dataObject, "statuses", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(statuses, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(first, market);
             return parsedOrder;
         }).thenApply(Order::new);
@@ -248,14 +248,14 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Map<String, Object> request = this.cancelOrdersRequest(ids, symbol, parameters);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Map<String, Object> wrapped = this.wrapAsPostAction(request);
-            Map<String, Object> wsRequest = (Map<String, Object>) this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsRequest = this.safeDict(wrapped, "request", new HashMap<String, Object>() {{}});
             String requestId = this.safeString(wrapped, "requestId");
             Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
-            Map<String, Object> responseObj = (Map<String, Object>) this.safeDict(response, "response", new HashMap<String, Object>() {{}});
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(responseObj, "data", new HashMap<String, Object>() {{}});
-            List<Object> statuses = (List<Object>) this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> responseObj = this.safeDict(response, "response", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(responseObj, "data", new HashMap<String, Object>() {{}});
+            List<Object> statuses = this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)statuses).size(); i++)
+            for (var i = 0; i < statuses.size(); i++)
             {
                 Object status = (statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i));
                 ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -286,7 +286,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         return BaseExchange.supplyAsync(() -> {
 
             List<Order> orders = (this.cancelOrdersWs(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
-            return this.safeDict(orders, 0, (Object) null);
+            return this.safeDict(orders, 0, null);
         }).thenApply(Order::new);
 
     }
@@ -318,7 +318,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "l2Book" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -359,7 +359,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "l2Book" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -395,12 +395,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //         }
         //     }
         //
-        Map<String, Object> entry = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> entry = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String coin = this.safeString(entry, "coin");
         String marketId = this.coinToMarketId((String) (coin));
         Map<String, Object> market = this.market(marketId);
         String symbol = (String) market.get("symbol");
-        List<Object> rawData = (List<Object>) this.safeList(entry, "levels", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawData = this.safeList(entry, "levels", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> data = new HashMap<String, Object>() {{
             put( "bids", Hyperliquid.this.safeList(rawData, 0, new ArrayList<Object>(Arrays.asList())) );
             put( "asks", Hyperliquid.this.safeList(rawData, 1, new ArrayList<Object>(Arrays.asList())) );
@@ -448,7 +448,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "activeAssetCtx" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             (this.waitForPendingUnsubscribe(url, messageHash)).join();
@@ -484,7 +484,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "activeAssetCtx" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
@@ -690,7 +690,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 messageHashes.add("myLiquidations");
             } else
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     messageHashes.add(("myLiquidations::" + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
                 }
@@ -777,12 +777,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         // }
         //
         // handle hip3 mids
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> mids = (Map<String, Object>) this.safeDict(data, "mids", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> mids = this.safeDict(data, "mids", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(mids, null))
         {
             List<String> keys = new ArrayList<String>(mids.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String name = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String marketId = this.coinToMarketId(name);
@@ -828,12 +828,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         // the spot variant arrives on the activeSpotAssetCtx channel and carries
         // "circulatingSupply" instead of the swap-only fields
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String coin = this.safeString(data, "coin");
         String marketId = this.coinToMarketId((String) (coin));
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        Map<String, Object> ctx = (Map<String, Object>) this.safeDict(data, "ctx", new HashMap<String, Object>() {{}});
+        Map<String, Object> ctx = this.safeDict(data, "ctx", new HashMap<String, Object>() {{}});
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(ctx, market);
         this.tickers.put(symbol, ticker);
         String messageHash = ("ticker:" + symbol);
@@ -878,7 +878,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //
         // an empty snapshot still seeds the liquidations cache
         this.handleMyLiquidations(client, message);
-        Map<String, Object> entry = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> entry = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -886,22 +886,22 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        List<Object> data = (List<Object>) this.safeList(entry, "fills", new ArrayList<Object>(Arrays.asList()));
-        Integer dataLength = ((List<?>)data).size();
+        List<Object> data = this.safeList(entry, "fills", new ArrayList<Object>(Arrays.asList()));
+        Integer dataLength = data.size();
         if (java.util.Objects.equals(dataLength, 0))
         {
             return;
         }
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
-            Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), (Map<String, Object>) null);
-            Object symbol = parsed.get("symbol");
-            symbols.put((String)((String)symbol), true);
+            Map<String, Object> rawTrade = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
+            String symbol = (String) parsed.get("symbol");
+            symbols.put(symbol, true);
             trades.append(parsed);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             client.resolve(trades, ("myTrades:" + this.safeString(keys, i, "")));
         }
@@ -921,7 +921,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //         "method": "market"
         //     }
         //
-        Map<String, Object> entry = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> entry = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         // every subscription starts with a snapshot, a resubscribe replays it
         Boolean isSnapshot = (Boolean) this.safeBool(entry, "isSnapshot", false);
         if (Boolean.TRUE.equals(isSnapshot) || (java.util.Objects.equals(this.myLiquidations, null)))
@@ -930,19 +930,19 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             this.myLiquidations = new ArrayCache(((Number)limit).intValue());
         }
         String user = this.safeStringLower(entry, "user");
-        List<Object> fills = (List<Object>) this.safeList(entry, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> fills = this.safeList(entry, "fills", new ArrayList<Object>(Arrays.asList()));
         List<Object> newLiquidations = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)fills).size(); i++)
+        for (var i = 0; i < fills.size(); i++)
         {
             Object fill = (fills == null || i < 0 || i >= fills.size() ? null : fills.get(i));
-            Map<String, Object> liquidation = (Map<String, Object>) this.safeDict(fill, "liquidation", new HashMap<String, Object>() {{}});
+            Map<String, Object> liquidation = this.safeDict(fill, "liquidation", new HashMap<String, Object>() {{}});
             // liquidator fills carry the liquidated counterparty here
             if (java.util.Objects.equals(this.safeStringLower(liquidation, "liquidatedUser"), user))
             {
                 ((List<Object>)newLiquidations).add(this.parseLiquidation(fill, (Map<String, Object>) null));
             }
         }
-        Integer newLiquidationsLength = ((List<?>)newLiquidations).size();
+        Integer newLiquidationsLength = newLiquidations.size();
         if (java.util.Objects.equals(newLiquidationsLength, 0))
         {
             return;
@@ -951,12 +951,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; (newLiquidationsLength != null && i < newLiquidationsLength); i++)
         {
-            Object liquidation = (newLiquidations == null || i < 0 || i >= newLiquidations.size() ? null : newLiquidations.get(i));
+            Map<String, Object> liquidation = (Map<String, Object>) (newLiquidations == null || i < 0 || i >= newLiquidations.size() ? null : newLiquidations.get(i));
             cache.append(liquidation);
-            symbols.put((String)((String)((Map<String, Object>)liquidation).get("symbol")), true);
+            symbols.put((String)((String)liquidation.get("symbol")), true);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object symbolLiquidations = this.filterBySymbol(newLiquidations, symbol);
@@ -993,7 +993,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "trades" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -1036,7 +1036,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "trades" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                 }} );
             }};
             Map<String, Object> message = this.extend(request, parameters);
@@ -1063,13 +1063,13 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //         ]
         //     }
         //
-        List<Object> entry = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Integer entryLength = ((List<?>)entry).size();
+        List<Object> entry = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Integer entryLength = entry.size();
         if (java.util.Objects.equals(entryLength, 0))
         {
             return;
         }
-        Map<String, Object> first = (Map<String, Object>) this.safeDict(entry, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> first = this.safeDict(entry, 0, new HashMap<String, Object>() {{}});
         String coin = this.safeString(first, "coin");
         String marketId = this.coinToMarketId((String) (coin));
         Map<String, Object> market = this.market(marketId);
@@ -1081,9 +1081,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             this.trades.put(symbol, stored);
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
-        for (var i = 0; i < ((List<?>)entry).size(); i++)
+        for (var i = 0; i < entry.size(); i++)
         {
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(entry, i, new HashMap<String, Object>() {{}});
             Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
             trades.append(trade);
         }
@@ -1188,7 +1188,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "subscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "candle" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                     put( "interval", java.util.Objects.requireNonNullElse(timeframe, "1m") );
                 }} );
             }};
@@ -1232,7 +1232,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "method", "unsubscribe" );
                 put( "subscription", new HashMap<String, Object>() {{
                     put( "type", "candle" );
-                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? ((Map<String, Object>)market).get("baseName") : market.get("id") );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
                     put( "interval", java.util.Objects.requireNonNullElse(timeframe, "1m") );
                 }} );
             }};
@@ -1263,7 +1263,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String base = this.safeString(data, "s");
         String marketId = this.coinToMarketId((String) (base));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -1296,10 +1296,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //                  payload: { ... }
         //         }
         //    }
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        Map<String, Object> data = this.safeDict(message, "data", null);
         String id = this.safeString(data, "id");
-        Map<String, Object> response = (Map<String, Object>) this.safeDict(data, "response", (Object) null);
-        Map<String, Object> payload = (Map<String, Object>) this.safeDict(response, "payload", (Object) null);
+        Map<String, Object> response = this.safeDict(data, "response", null);
+        Map<String, Object> payload = this.safeDict(response, "payload", null);
         client.resolve(payload, id);
     }
 
@@ -1477,10 +1477,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         List<Object> rawBalances = new ArrayList<Object>(Arrays.asList());
         String account = "";
         Long timestamp = null;
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(topic, "spotState"))
         {
-            Map<String, Object> spotState = (Map<String, Object>) this.safeDict(data, "spotState", (Object) null);
+            Map<String, Object> spotState = this.safeDict(data, "spotState", null);
             rawBalances = (List<Object>) this.safeList(spotState, "balances", new ArrayList<Object>(Arrays.asList()));
             account = "spot";
             info = rawBalances;
@@ -1488,13 +1488,13 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         if (java.util.Objects.equals(topic, "clearinghouseState"))
         {
             account = "swap";
-            Map<String, Object> clearinghouseState = (Map<String, Object>) this.safeDict(data, "clearinghouseState", (Object) null);
+            Map<String, Object> clearinghouseState = this.safeDict(data, "clearinghouseState", null);
             ((List<Object>)rawBalances).add(clearinghouseState);
             info = clearinghouseState;
             timestamp = this.safeInteger(clearinghouseState, "time");
             this.handlePositions(client, message);
         }
-        for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
+        for (var i = 0; i < rawBalances.size(); i++)
         {
             this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i))), account);
         }
@@ -1550,7 +1550,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         if (java.util.Objects.equals(currencyId, null))
         {
             code = "USDC";
-            Map<String, Object> marginSummary = (Map<String, Object>) this.safeDict(balance, "marginSummary", new HashMap<String, Object>() {{}});
+            Map<String, Object> marginSummary = this.safeDict(balance, "marginSummary", new HashMap<String, Object>() {{}});
             account.put("free", this.safeString(balance, "withdrawable"));
             account.put("used", this.safeString(marginSummary, "totalMarginUsed"));
             account.put("total", this.safeString(marginSummary, "accountValue"));
@@ -1661,23 +1661,23 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> clearinghouseState = (Map<String, Object>) this.safeDict(data, "clearinghouseState", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> clearinghouseState = this.safeDict(data, "clearinghouseState", new HashMap<String, Object>() {{}});
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        List<Object> rawPositions = (List<Object>) this.safeList(clearinghouseState, "assetPositions", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
+        List<Object> rawPositions = this.safeList(clearinghouseState, "assetPositions", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < rawPositions.size(); i++)
         {
-            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
+            Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, (Map<String, Object>) null);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
         String baseMessageHash = "clearinghouseState::positions";
-        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, baseMessageHash);
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        List<Object> messageHashes = this.findMessageHashes(client, baseMessageHash);
+        for (var i = 0; i < messageHashes.size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
+            String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = this.safeString(parts, 2);
             if (java.util.Objects.equals(symbolsString, null))
             {
@@ -1857,13 +1857,13 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //         ]
         //     }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         if (java.util.Objects.equals(dataLength, 0))
         {
             return;
@@ -1871,7 +1871,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         String messageHash = "order";
         Map<String, Object> marketSymbols = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object rawOrder = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
@@ -1880,7 +1880,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             marketSymbols.put((String)symbol, true);
         }
         List<String> keys = new ArrayList<String>(marketSymbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String innerMessageHash = ((messageHash + ":") + symbol);
@@ -1931,18 +1931,30 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 // whole connection, see https://github.com/ccxt/ccxt/issues/28369
                 return true;
             }
+            if (((String)ret_msg).indexOf("Already unsubscribed") >= 0)
+            {
+                // the requested state is already reached, so the unWatch call resolves through the
+                // regular unsubscription handler, the subscription is echoed only inside the text
+                Object subscriptionStart = ((String)ret_msg).indexOf("{");
+                Object subscription = this.parseJson(Helpers.slice(ret_msg, subscriptionStart, null));
+                if (!java.util.Objects.equals(subscription, null))
+                {
+                    this.handleUnsubscription(client, (Map<String, Object>) (subscription));
+                    return true;
+                }
+            }
             var error = new ExchangeError(((this.id + " ") + ret_msg));
             client.reject(error);
             return true;
         }
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String id = this.safeString(message, "id");
         if (java.util.Objects.equals(id, null))
         {
             id = this.safeString(data, "id");
         }
-        Map<String, Object> response = (Map<String, Object>) this.safeDict(data, "response", new HashMap<String, Object>() {{}});
-        Map<String, Object> payload = (Map<String, Object>) this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
+        Map<String, Object> response = this.safeDict(data, "response", new HashMap<String, Object>() {{}});
+        Map<String, Object> payload = this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
         String status = this.safeString(payload, "status");
         if (!java.util.Objects.equals(status, null) && !java.util.Objects.equals(status, "ok"))
         {
@@ -2068,7 +2080,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
         List<Object> symbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
             this.tickers.remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
         }
@@ -2208,40 +2220,45 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //      }
         //  }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String method = this.safeString(data, "method");
         if (java.util.Objects.equals(method, "unsubscribe"))
         {
-            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(data, "subscription", new HashMap<String, Object>() {{}});
-            String type = this.safeString(subscription, "type");
-            if (java.util.Objects.equals(type, "l2Book"))
-            {
-                this.handleOrderBookUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "trades"))
-            {
-                this.handleTradesUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "candle"))
-            {
-                this.handleOHLCVUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "orderUpdates"))
-            {
-                this.handleOrderUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "userFills"))
-            {
-                this.handleMyTradesUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "clearinghouseState"))
-            {
-                this.handlePositionsUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "spotState"))
-            {
-                this.handleSpotBalanceUnsubscription(client, subscription);
-            } else if ((java.util.Objects.equals(type, "activeAssetCtx")) || (java.util.Objects.equals(type, "activeSpotAssetCtx")))
-            {
-                this.handleTickerUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "allMids"))
-            {
-                this.handleTickersUnsubscription(client, subscription);
-            }
+            Map<String, Object> subscription = this.safeDict(data, "subscription", new HashMap<String, Object>() {{}});
+            this.handleUnsubscription(client, subscription);
+        }
+    }
+
+    public void handleUnsubscription(Client client, Map<String, Object> subscription)
+    {
+        String type = this.safeString(subscription, "type");
+        if (java.util.Objects.equals(type, "l2Book"))
+        {
+            this.handleOrderBookUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "trades"))
+        {
+            this.handleTradesUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "candle"))
+        {
+            this.handleOHLCVUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "orderUpdates"))
+        {
+            this.handleOrderUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "userFills"))
+        {
+            this.handleMyTradesUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "clearinghouseState"))
+        {
+            this.handlePositionsUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "spotState"))
+        {
+            this.handleSpotBalanceUnsubscription(client, subscription);
+        } else if ((java.util.Objects.equals(type, "activeAssetCtx")) || (java.util.Objects.equals(type, "activeSpotAssetCtx")))
+        {
+            this.handleTickerUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "allMids"))
+        {
+            this.handleTickersUnsubscription(client, subscription);
         }
     }
 
@@ -2266,35 +2283,107 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             return;
         }
         String topic = this.safeString(message, "channel", "");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "pong", "handlePong");
-            put( "trades", "handleTrades");
-            put( "l2Book", "handleOrderBook");
-            put( "candle", "handleOHLCV");
-            put( "orderUpdates", "handleOrder");
-            put( "userFills", "handleMyTrades");
-            put( "allMids", "handleWsTickers");
-            put( "activeAssetCtx", "handleActiveAssetCtx");
-            put( "activeSpotAssetCtx", "handleActiveAssetCtx");
-            put( "post", "handleWsPost");
-            put( "subscriptionResponse", "handleSubscriptionResponse");
-            put( "clearinghouseState", "handleBalance");
-            put( "spotState", "handleBalance");
+        Map<String, String> methods = new HashMap<String, String>() {{
+            put("pong", "handlePong");
+            put("trades", "handleTrades");
+            put("l2Book", "handleOrderBook");
+            put("candle", "handleOHLCV");
+            put("orderUpdates", "handleOrder");
+            put("userFills", "handleMyTrades");
+            put("allMids", "handleWsTickers");
+            put("activeAssetCtx", "handleActiveAssetCtx");
+            put("activeSpotAssetCtx", "handleActiveAssetCtx");
+            put("post", "handleWsPost");
+            put("subscriptionResponse", "handleSubscriptionResponse");
+            put("clearinghouseState", "handleBalance");
+            put("spotState", "handleBalance");
         }};
-        Object exacMethod = this.safeValue(methods, topic);
+        String exacMethod = methods.get(topic);
         if (!java.util.Objects.equals(exacMethod, null))
         {
-            Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
+            switch (exacMethod) {
+                case "handlePong":
+                    this.handlePong(client, message);
+                    break;
+                case "handleTrades":
+                    this.handleTrades(client, message);
+                    break;
+                case "handleOrderBook":
+                    this.handleOrderBook(client, message);
+                    break;
+                case "handleOHLCV":
+                    this.handleOHLCV(client, message);
+                    break;
+                case "handleOrder":
+                    this.handleOrder(client, message);
+                    break;
+                case "handleMyTrades":
+                    this.handleMyTrades(client, message);
+                    break;
+                case "handleWsTickers":
+                    this.handleWsTickers(client, message);
+                    break;
+                case "handleActiveAssetCtx":
+                    this.handleActiveAssetCtx(client, message);
+                    break;
+                case "handleWsPost":
+                    this.handleWsPost(client, message);
+                    break;
+                case "handleSubscriptionResponse":
+                    this.handleSubscriptionResponse(client, message);
+                    break;
+                case "handleBalance":
+                    this.handleBalance(client, message);
+                    break;
+                default:
+                    throw new RuntimeException("Method not found: " + exacMethod);
+            }
             return;
         }
         List<String> keys = new ArrayList<String>(methods.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
-                Object method = (methods == null || key == null ? null : methods.get(key));
-                Helpers.callDynamically(this, method, new Object[] {client, message});
+                String method = methods.get(key);
+                switch (method) {
+                    case "handlePong":
+                        this.handlePong(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleOHLCV":
+                        this.handleOHLCV(client, message);
+                        break;
+                    case "handleOrder":
+                        this.handleOrder(client, message);
+                        break;
+                    case "handleMyTrades":
+                        this.handleMyTrades(client, message);
+                        break;
+                    case "handleWsTickers":
+                        this.handleWsTickers(client, message);
+                        break;
+                    case "handleActiveAssetCtx":
+                        this.handleActiveAssetCtx(client, message);
+                        break;
+                    case "handleWsPost":
+                        this.handleWsPost(client, message);
+                        break;
+                    case "handleSubscriptionResponse":
+                        this.handleSubscriptionResponse(client, message);
+                        break;
+                    case "handleBalance":
+                        this.handleBalance(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + method);
+                }
                 return;
             }
         }
@@ -2320,7 +2409,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
 
     public Long requestId()
     {
-        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Long requestId = (this.safeInteger(this.options, "requestId", 0) + 1L);
         this.options.put("requestId", requestId);
         return requestId;
     }

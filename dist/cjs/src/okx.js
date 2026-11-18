@@ -257,6 +257,7 @@ class okx extends okx$1["default"] {
                         'public/vip-interest-rate-loan-quota': { 'cost': 10 }, // not documented
                         'public/mm-instrument-types': { 'cost': 4 },
                         'public/delta-hedge-currencies': { 'cost': 1 },
+                        'public/corporate-actions': { 'cost': 1 },
                         // rubik
                         'rubik/stat/trading-data/support-coin': { 'cost': 4 },
                         'rubik/stat/contracts/open-interest-history': { 'cost': 2 },
@@ -2096,16 +2097,15 @@ class okx extends okx$1["default"] {
         return this.parseCurrencies(currencies);
     }
     parseCurrency(currency) {
-        const chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        const firstChain = this.safeDict(chains, 0, {});
+        const firstChain = this.safeDict(currency, 0, {});
         const currencyId = this.safeString(firstChain, 'ccy');
         const code = this.safeCurrencyCode(currencyId);
         const networks = {};
         let type = 'crypto';
-        const chainsLength = chains.length;
+        const chainsLength = currency.length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = this.safeDict(chains, j);
+            const chain = this.safeDict(currency, j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             const networkId = this.safeString(chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId === '') {
@@ -2136,7 +2136,7 @@ class okx extends okx$1["default"] {
             }
         }
         return this.safeCurrencyStructure({
-            'info': chains,
+            'info': currency,
             'code': code,
             'id': currencyId,
             'name': this.safeString(firstChain, 'name'),
@@ -2701,11 +2701,12 @@ class okx extends okx$1["default"] {
         }
         const market = this.market(symbol);
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
-        }
         const priceType = this.safeString(paramsPaginate, 'price');
         const isMarkOrIndex = this.inArray(priceType, ['mark', 'index']);
+        if (paginate) {
+            const maxEntriesPerRequest = (isMarkOrIndex) ? 100 : 200;
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxEntriesPerRequest);
+        }
         const paramsPrice = this.omit(paramsPaginate, 'price');
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
@@ -2745,7 +2746,10 @@ class okx extends okx$1["default"] {
         }
         const until = this.safeInteger(paramsPrice, 'until');
         if (until !== undefined) {
-            request['after'] = until;
+            const afterSince = this.safeInteger(request, 'after');
+            if ((afterSince === undefined) || (until < afterSince)) {
+                request['after'] = until;
+            }
         }
         const paramsUntil = (until !== undefined) ? this.omit(paramsPrice, 'until') : paramsPrice;
         defaultType = this.safeString(options, 'type', defaultType); // Candles or HistoryCandles
@@ -2806,6 +2810,7 @@ class okx extends okx$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -2818,7 +2823,7 @@ class okx extends okx$1["default"] {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 400);
         }
         const market = this.market(symbol);
         const request = {
@@ -2830,7 +2835,12 @@ class okx extends okx$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetPublicFundingRateHistory(this.extend(request, paramsPaginate));
+        const until = this.safeInteger(paramsPaginate, 'until');
+        if (until !== undefined) {
+            request['after'] = until;
+        }
+        const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, 'until') : paramsPaginate;
+        const response = await this.publicGetPublicFundingRateHistory(this.extend(request, paramsUntil));
         //
         //     {
         //         "code":"0",
@@ -3186,8 +3196,8 @@ class okx extends okx$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
         }
         const market = this.market(symbol);
-        const takeProfitPrice = this.safeValue2(params, 'takeProfitPrice', 'tpTriggerPx');
-        const stopLossPrice = this.safeValue2(params, 'stopLossPrice', 'slTriggerPx');
+        const takeProfitPrice = this.safeString2(params, 'takeProfitPrice', 'tpTriggerPx');
+        const stopLossPrice = this.safeString2(params, 'stopLossPrice', 'slTriggerPx');
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const request = {
             'instId': market['id'],
@@ -8334,7 +8344,7 @@ class okx extends okx$1["default"] {
      */
     handleTradingStatisticsWindow(request, period, since = undefined, limit = undefined, params = {}) {
         const maxLimit = 100;
-        let effectiveLimit = this.parseToInt(100);
+        let effectiveLimit = 100;
         if ((limit !== undefined) && (100 > limit)) {
             effectiveLimit = this.parseToInt(limit);
         }

@@ -465,6 +465,7 @@ class whitebit extends Exchange {
                     'limit must be less than or equal to' => '\\ccxt\\BadRequest',
                     'The Price should be less than or equal to' => '\\ccxt\\InvalidOrder', // {"code":250,"errors":{"price":["The Price should be less than or equal to 1.277"]},"message":"Validation failed"}
                     'The Price should be greater than or equal to' => '\\ccxt\\InvalidOrder', // {"code":250,"errors":{"price":["The Price should be greater than or equal to 0.0029"]},"message":"Validation failed"}
+                    'Price must be a multiple of' => '\\ccxt\\InvalidOrder', // {"code":1,"errors":{"price":["Price must be a multiple of 0.00001."]},"message":"Validation failed"}
                     'This action is unauthorized' => '\\ccxt\\PermissionDenied', // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount' => '\\ccxt\\InvalidOrder', // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'Min amount step' => '\\ccxt\\InvalidOrder', // {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
@@ -507,10 +508,14 @@ class whitebit extends Exchange {
         //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
         //          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        //          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        //          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        //          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        //          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         //        },
         //        {
         //          ...
@@ -542,7 +547,6 @@ class whitebit extends Exchange {
         $swap = ($typeId === 'futures') || ($typeId === 'tradfiFutures');
         $margin = $isCollateral && !$swap;
         $contract = false;
-        $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
         $linear = null;
         $inverse = null;
         if ($swap) {
@@ -588,8 +592,8 @@ class whitebit extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $amountPrecision,
-                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'moneyPrec'))),
+                'amount' => $this->safe_number($market, 'stepSize'),
+                'price' => $this->safe_number($market, 'tickSize'),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -946,7 +950,7 @@ class whitebit extends Exchange {
             $entry = $currencyIds[$i];
             $splitEntry = explode(' ', $entry);
             $currencyId = $splitEntry[0];
-            $feeInfo = $this->safe_value($response, $entry);
+            $feeInfo = $this->safe_dict($response, $entry);
             $code = $this->safe_currency_code($currencyId);
             if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
                 $depositWithdrawFee = $this->safe_dict($depositWithdrawFees, $code);
@@ -1113,11 +1117,10 @@ class whitebit extends Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        $markets = $this->markets;
-        $marketIds = is_array($markets) ? array_keys($markets) : array();
+        $marketIds = is_array($this->markets) ? array_keys($this->markets) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_value($markets, $marketId);
+            $market = $this->safe_dict($this->markets, $marketId);
             $marketSymbol = $this->safe_string($market, 'symbol');
             if (($market === null) || ($market === null) || ($marketSymbol === null) || ($marketSymbol === '')) {
                 continue; // Skip invalid markets silently
@@ -3027,7 +3030,7 @@ class whitebit extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an amount when the ticker is fiat');
             }
             $request['amount'] = $amount;
-            $uniqueId = $this->safe_value($params, 'uniqueId');
+            $uniqueId = $this->safe_string($params, 'uniqueId');
             if ($uniqueId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
@@ -3310,7 +3313,7 @@ class whitebit extends Exchange {
             $request['memo'] = $tag;
         }
         if ($this->is_fiat($code)) {
-            $provider = $this->safe_value($paramsWithdrawTag, 'provider');
+            $provider = $this->safe_string($paramsWithdrawTag, 'provider');
             if ($provider === null) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires a provider when the ticker is fiat');
             }
@@ -3741,7 +3744,7 @@ class whitebit extends Exchange {
         return $this->parse_funding_rates($data, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         // {
         //     "ticker_id":"ADA_PERP",
@@ -4434,7 +4437,7 @@ class whitebit extends Exchange {
         $maxLimit = 100;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, $maxLimit));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, $maxLimit));
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -4446,7 +4449,7 @@ class whitebit extends Exchange {
         if ($since !== null) {
             $request['startDate'] = (int) round($since / 1000);
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('until_timestamp', $request, $paramsPaginate, 0.001);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endDate', $request, $paramsPaginate, 0.001);
         if ($limit !== null) {
             $requestUntil['limit'] = $limit;
         }
@@ -4489,7 +4492,7 @@ class whitebit extends Exchange {
         $publicHeaders = array();
         $publicHeaders['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->safe_value($this->urls['api'], $version), $accessibility);
+        $apiUrl = $this->safe_string($this->safe_dict($this->urls['api'], $version), $accessibility);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -4523,11 +4526,7 @@ class whitebit extends Exchange {
         if ($isPrivate) {
             $requestBody = $privateBody;
         }
-        $requestHeaders = $publicHeaders;
-        if ($isPrivate) {
-            $requestHeaders = $privateHeaders;
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => ($isPrivate) ? $privateHeaders : $publicHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {

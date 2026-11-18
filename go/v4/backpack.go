@@ -747,10 +747,10 @@ func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 	var symbol string = *this.SafeString(rawCurrency, "symbol", "")
 	var stock bool = strings.HasSuffix(symbol, ".US") || strings.HasSuffix(symbol, ".HK")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var networks []any = SafeListTyped(rawCurrency, "tokens")
+	var networks []map[string]any = this.SafeListMapsTyped(rawCurrency, "tokens")
 	var parsedNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
-		var network any = networks[j]
+		var network map[string]any = networks[j]
 		var networkId *string = this.SafeString(network, "blockchain")
 		var networkIdLowerCase *string = this.SafeStringLower(network, "blockchain")
 		var networkCode *string = this.NetworkIdToCode(networkIdLowerCase, code)
@@ -904,7 +904,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		}
 		var baseId *string = this.SafeString(rawMarket, "baseSymbol")
 		var security map[string]any = SafeMapTyped(securityById, baseId)
-		var market any = this.ParseMarket(func() any {
+		var market map[string]any = this.ParseMarket(func() any {
 			if security == nil {
 				return rawMarket
 			}
@@ -912,7 +912,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 				"security": security,
 			})
 		}())
-		if !IsEqual(market, nil) {
+		if market != nil {
 			var marketId *string = this.SafeString(market, "id")
 			if (marketId == nil) || (func() bool {
 				if marketId == nil {
@@ -938,7 +938,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			}
 			var marketId string = *assetId + "_USDC_RFQ"
 			if _, ok := marketIds[marketId]; !ok {
-				var market any = this.ParseMarket(map[string]any{
+				var market map[string]any = this.ParseMarket(map[string]any{
 					"symbol":        marketId,
 					"baseSymbol":    assetId,
 					"quoteSymbol":   "USDC",
@@ -946,7 +946,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 					"rwaMarketType": "STOCK",
 					"security":      security,
 				})
-				if !IsEqual(market, nil) {
+				if market != nil {
 					marketIds[marketId] = true
 					markets = append(markets, market)
 				}
@@ -1158,12 +1158,12 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	}
 	var orderBookState *string = this.SafeString(market, "orderBookState")
 	// RFQ active means listed, not currently in session; an explicit order book state takes precedence.
-	var active any = func() any {
-		if rfq && (orderBookState == nil) {
-			return ((id != nil) || (this.SafeString(security, "asset") != nil))
-		}
-		return (orderBookState != nil && *orderBookState == "Open")
-	}()
+	var active bool
+	if rfq && (orderBookState == nil) {
+		active = ((id != nil) || (this.SafeString(security, "asset") != nil))
+	} else {
+		active = (orderBookState != nil && *orderBookState == "Open")
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":       id,
 		"symbol":   symbol,
@@ -1452,12 +1452,12 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	}
 	var market map[string]any = MapTyped(this.RfqConversionMarket(fromCode, toCode))
 	var fromIsBase bool = (this.SafeString(market, "base") != nil && *this.SafeString(market, "base") == fromCode)
-	var side string = func() string {
-		if fromIsBase {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side string
+	if fromIsBase {
+		side = "sell"
+	} else {
+		side = "buy"
+	}
 	if !fromIsBase {
 
 		r1 := <-this.FetchStockIndicativeQuoteAsync(market["symbol"], side, 1, map[string]any{
@@ -1610,12 +1610,12 @@ func (this *Backpack) createConvertTradeBody(ch chan AsyncResult[Conversion], id
 		panic(ArgumentsRequired(this.Id + " createConvertTrade() requires a positive amount"))
 	}
 	var fromIsBase bool = (this.SafeString(market, "base") != nil && *this.SafeString(market, "base") == fromCode)
-	var side string = func() string {
-		if fromIsBase {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side string
+	if fromIsBase {
+		side = "sell"
+	} else {
+		side = "buy"
+	}
 	var quantity *string = this.NumberToString(amount)
 	var price *float64 = this.SafeNumber(query, "price")
 	if !fromIsBase {
@@ -1905,12 +1905,12 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		} else if marketIsRfq {
 			var underlyingId string = *this.SafeString(market, "baseId", "") + "_" + *this.SafeString(market, "quoteId", "")
 			var useExternal bool = (source == "External") || needsExternalRfqTickers
-			var tickerSource map[string]any = func() map[string]any {
-				if useExternal {
-					return externalResponseById
-				}
-				return responseById
-			}()
+			var tickerSource map[string]any
+			if useExternal {
+				tickerSource = externalResponseById
+			} else {
+				tickerSource = responseById
+			}
 			var underlyingTicker map[string]any = SafeMapTyped(tickerSource, underlyingId)
 			if underlyingTicker != nil {
 				result[marketSymbol] = TickerToMap(this.ParseTicker(underlyingTicker, market))
@@ -1983,12 +1983,12 @@ func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	var marketResolved any = func() any {
-		if market == nil {
-			return this.SafeMarket(marketId)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if market == nil {
+		marketResolved = this.SafeMarket(marketId)
+	} else {
+		marketResolved = market
+	}
 	var open *string = this.SafeString(ticker, "firstPrice")
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var high *string = this.SafeString(ticker, "high")
@@ -2145,51 +2145,53 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
+	var maxLimit int = 2000
 	var market map[string]any = this.Market(symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var duration int64 = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var dataRequest map[string]any = this.StockDataRequest("fetchOHLCV", params, market)
 	var request map[string]any = map[string]any{
 		"symbol":   this.SafeString(dataRequest, "symbol"),
 		"interval": interval,
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(this.Omit(dataRequest, "symbol"), "fetchOHLCV", "until")
-	var until *int64 = nil
-	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
-		until = p
-	}
+	until := func() any {
+		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	paramsUntil := untilparamsUntilVariable[1]
 	if until != nil {
-		request["endTime"] = this.ParseToInt(float64(*until) / 1000) // convert milliseconds to seconds
+		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
 	}
 	var defaultLimit int = 100
 	var limitResolved any = limit
-	if (since == nil) && (limit == nil) {
-		limitResolved = defaultLimit
+	if !IsEqual(limitResolved, nil) {
+		limitResolved = mathMin(limitResolved, maxLimit)
 	}
-	var windowLimit int64 = func() int64 {
-		if limit == nil {
-			return int64(defaultLimit)
+	var windowLimit any = func() any {
+		if IsEqual(limitResolved, nil) {
+			return defaultLimit
 		}
-		return *limit
+		return limitResolved
 	}()
-	var startTime any = nil
-	if since == nil {
-		var endTime int64 = this.Seconds()
-		if (until != nil) && (until == nil || *until != 0) {
-			endTime = this.ParseToInt(float64(*until) / 1000)
+	var now int64 = this.Milliseconds()
+	var startTime any = since
+	var untilValue any = until
+	if IsEqual(startTime, nil) {
+		if IsEqual(untilValue, nil) {
+			untilValue = now
 		}
-		startTime = (endTime - (windowLimit * duration))
-	} else {
-		startTime = this.ParseToInt(float64(*since) / 1000) // convert milliseconds to seconds
+		startTime = Subtract(untilValue, (Multiply(windowLimit, duration)))
 	}
-	request["startTime"] = startTime
-	if until == nil {
-		var currentMs int64 = this.Seconds() // default to current time in seconds
-		var windowEnd any = this.Sum(startTime, (windowLimit * duration))
-		var minTimestamp any = mathMin(currentMs, windowEnd)
-		request["endTime"] = this.ParseToInt(minTimestamp) // default to current time in seconds if until is not specified
+	request["startTime"] = this.ParseToInt(Divide(startTime, 1000))
+	// set until value
+	if IsEqual(untilValue, nil) {
+		var windowEnd any = this.Sum(startTime, Multiply(windowLimit, duration))
+		untilValue = mathMin(now, windowEnd)
 	}
+	request["endTime"] = this.ParseToInt(Divide(untilValue, 1000))
 	var price *string = this.SafeString(paramsUntil, "price")
 	var paramsOmitted any = func() any {
 		if price != nil {
@@ -2425,7 +2427,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // api maximum 1000
+		request["limit"] = min(*limit, 1000) // api maximum 1000
 	}
 
 	responseRecv := <-this.PublicGetApiV1FundingRates(this.Extend(request, params))
@@ -2445,7 +2447,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	var rates []any = []any{}
 	var rawRates []any = this.ToArray(response)
 	for i := 0; i < len(rawRates); i++ {
-		var rate any = DerefScalar(rawRates[i])
+		var rate any = rawRates[i]
 		var datetime *string = this.SafeString(rate, "intervalEndTimestamp")
 		var timestamp *int64 = this.Parse8601(datetime)
 		rates = append(rates, map[string]any{
@@ -2507,7 +2509,7 @@ func (this *Backpack) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 1000) // api maximum 1000
+		request["limit"] = min(*limit, 1000) // api maximum 1000
 	}
 	var response []any = nil
 	var offset *int64 = this.SafeInteger(query, "offset")
@@ -2596,7 +2598,7 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 			rfqRequest["symbol"] = this.SafeString(market, "id")
 		}
 		if limit != nil {
-			rfqRequest["limit"] = mathMin(limit, 1000)
+			rfqRequest["limit"] = min(*limit, 1000)
 		}
 		var rfqParams map[string]any = this.OmitDict(accountParams, []any{"assetClass", "marketType", "from", "to"})
 
@@ -3106,7 +3108,7 @@ func (this *Backpack) withdrawBody(ch chan AsyncResult[Transaction], code string
 		request["clientId"] = tag // memo or tag
 	}
 	networkCode, query := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkId any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
+	var networkId *string = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
 	}
@@ -3392,7 +3394,7 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		ch <- AsyncResult[Order]{Value: OrderFromMap(rfqOrder)}
 		return nil
 	}
-	var orderRequest map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, orderParams)
+	var orderRequest map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, orderParams)
 
 	r2 := <-this.PrivatePostApiV1Order(orderRequest)
 	if r2.Err != nil {
@@ -4008,12 +4010,12 @@ func (this *Backpack) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
  * @param {int} [params.clientOrderId] RFQ client identifier instead of id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Backpack) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Backpack) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Backpack) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Backpack) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4462,8 +4464,8 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
-	var entryPrice *string = this.SafeString(position, "entryPrice")
-	var markPrice *string = this.SafeString(position, "markPrice")
+	var entryPrice *float64 = this.SafeNumber(position, "entryPrice")
+	var markPrice *float64 = this.SafeNumber(position, "markPrice")
 	var netCost *string = this.SafeString(position, "netCost")
 	var hedged any = false
 	var side any = "long"
@@ -4474,9 +4476,9 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 		hedged = nil
 		side = nil
 	}
-	var unrealizedPnl *string = this.SafeString(position, "pnlUnrealized")
-	var realizedPnl *string = this.SafeString(position, "pnlRealized")
-	var liquidationPrice *string = this.SafeString(position, "estLiquidationPrice")
+	var unrealizedPnl *float64 = this.SafeNumber(position, "pnlUnrealized")
+	var realizedPnl *float64 = this.SafeNumber(position, "pnlRealized")
+	var liquidationPrice *float64 = this.SafeNumber(position, "estLiquidationPrice")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          id,
@@ -4486,18 +4488,18 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 		"lastUpdateTimestamp":         nil,
 		"hedged":                      hedged,
 		"side":                        side,
-		"contracts":                   this.SafeString(position, "netExposureQuantity"),
+		"contracts":                   this.SafeNumber(position, "netExposureQuantity"),
 		"contractSize":                nil,
 		"entryPrice":                  entryPrice,
 		"markPrice":                   markPrice,
 		"lastPrice":                   nil,
-		"notional":                    Precise.StringAbs(netCost),
+		"notional":                    this.ParseNumber(Precise.StringAbs(netCost)),
 		"leverage":                    nil,
 		"collateral":                  nil,
 		"initialMargin":               nil,
-		"initialMarginPercentage":     this.SafeString(position, "imf"),
+		"initialMarginPercentage":     this.SafeNumber(position, "imf"),
 		"maintenanceMargin":           nil,
-		"maintenanceMarginPercentage": this.SafeString(position, "mmf"),
+		"maintenanceMarginPercentage": this.SafeNumber(position, "mmf"),
 		"realizedPnl":                 realizedPnl,
 		"unrealizedPnl":               unrealizedPnl,
 		"liquidationPrice":            liquidationPrice,

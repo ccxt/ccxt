@@ -7,6 +7,7 @@ namespace Tests;
 
 public partial class BaseTest
 {
+        // import testParseMarkets from './test.parseMarkets.js';
         async public Task<object> baseTestsInit()
         {
             await testLanguageSpecific();
@@ -74,6 +75,7 @@ public partial class BaseTest
             testIo();
             testIsJsonEncodedObject();
             testEncodeDecode();
+            // testParseMarkets ();
             return true;
         }
 }

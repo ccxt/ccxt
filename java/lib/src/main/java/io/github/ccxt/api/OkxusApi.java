@@ -660,6 +660,17 @@ public class OkxusApi extends Okx
     }
 
     /**
+     * Calls the publicGetPublicCorporateActions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicGetPublicCorporateActions (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetPublicCorporateActions", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetRubikStatTradingDataSupportCoin endpoint.
      *
      * @param optionalArgs the request parameters

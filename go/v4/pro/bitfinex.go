@@ -403,9 +403,9 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -417,7 +417,7 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	var ohlcvsLength int = ccxt.GetArrayLength(ohlcvs)
 	for i := 0; i < ohlcvsLength; i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeList(ohlcvs, (ohlcvsLength-i)-1), market))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1036,24 +1036,27 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		if isRaw {
 			var deltas []any = ccxt.SafeListTyped(message, 1)
 			for i := 0; i < len(deltas); i++ {
-				var delta any = ccxt.DerefScalar(deltas[i])
-				var delta2 *float64 = this.SafeNumber(delta, 2)
+				var rawDelta any = deltas[i]
+				var delta2 *float64 = this.SafeNumber(rawDelta, 2)
 				var size any = func() any {
 					if (delta2 != nil) && (!(*delta2 >= 0)) {
 						return (-*delta2)
 					}
 					return delta2
 				}()
-				var side string = func() string {
-					if (delta2 != nil) && (!(*delta2 >= 0)) {
-						return "asks"
-					}
-					return "bids"
-				}()
-				var bookside any = ccxt.GetValue(orderbook, side)
-				var idString *string = this.SafeString(delta, 0)
-				var price *float64 = this.SafeFloat(delta, 1)
-				bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, idString})
+				var side string
+				if (delta2 != nil) && (!(*delta2 >= 0)) {
+					side = "asks"
+				} else {
+					side = "bids"
+				}
+				var bookside ccxt.IOrderBookSide = orderbook.GetAsks()
+				if side == "bids" {
+					bookside = orderbook.GetBids()
+				}
+				var idString *string = this.SafeString(rawDelta, 0)
+				var price *float64 = this.SafeFloat(rawDelta, 1)
+				bookside.StoreArray([]any{price, size, idString})
 			}
 		} else {
 			var deltas []any = ccxt.SafeListTyped(message, 1)
@@ -1071,21 +1074,24 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 					}
 					return deltaAmount
 				}()
-				var side string = func() string {
-					if deltaAmount == nil || !(*deltaAmount >= 0) {
-						return "asks"
-					}
-					return "bids"
-				}()
-				var bookside any = ccxt.GetValue(orderbook, side)
-				bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, counter})
+				var side string
+				if deltaAmount == nil || !(*deltaAmount >= 0) {
+					side = "asks"
+				} else {
+					side = "bids"
+				}
+				var bookside ccxt.IOrderBookSide = orderbook.GetAsks()
+				if side == "bids" {
+					bookside = orderbook.GetBids()
+				}
+				bookside.StoreArray([]any{price, size, counter})
 			}
 		}
 		ccxt.AddElementToObject(orderbook, "symbol", symbol)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-		var deltas any = this.SafeValue(message, 1)
+		var deltas []any = ccxt.SafeListTyped(message, 1)
 		var orderbookItem ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		if isRaw {
 			var price *string = this.SafeString(deltas, 1)
@@ -1096,13 +1102,16 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				}
 				return deltas2
 			}()
-			var side string = func() string {
-				if (deltas2 != nil) && (!(*deltas2 >= 0)) {
-					return "asks"
-				}
-				return "bids"
-			}()
-			var bookside any = ccxt.GetValue(orderbookItem, side)
+			var side string
+			if (deltas2 != nil) && (!(*deltas2 >= 0)) {
+				side = "asks"
+			} else {
+				side = "bids"
+			}
+			var bookside ccxt.IOrderBookSide = orderbookItem.GetAsks()
+			if side == "bids" {
+				bookside = orderbookItem.GetBids()
+			}
 			// price = 0 means that you have to remove the order from your book
 			var amount any = func() any {
 				if ccxt.Precise.StringGt(price, "0") {
@@ -1111,25 +1120,28 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				return "0"
 			}()
 			var idString *string = this.SafeString(deltas, 0)
-			bookside.(ccxt.IOrderBookSide).StoreArray([]any{this.ParseNumber(price), this.ParseNumber(amount), idString})
+			bookside.StoreArray([]any{this.ParseNumber(price), this.ParseNumber(amount), idString})
 		} else {
 			var amount *string = this.SafeString(deltas, 2)
 			var counter *string = this.SafeString(deltas, 1)
 			var price *string = this.SafeString(deltas, 0)
-			var size any = func() any {
-				if ccxt.Precise.StringLt(amount, "0") {
-					return ccxt.Precise.StringNeg(amount)
-				}
-				return amount
-			}()
-			var side string = func() string {
-				if ccxt.Precise.StringLt(amount, "0") {
-					return "asks"
-				}
-				return "bids"
-			}()
-			var bookside any = ccxt.GetValue(orderbookItem, side)
-			bookside.(ccxt.IOrderBookSide).StoreArray([]any{this.ParseNumber(price), this.ParseNumber(size), this.ParseNumber(counter)})
+			var size *string
+			if ccxt.Precise.StringLt(amount, "0") {
+				size = ccxt.Precise.StringNeg(amount)
+			} else {
+				size = amount
+			}
+			var side string
+			if ccxt.Precise.StringLt(amount, "0") {
+				side = "asks"
+			} else {
+				side = "bids"
+			}
+			var bookside ccxt.IOrderBookSide = orderbookItem.GetAsks()
+			if side == "bids" {
+				bookside = orderbookItem.GetBids()
+			}
+			bookside.StoreArray([]any{this.ParseNumber(price), this.ParseNumber(size), this.ParseNumber(counter)})
 		}
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
@@ -1182,7 +1194,7 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
 		}
-		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
+		var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 		if checksum == true {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -1445,9 +1457,9 @@ func (this *Bitfinex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		// the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
 		var nonce int64 = this.IncrementingNonce()
 		var payload string = "AUTH" + strconv.FormatInt(nonce, 10)
@@ -1464,7 +1476,7 @@ func (this *Bitfinex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1485,8 +1497,8 @@ func (this *Bitfinex) HandleAuthenticationMessage(client any, message map[string
 	var status *string = this.SafeString(message, "status")
 	if status != nil && *status == "OK" {
 		// we resolve the future here permanently so authentication only happens once
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(true)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -1721,7 +1733,7 @@ func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var price *string = this.SafeString(order, 16)
 	var timestamp *int64 = this.SafeInteger2(order, 5, 4)
 	var average *string = this.SafeString(order, 17)
-	var stopPrice any = this.OmitZero(this.SafeString(order, 18))
+	var stopPrice *string = this.OmitZero(this.SafeString(order, 18))
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,

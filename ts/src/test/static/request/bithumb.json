@@ -158,6 +158,56 @@
                     null,
                     3
                 ]
+            },
+            {
+                "description": "generation 2 1h fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.bithumb.com/v1/candles/minutes/60?market=BTC-SOL&count=3&to=2025-01-01%2012%3A00%3A00",
+                "input": [
+                    "SOL/BTC",
+                    "1h",
+                    1735689600000,
+                    3
+                ]
+            },
+            {
+                "description": "generation 2 1d fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.bithumb.com/v1/candles/days?market=BTC-SOL&count=3&to=2025-01-04%2009%3A00%3A00",
+                "input": [
+                    "SOL/BTC",
+                    "1d",
+                    1735689600000,
+                    3
+                ]
+            },
+            {
+                "description": "generation 2 1h fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.bithumb.com/v1/candles/minutes/60?market=BTC-SOL&count=3&to=2025-01-02%2014%3A00%3A01",
+                "input": [
+                    "SOL/BTC",
+                    "1h",
+                    null,
+                    3,
+                    {
+                        "until": 1735794000000
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 1h fetchOHLCV with until and without limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.bithumb.com/v1/candles/minutes/60?market=BTC-SOL&count=200&to=2025-01-02%2014%3A00%3A01",
+                "input": [
+                    "SOL/BTC",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "until": 1735794000000
+                    }
+                ]
             }
         ],
         "fetchTrades": [

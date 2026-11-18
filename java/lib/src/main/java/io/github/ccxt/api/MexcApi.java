@@ -488,9 +488,9 @@ public class MexcApi extends Exchange
      * Calls the spotPrivateGetMarginAllOrders endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  spotPrivateGetMarginAllOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateGetMarginAllOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateGetMarginAllOrders", optionalArgs);
     }
@@ -1027,9 +1027,9 @@ public class MexcApi extends Exchange
      * Calls the spotPrivateDeleteOpenOrders endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  spotPrivateDeleteOpenOrders (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  spotPrivateDeleteOpenOrders (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivateDeleteOpenOrders", optionalArgs);
     }

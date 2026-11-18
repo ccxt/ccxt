@@ -528,11 +528,11 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 		panic(r.Err)
 	}
 	var responses []any = ListTyped(r.Value)
-	var instruments []any = SafeListTyped(responses, 0)
-	var assets []any = SafeListTyped(responses, 1)
+	var instruments []map[string]any = this.SafeListMapsTyped(responses, 0)
+	var assets []map[string]any = this.SafeListMapsTyped(responses, 1)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(instruments); i++ {
-		var instrument any = DerefScalar(instruments[i])
+		var instrument map[string]any = instruments[i]
 		var baseId *string = this.SafeString(instrument, "base_asset")
 		if baseId == nil {
 			continue
@@ -547,12 +547,12 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 			// crypto ones are unified as crypto, equities, commodities and
 			// indices map onto the other currency type
 			var category *string = this.SafeString(instrument, "category")
-			var currencyType string = func() string {
-				if category != nil && *category == "crypto" {
-					return "crypto"
-				}
-				return "other"
-			}()
+			var currencyType string
+			if category != nil && *category == "crypto" {
+				currencyType = "crypto"
+			} else {
+				currencyType = "other"
+			}
 			if code != nil {
 				result[*code] = this.SafeCurrencyStructure(map[string]any{
 					"id":        baseId,
@@ -585,7 +585,7 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 		"networks":  map[string]any{},
 	})
 	for i := 0; i < len(assets); i++ {
-		var asset any = DerefScalar(assets[i])
+		var asset map[string]any = assets[i]
 		var currencyId *string = this.SafeString(asset, "asset")
 		if currencyId == nil {
 			continue
@@ -858,14 +858,14 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	var merged map[string]any = map[string]any{}
 	var statistics []any = SafeListTyped(responses, 1)
 	for i := 0; i < len(statistics); i++ {
-		var entry any = DerefScalar(statistics[i])
+		var entry any = statistics[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		// the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
 		AddElementToObject(merged, instrumentId, this.Omit(entry, "klines"))
 	}
 	var bbos []any = SafeListTyped(responses, 2)
 	for i := 0; i < len(bbos); i++ {
-		var entry any = DerefScalar(bbos[i])
+		var entry any = bbos[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		var previous map[string]any = this.SafeDictMap(merged, instrumentId, map[string]any{})
 		// the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
@@ -876,7 +876,7 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	var tickers []any = SafeListTyped(responses, 0)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var entry any = DerefScalar(tickers[i])
+		var entry any = tickers[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
 		var previous map[string]any = this.SafeDictMap(merged, instrumentId, map[string]any{})
 		result = append(result, this.Extend(previous, entry))
@@ -1085,9 +1085,9 @@ func (this *Polymarket) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 
@@ -1247,19 +1247,19 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		// the venue requires an explicit range start - the window covers
 		// exactly the requested number of candle bins including the
 		// current one, so the newest candle never falls off the range
-		var end int64 = func() int64 {
-			if until != nil {
-				return *until
-			}
-			return this.Milliseconds()
-		}()
-		var requestedLimit int64 = func() int64 {
-			if limit != nil {
-				return *limit
-			}
-			return 100
-		}()
-		request["start_timestamp"] = (end - ((requestedLimit - 1) * duration))
+		var end int64
+		if until != nil {
+			end = *until
+		} else {
+			end = this.Milliseconds()
+		}
+		var requestedLimit int64
+		if limit != nil {
+			requestedLimit = *limit
+		} else {
+			requestedLimit = 100
+		}
+		request["start_timestamp"] = end - (requestedLimit-1)*duration
 	}
 
 	r2 := <-this.PublicGetInfoKlines(this.Extend(request, paramsOmitted))
@@ -1499,10 +1499,10 @@ func (this *Polymarket) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundin
 	//         "more": false
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -1971,12 +1971,12 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
  * @param {string} [params.clientOrderId] cancel by the client order id instead of the exchange order id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Polymarket) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Polymarket) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Polymarket) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1984,7 +1984,7 @@ func (this *Polymarket) cancelOrderBody(ch chan AsyncResult[Order], id any, opti
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.CancelOrdersAsync([]any{id}, symbol, params)
+	r := <-this.CancelOrdersAsync([]string{id}, symbol, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2007,12 +2007,12 @@ func (this *Polymarket) cancelOrderBody(ch chan AsyncResult[Order], id any, opti
  * @param {string[]} [params.clientOrderIds] cancel by client order ids instead of the exchange order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Polymarket) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Polymarket) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2055,7 +2055,7 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 		response = responseRecv.Value
 	} else {
 		var numericIds []any = []any{}
-		for i := 0; i < GetArrayLength(ids); i++ {
+		for i := 0; i < len(ids); i++ {
 			numericIds = append(numericIds, this.ParseToInt(this.SafeString(ids, i)))
 		}
 		signable = []any{"cancelOrders", numericIds}
@@ -2085,12 +2085,12 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 	for i := 0; i < len(response); i++ {
 		var ack map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var status *string = this.SafeString(ack, "status")
-		var unified string = func() string {
-			if status != nil && *status == "err" {
-				return "rejected"
-			}
-			return "canceled"
-		}()
+		var unified string
+		if status != nil && *status == "err" {
+			unified = "rejected"
+		} else {
+			unified = "canceled"
+		}
 		var merged map[string]any = map[string]any{
 			"oid":    this.SafeInteger(ack, "oid"),
 			"coid":   this.SafeString(ack, "coid"),
@@ -2395,7 +2395,7 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 			return "sell"
 		}())
 	}
-	var price any = this.OmitZero(this.SafeString2(order, "price", "p"))
+	var price *string = this.OmitZero(this.SafeString2(order, "price", "p"))
 	var typeVar *string = nil
 	var tif *string = this.SafeString(order, "tif")
 	if tif != nil {
@@ -2782,14 +2782,14 @@ func (this *Polymarket) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 	var clientOrderId *string = this.SafeString(paramsOmitted, "clientOrderId")
 	if clientOrderId != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "clientOrderId")
+		paramsOmitted = this.OmitDict(paramsOmitted, "clientOrderId")
 		request["client_order_id"] = clientOrderId
 	}
 
@@ -2910,9 +2910,9 @@ func (this *Polymarket) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 
@@ -3002,9 +3002,9 @@ func (this *Polymarket) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHis
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 
@@ -3029,10 +3029,10 @@ func (this *Polymarket) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHis
 	//         "more": false
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var marketId *string = this.SafeString(entry, "instrument_id")
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		result = append(result, map[string]any{
@@ -3093,12 +3093,12 @@ func (this *Polymarket) ParseTransaction(transaction any, optionalArgs ...any) T
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var withdrawId *string = this.SafeString(transaction, "withdraw_id")
-	var typeVar string = func() string {
-		if withdrawId != nil {
-			return "withdrawal"
-		}
-		return "deposit"
-	}()
+	var typeVar string
+	if withdrawId != nil {
+		typeVar = "withdrawal"
+	} else {
+		typeVar = "deposit"
+	}
 	var currencyId *string = this.SafeString(transaction, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transaction, "created_timestamp")
@@ -3185,9 +3185,9 @@ func (this *Polymarket) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 
@@ -3249,9 +3249,9 @@ func (this *Polymarket) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 
@@ -3350,7 +3350,7 @@ func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code stri
 		"ts":      ts,
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
-	var signature any = this.SignMessage(encoded, this.PrivateKey)
+	var signature string = this.SignMessage(encoded, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"op": map[string]any{
 			"type": "withdraw",
@@ -3758,14 +3758,14 @@ func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], sy
 func (this *Polymarket) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Polymarket) SignHash(hash any, privateKey any) any {
+func (this *Polymarket) SignHash(hash any, privateKey any) string {
 	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var sVal *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(sVal, 64, "0") + v
 }
-func (this *Polymarket) SignMessage(message any, privateKey any) any {
+func (this *Polymarket) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), privateKey)
 }
 
@@ -3792,13 +3792,13 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 	// key over a timestamped nonce - unpredictable without the wallet
 	// secret and unique per provisioning, the paradex stark-key idiom
 	var nonceMessage string = "polymarket-perps-proxy:" + strconv.FormatInt(this.Milliseconds(), 10) + ":" + strconv.FormatInt(this.RandNumber(9), 10)
-	var seedSignature any = this.SignMessage(nonceMessage, this.PrivateKey)
+	var seedSignature string = this.SignMessage(nonceMessage, this.PrivateKey)
 	var proxyPrivateKey any = this.Hash(this.Encode(seedSignature), keccak, "hex")
 	var proxyAddress string = this.EthGetAddressFromPrivateKey(proxyPrivateKey)
 	var owner string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	var ts int64 = this.Milliseconds()
-	var lifetime *int64 = this.SafeInteger(this.Options, "proxyExpiry", 604800000)
-	var expiry int64 = this.Sum(ts, lifetime).(int64)
+	var lifetime int64 = *this.SafeInteger(this.Options, "proxyExpiry", 604800000)
+	var expiry int64 = ts + lifetime
 	var salt int64 = this.RandNumber(9)
 	var chainId *int64 = this.SafeInteger(this.Options, "chainId", 137)
 	var domain map[string]any = map[string]any{
@@ -3828,7 +3828,7 @@ func (this *Polymarket) createProxyCredentialsBody(ch chan AsyncResult[any], opt
 		"ts":   ts,
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
-	var signature any = this.SignMessage(encoded, this.PrivateKey)
+	var signature string = this.SignMessage(encoded, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"op": map[string]any{
 			"type": "createProxy",
@@ -3960,7 +3960,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[any], signable []any
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var proxyPrivateKey *string = this.SafeString(credentials, "privateKey")
-	var signature any = this.SignMessage(encoded, proxyPrivateKey)
+	var signature string = this.SignMessage(encoded, proxyPrivateKey)
 	var envelope map[string]any = map[string]any{
 		"op":   bodyOp,
 		"sig":  signature,
@@ -3997,7 +3997,7 @@ func (this *Polymarket) CompactSignable(row []any) any {
 }
 func (this *Polymarket) PriceToPrecision(symbol any, price any) *string {
 	if IsEqual(price, nil) {
-		return SafeStringPtr(nil)
+		return nil
 	}
 	// the venue caps prices at five significant figures on top of the
 	// per-instrument decimals, deliberately for any magnitude - a six
@@ -4009,11 +4009,11 @@ func (this *Polymarket) PriceToPrecision(symbol any, price any) *string {
 	if result == "0" {
 		panic(InvalidOrder(Add(this.Id+" price of "+market["symbol"].(string)+" must be greater than minimum price precision of ", this.NumberToString(precision["price"]))))
 	}
-	return SafeStringPtr(result)
+	return &result
 }
 func (this *Polymarket) AmountToPrecision(symbol any, amount any) *string {
 	if IsEqual(amount, nil) {
-		return SafeStringPtr(nil)
+		return nil
 	}
 	// quantities carry the same five significant figures cap
 	var market map[string]any = this.Market(symbol)
@@ -4023,7 +4023,7 @@ func (this *Polymarket) AmountToPrecision(symbol any, amount any) *string {
 	if result == "0" {
 		panic(InvalidOrder(Add(this.Id+" amount of "+market["symbol"].(string)+" must be greater than minimum amount precision of ", this.NumberToString(precision["amount"]))))
 	}
-	return SafeStringPtr(result)
+	return &result
 }
 func (this *Polymarket) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4047,7 +4047,7 @@ func (this *Polymarket) CalculateRateLimiterCost(api any, method string, path st
 	if (path == "trade/orders") || (path == "trade/orders-coid") {
 		var op map[string]any = SafeMapTyped(params, "op")
 		var args []any = SafeListTyped(op, "args")
-		return this.Sum(1, this.ParseToInt(float64(len(args))/20))
+		return 1 + this.ParseToInt(float64(len(args))/20)
 	}
 	if path == "info/book" {
 		var depth int64 = *this.SafeInteger(params, "depth", 100)

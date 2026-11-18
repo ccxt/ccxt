@@ -139,11 +139,11 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if (($eventId !== null) || ($slug !== null)) {
             $filtered = array();
             for ($i = 0; $i < count($result); $i++) {
-                $event = $this->safe_value($result, $i);
+                $event = $this->safe_dict($result, $i);
                 $idMatch = ($eventId !== null) && ($this->safe_string($event, 'id') === $eventId);
                 $slugMatch = ($slug !== null) && ($this->safe_string($event, 'slug') === $slug);
                 if ($idMatch || $slugMatch) {
-                    $filtered[] = $event;
+                    $filtered[] = $this->safe_value($result, $i);
                 }
             }
             $result = $filtered;
@@ -201,11 +201,11 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $wantActive = ($status === 'active');
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
-            $event = $this->safe_value($events, $i);
+            $event = $this->safe_dict($events, $i);
             $isActive = $this->safe_bool($event, 'active');
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (($isActive === null) || ($isActive === $wantActive)) {
-                $result[] = $event;
+                $result[] = $this->safe_value($events, $i);
             }
         }
         return $result;
@@ -225,7 +225,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $checkDescription = ($searchIn === 'description') || ($searchIn === 'both');
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
-            $event = $this->safe_value($events, $i);
+            $event = $this->safe_dict($events, $i);
             $title = $this->safe_string_lower($event, 'title', '');
             $description = $this->safe_string_lower($event, 'description', '');
             $matched = false;
@@ -247,7 +247,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             if ($matched) {
-                $result[] = $event;
+                $result[] = $this->safe_value($events, $i);
             }
         }
         return $result;
@@ -299,7 +299,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
-            $event = $this->safe_value($events, $i);
+            $event = $this->safe_dict($events, $i);
             $eventTags = $this->safe_list($event, 'tags', array());
             $matched = false;
             for ($ti = 0; $ti < count($eventTags); $ti++) {
@@ -324,7 +324,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             if ($matched) {
-                $result[] = $event;
+                $result[] = $this->safe_value($events, $i);
             }
         }
         return $result;
@@ -349,7 +349,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $this->events_by_slug = array();
         }
         for ($i = 0; $i < count($events); $i++) {
-            $event = $this->safe_value($events, $i);
+            $event = $this->safe_dict($events, $i);
             $id = $this->safe_string($event, 'id');
             $slug = $this->safe_string($event, 'slug');
             $handle = $this->safe_string($event, 'event');
@@ -416,10 +416,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if (($this->events !== null) && (is_array($this->events) && array_key_exists($eventIdOrSlug ?? '', $this->events))) {
-            return $this->safe_value($this->events, $eventIdOrSlug);
+            return $this->safe_dict($this->events, $eventIdOrSlug);
         }
         if (($this->events_by_slug !== null) && (is_array($this->events_by_slug) && array_key_exists($eventIdOrSlug ?? '', $this->events_by_slug))) {
-            return $this->safe_value($this->events_by_slug, $eventIdOrSlug);
+            return $this->safe_dict($this->events_by_slug, $eventIdOrSlug);
         }
         throw new BadSymbol($this->id . ' has no cached event ' . $eventIdOrSlug . " - call fetchEvents (array( 'query' => ... )) first");
     }
@@ -456,7 +456,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return false;
     }
 
-    public function safe_outcome(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
+    public function safe_outcome(?string $outcomeIdOrSymbol, ?array $market = null) {
         if ($outcomeIdOrSymbol !== null) {
             if (($this->outcomes !== null) && (is_array($this->outcomes) && array_key_exists($outcomeIdOrSymbol ?? '', $this->outcomes))) {
                 return $this->safe_value($this->outcomes, $outcomeIdOrSymbol);
@@ -465,8 +465,8 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 return $this->safe_value($this->outcomes_by_id, $outcomeIdOrSymbol);
             }
         }
-        if ($outcomeObj !== null) {
-            return $outcomeObj;
+        if ($market !== null) {
+            return $market;
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         $outcomeObjValue = array( 'outcome' => $outcomeIdOrSymbol, 'outcomeId' => $outcomeIdOrSymbol, 'market' => null, 'label' => null, 'event' => null, 'info' => array());
@@ -474,7 +474,12 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function safe_outcome_symbol(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
-        $outcomeObjValue = $this->safe_outcome($outcomeIdOrSymbol, $outcomeObj);
+        // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        // handing it to safeOutcome (whose fallback slot is a Market)
+        if (!$this->has_outcome($outcomeIdOrSymbol) && ($outcomeObj !== null)) {
+            return $this->safe_string($outcomeObj, 'outcome');
+        }
+        $outcomeObjValue = $this->safe_outcome($outcomeIdOrSymbol);
         return $outcomeObjValue['outcome'];
     }
 
@@ -648,7 +653,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                $existing = $this->safe_value($this->outcomes, $ocSymbol);
+                $existing = $this->safe_dict($this->outcomes, $ocSymbol);
                 if ($existing !== null) {
                     $existingId = $this->safe_string($existing, 'outcomeId');
                     if (($existingId !== null) && ($ocId !== null) && ($existingId !== $ocId)) {

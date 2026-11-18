@@ -475,8 +475,8 @@ func (this *Zebpay) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var promisesUnresolved []any = []any{}
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var defaultMarkets []any = []any{"spot", "swap"}
-	var types any = this.SafeList(fetchMarketsOptions, "types", defaultMarkets)
-	for i := 0; i < GetArrayLength(types); i++ {
+	var types []any = this.SafeListSlice(fetchMarketsOptions, "types", defaultMarkets)
+	for i := 0; i < len(types); i++ {
 		var typeVar string = *this.SafeString(types, i, "")
 		if typeVar == "spot" {
 			promisesUnresolved = append(promisesUnresolved, this.FetchSpotMarketsAsync(params))
@@ -564,7 +564,7 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
 	var precision *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision")))
-	var chains []any = SafeListTyped(rawCurrency, "chains")
+	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "chains")
 	var networks map[string]any = map[string]any{}
 	var minWithdrawFeeString *string = nil
 	var minWithdrawString *string = nil
@@ -572,7 +572,7 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) map[string]any {
 	var deposit bool = false
 	var withdraw bool = false
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "chainId")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var depositAllowed *bool = this.SafeBool(chain, "isDepositEnabled", false)
@@ -1596,12 +1596,12 @@ func (this *Zebpay) SpotOrderBody(symbol string, typeVar string, amount any, req
  * @param {object} [params.timestamp] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Zebpay) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Zebpay) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2367,9 +2367,9 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	//
 	var result []any = []any{}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var markets []any = SafeListTyped(data, "symbols")
+	var markets []map[string]any = this.SafeListMapsTyped(data, "symbols")
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
@@ -2464,9 +2464,9 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	//
 	var result []any = []any{}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var markets []any = SafeListTyped(data, "symbols")
+	var markets []map[string]any = this.SafeListMapsTyped(data, "symbols")
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")

@@ -102,7 +102,7 @@ export default class blofin extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name blofin#fetchFundingRate
@@ -272,7 +272,7 @@ export default class blofin extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
-    parseCurrency(currency: Dict): CurrencyInterface;
+    parseCurrency(chains: Dict): CurrencyInterface;
     /**
      * @method
      * @name blofin#fetchDepositAddress
@@ -474,7 +474,7 @@ export default class blofin extends Exchange {
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**

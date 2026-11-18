@@ -819,7 +819,7 @@ public class Grvt extends GrvtApi
             //
             this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -842,7 +842,7 @@ public class Grvt extends GrvtApi
                 put( "address", walletAddress );
                 put( "signature", Grvt.this.defaultSignature() );
             }};
-            Map<String, Object> response = (this.privateEdgePostAuthWalletLogin(this.extend(this.createSignedRequest(request, "EIP712_WALLETLOGIN_TYPE", (Object) null, (String) null), parameters))).join();
+            Map<String, Object> response = (this.privateEdgePostAuthWalletLogin(this.extend(this.createSignedRequest(request, "EIP712_WALLETLOGIN_TYPE", (Map<String, Object>) null, (String) null), parameters))).join();
             //
             //    {
             //        "location": "",
@@ -851,7 +851,7 @@ public class Grvt extends GrvtApi
             //
             this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -880,14 +880,14 @@ public class Grvt extends GrvtApi
             //     }]
             // }
             //
-            Map<String, Object> currentBuilders = (Map<String, Object>) this.safeDict(results, 0, (Object) null);
-            List<Object> approvedBuilder = (List<Object>) this.safeList(currentBuilders, "results", new ArrayList<Object>(Arrays.asList()));
-            Integer length = ((List<?>)approvedBuilder).size();
+            Map<String, Object> currentBuilders = this.safeDict(results, 0, null);
+            List<Object> approvedBuilder = this.safeList(currentBuilders, "results", new ArrayList<Object>(Arrays.asList()));
+            Integer length = approvedBuilder.size();
             Boolean found = false;
             String builderId = this.safeString(this.options, "builder");
             for (var i = 0; (length != null && i < length); i++)
             {
-                Map<String, Object> builderInfo = (Map<String, Object>) this.safeDict(approvedBuilder, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> builderInfo = this.safeDict(approvedBuilder, i, new HashMap<String, Object>() {{}});
                 String builderAccountId = this.safeString(builderInfo, "builder_account_id");
                 if (java.util.Objects.equals(builderAccountId, builderId))
                 {
@@ -910,7 +910,7 @@ public class Grvt extends GrvtApi
                         put( "max_spot_fee_rate", Grvt.this.safeString(Grvt.this.options, "builderRate") );
                         put( "signature", Grvt.this.defaultSignature() );
                     }};
-                    Map<String, Object> authResponse = (this.privateTradingPostFullV1AuthorizeBuilder(this.extend(this.createSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE", (Object) null, (String) null), parameters))).join();
+                    Map<String, Object> authResponse = (this.privateTradingPostFullV1AuthorizeBuilder(this.extend(this.createSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE", (Map<String, Object>) null, (String) null), parameters))).join();
                     //
                     // {
                     //     "result": {
@@ -919,7 +919,7 @@ public class Grvt extends GrvtApi
                     //     }
                     // }
                     //
-                    Map<String, Object> authResult = (Map<String, Object>) this.safeDict(authResponse, "result", (Object) null);
+                    Map<String, Object> authResult = this.safeDict(authResponse, "result", null);
                     Boolean ack = (Boolean) this.safeBool(authResult, "ack", false);
                     if (!Boolean.TRUE.equals(ack))
                     {
@@ -981,9 +981,9 @@ public class Grvt extends GrvtApi
             {
                 ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
             }
-            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Map<String, Object> response = (Map<String, Object>) this.safeDict(results, 0, (Object) null);
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            Map<String, Object> response = this.safeDict(results, 0, null);
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(result);
         });
 
@@ -1118,7 +1118,7 @@ public class Grvt extends GrvtApi
             //            },
             //            ..
             //
-            List<Object> responseResult = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> responseResult = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(responseResult);
         });
 
@@ -1221,7 +1221,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
@@ -1335,7 +1335,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(result, "event_time"));
             String marketId = this.safeString(result, "instrument");
             return this.parseOrderBook(result, this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null), timestamp, "bids", "asks", "price", "size", 2);
@@ -1400,7 +1400,7 @@ public class Grvt extends GrvtApi
             //            },
             //            ...
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1571,7 +1571,7 @@ public class Grvt extends GrvtApi
             //        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
             //    }
             //
-            List<Object> candles = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> candles = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1661,7 +1661,7 @@ public class Grvt extends GrvtApi
             //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(result, market, (Long) null, (Long) null);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
@@ -1749,7 +1749,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseBalance(result);
         }).thenApply(Balances::new);
 
@@ -1789,11 +1789,11 @@ public class Grvt extends GrvtApi
             put( "timestamp", timestamp );
             put( "datetime", Grvt.this.iso8601(timestamp) );
         }};
-        List<Object> spotBalances = (List<Object>) this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> spotBalances = this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
         String availableBalance = this.safeString(response, "available_balance");
-        for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
+        for (var i = 0; i < spotBalances.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(spotBalances, i, null);
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1867,7 +1867,7 @@ public class Grvt extends GrvtApi
                 //     "next": "Qw0918="
                 // }
                 //
-                List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+                List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{}});
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -1946,7 +1946,7 @@ public class Grvt extends GrvtApi
                 //     "next": "Qw0918="
                 // }
                 //
-                List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+                List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{}});
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
@@ -1988,7 +1988,7 @@ public class Grvt extends GrvtApi
             //        "next": ""
             //    }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
             return transfers;
         });
@@ -2067,7 +2067,7 @@ public class Grvt extends GrvtApi
         //
         String direction = null;
         String txId = null;
-        Object networkCode = null;
+        String networkCode = null;
         String addressFrom = this.safeString(transaction, "from_account_id");
         String addressTo = this.safeString(transaction, "to_account_id");
         String currencyId = this.safeString(transaction, "currency");
@@ -2186,7 +2186,7 @@ public class Grvt extends GrvtApi
             //        "next": ""
             //    }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Object transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
             return this.toArray(this.safeList(this.filterTransfersByType(transfers, "internal", false), 1, new ArrayList<Object>(Arrays.asList())));
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
@@ -2289,7 +2289,7 @@ public class Grvt extends GrvtApi
             //     }
             // }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransfer(result, currency);
         }).thenApply(TransferEntry::new);
 
@@ -2390,14 +2390,14 @@ public class Grvt extends GrvtApi
             //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
             //     }
             //
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Map<String, Object> result1 = (Map<String, Object>) this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            Map<String, Object> result1 = this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
             String mainAccountId = this.safeString(result1, "main_account_id");
             this.options.put("userMainAccountId", mainAccountId);
             if (Boolean.TRUE.equals(accountIsUndefined))
             {
-                List<Object> subAccountIds = (List<Object>) this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
-                Integer length = ((List<?>)subAccountIds).size();
+                List<Object> subAccountIds = this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
+                Integer length = subAccountIds.size();
                 if (((length == null || length < 1)))
                 {
                     throw new ArgumentsRequired((this.id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
@@ -2410,7 +2410,7 @@ public class Grvt extends GrvtApi
                 this.options.put("accountId", subAccountId);
             }
             return true;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 
@@ -2439,7 +2439,7 @@ public class Grvt extends GrvtApi
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode, code);
+            String networkId = this.networkCodeToId(networkCode, code);
             if (java.util.Objects.equals(networkId, null))
             {
                 throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
@@ -2461,7 +2461,7 @@ public class Grvt extends GrvtApi
             //     }
             // }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransaction(result, currency);
         }).thenApply(Transaction::new);
 
@@ -2638,7 +2638,7 @@ public class Grvt extends GrvtApi
                 orderRequest.put("builder_fee", this.safeString(this.options, "builderRate"));
             }
             Object paramsOmitted = this.omit(paramsTrigger, new ArrayList<Object>(Arrays.asList("builderFee")));
-            Map<String, Object> signedOrderRequest = this.createSignedRequest(orderRequest, eipType, (Object) null, (String) null);
+            Map<String, Object> signedOrderRequest = this.createSignedRequest(orderRequest, eipType, (Map<String, Object>) null, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order", signedOrderRequest );
             }};
@@ -2703,7 +2703,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -2717,13 +2717,13 @@ public class Grvt extends GrvtApi
     public Map<String, Object> eipMessageForOrder(Map<String, Object> order, String structureType)
     {
         Integer priceMultiplier = 1000000000;
-        List<Object> orderLegs = (List<Object>) this.safeList(order, "legs", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orderLegs = this.safeList(order, "legs", new ArrayList<Object>(Arrays.asList()));
         List<Object> legs = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orderLegs).size(); i++)
+        for (var i = 0; i < orderLegs.size(); i++)
         {
-            Object leg = (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
-            Map<String, Object> market = this.market(((Map<String, Object>)leg).get("instrument"));
-            Object precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
+            Map<String, Object> leg = (Map<String, Object>) (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
+            Map<String, Object> market = this.market(leg.get("instrument"));
+            Integer precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
             Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(precisionValue, null)));
             String size = this.safeString(leg, "size");
             if (java.util.Objects.equals(size, null))
@@ -2739,7 +2739,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
                 put( "assetID", Grvt.this.safeString(market.get("info"), "instrument_hash") );
                 put( "contractSize", Grvt.this.parseToInt(sizeInteger) );
-                put( "isBuyingContract", ((Map<String, Object>)leg).get("is_buying_asset") );
+                put( "isBuyingContract", leg.get("is_buying_asset") );
             }};
             String limitPrice = this.safeString(leg, "limit_price");
             if ((!java.util.Objects.equals(limitPrice, null)) && (!java.util.Objects.equals(this.omitZero(limitPrice), null)))
@@ -2758,7 +2758,7 @@ public class Grvt extends GrvtApi
             }
             ((List<Object>)legs).add(legOrder);
         }
-        Map<String, Object> orderSignature = (Map<String, Object>) this.safeDict(order, "signature", new HashMap<String, Object>() {{}});
+        Map<String, Object> orderSignature = this.safeDict(order, "signature", new HashMap<String, Object>() {{}});
         Map<String, Object> returnValue = new HashMap<String, Object>() {{
             put( "subAccountID", order.get("sub_account_id") );
             put( "isMarket", order.get("is_market") );
@@ -2856,7 +2856,7 @@ public class Grvt extends GrvtApi
             //        "next": ""
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(result, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2885,7 +2885,7 @@ public class Grvt extends GrvtApi
             {
                 List<Object> baseIds = new ArrayList<Object>(Arrays.asList());
                 List<Object> quoteIds = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
@@ -2925,7 +2925,7 @@ public class Grvt extends GrvtApi
             //        ]
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(result, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -3032,8 +3032,8 @@ public class Grvt extends GrvtApi
             //                "margin_type": "CROSS"
             //            },
             //
-            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(results, symbols, (String) null, (Object) null);
+            List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            return this.parseLeverages(results, symbols, (String) null, null);
         }).thenApply(Leverages::new);
 
     }
@@ -3136,8 +3136,8 @@ public class Grvt extends GrvtApi
             //                "margin_type": "CROSS"
             //            },
             //
-            List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLeverages(results, symbols, (String) null, (Object) null);
+            List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            return this.parseLeverages(results, symbols, (String) null, null);
         }).thenApply(MarginModes::new);
 
     }
@@ -3227,7 +3227,7 @@ public class Grvt extends GrvtApi
             //        "next": ""
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(result, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -3362,7 +3362,7 @@ public class Grvt extends GrvtApi
             //        "next": ""
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3449,7 +3449,7 @@ public class Grvt extends GrvtApi
             //        ]
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3544,7 +3544,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -3640,13 +3640,13 @@ public class Grvt extends GrvtApi
         String price = null;
         String filled = null;
         String avgPrice = null;
-        List<Object> legs = (List<Object>) this.safeList(order, "legs", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> metadata = (Map<String, Object>) this.safeDict(order, "metadata", new HashMap<String, Object>() {{}});
-        Map<String, Object> stateObj = (Map<String, Object>) this.safeDict(order, "state", new HashMap<String, Object>() {{}});
-        List<Object> filledAmounts = (List<Object>) this.safeList(stateObj, "traded_size", new ArrayList<Object>(Arrays.asList()));
-        List<Object> avgPrices = (List<Object>) this.safeList(stateObj, "avg_fill_price", new ArrayList<Object>(Arrays.asList()));
+        List<Object> legs = this.safeList(order, "legs", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> metadata = this.safeDict(order, "metadata", new HashMap<String, Object>() {{}});
+        Map<String, Object> stateObj = this.safeDict(order, "state", new HashMap<String, Object>() {{}});
+        List<Object> filledAmounts = this.safeList(stateObj, "traded_size", new ArrayList<Object>(Arrays.asList()));
+        List<Object> avgPrices = this.safeList(stateObj, "avg_fill_price", new ArrayList<Object>(Arrays.asList()));
         Integer primaryOrderIndex = 0;
-        Map<String, Object> firstLeg = (Map<String, Object>) this.safeDict(legs, primaryOrderIndex, (Object) null);
+        Map<String, Object> firstLeg = this.safeDict(legs, primaryOrderIndex, null);
         String legMarketId = this.safeString(firstLeg, "instrument");
         Map<String, Object> marketResolved = (((!java.util.Objects.equals(firstLeg, null)))) ? this.safeMarket(legMarketId, market, (String) null, (String) null) : market;
         if (!java.util.Objects.equals(firstLeg, null))
@@ -3755,7 +3755,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrders(new ArrayList<Object>(Arrays.asList(result)), (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3799,7 +3799,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -3823,10 +3823,10 @@ public class Grvt extends GrvtApi
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
-    public Map<String, Object> createSignedRequest(Map<String, Object> request, String structureType, Object currencyObj, String signerAddress)
+    public Map<String, Object> createSignedRequest(Map<String, Object> request, String structureType, Map<String, Object> currencyObj, String signerAddress)
     {
         Map<String, Object> messageData = null;
-        Map<String, Object> requestSignature = (Map<String, Object>) this.safeDict(request, "signature", new HashMap<String, Object>() {{}});
+        Map<String, Object> requestSignature = this.safeDict(request, "signature", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(structureType, "EIP712_TRANSFER_TYPE"))
         {
             Object amountMultiplier = this.convertToBigIntCustom("1000000");
@@ -3841,7 +3841,7 @@ public class Grvt extends GrvtApi
                 hx4NewMap1.put("fromSubAccount", request.get("from_sub_account_id"));
                 hx4NewMap1.put("toAccount", request.get("to_account_id"));
                 hx4NewMap1.put("toSubAccount", request.get("to_sub_account_id"));
-                hx4NewMap1.put("tokenCurrency", ((Map<String, Object>)currencyObj).get("numericId"));
+                hx4NewMap1.put("tokenCurrency", currencyObj.get("numericId"));
                 hx4NewMap1.put("numTokens", this.parseToInt(amountInt));
                 hx4NewMap1.put("nonce", requestSignature.get("nonce"));
                 hx4NewMap1.put("expiration", requestSignature.get("expiration"));
@@ -3858,7 +3858,7 @@ public class Grvt extends GrvtApi
                 HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
                 hx4NewMap2.put("fromAccount", request.get("from_account_id"));
                 hx4NewMap2.put("toEthAddress", request.get("to_eth_address"));
-                hx4NewMap2.put("tokenCurrency", ((Map<String, Object>)currencyObj).get("numericId"));
+                hx4NewMap2.put("tokenCurrency", currencyObj.get("numericId"));
                 hx4NewMap2.put("numTokens", this.parseToInt(Helpers.multiply(request.get("num_tokens"), amountMultiplier)));
                 hx4NewMap2.put("nonce", requestSignature.get("nonce"));
                 hx4NewMap2.put("expiration", requestSignature.get("expiration"));
@@ -3888,7 +3888,7 @@ public class Grvt extends GrvtApi
         }
         Map<String, Object> domainData = this.eipDomainData();
         Map<String, Object> definitions = this.eipDefinitions();
-        Object ethEncodedMessage = this.ethEncodeStructuredData(domainData, (definitions == null || structureType == null ? null : definitions.get(structureType)), messageData);
+        byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, (definitions == null || structureType == null ? null : definitions.get(structureType)), messageData);
         Boolean usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         String privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
@@ -3945,7 +3945,7 @@ public class Grvt extends GrvtApi
 
     public Long requestId()
     {
-        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Long requestId = (this.safeInteger(this.options, "requestId", 0) + 1L);
         this.options.put("requestId", requestId);
         return requestId;
     }

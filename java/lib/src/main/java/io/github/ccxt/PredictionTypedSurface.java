@@ -119,7 +119,7 @@ public interface PredictionTypedSurface {
     CompletableFuture<Status> fetchStatus(Map<String, Object> params);
     CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> params);
     CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFee(String code, Map<String, Object> params);
-    CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object params);
+    CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> params);
     CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRate(String symbol, Map<String, Object> params);
     CompletableFuture<Tickers> fetchSpotTickers(List<String> symbols, Map<String, Object> params);
     CompletableFuture<Tickers> fetchContractTickers(List<String> symbols, Map<String, Object> params);

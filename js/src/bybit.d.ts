@@ -135,7 +135,7 @@ export default class bybit extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    parseFundingRate(ticker: any, market?: Market): FundingRate;
+    parseFundingRate(ticker: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name bybit#fetchFundingRates

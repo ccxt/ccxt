@@ -362,8 +362,8 @@ class gate extends gate$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatusWs('open', symbol, since, limit, params);
+    async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatusWs('open', symbol, since, limit, params);
     }
     /**
      * @method
@@ -376,8 +376,8 @@ class gate extends gate$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatusWs('finished', symbol, since, limit, params);
+    async fetchClosedOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatusWs('finished', symbol, since, limit, params);
     }
     /**
      * @method
@@ -684,13 +684,13 @@ class gate extends gate$1["default"] {
         const storedOrderBook = this.safeValue(this.orderbooks, symbol, this.orderBook({}));
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            let cacheLength = this.parseToInt(0);
+            let cacheLength = 0;
             if (storedOrderBook !== undefined) {
                 const storedCacheLength = storedOrderBook.cache.length;
                 cacheLength = this.parseToInt(storedCacheLength);
             }
             const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 10));
-            let waitAmount = this.parseToInt(0);
+            let waitAmount = 0;
             if (isSpot) {
                 waitAmount = snapshotDelay;
             }
@@ -830,8 +830,8 @@ class gate extends gate$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols = undefined, params = {}) {
-        return this.subscribeWatchTickersAndBidsAsks(symbols, 'watchBidsAsks', this.extend({ 'method': 'book_ticker' }, params));
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        return await this.subscribeWatchTickersAndBidsAsks(symbols, 'watchBidsAsks', this.extend({ 'method': 'book_ticker' }, params));
     }
     handleBidAsk(client, message) {
         //
@@ -944,8 +944,8 @@ class gate extends gate$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchTradesForSymbols([symbol], since, limit, params);
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -1020,8 +1020,8 @@ class gate extends gate$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol, params = {}) {
-        return this.unWatchTradesForSymbols([symbol], params);
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
     }
     handleTrades(client, message) {
         //
@@ -1228,8 +1228,8 @@ class gate extends gate$1["default"] {
             const timeframe = marketIds[symbol];
             const interval = this.findTimeframe(timeframe);
             const hash = 'candles' + ':' + interval + ':' + symbol;
-            const stored = this.safeValue(this.ohlcvs[symbol], interval);
-            client.resolve(stored, hash);
+            const symbolOhlcv = this.safeValue(this.safeDict(this.ohlcvs, symbol), interval);
+            client.resolve(symbolOhlcv, hash);
         }
     }
     /**
@@ -1254,7 +1254,7 @@ class gate extends gate$1["default"] {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            marketId = market['id'];
+            marketId = this.safeString(market, 'id');
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('watchMyTrades', market, paramsMarketType);
@@ -1508,7 +1508,7 @@ class gate extends gate$1["default"] {
         this.setPositionsCache(client, type, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.safeValue(this.positions, type);
+        const cache = this.safeValue(this.positionsByType, type);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             return await client.future(type + ':fetchPositionsSnapshot');
         }
@@ -1516,13 +1516,10 @@ class gate extends gate$1["default"] {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.safeValue(this.positions, type), symbolsNormalized, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.safeValue(this.positionsByType, type), symbolsNormalized, since, limit, true);
     }
     setPositionsCache(client, type, symbols = undefined) {
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
-        if (type in this.positions) {
+        if (type in this.positionsByType) {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
@@ -1534,13 +1531,13 @@ class gate extends gate$1["default"] {
             }
         }
         else {
-            this.positions[type] = new Cache.ArrayCacheBySymbolBySide();
+            this.positionsByType[type] = new Cache.ArrayCacheBySymbolBySide();
         }
     }
     async loadPositionsSnapshot(client, messageHash, type) {
         const positions = await this.fetchPositions(undefined, { 'type': type });
-        this.positions[type] = new Cache.ArrayCacheBySymbolBySide();
-        const cache = this.positions[type];
+        this.positionsByType[type] = new Cache.ArrayCacheBySymbolBySide();
+        const cache = this.positionsByType[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
@@ -1588,7 +1585,7 @@ class gate extends gate$1["default"] {
         //
         const type = this.getMarketTypeByUrl(client.url);
         const data = this.safeList(message, 'result', []);
-        const cache = this.positions[type];
+        const cache = this.positionsByType[type];
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
@@ -1813,8 +1810,8 @@ class gate extends gate$1["default"] {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+    async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -1922,15 +1919,31 @@ class gate extends gate$1["default"] {
             this.liquidations = new Cache.ArrayCache(limit);
         }
         const cache = this.liquidations;
+        const liquidationsBySymbol = {};
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation(rawLiquidation);
             cache.append(liquidation);
+            newLiquidations.push(liquidation);
             const symbol = this.safeString(liquidation, 'symbol');
-            const symbolLiquidations = this.safeList(cache, symbol, []);
-            client.resolve(symbolLiquidations, 'myLiquidations::' + symbol);
+            if (symbol !== undefined) {
+                let symbolLiquidations = this.safeList(liquidationsBySymbol, symbol);
+                if (symbolLiquidations === undefined) {
+                    symbolLiquidations = [];
+                }
+                symbolLiquidations.push(liquidation);
+                liquidationsBySymbol[symbol] = symbolLiquidations;
+            }
         }
-        client.resolve(newLiquidations, 'myLiquidations');
+        const symbols = Object.keys(liquidationsBySymbol);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            client.resolve(liquidationsBySymbol[symbol], 'myLiquidations::' + symbol);
+        }
+        const numNewLiquidations = newLiquidations.length;
+        if (numNewLiquidations > 0) {
+            client.resolve(newLiquidations, 'myLiquidations');
+        }
     }
     parseWsLiquidation(liquidation, market = undefined) {
         //
@@ -1962,7 +1975,8 @@ class gate extends gate$1["default"] {
         //    }
         //
         const marketId = this.safeString(liquidation, 'contract');
-        const marketResolved = this.safeMarket(marketId, market);
+        // liquidations only arrive on contract channels, and gate's swap ids collide with spot ids (BTC_USDT)
+        const marketResolved = this.safeMarket(marketId, market, '_', 'contract');
         const timestamp = this.safeInteger(liquidation, 'time_ms');
         const originalSize = this.safeString(liquidation, 'size');
         const left = this.safeString(liquidation, 'left');
@@ -1977,7 +1991,7 @@ class gate extends gate$1["default"] {
             'quoteValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        });
+        }, marketResolved);
     }
     handleErrorMessage(client, message) {
         //
@@ -2293,12 +2307,12 @@ class gate extends gate$1["default"] {
         }
     }
     getUrlByMarket(market) {
-        const baseUrl = this.urls['api'][market['type']];
         if (this.safeBool(market, 'contract', false)) {
-            return (this.safeBool(market, 'linear', false)) ? baseUrl['usdt'] : baseUrl['btc'];
+            const settleKey = (this.safeBool(market, 'linear', false)) ? 'usdt' : 'btc';
+            return this.safeString(this.urls['api'][market['type']], settleKey, '');
         }
         else {
-            return baseUrl;
+            return this.safeString(this.urls['api'], market['type'], '');
         }
     }
     getTypeByMarket(market) {
@@ -2316,13 +2330,12 @@ class gate extends gate$1["default"] {
         }
     }
     getUrlByMarketType(type, isInverse = false) {
-        const api = this.urls['api'];
-        const url = this.safeValue(api, type);
         if ((type === 'swap') || (type === 'future')) {
-            return isInverse ? url['btc'] : url['usdt'];
+            const settleKey = isInverse ? 'btc' : 'usdt';
+            return this.safeString(this.safeDict(this.urls['api'], type), settleKey);
         }
         else {
-            return url;
+            return this.safeString(this.urls['api'], type);
         }
     }
     getMarketTypeByUrl(url) {

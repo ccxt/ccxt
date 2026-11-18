@@ -238,10 +238,10 @@ public class Paymium extends PaymiumApi
             put( "info", response );
         }};
         List<Object> currencies = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
-        for (var i = 0; i < ((List<?>)currencies).size(); i++)
+        for (var i = 0; i < currencies.size(); i++)
         {
-            Object code = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
-            Map<String, Object> currency = this.currency((String) (code));
+            String code = (String) (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
+            Map<String, Object> currency = this.currency(code);
             String currencyId = (String) currency.get("id");
             String freeAmount = this.safeString(response, ("balance_" + currencyId));
             if (!java.util.Objects.equals(freeAmount, null))
@@ -249,7 +249,7 @@ public class Paymium extends PaymiumApi
                 Map<String, Object> account = this.account();
                 account.put("free", freeAmount);
                 account.put("used", this.safeString(response, ("locked_" + currencyId)));
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -758,8 +758,8 @@ public class Paymium extends PaymiumApi
         String currencyId = this.safeString(transfer, "currency");
         String updatedAt = this.safeString(transfer, "updated_at");
         Long timetstamp = this.parseDate(updatedAt);
-        List<Object> accountOperations = (List<Object>) this.safeList(transfer, "account_operations", (Object) null);
-        Map<String, Object> firstOperation = (Map<String, Object>) this.safeDict(accountOperations, 0, new HashMap<String, Object>() {{}});
+        List<Object> accountOperations = this.safeList(transfer, "account_operations", null);
+        Map<String, Object> firstOperation = this.safeDict(accountOperations, 0, new HashMap<String, Object>() {{}});
         String status = this.safeString(transfer, "state");
         return new HashMap<String, Object>() {{
             put( "info", transfer );
@@ -797,8 +797,8 @@ public class Paymium extends PaymiumApi
         }
         String baseUrl = baseApiUrl;
         String url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
-        Object query = this.omit(parameters, this.extractParams(path));
-        Boolean hasQuery = ((Map<String, Object>)query).size() > 0;
+        Map<String, Object> query = (Map<String, Object>) this.omit(parameters, this.extractParams(path));
+        Boolean hasQuery = query.size() > 0;
         if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "public"))
         {
             if (Boolean.TRUE.equals(hasQuery))
@@ -861,8 +861,8 @@ public class Paymium extends PaymiumApi
         {
             return null;
         }
-        Object errors = this.safeValue(response, "errors");
-        if (!java.util.Objects.equals(errors, null))
+        boolean errors = (this.safeValue(response, "errors")) != null;
+        if (errors)
         {
             throw new ExchangeError(((this.id + " ") + this.json(response))) ;
         }

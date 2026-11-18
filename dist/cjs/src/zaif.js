@@ -689,7 +689,7 @@ class zaif extends zaif$1["default"] {
         }
         const response = await this.privatePostActiveOrders(this.extend(request, params));
         const data = this.safeDict(response, 'return', {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(this.addKeyInArrayItems(data, 'id'), market, since, limit);
     }
     /**
      * @method
@@ -729,7 +729,7 @@ class zaif extends zaif$1["default"] {
         }
         const response = await this.privatePostTradeHistory(this.extend(request, params));
         const data = this.safeDict(response, 'return', {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(this.addKeyInArrayItems(data, 'id'), market, since, limit);
     }
     /**
      * @method

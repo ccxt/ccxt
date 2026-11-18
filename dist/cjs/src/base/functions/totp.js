@@ -11,7 +11,7 @@ function totp(secret) {
     const dec2hex = (s) => ((s < 15.5 ? '0' : '') + Math.round(s).toString(16));
     const hex2dec = (s) => parseInt(s, 16);
     const leftpad = (s, p) => (p + s).slice(-p.length); // both s and p are short strings
-    secret = secret.replace(' ', ''); // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
+    secret = secret.replace(/ /g, ''); // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
     const epoch = Math.round(new Date().getTime() / 1000.0);
     const time = leftpad(dec2hex(Math.floor(epoch / 30)), '0000000000000000');
     const hmacRes = crypto.hmac(base.hex.decode(time), base.base32.decode(secret), legacy_js.sha1, 'hex');

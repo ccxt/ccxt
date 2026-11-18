@@ -32,6 +32,30 @@ func mockBodyForUrl(responsesByUrl any, url any) any {
 			return byUrl[fragment]
 		}
 	}
+	// Go urlencodes a map[string]any in random key order, while the fixtures spell
+	// fragments in TS insertion order: match a query fragment as a set of k=v pairs
+	queryPairs := map[string]bool{}
+	if q := strings.IndexByte(urlStr, '?'); q >= 0 {
+		for _, pair := range strings.Split(urlStr[q+1:], "&") {
+			queryPairs[pair] = true
+		}
+	}
+	for _, fragment := range fragments {
+		pairs := strings.Split(fragment, "&")
+		if len(pairs) < 2 {
+			continue
+		}
+		matched := true
+		for _, pair := range pairs {
+			if !queryPairs[pair] {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			return byUrl[fragment]
+		}
+	}
 	if len(fragments) > 0 {
 		return byUrl[fragments[0]]
 	}
@@ -54,15 +78,17 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			return
 		}
 		this.UpdateProxySettings() // for now this needs to be here
+		// sign() may return a typed nil pointer (*string) as body; unwrap it, otherwise `body != nil` is true and a literal "null" body is sent (rejected with 403 by cloudfront on GET)
+		body = derefScalar(body)
 
-		// Convert url to string
-		urlStr, ok := url.(string)
+		// Convert url to string: a venue sign() may build the url as a *string local
+		urlStr, ok := derefScalar(url).(string)
 		if !ok {
 			panic("url must be a string")
 		}
 
 		// Convert method to string
-		methodStr, ok := method.(string)
+		methodStr, ok := derefScalar(method).(string)
 		if !ok {
 			panic("method must be a string")
 		}
@@ -96,6 +122,17 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 				panic("headersOptions should be a map[string]any")
 			}
 
+		}
+
+		// sign() may hand the body over as a *string (a typed nil when there is no body):
+		// a nil pointer boxed in an interface is not nil, so it would be marshalled as
+		// the JSON literal null, and a non-nil pointer would be encoded a second time
+		if bodyPtr, ok := body.(*string); ok {
+			if bodyPtr == nil {
+				body = nil
+			} else {
+				body = *bodyPtr
+			}
 		}
 
 		// check content type for multipart/form-data, used in lighter

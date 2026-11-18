@@ -273,26 +273,6 @@
             {
                 "disabledGO": true,
                 "disabledJava": true,
-                "description": "trigger postOnly order",
-                "method": "createOrder",
-                "url": "https://api.testnet.paradex.trade/v1/orders",
-                "input": [
-                    "SOL/USD:USDC",
-                    "limit",
-                    "buy",
-                    5,
-                    60,
-                    {
-                        "triggerPrice": 60,
-                        "postOnly": true
-                    }
-                ],
-                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_LIMIT\",\"size\":\"5\",\"instruction\":\"POST_ONLY\",\"price\":\"60\",\"trigger_price\":\"60\",\"signature\":\"[\\\"405019133243389523227124401986152572914421013989070242205295296137801865967\\\",\\\"1748135842845179971618758228738423761246707634334073467171466626514884721167\\\"]\",\"signature_timestamp\":1722426053000}",
-                "disabledRS": true
-            },
-            {
-                "disabledGO": true,
-                "disabledJava": true,
                 "description": "stop market order",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -420,6 +400,233 @@
                     2500
                 ],
                 "output": "{\"market\":\"ETH-USD\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"GTC\",\"size\":\"0.01\",\"price\":\"2500\",\"signature\":\"[\\\"1\\\",\\\"2\\\"]\",\"signature_timestamp\":1721903698000}"
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "trigger limit order with IOC",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    5,
+                    60,
+                    {
+                        "triggerPrice": 60,
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_LIMIT\",\"instruction\":\"IOC\",\"size\":\"5\",\"price\":\"60\",\"trigger_price\":\"60\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "limit order with recvWindow",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100,
+                    {
+                        "recvWindow": 5000
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"GTC\",\"size\":\"0.1\",\"price\":\"100\",\"recv_window\":5000,\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "RPI limit order with postOnly stays RPI",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "sell",
+                    0.1,
+                    250,
+                    {
+                        "timeInForce": "RPI",
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"instruction\":\"RPI\",\"size\":\"0.1\",\"price\":\"250\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "RPI limit order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "sell",
+                    0.1,
+                    250,
+                    {
+                        "timeInForce": "RPI"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"instruction\":\"RPI\",\"size\":\"0.1\",\"price\":\"250\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "timeInForce PO limit order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"POST_ONLY\",\"size\":\"0.1\",\"price\":\"100\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "postOnly limit order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"POST_ONLY\",\"size\":\"0.1\",\"price\":\"100\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "market IOC order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"MARKET\",\"instruction\":\"IOC\",\"size\":\"0.1\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "limit IOC order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"IOC\",\"size\":\"0.1\",\"price\":\"100\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "sized take profit limit order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "sell",
+                    0.5,
+                    210,
+                    {
+                        "takeProfitPrice": 200
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"TAKE_PROFIT_LIMIT\",\"instruction\":\"GTC\",\"size\":\"0.5\",\"price\":\"210\",\"trigger_price\":\"200\",\"flags\":[\"REDUCE_ONLY\"],\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "sized stop loss market order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "market",
+                    "sell",
+                    0.5,
+                    150,
+                    {
+                        "stopLossPrice": 90
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"STOP_LOSS_MARKET\",\"instruction\":\"GTC\",\"size\":\"0.5\",\"trigger_price\":\"90\",\"flags\":[\"REDUCE_ONLY\"],\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "stop market order with a price omits the price",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "market",
+                    "buy",
+                    2,
+                    150,
+                    {
+                        "triggerPrice": 200
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_MARKET\",\"instruction\":\"GTC\",\"size\":\"2\",\"trigger_price\":\"200\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "market order with a price omits the price",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    100
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"MARKET\",\"instruction\":\"GTC\",\"size\":\"0.1\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
             }
         ],
         "createOrders": [
@@ -468,6 +675,25 @@
                     120
                 ],
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"price\":\"120\",\"size\":\"0.1\",\"id\":\"1748360402930201709192260002\",\"signature\":\"[\\\"1550347720778479803103413270701343092751011658362356790867450174181548850256\\\",\\\"94313813924990052144412796520492445389263123508915591934044630975089252381\\\"]\",\"signature_timestamp\":1779257936000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "description": "edit stop loss market order without a price",
+                "method": "editOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders/1760000000000201709220290001",
+                "input": [
+                    "1760000000000201709220290001",
+                    "SOL/USD:USDC",
+                    "market",
+                    "sell",
+                    0.5,
+                    null,
+                    {
+                        "stopLossPrice": 95
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"STOP_LOSS_MARKET\",\"size\":\"0.5\",\"trigger_price\":\"95\",\"id\":\"1760000000000201709220290001\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
                 "disabledRS": true
             }
         ],
@@ -579,6 +805,17 @@
                 "method": "fetchPositions",
                 "url": "https://api.testnet.paradex.trade/v1/positions?",
                 "input": []
+            },
+            {
+                "description": "fetchPositions forwards params",
+                "method": "fetchPositions",
+                "url": "https://api.prod.paradex.trade/v1/positions?market=SOL-USD-PERP",
+                "input": [
+                    null,
+                    {
+                        "market": "SOL-USD-PERP"
+                    }
+                ]
             }
         ],
         "fetchMyLiquidations": [
@@ -677,6 +914,16 @@
                     }
                 ],
                 "output": "{\"leverage\":10,\"margin_type\":\"CROSS\"}"
+            },
+            {
+                "description": "setMarginMode without leverage reads the current leverage first",
+                "method": "setMarginMode",
+                "url": "https://api.prod.paradex.trade/v1/account/margin?market=SOL-USD-PERP",
+                "input": [
+                    "cross",
+                    "SOL/USD:USDC"
+                ],
+                "output": null
             }
         ],
         "fetchGreeks": [

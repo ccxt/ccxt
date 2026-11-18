@@ -482,7 +482,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            List<Object> currencies = (List<Object>) this.safeList(response, "currencies", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = this.safeList(response, "currencies", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -574,11 +574,11 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            List<Object> tickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(tickers, i, (Object) null);
+                Map<String, Object> entry = this.safeDict(tickers, i, null);
                 String id = this.safeString(entry, "id");
                 String baseId = this.safeStringUpper(entry, "target_currency");
                 String quoteId = this.safeStringUpper(entry, "quote_currency");
@@ -651,10 +651,10 @@ public class Coinone extends CoinoneApi
         }};
         Map<String, Object> balances = this.omit(response, new ArrayList<Object>(Arrays.asList("errorCode", "result", "normalWallets")));
         List<String> currencyIds = new ArrayList<String>(balances.keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, currencyId, null);
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "avail"));
@@ -817,7 +817,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
@@ -880,8 +880,8 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -917,8 +917,8 @@ public class Coinone extends CoinoneApi
         //
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
-        List<Object> asks = (List<Object>) this.safeList(ticker, "best_asks", new ArrayList<Object>(Arrays.asList()));
-        List<Object> bids = (List<Object>) this.safeList(ticker, "best_bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(ticker, "best_asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = this.safeList(ticker, "best_bids", new ArrayList<Object>(Arrays.asList()));
         String baseId = this.safeString(ticker, "target_currency");
         String quoteId = this.safeString(ticker, "quote_currency");
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
@@ -1076,7 +1076,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1437,7 +1437,7 @@ public class Coinone extends CoinoneApi
             //         ]
             //     }
             //
-            List<Object> completeOrders = (List<Object>) this.safeList(response, "completeOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> completeOrders = this.safeList(response, "completeOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(completeOrders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1522,10 +1522,10 @@ public class Coinone extends CoinoneApi
             //         }
             //     }
             //
-            Map<String, Object> walletAddress = (Map<String, Object>) this.safeDict(response, "walletAddress", new HashMap<String, Object>() {{}});
+            Map<String, Object> walletAddress = this.safeDict(response, "walletAddress", new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(walletAddress.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String value = this.safeString(walletAddress, key);
@@ -1533,7 +1533,7 @@ public class Coinone extends CoinoneApi
                 {
                     continue;
                 }
-                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("_"))));
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(key.split(java.util.regex.Pattern.quote("_"))));
                 String currencyId = this.safeString(parts, 0);
                 String secondPart = this.safeString(parts, 1);
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -1625,8 +1625,7 @@ public class Coinone extends CoinoneApi
             String json = this.json(this.extend(mapLiteral5, parameters));
             String payload = this.stringToBase64(json);
             requestBody = payload;
-            String secret = this.secret.toUpperCase();
-            String signature = (String) this.hmac(this.encode(payload), this.encode(secret), sha512());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret.toUpperCase()), sha512());
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-COINONE-PAYLOAD", payload );

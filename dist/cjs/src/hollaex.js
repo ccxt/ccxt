@@ -691,7 +691,7 @@ class hollaex extends hollaex$1["default"] {
         const keys = Object.keys(tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const ticker = this.safeValue(tickers, key);
+            const ticker = this.safeDict(tickers, key, {});
             const marketId = this.safeString(ticker, 'symbol', key);
             const market = this.safeMarket(marketId, undefined, '-');
             const symbol = market['symbol'];

@@ -1070,10 +1070,10 @@ func (this *Coinbaseinternational) ParseCurrency(currency any) map[string]any {
 	var precision *float64 = this.ParseNumber(this.ParsePrecision(decimals))
 	var networkFee *float64 = this.SafeNumber(currency, "network_fee")
 	var withdrawalFee *float64 = this.SafeNumber(currency, "withdrawal_fee")
-	var rawNetworks []any = SafeListTyped(currency, "coinbase_networks")
+	var rawNetworks []map[string]any = this.SafeListMapsTyped(currency, "coinbase_networks")
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < len(rawNetworks); i++ {
-		var rawNetwork any = rawNetworks[i]
+		var rawNetwork map[string]any = rawNetworks[i]
 		var networkId *string = this.SafeString(rawNetwork, "resource_name")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -1201,12 +1201,12 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], 
 		request["start_timestamp"] = this.Sum(now, ((this.ParseToInt(limitResolved) * duration) * int64(-1000)))
 		request["end_timestamp"] = now
 	} else {
-		var sinceResolved any = mathMax(*since-1, 0)
+		var sinceResolved int64 = max(*since-1, 0)
 		request["start_timestamp"] = sinceResolved
 		if limitResolved == nil {
 			request["end_timestamp"] = now
 		} else {
-			request["end_timestamp"] = this.Sum(sinceResolved, (this.ParseToInt(limitResolved)*duration)*1000)
+			request["end_timestamp"] = sinceResolved + (this.ParseToInt(limitResolved)*duration)*1000
 		}
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
@@ -2341,29 +2341,32 @@ func (this *Coinbaseinternational) ParsePosition(position any, optionalArgs ...a
 	_ = market
 	var instrumentName *string = this.SafeString(position, "instrument_name")
 	var marketResolved map[string]any = this.SafeMarket(instrumentName, market)
-	var side *string = this.SafeString(position, "direction")
-	if side != nil && *side == "buy" {
+	var direction *string = this.SafeString(position, "direction")
+	var side *string = nil
+	if direction != nil && *direction == "buy" {
 		side = SafeStringPtr("long")
-	} else if side != nil && *side == "sell" {
+	} else if direction != nil && *direction == "sell" {
 		side = SafeStringPtr("short")
 	}
-	var notional *string = this.SafeString(position, "size_currency")
 	var initialMargin *string = this.SafeString(position, "initial_margin")
 	var maintenanceMargin *string = this.SafeString(position, "maintenance_margin")
-	var contracts *float64 = this.SafeNumber(position, "size")
-	if this.IsNativeDeribitCredentials() {
-		var size *string = this.SafeString(position, "size")
-		if !(*this.SafeBool(marketResolved, "option", false)) {
-			notional = size
-			if *this.SafeBool(marketResolved, "linear", false) {
-				size = this.SafeString(position, "size_currency")
-			}
-		} else {
-			notional = Precise.StringMul(size, this.SafeString(position, "mark_price"))
-		}
-		var contractsString *string = this.SafeString(position, "contracts", Precise.StringDiv(size, this.SafeString(marketResolved, "contractSize")))
-		contracts = this.ParseNumber(Precise.StringAbs(contractsString))
+	// size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+	// size_currency is in the base currency, futures only
+	// contractSize is in USD for inverse futures and in the base currency otherwise
+	var size *string = this.SafeString(position, "size")
+	var amount *string = size // `contract_size` converts between `amount` and `contracts`
+	var notional *string = nil
+	if *this.SafeBool(marketResolved, "option", false) {
+		// For options, "size" is the base currency (e.g. BTC) instead of quote currency
+		notional = Precise.StringMul(size, this.SafeString(position, "mark_price"))
+	} else if *this.SafeBool(marketResolved, "linear", false) {
+		amount = this.SafeString(position, "size_currency") // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+		notional = size
+	} else {
+		// Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+		notional = this.SafeString(position, "size_currency")
 	}
+	var contractsString *string = Precise.StringDiv(amount, this.SafeString(marketResolved, "contractSize"))
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -2374,7 +2377,7 @@ func (this *Coinbaseinternational) ParsePosition(position any, optionalArgs ...a
 		"collateral":                  nil,
 		"unrealizedPnl":               this.SafeNumber(position, "floating_profit_loss"),
 		"side":                        side,
-		"contracts":                   contracts,
+		"contracts":                   this.ParseNumber(Precise.StringAbs(contractsString)),
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"timestamp":                   nil,
 		"datetime":                    nil,
@@ -2601,7 +2604,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan AsyncRes
 	}
 	var transactions []any = []any{}
 	for i := 0; i < len(logs); i++ {
-		var transaction any = DerefScalar(logs[i])
+		var transaction any = logs[i]
 		var transactionType *string = this.SafeString(transaction, "type")
 		if (transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "withdrawal") {
 			transactions = append(transactions, transaction)
@@ -2658,11 +2661,11 @@ func (this *Coinbaseinternational) fetchWithdrawalsBody(ch chan AsyncResult[[]Tr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes203615 []any = TransactionsToList(r1.Value)
-	if retRes203615 == nil {
+	var retRes203915 []any = TransactionsToList(r1.Value)
+	if retRes203915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203615)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203915)}
 	}
 	return nil
 }
@@ -2713,11 +2716,11 @@ func (this *Coinbaseinternational) fetchDepositsBody(ch chan AsyncResult[[]Trans
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes205915 []any = TransactionsToList(r1.Value)
-	if retRes205915 == nil {
+	var retRes206215 []any = TransactionsToList(r1.Value)
+	if retRes206215 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes205915)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes206215)}
 	}
 	return nil
 }
@@ -2929,9 +2932,9 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 		request["reject_post_only"] = true
 		request["time_in_force"] = "good_til_cancelled"
 	}
-	var paramsOrder any = this.Omit(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"})
+	var paramsOrder map[string]any = this.OmitDict(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"})
 	if this.IsNativeDeribitCredentials() {
-		paramsOrder = this.Omit(paramsOrder, []any{"reduceOnly", "reduce_only"})
+		paramsOrder = this.OmitDict(paramsOrder, []any{"reduceOnly", "reduce_only"})
 	}
 
 	r1 := <-this.AuthenticateV2Async()
@@ -3206,12 +3209,12 @@ func (this *Coinbaseinternational) ParseOrderType(typeVar *string) *string {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbaseinternational) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinbaseinternational) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4223,16 +4226,16 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
 		panic(AuthenticationError(this.Id + " public/auth did not return an expiry"))
 	}
 	var ratio *float64 = this.SafeNumber(this.Options, "accessTokenRefreshRatio")
-	var refreshRatio float64 = func() float64 {
-		if ratio == nil {
-			return 0.8
-		}
-		return *ratio
-	}()
+	var refreshRatio float64
+	if ratio == nil {
+		refreshRatio = 0.8
+	} else {
+		refreshRatio = *ratio
+	}
 	var tokenRefreshInMilliseconds int64 = this.ParseToInt(float64((*expiresIn * 1000)) * refreshRatio)
 	this.Token = accessToken
 	this.Options["v2AccessToken"] = DerefScalar(accessToken)
-	this.Options["v2TokenExpires"] = this.Sum(now, tokenRefreshInMilliseconds)
+	this.Options["v2TokenExpires"] = now + tokenRefreshInMilliseconds
 
 	ch <- AsyncResult[any]{Value: accessToken}
 	return nil

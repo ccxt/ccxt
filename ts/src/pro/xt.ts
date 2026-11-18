@@ -79,7 +79,7 @@ export default class xt extends xtRest {
         if (isContract) {
             tradeType = 'contract';
         }
-        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const apiUrls = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
         let url = this.safeString (apiUrls, tradeType);
         if (!isContract) {
             url = url + '/private';
@@ -239,7 +239,7 @@ export default class xt extends xtRest {
         const subscription: Dict = {
             'id': id,
         };
-        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const apiUrls = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
         const url = this.safeString (apiUrls, tradeType, '') + '/' + tail;
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
@@ -292,7 +292,7 @@ export default class xt extends xtRest {
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
-        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const apiUrls = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
         const url = this.safeString (apiUrls, tradeType, '') + '/' + tail;
         const subscription: Dict = {
             'unsubscribe': true,
@@ -663,13 +663,13 @@ export default class xt extends xtRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const apiUrls = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
         const url = this.safeString (apiUrls, 'contract', '') + '/' + 'user';
         const client = this.client (url);
         this.setPositionsCache (client);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && this.isEmpty (cache)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
@@ -775,7 +775,7 @@ export default class xt extends xtRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -825,7 +825,7 @@ export default class xt extends xtRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const data = this.safeDict (message, 'data', {});
         const position = this.parsePosition (data);
         cache.append (position);
@@ -995,7 +995,7 @@ export default class xt extends xtRest {
         //        ]
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const firstTicker = this.safeDict (data, 0);
         const spotTest = this.safeString2 (firstTicker, 'cv', 'aq');
         let tradeType: Str = 'contract';
@@ -1582,6 +1582,12 @@ export default class xt extends xtRest {
             tradeType = 'contract';
         }
         client.resolve (stored, 'trade::' + tradeType);
+    }
+
+    override handleTextMessage (client: Client, message: string) {
+        if (message === 'pong') {
+            client.lastPong = this.milliseconds ();
+        }
     }
 
     override handleMessage (client: Client, message: Dict) {

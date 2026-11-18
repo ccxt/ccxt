@@ -160,7 +160,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object testMs = 1750123456789; // 17 June 2025
+            Int64? testMs = 1750123456789; // 17 June 2025
             string? value = exchange.yymmdd(testMs, "_");
             Assert(value == "25_06_17");
             string? value2 = exchange.yymmdd(exchange.milliseconds());
@@ -173,7 +173,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object testMs = 1750123456789; // 17 June 2025
+            Int64? testMs = 1750123456789; // 17 June 2025
             string? value = exchange.yyyymmdd(testMs, "_");
             Assert(value == "2025_06_17");
             string? value2 = exchange.yyyymmdd(exchange.milliseconds());
@@ -186,7 +186,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object testMs = 1750123456789; // 17 June 2025
+            Int64? testMs = 1750123456789; // 17 June 2025
             object value = exchange.ymd(testMs, "_");
             Assert(isEqual(value, "2025_06_17"));
         }
@@ -195,7 +195,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object testMs = 1750123456789; // 17 June 2025
+            Int64? testMs = 1750123456789; // 17 June 2025
             string? value = exchange.ymdhms(testMs, "_");
             Assert(value == "2025-06-17_01:24:16" || value == "2025-06-17_01:24:17"); // todo: php/py rounds up to 17
         }

@@ -874,7 +874,7 @@ class bitstamp extends Exchange {
         return $this->parse_currencies($response);
     }
 
-    public function parse_currencies(mixed $rawCurrencies): array {
+    public function parse_currencies(array $rawCurrencies): array {
         // each market row yields two currencies so the accumulation happens
         // in a local dictionary here instead of a temp key inside this.options
         // because the shared scratch key raced between concurrent
@@ -1936,7 +1936,7 @@ class bitstamp extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
         $request = array();
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
@@ -1970,7 +1970,7 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
         $request = array();
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
@@ -2635,7 +2635,7 @@ class bitstamp extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(?array $fundingRate, ?array $market = null): array {
         //
         //     {
         //         "funding_rate": "0.0024",

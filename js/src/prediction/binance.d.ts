@@ -276,7 +276,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    fetchWallet(methodName: string, params?: Dict): Promise<any>;
+    fetchWallet(methodName: string, params?: Dict): Promise<NullableDict>;
     /**
      * @method
      * @name binance#fetchQuote

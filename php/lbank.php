@@ -527,8 +527,8 @@ class lbank extends Exchange {
             $this->fetch_swap_markets($params),
         );
         $resolvedMarkets = $marketsPromises;
-        $spotMarkets = $this->safe_value($resolvedMarkets, 0);
-        $swapMarkets = $this->safe_value($resolvedMarkets, 1);
+        $spotMarkets = $this->safe_list($resolvedMarkets, 0, array());
+        $swapMarkets = $this->safe_list($resolvedMarkets, 1, array());
         return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
@@ -1379,7 +1379,7 @@ class lbank extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
+    public function parse_funding_rate(?array $ticker, ?array $market = null): array {
         // {
         //     "symbol": "BTCUSDT",
         //     "highestPrice": "69495.5",

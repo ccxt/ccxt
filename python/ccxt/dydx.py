@@ -759,11 +759,16 @@ class dydx(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         if since is not None:
-            request['fromIso'] = self.iso8601(since)
+            request['fromISO'] = self.iso8601(since)
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, 'until')
         if until is not None:
-            request['toIso'] = self.iso8601(until)
+            request['toISO'] = self.iso8601(until)
+        elif since is not None:
+            # the indexer returns the newest candles in the range, so the range ends where the limit does
+            duration = self.parse_timeframe(timeframe) * 1000
+            count = min(limit, 1000) if (limit is not None) else 1000
+            request['toISO'] = self.iso8601(self.sum(since, duration * count))
         response = self.indexerGetCandlesPerpetualMarketsMarket(self.extend(request, paramsOmitted))
         #
         # {
@@ -1171,7 +1176,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'positions', [])
         return self.parse_positions(rows, symbols)
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         return self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: object, privateKey: object) -> dict:
@@ -1205,7 +1210,7 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def sign_dydx_tx(self, privateKey: Str, message: object, memo: Str, chainId: Str, account: object, authenticators: object, fee: object = None) -> str:
+    def sign_dydx_tx(self, privateKey: Str, message: object, memo: Str, chainId: Str, account: dict, authenticators: object, fee: object = None) -> str:
         encodedTx, signDoc = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
         signatureR = self.safe_string(signature, 'r', '')
@@ -1845,7 +1850,7 @@ class dydx(Exchange, ImplicitAPI):
         account = self.fetch_dydx_account()
         usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
         payload = None
-        signingPayload = None
+        signingPayload = {}
         if fromAccount == 'main':
             # deposit to subaccount
             if toSubaccountId is None:

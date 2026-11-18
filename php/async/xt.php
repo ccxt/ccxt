@@ -1226,7 +1226,7 @@ class xt extends Exchange {
         return $this->parse_markets($swapAndFutureMarkets);
     }
 
-    public function parse_markets(mixed $markets) {
+    public function parse_markets(array $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $parsed = $this->parse_market($this->safe_value($markets, $i));
@@ -4067,10 +4067,20 @@ class xt extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $this->safe_symbol($marketId, $marketResolved, null, $marketType);
         $timestamp = $this->safe_integer_2($order, 'time', 'createdTime');
-        $quantity = $this->safe_number($order, 'origQty');
-        $amount = ($marketType === 'spot') ? $quantity : Precise::string_mul($this->number_to_string($quantity), $this->number_to_string($marketResolved['contractSize']));
-        $filledQuantity = $this->safe_number($order, 'executedQty');
-        $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($this->number_to_string($filledQuantity), $this->number_to_string($marketResolved['contractSize']));
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        $quantity = $this->safe_string($order, 'origQty');
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        $filledQuantity = $this->safe_string_2($order, 'tradeBase', 'executedQty');
+        $amount = ($marketType === 'spot') ? $quantity : Precise::string_mul($quantity, $contractSize);
+        $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($filledQuantity, $contractSize);
+        // leavingQty follows executedQty and is quote-denominated on the same
+        // spot market buy shape, so it is only read when the order carries a
+        // base-denominated origQty - otherwise safeOrder derives it from filled
+        $remaining = null;
+        if ($quantity !== null) {
+            $remaining = $this->safe_string($order, 'leavingQty');
+        }
         $lastUpdatedTimestamp = $this->safe_integer($order, 'updatedTime');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = null;
@@ -4105,7 +4115,7 @@ class xt extends Exchange {
             'lastTradeTimestamp' => $lastUpdatedTimestamp,
             'lastUpdateTimestamp' => $lastUpdatedTimestamp,
             'symbol' => $symbol,
-            'type' => $this->safe_string_lower_2($order, 'type', 'orderType'),
+            'type' => $this->parse_order_type($this->safe_string_lower_n($order, array( 'type', 'orderType', 'entrustType' ))),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
@@ -4115,8 +4125,8 @@ class xt extends Exchange {
             'takeProfitPrice' => $this->safe_number($order, 'triggerProfitPrice'),
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $this->safe_number($order, 'leavingQty'),
-            'cost' => null,
+            'remaining' => $remaining,
+            'cost' => $this->safe_string($order, 'tradeQuote'),
             'average' => $this->safe_number($order, 'avgPrice'),
             'status' => $this->parse_order_status($this->safe_string($order, 'state')),
             'fee' => array(
@@ -4125,6 +4135,17 @@ class xt extends Exchange {
             ),
             'trades' => null,
         ), $marketResolved);
+    }
+
+    public function parse_order_type(?string $type): ?string {
+        $types = array(
+            'stop' => 'limit',
+            'stop_market' => 'market',
+            'take_profit' => 'limit',
+            'take_profit_market' => 'market',
+            'trailing_stop_market' => 'market',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -5075,7 +5096,7 @@ class xt extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -5272,7 +5293,7 @@ class xt extends Exchange {
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $symbol = $this->safe_string($market, 'symbol');
         return array(
             'info' => $fee,
             'symbol' => $symbol,
@@ -6101,8 +6122,9 @@ class xt extends Exchange {
             $jsonBody = $this->json($query);
             $signedBody = $isUndefinedBody ? null : $jsonBody;
             $payloadString = '';
+            $timestampPart = '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
             if (($endpoint === 'spot') || ($endpoint === 'user')) {
-                $spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
+                $spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . $timestampPart;
                 if ($isUndefinedBody) {
                     if ($urlencoded !== '') {
                         $url = $apiUrl . $payload . '?' . $urlencoded;
@@ -6116,7 +6138,7 @@ class xt extends Exchange {
                 $headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 $headersValue['xt-validate-recvwindow'] = $recvWindow;
             } else {
-                $futurePrefix = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
+                $futurePrefix = 'xt-validate-appkey=' . $this->apiKey . $timestampPart;
                 if ($method === 'GET') {
                     if ($urlencoded !== '') {
                         $url = $apiUrl . $payload . '?' . $urlencoded;

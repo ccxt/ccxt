@@ -1227,9 +1227,6 @@ class pacifica extends pacifica$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "since" argument');
-        }
         const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1239,24 +1236,30 @@ class pacifica extends pacifica$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit);
         }
+        const limitValue = (limit === undefined) ? defaultMaxLimit : limit;
         const tf = this.safeString(this.timeframes, timeframe, timeframe);
+        const nowMs = this.milliseconds();
+        const duration = this.parseTimeframe(tf) * 1000;
         const request = {
             'symbol': market['id'],
             'interval': tf,
-            'start_time': since,
         };
+        let sinceValue = since;
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
-        const nowMillis = this.milliseconds();
-        const requestedUntil = this.safeInteger(requestUntil, 'end_time');
-        if (requestedUntil === undefined) {
-            const durationMillis = this.parseTimeframe(tf) * 1000;
-            const candleCount = (limit === undefined) ? defaultMaxLimit : limit;
-            if (since !== undefined) {
-                const windowEnd = this.parseToInt(this.sum(since - 1, candleCount * durationMillis));
-                const until = (windowEnd > nowMillis) ? nowMillis : windowEnd;
-                requestUntil['end_time'] = until;
+        if (this.safeInteger(requestUntil, 'end_time') === undefined) {
+            if (sinceValue === undefined) {
+                sinceValue = nowMs - limitValue * duration;
+            }
+            const windowEnd = this.parseToInt(this.sum(sinceValue - 1, limitValue * duration));
+            const until = (windowEnd > nowMs) ? nowMs : windowEnd;
+            requestUntil['end_time'] = until;
+        }
+        else {
+            if (sinceValue === undefined) {
+                sinceValue = requestUntil['end_time'] - limitValue * duration;
             }
         }
+        requestUntil['start_time'] = sinceValue;
         const response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {

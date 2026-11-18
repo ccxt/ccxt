@@ -854,15 +854,15 @@ public partial class poloniex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 500));
@@ -955,17 +955,17 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
 
-    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, IDictionary<string, object> parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        object markets = await base.loadMarkets(reload, parameters);
+        IDictionary<string, object> markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
         if (((currenciesByNumericId == null)) || reload == true)
         {
             this.options["currenciesByNumericId"] = this.indexBy(this.currencies, "numericId");
         }
-        return ((IDictionary<string, object>)((object)(markets)));
+        return markets;
     }
 
     /**
@@ -977,7 +977,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object> {this.FetchSpotMarkets(parameters), this.FetchSwapMarkets(parameters)};
@@ -985,7 +985,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat((results != null && 0 < results.Count ? results[0] : null), (results != null && 1 < results.Count ? results[1] : null)));
     }
 
-    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> markets = await this.publicGetMarkets(parameters);
@@ -1015,7 +1015,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapMarkets(IDictionary<string, object> parameters = null)
     {
         // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
         parameters ??= new Dictionary<string, object>();
@@ -1058,7 +1058,7 @@ public partial class poloniex : Exchange
         //                "limitMaxQty": "1000000"
         //            },
         //
-        List<object> markets = this.safeList(response, "data");
+        List<object> markets = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
@@ -1266,7 +1266,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<Int64> FetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetTimestamp(parameters);
@@ -1369,7 +1369,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1459,7 +1459,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetV2Currencies(parameters);
@@ -1497,11 +1497,10 @@ public partial class poloniex : Exchange
 
     public override Dictionary<string, object> parseCurrency(object currency)
     {
-        object entry = currency;
-        string? id = this.safeString(entry, "coin");
+        string? id = this.safeString(currency, "coin");
         string? code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        List<object> chains = this.safeList(entry, "networkList", new List<object>() {});
+        List<object> chains = this.safeList(currency, "networkList", new List<object>() {});
         int chainsLength = chains.Count;
         for (int j = 0; j < chainsLength; j++)
         {
@@ -1535,18 +1534,18 @@ public partial class poloniex : Exchange
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "name", this.safeString(entry, "name") },
+            { "name", this.safeString(currency, "name") },
             { "code", code },
             { "type", null },
             { "precision", null },
-            { "info", entry },
+            { "info", currency },
             { "networks", networks },
             { "deposit", null },
             { "withdraw", null },
             { "active", null },
             { "fee", null },
             { "limits", null },
-            { "margin", this.safeBool(entry, "supportBorrow") },
+            { "margin", this.safeBool(currency, "supportBorrow") },
         });
     }
 
@@ -1560,7 +1559,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1600,7 +1599,7 @@ public partial class poloniex : Exchange
         return this.parseTicker(response, market);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades
@@ -1748,7 +1747,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1811,13 +1810,13 @@ public partial class poloniex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
@@ -2161,7 +2160,7 @@ public partial class poloniex : Exchange
      * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2279,7 +2278,7 @@ public partial class poloniex : Exchange
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2370,7 +2369,7 @@ public partial class poloniex : Exchange
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2419,7 +2418,7 @@ public partial class poloniex : Exchange
      * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2509,7 +2508,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToOrderList(results);
     }
 
-    public virtual List<object> orderRequest(string? symbol, string? type, string? side, object amount, IDictionary<string, object> request, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? symbol, string? type, string? side, object amount, IDictionary<string, object> request, object price = null, IDictionary<string, object> parameters = null)
     {
         // build the request on a copy: the caller keeps its own dict and reads ours
         parameters ??= new Dictionary<string, object>();
@@ -2524,7 +2523,7 @@ public partial class poloniex : Exchange
         string? hedged = (string)hedgedparamsHedgedVariable[0];
         IDictionary<string, object> paramsHedged = ((IDictionary<string, object>)hedgedparamsHedgedVariable[1]);
         // marginMode and hedged are consumed for contract markets only
-        object query = parameters;
+        IDictionary<string, object> query = parameters;
         if (isContract)
         {
             query = paramsHedged;
@@ -2552,7 +2551,7 @@ public partial class poloniex : Exchange
         string upperCaseType = type.ToUpper();
         bool isMarket = upperCaseType == "MARKET";
         bool isPostOnly = this.isPostOnly(isMarket, upperCaseType == "LIMIT_MAKER", query);
-        object queryOmitted = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
+        IDictionary<string, object> queryOmitted = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
         if ((triggerPrice != null))
         {
             if (!(this.safeBool(market, "spot", false) == true))
@@ -2572,7 +2571,7 @@ public partial class poloniex : Exchange
             {
                 string? quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                (bool?, object) createMarketBuyOrderRequiresPricequeryOmittedVariable = this.handleOptionBoolAndParams(queryOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                (bool?, IDictionary<string, object>) createMarketBuyOrderRequiresPricequeryOmittedVariable = this.handleOptionBoolAndParams(queryOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryOmittedVariable.Item1;
                 queryOmitted = createMarketBuyOrderRequiresPricequeryOmittedVariable.Item2;
                 double? cost = this.safeNumber(queryOmitted, "cost");
@@ -2659,7 +2658,7 @@ public partial class poloniex : Exchange
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2696,7 +2695,7 @@ public partial class poloniex : Exchange
         return this.parseOrder(response, market);
     }
 
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         //
         // @method
@@ -2736,10 +2735,10 @@ public partial class poloniex : Exchange
             return this.parseOrder(this.safeDict(raw, "data", new Dictionary<string, object>() {}));
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        object idValue = ((clientOrderId != null)) ? clientOrderId : id;
+        string? idValue = ((clientOrderId != null)) ? clientOrderId : id;
         request["id"] = idValue;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "stop"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "stop"});
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         if ((isTrigger == true))
         {
@@ -2772,7 +2771,7 @@ public partial class poloniex : Exchange
      * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2846,7 +2845,7 @@ public partial class poloniex : Exchange
      * @param {boolean} [params.trigger] true if canceling trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2924,7 +2923,7 @@ public partial class poloniex : Exchange
      * @param {boolean} [params.trigger] true if fetching a trigger order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2982,7 +2981,7 @@ public partial class poloniex : Exchange
         return order;
     }
 
-    public async override Task<string> FetchOrderStatus(string id, string symbol = null, object parameters = null)
+    public async override Task<string> FetchOrderStatus(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3008,7 +3007,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3100,7 +3099,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3181,7 +3180,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3218,11 +3217,11 @@ public partial class poloniex : Exchange
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3232,11 +3231,8 @@ public partial class poloniex : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if ((this.safeBool(market, "contract", false) == true))
-            {
-                request["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 100, 150}, limit);
-            }
+            // both hosts accept only these depths, anything else is rejected with 24104
+            request["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 150}, limit);
         }
         if ((this.safeBool(market, "contract", false) == true))
         {
@@ -3302,7 +3298,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3330,7 +3326,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3355,7 +3351,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddressSpecial(response, currency, networkEntry));
     }
 
-    public virtual List<object> prepareRequestForDepositAddress(string code, object parameters = null)
+    public virtual List<object> prepareRequestForDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!((this.currenciesDict != null && code != null && this.currenciesDict.ContainsKey(code))))
@@ -3427,7 +3423,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3461,7 +3457,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<ccxt.TransferEntry> FetchTransfer(string id, string code = null, object parameters = null)
+    public async override Task<ccxt.TransferEntry> FetchTransfer(string id, string code = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3495,7 +3491,7 @@ public partial class poloniex : Exchange
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3595,7 +3591,7 @@ public partial class poloniex : Exchange
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
@@ -3631,7 +3627,7 @@ public partial class poloniex : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchTransactionsHelper(string? code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTransactionsHelper(string? code = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3735,7 +3731,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3750,7 +3746,7 @@ public partial class poloniex : Exchange
         IList<object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
         IList<object> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
         List<object> transactions = this.arrayConcat(depositTransactions, withdrawalTransactions);
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"),code, since, limit));
+        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.toArray(this.sortBy(transactions, "timestamp")),code, since, limit));
     }
 
     /**
@@ -3764,7 +3760,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.FetchTransactionsHelper(code, since, limit, parameters);
@@ -3787,7 +3783,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3945,7 +3941,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.FetchTransactionsHelper(code, since, limit, parameters);
@@ -3974,7 +3970,7 @@ public partial class poloniex : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // deposits
@@ -4020,8 +4016,8 @@ public partial class poloniex : Exchange
         Int64? timestamp = this.safeTimestamp(transactionValue, "timestamp");
         string? currencyId = this.safeString(transactionValue, "currency");
         string? code = this.safeCurrencyCode(currencyId);
-        string? status = this.safeString(transactionValue, "status", "pending");
-        status = this.parseTransactionStatus(status);
+        string? rawStatus = this.safeString(transactionValue, "status", "pending");
+        string? status = this.parseTransactionStatus(rawStatus);
         string? txid = this.safeString(transactionValue, "txid");
         string type = "deposit";
         if ((this.safeString(transactionValue, "withdrawalRequestsId") != null))
@@ -4076,7 +4072,7 @@ public partial class poloniex : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4085,9 +4081,9 @@ public partial class poloniex : Exchange
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         if ((marginMode == null))
         {
             throw new ArgumentsRequired ((this.id + " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
@@ -4120,7 +4116,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
+    public async override Task<ccxt.Leverage> FetchLeverage(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4128,9 +4124,9 @@ public partial class poloniex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         if ((marginMode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
@@ -4223,7 +4219,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public async override Task<ccxt.PositionModeInfo> FetchPositionMode(string symbol = null, object parameters = null)
+    public async override Task<ccxt.PositionModeInfo> FetchPositionMode(string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.swapPrivateGetV3PositionMode(parameters);
@@ -4252,7 +4248,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string mode = "ONE_WAY";
@@ -4284,7 +4280,7 @@ public partial class poloniex : Exchange
      * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4380,7 +4376,7 @@ public partial class poloniex : Exchange
             { "info", position },
             { "id", null },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
-            { "notional", notional },
+            { "notional", this.parseNumber(notional) },
             { "marginMode", marginMode },
             { "liquidationPrice", this.safeNumber(position, "liqPx") },
             { "entryPrice", this.safeNumber(position, "openAvgPx") },
@@ -4399,7 +4395,7 @@ public partial class poloniex : Exchange
             { "maintenanceMarginPercentage", null },
             { "collateral", this.parseNumber(collateral) },
             { "positionMargin", this.parseNumber(positionMargin) },
-            { "initialMargin", initialMargin },
+            { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", null },
             { "leverage", this.safeInteger(position, "lever") },
             { "marginRatio", this.safeNumber(position, "mgnRatio") },
@@ -4408,7 +4404,7 @@ public partial class poloniex : Exchange
         });
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4420,7 +4416,7 @@ public partial class poloniex : Exchange
             { "type", type.ToUpper() },
         };
         // todo: hedged handling, tricky
-        if (!(((IDictionary<string, object>)parameters).ContainsKey("posMode")))
+        if (!(parameters.ContainsKey("posMode")))
         {
             request["posMode"] = "BOTH";
         }
@@ -4475,7 +4471,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
+    public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
         // modifyMarginHelper sends Precise.stringAbs (amountToPrecision (amount)), so the sign is irrelevant
         parameters ??= new Dictionary<string, object>();
@@ -4491,7 +4487,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
+    public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);

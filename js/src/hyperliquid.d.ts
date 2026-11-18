@@ -146,7 +146,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
-    parseFundingRate(info: any, market?: Market): FundingRate;
+    parseFundingRate(info: NullableDict, market?: Market): FundingRate;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method

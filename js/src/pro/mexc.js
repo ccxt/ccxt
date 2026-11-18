@@ -606,8 +606,8 @@ export default class mexc extends mexcRest {
         const messageHash = 'candles:' + symbolValue + ':' + timeframe;
         let ohlcv = undefined;
         if (this.safeBool(market, 'spot', false)) {
-            const channel = 'spot@public.kline.v3.api.pb@' + this.safeString(market, 'id', '') + '@' + timeframeId;
-            ohlcv = await this.watchSpotPublic(channel, messageHash, params);
+            const spotChannel = 'spot@public.kline.v3.api.pb@' + this.safeString(market, 'id', '') + '@' + timeframeId;
+            ohlcv = await this.watchSpotPublic(spotChannel, messageHash, params);
         }
         else {
             const channel = 'sub.kline';
@@ -690,14 +690,14 @@ export default class mexc extends mexcRest {
         // }
         //
         let parsed;
-        let symbol = undefined;
+        let market = undefined;
         let timeframe = undefined;
         if ('publicSpotKline' in message) {
-            symbol = this.symbol(this.safeString(message, 'symbol'));
+            market = this.safeMarket(this.symbol(this.safeString(message, 'symbol')));
             const data = this.safeDict(message, 'publicSpotKline', {});
             const timeframeId = this.safeString(data, 'interval');
             timeframe = this.findTimeframe(timeframeId, this.options['timeframes']);
-            parsed = this.parseWsOHLCV(data, this.safeMarket(symbol));
+            parsed = this.parseWsOHLCV(data, market);
         }
         else {
             const d = this.safeDict2(message, 'd', 'data', {});
@@ -706,19 +706,18 @@ export default class mexc extends mexcRest {
             const timeframes = this.safeDict(this.options, 'timeframes', {});
             timeframe = this.findTimeframe(timeframeId, timeframes);
             const marketId = this.safeString2(message, 's', 'symbol');
-            const market = this.safeMarket(marketId);
-            symbol = market['symbol'];
+            market = this.safeMarket(marketId);
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
-        let stored = this.safeValue(symbolOhlcvs, timeframe);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp(limit);
             if (timeframe !== undefined) {
-                symbolOhlcvs[timeframe] = stored;
+                this.ohlcvs[symbol][timeframe] = stored;
             }
         }
         stored.append(parsed);
@@ -804,8 +803,8 @@ export default class mexc extends mexcRest {
         let orderbook = undefined;
         if (this.safeBool(market, 'spot', false)) {
             const [frequency, paramsFrequency] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'frequency', '100ms');
-            const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString(market, 'id', '');
-            orderbook = await this.watchSpotPublic(channel, messageHash, paramsFrequency);
+            const spotChannel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString(market, 'id', '');
+            orderbook = await this.watchSpotPublic(spotChannel, messageHash, paramsFrequency);
         }
         else {
             const channel = 'sub.depth';
@@ -1020,8 +1019,8 @@ export default class mexc extends mexcRest {
         const messageHash = 'trades:' + symbolValue;
         let trades = undefined;
         if (this.safeBool(market, 'spot', false)) {
-            const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + this.safeString(market, 'id', '');
-            trades = await this.watchSpotPublic(channel, messageHash, params);
+            const spotChannel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + this.safeString(market, 'id', '');
+            trades = await this.watchSpotPublic(spotChannel, messageHash, params);
         }
         else {
             const channel = 'sub.deal';

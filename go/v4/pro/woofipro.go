@@ -80,8 +80,8 @@ func (this *Woofipro) Describe() map[string]any {
 }
 func (this *Woofipro) RequestId(url string) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
-	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
+	var previousValue int64 = *this.SafeInteger(options, url, 0)
+	var newValue int64 = previousValue + 1
 	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	return newValue
 }
@@ -462,7 +462,7 @@ func (this *Woofipro) HandleBidAsk(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var ticker any = this.ParseWsBidAsk(this.Extend(data[i], map[string]any{
+		var ticker map[string]any = this.ParseWsBidAsk(this.Extend(data[i], map[string]any{
 			"ts": timestamp,
 		}))
 		var tickerSymbol *string = this.SafeString(ticker, "symbol")
@@ -473,7 +473,7 @@ func (this *Woofipro) HandleBidAsk(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
-func (this *Woofipro) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
+func (this *Woofipro) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
@@ -584,9 +584,9 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -597,7 +597,7 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 			}
 		}
 	}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, topic)
 }
 
@@ -781,8 +781,8 @@ func (this *Woofipro) HandleAuth(client any, message map[string]any) {
 	var success *bool = this.SafeBool(message, "success", false)
 	if success != nil && *success {
 		// client.resolve (message, messageHash)
-		var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
-		future.(*ccxt.Future).Resolve(true)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -807,11 +807,10 @@ func (this *Woofipro) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
-		var auth string = ts
 		var secret any = this.Secret
 		if strings.Index(this.Secret, "ed25519:") >= 0 {
 			var parts []string = strings.Split(this.Secret, "ed25519:")
@@ -822,7 +821,7 @@ func (this *Woofipro) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 				return nil
 			}()
 		}
-		var signature string = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)
+		var signature string = ccxt.Eddsa(this.Encode(ts), this.Base58ToBinary(secret), ccxt.Ed25519)
 		var request map[string]any = map[string]any{
 			"event": event,
 			"params": map[string]any{
@@ -835,7 +834,7 @@ func (this *Woofipro) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1218,7 +1217,7 @@ func (this *Woofipro) HandleOrderUpdate(client any, message map[string]any) {
 		// algoexecutionreport
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
 			var order any = ccxt.GetValue(data, i)
-			var tradeId any = this.OmitZero(this.SafeString(data, "tradeId"))
+			var tradeId *string = this.OmitZero(this.SafeString(data, "tradeId"))
 			if tradeId != nil {
 				this.HandleMyTrade(client, order)
 			}
@@ -1226,7 +1225,7 @@ func (this *Woofipro) HandleOrderUpdate(client any, message map[string]any) {
 		}
 	} else {
 		// executionreport
-		var tradeId any = this.OmitZero(this.SafeString(data, "tradeId"))
+		var tradeId *string = this.OmitZero(this.SafeString(data, "tradeId"))
 		if tradeId != nil {
 			this.HandleMyTrade(client, data)
 		}
@@ -1362,8 +1361,8 @@ func (this *Woofipro) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	var url string = *this.SafeString(this.SafeDict(this.SafeDict(this.Urls, "api", map[string]any{}), "ws", map[string]any{}), "private", "") + "/" + this.AccountId
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.Positions == nil) {
 
 		r1 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -1397,7 +1396,7 @@ func (this *Woofipro) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 func (this *Woofipro) SetPositionsCache(client any, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -1423,18 +1422,18 @@ func (this *Woofipro) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *string = this.SafeString(position, "contracts", "0")
 		if ccxt.Precise.StringGt(contracts, "0") {
-			cache.(ccxt.Appender).Append(position)
+			cache.Append(position)
 		}
 	}
 	// don't remove the future from the .futures cache
-	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 	if future != nil {
-		future.(*ccxt.Future).Resolve(cache)
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	}
 	return nil
@@ -1477,22 +1476,22 @@ func (this *Woofipro) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = rawPositions[i]
 		var marketId *string = this.SafeString(rawPosition, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var position any = this.ParseWsPosition(rawPosition, market)
+		var position map[string]any = this.ParseWsPosition(rawPosition, market)
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 		var positionSymbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var messageHash string = "positions::" + *positionSymbol
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 }
-func (this *Woofipro) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Woofipro) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol":"PERP_ETH_USDC",
